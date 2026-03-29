@@ -41,11 +41,17 @@ export default function ModulesGrid({
 
   const bkMeta = bkBits.length > 0 ? bkBits.join(' · ') : 'Not started';
 
-  // Email Signature metadata
+  // Email Signature metadata — check saved fields, HTML, or contact data
   const sigFields = client.signatureFields || {};
-  const sigHasData = !!client.emailSignatureHtml || !!sigFields.name || !!sigFields.email || !!sigFields.company;
+  const sigContacts = DB.contacts[clientId] || [];
+  const sigPrimary = sigContacts.find((c) => c.isPrimary) || sigContacts[0];
+  const sigHasData = !!client.emailSignatureHtml
+    || !!sigFields.name || !!sigFields.email || !!sigFields.company
+    || !!(sigFields as any).logoSrc
+    || (sigPrimary && (sigPrimary.name || sigPrimary.email));
+  const sigDisplayName = sigFields.name || sigPrimary?.name || '';
   const sigMeta = sigHasData
-    ? (sigFields.name ? `${sigFields.name}` : 'Signature configured')
+    ? (sigDisplayName ? sigDisplayName : 'Configured')
     : 'Not started';
 
   // Financials metadata (agency only)

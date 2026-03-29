@@ -21,40 +21,42 @@ export default function ClientHubPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isClient, setIsClient] = useState(false);
 
+  // Listen for view mode changes from the nav toggle
+  useEffect(() => {
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('viewMode') : null;
+    setIsClient(stored === 'client');
+
+    const handler = (e: Event) => {
+      const mode = (e as CustomEvent).detail;
+      setIsClient(mode === 'client');
+    };
+    window.addEventListener('viewModeChange', handler);
+    return () => window.removeEventListener('viewModeChange', handler);
+  }, []);
+
   useEffect(() => {
     const initData = async () => {
       setIsLoading(true);
 
-      // Load clients
       if (DB.clientsState !== 'loaded') {
         await loadClients();
       }
 
-      // Load contacts for this client
       if (!DB.contacts[clientId]) {
         await loadContacts(clientId);
       }
 
-      // Load invoices for this client
       await loadInvoices(clientId);
-
-      // Load brand kits
       await loadAllBrandKits();
 
-      // Find the client
       const foundClient = DB.clients.find((c) => c.id === clientId);
       if (foundClient) {
         setClient(foundClient);
         setContacts(DB.contacts[clientId] || []);
         setInvoices(DB.invoices.filter((i) => i.clientId === clientId));
       } else {
-        // Client not found, redirect to clients
         router.push('/clients');
       }
-
-      // Check if viewing as client
-      // TODO: Get actual view mode from context/auth
-      setIsClient(false);
 
       setIsLoading(false);
     };
@@ -91,19 +93,6 @@ export default function ClientHubPage() {
 
   return (
     <div className="page">
-      <button
-        onClick={() => router.push('/')}
-        style={{
-          background: 'none', border: 'none', color: '#6366f1', fontSize: '13px',
-          fontWeight: 500, cursor: 'pointer', padding: 0, marginBottom: '16px',
-          display: 'inline-flex', alignItems: 'center', gap: '4px', fontFamily: 'Inter, sans-serif',
-        }}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M19 12H5" /><polyline points="12 19 5 12 12 5" />
-        </svg>
-        Back to Dashboard
-      </button>
       <HeroCard
         client={client}
         contacts={contacts}

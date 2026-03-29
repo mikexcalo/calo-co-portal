@@ -7,6 +7,7 @@ import {
   initAgency,
   loadClients,
   loadInvoices,
+  loadContacts,
   loadAllBrandKits,
   loadActivityLog,
   loadExpenses,
@@ -39,9 +40,10 @@ export default function Home() {
         await initAgency();
         await loadClients();
 
-        // Load invoices for each client
+        // Load invoices and contacts for each client
         for (const client of DB.clients) {
           await loadInvoices(client.id);
+          await loadContacts(client.id);
         }
 
         await loadAllBrandKits();

@@ -301,50 +301,67 @@ export default function LogoSlot({
       {/* File list */}
       {hasFiles && (
         <div className="bk-file-list">
-          {files.map((file, idx) => (
-            <div
-              key={idx}
-              className={`bk-file-row ${file.isPrimary && isRenderable(file) ? 'is-primary' : ''}`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {file.data ? (
-                <img src={file.data} alt={file.name} className="bk-file-thumb" />
-              ) : (
-                <div className="bk-file-thumb-placeholder">{file.ext}</div>
-              )}
+          {files.map((file, idx) => {
+            // Only the first renderable file gets the "Primary" label
+            const isFirstRenderable = idx === files.findIndex((f) => isRenderable(f));
+            const showPrimaryBadge = isRenderable(file) && isFirstRenderable;
 
-              <div className="bk-file-info">
-                <div className="bk-file-name">{file.name}</div>
-                <div className="bk-file-ext">{file.ext}</div>
+            return (
+              <div
+                key={idx}
+                className={`bk-file-row ${showPrimaryBadge ? 'is-primary' : ''}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {file.data ? (
+                  <img src={file.data} alt={file.name} className="bk-file-thumb" />
+                ) : (
+                  <div className="bk-file-thumb-placeholder">{file.ext}</div>
+                )}
+
+                <div className="bk-file-info">
+                  <div className="bk-file-name">{file.name}</div>
+                  <div className="bk-file-ext">
+                    {showPrimaryBadge ? 'Primary' : file.ext}
+                  </div>
+                </div>
+
+                {/* Download button */}
+                {file.data && (
+                  <a
+                    href={file.data}
+                    download={file.name}
+                    onClick={(e) => e.stopPropagation()}
+                    title="Download"
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: 22, height: 22, borderRadius: 4,
+                      color: '#64748b', flexShrink: 0,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                  </a>
+                )}
+
+                {!readOnly && (
+                  <button
+                    className="bk-file-del-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(idx);
+                    }}
+                    title="Delete"
+                  >
+                    ×
+                  </button>
+                )}
               </div>
-
-              {isRenderable(file) && !readOnly && (
-                <button
-                  className={`bk-file-primary-btn ${file.isPrimary ? 'active' : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSetPrimary(idx);
-                  }}
-                  title="Set as primary"
-                >
-                  {file.isPrimary ? 'Primary' : 'Set'}
-                </button>
-              )}
-
-              {!readOnly && (
-                <button
-                  className="bk-file-del-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(idx);
-                  }}
-                  title="Delete"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

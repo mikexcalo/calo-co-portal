@@ -22,14 +22,20 @@ export default function SignatureFields({
   onSave,
   isSaving,
 }: SignatureFieldsProps) {
+  // Default brand color: use brand kit primary color, then saved value, then fallback
+  const bkPrimaryColor = brandKit?.colors?.[0] ? extractHex(brandKit.colors[0]) : '';
+  const defaultBrandColor = client.signatureFields?.brandColor || bkPrimaryColor || '#333333';
+
   const [fields, setFields] = useState<SignatureFieldsType>({
     name: '',
     title: '',
     company: '',
     email: '',
     website: '',
-    brandColor: '#333333',
+    brandColor: defaultBrandColor,
     ...client.signatureFields,
+    // Ensure brand color uses brand kit if no saved value
+    ...(client.signatureFields?.brandColor ? {} : { brandColor: defaultBrandColor }),
   });
 
   const [visible, setVisible] = useState({

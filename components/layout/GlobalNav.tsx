@@ -1,17 +1,47 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
-
-const NAV_LINKS = [
-  { label: 'Dashboard', href: '/', exact: true },
-  { label: 'Clients', href: '/clients', exact: false },
-  { label: 'Invoices', href: '/invoices', exact: false },
-  { label: 'Financials', href: '/financials', exact: false },
-];
+import { useEffect, useState } from 'react';
+import { DB } from '@/lib/database';
 
 export default function GlobalNav() {
   const router = useRouter();
   const pathname = usePathname();
+  const [, forceUpdate] = useState(0);
+
+  // Re-render when clients load so breadcrumbs can resolve names
+  useEffect(() => {
+    if (DB.clientsState === 'loading') {
+      const interval = setInterval(() => {
+        if (DB.clientsState !== 'loading') {
+          forceUpdate((n) => n + 1);
+          clearInterval(interval);
+        }
+      }, 200);
+      return () => clearInterval(interval);
+    }
+  }, []);
+
+  // Build breadcrumbs from pathname
+  const breadcrumbs = buildBreadcrumbs(pathname);
+
+  // View toggle — only show on client detail pages
+  const clientMatch = pathname.match(/^\/clients\/([^/]+)/);
+  const isClientRoute = clientMatch && clientMatch[1] !== 'new';
+
+  const [viewMode, setViewMode] = useState<'agency' | 'client'>('agency');
+
+  // Persist view mode
+  useEffect(() => {
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('viewMode') : null;
+    if (stored === 'client') setViewMode('client');
+  }, []);
+
+  const handleViewToggle = (mode: 'agency' | 'client') => {
+    setViewMode(mode);
+    localStorage.setItem('viewMode', mode);
+    window.dispatchEvent(new CustomEvent('viewModeChange', { detail: mode }));
+  };
 
   return (
     <nav
@@ -28,65 +58,77 @@ export default function GlobalNav() {
         fontFamily: 'Inter, sans-serif',
       }}
     >
-      {/* Left: Wordmark */}
-      <div
-        onClick={() => router.push('/')}
-        style={{
-          fontSize: '16px',
-          fontWeight: 700,
-          color: '#ffffff',
-          letterSpacing: '0.04em',
-          cursor: 'pointer',
-        }}
-      >
-        CALO&CO
-      </div>
-
-      {/* Center: Nav links */}
-      <div style={{ display: 'flex', gap: '28px' }}>
-        {NAV_LINKS.map((link) => {
-          const isActive = link.exact
-            ? pathname === link.href
-            : pathname.startsWith(link.href);
-
+      {/* Left: Breadcrumbs */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0, overflow: 'hidden' }}>
+        {breadcrumbs.map((crumb, i) => {
+          const isLast = i === breadcrumbs.length - 1;
           return (
-            <button
-              key={link.label}
-              onClick={() => router.push(link.href)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: isActive ? '#ffffff' : 'rgba(255,255,255,0.6)',
-                fontSize: '13px',
-                fontWeight: isActive ? 600 : 400,
-                cursor: 'pointer',
-                padding: '4px 0',
-                borderBottom: isActive ? '2px solid #ffffff' : '2px solid transparent',
-                fontFamily: 'Inter, sans-serif',
-              }}
-            >
-              {link.label}
-            </button>
+            <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+              {i > 0 && (
+                <span style={{ color: '#475569', fontSize: 11, flexShrink: 0 }}>/</span>
+              )}
+              {isLast ? (
+                <span style={{ color: '#f1f5f9', fontSize: 13, fontWeight: 600 }}>
+                  {crumb.label}
+                </span>
+              ) : (
+                <button
+                  onClick={() => router.push(crumb.href!)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#94a3b8',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    padding: 0,
+                    fontFamily: 'Inter, sans-serif',
+                    transition: 'color 0.12s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#e2e8f0')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
+                >
+                  {crumb.label}
+                </button>
+              )}
+            </span>
           );
         })}
       </div>
 
-      {/* Right: Settings + Brand Kit */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <button
-          onClick={() => router.push('/brand-kit')}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: pathname === '/brand-kit' ? '#ffffff' : 'rgba(255,255,255,0.6)',
-            fontSize: '13px',
-            fontWeight: pathname === '/brand-kit' ? 600 : 400,
-            cursor: 'pointer',
-            fontFamily: 'Inter, sans-serif',
-          }}
-        >
-          Brand Kit
-        </button>
+      {/* Right: View toggle + Settings */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+        {isClientRoute && (
+          <div
+            style={{
+              display: 'flex',
+              border: '1.5px solid #475569',
+              borderRadius: 7,
+              overflow: 'hidden',
+            }}
+          >
+            {(['agency', 'client'] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => handleViewToggle(mode)}
+                style={{
+                  background: viewMode === mode ? '#2563eb' : 'transparent',
+                  color: viewMode === mode ? '#ffffff' : '#94a3b8',
+                  border: 'none',
+                  padding: '5px 12px',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'Inter, sans-serif',
+                  transition: 'all 0.12s',
+                }}
+              >
+                {mode === 'agency' ? 'Agency' : 'Client'} View
+              </button>
+            ))}
+          </div>
+        )}
+
         <button
           onClick={() => router.push('/settings')}
           title="Settings"
@@ -107,4 +149,70 @@ export default function GlobalNav() {
       </div>
     </nav>
   );
+}
+
+interface Crumb {
+  label: string;
+  href?: string;
+}
+
+function buildBreadcrumbs(pathname: string): Crumb[] {
+  const crumbs: Crumb[] = [];
+
+  if (pathname === '/') {
+    return [{ label: 'Agency Dashboard' }];
+  }
+
+  crumbs.push({ label: 'Agency Dashboard', href: '/' });
+
+  // Match /clients/[id]
+  const clientMatch = pathname.match(/^\/clients\/([^/]+)/);
+
+  if (clientMatch) {
+    const clientId = clientMatch[1];
+    if (clientId === 'new') {
+      crumbs.push({ label: 'New Client' });
+      return crumbs;
+    }
+
+    const client = DB.clients.find((c) => c.id === clientId);
+    const clientName = client?.company || client?.name || 'Client';
+
+    const subPath = pathname.replace(`/clients/${clientId}`, '');
+
+    if (!subPath || subPath === '/') {
+      crumbs.push({ label: clientName });
+    } else {
+      crumbs.push({ label: clientName, href: `/clients/${clientId}` });
+
+      const moduleMap: Record<string, string> = {
+        '/brand-kit': 'Brand Kit',
+        '/invoices': 'Invoices',
+        '/invoices/new': 'New Invoice',
+        '/financials': 'Financials',
+        '/email-signature': 'Email Signature',
+        '/brand-builder': 'Brand Builder',
+      };
+
+      if (subPath === '/invoices/new') {
+        crumbs.push({ label: 'Invoices', href: `/clients/${clientId}/invoices` });
+        crumbs.push({ label: 'New Invoice' });
+      } else {
+        crumbs.push({ label: moduleMap[subPath] || subPath.slice(1) });
+      }
+    }
+    return crumbs;
+  }
+
+  // Top-level routes
+  const topRoutes: Record<string, string> = {
+    '/invoices': 'All Invoices',
+    '/financials': 'Financials',
+    '/settings': 'Settings',
+    '/brand-kit': 'Agency Brand Kit',
+    '/war-room': 'War Room',
+  };
+
+  crumbs.push({ label: topRoutes[pathname] || pathname.slice(1) });
+  return crumbs;
 }

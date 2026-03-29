@@ -43,7 +43,8 @@
 
 .stepsList {
   margin: 4px 0;
-  padding-left: 18px;
+  padding-left: 22px;
+  list-style-type: decimal;
 }
 
 .stepsList li {
