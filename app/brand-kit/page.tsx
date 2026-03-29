@@ -46,7 +46,7 @@ export default function AgencyBrandKitPage() {
           textAlign: 'center',
         }}
       >
-        <div style={{ fontSize: '40px', marginBottom: '12px' }}>🍎</div>
+        <div style={{ fontSize: '40px', marginBottom: '12px' }}>🎨</div>
         <div style={{ fontSize: '16px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
           Agency Brand Kit — coming soon
         </div>

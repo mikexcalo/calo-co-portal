@@ -3,10 +3,10 @@
 import { useRouter, usePathname } from 'next/navigation';
 
 const NAV_LINKS = [
-  { label: 'Dashboard', href: '/' },
-  { label: 'Clients', href: '/' },
-  { label: 'Invoices', href: '/invoices' },
-  { label: 'Financials', href: '/financials' },
+  { label: 'Dashboard', href: '/', exact: true },
+  { label: 'Clients', href: '/clients', exact: false },
+  { label: 'Invoices', href: '/invoices', exact: false },
+  { label: 'Financials', href: '/financials', exact: false },
 ];
 
 export default function GlobalNav() {
@@ -45,10 +45,9 @@ export default function GlobalNav() {
       {/* Center: Nav links */}
       <div style={{ display: 'flex', gap: '28px' }}>
         {NAV_LINKS.map((link) => {
-          const isActive =
-            link.href === '/'
-              ? pathname === '/'
-              : pathname.startsWith(link.href);
+          const isActive = link.exact
+            ? pathname === link.href
+            : pathname.startsWith(link.href);
 
           return (
             <button

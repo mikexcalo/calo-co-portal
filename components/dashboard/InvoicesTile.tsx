@@ -33,7 +33,7 @@ function useInvoiceStats(): InvoiceStats {
 
     const overdueCount = invoices.filter((i) => i.status !== 'paid' && daysUntil(i.due)! < 0).length;
 
-    const heroColor = allOutstanding === 0 ? '#16a34a' : '#d97706';
+    const heroColor = invoices.length === 0 ? '#0f172a' : allOutstanding === 0 ? '#16a34a' : '#d97706';
     const subtext =
       invoices.length === 0
         ? 'No invoices yet'
@@ -105,7 +105,7 @@ export function InvoicesTileBody() {
       </div>
       <div className="ag-tile-row">
         <span className="ag-tile-lbl">Paid</span>
-        <span className="ag-tile-val green">{currency(stats.paid)}</span>
+        <span className={`ag-tile-val ${stats.paid > 0 ? 'green' : ''}`}>{currency(stats.paid)}</span>
       </div>
       {stats.recentInvoice && (
         <div className="ag-tile-recent">

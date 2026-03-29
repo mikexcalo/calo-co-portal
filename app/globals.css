@@ -2217,7 +2217,7 @@ textarea {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(241, 245, 249, 0.82);
+  background: rgba(241, 245, 249, 0.97);
   border-radius: 12px;
   border: 1.5px dashed #cbd5e1;
   gap: 5px;
@@ -2225,7 +2225,7 @@ textarea {
 }
 
 .module-card-locked-wrap:hover .module-lock-overlay {
-  background: rgba(219, 234, 254, 0.88);
+  background: rgba(219, 234, 254, 0.97);
   border-color: #93c5fd;
 }
 

@@ -8,6 +8,7 @@ import LogoSlot from '@/components/brand-kit/LogoSlot';
 import ColorPalette from '@/components/brand-kit/ColorPalette';
 import Typography from '@/components/brand-kit/Typography';
 import BrandNotes from '@/components/brand-kit/BrandNotes';
+import BrandKitErrorBoundary from '@/components/brand-kit/BrandKitErrorBoundary';
 
 export default function BrandKitPage() {
   const params = useParams();
@@ -53,7 +54,22 @@ export default function BrandKitPage() {
         if (!bk.logos.icon) bk.logos.icon = [];
         if (!bk.logos.secondary) bk.logos.secondary = [];
         if (!bk.logos.favicon) bk.logos.favicon = [];
-        if (!bk.colors) bk.colors = [];
+        // Safely parse colors — could be array of strings, JSONB objects, or malformed
+        if (!bk.colors) {
+          bk.colors = [];
+        } else if (!Array.isArray(bk.colors)) {
+          try {
+            bk.colors = typeof bk.colors === 'string' ? JSON.parse(bk.colors) : [];
+          } catch {
+            bk.colors = [];
+          }
+        }
+        // Ensure each color is a string
+        bk.colors = bk.colors.map((c: any) => {
+          if (typeof c === 'string') return c;
+          if (c && typeof c === 'object' && c.hex) return c.hex;
+          return '#000000';
+        });
         if (!bk.fonts) bk.fonts = { heading: '', body: '', accent: '' };
         if (!bk.notes) bk.notes = '';
         setBrandKit(bk);
@@ -205,6 +221,7 @@ export default function BrandKitPage() {
       )}
 
       {/* Main layout */}
+      <BrandKitErrorBoundary clientId={clientId} clientName={client.company || client.name}>
       <div className="bk-layout">
         {/* Logo Suite Card */}
         <div className="bk-card">
@@ -309,6 +326,7 @@ export default function BrandKitPage() {
           />
         </div>
       </div>
+      </BrandKitErrorBoundary>
     </div>
   );
 }

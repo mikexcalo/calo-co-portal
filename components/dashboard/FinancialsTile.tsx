@@ -66,8 +66,8 @@ function useFinancialStats(): FinancialStats {
     const taxEstimate = totalNet > 0 ? totalNet * ((DB.agencySettings.taxRate || 28) / 100) : 0;
 
     // Color coding
-    const monthNetColor = monthNet < 0 ? '#dc2626' : monthNet === 0 ? '#16a34a' : '#0f172a';
-    const netColor = totalNet < 0 ? '#dc2626' : totalNet === 0 ? '#16a34a' : '#0f172a';
+    const monthNetColor = monthNet < 0 ? '#dc2626' : monthNet > 0 ? '#16a34a' : '#0f172a';
+    const netColor = totalNet < 0 ? '#dc2626' : totalNet > 0 ? '#16a34a' : '#0f172a';
 
     return {
       monthRevenue,

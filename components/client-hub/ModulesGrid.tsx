@@ -22,11 +22,11 @@ export default function ModulesGrid({
 }: ModulesGridProps) {
   const router = useRouter();
 
-  // Build Brand Kit metadata
-  const logoCount = Object.values(client.brandKit?.logos || {}).reduce(
-    (sum, arr) => sum + (arr ? arr.length : 0),
-    0
-  );
+  // Build Brand Kit metadata — count distinct logo slots that have at least one file
+  const logoSlots = client.brandKit?.logos || {};
+  const logoCount = (['color', 'light', 'dark', 'icon', 'secondary', 'favicon'] as const).filter(
+    (slot) => (logoSlots[slot] || []).length > 0
+  ).length;
   const bkColors = client.brandKit?.colors?.length || 0;
   const hasBkFonts = !!(
     client.brandKit?.fonts?.heading ||
@@ -35,15 +35,18 @@ export default function ModulesGrid({
   );
 
   let bkBits: string[] = [];
-  if (logoCount > 0) bkBits.push(`${logoCount} logo${logoCount !== 1 ? 's' : ''}`);
+  if (logoCount > 0) bkBits.push(`${logoCount} logo slot${logoCount !== 1 ? 's' : ''}`);
   if (bkColors > 0) bkBits.push(`${bkColors} color${bkColors !== 1 ? 's' : ''}`);
   if (hasBkFonts) bkBits.push('Fonts');
 
   const bkMeta = bkBits.length > 0 ? bkBits.join(' · ') : 'Not started';
 
   // Email Signature metadata
-  const sigHasSaved = !!client.emailSignatureHtml;
-  const sigMeta = sigHasSaved ? 'Generated' : 'Not started';
+  const sigFields = client.signatureFields || {};
+  const sigHasData = !!client.emailSignatureHtml || !!sigFields.name || !!sigFields.email || !!sigFields.company;
+  const sigMeta = sigHasData
+    ? (sigFields.name ? `${sigFields.name}` : 'Signature configured')
+    : 'Not started';
 
   // Financials metadata (agency only)
   const finScopeRev = invoices
@@ -171,6 +174,18 @@ export default function ModulesGrid({
             <div className="module-lock-cta">Unlock Email Signature →</div>
           </div>
         </div>
+      )}
+
+      {/* Brand Builder - agency only */}
+      {!isClient && (
+        <button
+          className="module-card"
+          onClick={() => router.push(`/clients/${clientId}/brand-builder`)}
+        >
+          <div className="mc-icon">🎨</div>
+          <div className="mc-name">Brand Builder</div>
+          <div className="mc-meta">Get started</div>
+        </button>
       )}
 
       {/* Locked modules (future content) */}

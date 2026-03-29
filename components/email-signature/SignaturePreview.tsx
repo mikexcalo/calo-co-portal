@@ -48,7 +48,17 @@ export default function SignaturePreview({
       logo: true,
     };
 
-    const logoSrc = signatureFields?.logoSrc || '';
+    // Fall back to brand kit primary logo if signatureFields doesn't have a logoSrc
+    let logoSrc = (signatureFields?.logoSrc as string) || '';
+    if (!logoSrc && brandKit?.logos) {
+      const slots = ['color', 'light', 'dark', 'icon', 'secondary', 'favicon'] as const;
+      for (const slot of slots) {
+        const logos = brandKit.logos[slot] || [];
+        const primary = logos.find((f) => f.isPrimary);
+        if (primary?.data) { logoSrc = primary.data; break; }
+        if (logos.length > 0 && logos[0]?.data) { logoSrc = logos[0].data; break; }
+      }
+    }
     const isStacked = layout === 'stacked';
 
     const showLogo = visible.logo !== false;
