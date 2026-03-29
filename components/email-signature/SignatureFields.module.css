@@ -1,0 +1,269 @@
+.esigFieldsCard {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.fieldRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldRowHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.fieldInput {
+  font-size: 13px;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 11px;
+  outline: none;
+  font-family: inherit;
+  background: #fff;
+  box-sizing: border-box;
+  transition: border-color 0.1s;
+}
+
+.fieldInput:focus {
+  border-color: #6366f1;
+}
+
+.fieldInput.off {
+  opacity: 0.38;
+  pointer-events: none;
+}
+
+.fieldInput:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.visToggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.visCheck {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  border: 1.5px solid #cbd5e1;
+  background: #fff;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.1s;
+}
+
+.visCheck.on {
+  background: #6366f1;
+  border-color: #6366f1;
+}
+
+.visCheck.on::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0px;
+  width: 5px;
+  height: 8px;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(40deg);
+}
+
+.visLabel {
+  font-size: 9.5px;
+  color: #94a3b8;
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+
+.logoRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logoThumbContainer {
+  width: 100px;
+  height: 60px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.logoThumb {
+  max-width: 95px;
+  max-height: 55px;
+  object-fit: contain;
+}
+
+.logoPlaceholder {
+  font-size: 12px;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.changeLink {
+  font-size: 12px;
+  color: #6366f1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-weight: 500;
+  transition: color 0.1s;
+}
+
+.changeLink:hover {
+  color: #4f46e5;
+}
+
+.changeLink:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.noLogosText {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.logoHint {
+  font-size: 10px;
+  color: #6366f1;
+  margin-top: 5px;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.logoPicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+  margin-top: 8px;
+}
+
+.logoPickThumb {
+  max-width: 80px;
+  max-height: 60px;
+  border: 2px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 2px;
+  cursor: pointer;
+  transition: all 0.1s;
+  object-fit: contain;
+}
+
+.logoPickThumb:hover {
+  border-color: #6366f1;
+}
+
+.logoPickThumb.selected {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 1px #e0e7ff;
+}
+
+.colorRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.colorSwatch {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.1s;
+}
+
+.colorSwatch:hover {
+  border-color: #6366f1;
+}
+
+.colorTextInput {
+  font-size: 13px;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 11px;
+  outline: none;
+  font-family: 'Courier New', monospace;
+  background: #fff;
+  box-sizing: border-box;
+  width: 130px;
+  transition: border-color 0.1s;
+}
+
+.colorTextInput:focus {
+  border-color: #6366f1;
+}
+
+.colorTextInput:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.bkSwatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.bkSwatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: box-shadow 0.1s;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.bkSwatch:hover {
+  box-shadow: 0 0 0 2px #6366f1;
+}
+
+.bkSwatch.selected {
+  box-shadow: 0 0 0 2.5px #6366f1, 0 0 0 4.5px #e0e7ff;
+}

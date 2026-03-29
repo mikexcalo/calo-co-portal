@@ -1,0 +1,113 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dropZone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 200ms ease;
+  background: #fafafa;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropZone:hover {
+  border-color: #94a3b8;
+  background: #f1f5f9;
+}
+
+.dropZone.dragActive {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon {
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.label {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 14px;
+}
+
+.sub {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.hint {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.preview {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.imageWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.image {
+  max-height: 150px;
+  max-width: 150px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  object-fit: cover;
+}
+
+.removeBtn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 200ms ease;
+}
+
+.removeBtn:hover {
+  background: #dc2626;
+}
+
+.status {
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  text-align: center;
+}

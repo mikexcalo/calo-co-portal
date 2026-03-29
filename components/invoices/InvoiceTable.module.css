@@ -1,0 +1,223 @@
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table thead {
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+
+.toggleCol {
+  width: 40px;
+  padding: 0;
+}
+
+.toggleBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 200ms ease;
+}
+
+.toggleBtn:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.chevron {
+  width: 16px;
+  height: 16px;
+  transition: transform 200ms ease;
+}
+
+.toggleBtn[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+}
+
+.row {
+  transition: background 200ms ease;
+}
+
+.row:hover {
+  background: #fafafa;
+}
+
+.invoiceNum {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.amountCol {
+  text-align: right;
+}
+
+.actionCol {
+  width: 40px;
+  text-align: center;
+}
+
+.deleteIconBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #ef4444;
+  opacity: 0;
+  transition: all 200ms ease;
+}
+
+.row:hover .deleteIconBtn {
+  opacity: 1;
+}
+
+.deleteIconBtn:hover {
+  color: #dc2626;
+  background: #fee2e2;
+  border-radius: 4px;
+}
+
+.deleteIconBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.expandRow td {
+  padding: 0;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.expandContent {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.itemsSection,
+.actionsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 8px 0;
+}
+
+.itemsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.itemsTable thead {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.itemsTable th {
+  padding: 6px 0;
+  text-align: left;
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.itemsTable td {
+  padding: 6px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.narrow {
+  width: 60px;
+}
+
+.right {
+  text-align: right;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.actionBtn {
+  padding: 8px 12px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 200ms ease;
+}
+
+.actionBtn:hover {
+  background: #2563eb;
+}
+
+.actionBtn:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+}
+
+.notes {
+  padding: 8px 12px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #4b5563;
+  line-height: 1.4;
+}
+
+.empty {
+  padding: 32px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 13px;
+}
