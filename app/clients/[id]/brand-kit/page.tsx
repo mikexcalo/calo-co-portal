@@ -116,8 +116,61 @@ export default function BrandKitPage() {
   };
 
   const handleExportPDF = async () => {
-    // TODO: Implement PDF export functionality
-    console.log('Export PDF for client:', clientId);
+    if (!brandKit || !client) return;
+    const { default: jsPDF } = await import('jspdf');
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'letter' });
+    const name = client.company || client.name || 'Client';
+    let y = 50;
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(24);
+    pdf.text(`${name} — Brand Guide`, 50, y);
+    y += 36;
+
+    // Colors
+    if (brandKit.colors.length > 0) {
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Color Palette', 50, y);
+      y += 20;
+      brandKit.colors.forEach((c, i) => {
+        const hex = typeof c === 'string' ? c : (c as any).hex || '#000';
+        pdf.setFillColor(hex);
+        pdf.rect(50 + i * 60, y, 50, 30, 'F');
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor('#334155');
+        pdf.text(hex, 50 + i * 60, y + 42);
+      });
+      y += 60;
+    }
+
+    // Typography
+    pdf.setTextColor('#1a1f2e');
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Typography', 50, y);
+    y += 18;
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    if (brandKit.fonts.heading) { pdf.text(`Heading: ${brandKit.fonts.heading}`, 50, y); y += 14; }
+    if (brandKit.fonts.body) { pdf.text(`Body: ${brandKit.fonts.body}`, 50, y); y += 14; }
+    if (brandKit.fonts.accent) { pdf.text(`Accent: ${brandKit.fonts.accent}`, 50, y); y += 14; }
+    y += 12;
+
+    // Brand Notes
+    if (brandKit.notes) {
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Brand Notes', 50, y);
+      y += 18;
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      const lines = pdf.splitTextToSize(brandKit.notes, 500);
+      pdf.text(lines, 50, y);
+    }
+
+    pdf.save(`${name} - Brand Guide.pdf`);
   };
 
   if (loading) {
@@ -271,9 +324,8 @@ export default function BrandKitPage() {
           </div>
         </div>
 
-        {/* Two-column layout for Color + Typography */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-          {/* Color Palette Card */}
+        {/* Three-column layout: Color Palette, Typography, Brand Notes */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
           <div className="bk-card">
             <div className="bk-section-title">Color Palette</div>
             <ColorPalette
@@ -282,8 +334,6 @@ export default function BrandKitPage() {
               onColorsChange={handleColorChange}
             />
           </div>
-
-          {/* Typography Card */}
           <div className="bk-card">
             <div className="bk-section-title">Typography</div>
             <Typography
@@ -292,16 +342,14 @@ export default function BrandKitPage() {
               onFontChange={handleFontChange}
             />
           </div>
-        </div>
-
-        {/* Brand Notes Card */}
-        <div className="bk-card">
-          <div className="bk-section-title">Brand Notes</div>
-          <BrandNotes
-            notes={brandKit.notes || ''}
-            readOnly={readOnly}
-            onNotesChange={handleNotesChange}
-          />
+          <div className="bk-card">
+            <div className="bk-section-title">Brand Notes</div>
+            <BrandNotes
+              notes={brandKit.notes || ''}
+              readOnly={readOnly}
+              onNotesChange={handleNotesChange}
+            />
+          </div>
         </div>
       </div>
       </BrandKitErrorBoundary>

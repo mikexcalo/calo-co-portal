@@ -15,10 +15,6 @@ import {
   DB,
 } from '@/lib/database';
 import { agencyStats, currency, daysUntil, invTotal } from '@/lib/utils';
-import AgencyToolsTile from '@/components/dashboard/AgencyToolsTile';
-import { InvoicesTileHeader, InvoicesTileBody } from '@/components/dashboard/InvoicesTile';
-import { FinancialsTileHeader, FinancialsTileBody } from '@/components/dashboard/FinancialsTile';
-import { ClientsTileHeader, ClientsTileBody } from '@/components/dashboard/ClientsTile';
 import ClientCard from '@/components/dashboard/ClientCard';
 import ActivityFeed from '@/components/dashboard/ActivityFeed';
 
@@ -28,7 +24,6 @@ export default function Home() {
   const [greeting, setGreeting] = useState('Good morning');
   const [dateline, setDateline] = useState('');
   const [timeLine, setTimeLine] = useState('');
-  const [openTile, setOpenTile] = useState<'invoices' | 'financials' | 'clients' | null>(null);
   const [clientFilter, setClientFilter] = useState<'active' | 'paused' | 'closed'>('active');
   const [stats, setStats] = useState(agencyStats([], []));
 
@@ -68,7 +63,7 @@ export default function Home() {
       const now = new Date();
       const hour = now.getHours();
       const tod = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
-      setGreeting(`Hey Mike, good ${tod}!`);
+      setGreeting(`Good ${tod}, Mike`);
 
       const options: Intl.DateTimeFormatOptions = {
         weekday: 'long',
@@ -185,42 +180,39 @@ export default function Home() {
         </div>
       )}
 
-      {/* Agency Tools Section */}
-      <div style={{ marginBottom: '24px' }}>
-        <div className="section-hd" style={{ marginBottom: '12px' }}>
-          <div className="section-title">Agency Tools</div>
+      {/* Status bar — compact summary replacing individual stat cards */}
+      <div style={{
+        display: 'flex', gap: 24, padding: '12px 16px', marginBottom: 24,
+        background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
+        fontSize: 13, color: '#334155', alignItems: 'center',
+      }}>
+        <div>
+          <span style={{ fontWeight: 700, fontSize: 18, color: stats.outstanding > 0 ? '#d97706' : '#1a1f2e' }}>
+            {currency(stats.outstanding)}
+          </span>
+          <span style={{ color: '#94a3b8', marginLeft: 6 }}>outstanding</span>
         </div>
-        <div className="ag-tools-grid">
-          <AgencyToolsTile
-            title="Invoices"
-            isOpen={openTile === 'invoices'}
-            onToggle={() =>
-              setOpenTile((prev) => (prev === 'invoices' ? null : 'invoices'))
-            }
-            headerContent={<InvoicesTileHeader />}
-            bodyContent={<InvoicesTileBody />}
-          />
-
-          <AgencyToolsTile
-            title="Financials"
-            isOpen={openTile === 'financials'}
-            onToggle={() =>
-              setOpenTile((prev) => (prev === 'financials' ? null : 'financials'))
-            }
-            headerContent={<FinancialsTileHeader />}
-            bodyContent={<FinancialsTileBody />}
-          />
-
-          <AgencyToolsTile
-            title="Clients"
-            isOpen={openTile === 'clients'}
-            onToggle={() =>
-              setOpenTile((prev) => (prev === 'clients' ? null : 'clients'))
-            }
-            headerContent={<ClientsTileHeader />}
-            bodyContent={<ClientsTileBody />}
-          />
+        <div style={{ width: 1, height: 28, background: '#e2e8f0' }} />
+        <div>
+          <span style={{ fontWeight: 700, fontSize: 18, color: '#1a1f2e' }}>
+            {currency(stats.paid)}
+          </span>
+          <span style={{ color: '#94a3b8', marginLeft: 6 }}>paid</span>
         </div>
+        <div style={{ width: 1, height: 28, background: '#e2e8f0' }} />
+        <div>
+          <span style={{ fontWeight: 700, fontSize: 18, color: '#1a1f2e' }}>
+            {bucketCounts.active}
+          </span>
+          <span style={{ color: '#94a3b8', marginLeft: 6 }}>active client{bucketCounts.active !== 1 ? 's' : ''}</span>
+        </div>
+        <div style={{ flex: 1 }} />
+        <button onClick={() => router.push('/financials')} style={{
+          background: 'none', border: 'none', color: '#2563eb', fontSize: 12,
+          fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+        }}>
+          View Financials →
+        </button>
       </div>
 
       {/* Clients and Activity Feed */}

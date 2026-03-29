@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Invoice, InvoiceItem, Client } from '@/lib/types';
 import { currency, invSubtotal, invTotal } from '@/lib/utils';
 import styles from './InvoiceForm.module.css';
@@ -11,6 +11,7 @@ interface InvoiceFormProps {
   isAgencyView?: boolean;
   onSave: (invoice: Omit<Invoice, '_uuid' | 'id'> & { items: InvoiceItem[] }) => Promise<void>;
   isLoading?: boolean;
+  extractedData?: any;
 }
 
 export default function InvoiceForm({
@@ -19,6 +20,7 @@ export default function InvoiceForm({
   isAgencyView = false,
   onSave,
   isLoading = false,
+  extractedData,
 }: InvoiceFormProps) {
   const [items, setItems] = useState<Array<InvoiceItem & { _tempId: string }>>([
     { description: '', qty: 1, price: 0, _tempId: '1' },
@@ -41,6 +43,27 @@ export default function InvoiceForm({
     itemsError: false,
     dateError: false,
   });
+
+  // Populate from OCR-extracted data
+  useEffect(() => {
+    if (!extractedData) return;
+    if (extractedData.items?.length > 0) {
+      let tid = nextTempId;
+      const newItems = extractedData.items.map((item: any) => ({
+        description: item.description || '', qty: item.qty || 1,
+        price: parseFloat(item.price) || 0, _tempId: String(tid++),
+      }));
+      setItems(newItems);
+      setNextTempId(tid);
+    }
+    setFormData((prev) => ({
+      ...prev,
+      project: extractedData.vendor || prev.project,
+      tax: parseFloat(extractedData.tax) || prev.tax,
+      shipping: parseFloat(extractedData.shipping) || prev.shipping,
+      notes: extractedData.notes || prev.notes,
+    }));
+  }, [extractedData]);
 
   const subtotal = invSubtotal({ ...formData, items: items.map(({ _tempId, ...i }) => i), clientId: '', id: '', status: 'draft' } as any);
   const total = subtotal + formData.tax + formData.shipping;

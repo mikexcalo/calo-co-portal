@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Client } from '@/lib/types';
-import { initials, tintColor, currency } from '@/lib/utils';
+import { initials, tintColor } from '@/lib/utils';
 import { DB } from '@/lib/database';
 
 interface ClientCardProps {
@@ -8,105 +9,115 @@ interface ClientCardProps {
   onNavigate: () => void;
 }
 
+function getHealth(client: Client): { color: string; issues: { label: string; href: string }[] } {
+  const issues: { label: string; href: string }[] = [];
+  const contacts = DB.contacts[client.id] || [];
+  const primary = contacts.find((c) => c.isPrimary) || contacts[0];
+  const bk = client.brandKit;
+  const hasLogos = bk && Object.values(bk.logos || {}).some((a: any) => a?.length > 0);
+  const hasColors = bk?.colors?.length > 0;
+
+  if (!hasLogos) issues.push({ label: 'Brand Kit logos', href: `/clients/${client.id}/brand-kit` });
+  if (!hasColors) issues.push({ label: 'Brand colors', href: `/clients/${client.id}/brand-kit` });
+  if (!primary?.email) issues.push({ label: 'Contact email', href: `/clients/${client.id}` });
+  if (!primary?.phone) issues.push({ label: 'Contact phone', href: `/clients/${client.id}` });
+  if (!client.website) issues.push({ label: 'Website', href: `/clients/${client.id}` });
+  if (!client.address) issues.push({ label: 'Address', href: `/clients/${client.id}` });
+
+  const sigHtml = client.emailSignatureHtml;
+  const sigFields = client.signatureFields || {};
+  const hasSig = !!sigHtml || !!sigFields.name || !!sigFields.email;
+  if (!hasSig) issues.push({ label: 'Email Signature', href: `/clients/${client.id}/email-signature` });
+
+  const color = issues.length === 0 ? '#22c55e' : issues.length <= 3 ? '#f59e0b' : '#ef4444';
+  return { color, issues };
+}
+
 export default function ClientCard({ client, onNavigate }: ClientCardProps) {
-  // Get primary contact
+  const router = useRouter();
+  const [expanded, setExpanded] = useState(false);
   const contacts = DB.contacts[client.id] || [];
   const primaryContact = contacts.find((c) => c.isPrimary) || contacts[0] || null;
 
-  // Check completeness
-  const hasBrandKit =
-    client.brandKit.colors.length > 0 ||
-    Object.values(client.brandKit.logos).some((a) => a.length > 0) ||
-    client.brandKit.fonts.heading;
-  const hasContact = primaryContact !== null;
+  const health = getHealth(client);
+  const brandColor = client.brandKit?.colors?.[0];
+  const tintedColor = tintColor(brandColor);
+  const logoUrl = client.logo;
 
-  // Client invoices for stats
-  const clientInvoices = DB.invoices.filter((i) => i.clientId === client.id);
-  const outstanding = clientInvoices
-    .filter((i) => i.status !== 'paid' && !i.isReimbursement)
-    .reduce((sum, i) => {
-      const total = (i.items || []).reduce((s, item) => s + item.qty * item.price, 0) + (i.tax || 0) + (i.shipping || 0);
-      return sum + total;
-    }, 0);
-
-  const paid = clientInvoices
-    .filter((i) => i.status === 'paid' && !i.isReimbursement)
-    .reduce((sum, i) => {
-      const total = (i.items || []).reduce((s, item) => s + item.qty * item.price, 0) + (i.tax || 0) + (i.shipping || 0);
-      return sum + total;
-    }, 0);
-
-  // Get last activity date
   const lastActivity = DB.activityLog
     .filter((e) => e.clientId === client.id)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-
   const lastActiveStr = lastActivity
     ? new Date(lastActivity.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     : '—';
 
-  // Incomplete indicator
-  const issues = [];
-  if (!hasBrandKit) issues.push('Brand Kit not started');
-  if (!hasContact) issues.push('No contact added');
-  if (clientInvoices.length === 0) issues.push('No invoices yet');
-
-  // Get brand color for tint
-  const brandColor = client.brandKit.colors[0];
-  const tintedColor = tintColor(brandColor);
-
-  // Get logo or initials
-  const logoUrl = client.logo;
-  const avatar = logoUrl ? (
-    <img src={logoUrl} alt={client.company} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-  ) : (
-    initials(client.company || client.name)
-  );
-
-  // Engagement status styling
-  const statusMap = {
-    active: { label: 'Active', className: 'st-active' },
-    paused: { label: 'Paused', className: 'st-paused' },
-    closed: { label: 'Archived', className: 'st-archived' },
-  };
-  const statusInfo = statusMap[client.engagementStatus as keyof typeof statusMap] || statusMap.active;
-
   return (
-    <div
-      className="cc-row"
-      onClick={onNavigate}
-      style={{ cursor: 'pointer', borderTopColor: tintedColor }}
-    >
-      <div className="cc-row-avatar" style={logoUrl ? { background: 'transparent' } : undefined}>{avatar}</div>
-      <div className="cc-row-info">
-        <span className="cc-row-name">
-          {client.company || client.name}
-          {issues.length > 0 && (
-            <span className="cc-row-attn-dot" title={issues.join(' · ')}></span>
+    <div style={{ borderTopColor: tintedColor }} className="cc-row-wrap">
+      <div className="cc-row" onClick={onNavigate} style={{ cursor: 'pointer' }}>
+        <div className="cc-row-avatar" style={logoUrl ? { background: 'transparent' } : undefined}>
+          {logoUrl ? (
+            <img src={logoUrl} alt={client.company} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            initials(client.company || client.name)
           )}
-        </span>
-        {primaryContact && (
-          <span className="cc-row-contact">
-            {primaryContact.name}
-            {primaryContact.role ? ` · ${primaryContact.role}` : ''}
+        </div>
+        <div className="cc-row-info">
+          <span className="cc-row-name">
+            {client.company || client.name}
           </span>
-        )}
+          {primaryContact && (
+            <span className="cc-row-contact">
+              {primaryContact.name}
+              {primaryContact.role ? ` · ${primaryContact.role}` : ''}
+            </span>
+          )}
+        </div>
+        <div className="cc-row-right">
+          {/* Health dot */}
+          <span style={{
+            width: 8, height: 8, borderRadius: '50%', background: health.color,
+            flexShrink: 0, display: 'inline-block',
+          }} title={health.issues.length === 0 ? 'Fully set up' : `${health.issues.length} items missing`} />
+          <span className="cc-row-date">{lastActiveStr}</span>
+          {/* Expand arrow */}
+          <button
+            onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px',
+              color: '#94a3b8', fontSize: 11, transform: expanded ? 'rotate(180deg)' : 'none',
+              transition: 'transform 0.15s',
+            }}
+            title="Details"
+          >
+            ▼
+          </button>
+          <span className="cc-row-link" onClick={(e) => { e.stopPropagation(); onNavigate(); }}>
+            Open →
+          </span>
+        </div>
       </div>
-      <div className="cc-row-right">
-        <span className={`cc-row-badge ${statusInfo.className}`}>
-          {statusInfo.label}
-        </span>
-        <span className="cc-row-date">{lastActiveStr}</span>
-        <span
-          className="cc-row-link"
-          onClick={(e) => {
-            e.stopPropagation();
-            onNavigate();
-          }}
-        >
-          Open →
-        </span>
-      </div>
+      {/* Expandable detail */}
+      {expanded && (
+        <div style={{
+          padding: '8px 14px 10px 52px', background: '#f8fafc',
+          borderTop: '1px solid #f1f5f9', fontSize: 12, color: '#64748b',
+          display: 'flex', flexWrap: 'wrap', gap: '6px 16px',
+        }}>
+          {health.issues.length === 0 ? (
+            <span style={{ color: '#22c55e', fontWeight: 600 }}>All set up</span>
+          ) : (
+            <>
+              <span style={{ fontWeight: 600, color: '#475569' }}>Missing:</span>
+              {health.issues.map((issue, i) => (
+                <a key={i} onClick={(e) => { e.stopPropagation(); router.push(issue.href); }}
+                  style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'none' }}>
+                  {issue.label}
+                </a>
+              ))}
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

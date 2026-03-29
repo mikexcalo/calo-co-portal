@@ -23,6 +23,8 @@ export default function NewInvoicePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [extracting, setExtracting] = useState(false);
+  const [extractedData, setExtractedData] = useState<any>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -32,6 +34,72 @@ export default function NewInvoicePage() {
     };
     init();
   }, []);
+
+  const handleFilesSelected = async (files: File[]) => {
+    setSelectedFiles(files);
+    if (files.length === 0) return;
+
+    const apiKey = typeof window !== 'undefined' ? localStorage.getItem('claudeApiKey') : null;
+    if (!apiKey) {
+      setError('Configure Claude API key in Settings to enable auto-extraction.');
+      return;
+    }
+
+    const imageFile = files.find((f) => f.type.startsWith('image/'));
+    if (!imageFile) return;
+
+    setExtracting(true);
+    setError(null);
+    try {
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve) => {
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          resolve(result.split(',')[1]);
+        };
+        reader.readAsDataURL(imageFile);
+      });
+
+      const mediaType = imageFile.type as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1024,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+              { type: 'text', text: 'Extract invoice details from this receipt image. Return JSON with: { "vendor": "", "items": [{"description": "", "qty": 1, "price": 0}], "tax": 0, "shipping": 0, "total": 0, "notes": "" }. Only return the JSON, no other text.' },
+            ],
+          }],
+        }),
+      });
+
+      if (resp.ok) {
+        const data = await resp.json();
+        const text = data.content?.[0]?.text || '';
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          setExtractedData(parsed);
+        }
+      } else {
+        setError('Failed to extract receipt data. Check your API key.');
+      }
+    } catch (e) {
+      console.error('OCR extraction error:', e);
+      setError('Failed to process receipt image.');
+    } finally {
+      setExtracting(false);
+    }
+  };
 
   const handleSaveInvoice = async (
     formData: Omit<Invoice, '_uuid' | 'id'> & { items: InvoiceItem[] }
@@ -120,9 +188,19 @@ export default function NewInvoicePage() {
       <div className={styles.layout}>
         <div className={styles.leftPanel}>
           <h2 className={styles.leftTitle}>Receipt / Screenshot</h2>
-          <ReceiptDrop onFilesSelected={setSelectedFiles} isLoading={isLoading} />
+          <ReceiptDrop onFilesSelected={handleFilesSelected} isLoading={isLoading || extracting} />
+          {extracting && (
+            <p style={{ fontSize: 12, color: '#2563eb', fontWeight: 500 }}>
+              Extracting receipt data...
+            </p>
+          )}
+          {extractedData && (
+            <div style={{ fontSize: 11, color: '#22c55e', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '6px 10px' }}>
+              Extracted: {extractedData.items?.length || 0} line items from {extractedData.vendor || 'receipt'}
+            </div>
+          )}
           <p className={styles.hint}>
-            Optional: Upload a receipt or screenshot to auto-extract invoice details. Supports PNG, JPG, and PDF files.
+            Upload a receipt to auto-extract invoice details via Claude AI. Supports PNG, JPG, and PDF files.
           </p>
         </div>
 
@@ -134,6 +212,7 @@ export default function NewInvoicePage() {
             isAgencyView={false}
             onSave={handleSaveInvoice}
             isLoading={isLoading}
+            extractedData={extractedData}
           />
         </div>
       </div>
