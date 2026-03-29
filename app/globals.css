@@ -336,6 +336,14 @@ textarea {
 }
 
 /* ── Page Layout ── */
+.footer-link {
+  color: #94a3b8;
+  text-decoration: none;
+}
+.footer-link:hover {
+  text-decoration: underline;
+}
+
 .page {
   max-width: 980px;
   margin: 0 auto;

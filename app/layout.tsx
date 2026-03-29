@@ -38,9 +38,7 @@ export default function RootLayout({
             href="https://mikecalo.co"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: '#94a3b8', textDecoration: 'none' }}
-            onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
-            onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+            className="footer-link"
           >
             Powered by CALO&CO
           </a>
