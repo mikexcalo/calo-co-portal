@@ -190,7 +190,7 @@ export default function LogoSlot({
     onFilesChange?.(slotKey, []);
   };
 
-  const bg = slotKey === 'dark' ? '#1a1a1a' : '#f8f8f8';
+  const bg = slotKey === 'dark' || slotKey === 'light' ? '#1a1a1a' : '#f8f8f8';
 
   return (
     <div
@@ -298,64 +298,46 @@ export default function LogoSlot({
       {/* Slot label */}
       <div className="bk-slot-label">{label}</div>
 
-      {/* File list */}
+      {/* File list — compact, no thumbnails */}
       {hasFiles && (
-        <div className="bk-file-list">
+        <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 2 }}>
           {files.map((file, idx) => {
-            // Only the first renderable file gets the "Primary" label
-            const isFirstRenderable = idx === files.findIndex((f) => isRenderable(f));
-            const showPrimaryBadge = isRenderable(file) && isFirstRenderable;
-
+            const isFirst = idx === files.findIndex((f) => isRenderable(f));
             return (
               <div
                 key={idx}
-                className={`bk-file-row ${showPrimaryBadge ? 'is-primary' : ''}`}
                 onClick={(e) => e.stopPropagation()}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  padding: '3px 6px', borderRadius: 4, fontSize: 10,
+                  background: isFirst && isRenderable(file) ? '#eff6ff' : 'transparent',
+                }}
               >
-                {file.data ? (
-                  <img src={file.data} alt={file.name} className="bk-file-thumb" />
-                ) : (
-                  <div className="bk-file-thumb-placeholder">{file.ext}</div>
-                )}
-
-                <div className="bk-file-info">
-                  <div className="bk-file-name">{file.name}</div>
-                  <div className="bk-file-ext">
-                    {showPrimaryBadge ? 'Primary' : file.ext}
-                  </div>
-                </div>
-
-                {/* Download button */}
+                <span style={{
+                  flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap', color: '#475569', fontWeight: isFirst && isRenderable(file) ? 600 : 400,
+                }}>
+                  {file.name}
+                  {isFirst && isRenderable(file) && (
+                    <span style={{ color: '#2563eb', marginLeft: 4, fontSize: 9 }}>Primary</span>
+                  )}
+                </span>
                 {file.data && (
-                  <a
-                    href={file.data}
-                    download={file.name}
-                    onClick={(e) => e.stopPropagation()}
-                    title="Download"
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      width: 22, height: 22, borderRadius: 4,
-                      color: '#64748b', flexShrink: 0,
-                      textDecoration: 'none',
-                    }}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <a href={file.data} download={file.name} onClick={(e) => e.stopPropagation()}
+                    title="Download" style={{ color: '#94a3b8', flexShrink: 0, display: 'flex' }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                       <polyline points="7 10 12 15 17 10" />
                       <line x1="12" y1="15" x2="12" y2="3" />
                     </svg>
                   </a>
                 )}
-
                 {!readOnly && (
-                  <button
-                    className="bk-file-del-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(idx);
-                    }}
-                    title="Delete"
-                  >
+                  <button onClick={(e) => { e.stopPropagation(); handleDelete(idx); }}
+                    title="Delete" style={{
+                      background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer',
+                      fontSize: 12, padding: 0, lineHeight: 1, flexShrink: 0,
+                    }}>
                     ×
                   </button>
                 )}

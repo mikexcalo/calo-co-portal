@@ -133,11 +133,16 @@ export default function Home() {
     <div className="page">
       {/* Greeting */}
       <div style={{ marginBottom: '22px' }}>
-        <div style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a', marginBottom: '3px' }}>
+        <div style={{ fontSize: '20px', fontWeight: '700', color: '#1a1f2e', marginBottom: '3px' }}>
           {greeting}
         </div>
         <div style={{ fontSize: '12.5px', color: '#94a3b8' }}>
           {dateline}{timeLine ? ` · ${timeLine}` : ''}
+        </div>
+        <div style={{ fontSize: '12.5px', color: '#64748b', marginTop: 4 }}>
+          {bucketCounts.active} active client{bucketCounts.active !== 1 ? 's' : ''}
+          {' · '}{currency(stats.outstanding)} outstanding
+          {' · '}{DB.invoices.filter((i) => i.status !== 'paid' && !i.isReimbursement).length} invoice{DB.invoices.filter((i) => i.status !== 'paid' && !i.isReimbursement).length !== 1 ? 's' : ''} pending
         </div>
       </div>
 

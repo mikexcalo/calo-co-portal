@@ -130,8 +130,8 @@ export default function FinancialsPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 mb-1">Financials</h1>
-            <p className="text-sm text-slate-500">Agency-wide revenue and expense tracking</p>
+            <h1 style={{ fontSize: 28, fontWeight: 700, color: '#1a1f2e', marginBottom: 2 }}>Financials</h1>
+            <p style={{ fontSize: 14, color: '#94a3b8', margin: 0 }}>Agency-wide revenue and expense tracking</p>
           </div>
           <button
             onClick={handlePrintPL}
@@ -147,11 +147,13 @@ export default function FinancialsPage() {
             <button
               key={p}
               onClick={() => setPeriod(p)}
-              className={`px-4 py-2 rounded-lg border text-sm font-medium transition ${
-                period === p
-                  ? 'bg-indigo-600 text-white border-indigo-600'
-                  : 'border-slate-300 text-slate-700 hover:border-slate-400'
-              }`}
+              style={{
+                padding: '6px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                border: period === p ? '1.5px solid #2563eb' : '1.5px solid #d1d5db',
+                background: period === p ? '#eff6ff' : '#ffffff',
+                color: period === p ? '#2563eb' : '#64748b',
+                cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+              }}
             >
               {p === 'month' ? 'Month' : p === 'quarter' ? 'Quarter' : p === 'year' ? 'Year' : 'All Time'}
             </button>

@@ -9,6 +9,7 @@ import HeroCard from '@/components/client-hub/HeroCard';
 import ContactChips from '@/components/client-hub/ContactChips';
 import ManageAccess from '@/components/client-hub/ManageAccess';
 import ModulesGrid from '@/components/client-hub/ModulesGrid';
+import ClientUpdates from '@/components/client-hub/ClientUpdates';
 
 export default function ClientHubPage() {
   const params = useParams();
@@ -113,6 +114,8 @@ export default function ClientHubPage() {
         isClient={isClient}
         stats={stats}
       />
+
+      <ClientUpdates clientId={clientId} isClient={isClient} />
     </div>
   );
 }
