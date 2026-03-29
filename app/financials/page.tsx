@@ -24,7 +24,7 @@ export default function FinancialsPage() {
 
   useEffect(() => {
     const init = async () => {
-      await loadExpenses();
+      await loadExpenses().catch((e) => console.warn('[financials] loadExpenses failed:', e));
       setExpenses([...DB.expenses]);
     };
     init();

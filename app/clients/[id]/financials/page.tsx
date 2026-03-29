@@ -46,7 +46,7 @@ export default function ClientFinancialsPage() {
 
       if (foundClient) {
         await loadInvoices(clientId);
-        await loadExpenses();
+        await loadExpenses().catch((e) => console.warn('[client-financials] loadExpenses failed:', e));
         refreshData();
       }
     };

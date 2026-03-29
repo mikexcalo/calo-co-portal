@@ -46,8 +46,10 @@ export default function Home() {
 
         await loadAllBrandKits();
         await loadActivityLog();
-        await loadExpenses();
-        await loadAgencySettings();
+
+        // These tables may not exist yet — isolate so failures don't block the dashboard
+        await loadExpenses().catch((e) => console.warn('[init] loadExpenses failed:', e));
+        await loadAgencySettings().catch((e) => console.warn('[init] loadAgencySettings failed:', e));
 
         setStats(agencyStats(DB.invoices, DB.clients));
       } catch (error) {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Client, BrandKit } from '@/lib/types';
-import { DB, loadAllBrandKits, saveBrandKit } from '@/lib/database';
+import { DB, loadClients, loadAllBrandKits, saveBrandKit } from '@/lib/database';
 import LogoSlot from '@/components/brand-kit/LogoSlot';
 import ColorPalette from '@/components/brand-kit/ColorPalette';
 import Typography from '@/components/brand-kit/Typography';
@@ -26,6 +26,10 @@ export default function BrandKitPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        // Ensure clients are loaded (handles direct navigation)
+        if (DB.clients.length === 0) {
+          await loadClients();
+        }
         // Load all brand kits to populate the data
         await loadAllBrandKits();
 
