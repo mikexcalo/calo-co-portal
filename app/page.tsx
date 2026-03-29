@@ -38,18 +38,16 @@ export default function Home() {
       try {
         await initSupabase();
         await initAgency();
-        await loadClients();
+        if (DB.clientsState !== 'loaded') await loadClients();
 
-        // Load invoices and contacts for each client
-        for (const client of DB.clients) {
-          await loadInvoices(client.id);
-          await loadContacts(client.id);
-        }
+        // Load invoices and contacts for all clients in parallel — don't let any single failure block
+        await Promise.allSettled(
+          DB.clients.flatMap((c) => [loadInvoices(c.id), loadContacts(c.id)])
+        );
 
         await loadAllBrandKits();
         await loadActivityLog();
 
-        // These tables may not exist yet — isolate so failures don't block the dashboard
         await loadExpenses().catch((e) => console.warn('[init] loadExpenses failed:', e));
         await loadAgencySettings().catch((e) => console.warn('[init] loadAgencySettings failed:', e));
 
@@ -70,7 +68,7 @@ export default function Home() {
       const now = new Date();
       const hour = now.getHours();
       const tod = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
-      setGreeting(`Good ${tod}, Mike.`);
+      setGreeting(`Hey Mike, good ${tod}!`);
 
       const options: Intl.DateTimeFormatOptions = {
         weekday: 'long',
@@ -112,7 +110,16 @@ export default function Home() {
     return 'active';
   };
 
-  const filteredClients = DB.clients.filter((c) => filterBucket(c.engagementStatus) === clientFilter);
+  // Sort by most recently accessed (via localStorage timestamps), then alphabetical
+  const getLastAccessed = (id: string): number => {
+    try {
+      return parseInt(localStorage.getItem(`client_accessed_${id}`) || '0', 10);
+    } catch { return 0; }
+  };
+
+  const filteredClients = DB.clients
+    .filter((c) => filterBucket(c.engagementStatus) === clientFilter)
+    .sort((a, b) => getLastAccessed(b.id) - getLastAccessed(a.id));
 
   const bucketCounts = {
     active: DB.clients.filter((c) => filterBucket(c.engagementStatus) === 'active').length,
@@ -214,28 +221,30 @@ export default function Home() {
       {/* Clients and Activity Feed */}
       <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
         <div style={{ flex: '1 1 0', minWidth: 0 }} id="clients-section">
-          {/* Clients section */}
-          <div style={{ marginBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div className="section-title">Clients</div>
-            <button
-              className="btn btn-primary btn-sm"
-              onClick={() => router.push('/clients/new')}
-            >
-              + Add Client
-            </button>
-          </div>
-
-          {/* Filter bar */}
-          <div className="cc-filter-bar" style={{ marginBottom: '14px' }}>
-            {(['active', 'paused', 'closed'] as const).map((status) => (
-              <button
-                key={status}
-                className={`cc-filter-btn ${clientFilter === status ? 'active' : ''}`}
-                onClick={() => setClientFilter(status)}
-              >
-                {filterLabels[status]} ({bucketCounts[status]})
+          {/* Clients header with Add + filters */}
+          <div style={{ marginBottom: '14px' }}>
+            <div className="section-title" style={{ marginBottom: 10 }}>Clients</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button className="cta-btn" onClick={() => router.push('/clients/new')}>
+                + Add Client
               </button>
-            ))}
+              {(['active', 'paused', 'closed'] as const).map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setClientFilter(status)}
+                  style={{
+                    padding: '8px 14px', fontSize: 13, fontWeight: 600,
+                    border: clientFilter === status ? '1.5px solid #2563eb' : '1.5px solid #d1d5db',
+                    borderRadius: 8, cursor: 'pointer',
+                    background: clientFilter === status ? '#eff6ff' : '#ffffff',
+                    color: clientFilter === status ? '#2563eb' : '#64748b',
+                    fontFamily: 'Inter, sans-serif',
+                  }}
+                >
+                  {filterLabels[status]} ({bucketCounts[status]})
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Client grid */}
@@ -265,7 +274,10 @@ export default function Home() {
           ) : (
             <div className="cc-list">
               {filteredClients.map((client) => (
-                <ClientCard key={client.id} client={client} onNavigate={() => router.push(`/clients/${client.id}`)} />
+                <ClientCard key={client.id} client={client} onNavigate={() => {
+                  localStorage.setItem(`client_accessed_${client.id}`, String(Date.now()));
+                  router.push(`/clients/${client.id}`);
+                }} />
               ))}
             </div>
           )}

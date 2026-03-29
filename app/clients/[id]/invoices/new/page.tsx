@@ -116,7 +116,7 @@ export default function NewInvoicePage() {
   };
 
   return (
-    <div className={styles.page}>
+    <div className={`page ${styles.page}`}>
       <div className={styles.layout}>
         <div className={styles.leftPanel}>
           <h2 className={styles.leftTitle}>Receipt / Screenshot</h2>

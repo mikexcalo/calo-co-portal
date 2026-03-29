@@ -22,14 +22,27 @@ export default function GlobalNav() {
     }
   }, []);
 
-  // Build breadcrumbs from pathname
-  const breadcrumbs = buildBreadcrumbs(pathname);
-
   // View toggle — only show on client detail pages
   const clientMatch = pathname.match(/^\/clients\/([^/]+)/);
   const isClientRoute = clientMatch && clientMatch[1] !== 'new';
 
   const [viewMode, setViewMode] = useState<'agency' | 'client'>('agency');
+  const [bbAssetType, setBbAssetType] = useState<string | null>(null);
+
+  // Build breadcrumbs from pathname
+  const breadcrumbs = buildBreadcrumbs(pathname, bbAssetType);
+
+  // Listen for brand builder asset type changes
+  useEffect(() => {
+    const handler = (e: Event) => setBbAssetType((e as CustomEvent).detail || null);
+    window.addEventListener('bbAssetTypeChange', handler);
+    return () => window.removeEventListener('bbAssetTypeChange', handler);
+  }, []);
+
+  // Clear asset type when leaving brand builder
+  useEffect(() => {
+    if (!pathname.includes('/brand-builder')) setBbAssetType(null);
+  }, [pathname]);
 
   // Persist view mode
   useEffect(() => {
@@ -53,11 +66,14 @@ export default function GlobalNav() {
         background: '#1a1f2e',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 24px',
+        justifyContent: 'center',
         fontFamily: 'Inter, sans-serif',
       }}
     >
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      width: '100%', maxWidth: 980, padding: '0 24px',
+    }}>
       {/* Left: Breadcrumbs */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0, overflow: 'hidden' }}>
         {breadcrumbs.map((crumb, i) => {
@@ -131,7 +147,6 @@ export default function GlobalNav() {
 
         <button
           onClick={() => router.push('/settings')}
-          title="Settings"
           style={{
             background: 'none',
             border: 'none',
@@ -139,14 +154,20 @@ export default function GlobalNav() {
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
+            gap: 5,
+            fontSize: 12,
+            fontWeight: 600,
+            fontFamily: 'Inter, sans-serif',
           }}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
           </svg>
+          Settings
         </button>
       </div>
+    </div>
     </nav>
   );
 }
@@ -156,7 +177,7 @@ interface Crumb {
   href?: string;
 }
 
-function buildBreadcrumbs(pathname: string): Crumb[] {
+function buildBreadcrumbs(pathname: string, bbAssetType?: string | null): Crumb[] {
   const crumbs: Crumb[] = [];
 
   if (pathname === '/') {
@@ -197,6 +218,9 @@ function buildBreadcrumbs(pathname: string): Crumb[] {
       if (subPath === '/invoices/new') {
         crumbs.push({ label: 'Invoices', href: `/clients/${clientId}/invoices` });
         crumbs.push({ label: 'New Invoice' });
+      } else if (subPath === '/brand-builder' && bbAssetType) {
+        crumbs.push({ label: 'Brand Builder', href: `/clients/${clientId}/brand-builder?reset=1` });
+        crumbs.push({ label: bbAssetType });
       } else {
         crumbs.push({ label: moduleMap[subPath] || subPath.slice(1) });
       }

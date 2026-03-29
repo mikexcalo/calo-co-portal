@@ -26,12 +26,10 @@ export default function BrandKitPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Ensure clients are loaded (handles direct navigation)
-        if (DB.clients.length === 0) {
-          await loadClients();
-        }
-        // Load all brand kits to populate the data
-        await loadAllBrandKits();
+        if (DB.clientsState !== 'loaded') await loadClients();
+        // Only reload brand kits if not already cached
+        const hasBk = DB.clients.some((c) => c.brandKit?._id);
+        if (!hasBk) await loadAllBrandKits();
 
         // Find the client
         const cl = DB.clients.find((c) => c.id === clientId);

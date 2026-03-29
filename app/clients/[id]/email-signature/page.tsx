@@ -22,22 +22,17 @@ export default function EmailSignaturePage() {
     const initData = async () => {
       setIsLoading(true);
 
-      if (DB.clientsState !== 'loaded') {
-        await loadClients();
-      }
-
-      if (!DB.contacts[clientId]) {
-        await loadContacts(clientId);
-      }
-
-      await loadAllBrandKits();
+      if (DB.clientsState !== 'loaded') await loadClients();
+      if (!DB.contacts[clientId]) await loadContacts(clientId);
+      const hasBk = DB.clients.some((c) => c.brandKit?._id);
+      if (!hasBk) await loadAllBrandKits();
 
       const foundClient = DB.clients.find((c) => c.id === clientId);
       if (foundClient) {
         setClient(foundClient);
         setContacts(DB.contacts[clientId] || []);
       } else {
-        router.push('/clients');
+        router.push('/');
       }
 
       setIsLoading(false);

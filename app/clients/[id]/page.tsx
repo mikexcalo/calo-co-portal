@@ -38,16 +38,16 @@ export default function ClientHubPage() {
     const initData = async () => {
       setIsLoading(true);
 
-      if (DB.clientsState !== 'loaded') {
-        await loadClients();
-      }
+      if (DB.clientsState !== 'loaded') await loadClients();
+      if (!DB.contacts[clientId]) await loadContacts(clientId);
 
-      if (!DB.contacts[clientId]) {
-        await loadContacts(clientId);
-      }
+      // Only reload invoices if not already cached for this client
+      const hasInvoices = DB.invoices.some((i) => i.clientId === clientId);
+      if (!hasInvoices) await loadInvoices(clientId);
 
-      await loadInvoices(clientId);
-      await loadAllBrandKits();
+      // Brand kits: skip if any client already has brand kit data loaded
+      const hasBk = DB.clients.some((c) => c.brandKit?._id);
+      if (!hasBk) await loadAllBrandKits();
 
       const foundClient = DB.clients.find((c) => c.id === clientId);
       if (foundClient) {
@@ -55,7 +55,7 @@ export default function ClientHubPage() {
         setContacts(DB.contacts[clientId] || []);
         setInvoices(DB.invoices.filter((i) => i.clientId === clientId));
       } else {
-        router.push('/clients');
+        router.push('/');
       }
 
       setIsLoading(false);

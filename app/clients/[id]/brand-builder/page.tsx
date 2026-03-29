@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import {
   DB, loadClients, loadContacts, loadAllBrandKits,
 } from '@/lib/database';
 import { extractHex } from '@/lib/utils';
 import { Client, Contact } from '@/lib/types';
 import {
-  AssetType, BrandBuilderFields, DEFAULT_FIELDS,
+  AssetType, ASSET_TYPES, BrandBuilderFields, DEFAULT_FIELDS,
 } from '@/components/brand-builder/types';
 import AssetTypeSelector from '@/components/brand-builder/AssetTypeSelector';
 import FieldEditor from '@/components/brand-builder/FieldEditor';
@@ -17,12 +17,29 @@ import AssetPreview from '@/components/brand-builder/AssetPreview';
 export default function BrandBuilderPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const clientId = params.id as string;
 
   const [isLoading, setIsLoading] = useState(true);
   const [client, setClient] = useState<Client | null>(null);
   const [primaryContact, setPrimaryContact] = useState<Contact | null>(null);
   const [assetType, setAssetType] = useState<AssetType | null>(null);
+
+  // Reset asset type when breadcrumb "Brand Builder" is clicked
+  useEffect(() => {
+    if (searchParams.get('reset')) {
+      setAssetType(null);
+      window.dispatchEvent(new CustomEvent('bbAssetTypeChange', { detail: null }));
+      router.replace(`/clients/${clientId}/brand-builder`);
+    }
+  }, [searchParams, clientId, router]);
+
+  // Dispatch asset type to breadcrumb nav
+  const handleAssetTypeChange = useCallback((type: AssetType) => {
+    setAssetType(type);
+    const label = ASSET_TYPES.find((t) => t.id === type)?.label || type;
+    window.dispatchEvent(new CustomEvent('bbAssetTypeChange', { detail: label }));
+  }, []);
   const [fields, setFields] = useState<BrandBuilderFields>(DEFAULT_FIELDS);
   const [sources, setSources] = useState<Record<string, string>>({});
   const [hasBrandKit, setHasBrandKit] = useState(false);
@@ -32,7 +49,8 @@ export default function BrandBuilderPage() {
     const init = async () => {
       if (DB.clientsState !== 'loaded') await loadClients();
       if (!DB.contacts[clientId]) await loadContacts(clientId);
-      await loadAllBrandKits();
+      const hasBk = DB.clients.some((c) => c.brandKit?._id);
+      if (!hasBk) await loadAllBrandKits();
 
       const foundClient = DB.clients.find((c) => c.id === clientId);
       if (!foundClient) {
@@ -166,13 +184,13 @@ export default function BrandBuilderPage() {
   const clientName = client.company || client.name || 'Client';
 
   return (
-    <div className="page">
+    <div className="page" style={{ paddingTop: 20, paddingBottom: 32 }}>
       {/* Header */}
-      <h1 style={{ fontSize: 24, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>
-        {clientName} — Brand Builder
+      <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', marginBottom: 2 }}>
+        Brand Builder
       </h1>
-      <p style={{ fontSize: 13, color: '#94a3b8', marginBottom: 24 }}>
-        Create print-ready branded assets
+      <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 14 }}>
+        Create print-ready branded assets for {clientName}
       </p>
 
       {/* No brand kit notice */}
@@ -200,19 +218,19 @@ export default function BrandBuilderPage() {
       )}
 
       {/* Two-column layout */}
-      <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
         {/* Left column: Asset Selector + Fields */}
         <div style={{
-          width: '38%', minWidth: 280, flexShrink: 0,
-          background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 18,
+          width: '34%', minWidth: 260, flexShrink: 0,
+          background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14,
         }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', marginBottom: 10 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>
             Asset Type
           </div>
-          <AssetTypeSelector selected={assetType} onSelect={setAssetType} />
+          <AssetTypeSelector selected={assetType} onSelect={handleAssetTypeChange} />
 
           {assetType && (
-            <div style={{ marginTop: 18, borderTop: '1px solid #e2e8f0', paddingTop: 16 }}>
+            <div style={{ marginTop: 12, borderTop: '1px solid #e2e8f0', paddingTop: 10 }}>
               <FieldEditor
                 fields={fields}
                 onChange={handleFieldsChange}
@@ -225,24 +243,24 @@ export default function BrandBuilderPage() {
           )}
         </div>
 
-        {/* Right column: Preview + Export */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Right column: Preview + Export (sticky) */}
+        <div style={{ flex: 1, minWidth: 0, position: 'sticky', top: 72 }}>
           {assetType ? (
             <div style={{
-              background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20,
+              background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 16,
             }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', marginBottom: 10 }}>
                 Live Preview
               </div>
               <AssetPreview assetType={assetType} fields={fields} />
             </div>
           ) : (
             <div style={{
-              background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 48,
+              background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 40,
               textAlign: 'center',
             }}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>🎨</div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: '#0f172a', marginBottom: 6 }}>
+              <div style={{ fontSize: 36, marginBottom: 10 }}>🎨</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a', marginBottom: 4 }}>
                 Select an asset type
               </div>
               <div style={{ fontSize: 12, color: '#94a3b8' }}>
