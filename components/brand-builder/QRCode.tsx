@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import QRCodeLib from 'qrcode';
 
 interface QRCodeProps {
@@ -11,22 +11,24 @@ interface QRCodeProps {
 }
 
 export default function QRCode({ url, size = 150, color = '#000000', bgColor = '#ffffff' }: QRCodeProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [dataUrl, setDataUrl] = useState<string>('');
 
   useEffect(() => {
-    if (!canvasRef.current || !url) return;
+    if (!url) return;
 
-    QRCodeLib.toCanvas(canvasRef.current, url || 'https://example.com', {
-      width: size,
+    QRCodeLib.toDataURL(url, {
+      width: size * 2,
       margin: 1,
       color: {
         dark: color,
         light: bgColor,
       },
       errorCorrectionLevel: 'M',
-    }).catch((err: Error) => {
-      console.error('[QRCode] generation error:', err);
-    });
+    })
+      .then((result: string) => setDataUrl(result))
+      .catch((err: Error) => {
+        console.error('[QRCode] generation error:', err);
+      });
   }, [url, size, color, bgColor]);
 
   if (!url) {
@@ -49,5 +51,7 @@ export default function QRCode({ url, size = 150, color = '#000000', bgColor = '
     );
   }
 
-  return <canvas ref={canvasRef} style={{ width: size, height: size }} />;
+  if (!dataUrl) return <div style={{ width: size, height: size }} />;
+
+  return <img src={dataUrl} alt="QR Code" style={{ width: size, height: size, display: 'block' }} />;
 }

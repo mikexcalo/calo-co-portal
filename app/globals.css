@@ -2201,11 +2201,11 @@ textarea {
   position: relative;
   cursor: pointer;
   border-radius: 12px;
+  overflow: hidden;
 }
 
 .module-card-locked-inner {
-  opacity: 0.42;
-  filter: blur(0.7px);
+  opacity: 0;
   pointer-events: none;
   user-select: none;
 }

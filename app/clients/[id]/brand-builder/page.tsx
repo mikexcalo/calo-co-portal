@@ -198,17 +198,19 @@ export default function BrandBuilderPage() {
           display: 'flex', alignItems: 'center', gap: 8,
         }}>
           <span style={{ fontSize: 16 }}>⚠️</span>
-          No Brand Kit found — enter details manually or{' '}
-          <button
-            onClick={() => router.push(`/clients/${clientId}/brand-kit`)}
-            style={{
-              background: 'none', border: 'none', color: '#2563eb', fontSize: 12,
-              fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', padding: 0,
-              fontFamily: 'Inter, sans-serif',
-            }}
-          >
-            set up the Brand Kit first
-          </button>
+          <span>
+            No Brand Kit found —{' '}
+            <button
+              onClick={() => router.push(`/clients/${clientId}/brand-kit`)}
+              style={{
+                background: 'none', border: 'none', color: '#2563eb', fontSize: 12,
+                fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', padding: 0,
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
+              set up the Brand Kit first
+            </button>
+          </span>
         </div>
       )}
 
@@ -231,6 +233,8 @@ export default function BrandBuilderPage() {
                 onChange={handleFieldsChange}
                 sources={sources}
                 assetType={assetType}
+                clientId={clientId}
+                hasBrandKit={hasBrandKit}
               />
             </div>
           )}

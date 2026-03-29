@@ -192,6 +192,14 @@ export async function saveClient(client: Client): Promise<any> {
       website: client.website || null,
     };
 
+    // Persist signature data if present
+    if (client.signatureFields && Object.keys(client.signatureFields).length > 0) {
+      row.signature_fields = client.signatureFields;
+    }
+    if (client.emailSignatureHtml) {
+      row.email_signature_html = client.emailSignatureHtml;
+    }
+
     if (client.id) row.id = client.id;
 
     const { data, error } = await supabase

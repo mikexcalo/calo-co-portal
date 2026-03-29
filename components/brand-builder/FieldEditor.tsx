@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { BrandBuilderFields, AssetType } from './types';
 
 interface FieldEditorProps {
@@ -7,6 +8,8 @@ interface FieldEditorProps {
   onChange: (fields: BrandBuilderFields) => void;
   sources: Record<string, string>;
   assetType: AssetType;
+  clientId?: string;
+  hasBrandKit?: boolean;
 }
 
 function FieldInput({
@@ -92,7 +95,7 @@ function ToggleField({
   );
 }
 
-export default function FieldEditor({ fields, onChange, sources, assetType }: FieldEditorProps) {
+export default function FieldEditor({ fields, onChange, sources, assetType, clientId, hasBrandKit }: FieldEditorProps) {
   const update = (key: keyof BrandBuilderFields, value: string | boolean) => {
     onChange({ ...fields, [key]: value });
   };
@@ -212,8 +215,18 @@ export default function FieldEditor({ fields, onChange, sources, assetType }: Fi
       </ToggleField>
 
       {/* Brand settings */}
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', marginTop: 14, marginBottom: 8 }}>
-        Brand Colors
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, marginBottom: 8 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a' }}>
+          Brand Colors
+        </div>
+        {hasBrandKit && clientId && (
+          <Link
+            href={`/clients/${clientId}/brand-kit`}
+            style={{ fontSize: 10, fontWeight: 600, color: '#2563eb', textDecoration: 'none' }}
+          >
+            Edit Brand Kit →
+          </Link>
+        )}
       </div>
 
       <FieldInput

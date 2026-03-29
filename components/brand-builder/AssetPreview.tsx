@@ -40,18 +40,28 @@ export default function AssetPreview({ assetType, fields }: AssetPreviewProps) {
   if (hasFrontBack) {
     return (
       <div>
-        {/* Side toggle */}
-        <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
+        {/* Front / Back toggle */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 0, marginBottom: 14,
+          background: '#f1f5f9', borderRadius: 8, border: '1px solid #e2e8f0', padding: 3,
+        }}>
           {(['front', 'back'] as const).map((s) => (
             <button
               key={s}
               onClick={() => setActiveSide(s)}
               style={{
-                background: activeSide === s ? '#2563eb' : '#f1f5f9',
-                color: activeSide === s ? '#ffffff' : '#475569',
-                border: activeSide === s ? '1px solid #2563eb' : '1px solid #e2e8f0',
-                borderRadius: 6, padding: '5px 16px', fontSize: 12, fontWeight: 600,
-                cursor: 'pointer', fontFamily: 'Inter, sans-serif', textTransform: 'capitalize',
+                flex: 1,
+                background: activeSide === s ? '#2563eb' : 'transparent',
+                color: activeSide === s ? '#ffffff' : '#64748b',
+                border: 'none',
+                borderRadius: 6,
+                padding: '8px 20px',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif',
+                textTransform: 'capitalize',
+                transition: 'all 0.12s',
               }}
             >
               {s}

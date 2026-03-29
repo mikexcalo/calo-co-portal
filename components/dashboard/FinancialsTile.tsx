@@ -66,8 +66,8 @@ function useFinancialStats(): FinancialStats {
     const taxEstimate = totalNet > 0 ? totalNet * ((DB.agencySettings.taxRate || 28) / 100) : 0;
 
     // Color coding
-    const monthNetColor = monthNet < 0 ? '#dc2626' : monthNet > 0 ? '#16a34a' : '#0f172a';
-    const netColor = totalNet < 0 ? '#dc2626' : totalNet > 0 ? '#16a34a' : '#0f172a';
+    const monthNetColor = monthNet < 0 ? '#dc2626' : monthNet > 0 ? '#16a34a' : '#1a1f2e';
+    const netColor = totalNet < 0 ? '#dc2626' : totalNet > 0 ? '#16a34a' : '#1a1f2e';
 
     return {
       monthRevenue,
@@ -135,7 +135,7 @@ export function FinancialsTileBody() {
       </div>
       <div className="ag-tile-row">
         <span className="ag-tile-lbl">Tax Estimate</span>
-        <span className="ag-tile-val amber">{currency(stats.taxEstimate)}</span>
+        <span className={`ag-tile-val ${stats.taxEstimate > 0 ? 'amber' : ''}`}>{currency(stats.taxEstimate)}</span>
       </div>
       <div className="ag-tile-row">
         <span className="ag-tile-lbl">Expenses</span>

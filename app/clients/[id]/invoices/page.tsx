@@ -86,12 +86,12 @@ export default function ClientInvoicesPage() {
   }
 
   return (
-    <div className={styles.page}>
+    <div className={`page ${styles.page}`}>
       <button
         onClick={() => router.push(`/clients/${clientId}`)}
         style={{
           background: 'none', border: 'none', color: '#6366f1', fontSize: '13px',
-          fontWeight: 500, cursor: 'pointer', padding: 0, marginTop: '8px', marginBottom: '16px',
+          fontWeight: 500, cursor: 'pointer', padding: 0, marginBottom: '16px',
           display: 'inline-flex', alignItems: 'center', gap: '4px', fontFamily: 'Inter, sans-serif',
         }}
       >

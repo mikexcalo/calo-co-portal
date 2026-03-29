@@ -29,18 +29,19 @@ export default function VehicleMagnet({ fields }: VehicleMagnetProps) {
         display: 'flex', alignItems: 'center', padding: '0 28px', gap: 24,
       }}
     >
-      {/* Left: Logo */}
+      {/* Left: Logo + Tagline */}
       <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-        {logoUrl ? (
+        {logoUrl && (
           <img
             src={logoUrl} alt="Logo"
-            style={{ maxWidth: 120, maxHeight: 70, objectFit: 'contain', filter: useDarkBg ? 'brightness(0) invert(1)' : 'none' }}
+            style={{ maxWidth: 140, maxHeight: 80, objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
           />
-        ) : (
+        )}
+        {!logoUrl && (
           <div style={{ fontSize: 18, fontWeight: 800 }}>{companyName || 'Logo'}</div>
         )}
         {tagline && (
-          <div style={{ fontSize: 8, opacity: 0.8, textAlign: 'center', maxWidth: 120 }}>{tagline}</div>
+          <div style={{ fontSize: 8, opacity: 0.8, textAlign: 'center', maxWidth: 140 }}>{tagline}</div>
         )}
       </div>
 

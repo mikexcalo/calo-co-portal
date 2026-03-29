@@ -25,14 +25,14 @@ export default function DoorHanger({ fields }: DoorHangerProps) {
         display: 'flex', flexDirection: 'column',
       }}
     >
-      {/* Die-cut hole indicator */}
+      {/* Die-cut hole */}
       <div style={{
-        width: 40, height: 40, borderRadius: '50%', border: '2px dashed #cbd5e1',
-        margin: '14px auto 10px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 7, color: '#94a3b8',
-      }}>
-        cut
-      </div>
+        width: 44, height: 44, borderRadius: '50%',
+        background: '#ffffff',
+        boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.08)',
+        margin: '12px auto 8px', flexShrink: 0,
+        border: '2px dashed #d1d5db',
+      }} />
 
       {/* Header bar */}
       <div style={{

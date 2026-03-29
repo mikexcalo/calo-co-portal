@@ -53,18 +53,21 @@ export default function BusinessCard({ fields, side }: BusinessCardProps) {
       style={{
         width: w, height: h, background: backgroundColor, borderRadius: 4,
         fontFamily, color: secondaryColor, position: 'relative', overflow: 'hidden',
-        display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: 20,
+        display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '24px 20px 18px',
       }}
     >
-      {/* Accent bar top */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: primaryColor }} />
+      {/* Brand color accent bar */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 6, background: primaryColor }} />
 
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        {logoUrl ? (
-          <img src={logoUrl} alt="Logo" style={{ maxWidth: 80, maxHeight: 36, objectFit: 'contain' }} />
-        ) : (
-          <div style={{ fontSize: 12, fontWeight: 700, color: primaryColor }}>{companyName}</div>
-        )}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          {logoUrl && (
+            <img src={logoUrl} alt="Logo" style={{ maxWidth: 60, maxHeight: 30, objectFit: 'contain' }} />
+          )}
+          <div style={{ fontSize: 13, fontWeight: 700, color: primaryColor }}>
+            {companyName || 'Company Name'}
+          </div>
+        </div>
       </div>
 
       <div>

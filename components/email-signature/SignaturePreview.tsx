@@ -110,14 +110,14 @@ export default function SignaturePreview({
 
     if (isStacked) {
       const logoRow = showLogo && logoSrc
-        ? `<tr><td style="padding:0 0 10px 0;text-align:center;"><img src="${logoSrc}" width="auto" height="60" style="max-height:60px;max-width:200px;display:inline-block;" alt="${altTxt}"></td></tr>`
+        ? `<tr><td style="padding:0 0 10px 0;text-align:center;"><img src="${logoSrc}" height="60" style="height:60px;max-height:60px;max-width:200px;display:inline-block;" alt="${altTxt}"></td></tr>`
         : '';
       return `<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;border-collapse:collapse;text-align:center;"><tbody>${logoRow}<tr><td style="padding:0;text-align:center;">${content}</td></tr></tbody></table>`;
     }
 
     const logoCell =
       showLogo && logoSrc
-        ? `<td style="padding:0 16px 0 0;vertical-align:middle;"><img src="${logoSrc}" width="auto" height="48" style="max-height:48px;max-width:120px;display:block;" alt="${altTxt}"></td>`
+        ? `<td style="padding:0 16px 0 0;vertical-align:middle;"><img src="${logoSrc}" height="48" style="height:48px;max-height:48px;max-width:120px;display:block;" alt="${altTxt}"></td>`
         : '';
 
     const dividerCell =

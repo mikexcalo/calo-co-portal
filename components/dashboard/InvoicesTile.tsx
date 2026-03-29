@@ -33,7 +33,7 @@ function useInvoiceStats(): InvoiceStats {
 
     const overdueCount = invoices.filter((i) => i.status !== 'paid' && daysUntil(i.due)! < 0).length;
 
-    const heroColor = invoices.length === 0 ? '#0f172a' : allOutstanding === 0 ? '#16a34a' : '#d97706';
+    const heroColor = allOutstanding > 0 ? '#d97706' : '#1a1f2e';
     const subtext =
       invoices.length === 0
         ? 'No invoices yet'
