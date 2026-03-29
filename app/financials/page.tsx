@@ -23,8 +23,11 @@ export default function FinancialsPage() {
   const [saveStatus, setSaveStatus] = useState('');
 
   useEffect(() => {
-    loadExpenses();
-    setExpenses(DB.expenses);
+    const init = async () => {
+      await loadExpenses();
+      setExpenses([...DB.expenses]);
+    };
+    init();
   }, []);
 
   const getPeriodDates = () => {

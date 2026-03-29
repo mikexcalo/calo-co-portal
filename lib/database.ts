@@ -847,11 +847,17 @@ export async function loadExpenses(): Promise<void> {
       .order('date', { ascending: false });
 
     if (error) {
-      console.error('[loadExpenses] error:', JSON.stringify(error));
+      console.warn('[loadExpenses] table may not exist:', error.code || error.message);
+      DB.expenses = [];
       return;
     }
 
-    DB.expenses = (data || []).map((r) => ({
+    if (!data || !Array.isArray(data)) {
+      DB.expenses = [];
+      return;
+    }
+
+    DB.expenses = data.map((r) => ({
       id: r.id,
       date: r.date,
       category: r.category || 'other',
@@ -863,7 +869,8 @@ export async function loadExpenses(): Promise<void> {
       notes: r.notes || '',
     }));
   } catch (e) {
-    console.error('[loadExpenses] exception:', e);
+    console.warn('[loadExpenses] exception (table may not exist):', e);
+    DB.expenses = [];
   }
 }
 
@@ -891,13 +898,13 @@ export async function saveExpense(exp: Expense): Promise<any> {
       .select();
 
     if (error) {
-      console.error('[saveExpense] error:', JSON.stringify(error));
+      console.warn('[saveExpense] error (table may not exist):', error.code || error.message);
       return null;
     }
 
     return data && data[0] ? data[0] : null;
   } catch (e) {
-    console.error('[saveExpense] exception:', e);
+    console.warn('[saveExpense] exception (table may not exist):', e);
     return null;
   }
 }
@@ -912,10 +919,10 @@ export async function deleteExpenseById(expId: string): Promise<void> {
     const { error } = await supabase.from('expenses').delete().eq('id', expId);
 
     if (error) {
-      console.error('[deleteExpenseById] error:', JSON.stringify(error));
+      console.warn('[deleteExpenseById] error (table may not exist):', error.code || error.message);
     }
   } catch (e) {
-    console.error('[deleteExpenseById] exception:', e);
+    console.warn('[deleteExpenseById] exception (table may not exist):', e);
   }
 }
 
@@ -930,29 +937,31 @@ export async function loadAgencySettings(): Promise<void> {
       .limit(1);
 
     if (error) {
-      console.error('[loadAgencySettings] error:', JSON.stringify(error));
+      console.warn('[loadAgencySettings] table may not exist:', error.code || error.message);
+      // Keep defaults — do not modify DB.agencySettings
       return;
     }
 
-    if (data && data.length > 0) {
-      DB.agencySettings.taxRate = parseFloat(data[0].tax_rate) || 28;
-      DB.agencySettings.fiscalYearStart = parseInt(data[0].fiscal_year_start) || 1;
+    if (!data || !Array.isArray(data) || data.length === 0) return;
 
-      if (
-        data[0].payment_methods &&
-        Array.isArray(data[0].payment_methods) &&
-        data[0].payment_methods.length > 0
-      ) {
-        DB.agencySettings.paymentMethods = data[0].payment_methods;
-      }
+    DB.agencySettings.taxRate = parseFloat(data[0].tax_rate) || 28;
+    DB.agencySettings.fiscalYearStart = parseInt(data[0].fiscal_year_start) || 1;
 
-      if (data[0].agency_name) DB.agency.name = data[0].agency_name;
-      if (data[0].founder_name) DB.agency.founder = data[0].founder_name;
-      if (data[0].website) DB.agency.url = data[0].website;
-      if (data[0].city) DB.agency.location = data[0].city;
+    if (
+      data[0].payment_methods &&
+      Array.isArray(data[0].payment_methods) &&
+      data[0].payment_methods.length > 0
+    ) {
+      DB.agencySettings.paymentMethods = data[0].payment_methods;
     }
+
+    if (data[0].agency_name) DB.agency.name = data[0].agency_name;
+    if (data[0].founder_name) DB.agency.founder = data[0].founder_name;
+    if (data[0].website) DB.agency.url = data[0].website;
+    if (data[0].city) DB.agency.location = data[0].city;
   } catch (e) {
-    console.error('[loadAgencySettings] exception:', e);
+    console.warn('[loadAgencySettings] exception (table may not exist):', e);
+    // Keep defaults — do not modify DB.agencySettings
   }
 }
 
@@ -965,11 +974,32 @@ export async function saveAgencySettings(
   paymentMethods?: any[],
   agencyInfo?: any
 ): Promise<void> {
+  // Always update local cache regardless of whether persistence works
+  DB.agencySettings.taxRate = taxRate;
+  DB.agencySettings.fiscalYearStart = fiscalYearStart;
+
+  if (paymentMethods) {
+    DB.agencySettings.paymentMethods = paymentMethods;
+  }
+
+  if (agencyInfo) {
+    if (agencyInfo.agencyName) DB.agency.name = agencyInfo.agencyName;
+    if (agencyInfo.founderName) DB.agency.founder = agencyInfo.founderName;
+    if (agencyInfo.website) DB.agency.url = agencyInfo.website;
+    if (agencyInfo.city) DB.agency.location = agencyInfo.city;
+  }
+
+  // Attempt persistence — gracefully handle missing table
   try {
-    const { data } = await supabase
+    const { data, error: selectErr } = await supabase
       .from('agency_settings')
       .select('id')
       .limit(1);
+
+    if (selectErr) {
+      console.warn('[saveAgencySettings] table may not exist:', selectErr.code || selectErr.message);
+      return;
+    }
 
     const row: any = {
       tax_rate: taxRate,
@@ -994,33 +1024,16 @@ export async function saveAgencySettings(
         .upsert(row, { onConflict: 'id' });
 
       if (error) {
-        console.error('[saveAgencySettings] upsert error:', JSON.stringify(error));
-        return;
+        console.warn('[saveAgencySettings] upsert error:', error.code || error.message);
       }
     } else {
       const { error } = await supabase.from('agency_settings').insert(row);
 
       if (error) {
-        console.error('[saveAgencySettings] insert error:', JSON.stringify(error));
-        return;
+        console.warn('[saveAgencySettings] insert error:', error.code || error.message);
       }
     }
-
-    // Update local cache
-    DB.agencySettings.taxRate = taxRate;
-    DB.agencySettings.fiscalYearStart = fiscalYearStart;
-
-    if (paymentMethods) {
-      DB.agencySettings.paymentMethods = paymentMethods;
-    }
-
-    if (agencyInfo) {
-      if (agencyInfo.agencyName) DB.agency.name = agencyInfo.agencyName;
-      if (agencyInfo.founderName) DB.agency.founder = agencyInfo.founderName;
-      if (agencyInfo.website) DB.agency.url = agencyInfo.website;
-      if (agencyInfo.city) DB.agency.location = agencyInfo.city;
-    }
   } catch (e) {
-    console.error('[saveAgencySettings] exception:', e);
+    console.warn('[saveAgencySettings] exception (table may not exist):', e);
   }
 }
