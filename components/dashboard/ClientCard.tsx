@@ -77,7 +77,7 @@ export default function ClientCard({ client, onNavigate }: ClientCardProps) {
       onClick={onNavigate}
       style={{ cursor: 'pointer', borderTopColor: tintedColor }}
     >
-      <div className="cc-row-avatar">{avatar}</div>
+      <div className="cc-row-avatar" style={logoUrl ? { background: 'transparent' } : undefined}>{avatar}</div>
       <div className="cc-row-info">
         <span className="cc-row-name">
           {client.company || client.name}

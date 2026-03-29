@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DB, loadExpenses, saveAgencySettings } from '@/lib/database';
 import { Expense } from '@/lib/types';
 import ProfitLoss from '@/components/financials/ProfitLoss';
@@ -11,6 +12,7 @@ import { currency } from '@/lib/utils';
 type Period = 'month' | 'quarter' | 'year' | 'all';
 
 export default function FinancialsPage() {
+  const router = useRouter();
   const [period, setPeriod] = useState<Period>('month');
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [taxRate, setTaxRate] = useState(DB.agencySettings.taxRate || 28);
@@ -122,6 +124,19 @@ export default function FinancialsPage() {
 
   return (
     <div className="page">
+      <button
+        onClick={() => router.push('/')}
+        style={{
+          background: 'none', border: 'none', color: '#6366f1', fontSize: '13px',
+          fontWeight: 500, cursor: 'pointer', padding: 0, marginBottom: '16px',
+          display: 'inline-flex', alignItems: 'center', gap: '4px', fontFamily: 'Inter, sans-serif',
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 12H5" /><polyline points="12 19 5 12 12 5" />
+        </svg>
+        Back to Dashboard
+      </button>
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>

@@ -117,6 +117,19 @@ export default function NewInvoicePage() {
 
   return (
     <div className={styles.page}>
+      <button
+        onClick={() => router.push(`/clients/${params.id}/invoices`)}
+        style={{
+          background: 'none', border: 'none', color: '#6366f1', fontSize: '13px',
+          fontWeight: 500, cursor: 'pointer', padding: 0, marginBottom: '16px',
+          display: 'inline-flex', alignItems: 'center', gap: '4px', fontFamily: 'Inter, sans-serif',
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 12H5" /><polyline points="12 19 5 12 12 5" />
+        </svg>
+        Back to Invoices
+      </button>
       <div className={styles.layout}>
         <div className={styles.leftPanel}>
           <h2 className={styles.leftTitle}>Receipt / Screenshot</h2>

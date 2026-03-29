@@ -26,7 +26,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [greeting, setGreeting] = useState('Good morning');
   const [dateline, setDateline] = useState('');
-  const [openTile, setOpenTile] = useState<'invoices' | 'financials' | 'clients' | null>('invoices');
+  const [timeLine, setTimeLine] = useState('');
+  const [openTile, setOpenTile] = useState<'invoices' | 'financials' | 'clients' | null>(null);
   const [clientFilter, setClientFilter] = useState<'active' | 'paused' | 'closed'>('active');
   const [stats, setStats] = useState(agencyStats([], []));
 
@@ -74,10 +75,13 @@ export default function Home() {
         year: 'numeric',
       };
       setDateline(now.toLocaleDateString('en-US', options));
+      setTimeLine(
+        now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+      );
     };
 
     updateClock();
-    const interval = setInterval(updateClock, 1000);
+    const interval = setInterval(updateClock, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -121,7 +125,9 @@ export default function Home() {
         <div style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a', marginBottom: '3px' }}>
           {greeting}
         </div>
-        <div style={{ fontSize: '12.5px', color: '#94a3b8' }}>{dateline}</div>
+        <div style={{ fontSize: '12.5px', color: '#94a3b8' }}>
+          {dateline}{timeLine ? ` · ${timeLine}` : ''}
+        </div>
       </div>
 
       {/* Attention strip */}

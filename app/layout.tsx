@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import GlobalNav from '@/components/layout/GlobalNav';
 
 export const metadata: Metadata = {
   title: 'CALO&CO Portal',
@@ -20,7 +21,29 @@ export default function RootLayout({
         />
       </head>
       <body style={{ backgroundColor: '#f1f5f9', color: '#0f172a' }}>
-        {children}
+        <GlobalNav />
+        <div style={{ minHeight: 'calc(100vh - 56px - 48px)' }}>
+          {children}
+        </div>
+        <footer
+          style={{
+            textAlign: 'center',
+            padding: '14px 0',
+            fontSize: '11px',
+            color: '#94a3b8',
+            height: '48px',
+          }}
+        >
+          Powered by{' '}
+          <a
+            href="https://mikecalo.co"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: '#94a3b8', textDecoration: 'underline' }}
+          >
+            CALO&CO
+          </a>
+        </footer>
       </body>
     </html>
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Client, BrandKit } from '@/lib/types';
 import { DB, loadAllBrandKits, saveBrandKit } from '@/lib/database';
 import LogoSlot from '@/components/brand-kit/LogoSlot';
@@ -11,6 +11,7 @@ import BrandNotes from '@/components/brand-kit/BrandNotes';
 
 export default function BrandKitPage() {
   const params = useParams();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const clientId = params.id as string;
   const viewMode = searchParams.get('viewMode') || 'edit';
@@ -36,7 +37,26 @@ export default function BrandKitPage() {
         }
 
         setClient(cl);
-        setBrandKit(cl.brandKit);
+        // Ensure brand kit has all required fields with safe defaults
+        const bk = cl.brandKit || {
+          _id: null,
+          logos: { light: [], dark: [], color: [], icon: [], secondary: [], favicon: [] },
+          colors: [],
+          fonts: { heading: '', body: '', accent: '' },
+          notes: '',
+        };
+        // Guard individual fields
+        if (!bk.logos) bk.logos = { light: [], dark: [], color: [], icon: [], secondary: [], favicon: [] };
+        if (!bk.logos.light) bk.logos.light = [];
+        if (!bk.logos.dark) bk.logos.dark = [];
+        if (!bk.logos.color) bk.logos.color = [];
+        if (!bk.logos.icon) bk.logos.icon = [];
+        if (!bk.logos.secondary) bk.logos.secondary = [];
+        if (!bk.logos.favicon) bk.logos.favicon = [];
+        if (!bk.colors) bk.colors = [];
+        if (!bk.fonts) bk.fonts = { heading: '', body: '', accent: '' };
+        if (!bk.notes) bk.notes = '';
+        setBrandKit(bk);
         setLoading(false);
       } catch (err) {
         console.error('Error loading brand kit:', err);
@@ -104,6 +124,30 @@ export default function BrandKitPage() {
 
   return (
     <div className="page">
+      {/* Back button */}
+      <button
+        onClick={() => router.push(`/clients/${clientId}`)}
+        style={{
+          background: 'none',
+          border: 'none',
+          color: '#6366f1',
+          fontSize: '13px',
+          fontWeight: 500,
+          cursor: 'pointer',
+          padding: 0,
+          marginBottom: '16px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '4px',
+          fontFamily: 'Inter, sans-serif',
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 12H5" /><polyline points="12 19 5 12 12 5" />
+        </svg>
+        Back to {client.company || client.name}
+      </button>
+
       {/* Header */}
       <div
         style={{
@@ -114,8 +158,8 @@ export default function BrandKitPage() {
         }}
       >
         <div>
-          <div style={{ fontSize: '18px', fontWeight: 700, marginBottom: '2px' }}>Brand Kit</div>
-          <div style={{ fontSize: '12.5px', color: '#888' }}>{client.company || client.name}</div>
+          <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '2px', color: '#0f172a' }}>Brand Kit</h1>
+          <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>{client.company || client.name}</p>
         </div>
 
         {!readOnly && (

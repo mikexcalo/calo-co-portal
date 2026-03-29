@@ -1,32 +1,57 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { DB, loadInvoices, loadExpenses } from '@/lib/database';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { DB, loadInvoices, loadExpenses, saveExpense } from '@/lib/database';
 import { Client, Invoice, Expense } from '@/lib/types';
 import { currency, invTotal } from '@/lib/utils';
 
+const CAT_LABELS: Record<string, string> = {
+  contractor: 'Contractor',
+  software: 'Software',
+  materials: 'Materials',
+  travel: 'Travel',
+  other: 'Other',
+};
+
+type Period = 'month' | 'quarter' | 'year' | 'all';
+
 export default function ClientFinancialsPage() {
   const params = useParams();
+  const router = useRouter();
   const clientId = params.id as string;
 
   const [client, setClient] = useState<Client | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [period, setPeriod] = useState<'month' | 'quarter' | 'year' | 'all'>('month');
+  const [period, setPeriod] = useState<Period>('month');
+  const [showLogExpense, setShowLogExpense] = useState(false);
+  const [expForm, setExpForm] = useState<Partial<Expense>>({
+    date: new Date().toISOString().split('T')[0],
+    category: 'other',
+  });
+  const [saving, setSaving] = useState(false);
+
+  const taxRate = DB.agencySettings.taxRate || 28;
+
+  const refreshData = useCallback(() => {
+    setInvoices(DB.invoices.filter((i) => i.clientId === clientId));
+    setExpenses(DB.expenses.filter((e) => e.clientId === clientId));
+  }, [clientId]);
 
   useEffect(() => {
-    const foundClient = DB.clients.find((c) => c.id === clientId);
-    setClient(foundClient || null);
+    const init = async () => {
+      const foundClient = DB.clients.find((c) => c.id === clientId);
+      setClient(foundClient || null);
 
-    if (foundClient) {
-      loadInvoices(clientId);
-      loadExpenses();
-
-      setInvoices(DB.invoices.filter((i) => i.clientId === clientId));
-      setExpenses(DB.expenses.filter((e) => e.clientId === clientId));
-    }
-  }, [clientId]);
+      if (foundClient) {
+        await loadInvoices(clientId);
+        await loadExpenses();
+        refreshData();
+      }
+    };
+    init();
+  }, [clientId, refreshData]);
 
   if (!client) {
     return (
@@ -72,25 +97,99 @@ export default function ClientFinancialsPage() {
   );
   const filteredExpenses = expenses.filter((e) => e.date >= start && e.date <= end);
 
-  const totalBilled = filteredInvoices.reduce((sum, i) => sum + invTotal(i), 0);
-  const totalPaid = filteredInvoices
+  // Stat card values
+  const grossRevenue = filteredInvoices
     .filter((i) => i.status === 'paid')
     .reduce((sum, i) => sum + invTotal(i), 0);
-  const outstanding = totalBilled - totalPaid;
   const totalExpenses = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
+  const netIncome = grossRevenue - totalExpenses;
+  const taxEstimate = netIncome > 0 ? netIncome * (taxRate / 100) : 0;
 
   const periodLabel =
-    period === 'month' ? 'This Month' : period === 'quarter' ? 'This Quarter' : period === 'year' ? 'This Fiscal Year' : 'All Time';
+    period === 'month'
+      ? 'This Month'
+      : period === 'quarter'
+      ? 'This Quarter'
+      : period === 'year'
+      ? 'This Fiscal Year'
+      : 'All Time';
+
+  const handleLogExpense = async () => {
+    if (!expForm.date || !expForm.amount || expForm.amount <= 0) {
+      alert('Please fill in date and amount');
+      return;
+    }
+
+    setSaving(true);
+    const newExp: Expense = {
+      date: expForm.date,
+      category: expForm.category || 'other',
+      vendor: expForm.vendor || '',
+      description: expForm.description || '',
+      amount: expForm.amount,
+      clientId: clientId,
+      notes: expForm.notes || '',
+    };
+
+    const saved = await saveExpense(newExp);
+    if (saved) {
+      DB.expenses.unshift({ ...newExp, id: saved.id });
+    }
+
+    refreshData();
+    setShowLogExpense(false);
+    setExpForm({ date: new Date().toISOString().split('T')[0], category: 'other' });
+    setSaving(false);
+  };
+
+  const statusPill = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return 'bg-green-50 border-green-300 text-green-700';
+      case 'draft':
+        return 'bg-slate-50 border-slate-300 text-slate-600';
+      default:
+        return 'bg-amber-50 border-amber-300 text-amber-900';
+    }
+  };
+
+  const statusLabel = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return 'Paid';
+      case 'draft':
+        return 'Draft';
+      default:
+        return 'Outstanding';
+    }
+  };
 
   return (
     <div className="page">
+      {/* Back button + Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">{client.company || client.name}</h1>
-        <p className="text-sm text-slate-500">Financial summary for this client</p>
+        <button
+          onClick={() => router.push(`/clients/${clientId}`)}
+          className="text-sm text-indigo-600 hover:text-indigo-700 font-medium mb-4 inline-flex items-center gap-1"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5" /><polyline points="12 19 5 12 12 5" />
+          </svg>
+          Back to {client.company || client.name}
+        </button>
+
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 mb-1">
+              {client.company || client.name} — Financials
+            </h1>
+            <p className="text-sm text-slate-500">Client revenue and expense tracking</p>
+          </div>
+        </div>
 
         {/* Period Selector */}
-        <div className="flex gap-2 mt-4">
-          {(['month', 'quarter', 'year', 'all'] as const).map((p) => (
+        <div className="flex gap-2">
+          {(['month', 'quarter', 'year', 'all'] as Period[]).map((p) => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
@@ -108,24 +207,40 @@ export default function ClientFinancialsPage() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-4 gap-4 mb-8">
-        <StatCard label="Total Billed" value={currency(totalBilled)} sub={`${filteredInvoices.length} invoice${filteredInvoices.length !== 1 ? 's' : ''}`} />
-        <StatCard label="Paid" value={currency(totalPaid)} sub={`${filteredInvoices.filter((i) => i.status === 'paid').length} paid`} />
-        <StatCard label="Outstanding" value={currency(outstanding)} sub={`${filteredInvoices.filter((i) => i.status !== 'paid').length} unpaid`} />
-        <StatCard label="Expenses" value={currency(totalExpenses)} sub={`${filteredExpenses.length} expense${filteredExpenses.length !== 1 ? 's' : ''}`} />
+        <StatCard
+          label="Gross Revenue"
+          value={currency(grossRevenue)}
+          sub={`${filteredInvoices.filter((i) => i.status === 'paid').length} paid invoice${filteredInvoices.filter((i) => i.status === 'paid').length !== 1 ? 's' : ''}`}
+        />
+        <StatCard
+          label="Total Expenses"
+          value={currency(totalExpenses)}
+          sub={`${filteredExpenses.length} expense${filteredExpenses.length !== 1 ? 's' : ''}`}
+        />
+        <StatCard
+          label="Net Income"
+          value={currency(netIncome)}
+          sub="Before tax"
+        />
+        <StatCard
+          label={`Tax Estimate (${taxRate}%)`}
+          value={currency(taxEstimate)}
+          sub={`Take-home: ${currency(netIncome - taxEstimate)}`}
+        />
       </div>
 
-      {/* Invoices Table */}
-      {filteredInvoices.length > 0 ? (
-        <div className="bg-white rounded-lg border border-slate-200 overflow-hidden mb-8">
-          <div className="p-6 border-b border-slate-200">
-            <h2 className="text-lg font-bold text-slate-900">Invoices — {periodLabel}</h2>
-          </div>
+      {/* Revenue Section — Invoice Table */}
+      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden mb-8">
+        <div className="p-6 border-b border-slate-200">
+          <h2 className="text-lg font-bold text-slate-900">Revenue — {periodLabel}</h2>
+        </div>
+        {filteredInvoices.length > 0 ? (
           <table className="w-full">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600">Invoice</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600">Date</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600">Invoice #</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600">Status</th>
                 <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600">Amount</th>
               </tr>
             </thead>
@@ -136,16 +251,12 @@ export default function ClientFinancialsPage() {
                     #{inv.id}
                     {inv.project ? ` — ${inv.project}` : ''}
                   </td>
-                  <td className="px-6 py-3 text-sm text-slate-600 text-right font-mono">{inv.date}</td>
-                  <td className="px-6 py-3 text-right">
+                  <td className="px-6 py-3 text-sm text-slate-600 font-mono">{inv.date}</td>
+                  <td className="px-6 py-3">
                     <span
-                      className={`inline-block px-3 py-1 text-xs font-medium rounded-full border ${
-                        inv.status === 'paid'
-                          ? 'bg-green-50 border-green-300 text-green-700'
-                          : 'bg-amber-50 border-amber-300 text-amber-900'
-                      }`}
+                      className={`inline-block px-3 py-1 text-xs font-medium rounded-full border ${statusPill(inv.status)}`}
                     >
-                      {inv.status === 'paid' ? 'Paid' : 'Unpaid'}
+                      {statusLabel(inv.status)}
                     </span>
                   </td>
                   <td className="px-6 py-3 text-right text-sm font-bold text-slate-900">
@@ -155,37 +266,143 @@ export default function ClientFinancialsPage() {
               ))}
             </tbody>
           </table>
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg border border-slate-200 p-12 text-center text-slate-500 text-sm mb-8">
-          No invoices in this period.
-        </div>
-      )}
+        ) : (
+          <div className="p-12 text-center text-slate-500 text-sm">
+            No invoices in this period.
+          </div>
+        )}
+      </div>
 
-      {/* Expenses List */}
-      {filteredExpenses.length > 0 && (
-        <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-          <div className="p-6 border-b border-slate-200">
-            <h2 className="text-lg font-bold text-slate-900">Expenses — {periodLabel}</h2>
-          </div>
-          <div className="divide-y divide-slate-200">
-            {filteredExpenses.map((exp) => (
-              <div key={exp.id} className="p-6 hover:bg-slate-50">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="font-semibold text-slate-900">{exp.vendor || exp.description || 'Expense'}</div>
-                    {exp.description && <div className="text-xs text-slate-500 mt-1">{exp.description}</div>}
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs text-slate-500 mb-2">{exp.date}</div>
-                    <div className="text-sm font-bold text-red-600">−{currency(exp.amount)}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Expenses Section */}
+      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+        <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-slate-900">Expenses — {periodLabel}</h2>
+          <button
+            onClick={() => setShowLogExpense(true)}
+            className="btn btn-ghost btn-sm text-xs"
+          >
+            + Log Expense
+          </button>
         </div>
-      )}
+
+        {/* Log Expense Modal */}
+        {showLogExpense && (
+          <div className="bg-slate-50 border-b border-slate-200 p-6 space-y-3">
+            <div className="font-semibold text-slate-900 text-sm">Log New Expense</div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold text-slate-600 block mb-1">Date</label>
+                <input
+                  type="date"
+                  value={expForm.date || ''}
+                  onChange={(e) => setExpForm({ ...expForm, date: e.target.value })}
+                  className="form-input w-full text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-600 block mb-1">Amount</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={expForm.amount || ''}
+                  onChange={(e) => setExpForm({ ...expForm, amount: parseFloat(e.target.value) || 0 })}
+                  className="form-input w-full text-sm"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold text-slate-600 block mb-1">Category</label>
+                <select
+                  value={expForm.category || 'other'}
+                  onChange={(e) => setExpForm({ ...expForm, category: e.target.value })}
+                  className="form-input w-full text-sm"
+                >
+                  {Object.entries(CAT_LABELS).map(([cat, label]) => (
+                    <option key={cat} value={cat}>{label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-600 block mb-1">Vendor</label>
+                <input
+                  type="text"
+                  placeholder="Vendor / payee"
+                  value={expForm.vendor || ''}
+                  onChange={(e) => setExpForm({ ...expForm, vendor: e.target.value })}
+                  className="form-input w-full text-sm"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-600 block mb-1">Description</label>
+              <input
+                type="text"
+                placeholder="Description"
+                value={expForm.description || ''}
+                onChange={(e) => setExpForm({ ...expForm, description: e.target.value })}
+                className="form-input w-full text-sm"
+              />
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={handleLogExpense}
+                disabled={saving}
+                className="btn btn-primary btn-sm text-xs"
+              >
+                {saving ? 'Saving...' : 'Log Expense'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowLogExpense(false);
+                  setExpForm({ date: new Date().toISOString().split('T')[0], category: 'other' });
+                }}
+                className="btn btn-ghost btn-sm text-xs"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {filteredExpenses.length > 0 ? (
+          <table className="w-full">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600">Category</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600">Description</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredExpenses.map((exp) => (
+                <tr key={exp.id} className="border-b border-slate-200 hover:bg-slate-50">
+                  <td className="px-6 py-3 text-sm text-slate-600 font-mono">{exp.date}</td>
+                  <td className="px-6 py-3">
+                    <span className="text-xs font-medium text-slate-700">
+                      {CAT_LABELS[exp.category] || 'Other'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-3 text-sm text-slate-700">
+                    {exp.vendor ? <span className="font-medium">{exp.vendor}</span> : null}
+                    {exp.vendor && exp.description ? ' — ' : ''}
+                    {exp.description || (!exp.vendor ? 'Expense' : '')}
+                  </td>
+                  <td className="px-6 py-3 text-right text-sm font-bold text-red-600">
+                    −{currency(exp.amount)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="p-12 text-center text-slate-500 text-sm">
+            No expenses logged for this period.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
