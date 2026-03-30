@@ -47,7 +47,7 @@ export default function CommandBar({ onItemSaved }: CommandBarProps) {
     const text = input.trim();
     if (!text || loading) return;
 
-    const apiKey = localStorage.getItem('claudeApiKey');
+    const apiKey = localStorage.getItem('CLAUDE_API_KEY');
     if (!apiKey) {
       setResponse({ type: 'query', answer: 'Configure your Claude API key in Settings to use the AI bar.' });
       return;

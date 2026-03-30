@@ -39,7 +39,7 @@ export default function NewInvoicePage() {
     setSelectedFiles(files);
     if (files.length === 0) return;
 
-    const apiKey = typeof window !== 'undefined' ? localStorage.getItem('claudeApiKey') : null;
+    const apiKey = typeof window !== 'undefined' ? localStorage.getItem('CLAUDE_API_KEY') : null;
     if (!apiKey) {
       setError('Configure Claude API key in Settings to enable auto-extraction.');
       return;
