@@ -337,16 +337,9 @@ export async function loadInvoices(clientId: string): Promise<void> {
  */
 export async function saveInvoice(inv: Invoice): Promise<any> {
   try {
-    // line_items jsonb stores only fields without dedicated columns
-    const meta = {
-      items: inv.items || [],
-      projectDesc: inv.projectDesc || '',
-      isReimbursement: inv.isReimbursement || false,
-      paidDate: inv.paidDate || null,
-      internalNotes: inv.internalNotes || '',
-      vendorOrder: inv.vendorOrder || '—',
-      vendorDate: inv.vendorDate || '—',
-    };
+    const lineItems = inv.items || [];
+    const subtotal = lineItems.reduce((s, i) => s + (i.qty || 1) * (i.price || 0), 0);
+    const total = subtotal + (inv.tax || 0) + (inv.shipping || 0);
 
     const row: any = {
       client_id: inv.clientId,
@@ -355,21 +348,34 @@ export async function saveInvoice(inv: Invoice): Promise<any> {
       issued_date: displayToIso(inv.date),
       due_date: displayToIso(inv.due),
       project_name: inv.project || null,
+      project_description: inv.projectDesc || null,
       type: inv.type || 'invoice',
       tax: inv.tax || 0,
       shipping: inv.shipping || 0,
+      subtotal,
+      total,
       internal_margin: inv.netCost || 0,
       notes: inv.notes || null,
       attachment_url: inv.attachmentUrl || null,
-      line_items: meta,
+      line_items: {
+        items: lineItems,
+        projectDesc: inv.projectDesc || '',
+        isReimbursement: inv.isReimbursement || false,
+        paidDate: inv.paidDate || null,
+        internalNotes: inv.internalNotes || '',
+      },
     };
 
     if (inv._uuid) row.id = inv._uuid;
+
+    console.log('[saveInvoice] Inserting:', inv.id, 'client:', inv.clientId, 'total:', total);
 
     const { data, error } = await supabase
       .from('invoices')
       .upsert(row)
       .select();
+
+    console.log('[saveInvoice] Result:', data ? `success (id: ${data[0]?.id})` : 'no data', 'Error:', error ? JSON.stringify(error) : 'none');
 
     if (error) {
       console.error('[saveInvoice] error:', JSON.stringify(error));
