@@ -78,11 +78,31 @@ export default function Home() {
 
   const refreshFeed = () => { setFeedKey((k) => k + 1); loadTasksNotes().then(setAllTasks); };
 
-  return (
-    <div style={{ maxWidth: 960, margin: '0 auto', padding: 24, background: '#fff', minHeight: '100vh' }}>
+  // Priority nudge data (#4)
+  const openTaskTotal = allTasks.filter((t) => t.type === 'task' && t.status === 'open').length;
+  const unpaidInvs = DB.invoices.filter((i) => i.status === 'unpaid' || i.status === 'overdue');
+  const unpaidTotal = unpaidInvs.length;
+  const nearestDue = unpaidInvs
+    .map((i) => ({ due: i.due ? new Date(i.due) : null, total: (i.items || []).reduce((s: number, it: any) => s + (it.qty || 1) * (it.price || 0), 0) + (i.tax || 0) + (i.shipping || 0) }))
+    .filter((x) => x.due && !isNaN(x.due.getTime()))
+    .sort((a, b) => a.due!.getTime() - b.due!.getTime())[0];
 
-      {/* ROW 1: Greeting + Financials */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+  let nudgeText = 'All clear — no urgent items.';
+  if (openTaskTotal > 0 || unpaidTotal > 0) {
+    const parts = [];
+    if (openTaskTotal > 0) parts.push(`${openTaskTotal} open task${openTaskTotal !== 1 ? 's' : ''}`);
+    if (unpaidTotal > 0) parts.push(`${unpaidTotal} unpaid invoice${unpaidTotal !== 1 ? 's' : ''}`);
+    nudgeText = parts.join(' · ');
+    if (nearestDue) {
+      nudgeText += ` — ${currency(nearestDue.total)} due ${nearestDue.due!.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    }
+  }
+
+  return (
+    <div style={{ maxWidth: 960, margin: '0 auto', padding: 24 }}>
+
+      {/* ROW 1: Greeting + Financials — mb: 24px */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <div style={{ fontSize: 22, fontWeight: 500, color: '#1a1f2e' }}>{greeting}</div>
           <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 2 }}>{dateline}{timeLine ? ` · ${timeLine}` : ''}</div>
@@ -104,28 +124,26 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ROW 2: AI bar + Priority nudge — same flex ratios as Row 3 */}
-      <div style={{ display: 'flex', gap: 24, marginBottom: 24 }}>
+      {/* ROW 2: AI bar (flex:1.3) + Priority nudge (flex:1) — mb: 28px, gap: 32px */}
+      <div style={{ display: 'flex', gap: 32, marginBottom: 28 }}>
         <div style={{ flex: 1.3 }}>
           <CommandBar onItemSaved={refreshFeed} />
         </div>
         <div style={{
-          flex: 1, background: '#faeeda', border: '1px solid #f0c97a', borderRadius: 10,
-          padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10,
+          flex: 1, background: '#e6f1fb', border: '1px solid #b5d4f4', borderRadius: 10,
+          padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10,
         }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#854f0b" strokeWidth="2" style={{ flexShrink: 0 }}>
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-            <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#185fa5" strokeWidth="2" style={{ flexShrink: 0 }}>
+            <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
-          <span style={{ fontSize: 12, fontWeight: 500, color: '#854f0b' }}>No priority alerts</span>
+          <span style={{ fontSize: 12, fontWeight: 500, color: '#185fa5' }}>{nudgeText}</span>
         </div>
       </div>
 
-      {/* ROW 3: Two columns — same flex ratios as Row 2 */}
-      <div style={{ display: 'flex', gap: 24 }}>
+      {/* ROW 3: Two columns — gap: 32px, same flex ratios */}
+      <div style={{ display: 'flex', gap: 32 }}>
         {/* LEFT: Clients (flex: 1.3) */}
         <div style={{ flex: 1.3, minWidth: 0 }}>
-          {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9ca3af' }}>Clients</span>
             <div style={{ flex: 1 }} />
@@ -147,7 +165,6 @@ export default function Home() {
             }}>+ Add</button>
           </div>
 
-          {/* Client tiles */}
           {DB.clientsState === 'loading' ? (
             <div style={{ opacity: 0.5, fontSize: 13, color: '#6b7280' }}>Loading clients…</div>
           ) : DB.clientsState === 'error' ? (

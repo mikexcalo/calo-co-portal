@@ -20,7 +20,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body style={{ backgroundColor: '#f1f5f9', color: '#0f172a' }}>
+      <body style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>
         <GlobalNav />
         <div style={{ minHeight: 'calc(100vh - 56px - 48px)' }}>
           {children}

@@ -43,10 +43,7 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
   const handleComplete = async (id: string) => {
     setFadingId(id);
     await updateTaskStatus(id, 'complete');
-    setTimeout(() => {
-      setItems((prev) => prev.filter((i) => i.id !== id));
-      setFadingId(null);
-    }, 300);
+    setTimeout(() => { setItems((prev) => prev.filter((i) => i.id !== id)); setFadingId(null); }, 300);
   };
 
   const handleDelete = async (id: string) => {
@@ -54,11 +51,10 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
     setItems((prev) => prev.filter((i) => i.id !== id));
   };
 
-  // Open tasks — sorted by created_at descending (newest first)
+  // Tasks by created_at desc, invoices by due asc, tasks above invoices
   const openTasks = items
     .filter((i) => i.type === 'task' && i.status === 'open')
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  // Unpaid invoices — sorted by due_date ascending (soonest due first)
   const unpaidInvoices = DB.invoices
     .filter((i) => i.status === 'unpaid' || i.status === 'overdue')
     .sort((a, b) => {
@@ -67,11 +63,11 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
       return da - db;
     });
 
-  // Activity log
+  // Recent Activity — max 3 (#6)
   const activityItems = DB.activityLog
     .filter((e) => ['invoice_created', 'invoice_paid', 'client_added', 'contact_saved', 'brand_guide_exported', 'task_added', 'note_added'].includes(e.eventType))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 6);
+    .slice(0, 3);
 
   const evLabels: Record<string, string> = {
     invoice_created: 'Invoice Created', invoice_paid: 'Invoice Paid',
@@ -88,22 +84,19 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
       {!loaded ? (
         <div style={{ fontSize: 12, color: '#9ca3af', padding: 4 }}>Loading...</div>
       ) : !hasItems ? (
-        <div style={{ fontSize: 12, color: '#9ca3af', padding: '8px 2px', lineHeight: 1.5 }}>
-          No action items right now.
-        </div>
+        <div style={{ fontSize: 12, color: '#9ca3af', padding: '8px 2px', lineHeight: 1.5 }}>No action items right now.</div>
       ) : (
         <div>
-          {/* Task cards */}
+          {/* Task cards — amber square icons (#5) */}
           {openTasks.map((task) => {
             const cl = DB.clients.find((c) => c.id === task.client_id);
             const clientName = cl?.company || cl?.name || '';
             return (
               <div key={task.id} style={{
                 background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10,
-                padding: '12px 14px', marginBottom: 8, display: 'flex', alignItems: 'flex-start', gap: 10,
+                padding: '12px 14px', marginBottom: 10, display: 'flex', alignItems: 'flex-start', gap: 10,
                 opacity: fadingId === task.id ? 0 : 1, transition: 'opacity 0.3s ease',
               }}>
-                {/* Amber checkbox icon */}
                 <div onClick={() => handleComplete(task.id)} style={{
                   width: 24, height: 24, borderRadius: 6, background: '#faeeda',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0,
@@ -113,11 +106,10 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, color: '#1a1f2e', lineHeight: 1.4 }}>{task.content}</div>
                   <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>
-                    {clientName && <span onClick={() => router.push(`/clients/${task.client_id}`)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>{clientName}</span>}
+                    {clientName && <span onClick={() => router.push(`/clients/${task.client_id}`)} style={{ cursor: 'pointer', color: '#6b7280' }}>{clientName}</span>}
                     {clientName && ' · '}{relativeTime(task.created_at)}
                   </div>
                 </div>
-                {/* Trash icon */}
                 <div
                   onClick={() => { if (confirm('Delete this task?')) handleDelete(task.id); }}
                   onMouseEnter={() => setDelHover(task.id)}
@@ -132,7 +124,7 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
             );
           })}
 
-          {/* Invoice cards */}
+          {/* Invoice cards — white, no colored bg (#7) */}
           {unpaidInvoices.map((inv) => {
             const cl = DB.clients.find((c) => c.id === inv.clientId);
             const clientName = cl?.company || cl?.name || '';
@@ -140,7 +132,7 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
             return (
               <div key={inv.id || inv._uuid} onClick={() => router.push(`/clients/${inv.clientId}/invoices`)} style={{
                 background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10,
-                padding: '12px 14px', marginBottom: 8, display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer',
+                padding: '12px 14px', marginBottom: 10, display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer',
               }}>
                 <div style={{
                   width: 24, height: 24, borderRadius: 6, background: '#e6f1fb',
@@ -158,9 +150,9 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
         </div>
       )}
 
-      {/* Recent Activity */}
+      {/* Recent Activity — max 3, no underlines, muted (#6) */}
       {activityItems.length > 0 && (
-        <div style={{ background: '#f4f5f7', borderRadius: 10, padding: '12px 14px', marginTop: 12 }}>
+        <div style={{ background: '#f4f5f7', borderRadius: 10, padding: '12px 14px', marginTop: 20 }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9ca3af', marginBottom: 6 }}>Recent Activity</div>
           {activityItems.map((ev, idx) => {
             const cl = DB.clients.find((c) => c.id === ev.clientId);
@@ -170,7 +162,8 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
                 <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#d1d5db', flexShrink: 0 }} />
                 <span style={{ flex: 1 }}>
                   {evLabels[ev.eventType] || ev.eventType}
-                  {cl && <>{' · '}<span onClick={() => router.push(`/clients/${cl.id}`)} style={{ textDecoration: 'underline', cursor: 'pointer', color: '#6b7280' }}>{clientName}</span></>}
+                  {clientName && ` · `}
+                  {clientName && <span style={{ color: '#6b7280' }}>{clientName}</span>}
                 </span>
                 <span style={{ fontSize: 11, flexShrink: 0 }}>{relativeTime(ev.createdAt)}</span>
               </div>

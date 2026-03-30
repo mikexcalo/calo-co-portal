@@ -67,7 +67,7 @@ export default function ClientCard({ client, onNavigate, taskCount, invoiceCount
   };
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, marginBottom: 8, overflow: 'hidden' }}>
+    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, marginBottom: 12, overflow: 'hidden' }}>
       <div onClick={onToggle} style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
         <span style={{ fontSize: 14, color: '#9ca3af', opacity: 0.4, flexShrink: 0, transition: 'transform 0.2s', transform: expanded ? 'rotate(90deg)' : 'none' }}>▶</span>
         <div style={{ width: 40, height: 40, borderRadius: 10, background: logoUrl ? 'transparent' : bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, color: '#475569', flexShrink: 0, overflow: 'hidden' }}>
