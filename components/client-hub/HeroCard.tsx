@@ -57,13 +57,11 @@ export default function HeroCard({ client, contacts, isClient, onClientUpdate }:
     if (!nameParts[1]) missing.push('Last Name');
   }
   if (!primary?.email && !client.email) missing.push('Email');
-  // Module-level
+  // Module-level — Brand Kit only, Email Signature is optional (#12)
   const bk = client.brandKit;
   const hasLogos = bk && Object.values(bk.logos || {}).some((a: any) => a?.length > 0);
   if (!hasLogos) missing.push('Brand Kit logos');
   if (!bk?.colors?.length) missing.push('Brand colors');
-  const hasSig = !!client.emailSignatureHtml || !!(client.signatureFields as any)?.name;
-  if (!hasSig) missing.push('Email Signature');
 
   const handleSave = async () => {
     setSubmitted(true);
