@@ -8,14 +8,16 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { message } = body;
-    // Trim and clean the key — strip any whitespace, quotes, or invisible characters
-    const rawKey = (body.apiKey || '').toString().trim().replace(/^["']|["']$/g, '');
+
+    // Read Claude API key from environment variable (set in Vercel)
+    const rawKey = (process.env.CLAUDE_API_KEY || '').trim();
+
+    if (!rawKey) {
+      console.error('[/api/chat] CLAUDE_API_KEY env var is not set');
+      return NextResponse.json({ type: 'query', answer: 'Claude API key not configured. Set CLAUDE_API_KEY in Vercel environment variables.' });
+    }
 
     console.log(`[/api/chat] Key prefix: "${rawKey.substring(0, 10)}...", length: ${rawKey.length}`);
-
-    if (!rawKey || rawKey.length < 10) {
-      return NextResponse.json({ type: 'query', answer: 'No valid API key provided. Add your Claude API key in Settings.' });
-    }
 
     // Verify Supabase config
     if (!supabaseUrl || !supabaseKey) {

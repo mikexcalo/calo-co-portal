@@ -48,11 +48,6 @@ export default function CommandBar({ onItemSaved }: CommandBarProps) {
   const handleSubmit = useCallback(async () => {
     const text = input.trim();
     if (!text || loading) return;
-    const apiKey = (localStorage.getItem('CLAUDE_API_KEY') || '').trim();
-    if (!apiKey) {
-      setResponse({ type: 'query', answer: 'Configure your Claude API key in Settings to use the AI bar.' });
-      return;
-    }
 
     setLoading(true);
     setResponse(null);
@@ -60,7 +55,7 @@ export default function CommandBar({ onItemSaved }: CommandBarProps) {
       const resp = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, apiKey }),
+        body: JSON.stringify({ message: text }),
       });
       const data: CommandResponse = await resp.json();
 
