@@ -29,11 +29,18 @@ export async function POST(req: NextRequest) {
       sb.from('contacts').select('id, client_id, name, role, email, phone, is_primary'),
     ]);
 
-    if (clientsRes.error) console.error('[/api/chat] clients query failed:', clientsRes.error.message);
-    if (contactsRes.error) console.error('[/api/chat] contacts query failed:', contactsRes.error.message);
+    if (clientsRes.error) console.error('[/api/chat] Failed to fetch clients:', JSON.stringify(clientsRes.error));
+    if (contactsRes.error) console.error('[/api/chat] Failed to fetch contacts:', JSON.stringify(contactsRes.error));
 
     const clients = clientsRes.data || [];
     const contacts = contactsRes.data || [];
+
+    console.log('[/api/chat] Clients found:', clients.length, JSON.stringify(clients.map((c) => c.company || c.name)));
+    console.log('[/api/chat] Contacts found:', contacts.length);
+
+    if (clients.length === 0) {
+      console.error('[/api/chat] WARNING: Zero clients returned from Supabase. Check RLS policies or table data.');
+    }
 
     const clientList = clients.map((c) => ({
       id: c.id,
@@ -46,28 +53,34 @@ export async function POST(req: NextRequest) {
       })),
     }));
 
-    console.log(`[/api/chat] Found ${clientList.length} clients. Message: "${message.substring(0, 80)}"`);
+    const clientNames = clientList.map((c) => c.company).filter(Boolean);
 
     const systemPrompt = `You are an AI assistant for CALO&CO, a creative agency run by Mike Calo.
 
-Here are the current clients and their contacts:
+CURRENT CLIENTS IN THE SYSTEM:
 ${JSON.stringify(clientList, null, 2)}
 
-RULES:
-- Match ONLY against the client data above. Never guess or invent client names.
-- Match against both company names AND contact names.
-- If you can't find a match, ask which client they mean and list the available client names.
+CLIENT NAME LIST: ${clientNames.join(', ')}
+
+MATCHING RULES:
+- You MUST match user input against the client data above. Match against company names AND contact names within each client.
+- Example: If a user says "Leandro", match to the client whose contacts array contains a person named "Leandro Gazolla" — that would be "LG Flooring Installation Co."
+- Example: If a user says "Mammoth", match to "Mammoth Construction"
+- Example: If a user says "Christina", match to the client whose contact is "Christina Lau"
+- Never say you don't have clients. The data is listed above. There are ${clientList.length} clients.
+- If you truly cannot match, respond: { "type": "clarify", "message": "Which client did you mean? I have: ${clientNames.join(', ')}" }
 
 CLASSIFY every input:
 
-1. task — action to take, follow up, send, create, call, email, schedule. Return: { "type": "task", "client_id": "id", "client_name": "company", "content": "description" }
-2. note — reference info, preference, detail. Return: { "type": "note", "client_id": "id", "client_name": "company", "content": "content" }
-3. query — question. Return: { "type": "query", "answer": "answer", "client_id": "id or null" }
+1. task — action to take, follow up, send, create, call, email, schedule. Return: { "type": "task", "client_id": "the_uuid", "client_name": "company_name", "content": "description" }
+2. note — reference info, preference, detail to remember. Return: { "type": "note", "client_id": "the_uuid", "client_name": "company_name", "content": "content" }
+3. query — question about client data. Return: { "type": "query", "answer": "concise answer", "client_id": "uuid or null" }
 
-If ambiguous task/note, default to task.
-If no client match: { "type": "clarify", "message": "Which client? I have: ${clientList.map((c) => c.company).join(', ')}" }
+If ambiguous between task/note, default to task.
 
-Return ONLY valid JSON. No markdown, no code fences.`;
+Return ONLY valid JSON. No markdown, no code fences, no explanation — just the JSON object.`;
+
+    console.log(`[/api/chat] System prompt length: ${systemPrompt.length} chars, client names: [${clientNames.join(', ')}]`);
 
     // Make the Claude API call
     const anthropicResp = await fetch('https://api.anthropic.com/v1/messages', {
