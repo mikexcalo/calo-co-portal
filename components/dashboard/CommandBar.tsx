@@ -84,33 +84,31 @@ export default function CommandBar({ onItemSaved }: CommandBarProps) {
 
   return (
     <div style={{ position: 'relative', marginBottom: 18 }}>
-      {/* Dark box with white box inside — NOT a border effect */}
-      <div style={{ background: '#1a1f2e', borderRadius: 12, padding: 12 }}>
-        <div style={{ position: 'relative' }}>
-          <div style={{
-            position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
-            color: '#94a3b8', display: 'flex', pointerEvents: 'none',
-          }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-            </svg>
-          </div>
-          <input type="text" value={input} onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
-            placeholder="Ask a question or jot a note..." disabled={loading}
-            style={{
-              width: '100%', padding: '10px 14px 10px 36px', fontSize: 13,
-              border: 'none', borderRadius: 8, fontFamily: 'Inter, sans-serif',
-              color: '#1a1f2e', background: '#ffffff', outline: 'none',
-            }} />
-          {loading && (
-            <div style={{
-              position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
-              width: 16, height: 16, border: '2px solid #e2e8f0', borderTopColor: '#2563eb',
-              borderRadius: '50%', animation: 'cmd-spin 0.6s linear infinite',
-            }} />
-          )}
+      {/* Compact bordered input — no dark container */}
+      <div style={{ position: 'relative', maxWidth: 380 }}>
+        <div style={{
+          position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
+          color: '#94a3b8', display: 'flex', pointerEvents: 'none',
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
         </div>
+        <input type="text" value={input} onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
+          placeholder="Ask a question or jot a note..." disabled={loading}
+          style={{
+            width: '100%', padding: '10px 14px 10px 34px', fontSize: 13,
+            border: '0.5px solid #d1d5db', borderRadius: 10, fontFamily: 'Inter, sans-serif',
+            color: '#1a1f2e', background: '#fff', outline: 'none',
+          }} />
+        {loading && (
+          <div style={{
+            position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+            width: 16, height: 16, border: '2px solid #e2e8f0', borderTopColor: '#2563eb',
+            borderRadius: '50%', animation: 'cmd-spin 0.6s linear infinite',
+          }} />
+        )}
       </div>
 
       {response && (

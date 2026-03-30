@@ -44,7 +44,10 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
     ));
   };
 
-  const sorted = [...items].sort((a, b) => {
+  // Filter out invoice notification notes — only show tasks and regular notes
+  const filtered = items.filter((i) => !(i.type === 'note' && i.content.startsWith('New invoice #')));
+
+  const sorted = [...filtered].sort((a, b) => {
     const ac = a.status === 'complete' ? 1 : 0;
     const bc = b.status === 'complete' ? 1 : 0;
     if (ac !== bc) return ac - bc;

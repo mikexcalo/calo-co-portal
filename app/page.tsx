@@ -7,7 +7,7 @@ import {
   loadAllBrandKits, loadActivityLog, loadExpenses, loadAgencySettings, DB,
 } from '@/lib/database';
 import { agencyStats, currency } from '@/lib/utils';
-import ClientCard, { getClientHealth } from '@/components/dashboard/ClientCard';
+import ClientCard from '@/components/dashboard/ClientCard';
 import TasksNotesFeed from '@/components/dashboard/TasksNotesFeed';
 import CommandBar from '@/components/dashboard/CommandBar';
 
@@ -17,11 +17,9 @@ export default function Home() {
   const [greeting, setGreeting] = useState('Good morning');
   const [dateline, setDateline] = useState('');
   const [timeLine, setTimeLine] = useState('');
-  const [clientFilter, setClientFilter] = useState<'active' | 'paused' | 'closed'>('active');
   const [stats, setStats] = useState(agencyStats([], []));
   const [search, setSearch] = useState('');
   const [feedKey, setFeedKey] = useState(0);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -57,18 +55,8 @@ export default function Home() {
 
   if (isLoading) return <div className="page" style={{ opacity: 0.5, fontSize: 13, color: '#64748b' }}>Loading dashboard…</div>;
 
-  const filterBucket = (s: string) => s === 'paused' ? 'paused' : s === 'closed' ? 'closed' : 'active';
-  const bucketCounts = {
-    active: DB.clients.filter((c) => filterBucket(c.engagementStatus) === 'active').length,
-    paused: DB.clients.filter((c) => filterBucket(c.engagementStatus) === 'paused').length,
-    closed: DB.clients.filter((c) => filterBucket(c.engagementStatus) === 'closed').length,
-  };
-  const filterLabels: Record<string, string> = { active: 'Active', paused: 'Paused', closed: 'Archived' };
   const searchLower = search.toLowerCase();
-  const healthOrder = (c: string) => c === '#ef4444' ? 0 : c === '#f59e0b' ? 1 : 2;
-
   const filteredClients = DB.clients
-    .filter((c) => filterBucket(c.engagementStatus) === clientFilter)
     .filter((c) => {
       if (!searchLower) return true;
       const ct = DB.contacts[c.id] || [];
@@ -76,66 +64,46 @@ export default function Home() {
       return (c.company || c.name || '').toLowerCase().includes(searchLower)
         || (p?.name || '').toLowerCase().includes(searchLower);
     })
-    .sort((a, b) => {
-      const d = healthOrder(getClientHealth(a).color) - healthOrder(getClientHealth(b).color);
-      return d !== 0 ? d : (a.company || a.name).localeCompare(b.company || b.name);
-    });
+    .sort((a, b) => (a.company || a.name).localeCompare(b.company || b.name));
 
   return (
     <div className="page">
-      {/* Greeting */}
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 20, fontWeight: 700, color: '#1a1f2e', marginBottom: 3 }}>{greeting}</div>
-        <div style={{ fontSize: 12.5, color: '#94a3b8' }}>{dateline}{timeLine ? ` · ${timeLine}` : ''}</div>
-      </div>
-
-      {/* Top row: AI bar (left) + Financials card (right) — same height (#2) */}
-      <div style={{ display: 'flex', gap: 16, marginBottom: 20, alignItems: 'stretch' }}>
-        <div style={{ flex: '1 1 0', minWidth: 0 }}>
-          <CommandBar onItemSaved={() => setFeedKey((k) => k + 1)} />
+      {/* Top row: Greeting (left) + Financials card (right) */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#1a1f2e', marginBottom: 3 }}>{greeting}</div>
+          <div style={{ fontSize: 12.5, color: '#94a3b8' }}>{dateline}{timeLine ? ` · ${timeLine}` : ''}</div>
         </div>
-        <div style={{
-          flex: '0 0 300px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
-          padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 20,
+        {/* Financials card — compact, clickable */}
+        <div onClick={() => router.push('/financials')} style={{
+          background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8,
+          padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 14,
+          cursor: 'pointer', flexShrink: 0,
         }}>
           <div>
-            <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Outstanding</div>
-            <div style={{ fontSize: 17, fontWeight: 700, color: stats.outstanding > 0 ? '#d97706' : '#1a1f2e' }}>{currency(stats.outstanding)}</div>
+            <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Outstanding</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: stats.outstanding > 0 ? '#d97706' : '#1a1f2e' }}>{currency(stats.outstanding)}</div>
           </div>
-          <div style={{ width: 1, height: 28, background: '#e2e8f0' }} />
+          <div style={{ width: 1, height: 24, background: '#e2e8f0' }} />
           <div>
-            <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Paid</div>
-            <div style={{ fontSize: 17, fontWeight: 700, color: '#1a1f2e' }}>{currency(stats.paid)}</div>
+            <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Paid</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#1a1f2e' }}>{currency(stats.paid)}</div>
           </div>
-          <div style={{ flex: 1 }} />
-          <button onClick={() => router.push('/financials')} style={{
-            background: 'none', border: 'none', color: '#2563eb', fontSize: 11,
-            fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-          }}>Financials →</button>
+          <span style={{ color: '#94a3b8', fontSize: 14 }}>›</span>
         </div>
       </div>
 
-      {/* Two-column layout: CLIENTS (left) + TASKS & NOTES (right) (#7: headers aligned) */}
+      {/* AI bar — compact, left-aligned */}
+      <div style={{ marginBottom: 20 }}>
+        <CommandBar onItemSaved={() => setFeedKey((k) => k + 1)} />
+      </div>
+
+      {/* Two-column: Clients (left) + Tasks & Notes (right) */}
       <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
         {/* LEFT: CLIENTS */}
         <div style={{ flex: '1 1 0', minWidth: 0 }}>
-          <div className="section-title" style={{ marginBottom: 8 }}>Clients</div>
-
-          {/* Filter tabs + Add Client + Search — single row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
-            <button className="cta-btn" style={{ height: 32, fontSize: 12, padding: '0 14px' }}
-              onClick={() => router.push('/clients/new')}>+ Add Client</button>
-            {(['active', 'paused', 'closed'] as const).map((s) => (
-              <button key={s} onClick={() => setClientFilter(s)} style={{
-                padding: '5px 11px', fontSize: 11.5, fontWeight: 600,
-                border: clientFilter === s ? '1.5px solid #2563eb' : '1.5px solid #d1d5db',
-                borderRadius: 7, cursor: 'pointer',
-                background: clientFilter === s ? '#eff6ff' : '#fff',
-                color: clientFilter === s ? '#2563eb' : '#64748b', fontFamily: 'Inter, sans-serif',
-              }}>
-                {filterLabels[s]} ({bucketCounts[s as keyof typeof bucketCounts]})
-              </button>
-            ))}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <div className="section-title">Clients</div>
             <div style={{ flex: 1 }} />
             <div style={{ position: 'relative' }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2"
@@ -148,9 +116,10 @@ export default function Home() {
                   borderRadius: 7, fontFamily: 'Inter, sans-serif', color: '#1a1f2e', width: 150,
                 }} />
             </div>
+            <button className="cta-btn" style={{ height: 30, fontSize: 11, padding: '0 12px' }}
+              onClick={() => router.push('/clients/new')}>+ Add Client</button>
           </div>
 
-          {/* Single-column client list (#3) */}
           {DB.clientsState === 'loading' ? (
             <div style={{ opacity: 0.5, fontSize: 13, color: '#64748b' }}>Loading clients…</div>
           ) : DB.clientsState === 'error' ? (
@@ -158,18 +127,16 @@ export default function Home() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {filteredClients.map((client) => (
-                <ClientCard
-                  key={client.id}
-                  client={client}
-                  expanded={expandedId === client.id}
-                  onToggle={() => setExpandedId(expandedId === client.id ? null : client.id)}
-                  onNavigate={() => {
-                    localStorage.setItem(`client_accessed_${client.id}`, String(Date.now()));
-                    router.push(`/clients/${client.id}`);
-                  }}
-                />
+                <ClientCard key={client.id} client={client} onNavigate={() => {
+                  localStorage.setItem(`client_accessed_${client.id}`, String(Date.now()));
+                  router.push(`/clients/${client.id}`);
+                }} />
               ))}
-              {/* Dashed + Add Client at bottom */}
+              {filteredClients.length === 0 && (
+                <div style={{ color: '#94a3b8', fontSize: 13, padding: '8px 0' }}>
+                  {search ? 'No matching clients.' : 'No clients yet.'}
+                </div>
+              )}
               <div onClick={() => router.push('/clients/new')} style={{
                 border: '1.5px dashed #d1d5db', borderRadius: 8, cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -186,7 +153,7 @@ export default function Home() {
           )}
         </div>
 
-        {/* RIGHT: TASKS & NOTES (#7: header aligns with CLIENTS) */}
+        {/* RIGHT: TASKS & NOTES */}
         <div style={{ flex: '0 0 300px', width: 300, minWidth: 0 }}>
           <TasksNotesFeed refreshKey={feedKey} />
         </div>
