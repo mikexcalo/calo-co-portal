@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { DB, loadTasksNotes, updateTaskStatus, deleteTaskNote } from '@/lib/database';
 import TaskNoteCard from '@/components/shared/TaskNoteCard';
 
@@ -25,6 +26,7 @@ function relativeTime(iso: string): string {
 }
 
 export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
+  const router = useRouter();
   const [items, setItems] = useState<TaskNote[]>([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -91,29 +93,41 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
             );
           })}
 
+          {/* Recent Activity — muted card */}
           {activityItems.length > 0 && (
-            <>
+            <div style={{
+              background: '#f8fafc', borderRadius: 10, padding: '12px 14px', marginTop: 10,
+            }}>
               <div style={{
                 fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase',
-                color: '#cbd5e1', marginTop: 10, marginBottom: 2,
+                color: '#cbd5e1', marginBottom: 6,
               }}>Recent Activity</div>
               {activityItems.map((ev, idx) => {
                 const cl = DB.clients.find((c) => c.id === ev.clientId);
+                const clientName = cl?.company || cl?.name || '';
                 return (
                   <div key={idx} style={{
                     display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '4px 0', fontSize: 11, color: '#94a3b8',
+                    padding: '3px 0', fontSize: 11, color: '#94a3b8',
                   }}>
                     <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#d1d5db', flexShrink: 0 }} />
                     <span style={{ flex: 1 }}>
                       {evLabels[ev.eventType] || ev.eventType}
-                      {cl ? ` · ${cl.company || cl.name}` : ''}
+                      {cl && (
+                        <>
+                          {' · '}
+                          <span
+                            onClick={() => router.push(`/clients/${cl.id}`)}
+                            style={{ textDecoration: 'underline', cursor: 'pointer', color: '#64748b' }}
+                          >{clientName}</span>
+                        </>
+                      )}
                     </span>
                     <span style={{ fontSize: 10, flexShrink: 0 }}>{relativeTime(ev.createdAt)}</span>
                   </div>
                 );
               })}
-            </>
+            </div>
           )}
         </div>
       )}

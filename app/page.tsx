@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   initSupabase, initAgency, loadClients, loadInvoices, loadContacts,
-  loadAllBrandKits, loadActivityLog, loadExpenses, loadAgencySettings, DB,
+  loadAllBrandKits, loadActivityLog, loadExpenses, loadAgencySettings,
+  loadTasksNotes, DB,
 } from '@/lib/database';
 import { agencyStats, currency } from '@/lib/utils';
 import ClientCard from '@/components/dashboard/ClientCard';
@@ -20,6 +21,7 @@ export default function Home() {
   const [stats, setStats] = useState(agencyStats([], []));
   const [search, setSearch] = useState('');
   const [feedKey, setFeedKey] = useState(0);
+  const [allTasks, setAllTasks] = useState<any[]>([]);
 
   useEffect(() => {
     const init = async () => {
@@ -33,6 +35,9 @@ export default function Home() {
         await loadExpenses().catch(() => {});
         await loadAgencySettings().catch(() => {});
         setStats(agencyStats(DB.invoices, DB.clients));
+        // Load all tasks for pill counts
+        const tasks = await loadTasksNotes();
+        setAllTasks(tasks);
       } catch (e) { console.error('Init error:', e); }
       finally { setIsLoading(false); }
     };
@@ -66,6 +71,12 @@ export default function Home() {
     })
     .sort((a, b) => (a.company || a.name).localeCompare(b.company || b.name));
 
+  // Compute pill counts per client
+  const getTaskCount = (clientId: string) =>
+    allTasks.filter((t) => t.client_id === clientId && t.type === 'task' && t.status === 'open').length;
+  const getInvoiceCount = (clientId: string) =>
+    DB.invoices.filter((i) => i.clientId === clientId && (i.status === 'unpaid' || i.status === 'overdue')).length;
+
   return (
     <div className="page">
       {/* Top row: Greeting (left) + Financials card (right) */}
@@ -74,7 +85,6 @@ export default function Home() {
           <div style={{ fontSize: 20, fontWeight: 700, color: '#1a1f2e', marginBottom: 3 }}>{greeting}</div>
           <div style={{ fontSize: 12.5, color: '#94a3b8' }}>{dateline}{timeLine ? ` · ${timeLine}` : ''}</div>
         </div>
-        {/* Financials card — compact, clickable */}
         <div onClick={() => router.push('/financials')} style={{
           background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8,
           padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 14,
@@ -93,9 +103,9 @@ export default function Home() {
         </div>
       </div>
 
-      {/* AI bar — compact, left-aligned */}
+      {/* AI bar */}
       <div style={{ marginBottom: 20 }}>
-        <CommandBar onItemSaved={() => setFeedKey((k) => k + 1)} />
+        <CommandBar onItemSaved={() => { setFeedKey((k) => k + 1); loadTasksNotes().then(setAllTasks); }} />
       </div>
 
       {/* Two-column: Clients (left) + Tasks & Notes (right) */}
@@ -105,6 +115,7 @@ export default function Home() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <div className="section-title">Clients</div>
             <div style={{ flex: 1 }} />
+            {/* Search next to Add Client */}
             <div style={{ position: 'relative' }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2"
                 style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
@@ -113,7 +124,8 @@ export default function Home() {
               <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search..." style={{
                   padding: '5px 10px 5px 26px', fontSize: 12, border: '1px solid #e2e8f0',
-                  borderRadius: 7, fontFamily: 'Inter, sans-serif', color: '#1a1f2e', width: 150,
+                  borderRadius: 6, fontFamily: 'Inter, sans-serif', color: '#1a1f2e', width: 150,
+                  background: '#f8fafc',
                 }} />
             </div>
             <button className="cta-btn" style={{ height: 30, fontSize: 11, padding: '0 12px' }}
@@ -127,28 +139,22 @@ export default function Home() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {filteredClients.map((client) => (
-                <ClientCard key={client.id} client={client} onNavigate={() => {
-                  localStorage.setItem(`client_accessed_${client.id}`, String(Date.now()));
-                  router.push(`/clients/${client.id}`);
-                }} />
+                <ClientCard
+                  key={client.id}
+                  client={client}
+                  taskCount={getTaskCount(client.id)}
+                  invoiceCount={getInvoiceCount(client.id)}
+                  onNavigate={() => {
+                    localStorage.setItem(`client_accessed_${client.id}`, String(Date.now()));
+                    router.push(`/clients/${client.id}`);
+                  }}
+                />
               ))}
               {filteredClients.length === 0 && (
                 <div style={{ color: '#94a3b8', fontSize: 13, padding: '8px 0' }}>
                   {search ? 'No matching clients.' : 'No clients yet.'}
                 </div>
               )}
-              <div onClick={() => router.push('/clients/new')} style={{
-                border: '1.5px dashed #d1d5db', borderRadius: 8, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                padding: '10px 0', gap: 6, transition: 'border-color 0.15s',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#2563eb')}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#d1d5db')}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2">
-                  <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                <span style={{ fontSize: 12, fontWeight: 500, color: '#94a3b8' }}>Add Client</span>
-              </div>
             </div>
           )}
         </div>

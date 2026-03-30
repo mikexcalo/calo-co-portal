@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { Client } from '@/lib/types';
 import { initials } from '@/lib/utils';
 import { DB } from '@/lib/database';
@@ -6,9 +7,12 @@ import { DB } from '@/lib/database';
 interface ClientCardProps {
   client: Client;
   onNavigate: () => void;
+  taskCount?: number;
+  invoiceCount?: number;
 }
 
-export default function ClientCard({ client, onNavigate }: ClientCardProps) {
+export default function ClientCard({ client, onNavigate, taskCount = 0, invoiceCount = 0 }: ClientCardProps) {
+  const router = useRouter();
   const contacts = DB.contacts[client.id] || [];
   const primary = contacts.find((c) => c.isPrimary) || contacts[0] || null;
   const logoUrl = client.logo;
@@ -33,6 +37,19 @@ export default function ClientCard({ client, onNavigate }: ClientCardProps) {
           </div>
         )}
       </div>
+      {/* Summary pills */}
+      {taskCount > 0 && (
+        <span onClick={(e) => { e.stopPropagation(); onNavigate(); }} style={{
+          fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 4,
+          background: '#faeeda', color: '#854f0b', cursor: 'pointer', flexShrink: 0,
+        }}>{taskCount} task{taskCount !== 1 ? 's' : ''}</span>
+      )}
+      {invoiceCount > 0 && (
+        <span onClick={(e) => { e.stopPropagation(); router.push(`/clients/${client.id}/invoices`); }} style={{
+          fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 4,
+          background: '#e6f1fb', color: '#185fa5', cursor: 'pointer', flexShrink: 0,
+        }}>{invoiceCount} inv</span>
+      )}
       <button onClick={onNavigate} style={{
         background: 'none', border: 'none', padding: 0,
         color: '#2563eb', fontSize: 12, fontWeight: 500, cursor: 'pointer',
