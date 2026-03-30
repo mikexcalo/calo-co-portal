@@ -83,28 +83,53 @@ export default function Home() {
 
   return (
     <div className="page">
-      {/* Two-column layout */}
-      <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+      {/* Greeting */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: '#1a1f2e', marginBottom: 3 }}>{greeting}</div>
+        <div style={{ fontSize: 12.5, color: '#94a3b8' }}>{dateline}{timeLine ? ` · ${timeLine}` : ''}</div>
+      </div>
 
-        {/* LEFT COLUMN (~65%) */}
+      {/* Top row: AI bar (left) + Financials card (right) — same height (#2) */}
+      <div style={{ display: 'flex', gap: 16, marginBottom: 20, alignItems: 'stretch' }}>
         <div style={{ flex: '1 1 0', minWidth: 0 }}>
-          {/* Greeting */}
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#1a1f2e', marginBottom: 3 }}>{greeting}</div>
-            <div style={{ fontSize: 12.5, color: '#94a3b8' }}>{dateline}{timeLine ? ` · ${timeLine}` : ''}</div>
-          </div>
-
-          {/* AI bar — contained to left column */}
           <CommandBar onItemSaved={() => setFeedKey((k) => k + 1)} />
+        </div>
+        <div style={{
+          flex: '0 0 300px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
+          padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 20,
+        }}>
+          <div>
+            <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Outstanding</div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: stats.outstanding > 0 ? '#d97706' : '#1a1f2e' }}>{currency(stats.outstanding)}</div>
+          </div>
+          <div style={{ width: 1, height: 28, background: '#e2e8f0' }} />
+          <div>
+            <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Paid</div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: '#1a1f2e' }}>{currency(stats.paid)}</div>
+          </div>
+          <div style={{ flex: 1 }} />
+          <button onClick={() => router.push('/financials')} style={{
+            background: 'none', border: 'none', color: '#2563eb', fontSize: 11,
+            fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+          }}>Financials →</button>
+        </div>
+      </div>
 
-          {/* CLIENTS header + filter tabs + search */}
+      {/* Two-column layout: CLIENTS (left) + TASKS & NOTES (right) (#7: headers aligned) */}
+      <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+        {/* LEFT: CLIENTS */}
+        <div style={{ flex: '1 1 0', minWidth: 0 }}>
           <div className="section-title" style={{ marginBottom: 8 }}>Clients</div>
+
+          {/* Filter tabs + Add Client + Search — single row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+            <button className="cta-btn" style={{ height: 32, fontSize: 12, padding: '0 14px' }}
+              onClick={() => router.push('/clients/new')}>+ Add Client</button>
             {(['active', 'paused', 'closed'] as const).map((s) => (
               <button key={s} onClick={() => setClientFilter(s)} style={{
-                padding: '6px 12px', fontSize: 12, fontWeight: 600,
+                padding: '5px 11px', fontSize: 11.5, fontWeight: 600,
                 border: clientFilter === s ? '1.5px solid #2563eb' : '1.5px solid #d1d5db',
-                borderRadius: 8, cursor: 'pointer',
+                borderRadius: 7, cursor: 'pointer',
                 background: clientFilter === s ? '#eff6ff' : '#fff',
                 color: clientFilter === s ? '#2563eb' : '#64748b', fontFamily: 'Inter, sans-serif',
               }}>
@@ -113,25 +138,25 @@ export default function Home() {
             ))}
             <div style={{ flex: 1 }} />
             <div style={{ position: 'relative' }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2"
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2"
                 style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
                 <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
               <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search..." style={{
-                  padding: '6px 10px 6px 28px', fontSize: 12, border: '1px solid #e2e8f0',
-                  borderRadius: 8, fontFamily: 'Inter, sans-serif', color: '#1a1f2e', width: 160,
+                  padding: '5px 10px 5px 26px', fontSize: 12, border: '1px solid #e2e8f0',
+                  borderRadius: 7, fontFamily: 'Inter, sans-serif', color: '#1a1f2e', width: 150,
                 }} />
             </div>
           </div>
 
-          {/* 2-column client tile grid (#7: equal height via align-items stretch) */}
+          {/* Single-column client list (#3) */}
           {DB.clientsState === 'loading' ? (
             <div style={{ opacity: 0.5, fontSize: 13, color: '#64748b' }}>Loading clients…</div>
           ) : DB.clientsState === 'error' ? (
             <div style={{ fontSize: 13, color: '#dc2626' }}>Unable to load clients</div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, alignItems: 'stretch' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {filteredClients.map((client) => (
                 <ClientCard
                   key={client.id}
@@ -144,46 +169,25 @@ export default function Home() {
                   }}
                 />
               ))}
-              {/* + Add Client */}
+              {/* Dashed + Add Client at bottom */}
               <div onClick={() => router.push('/clients/new')} style={{
-                border: '2px dashed #d1d5db', borderRadius: 10, cursor: 'pointer',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                padding: 20, gap: 4, transition: 'border-color 0.15s',
+                border: '1.5px dashed #d1d5db', borderRadius: 8, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '10px 0', gap: 6, transition: 'border-color 0.15s',
               }}
               onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#2563eb')}
               onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#d1d5db')}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2">
                   <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8' }}>Add Client</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#94a3b8' }}>Add Client</span>
               </div>
             </div>
           )}
         </div>
 
-        {/* RIGHT COLUMN (~35%) */}
+        {/* RIGHT: TASKS & NOTES (#7: header aligns with CLIENTS) */}
         <div style={{ flex: '0 0 300px', width: 300, minWidth: 0 }}>
-          {/* OVERVIEW stat card — vertical */}
-          <div className="section-title" style={{ marginBottom: 8 }}>Overview</div>
-          <div style={{
-            background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
-            padding: '14px 16px', marginBottom: 16,
-          }}>
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>Outstanding</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: stats.outstanding > 0 ? '#d97706' : '#1a1f2e' }}>{currency(stats.outstanding)}</div>
-            </div>
-            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 10 }}>
-              <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>Paid</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: '#1a1f2e' }}>{currency(stats.paid)}</div>
-            </div>
-            <button onClick={() => router.push('/financials')} style={{
-              marginTop: 12, background: 'none', border: 'none', color: '#2563eb', fontSize: 12,
-              fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif', padding: 0,
-            }}>Financials →</button>
-          </div>
-
-          {/* NOTES & TASKS feed */}
           <TasksNotesFeed refreshKey={feedKey} />
         </div>
       </div>

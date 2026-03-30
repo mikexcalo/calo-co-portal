@@ -70,12 +70,8 @@ export default function GlobalNav() {
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       width: '100%', maxWidth: 980, padding: '0 24px',
     }}>
-      {/* Left: Product name + Breadcrumbs */}
+      {/* Left: Breadcrumbs only — no CALO&CO (#1) */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, overflow: 'hidden' }}>
-        <span style={{ color: '#64748b', fontSize: 12, fontWeight: 600, flexShrink: 0, letterSpacing: '0.02em' }}>
-          CALO&CO
-        </span>
-        <span style={{ color: '#334155', fontSize: 11, flexShrink: 0 }}>/</span>
         {breadcrumbs.map((crumb, i) => {
           const isLast = i === breadcrumbs.length - 1;
           const isClientCrumb = crumb.isClient;
