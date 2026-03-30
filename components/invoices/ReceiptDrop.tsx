@@ -5,155 +5,91 @@ import styles from './ReceiptDrop.module.css';
 
 interface ReceiptDropProps {
   onFilesSelected: (files: File[]) => void;
+  onExtract?: () => void;
   isLoading?: boolean;
 }
 
-export default function ReceiptDrop({ onFilesSelected, isLoading = false }: ReceiptDropProps) {
+const MAX_IMAGES = 5;
+
+export default function ReceiptDrop({ onFilesSelected, onExtract, isLoading = false }: ReceiptDropProps) {
   const [dragActive, setDragActive] = useState(false);
-  const [images, setImages] = useState<string[]>([]);
-  const [extractionStatus, setExtractionStatus] = useState<'idle' | 'reading' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
 
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true);
-    } else if (e.type === 'dragleave') {
-      setDragActive(false);
-    }
+  const addFiles = (newFiles: File[]) => {
+    const valid = newFiles.filter((f) => f.type.startsWith('image/') || f.type === 'application/pdf');
+    if (valid.length === 0) return;
+
+    setImages((prev) => {
+      const combined = [...prev];
+      for (const file of valid) {
+        if (combined.length >= MAX_IMAGES) break;
+        if (combined.some((p) => p.file.name === file.name && p.file.size === file.size)) continue;
+        const preview = file.type.startsWith('image/') ? URL.createObjectURL(file) : '';
+        combined.push({ file, preview });
+      }
+      // Notify parent of all accumulated files
+      onFilesSelected(combined.map((c) => c.file));
+      return combined;
+    });
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    const files = Array.from(e.dataTransfer.files).filter(
-      (f) => f.type.startsWith('image/') || f.type === 'application/pdf'
-    );
-
-    if (files.length > 0) {
-      processFiles(files);
-    } else {
-      setErrorMessage('Please drop image files (PNG, JPG) or PDFs');
-      setExtractionStatus('error');
-    }
-  };
-
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      processFiles(files);
-    }
-  };
-
-  const processFiles = async (files: File[]) => {
-    const validFiles = files.filter(
-      (f) => f.type.startsWith('image/') || f.type === 'application/pdf'
-    );
-
-    if (validFiles.length === 0) {
-      setErrorMessage('Only image and PDF files are supported');
-      setExtractionStatus('error');
-      return;
-    }
-
-    setExtractionStatus('reading');
-    setErrorMessage('');
-
-    // Read images for preview
-    const imagePromises = validFiles
-      .filter((f) => f.type.startsWith('image/'))
-      .map(
-        (file) =>
-          new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target?.result as string);
-            reader.readAsDataURL(file);
-          })
-      );
-
-    const loadedImages = await Promise.all(imagePromises);
-    setImages(loadedImages);
-
-    // Notify parent of files
-    onFilesSelected(validFiles);
-    setExtractionStatus('idle');
-  };
-
-  const removeImage = (index: number) => {
-    const newImages = images.filter((_, i) => i !== index);
-    setImages(newImages);
-    if (newImages.length === 0) {
-      setExtractionStatus('idle');
-    }
+  const removeImage = (idx: number) => {
+    setImages((prev) => {
+      const next = prev.filter((_, i) => i !== idx);
+      onFilesSelected(next.map((c) => c.file));
+      return next;
+    });
   };
 
   return (
-    <div className={styles.container}>
-      <label htmlFor="receipt-input" className={`${styles.dropZone} ${dragActive ? styles.dragActive : ''}`}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
+    <div>
+      <label
+        htmlFor="receipt-input"
+        className={`${styles.dropZone} ${dragActive ? styles.dragActive : ''}`}
+        onDragEnter={(e) => { e.preventDefault(); setDragActive(true); }}
+        onDragLeave={(e) => { e.preventDefault(); setDragActive(false); }}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => { e.preventDefault(); setDragActive(false); addFiles(Array.from(e.dataTransfer.files)); }}
       >
         {images.length === 0 ? (
           <div className={styles.empty}>
-            <div className={styles.icon}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <path d="M3 9h18M9 21V9" />
-              </svg>
-            </div>
-            <div className={styles.label}>Drop screenshots here</div>
-            <div className={styles.sub}>or click to browse files</div>
-            <div className={styles.hint}>PNG · JPG · PDF</div>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M3 9h18M9 21V9" />
+            </svg>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#475569', marginTop: 6 }}>Drop receipt screenshots here</div>
+            <div style={{ fontSize: 11, color: '#94a3b8' }}>or click to browse · up to {MAX_IMAGES} images</div>
+            <div style={{ fontSize: 10, color: '#cbd5e1', marginTop: 2 }}>PNG · JPG · PDF</div>
           </div>
         ) : (
-          <div className={styles.preview}>
-            {images.map((src, idx) => (
-              <div key={idx} className={styles.imageWrapper}>
-                <img src={src} alt={`Preview ${idx}`} className={styles.image} />
-                <button
-                  type="button"
-                  className={styles.removeBtn}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    removeImage(idx);
-                  }}
-                  title="Remove"
-                >
-                  ×
-                </button>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: 4 }}>
+            {images.map((img, idx) => (
+              <div key={idx} style={{ position: 'relative', width: 64, height: 64, borderRadius: 6, overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                {img.preview ? (
+                  <img src={img.preview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9', fontSize: 9, color: '#94a3b8' }}>PDF</div>
+                )}
+                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeImage(idx); }}
+                  style={{ position: 'absolute', top: 2, right: 2, width: 16, height: 16, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', color: '#fff', border: 'none', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
               </div>
             ))}
+            {images.length < MAX_IMAGES && (
+              <div style={{ width: 64, height: 64, borderRadius: 6, border: '1.5px dashed #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 20 }}>+</div>
+            )}
           </div>
         )}
-        <input
-          id="receipt-input"
-          ref={(input) => {
-            if (input) input.hidden = true;
-          }}
-          type="file"
-          multiple
-          accept="image/*,.pdf"
-          onChange={handleFileInput}
-          disabled={isLoading}
-          style={{ display: 'none' }}
-        />
+        <input id="receipt-input" type="file" multiple accept="image/*,.pdf"
+          onChange={(e) => { if (e.target.files) addFiles(Array.from(e.target.files)); e.target.value = ''; }}
+          disabled={isLoading} style={{ display: 'none' }} />
       </label>
 
-      {extractionStatus === 'reading' && (
-        <div className={styles.status} style={{ color: '#64748b' }}>
-          ⏳ Reading receipt...
-        </div>
-      )}
-
-      {extractionStatus === 'error' && errorMessage && (
-        <div className={styles.status} style={{ color: '#dc2626' }}>
-          {errorMessage}
-        </div>
+      {/* Extract button — only when images are loaded */}
+      {images.length > 0 && onExtract && (
+        <button onClick={onExtract} disabled={isLoading} className="cta-btn"
+          style={{ marginTop: 8, width: '100%', height: 34, fontSize: 12 }}>
+          {isLoading ? `Extracting from ${images.length} image${images.length !== 1 ? 's' : ''}...` : `Extract from ${images.length} image${images.length !== 1 ? 's' : ''}`}
+        </button>
       )}
     </div>
   );

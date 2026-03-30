@@ -1144,6 +1144,8 @@ export async function saveAgencySettings(
       if (agencyInfo.city) row.city = agencyInfo.city;
     }
 
+    console.log('[saveAgencySettings] Saving row:', JSON.stringify(row).substring(0, 200));
+
     if (data && data.length > 0) {
       row.id = data[0].id;
       const { error } = await supabase
@@ -1152,6 +1154,8 @@ export async function saveAgencySettings(
 
       if (error) {
         console.warn('[saveAgencySettings] upsert error:', error.code || error.message);
+      } else {
+        console.log('[saveAgencySettings] Upsert successful');
       }
     } else {
       const { error } = await supabase.from('agency_settings').insert(row);

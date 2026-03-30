@@ -31,6 +31,11 @@ export default function SettingsPage() {
     DB.agencySettings.paymentMethods || []
   );
 
+  // Communication Preferences
+  const [defaultEmailClient, setDefaultEmailClient] = useState((DB.agencySettings as any).defaultEmailClient || 'gmail');
+  const [sendFromEmail, setSendFromEmail] = useState((DB.agencySettings as any).sendFromEmail || DB.agency.url || '');
+  const [preferredContactMethod, setPreferredContactMethod] = useState((DB.agencySettings as any).preferredContactMethod || 'email');
+
   // Claude API Key
   const [claudeKey, setClaudeKey] = useState('');
   const [claudeKeyVisible, setClaudeKeyVisible] = useState(false);
@@ -109,8 +114,15 @@ export default function SettingsPage() {
       city,
     };
 
+    // Save communication prefs to local DB cache
+    (DB.agencySettings as any).defaultEmailClient = defaultEmailClient;
+    (DB.agencySettings as any).sendFromEmail = sendFromEmail;
+    (DB.agencySettings as any).preferredContactMethod = preferredContactMethod;
+
     try {
+      console.log('[Settings] Saving with payment methods:', paymentMethods.length, 'methods');
       await saveAgencySettings(taxRate, fiscalYearStart, paymentMethods, agencyInfo);
+      console.log('[Settings] Save completed successfully');
       setSaveStatus('Settings saved successfully');
       setTimeout(() => setSaveStatus(''), 3000);
     } catch (error) {
@@ -370,6 +382,35 @@ export default function SettingsPage() {
         >
           + Add Payment Method
         </button>
+      </Section>
+
+      {/* Communication Preferences Section */}
+      <Section title="Communication Preferences">
+        <div className="grid grid-cols-3 gap-6">
+          <div className="form-group">
+            <label className="form-label">Default Email Client</label>
+            <select value={defaultEmailClient} onChange={(e) => setDefaultEmailClient(e.target.value)} className="form-input">
+              <option value="gmail">Gmail</option>
+              <option value="outlook">Outlook</option>
+              <option value="yahoo">Yahoo Mail</option>
+              <option value="apple">Apple Mail</option>
+              <option value="other">Other (mailto)</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Default Send-From Email</label>
+            <input type="email" value={sendFromEmail} onChange={(e) => setSendFromEmail(e.target.value)}
+              placeholder="mike@mikecalo.co" className="form-input" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Preferred Contact Method</label>
+            <select value={preferredContactMethod} onChange={(e) => setPreferredContactMethod(e.target.value)} className="form-input">
+              <option value="email">Email</option>
+              <option value="text">Text</option>
+              <option value="phone">Phone</option>
+            </select>
+          </div>
+        </div>
       </Section>
 
       {/* Claude API Key Section */}

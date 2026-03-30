@@ -24,25 +24,27 @@ export async function POST(req: NextRequest) {
 
     contentBlocks.push({
       type: 'text',
-      text: `You are extracting invoice data from receipt screenshots. There may be multiple images from the same order — combine everything into one invoice.
+      text: `You are extracting invoice data from receipt screenshots. There may be multiple images from the same order — combine everything into one unified invoice.
 
-Extract ALL line items across all images. Every product/service with a name, quantity, and price. Use the final/discounted price (the green/sale price), not the original strikethrough price.
+EXTRACT ALL LINE ITEMS across all images. Every product/service with a name and price.
 
-For each line item, return:
+CRITICAL PRICE RULE: For prices, use the TOTAL AMOUNT per line item as shown on the receipt — do NOT divide by quantity. If the receipt shows "Qty: 1" and "$23.24", the price is 23.24. If the receipt shows "Qty: 250" and "$23.24", the price is STILL 23.24 (that's the total for that line), and qty is 1 (one order of 250 units). The qty field represents how many times this line item was ordered (usually 1), NOT the unit count. Unit counts go in the subtitle. Use the final/discounted price (the green/sale price), not the original strikethrough price.
+
+For each line item return:
 - description: product name + key details like size
 - subtitle: e.g. "250 units · Custom printed, double-sided" or "5 units · Size XL · Custom branded"
-- qty: number
-- price: number (the per-unit final price)
+- qty: number (usually 1 — this is how many times the line was ordered, NOT the unit count)
+- price: number (the TOTAL price shown for this line item on the receipt)
 
 Other fields:
-- projectName: Generate a high-level summary — NOT a brand name. Examples: "Brand Merchandise — Spring 2026", "Custom Apparel Order". If items span categories (apparel + print), use a broad name.
+- projectName: High-level summary — NOT a brand name. Examples: "Brand Merchandise — Spring 2026", "Custom Apparel Order". If items span categories, use a broad name.
 - projectDescription: One-line summary like "Custom branded items ordered and fulfilled on behalf of client"
 - tax: Extract as a number from the order summary, not from item lines.
 - shipping: Extract as a number. If "FREE" or $0.00, return 0.
-- notes: Leave empty unless there's a genuinely useful note (like a delivery date). Do NOT put subtotals, savings codes, or raw order data here. If there's a delivery date, format it cleanly: "Expected delivery: April 8, 2026"
+- notes: Leave empty unless there's a genuinely useful note (like a delivery date). Do NOT put subtotals, savings codes, or raw data here. Format delivery dates cleanly: "Expected delivery: April 8, 2026"
 
 Return ONLY valid JSON, no markdown, no backticks:
-{ "projectName": "...", "projectDescription": "...", "lineItems": [{ "description": "...", "subtitle": "...", "qty": 1, "price": 16.86 }], "tax": 7.92, "shipping": 0, "notes": "" }`,
+{ "projectName": "...", "projectDescription": "...", "lineItems": [{ "description": "...", "subtitle": "...", "qty": 1, "price": 23.24 }], "tax": 7.92, "shipping": 0, "notes": "" }`,
     });
 
     console.log(`[/api/ocr] Processing ${images.length} image(s)`);

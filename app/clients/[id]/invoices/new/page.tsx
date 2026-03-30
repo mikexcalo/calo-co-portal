@@ -39,6 +39,7 @@ export default function NewInvoicePage() {
   const [error, setError] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
+  const [billToOpen, setBillToOpen] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
   const due14 = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
@@ -72,16 +73,18 @@ export default function NewInvoicePage() {
   const subtotal = items.reduce((s, i) => s + i.qty * i.price, 0);
   const total = subtotal + form.tax + form.shipping;
 
-  // OCR via server route — multi-image support
-  const handleFilesSelected = async (newFiles: File[]) => {
+  // Files accumulate — extraction triggered separately by Extract button
+  const handleFilesSelected = (newFiles: File[]) => {
     setFiles(newFiles);
-    const imageFiles = newFiles.filter((f) => f.type.startsWith('image/'));
+  };
+
+  const handleExtract = async () => {
+    const imageFiles = files.filter((f) => f.type.startsWith('image/'));
     if (imageFiles.length === 0) return;
 
     setExtracting(true);
     setError(null);
     try {
-      // Read ALL images as base64
       const images = await Promise.all(
         imageFiles.map((file) => new Promise<{ base64: string; mediaType: string }>((resolve) => {
           const r = new FileReader();
@@ -98,7 +101,6 @@ export default function NewInvoicePage() {
 
       if (resp.ok) {
         const data = await resp.json();
-        // Map new response shape: lineItems with description, subtitle, qty, price
         if (data.lineItems?.length) {
           let tid = nextId;
           setItems(data.lineItems.map((i: any) => ({
@@ -250,12 +252,25 @@ export default function NewInvoicePage() {
     pdf.save(`CALO_CO_Invoice_${form.invoiceNumber}.pdf`);
   };
 
-  // Email button (#9)
+  // Email button — reads communication preference
   const handleEmail = () => {
-    const email = primary?.email || client?.email || '';
-    const subj = encodeURIComponent(`Invoice #${form.invoiceNumber} from CALO&CO`);
-    const body = encodeURIComponent(`Hi ${primary?.name || ''},\n\nPlease find attached invoice #${form.invoiceNumber} for ${currency(total)}, due by ${form.due}.\n\nThank you,\nMike Calo\nCALO&CO`);
-    window.open(`mailto:${email}?subject=${subj}&body=${body}`);
+    const to = primary?.email || client?.email || '';
+    const firstName = (primary?.name || '').split(/\s+/)[0] || '';
+    const dueStr = new Date(form.due).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const subject = `Invoice #${form.invoiceNumber} from CALO&CO`;
+    const body = `Hi ${firstName},\n\nPlease find attached invoice #${form.invoiceNumber} for ${currency(total)}, due by ${dueStr}.\n\nPayment methods are listed on the invoice.\n\nThank you,\nMike Calo\nCALO&CO`;
+
+    const emailClient = (DB.agencySettings as any).defaultEmailClient || 'gmail';
+    const subj = encodeURIComponent(subject);
+    const bod = encodeURIComponent(body);
+
+    if (emailClient === 'outlook') {
+      window.open(`https://outlook.live.com/mail/0/deeplink/compose?to=${encodeURIComponent(to)}&subject=${subj}&body=${bod}`);
+    } else if (emailClient === 'gmail') {
+      window.open(`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(to)}&su=${subj}&body=${bod}`);
+    } else {
+      window.open(`mailto:${to}?subject=${subj}&body=${bod}`);
+    }
   };
 
   return (
@@ -274,8 +289,7 @@ export default function NewInvoicePage() {
         {/* Left: Receipt upload */}
         <div className={styles.leftPanel}>
           <h3 style={{ fontSize: 14, fontWeight: 600, color: '#334155', margin: '0 0 8px' }}>Receipt / Screenshot</h3>
-          <ReceiptDrop onFilesSelected={handleFilesSelected} isLoading={saving || extracting} />
-          {extracting && <p style={{ fontSize: 12, color: '#2563eb', fontWeight: 500 }}>Extracting from {files.filter((f) => f.type.startsWith('image/')).length} image{files.filter((f) => f.type.startsWith('image/')).length !== 1 ? 's' : ''}...</p>}
+          <ReceiptDrop onFilesSelected={handleFilesSelected} onExtract={handleExtract} isLoading={saving || extracting} />
         </div>
 
         {/* Right: Invoice form */}
@@ -291,13 +305,23 @@ export default function NewInvoicePage() {
               </select></div>
           </div>
 
-          {/* Bill To — auto-populated */}
-          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '10px 12px', marginTop: 12 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Bill To</div>
-            <div style={{ fontSize: 13, color: '#1a1f2e', fontWeight: 600 }}>{client?.company || client?.name || '—'}</div>
-            {primary?.name && <div style={{ fontSize: 12, color: '#64748b' }}>{primary.name}</div>}
-            {client?.address && <div style={{ fontSize: 12, color: '#64748b' }}>{client.address}</div>}
-            {client?.phone && <div style={{ fontSize: 12, color: '#64748b' }}>{client.phone}</div>}
+          {/* Bill To — collapsible (#3) */}
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, marginTop: 12, overflow: 'hidden' }}>
+            <div onClick={() => setBillToOpen(!billToOpen)} style={{
+              padding: '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+            }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Bill To:</span>
+              <span style={{ fontSize: 12, color: '#1a1f2e', fontWeight: 600 }}>{client?.company || client?.name || '—'}</span>
+              {primary?.name && <span style={{ fontSize: 12, color: '#64748b' }}>— {primary.name}</span>}
+              <span style={{ marginLeft: 'auto', color: '#94a3b8', fontSize: 10, transition: 'transform 0.2s', transform: billToOpen ? 'rotate(180deg)' : 'none' }}>▾</span>
+            </div>
+            {billToOpen && (
+              <div style={{ padding: '0 12px 8px', fontSize: 12, color: '#64748b' }}>
+                {client?.address && <div>{client.address}</div>}
+                {client?.phone && <div>{client.phone}</div>}
+                {(primary?.email || client?.email) && <div>{primary?.email || client?.email}</div>}
+              </div>
+            )}
           </div>
 
           {/* Dates + Terms */}
