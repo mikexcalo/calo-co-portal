@@ -724,21 +724,22 @@ export async function saveTaskNote(
   content: string
 ): Promise<any> {
   try {
+    console.log('[saveTaskNote] Inserting:', { clientId, type, content: content.substring(0, 50) });
+
     const { data, error } = await supabase
       .from('client_tasks_notes')
       .insert({ client_id: clientId, type, content, status: 'open' })
       .select();
 
     if (error) {
-      console.warn('[saveTaskNote] error:', error.code, error.message);
+      console.warn('[saveTaskNote] client_tasks_notes error:', error.code, error.message);
       // Fallback to client_notes table if new table doesn't exist yet
-      if (error.code === 'PGRST204' || error.code === '42P01') {
-        const { data: d2 } = await supabase
-          .from('client_notes')
-          .insert({ client_id: clientId, content })
-          .select();
-        return d2?.[0] || null;
-      }
+      const { data: d2, error: e2 } = await supabase
+        .from('client_notes')
+        .insert({ client_id: clientId, content })
+        .select();
+      console.log('[saveTaskNote] Fallback to client_notes:', d2 ? 'success' : 'failed', e2?.message || '');
+      return d2?.[0] || null;
       return null;
     }
     return data?.[0] || null;
@@ -753,20 +754,53 @@ export async function saveTaskNote(
  */
 export async function loadTasksNotes(clientId?: string): Promise<any[]> {
   try {
+    // Try the primary table first
     let query = supabase
       .from('client_tasks_notes')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(50);
-
     if (clientId) query = query.eq('client_id', clientId);
 
     const { data, error } = await query;
-    if (error) {
-      console.warn('[loadTasksNotes] error:', error.code, error.message);
-      return [];
+
+    if (!error && data && data.length > 0) {
+      console.log('[loadTasksNotes] Loaded from client_tasks_notes:', data.length);
+      return data;
     }
-    return data || [];
+
+    if (error) {
+      console.warn('[loadTasksNotes] client_tasks_notes error:', error.code, error.message);
+    }
+
+    // Fallback: try client_notes table
+    let fallbackQuery = supabase
+      .from('client_notes')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (clientId) fallbackQuery = fallbackQuery.eq('client_id', clientId);
+
+    const { data: fallbackData, error: fallbackErr } = await fallbackQuery;
+
+    if (fallbackErr) {
+      console.warn('[loadTasksNotes] client_notes fallback error:', fallbackErr.code, fallbackErr.message);
+      return data || [];
+    }
+
+    // Normalize client_notes rows to match the expected shape
+    const normalized = (fallbackData || []).map((row: any) => ({
+      id: row.id,
+      client_id: row.client_id,
+      type: 'note' as const,
+      content: row.content,
+      status: 'open',
+      created_at: row.created_at,
+      completed_at: null,
+    }));
+
+    console.log('[loadTasksNotes] Loaded from client_notes fallback:', normalized.length);
+    return [...(data || []), ...normalized];
   } catch (e) {
     console.warn('[loadTasksNotes] exception:', e);
     return [];

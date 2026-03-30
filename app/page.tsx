@@ -159,7 +159,7 @@ export default function Home() {
             <div style={{ fontSize: 13, color: '#dc2626' }}>Unable to load clients <button className="btn btn-ghost btn-sm" onClick={() => window.location.reload()}>↺ Retry</button></div>
           ) : (
             <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8,
+              display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8,
             }}>
               {filteredClients.map((client) => (
                 <ClientCard

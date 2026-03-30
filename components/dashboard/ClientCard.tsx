@@ -106,21 +106,28 @@ export default function ClientCard({ client, onNavigate, expanded, onToggle }: C
           ) : initials(client.company || client.name)}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1f2e', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {/* Company name — never truncate, allow 2-line wrap */}
+          <div style={{
+            fontSize: 12.5, fontWeight: 600, color: '#1a1f2e', lineHeight: 1.3,
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any,
+            overflow: 'hidden',
+          }}>
             {client.company || client.name}
           </div>
           {primary && (
-            <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>
+            <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {primary.name}{primary.role ? ` · ${primary.role}` : ''}
             </div>
           )}
         </div>
-        <span style={{ width: 8, height: 8, borderRadius: '50%', background: health.color, flexShrink: 0 }} />
-        <span style={{ fontSize: 10, color: '#94a3b8', flexShrink: 0 }}>{lastStr}</span>
-        <span style={{
-          color: '#94a3b8', fontSize: 9, transition: 'transform 0.25s ease',
-          transform: expanded ? 'rotate(180deg)' : 'none', flexShrink: 0,
-        }}>▼</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: health.color }} />
+          <span style={{ fontSize: 10, color: '#94a3b8' }}>{lastStr}</span>
+          <span style={{
+            color: '#94a3b8', fontSize: 8, transition: 'transform 0.25s ease',
+            transform: expanded ? 'rotate(180deg)' : 'none',
+          }}>▼</span>
+        </div>
       </div>
 
       {/* Accordion */}

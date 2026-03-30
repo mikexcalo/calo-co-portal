@@ -29,7 +29,7 @@ export default function CommandBar({ onItemSaved }: CommandBarProps) {
   useEffect(() => {
     if (toast) {
       if (toastTimer.current) clearTimeout(toastTimer.current);
-      toastTimer.current = setTimeout(() => setToast(null), 3500);
+      toastTimer.current = setTimeout(() => setToast(null), 5000);
       return () => { if (toastTimer.current) clearTimeout(toastTimer.current); };
     }
   }, [toast]);
