@@ -102,10 +102,10 @@ export default function ClientCard({ client, onNavigate, taskCount, invoiceCount
                   transition: 'opacity 0.3s ease',
                 }}>
                   <div onClick={(e) => handleCompleteTask(task.id, e)} style={{
-                    width: 22, height: 22, borderRadius: 6, background: '#faeeda',
+                    width: 24, height: 24, borderRadius: 6, background: '#faeeda',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0,
                   }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#854f0b" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#854f0b" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m9 12 2 2 4-4"/></svg>
                   </div>
                   <span style={{ flex: 1, fontSize: 13, color: '#1a1f2e' }}>{task.content}</span>
                   <span style={{ fontSize: 11, color: '#9ca3af', flexShrink: 0 }}>{relTime(task.created_at)}</span>
