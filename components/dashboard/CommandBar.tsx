@@ -60,10 +60,13 @@ export default function CommandBar({ onItemSaved }: CommandBarProps) {
       const data: CommandResponse = await resp.json();
 
       if ((data.type === 'task' || data.type === 'note') && data.client_id && data.content) {
-        await saveTaskNote(data.client_id, data.type, data.content);
-        await logActivity(data.client_id, data.type === 'task' ? 'task_added' : 'note_added', { content: data.content });
+        console.log('[CommandBar] Saving task/note:', { type: data.type, client_id: data.client_id, content: data.content.substring(0, 60) });
+        const saved = await saveTaskNote(data.client_id, data.type, data.content);
+        console.log('[CommandBar] Save result:', saved);
+        await logActivity(data.client_id, data.type === 'task' ? 'task_added' : 'note_added', { content: data.content }).catch(() => {});
         setInput('');
         setToast({ type: data.type, text: data.client_name || 'client', clientId: data.client_id });
+        // Trigger feed refresh so item appears immediately
         onItemSaved?.();
       } else if (data.type === 'clarify') {
         setResponse(data);
@@ -82,13 +85,13 @@ export default function CommandBar({ onItemSaved }: CommandBarProps) {
   return (
     <div style={{ position: 'relative', marginBottom: 18 }}>
       {/* Dark container + white inset input */}
-      <div style={{ background: '#1a1f2e', borderRadius: 12, padding: 6 }}>
+      <div style={{ background: '#1a1f2e', borderRadius: 10, padding: 5 }}>
         <div style={{ position: 'relative' }}>
           <div style={{
-            position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
+            position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)',
             color: '#94a3b8', display: 'flex', pointerEvents: 'none',
           }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
           </div>
@@ -96,10 +99,13 @@ export default function CommandBar({ onItemSaved }: CommandBarProps) {
             onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
             placeholder="Ask a question or jot a note..." disabled={loading}
             style={{
-              width: '100%', padding: '10px 40px 10px 34px', fontSize: 14,
-              border: 'none', borderRadius: 8, fontFamily: 'Inter, sans-serif',
+              width: '100%', padding: '9px 36px 9px 32px', fontSize: 13,
+              border: '1px solid transparent', borderRadius: 7, fontFamily: 'Inter, sans-serif',
               color: '#1a1f2e', background: '#fff', outline: 'none',
-            }} />
+              transition: 'box-shadow 0.15s',
+            }}
+            onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.15)'; }}
+            onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; }} />
           {loading && (
             <div style={{
               position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',

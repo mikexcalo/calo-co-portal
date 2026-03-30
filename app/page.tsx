@@ -6,7 +6,7 @@ import {
   initSupabase, initAgency, loadClients, loadInvoices, loadContacts,
   loadAllBrandKits, loadActivityLog, loadExpenses, loadAgencySettings, DB,
 } from '@/lib/database';
-import { agencyStats, currency, daysUntil, initials } from '@/lib/utils';
+import { agencyStats, currency } from '@/lib/utils';
 import ClientCard, { getClientHealth } from '@/components/dashboard/ClientCard';
 import TasksNotesFeed from '@/components/dashboard/TasksNotesFeed';
 import CommandBar from '@/components/dashboard/CommandBar';
@@ -83,48 +83,21 @@ export default function Home() {
 
   return (
     <div className="page">
-      {/* Greeting */}
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 20, fontWeight: 700, color: '#1a1f2e', marginBottom: 3 }}>{greeting}</div>
-        <div style={{ fontSize: 12.5, color: '#94a3b8' }}>{dateline}{timeLine ? ` · ${timeLine}` : ''}</div>
-      </div>
-
-      {/* AI Command Bar */}
-      <CommandBar onItemSaved={() => setFeedKey((k) => k + 1)} />
-
-      {/* Two-column layout: left = overview + clients, right = tasks & notes */}
+      {/* Two-column layout */}
       <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-        {/* Left column */}
+
+        {/* LEFT COLUMN (~65%) */}
         <div style={{ flex: '1 1 0', minWidth: 0 }}>
-          {/* OVERVIEW */}
-          <div className="section-title" style={{ marginBottom: 8 }}>Overview</div>
-          <div style={{
-            display: 'flex', gap: 20, padding: '10px 14px', marginBottom: 16,
-            background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
-            fontSize: 13, color: '#334155', alignItems: 'center',
-          }}>
-            <div>
-              <span style={{ fontWeight: 700, fontSize: 16, color: stats.outstanding > 0 ? '#d97706' : '#1a1f2e' }}>{currency(stats.outstanding)}</span>
-              <span style={{ color: '#94a3b8', marginLeft: 5, fontSize: 12 }}>outstanding</span>
-            </div>
-            <div style={{ width: 1, height: 24, background: '#e2e8f0' }} />
-            <div>
-              <span style={{ fontWeight: 700, fontSize: 16, color: '#1a1f2e' }}>{currency(stats.paid)}</span>
-              <span style={{ color: '#94a3b8', marginLeft: 5, fontSize: 12 }}>paid</span>
-            </div>
-            <div style={{ width: 1, height: 24, background: '#e2e8f0' }} />
-            <div>
-              <span style={{ fontWeight: 700, fontSize: 16, color: '#1a1f2e' }}>{bucketCounts.active}</span>
-              <span style={{ color: '#94a3b8', marginLeft: 5, fontSize: 12 }}>active</span>
-            </div>
-            <div style={{ flex: 1 }} />
-            <button onClick={() => router.push('/financials')} style={{
-              background: 'none', border: 'none', color: '#2563eb', fontSize: 11,
-              fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-            }}>Financials →</button>
+          {/* Greeting */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#1a1f2e', marginBottom: 3 }}>{greeting}</div>
+            <div style={{ fontSize: 12.5, color: '#94a3b8' }}>{dateline}{timeLine ? ` · ${timeLine}` : ''}</div>
           </div>
 
-          {/* CLIENTS header + filters with inline search (#5) */}
+          {/* AI bar — contained to left column */}
+          <CommandBar onItemSaved={() => setFeedKey((k) => k + 1)} />
+
+          {/* CLIENTS header + filter tabs + search */}
           <div className="section-title" style={{ marginBottom: 8 }}>Clients</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
             {(['active', 'paused', 'closed'] as const).map((s) => (
@@ -152,15 +125,13 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 3-column client grid (#3) */}
+          {/* 2-column client tile grid (#7: equal height via align-items stretch) */}
           {DB.clientsState === 'loading' ? (
             <div style={{ opacity: 0.5, fontSize: 13, color: '#64748b' }}>Loading clients…</div>
           ) : DB.clientsState === 'error' ? (
-            <div style={{ fontSize: 13, color: '#dc2626' }}>Unable to load clients <button className="btn btn-ghost btn-sm" onClick={() => window.location.reload()}>↺ Retry</button></div>
+            <div style={{ fontSize: 13, color: '#dc2626' }}>Unable to load clients</div>
           ) : (
-            <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8,
-            }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, alignItems: 'stretch' }}>
               {filteredClients.map((client) => (
                 <ClientCard
                   key={client.id}
@@ -173,19 +144,15 @@ export default function Home() {
                   }}
                 />
               ))}
-              {/* Add Client card */}
-              <div
-                onClick={() => router.push('/clients/new')}
-                style={{
-                  border: '2px dashed #d1d5db', borderRadius: 10, cursor: 'pointer',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  padding: 24, gap: 6, minHeight: 90,
-                  transition: 'border-color 0.15s',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#2563eb')}
-                onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#d1d5db')}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2">
+              {/* + Add Client */}
+              <div onClick={() => router.push('/clients/new')} style={{
+                border: '2px dashed #d1d5db', borderRadius: 10, cursor: 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                padding: 20, gap: 4, transition: 'border-color 0.15s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#2563eb')}
+              onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#d1d5db')}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2">
                   <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
                 <span style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8' }}>Add Client</span>
@@ -194,8 +161,29 @@ export default function Home() {
           )}
         </div>
 
-        {/* Right column: Tasks & Notes */}
-        <div style={{ flex: '0 0 280px', width: 280, minWidth: 0 }}>
+        {/* RIGHT COLUMN (~35%) */}
+        <div style={{ flex: '0 0 300px', width: 300, minWidth: 0 }}>
+          {/* OVERVIEW stat card — vertical */}
+          <div className="section-title" style={{ marginBottom: 8 }}>Overview</div>
+          <div style={{
+            background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
+            padding: '14px 16px', marginBottom: 16,
+          }}>
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>Outstanding</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: stats.outstanding > 0 ? '#d97706' : '#1a1f2e' }}>{currency(stats.outstanding)}</div>
+            </div>
+            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 10 }}>
+              <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>Paid</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: '#1a1f2e' }}>{currency(stats.paid)}</div>
+            </div>
+            <button onClick={() => router.push('/financials')} style={{
+              marginTop: 12, background: 'none', border: 'none', color: '#2563eb', fontSize: 12,
+              fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif', padding: 0,
+            }}>Financials →</button>
+          </div>
+
+          {/* NOTES & TASKS feed */}
           <TasksNotesFeed refreshKey={feedKey} />
         </div>
       </div>

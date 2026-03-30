@@ -39,7 +39,9 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
   const [loaded, setLoaded] = useState(false);
 
   const load = useCallback(async () => {
+    console.log('[TasksNotesFeed] Loading all tasks/notes...');
     const data = await loadTasksNotes();
+    console.log('[TasksNotesFeed] Loaded:', data.length, 'items');
     setItems(data as TaskNote[]);
     setLoaded(true);
   }, []);

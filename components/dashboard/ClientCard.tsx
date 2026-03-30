@@ -93,6 +93,12 @@ export default function ClientCard({ client, onNavigate, expanded, onToggle }: C
           )}
         </div>
         <span style={{ width: 8, height: 8, borderRadius: '50%', background: health.color, flexShrink: 0 }} />
+        {/* Chevron hint (#6) */}
+        <span style={{
+          color: '#cbd5e1', fontSize: 10, flexShrink: 0,
+          transition: 'transform 0.25s ease',
+          transform: expanded ? 'rotate(180deg)' : 'none',
+        }}>▾</span>
       </div>
 
       {/* Accordion expand */}

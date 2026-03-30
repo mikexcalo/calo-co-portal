@@ -764,14 +764,14 @@ export async function loadTasksNotes(clientId?: string): Promise<any[]> {
 
     const { data, error } = await query;
 
-    if (!error && data && data.length > 0) {
-      console.log('[loadTasksNotes] Loaded from client_tasks_notes:', data.length);
+    if (!error && data) {
+      // Primary table exists and returned (even if 0 rows)
+      console.log('[loadTasksNotes] Loaded from client_tasks_notes:', data.length, clientId ? `(client: ${clientId})` : '(all)');
       return data;
     }
 
-    if (error) {
-      console.warn('[loadTasksNotes] client_tasks_notes error:', error.code, error.message);
-    }
+    // Primary table doesn't exist or errored — fall back
+    console.warn('[loadTasksNotes] client_tasks_notes error:', error?.code, error?.message, '— trying client_notes fallback');
 
     // Fallback: try client_notes table
     let fallbackQuery = supabase
