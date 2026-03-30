@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { DB, loadTasksNotes, updateTaskStatus, deleteTaskNote } from '@/lib/database';
-import TaskNoteCard from '@/components/shared/TaskNoteCard';
+import { currency } from '@/lib/utils';
 
 interface TaskNote {
   id: string; client_id: string; type: 'task' | 'note'; content: string;
@@ -29,6 +29,7 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
   const router = useRouter();
   const [items, setItems] = useState<TaskNote[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [delHover, setDelHover] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const data = await loadTasksNotes();
@@ -38,97 +39,129 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
 
   useEffect(() => { load(); }, [load, refreshKey]);
 
-  const handleToggle = async (item: TaskNote) => {
-    const ns = item.status === 'complete' ? 'open' : 'complete';
-    await updateTaskStatus(item.id, ns);
-    setItems((prev) => prev.map((i) =>
-      i.id === item.id ? { ...i, status: ns, completed_at: ns === 'complete' ? new Date().toISOString() : null } : i
-    ));
+  const handleComplete = async (id: string) => {
+    await updateTaskStatus(id, 'complete');
+    setItems((prev) => prev.filter((i) => i.id !== id));
   };
 
-  // Filter out invoice notification notes — only show tasks and regular notes
-  const filtered = items.filter((i) => !(i.type === 'note' && i.content.startsWith('New invoice #')));
+  const handleDelete = async (id: string) => {
+    await deleteTaskNote(id);
+    setItems((prev) => prev.filter((i) => i.id !== id));
+  };
 
-  const sorted = [...filtered].sort((a, b) => {
-    const ac = a.status === 'complete' ? 1 : 0;
-    const bc = b.status === 'complete' ? 1 : 0;
-    if (ac !== bc) return ac - bc;
-    if (!ac && a.type !== b.type) return a.type === 'task' ? -1 : 1;
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-  });
+  // Open tasks only for action items
+  const openTasks = items.filter((i) => i.type === 'task' && i.status === 'open');
+  // Unpaid invoices across all clients
+  const unpaidInvoices = DB.invoices.filter((i) => i.status === 'unpaid' || i.status === 'overdue');
 
+  // Activity log
   const activityItems = DB.activityLog
-    .filter((e) => ['invoice_created', 'invoice_paid', 'client_added', 'contact_saved', 'brand_guide_exported'].includes(e.eventType))
+    .filter((e) => ['invoice_created', 'invoice_paid', 'client_added', 'contact_saved', 'brand_guide_exported', 'task_added', 'note_added'].includes(e.eventType))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 5);
+    .slice(0, 6);
 
   const evLabels: Record<string, string> = {
     invoice_created: 'Invoice Created', invoice_paid: 'Invoice Paid',
     client_added: 'Client Added', contact_saved: 'Contact Saved',
-    brand_guide_exported: 'Brand Guide Exported',
+    brand_guide_exported: 'Brand Guide Exported', task_added: 'Task Added', note_added: 'Note Added',
   };
+
+  const hasItems = openTasks.length > 0 || unpaidInvoices.length > 0;
 
   return (
     <div>
-      <div className="section-title" style={{ marginBottom: 10 }}>Tasks & Notes</div>
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9ca3af', marginBottom: 8 }}>Action Items</div>
 
       {!loaded ? (
-        <div style={{ fontSize: 12, color: '#94a3b8', padding: 4 }}>Loading...</div>
-      ) : sorted.length === 0 && activityItems.length === 0 ? (
-        <div style={{ fontSize: 12, color: '#94a3b8', padding: '8px 2px', lineHeight: 1.5 }}>
-          Notes and tasks from the AI bar will appear here.
+        <div style={{ fontSize: 12, color: '#9ca3af', padding: 4 }}>Loading...</div>
+      ) : !hasItems ? (
+        <div style={{ fontSize: 12, color: '#9ca3af', padding: '8px 2px', lineHeight: 1.5 }}>
+          No action items right now.
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-          {sorted.map((item) => {
-            const client = DB.clients.find((c) => c.id === item.client_id);
+        <div>
+          {/* Task cards */}
+          {openTasks.map((task) => {
+            const cl = DB.clients.find((c) => c.id === task.client_id);
+            const clientName = cl?.company || cl?.name || '';
             return (
-              <TaskNoteCard
-                key={item.id}
-                item={item}
-                clientName={client?.company || client?.name}
-                onToggle={() => handleToggle(item)}
-                onDelete={async () => { await deleteTaskNote(item.id); load(); }}
-              />
+              <div key={task.id} style={{
+                background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10,
+                padding: '12px 14px', marginBottom: 8, display: 'flex', alignItems: 'flex-start', gap: 10,
+              }}>
+                {/* Amber checkbox icon */}
+                <div onClick={() => handleComplete(task.id)} style={{
+                  width: 24, height: 24, borderRadius: 6, background: '#faeeda',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0,
+                }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#854f0b" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, color: '#1a1f2e', lineHeight: 1.4 }}>{task.content}</div>
+                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>
+                    {clientName && <span onClick={() => router.push(`/clients/${task.client_id}`)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>{clientName}</span>}
+                    {clientName && ' · '}{relativeTime(task.created_at)}
+                  </div>
+                </div>
+                {/* Trash icon */}
+                <div
+                  onClick={() => { if (confirm('Delete this task?')) handleDelete(task.id); }}
+                  onMouseEnter={() => setDelHover(task.id)}
+                  onMouseLeave={() => setDelHover(null)}
+                  style={{ cursor: 'pointer', opacity: delHover === task.id ? 1 : 0.25, transition: 'opacity 0.12s', flexShrink: 0, marginTop: 2 }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
+                    <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                </div>
+              </div>
             );
           })}
 
-          {/* Recent Activity — muted card */}
-          {activityItems.length > 0 && (
-            <div style={{
-              background: '#f8fafc', borderRadius: 10, padding: '12px 14px', marginTop: 10,
-            }}>
-              <div style={{
-                fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase',
-                color: '#cbd5e1', marginBottom: 6,
-              }}>Recent Activity</div>
-              {activityItems.map((ev, idx) => {
-                const cl = DB.clients.find((c) => c.id === ev.clientId);
-                const clientName = cl?.company || cl?.name || '';
-                return (
-                  <div key={idx} style={{
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '3px 0', fontSize: 11, color: '#94a3b8',
-                  }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#d1d5db', flexShrink: 0 }} />
-                    <span style={{ flex: 1 }}>
-                      {evLabels[ev.eventType] || ev.eventType}
-                      {cl && (
-                        <>
-                          {' · '}
-                          <span
-                            onClick={() => router.push(`/clients/${cl.id}`)}
-                            style={{ textDecoration: 'underline', cursor: 'pointer', color: '#64748b' }}
-                          >{clientName}</span>
-                        </>
-                      )}
-                    </span>
-                    <span style={{ fontSize: 10, flexShrink: 0 }}>{relativeTime(ev.createdAt)}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          {/* Invoice cards */}
+          {unpaidInvoices.map((inv) => {
+            const cl = DB.clients.find((c) => c.id === inv.clientId);
+            const clientName = cl?.company || cl?.name || '';
+            const total = (inv.items || []).reduce((s: number, i: any) => s + (i.qty || 1) * (i.price || 0), 0) + (inv.tax || 0) + (inv.shipping || 0);
+            return (
+              <div key={inv.id || inv._uuid} onClick={() => router.push(`/clients/${inv.clientId}/invoices`)} style={{
+                background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10,
+                padding: '12px 14px', marginBottom: 8, display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer',
+              }}>
+                <div style={{
+                  width: 24, height: 24, borderRadius: 6, background: '#e6f1fb',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#185fa5" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, color: '#1a1f2e' }}>#{inv.id} — {currency(total)} · <span style={{ color: '#ba7517' }}>Unpaid</span></div>
+                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>{clientName}{inv.due ? ` · Due ${inv.due}` : ''}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Recent Activity */}
+      {activityItems.length > 0 && (
+        <div style={{ background: '#f4f5f7', borderRadius: 10, padding: '12px 14px', marginTop: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9ca3af', marginBottom: 6 }}>Recent Activity</div>
+          {activityItems.map((ev, idx) => {
+            const cl = DB.clients.find((c) => c.id === ev.clientId);
+            const clientName = cl?.company || cl?.name || '';
+            return (
+              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '3px 0', fontSize: 12, color: '#9ca3af' }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#d1d5db', flexShrink: 0 }} />
+                <span style={{ flex: 1 }}>
+                  {evLabels[ev.eventType] || ev.eventType}
+                  {cl && <>{' · '}<span onClick={() => router.push(`/clients/${cl.id}`)} style={{ textDecoration: 'underline', cursor: 'pointer', color: '#6b7280' }}>{clientName}</span></>}
+                </span>
+                <span style={{ fontSize: 11, flexShrink: 0 }}>{relativeTime(ev.createdAt)}</span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

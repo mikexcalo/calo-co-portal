@@ -35,7 +35,6 @@ export default function Home() {
         await loadExpenses().catch(() => {});
         await loadAgencySettings().catch(() => {});
         setStats(agencyStats(DB.invoices, DB.clients));
-        // Load all tasks for pill counts
         const tasks = await loadTasksNotes();
         setAllTasks(tasks);
       } catch (e) { console.error('Init error:', e); }
@@ -58,7 +57,7 @@ export default function Home() {
     return () => clearInterval(iv);
   }, []);
 
-  if (isLoading) return <div className="page" style={{ opacity: 0.5, fontSize: 13, color: '#64748b' }}>Loading dashboard…</div>;
+  if (isLoading) return <div style={{ maxWidth: 960, margin: '0 auto', padding: 24, opacity: 0.5, fontSize: 13, color: '#6b7280' }}>Loading dashboard…</div>;
 
   const searchLower = search.toLowerCase();
   const filteredClients = DB.clients
@@ -71,96 +70,109 @@ export default function Home() {
     })
     .sort((a, b) => (a.company || a.name).localeCompare(b.company || b.name));
 
-  // Compute pill counts per client
   const getTaskCount = (clientId: string) =>
     allTasks.filter((t) => t.client_id === clientId && t.type === 'task' && t.status === 'open').length;
   const getInvoiceCount = (clientId: string) =>
     DB.invoices.filter((i) => i.clientId === clientId && (i.status === 'unpaid' || i.status === 'overdue')).length;
 
+  const refreshFeed = () => { setFeedKey((k) => k + 1); loadTasksNotes().then(setAllTasks); };
+
   return (
-    <div className="page">
-      {/* Top row: Greeting (left) + Financials card (right) */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+    <div style={{ maxWidth: 960, margin: '0 auto', padding: 24, background: '#fff', minHeight: '100vh' }}>
+
+      {/* ROW 1: Greeting + Financials */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#1a1f2e', marginBottom: 3 }}>{greeting}</div>
-          <div style={{ fontSize: 12.5, color: '#94a3b8' }}>{dateline}{timeLine ? ` · ${timeLine}` : ''}</div>
+          <div style={{ fontSize: 22, fontWeight: 500, color: '#1a1f2e' }}>{greeting}</div>
+          <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 2 }}>{dateline}{timeLine ? ` · ${timeLine}` : ''}</div>
         </div>
         <div onClick={() => router.push('/financials')} style={{
-          background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8,
-          padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 14,
-          cursor: 'pointer', flexShrink: 0,
+          background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10,
+          padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer',
         }}>
           <div>
-            <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Outstanding</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: stats.outstanding > 0 ? '#d97706' : '#1a1f2e' }}>{currency(stats.outstanding)}</div>
+            <div style={{ fontSize: 10, textTransform: 'uppercase', color: '#9ca3af', fontWeight: 600 }}>Outstanding</div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#ba7517' }}>{currency(stats.outstanding)}</div>
           </div>
-          <div style={{ width: 1, height: 24, background: '#e2e8f0' }} />
+          <div style={{ width: 1, height: 24, background: '#e5e7eb' }} />
           <div>
-            <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Paid</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#1a1f2e' }}>{currency(stats.paid)}</div>
+            <div style={{ fontSize: 10, textTransform: 'uppercase', color: '#9ca3af', fontWeight: 600 }}>Paid</div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#1a1f2e' }}>{currency(stats.paid)}</div>
           </div>
-          <span style={{ color: '#94a3b8', fontSize: 14 }}>›</span>
+          <span style={{ color: '#9ca3af', fontSize: 16 }}>›</span>
         </div>
       </div>
 
-      {/* AI bar */}
-      <div style={{ marginBottom: 20 }}>
-        <CommandBar onItemSaved={() => { setFeedKey((k) => k + 1); loadTasksNotes().then(setAllTasks); }} />
+      {/* ROW 2: AI bar + Priority nudge — same flex ratios as Row 3 */}
+      <div style={{ display: 'flex', gap: 24, marginBottom: 24 }}>
+        <div style={{ flex: 1.3 }}>
+          <CommandBar onItemSaved={refreshFeed} />
+        </div>
+        <div style={{
+          flex: 1, background: '#faeeda', border: '1px solid #f0c97a', borderRadius: 10,
+          padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#854f0b" strokeWidth="2" style={{ flexShrink: 0 }}>
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          <span style={{ fontSize: 12, fontWeight: 500, color: '#854f0b' }}>No priority alerts</span>
+        </div>
       </div>
 
-      {/* Two-column: Clients (left) + Tasks & Notes (right) */}
-      <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-        {/* LEFT: CLIENTS */}
-        <div style={{ flex: '1 1 0', minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <div className="section-title">Clients</div>
+      {/* ROW 3: Two columns — same flex ratios as Row 2 */}
+      <div style={{ display: 'flex', gap: 24 }}>
+        {/* LEFT: Clients (flex: 1.3) */}
+        <div style={{ flex: 1.3, minWidth: 0 }}>
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9ca3af' }}>Clients</span>
             <div style={{ flex: 1 }} />
-            {/* Search next to Add Client */}
             <div style={{ position: 'relative' }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2"
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"
                 style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
                 <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
               <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search..." style={{
-                  padding: '5px 10px 5px 26px', fontSize: 12, border: '1px solid #e2e8f0',
-                  borderRadius: 6, fontFamily: 'Inter, sans-serif', color: '#1a1f2e', width: 150,
-                  background: '#f8fafc',
+                  padding: '6px 10px 6px 28px', fontSize: 12, border: 'none',
+                  borderRadius: 6, fontFamily: 'Inter, sans-serif', color: '#1a1f2e', width: 140,
+                  background: '#f4f5f7', outline: 'none',
                 }} />
             </div>
-            <button className="cta-btn" style={{ height: 30, fontSize: 11, padding: '0 12px' }}
-              onClick={() => router.push('/clients/new')}>+ Add Client</button>
+            <button onClick={() => router.push('/clients/new')} style={{
+              background: '#2563eb', color: '#fff', border: 'none', borderRadius: 6,
+              padding: '6px 12px', fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            }}>+ Add</button>
           </div>
 
+          {/* Client tiles */}
           {DB.clientsState === 'loading' ? (
-            <div style={{ opacity: 0.5, fontSize: 13, color: '#64748b' }}>Loading clients…</div>
+            <div style={{ opacity: 0.5, fontSize: 13, color: '#6b7280' }}>Loading clients…</div>
           ) : DB.clientsState === 'error' ? (
             <div style={{ fontSize: 13, color: '#dc2626' }}>Unable to load clients</div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {filteredClients.map((client) => (
-                <ClientCard
-                  key={client.id}
-                  client={client}
-                  taskCount={getTaskCount(client.id)}
-                  invoiceCount={getInvoiceCount(client.id)}
-                  onNavigate={() => {
-                    localStorage.setItem(`client_accessed_${client.id}`, String(Date.now()));
-                    router.push(`/clients/${client.id}`);
-                  }}
-                />
-              ))}
-              {filteredClients.length === 0 && (
-                <div style={{ color: '#94a3b8', fontSize: 13, padding: '8px 0' }}>
-                  {search ? 'No matching clients.' : 'No clients yet.'}
-                </div>
-              )}
+          ) : filteredClients.length === 0 ? (
+            <div style={{ color: '#9ca3af', fontSize: 13, padding: '12px 0' }}>
+              {search ? 'No matching clients.' : 'No clients yet.'}
             </div>
+          ) : (
+            filteredClients.map((client) => (
+              <ClientCard
+                key={client.id}
+                client={client}
+                taskCount={getTaskCount(client.id)}
+                invoiceCount={getInvoiceCount(client.id)}
+                onNavigate={() => {
+                  localStorage.setItem(`client_accessed_${client.id}`, String(Date.now()));
+                  router.push(`/clients/${client.id}`);
+                }}
+              />
+            ))
           )}
         </div>
 
-        {/* RIGHT: TASKS & NOTES */}
-        <div style={{ flex: '0 0 300px', width: 300, minWidth: 0 }}>
+        {/* RIGHT: Action Items + Recent Activity (flex: 1) */}
+        <div style={{ flex: 1, minWidth: 0 }}>
           <TasksNotesFeed refreshKey={feedKey} />
         </div>
       </div>
