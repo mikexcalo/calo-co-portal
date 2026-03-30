@@ -1,56 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { message } = body;
 
-    // Read Claude API key from environment variable (set in Vercel)
+    // Read Claude API key from environment variable
     const rawKey = (process.env.CLAUDE_API_KEY || '').trim();
-
     if (!rawKey) {
       console.error('[/api/chat] CLAUDE_API_KEY env var is not set');
       return NextResponse.json({ type: 'query', answer: 'Claude API key not configured. Set CLAUDE_API_KEY in Vercel environment variables.' });
     }
 
-    console.log(`[/api/chat] Key prefix: "${rawKey.substring(0, 10)}...", length: ${rawKey.length}`);
+    // Supabase: prefer service role key (bypasses RLS) for server-side queries
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-    // Verify Supabase config
+    console.log(`[/api/chat] Supabase URL: ${supabaseUrl ? supabaseUrl.substring(0, 30) + '...' : 'MISSING'}`);
+    console.log(`[/api/chat] Supabase key type: ${process.env.SUPABASE_SERVICE_ROLE_KEY ? 'service_role' : 'anon'}, length: ${supabaseKey.length}`);
+
     if (!supabaseUrl || !supabaseKey) {
-      console.error('[/api/chat] Missing Supabase env vars');
+      console.error('[/api/chat] Missing Supabase env vars — cannot fetch client data');
+      return NextResponse.json({ type: 'query', answer: 'Database not configured. Check Supabase environment variables.' });
     }
 
-    // Fetch ALL clients + contacts from Supabase
+    // Create Supabase client for this request
     const sb = createClient(supabaseUrl, supabaseKey);
-    const [clientsRes, contactsRes] = await Promise.all([
-      sb.from('clients').select('id, name, company, email, phone, website, address'),
-      sb.from('contacts').select('id, client_id, name, role, email, phone, is_primary'),
-    ]);
 
-    if (clientsRes.error) console.error('[/api/chat] Failed to fetch clients:', JSON.stringify(clientsRes.error));
-    if (contactsRes.error) console.error('[/api/chat] Failed to fetch contacts:', JSON.stringify(contactsRes.error));
+    // Fetch ALL clients
+    const { data: clients, error: clientsErr } = await sb.from('clients').select('*');
+    console.log('[/api/chat] CLIENT QUERY RESULT:', JSON.stringify(clients?.map((c: any) => c.company || c.name) || []), 'ERROR:', clientsErr ? JSON.stringify(clientsErr) : 'none');
 
-    const clients = clientsRes.data || [];
-    const contacts = contactsRes.data || [];
+    // Fetch ALL contacts
+    const { data: contacts, error: contactsErr } = await sb.from('contacts').select('*');
+    console.log('[/api/chat] CONTACT QUERY RESULT: count=', contacts?.length || 0, 'ERROR:', contactsErr ? JSON.stringify(contactsErr) : 'none');
 
-    console.log('[/api/chat] Clients found:', clients.length, JSON.stringify(clients.map((c) => c.company || c.name)));
-    console.log('[/api/chat] Contacts found:', contacts.length);
-
-    if (clients.length === 0) {
-      console.error('[/api/chat] WARNING: Zero clients returned from Supabase. Check RLS policies or table data.');
+    if (!clients || clients.length === 0) {
+      console.error('[/api/chat] WARNING: Zero clients returned. RLS may be blocking. Add SUPABASE_SERVICE_ROLE_KEY to Vercel env vars to bypass RLS.');
     }
 
-    const clientList = clients.map((c) => ({
+    const clientList = (clients || []).map((c: any) => ({
       id: c.id,
       company: c.company || c.name,
       email: c.email,
       phone: c.phone,
       website: c.website,
-      contacts: contacts.filter((ct) => ct.client_id === c.id).map((ct) => ({
+      contacts: (contacts || []).filter((ct: any) => ct.client_id === c.id).map((ct: any) => ({
         name: ct.name, role: ct.role, email: ct.email, phone: ct.phone, is_primary: ct.is_primary,
       })),
     }));
