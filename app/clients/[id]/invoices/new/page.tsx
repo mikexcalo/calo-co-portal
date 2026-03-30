@@ -72,37 +72,47 @@ export default function NewInvoicePage() {
   const subtotal = items.reduce((s, i) => s + i.qty * i.price, 0);
   const total = subtotal + form.tax + form.shipping;
 
-  // OCR via server route (#1, #4)
+  // OCR via server route — multi-image support
   const handleFilesSelected = async (newFiles: File[]) => {
     setFiles(newFiles);
-    const img = newFiles.find((f) => f.type.startsWith('image/'));
-    if (!img) return;
+    const imageFiles = newFiles.filter((f) => f.type.startsWith('image/'));
+    if (imageFiles.length === 0) return;
 
     setExtracting(true);
     setError(null);
     try {
-      const base64 = await new Promise<string>((res) => {
-        const r = new FileReader();
-        r.onload = (e) => res((e.target?.result as string).split(',')[1]);
-        r.readAsDataURL(img);
-      });
+      // Read ALL images as base64
+      const images = await Promise.all(
+        imageFiles.map((file) => new Promise<{ base64: string; mediaType: string }>((resolve) => {
+          const r = new FileReader();
+          r.onload = (e) => resolve({ base64: (e.target?.result as string).split(',')[1], mediaType: file.type });
+          r.readAsDataURL(file);
+        }))
+      );
 
       const resp = await fetch('/api/ocr', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64, mediaType: img.type }),
+        body: JSON.stringify({ images }),
       });
 
       if (resp.ok) {
         const data = await resp.json();
-        if (data.items?.length) {
+        // Map new response shape: lineItems with description, subtitle, qty, price
+        if (data.lineItems?.length) {
           let tid = nextId;
-          setItems(data.items.map((i: any) => ({ description: i.description || '', qty: i.qty || 1, price: parseFloat(i.price) || 0, _id: tid++ })));
+          setItems(data.lineItems.map((i: any) => ({
+            description: [i.description, i.subtitle].filter(Boolean).join(' — '),
+            qty: parseInt(i.qty) || 1,
+            price: parseFloat(i.price) || 0,
+            _id: tid++,
+          })));
           setNextId(tid);
         }
         setForm((f) => ({
           ...f,
-          project: data.vendor || f.project,
+          project: data.projectName || f.project,
+          projectDesc: data.projectDescription || f.projectDesc,
           tax: parseFloat(data.tax) || f.tax,
           shipping: parseFloat(data.shipping) || f.shipping,
           notes: data.notes || f.notes,
@@ -265,7 +275,7 @@ export default function NewInvoicePage() {
         <div className={styles.leftPanel}>
           <h3 style={{ fontSize: 14, fontWeight: 600, color: '#334155', margin: '0 0 8px' }}>Receipt / Screenshot</h3>
           <ReceiptDrop onFilesSelected={handleFilesSelected} isLoading={saving || extracting} />
-          {extracting && <p style={{ fontSize: 12, color: '#2563eb', fontWeight: 500 }}>Extracting...</p>}
+          {extracting && <p style={{ fontSize: 12, color: '#2563eb', fontWeight: 500 }}>Extracting from {files.filter((f) => f.type.startsWith('image/')).length} image{files.filter((f) => f.type.startsWith('image/')).length !== 1 ? 's' : ''}...</p>}
         </div>
 
         {/* Right: Invoice form */}
