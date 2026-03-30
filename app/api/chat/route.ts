@@ -7,10 +7,14 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { message, apiKey } = body;
+    const { message } = body;
+    // Trim and clean the key — strip any whitespace, quotes, or invisible characters
+    const rawKey = (body.apiKey || '').toString().trim().replace(/^["']|["']$/g, '');
 
-    if (!apiKey) {
-      return NextResponse.json({ type: 'query', answer: 'No API key provided. Add your Claude API key in Settings.' });
+    console.log(`[/api/chat] Key prefix: "${rawKey.substring(0, 10)}...", length: ${rawKey.length}`);
+
+    if (!rawKey || rawKey.length < 10) {
+      return NextResponse.json({ type: 'query', answer: 'No valid API key provided. Add your Claude API key in Settings.' });
     }
 
     // Verify Supabase config
@@ -70,7 +74,7 @@ Return ONLY valid JSON. No markdown, no code fences.`;
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
+        'x-api-key': rawKey,
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
