@@ -30,6 +30,7 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
   const [items, setItems] = useState<TaskNote[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [delHover, setDelHover] = useState<string | null>(null);
+  const [fadingId, setFadingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const data = await loadTasksNotes();
@@ -40,8 +41,12 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
   useEffect(() => { load(); }, [load, refreshKey]);
 
   const handleComplete = async (id: string) => {
+    setFadingId(id);
     await updateTaskStatus(id, 'complete');
-    setItems((prev) => prev.filter((i) => i.id !== id));
+    setTimeout(() => {
+      setItems((prev) => prev.filter((i) => i.id !== id));
+      setFadingId(null);
+    }, 300);
   };
 
   const handleDelete = async (id: string) => {
@@ -49,10 +54,18 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
     setItems((prev) => prev.filter((i) => i.id !== id));
   };
 
-  // Open tasks only for action items
-  const openTasks = items.filter((i) => i.type === 'task' && i.status === 'open');
-  // Unpaid invoices across all clients
-  const unpaidInvoices = DB.invoices.filter((i) => i.status === 'unpaid' || i.status === 'overdue');
+  // Open tasks — sorted by created_at descending (newest first)
+  const openTasks = items
+    .filter((i) => i.type === 'task' && i.status === 'open')
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  // Unpaid invoices — sorted by due_date ascending (soonest due first)
+  const unpaidInvoices = DB.invoices
+    .filter((i) => i.status === 'unpaid' || i.status === 'overdue')
+    .sort((a, b) => {
+      const da = a.due ? new Date(a.due).getTime() : Infinity;
+      const db = b.due ? new Date(b.due).getTime() : Infinity;
+      return da - db;
+    });
 
   // Activity log
   const activityItems = DB.activityLog
@@ -88,6 +101,7 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
               <div key={task.id} style={{
                 background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10,
                 padding: '12px 14px', marginBottom: 8, display: 'flex', alignItems: 'flex-start', gap: 10,
+                opacity: fadingId === task.id ? 0 : 1, transition: 'opacity 0.3s ease',
               }}>
                 {/* Amber checkbox icon */}
                 <div onClick={() => handleComplete(task.id)} style={{

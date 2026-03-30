@@ -22,6 +22,7 @@ export default function Home() {
   const [search, setSearch] = useState('');
   const [feedKey, setFeedKey] = useState(0);
   const [allTasks, setAllTasks] = useState<any[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -153,7 +154,7 @@ export default function Home() {
             <div style={{ fontSize: 13, color: '#dc2626' }}>Unable to load clients</div>
           ) : filteredClients.length === 0 ? (
             <div style={{ color: '#9ca3af', fontSize: 13, padding: '12px 0' }}>
-              {search ? 'No matching clients.' : 'No clients yet.'}
+              {search ? 'No clients found' : 'No clients yet.'}
             </div>
           ) : (
             filteredClients.map((client) => (
@@ -162,10 +163,13 @@ export default function Home() {
                 client={client}
                 taskCount={getTaskCount(client.id)}
                 invoiceCount={getInvoiceCount(client.id)}
+                expanded={expandedId === client.id}
+                onToggle={() => setExpandedId(expandedId === client.id ? null : client.id)}
                 onNavigate={() => {
                   localStorage.setItem(`client_accessed_${client.id}`, String(Date.now()));
                   router.push(`/clients/${client.id}`);
                 }}
+                onTaskCompleted={refreshFeed}
               />
             ))
           )}

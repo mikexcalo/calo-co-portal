@@ -9,19 +9,22 @@ import { DB, loadTasksNotes, updateTaskStatus } from '@/lib/database';
 interface ClientCardProps {
   client: Client;
   onNavigate: () => void;
-  taskCount?: number;
-  invoiceCount?: number;
+  taskCount: number;
+  invoiceCount: number;
+  expanded: boolean;
+  onToggle: () => void;
+  onTaskCompleted?: () => void;
 }
 
-export default function ClientCard({ client, onNavigate, taskCount = 0, invoiceCount = 0 }: ClientCardProps) {
+export default function ClientCard({ client, onNavigate, taskCount, invoiceCount, expanded, onToggle, onTaskCompleted }: ClientCardProps) {
   const router = useRouter();
   const contacts = DB.contacts[client.id] || [];
   const primary = contacts.find((c) => c.isPrimary) || contacts[0] || null;
   const logoUrl = client.logo;
-  const [expanded, setExpanded] = useState(false);
   const [expandData, setExpandData] = useState<{ tasks: any[]; invoices: any[] }>({ tasks: [], invoices: [] });
   const contentRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
+  const [fadingId, setFadingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (expanded) {
@@ -37,17 +40,18 @@ export default function ClientCard({ client, onNavigate, taskCount = 0, invoiceC
     if (contentRef.current) setHeight(contentRef.current.scrollHeight);
   }, [expanded, expandData]);
 
-  const handleToggle = (e: React.MouseEvent) => {
-    setExpanded(!expanded);
-  };
-
   const handleCompleteTask = async (taskId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    setFadingId(taskId);
     await updateTaskStatus(taskId, 'complete');
-    setExpandData((prev) => ({ ...prev, tasks: prev.tasks.filter((t) => t.id !== taskId) }));
+    // Fade out over 300ms, then remove
+    setTimeout(() => {
+      setExpandData((prev) => ({ ...prev, tasks: prev.tasks.filter((t) => t.id !== taskId) }));
+      setFadingId(null);
+      onTaskCompleted?.();
+    }, 300);
   };
 
-  // Avatar color based on first letter
   const name = client.company || client.name || '?';
   const colors = ['#dbeafe', '#fef3c7', '#d1fae5', '#fce7f3', '#ede9fe', '#ffedd5'];
   const bgColor = colors[name.charCodeAt(0) % colors.length];
@@ -64,19 +68,14 @@ export default function ClientCard({ client, onNavigate, taskCount = 0, invoiceC
 
   return (
     <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, marginBottom: 8, overflow: 'hidden' }}>
-      {/* Collapsed row */}
-      <div onClick={handleToggle} style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
-        {/* Chevron */}
+      <div onClick={onToggle} style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
         <span style={{ fontSize: 14, color: '#9ca3af', opacity: 0.4, flexShrink: 0, transition: 'transform 0.2s', transform: expanded ? 'rotate(90deg)' : 'none' }}>▶</span>
-        {/* Avatar */}
         <div style={{ width: 40, height: 40, borderRadius: 10, background: logoUrl ? 'transparent' : bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, color: '#475569', flexShrink: 0, overflow: 'hidden' }}>
           {logoUrl ? <img src={logoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials(name)}
         </div>
-        {/* Info */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 500, color: '#1a1f2e', lineHeight: 1.3 }}>{name}</div>
           {primary && <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 1 }}>{primary.name}{primary.role ? ` · ${primary.role}` : ''}</div>}
-          {/* Pills */}
           {(taskCount > 0 || invoiceCount > 0) && (
             <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
               {taskCount > 0 && <span onClick={(e) => { e.stopPropagation(); onNavigate(); }} style={{ fontSize: 11, fontWeight: 500, padding: '2px 9px', borderRadius: 99, background: '#faeeda', color: '#854f0b', cursor: 'pointer' }}>{taskCount} task{taskCount !== 1 ? 's' : ''}</span>}
@@ -84,14 +83,12 @@ export default function ClientCard({ client, onNavigate, taskCount = 0, invoiceC
             </div>
           )}
         </div>
-        {/* Manage button */}
         <button onClick={(e) => { e.stopPropagation(); onNavigate(); }} style={{
           background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 12px',
           color: '#2563eb', fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: 'Inter, sans-serif', flexShrink: 0,
         }}>Manage →</button>
       </div>
 
-      {/* Expanded content */}
       <div style={{ maxHeight: expanded ? height : 0, overflow: 'hidden', transition: 'max-height 0.25s ease' }}>
         <div ref={contentRef} style={{ borderTop: '1px solid #e5e7eb', padding: '14px 16px 14px 82px' }}>
           {expandData.tasks.length === 0 && expandData.invoices.length === 0 ? (
@@ -99,9 +96,14 @@ export default function ClientCard({ client, onNavigate, taskCount = 0, invoiceC
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {expandData.tasks.map((task) => (
-                <div key={task.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div key={task.id} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  opacity: fadingId === task.id ? 0 : 1,
+                  transition: 'opacity 0.3s ease',
+                }}>
                   <div onClick={(e) => handleCompleteTask(task.id, e)} style={{
-                    width: 22, height: 22, borderRadius: 6, background: '#faeeda', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0,
+                    width: 22, height: 22, borderRadius: 6, background: '#faeeda',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0,
                   }}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#854f0b" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
                   </div>
