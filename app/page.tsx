@@ -16,7 +16,7 @@ import {
 } from '@/lib/database';
 import { agencyStats, currency, daysUntil } from '@/lib/utils';
 import ClientCard, { getClientHealth } from '@/components/dashboard/ClientCard';
-import ActivityFeed from '@/components/dashboard/ActivityFeed';
+import TasksNotesFeed from '@/components/dashboard/TasksNotesFeed';
 import CommandBar from '@/components/dashboard/CommandBar';
 
 export default function Home() {
@@ -28,6 +28,7 @@ export default function Home() {
   const [clientFilter, setClientFilter] = useState<'active' | 'paused' | 'closed'>('active');
   const [stats, setStats] = useState(agencyStats([], []));
   const [search, setSearch] = useState('');
+  const [feedKey, setFeedKey] = useState(0);
 
   useEffect(() => {
     const init = async () => {
@@ -135,7 +136,7 @@ export default function Home() {
       </div>
 
       {/* Command bar */}
-      <CommandBar />
+      <CommandBar onItemSaved={() => setFeedKey((k) => k + 1)} />
 
       {/* Attention strip */}
       {(overdue.length > 0 || dueSoon.length > 0) && (
@@ -259,9 +260,9 @@ export default function Home() {
           )}
         </div>
 
-        {/* Right: Activity Feed — ACTIVITY header aligns with OVERVIEW (#2) */}
+        {/* Right: Tasks & Notes feed */}
         <div style={{ flex: '0 0 280px', width: 280, minWidth: 0 }}>
-          <ActivityFeed />
+          <TasksNotesFeed refreshKey={feedKey} />
         </div>
       </div>
     </div>

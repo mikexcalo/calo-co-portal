@@ -12,14 +12,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No API key provided' }, { status: 400 });
     }
 
-    // Fetch client data from Supabase for context
     const sb = createClient(supabaseUrl, supabaseKey);
     const [{ data: clients }, { data: contacts }] = await Promise.all([
       sb.from('clients').select('id, name, company, email, phone, website, address'),
       sb.from('contacts').select('id, client_id, name, role, email, phone, is_primary'),
     ]);
 
-    // Build context string
     const clientContext = (clients || []).map((c) => {
       const cContacts = (contacts || []).filter((ct) => ct.client_id === c.id);
       const contactStr = cContacts.map((ct) =>
@@ -30,14 +28,21 @@ export async function POST(req: NextRequest) {
 
     const systemPrompt = `You are an AI assistant for CALO&CO, a creative agency. You have access to client data.
 
-INSTRUCTIONS:
-1. Classify every input as either a "query" (user wants to look up or ask about client data) or a "note" (user wants to save a note/observation about a client).
-2. For queries: Return a JSON object: { "type": "query", "answer": "concise answer with relevant data", "client_id": "id if relevant or null" }
-3. For notes: Extract the client reference from the text (match against client and contact names). Return: { "type": "note", "client_id": "matched_client_id", "client_name": "matched name", "content": "the note content" }
-4. If ambiguous whether it's a note or query: Return { "type": "clarify", "message": "your clarifying question" }
-5. If a note mentions a client but you can't match it: Return { "type": "clarify", "message": "Which client is this about?" }
+CLASSIFY every input into one of three types:
 
-ALWAYS return valid JSON. No markdown, no code fences — just the JSON object.
+1. **task** — The input describes an action to take, something to do, follow up on, send, create, schedule, remind, call, email, etc. Return: { "type": "task", "client_id": "matched_id", "client_name": "matched name", "content": "the task description" }
+
+2. **note** — The input is reference information, a preference, a detail to remember, an observation. Return: { "type": "note", "client_id": "matched_id", "client_name": "matched name", "content": "the note content" }
+
+3. **query** — The input is a question about client data. Return: { "type": "query", "answer": "concise answer", "client_id": "id if relevant or null" }
+
+RULES:
+- Match client references against both company names and contact names in the data below.
+- If you can't determine task vs note, default to task (better to have a checkable item).
+- If the input mentions a client you can't match: { "type": "clarify", "message": "Which client is this about?" }
+- If truly ambiguous and unclassifiable: { "type": "clarify", "message": "your clarifying question" }
+
+ALWAYS return valid JSON only. No markdown, no code fences.
 
 CLIENT DATA:
 ${clientContext}`;
@@ -66,16 +71,13 @@ ${clientContext}`;
     const data = await resp.json();
     const text = data.content?.[0]?.text || '';
 
-    // Parse JSON from response
     try {
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        return NextResponse.json(parsed);
+        return NextResponse.json(JSON.parse(jsonMatch[0]));
       }
     } catch {}
 
-    // Fallback: treat as query answer
     return NextResponse.json({ type: 'query', answer: text, client_id: null });
   } catch (e: any) {
     console.error('[/api/chat] error:', e);

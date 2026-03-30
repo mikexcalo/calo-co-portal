@@ -716,28 +716,89 @@ export async function logActivity(
 }
 
 /**
- * Save a client note (from command bar AI)
+ * Save a task or note (from command bar AI)
  */
-export async function saveClientNote(
+export async function saveTaskNote(
   clientId: string,
+  type: 'task' | 'note',
   content: string
 ): Promise<any> {
   try {
     const { data, error } = await supabase
-      .from('client_notes')
-      .insert({ client_id: clientId, content })
+      .from('client_tasks_notes')
+      .insert({ client_id: clientId, type, content, status: 'open' })
       .select();
 
     if (error) {
-      console.warn('[saveClientNote] error:', error.code, error.message);
+      console.warn('[saveTaskNote] error:', error.code, error.message);
+      // Fallback to client_notes table if new table doesn't exist yet
+      if (error.code === 'PGRST204' || error.code === '42P01') {
+        const { data: d2 } = await supabase
+          .from('client_notes')
+          .insert({ client_id: clientId, content })
+          .select();
+        return d2?.[0] || null;
+      }
       return null;
     }
     return data?.[0] || null;
   } catch (e) {
-    console.warn('[saveClientNote] exception:', e);
+    console.warn('[saveTaskNote] exception:', e);
     return null;
   }
 }
+
+/**
+ * Load tasks and notes for a client (or all if no clientId)
+ */
+export async function loadTasksNotes(clientId?: string): Promise<any[]> {
+  try {
+    let query = supabase
+      .from('client_tasks_notes')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (clientId) query = query.eq('client_id', clientId);
+
+    const { data, error } = await query;
+    if (error) {
+      console.warn('[loadTasksNotes] error:', error.code, error.message);
+      return [];
+    }
+    return data || [];
+  } catch (e) {
+    console.warn('[loadTasksNotes] exception:', e);
+    return [];
+  }
+}
+
+/**
+ * Update task status (complete/reopen)
+ */
+export async function updateTaskStatus(
+  id: string,
+  status: 'open' | 'complete'
+): Promise<void> {
+  try {
+    const row: any = { status };
+    if (status === 'complete') row.completed_at = new Date().toISOString();
+    else row.completed_at = null;
+
+    const { error } = await supabase
+      .from('client_tasks_notes')
+      .update(row)
+      .eq('id', id);
+
+    if (error) console.warn('[updateTaskStatus] error:', error.message);
+  } catch (e) {
+    console.warn('[updateTaskStatus] exception:', e);
+  }
+}
+
+/** Backward compat alias */
+export const saveClientNote = (clientId: string, content: string) =>
+  saveTaskNote(clientId, 'note', content);
 
 /**
  * Load contacts for a specific client
