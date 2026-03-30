@@ -6,6 +6,7 @@ import {
   loadInvoices,
   saveInvoice,
   deleteInvoice,
+  logActivity,
   DB,
 } from '@/lib/database';
 import { clientStats, invTotal, currency } from '@/lib/utils';
@@ -29,6 +30,17 @@ export default function ClientInvoicesPage() {
     const init = async () => {
       try {
         await loadInvoices(clientId);
+        // Auto-mark overdue (#7)
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        for (const inv of DB.invoices.filter((i) => i.clientId === clientId && i.status === 'unpaid')) {
+          try {
+            const dueDate = new Date(inv.due);
+            if (!isNaN(dueDate.getTime()) && dueDate < today) {
+              inv.status = 'overdue';
+              await saveInvoice(inv);
+            }
+          } catch {}
+        }
         const clientInvoices = DB.invoices.filter((i) => i.clientId === clientId);
         setInvoices(clientInvoices);
         setStats(clientStats(DB.invoices, clientId));
@@ -48,13 +60,10 @@ export default function ClientInvoicesPage() {
 
     try {
       inv.status = 'paid';
-      inv.paidDate = new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
+      inv.paidDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
       await saveInvoice(inv);
+      await logActivity(clientId, 'invoice_paid', { invoiceId: inv.id }).catch(() => {});
 
       const clientInvoices = DB.invoices.filter((i) => i.clientId === clientId);
       setInvoices([...clientInvoices]);
