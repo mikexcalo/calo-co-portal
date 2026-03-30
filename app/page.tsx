@@ -180,44 +180,43 @@ export default function Home() {
         </div>
       )}
 
-      {/* Status bar — compact summary replacing individual stat cards */}
-      <div style={{
-        display: 'flex', gap: 24, padding: '12px 16px', marginBottom: 24,
-        background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
-        fontSize: 13, color: '#334155', alignItems: 'center',
-      }}>
-        <div>
-          <span style={{ fontWeight: 700, fontSize: 18, color: stats.outstanding > 0 ? '#d97706' : '#1a1f2e' }}>
-            {currency(stats.outstanding)}
-          </span>
-          <span style={{ color: '#94a3b8', marginLeft: 6 }}>outstanding</span>
-        </div>
-        <div style={{ width: 1, height: 28, background: '#e2e8f0' }} />
-        <div>
-          <span style={{ fontWeight: 700, fontSize: 18, color: '#1a1f2e' }}>
-            {currency(stats.paid)}
-          </span>
-          <span style={{ color: '#94a3b8', marginLeft: 6 }}>paid</span>
-        </div>
-        <div style={{ width: 1, height: 28, background: '#e2e8f0' }} />
-        <div>
-          <span style={{ fontWeight: 700, fontSize: 18, color: '#1a1f2e' }}>
-            {bucketCounts.active}
-          </span>
-          <span style={{ color: '#94a3b8', marginLeft: 6 }}>active client{bucketCounts.active !== 1 ? 's' : ''}</span>
-        </div>
-        <div style={{ flex: 1 }} />
-        <button onClick={() => router.push('/financials')} style={{
-          background: 'none', border: 'none', color: '#2563eb', fontSize: 12,
-          fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-        }}>
-          View Financials →
-        </button>
-      </div>
-
-      {/* Clients and Activity Feed */}
+      {/* Clients and Activity Feed — side by side */}
       <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
         <div style={{ flex: '1 1 0', minWidth: 0 }} id="clients-section">
+          {/* Status bar — only spans clients column */}
+          <div style={{
+            display: 'flex', gap: 20, padding: '10px 14px', marginBottom: 16,
+            background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
+            fontSize: 13, color: '#334155', alignItems: 'center',
+          }}>
+            <div>
+              <span style={{ fontWeight: 700, fontSize: 16, color: stats.outstanding > 0 ? '#d97706' : '#1a1f2e' }}>
+                {currency(stats.outstanding)}
+              </span>
+              <span style={{ color: '#94a3b8', marginLeft: 5, fontSize: 12 }}>outstanding</span>
+            </div>
+            <div style={{ width: 1, height: 24, background: '#e2e8f0' }} />
+            <div>
+              <span style={{ fontWeight: 700, fontSize: 16, color: '#1a1f2e' }}>
+                {currency(stats.paid)}
+              </span>
+              <span style={{ color: '#94a3b8', marginLeft: 5, fontSize: 12 }}>paid</span>
+            </div>
+            <div style={{ width: 1, height: 24, background: '#e2e8f0' }} />
+            <div>
+              <span style={{ fontWeight: 700, fontSize: 16, color: '#1a1f2e' }}>
+                {bucketCounts.active}
+              </span>
+              <span style={{ color: '#94a3b8', marginLeft: 5, fontSize: 12 }}>active</span>
+            </div>
+            <div style={{ flex: 1 }} />
+            <button onClick={() => router.push('/financials')} style={{
+              background: 'none', border: 'none', color: '#2563eb', fontSize: 11,
+              fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            }}>
+              Financials →
+            </button>
+          </div>
           {/* Clients header with Add + filters */}
           <div style={{ marginBottom: '14px' }}>
             <div className="section-title" style={{ marginBottom: 10 }}>Clients</div>

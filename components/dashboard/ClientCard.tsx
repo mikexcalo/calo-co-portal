@@ -13,20 +13,20 @@ function getHealth(client: Client): { color: string; issues: { label: string; hr
   const issues: { label: string; href: string }[] = [];
   const contacts = DB.contacts[client.id] || [];
   const primary = contacts.find((c) => c.isPrimary) || contacts[0];
+
+  // Mandatory contact fields only
+  const nameParts = (primary?.name || '').split(/\s+/);
+  if (!nameParts[0]) issues.push({ label: 'First Name', href: `/clients/${client.id}` });
+  if (!nameParts[1]) issues.push({ label: 'Last Name', href: `/clients/${client.id}` });
+  if (!primary?.email && !client.email) issues.push({ label: 'Email', href: `/clients/${client.id}` });
+
+  // Module-level completeness
   const bk = client.brandKit;
   const hasLogos = bk && Object.values(bk.logos || {}).some((a: any) => a?.length > 0);
-  const hasColors = bk?.colors?.length > 0;
-
   if (!hasLogos) issues.push({ label: 'Brand Kit logos', href: `/clients/${client.id}/brand-kit` });
-  if (!hasColors) issues.push({ label: 'Brand colors', href: `/clients/${client.id}/brand-kit` });
-  if (!primary?.email) issues.push({ label: 'Contact email', href: `/clients/${client.id}` });
-  if (!primary?.phone) issues.push({ label: 'Contact phone', href: `/clients/${client.id}` });
-  if (!client.website) issues.push({ label: 'Website', href: `/clients/${client.id}` });
-  if (!client.address) issues.push({ label: 'Address', href: `/clients/${client.id}` });
+  if (!bk?.colors?.length) issues.push({ label: 'Brand colors', href: `/clients/${client.id}/brand-kit` });
 
-  const sigHtml = client.emailSignatureHtml;
-  const sigFields = client.signatureFields || {};
-  const hasSig = !!sigHtml || !!sigFields.name || !!sigFields.email;
+  const hasSig = !!client.emailSignatureHtml || !!(client.signatureFields as any)?.name;
   if (!hasSig) issues.push({ label: 'Email Signature', href: `/clients/${client.id}/email-signature` });
 
   const color = issues.length === 0 ? '#22c55e' : issues.length <= 3 ? '#f59e0b' : '#ef4444';
@@ -53,7 +53,12 @@ export default function ClientCard({ client, onNavigate }: ClientCardProps) {
 
   return (
     <div style={{ borderTopColor: tintedColor }} className="cc-row-wrap">
-      <div className="cc-row" onClick={onNavigate} style={{ cursor: 'pointer' }}>
+      {/* Main row — click toggles expand */}
+      <div
+        className="cc-row"
+        onClick={() => setExpanded(!expanded)}
+        style={{ cursor: 'pointer' }}
+      >
         <div className="cc-row-avatar" style={logoUrl ? { background: 'transparent' } : undefined}>
           {logoUrl ? (
             <img src={logoUrl} alt={client.company} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -62,9 +67,7 @@ export default function ClientCard({ client, onNavigate }: ClientCardProps) {
           )}
         </div>
         <div className="cc-row-info">
-          <span className="cc-row-name">
-            {client.company || client.name}
-          </span>
+          <span className="cc-row-name">{client.company || client.name}</span>
           {primaryContact && (
             <span className="cc-row-contact">
               {primaryContact.name}
@@ -79,24 +82,26 @@ export default function ClientCard({ client, onNavigate }: ClientCardProps) {
             flexShrink: 0, display: 'inline-block',
           }} title={health.issues.length === 0 ? 'Fully set up' : `${health.issues.length} items missing`} />
           <span className="cc-row-date">{lastActiveStr}</span>
-          {/* Expand arrow */}
+          {/* Expand chevron */}
+          <span style={{
+            color: '#94a3b8', fontSize: 10, transition: 'transform 0.15s',
+            transform: expanded ? 'rotate(180deg)' : 'none', display: 'inline-block',
+          }}>▼</span>
+          {/* Open button — styled, with stopPropagation */}
           <button
-            onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+            onClick={(e) => { e.stopPropagation(); onNavigate(); }}
             style={{
-              background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px',
-              color: '#94a3b8', fontSize: 11, transform: expanded ? 'rotate(180deg)' : 'none',
-              transition: 'transform 0.15s',
+              padding: '4px 12px', fontSize: 12, fontWeight: 600,
+              border: '1.5px solid #d1d5db', borderRadius: 6,
+              background: '#fff', color: '#475569', cursor: 'pointer',
+              fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap',
             }}
-            title="Details"
           >
-            ▼
+            Open
           </button>
-          <span className="cc-row-link" onClick={(e) => { e.stopPropagation(); onNavigate(); }}>
-            Open →
-          </span>
         </div>
       </div>
-      {/* Expandable detail */}
+      {/* Expandable detail — default collapsed */}
       {expanded && (
         <div style={{
           padding: '8px 14px 10px 52px', background: '#f8fafc',
