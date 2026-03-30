@@ -84,11 +84,11 @@ export default function CommandBar({ onItemSaved }: CommandBarProps) {
 
   return (
     <div style={{ position: 'relative', marginBottom: 18 }}>
-      {/* Dark container + white inset input */}
-      <div style={{ background: '#1a1f2e', borderRadius: 10, padding: 5 }}>
+      {/* Dark frame (#1a1f2e) with white inner input (#3) */}
+      <div style={{ background: '#1a1f2e', borderRadius: 8, padding: '3px 4px' }}>
         <div style={{ position: 'relative' }}>
           <div style={{
-            position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)',
+            position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
             color: '#94a3b8', display: 'flex', pointerEvents: 'none',
           }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -99,13 +99,10 @@ export default function CommandBar({ onItemSaved }: CommandBarProps) {
             onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
             placeholder="Ask a question or jot a note..." disabled={loading}
             style={{
-              width: '100%', padding: '9px 36px 9px 32px', fontSize: 13,
-              border: '1px solid transparent', borderRadius: 7, fontFamily: 'Inter, sans-serif',
-              color: '#1a1f2e', background: '#fff', outline: 'none',
-              transition: 'box-shadow 0.15s',
-            }}
-            onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.15)'; }}
-            onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; }} />
+              width: '100%', padding: '10px 36px 10px 34px', fontSize: 13,
+              border: 'none', borderRadius: 6, fontFamily: 'Inter, sans-serif',
+              color: '#1a1f2e', background: '#ffffff', outline: 'none',
+            }} />
           {loading && (
             <div style={{
               position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',

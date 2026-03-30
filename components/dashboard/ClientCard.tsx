@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { Client } from '@/lib/types';
 import { initials } from '@/lib/utils';
 import { DB, loadTasksNotes, updateTaskStatus } from '@/lib/database';
+import TaskNoteCard from '@/components/shared/TaskNoteCard';
 
 interface ClientCardProps {
   client: Client;
@@ -26,7 +26,6 @@ export function getClientHealth(client: Client, staleDays = 7): HealthResult {
   const hasColors = bk?.colors?.length > 0;
   if (!hasLogos) issues.push({ label: 'Brand Kit logos', href: `/clients/${client.id}/brand-kit` });
   if (!hasColors) issues.push({ label: 'Brand colors', href: `/clients/${client.id}/brand-kit` });
-  // Email Signature excluded (#6) — never flagged
   const hasMandatory = !!nameParts[0] && !!nameParts[1] && !!(primary?.email || client.email);
   const lastAct = DB.activityLog.filter((e) => e.clientId === client.id)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
@@ -39,7 +38,6 @@ export function getClientHealth(client: Client, staleDays = 7): HealthResult {
 }
 
 export default function ClientCard({ client, onNavigate, expanded, onToggle }: ClientCardProps) {
-  const router = useRouter();
   const contentRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
   const [tasks, setTasks] = useState<any[]>([]);
@@ -49,10 +47,6 @@ export default function ClientCard({ client, onNavigate, expanded, onToggle }: C
   const primary = contacts.find((c) => c.isPrimary) || contacts[0] || null;
   const health = getClientHealth(client);
   const logoUrl = client.logo;
-  const bk = client.brandKit;
-  const hasLogos = bk && Object.values(bk.logos || {}).some((a: any) => a?.length > 0);
-  const hasColors = bk?.colors?.length > 0;
-  const hasInvoices = DB.invoices.some((i) => i.clientId === client.id);
 
   useEffect(() => {
     if (expanded) loadTasksNotes(client.id).then((d) => setTasks(d.slice(0, 3)));
@@ -68,14 +62,6 @@ export default function ClientCard({ client, onNavigate, expanded, onToggle }: C
     setTasks((p) => p.map((t) => t.id === item.id ? { ...t, status: ns } : t));
   };
 
-  // Module status — NO Email Signature (#6)
-  const modules = [
-    { label: 'Brand Kit', started: hasLogos || hasColors },
-    { label: 'Invoices', started: hasInvoices },
-    { label: 'Financials', started: hasInvoices },
-    { label: 'Builder', started: false },
-  ];
-
   return (
     <div
       onMouseEnter={() => setHovered(true)}
@@ -86,7 +72,7 @@ export default function ClientCard({ client, onNavigate, expanded, onToggle }: C
         transition: 'background 0.12s',
       }}
     >
-      {/* Row header (#8: hover state) */}
+      {/* Collapsed row */}
       <div onClick={onToggle} style={{
         padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
       }}>
@@ -106,6 +92,12 @@ export default function ClientCard({ client, onNavigate, expanded, onToggle }: C
           )}
         </div>
         <span style={{ width: 8, height: 8, borderRadius: '50%', background: health.color, flexShrink: 0 }} />
+        {/* Visible Open button on collapsed tile (#2) */}
+        <button onClick={(e) => { e.stopPropagation(); onNavigate(); }} style={{
+          padding: '3px 10px', fontSize: 11, fontWeight: 600, color: '#2563eb',
+          background: 'none', border: '1px solid #dbeafe', borderRadius: 5,
+          cursor: 'pointer', fontFamily: 'Inter, sans-serif', flexShrink: 0,
+        }}>Open</button>
         <span style={{
           color: hovered ? '#94a3b8' : '#d1d5db', fontSize: 10, flexShrink: 0,
           transition: 'transform 0.25s ease, color 0.12s',
@@ -113,73 +105,24 @@ export default function ClientCard({ client, onNavigate, expanded, onToggle }: C
         }}>▾</span>
       </div>
 
-      {/* Accordion */}
+      {/* Accordion — simplified (#1): only tasks/notes + Open button */}
       <div style={{ maxHeight: expanded ? height : 0, overflow: 'hidden', transition: 'max-height 0.25s ease' }}>
-        <div ref={contentRef} style={{ padding: '0 14px 12px', fontSize: 12, borderTop: '1px solid #f1f5f9' }}>
-          {/* Contact info */}
-          <div style={{ display: 'flex', gap: 14, color: '#64748b', margin: '10px 0 8px', flexWrap: 'wrap', fontSize: 11 }}>
-            <span>Email: {primary?.email || client.email || '—'}</span>
-            <span>Phone: {primary?.phone || '—'}</span>
-            {client.phone && <span>Business: {client.phone}</span>}
-          </div>
-
-          {/* Module status pills (#6: no Email Sig) */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-            {modules.map((m) => (
-              <span key={m.label} style={{
-                display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10.5,
-                color: '#64748b', padding: '2px 8px', background: '#f8fafc', borderRadius: 4,
-              }}>
-                <span style={{ width: 5, height: 5, borderRadius: '50%', background: m.started ? '#22c55e' : '#d1d5db' }} />
-                {m.label}
-              </span>
-            ))}
-          </div>
-
-          {/* Missing items */}
-          {health.issues.length > 0 && (
-            <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-              <span style={{ fontWeight: 600, color: '#475569', fontSize: 11 }}>Missing:</span>
-              {health.issues.map((issue, i) => (
-                <a key={i} onClick={(e) => { e.stopPropagation(); router.push(issue.href); }}
-                  style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'none', fontSize: 11, fontWeight: 500 }}>
-                  {issue.label}
-                </a>
-              ))}
-            </div>
-          )}
-
-          {/* Recent tasks/notes */}
+        <div ref={contentRef} style={{ padding: '0 14px 12px', borderTop: '1px solid #f1f5f9' }}>
+          {/* Recent tasks/notes only */}
           {tasks.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginBottom: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 10 }}>
               {tasks.map((item) => (
-                <div key={item.id} style={{
-                  display: 'flex', alignItems: 'flex-start', gap: 5,
-                  padding: '3px 5px', background: '#f8fafc', borderRadius: 4,
-                  opacity: item.status === 'complete' ? 0.5 : 1,
-                }}>
-                  {item.type === 'task' ? (
-                    <input type="checkbox" checked={item.status === 'complete'}
-                      onChange={(e) => { e.stopPropagation(); handleToggleTask(item); }}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{ marginTop: 2, cursor: 'pointer', flexShrink: 0 }} />
-                  ) : (
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" style={{ marginTop: 2, flexShrink: 0 }}>
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                    </svg>
-                  )}
-                  <span style={{
-                    fontSize: 11, color: '#334155', lineHeight: 1.3,
-                    textDecoration: item.status === 'complete' ? 'line-through' : 'none',
-                  }}>{item.content}</span>
-                </div>
+                <TaskNoteCard
+                  key={item.id}
+                  item={item}
+                  showClient={false}
+                  onToggle={() => handleToggleTask(item)}
+                />
               ))}
             </div>
           )}
-
           {/* Open button */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
             <button onClick={(e) => { e.stopPropagation(); onNavigate(); }} style={{
               padding: '5px 14px', fontSize: 11, fontWeight: 600,
               border: '1.5px solid #d1d5db', borderRadius: 6,

@@ -368,7 +368,8 @@ export async function saveInvoice(inv: Invoice): Promise<any> {
 
     if (inv._uuid) row.id = inv._uuid;
 
-    console.log('[saveInvoice] Inserting:', inv.id, 'client:', inv.clientId, 'total:', total);
+    console.log('[saveInvoice] Full payload:', JSON.stringify({ ...row, line_items: '...[omitted]' }));
+    console.log('[saveInvoice] Inserting:', inv.id, 'client:', inv.clientId, 'total:', total, 'items:', lineItems.length);
 
     const { data, error } = await supabase
       .from('invoices')
