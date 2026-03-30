@@ -733,15 +733,15 @@ export async function saveTaskNote(
 
     if (error) {
       console.warn('[saveTaskNote] client_tasks_notes error:', error.code, error.message);
-      // Fallback to client_notes table if new table doesn't exist yet
+      // Fallback to client_notes table
       const { data: d2, error: e2 } = await supabase
         .from('client_notes')
         .insert({ client_id: clientId, content })
         .select();
-      console.log('[saveTaskNote] Fallback to client_notes:', d2 ? 'success' : 'failed', e2?.message || '');
+      console.log('[saveTaskNote] Fallback client_notes:', d2 ? 'success' : 'failed', e2?.message || '');
       return d2?.[0] || null;
-      return null;
     }
+    console.log('[saveTaskNote] Inserted into client_tasks_notes:', data?.[0]?.id);
     return data?.[0] || null;
   } catch (e) {
     console.warn('[saveTaskNote] exception:', e);
