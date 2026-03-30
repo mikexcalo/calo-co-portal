@@ -53,6 +53,7 @@ export default function ActivityFeed() {
       'contact_saved',
       'brand_guide_exported',
       'signature_generated',
+      'note_added',
     ]);
 
     const evLabels: Record<string, string> = {
@@ -62,6 +63,7 @@ export default function ActivityFeed() {
       contact_saved: 'Contact Saved',
       brand_guide_exported: 'Brand Guide Exported',
       signature_generated: 'Signature Generated',
+      note_added: 'Note Added',
     };
 
     const evColors: Record<string, string> = {
@@ -71,15 +73,17 @@ export default function ActivityFeed() {
       contact_saved: 'af-blue',
       brand_guide_exported: 'af-green',
       signature_generated: 'af-green',
+      note_added: 'af-blue',
     };
 
     const evPriority: Record<string, number> = {
       invoice_created: 0,
       invoice_paid: 1,
-      client_added: 2,
-      contact_saved: 3,
-      signature_generated: 4,
-      brand_guide_exported: 5,
+      note_added: 2,
+      client_added: 3,
+      contact_saved: 4,
+      signature_generated: 5,
+      brand_guide_exported: 6,
     };
 
     const todayStr = today.toDateString();

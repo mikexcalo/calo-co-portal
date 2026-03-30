@@ -17,6 +17,7 @@ import {
 import { agencyStats, currency, daysUntil } from '@/lib/utils';
 import ClientCard, { getClientHealth } from '@/components/dashboard/ClientCard';
 import ActivityFeed from '@/components/dashboard/ActivityFeed';
+import CommandBar from '@/components/dashboard/CommandBar';
 
 export default function Home() {
   const router = useRouter();
@@ -132,6 +133,9 @@ export default function Home() {
           {dateline}{timeLine ? ` · ${timeLine}` : ''}
         </div>
       </div>
+
+      {/* Command bar */}
+      <CommandBar />
 
       {/* Attention strip */}
       {(overdue.length > 0 || dueSoon.length > 0) && (

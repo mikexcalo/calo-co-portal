@@ -716,6 +716,30 @@ export async function logActivity(
 }
 
 /**
+ * Save a client note (from command bar AI)
+ */
+export async function saveClientNote(
+  clientId: string,
+  content: string
+): Promise<any> {
+  try {
+    const { data, error } = await supabase
+      .from('client_notes')
+      .insert({ client_id: clientId, content })
+      .select();
+
+    if (error) {
+      console.warn('[saveClientNote] error:', error.code, error.message);
+      return null;
+    }
+    return data?.[0] || null;
+  } catch (e) {
+    console.warn('[saveClientNote] exception:', e);
+    return null;
+  }
+}
+
+/**
  * Load contacts for a specific client
  */
 export async function loadContacts(clientId: string): Promise<void> {
