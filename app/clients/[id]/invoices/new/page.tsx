@@ -138,13 +138,14 @@ export default function NewInvoicePage() {
         attachmentUrl = await uploadInvoiceAttachment(files[0]).catch(() => null);
       }
 
-      const invoice: Invoice = {
+      const invoice: Invoice & { terms?: string } = {
         id: form.invoiceNumber, clientId, project: form.project,
         date: form.date, due: form.due, status: form.status as any,
         items: items.map(({ _id, ...i }) => i), tax: form.tax, shipping: form.shipping,
         notes: form.notes, type: 'service', isReimbursement: false,
         netCost: 0, paidDate: null, internalNotes: '', projectDesc: form.projectDesc,
         vendorOrder: '—', vendorDate: '—', attachmentUrl,
+        terms: form.terms,
       };
 
       await saveInvoice(invoice);

@@ -295,13 +295,15 @@ export async function loadInvoices(clientId: string): Promise<void> {
     // Remove existing invoices for this client
     DB.invoices = DB.invoices.filter((i) => i.clientId !== clientId);
 
-    // Add new invoices
+    // Add new invoices — handle both old and new column structures
     data.forEach((row) => {
-      // line_items is a jsonb column storing: items[], projectDesc, isReimbursement, paidDate, internalNotes, vendorOrder, vendorDate
-      const meta =
-        row.line_items && typeof row.line_items === 'object' && !Array.isArray(row.line_items)
-          ? row.line_items
-          : {};
+      // line_items can be: array of items (new) or object with .items (old)
+      let itemsArr: any[] = [];
+      if (Array.isArray(row.line_items)) {
+        itemsArr = row.line_items;
+      } else if (row.line_items && typeof row.line_items === 'object') {
+        itemsArr = row.line_items.items || [];
+      }
 
       DB.invoices.push({
         id: row.invoice_number || row.id,
@@ -317,14 +319,13 @@ export async function loadInvoices(clientId: string): Promise<void> {
         notes: row.notes || '',
         attachmentUrl: row.attachment_url || null,
         netCost: row.internal_margin || 0,
-        // From line_items jsonb
-        items: meta.items || [],
-        projectDesc: meta.projectDesc || '',
-        isReimbursement: meta.isReimbursement || false,
-        paidDate: meta.paidDate || null,
-        internalNotes: meta.internalNotes || '',
-        vendorOrder: meta.vendorOrder || '—',
-        vendorDate: meta.vendorDate || '—',
+        items: itemsArr,
+        projectDesc: row.project_description || '',
+        isReimbursement: false,
+        paidDate: row.paid_at || null,
+        internalNotes: '',
+        vendorOrder: '—',
+        vendorDate: '—',
       });
     });
   } catch (e) {
@@ -341,6 +342,9 @@ export async function saveInvoice(inv: Invoice): Promise<any> {
     const subtotal = lineItems.reduce((s, i) => s + (i.qty || 1) * (i.price || 0), 0);
     const total = subtotal + (inv.tax || 0) + (inv.shipping || 0);
 
+    // Match EXACT Supabase columns: id, client_id, invoice_number, status,
+    // issued_date, project_name, project_description, due_date, terms,
+    // line_items, subtotal, tax, shipping, total, notes, paid_at
     const row: any = {
       client_id: inv.clientId,
       invoice_number: inv.id,
@@ -349,34 +353,27 @@ export async function saveInvoice(inv: Invoice): Promise<any> {
       due_date: displayToIso(inv.due),
       project_name: inv.project || null,
       project_description: inv.projectDesc || null,
-      type: inv.type || 'invoice',
+      terms: (inv as any).terms || null,
+      line_items: lineItems,
+      subtotal,
       tax: inv.tax || 0,
       shipping: inv.shipping || 0,
-      subtotal,
       total,
-      internal_margin: inv.netCost || 0,
       notes: inv.notes || null,
-      attachment_url: inv.attachmentUrl || null,
-      line_items: {
-        items: lineItems,
-        projectDesc: inv.projectDesc || '',
-        isReimbursement: inv.isReimbursement || false,
-        paidDate: inv.paidDate || null,
-        internalNotes: inv.internalNotes || '',
-      },
+      paid_at: inv.paidDate ? new Date(inv.paidDate).toISOString() : null,
     };
 
     if (inv._uuid) row.id = inv._uuid;
 
-    console.log('[saveInvoice] Full payload:', JSON.stringify({ ...row, line_items: '...[omitted]' }));
-    console.log('[saveInvoice] Inserting:', inv.id, 'client:', inv.clientId, 'total:', total, 'items:', lineItems.length);
+    console.log('INVOICE PAYLOAD:', JSON.stringify(row));
+    console.log('COLUMNS:', Object.keys(row));
 
     const { data, error } = await supabase
       .from('invoices')
       .upsert(row)
       .select();
 
-    console.log('[saveInvoice] Result:', data ? `success (id: ${data[0]?.id})` : 'no data', 'Error:', error ? JSON.stringify(error) : 'none');
+    console.log('INSERT RESULT:', JSON.stringify(data), 'ERROR:', JSON.stringify(error));
 
     if (error) {
       console.error('[saveInvoice] error:', JSON.stringify(error));
