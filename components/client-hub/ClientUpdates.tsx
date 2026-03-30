@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { loadTasksNotes, updateTaskStatus, saveTaskNote, logActivity } from '@/lib/database';
+import { loadTasksNotes, updateTaskStatus, deleteTaskNote, saveTaskNote, logActivity } from '@/lib/database';
 import TaskNoteCard from '@/components/shared/TaskNoteCard';
 
 interface TaskNote {
@@ -82,6 +82,7 @@ export default function ClientUpdates({ clientId, isClient }: ClientUpdatesProps
               item={item}
               showClient={false}
               onToggle={() => handleToggle(item)}
+              onDelete={async () => { await deleteTaskNote(item.id); load(); }}
             />
           ))}
         </div>

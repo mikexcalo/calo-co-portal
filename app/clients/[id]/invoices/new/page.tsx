@@ -14,9 +14,17 @@ import styles from './page.module.css';
 function genInvoiceId(clientId: string): string {
   const client = DB.clients.find((c) => c.id === clientId);
   if (!client) return 'CC-000-01';
-  const count = DB.invoices.filter((i) => i.clientId === clientId).length + 1;
-  const initials = (client.company || client.name).split(/\s+/).map((w) => w[0]).join('').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
-  return `CC-${initials}-${String(count).padStart(2, '0')}`;
+  const prefix = (client.company || client.name).split(/\s+/).map((w) => w[0]).join('').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
+  const tag = `CC-${prefix}-`;
+  // Find highest existing suffix for this client
+  let maxNum = 0;
+  DB.invoices
+    .filter((i) => i.clientId === clientId && i.id.startsWith(tag))
+    .forEach((i) => {
+      const suffix = parseInt(i.id.replace(tag, ''), 10);
+      if (!isNaN(suffix) && suffix > maxNum) maxNum = suffix;
+    });
+  return `${tag}${String(maxNum + 1).padStart(2, '0')}`;
 }
 
 function calcTerms(date: string, due: string): string {

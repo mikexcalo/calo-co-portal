@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { DB, loadTasksNotes, updateTaskStatus } from '@/lib/database';
+import { DB, loadTasksNotes, updateTaskStatus, deleteTaskNote } from '@/lib/database';
 import TaskNoteCard from '@/components/shared/TaskNoteCard';
 
 interface TaskNote {
@@ -83,6 +83,7 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
                 item={item}
                 clientName={client?.company || client?.name}
                 onToggle={() => handleToggle(item)}
+                onDelete={async () => { await deleteTaskNote(item.id); load(); }}
               />
             );
           })}

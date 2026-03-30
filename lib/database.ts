@@ -834,6 +834,21 @@ export async function updateTaskStatus(
   }
 }
 
+/**
+ * Delete a task/note by ID
+ */
+export async function deleteTaskNote(id: string): Promise<void> {
+  try {
+    const { error } = await supabase.from('client_tasks_notes').delete().eq('id', id);
+    if (error) {
+      // Fallback to client_notes
+      await supabase.from('client_notes').delete().eq('id', id);
+    }
+  } catch (e) {
+    console.warn('[deleteTaskNote] exception:', e);
+  }
+}
+
 /** Backward compat alias */
 export const saveClientNote = (clientId: string, content: string) =>
   saveTaskNote(clientId, 'note', content);

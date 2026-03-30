@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface TaskNoteCardProps {
@@ -14,6 +15,7 @@ interface TaskNoteCardProps {
   clientName?: string;
   showClient?: boolean;
   onToggle?: () => void;
+  onDelete?: () => void;
 }
 
 function relativeTime(iso: string): string {
@@ -29,44 +31,39 @@ function relativeTime(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// Detect invoice notifications
 function isInvoiceNote(content: string): boolean {
   return content.startsWith('New invoice #');
 }
 
-export default function TaskNoteCard({ item, clientName, showClient = true, onToggle }: TaskNoteCardProps) {
+export default function TaskNoteCard({ item, clientName, showClient = true, onToggle, onDelete }: TaskNoteCardProps) {
   const router = useRouter();
+  const [delHover, setDelHover] = useState(false);
   const isComplete = item.status === 'complete';
   const isInvoice = item.type === 'note' && isInvoiceNote(item.content);
 
-  // Styles per card type (#3)
   let bg: string, borderColor: string, iconColor: string;
   if (isInvoice) {
     bg = isComplete ? '#f9fafb' : '#f0fdf4';
-    borderColor = '#22c55e';
-    iconColor = '#22c55e';
+    borderColor = '#22c55e'; iconColor = '#22c55e';
   } else if (item.type === 'task') {
     bg = isComplete ? '#f9fafb' : '#fffbeb';
     borderColor = isComplete ? '#d1d5db' : '#f59e0b';
     iconColor = isComplete ? '#94a3b8' : '#f59e0b';
   } else {
-    bg = '#eff6ff';
-    borderColor = '#3b82f6';
-    iconColor = '#3b82f6';
+    bg = '#eff6ff'; borderColor = '#3b82f6'; iconColor = '#3b82f6';
   }
 
-  // Extract invoice link if applicable
-  const invoiceMatch = isInvoice ? item.content.match(/#(CC-[A-Z]+-\d+)/) : null;
-
   const handleContentClick = () => {
-    if (isInvoice && invoiceMatch) {
-      router.push(`/clients/${item.client_id}/invoices`);
-    }
+    if (isInvoice) router.push(`/clients/${item.client_id}/invoices`);
+  };
+
+  const handleDelete = () => {
+    if (onDelete && confirm('Delete this item?')) onDelete();
   };
 
   return (
     <div style={{
-      display: 'flex', alignItems: 'flex-start', gap: 8,
+      display: 'flex', alignItems: 'flex-start', gap: 8, position: 'relative',
       padding: '7px 10px', background: bg,
       border: '1px solid #e2e8f0', borderLeft: `3px solid ${borderColor}`,
       borderRadius: 6, opacity: isComplete ? 0.5 : 1,
@@ -86,16 +83,11 @@ export default function TaskNoteCard({ item, clientName, showClient = true, onTo
         </svg>
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          onClick={isInvoice ? handleContentClick : undefined}
-          style={{
-            fontSize: 12, color: isComplete ? '#94a3b8' : '#334155', lineHeight: 1.4,
-            textDecoration: isComplete ? 'line-through' : 'none',
-            cursor: isInvoice ? 'pointer' : 'default',
-          }}
-        >
-          {item.content}
-        </div>
+        <div onClick={isInvoice ? handleContentClick : undefined} style={{
+          fontSize: 12, color: isComplete ? '#94a3b8' : '#334155', lineHeight: 1.4,
+          textDecoration: isComplete ? 'line-through' : 'none',
+          cursor: isInvoice ? 'pointer' : 'default',
+        }}>{item.content}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
           {showClient && clientName && (
             <span onClick={() => router.push(`/clients/${item.client_id}`)} style={{
@@ -106,6 +98,25 @@ export default function TaskNoteCard({ item, clientName, showClient = true, onTo
           <span style={{ fontSize: 10, color: '#94a3b8' }}>{relativeTime(item.created_at)}</span>
         </div>
       </div>
+      {/* Delete button */}
+      {onDelete && (
+        <button
+          onClick={handleDelete}
+          onMouseEnter={() => setDelHover(true)}
+          onMouseLeave={() => setDelHover(false)}
+          style={{
+            position: 'absolute', top: 4, right: 4,
+            background: 'none', border: 'none', cursor: 'pointer', padding: 2,
+            color: delHover ? '#ef4444' : '#cbd5e1', transition: 'color 0.12s',
+          }}
+          title="Delete"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }
