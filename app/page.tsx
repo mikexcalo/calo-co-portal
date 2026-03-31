@@ -124,13 +124,13 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ROW 2: AI bar (flex:1.3) + Priority nudge (flex:1) — mb: 28px, gap: 32px */}
+      {/* ROW 2: AI bar (flex:1.3) + Priority nudge (flex:1) — same layout as Row 3 */}
       <div style={{ display: 'flex', gap: 32, marginBottom: 28 }}>
-        <div style={{ flex: 1.3 }}>
+        <div style={{ flex: 1.3, minWidth: 0 }}>
           <CommandBar onItemSaved={refreshFeed} />
         </div>
         <div style={{
-          flex: 1, background: '#e6f1fb', border: '1px solid #b5d4f4', borderRadius: 10,
+          flex: 1, minWidth: 0, background: '#e6f1fb', border: '1px solid #b5d4f4', borderRadius: 10,
           padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10,
         }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#185fa5" strokeWidth="2" style={{ flexShrink: 0 }}>
