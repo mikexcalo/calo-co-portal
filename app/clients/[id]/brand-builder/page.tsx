@@ -10,7 +10,6 @@ import { Client, Contact } from '@/lib/types';
 import {
   AssetType, ASSET_TYPES, BrandBuilderFields, DEFAULT_FIELDS,
 } from '@/components/brand-builder/types';
-import AssetTypeSelector from '@/components/brand-builder/AssetTypeSelector';
 import FieldEditor from '@/components/brand-builder/FieldEditor';
 import AssetPreview from '@/components/brand-builder/AssetPreview';
 
@@ -217,35 +216,41 @@ export default function BrandBuilderPage() {
         </div>
       )}
 
+      {/* Tab bar — full width, above the two-panel layout (#1) */}
+      <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', marginBottom: 16 }}>
+        {ASSET_TYPES.map((t) => (
+          <button key={t.id} onClick={() => handleAssetTypeChange(t.id)} style={{
+            padding: '10px 20px', fontSize: 13, fontWeight: 500, cursor: 'pointer',
+            color: assetType === t.id ? '#2563eb' : '#6b7280',
+            borderBottom: assetType === t.id ? '2px solid #2563eb' : '2px solid transparent',
+            background: 'none', border: 'none', borderBottomStyle: 'solid',
+            whiteSpace: 'nowrap', fontFamily: 'Inter, sans-serif',
+          }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       {/* Two-column layout */}
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-        {/* Left column: Asset Selector + Fields */}
-        <div style={{
-          width: '34%', minWidth: 260, flexShrink: 0,
-          background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14,
-        }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>
-            Asset Type
+      {assetType ? (
+        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+          {/* Left: Fields */}
+          <div style={{
+            width: '34%', minWidth: 260, flexShrink: 0,
+            background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14,
+          }}>
+            <FieldEditor
+              fields={fields}
+              onChange={handleFieldsChange}
+              sources={sources}
+              assetType={assetType}
+              clientId={clientId}
+              hasBrandKit={hasBrandKit}
+            />
           </div>
-          <AssetTypeSelector selected={assetType} onSelect={handleAssetTypeChange} />
 
-          {assetType && (
-            <div style={{ marginTop: 12, borderTop: '1px solid #e2e8f0', paddingTop: 10 }}>
-              <FieldEditor
-                fields={fields}
-                onChange={handleFieldsChange}
-                sources={sources}
-                assetType={assetType}
-                clientId={clientId}
-                hasBrandKit={hasBrandKit}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Right column: Preview + Export (sticky) */}
-        <div style={{ flex: 1, minWidth: 0, position: 'sticky', top: 72 }}>
-          {assetType ? (
+          {/* Right: Preview (sticky) */}
+          <div style={{ flex: 1, minWidth: 0, position: 'sticky', top: 72 }}>
             <div style={{
               background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 16,
             }}>
@@ -254,22 +259,13 @@ export default function BrandBuilderPage() {
               </div>
               <AssetPreview assetType={assetType} fields={fields} />
             </div>
-          ) : (
-            <div style={{
-              background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 40,
-              textAlign: 'center',
-            }}>
-              <div style={{ fontSize: 36, marginBottom: 10 }}>🎨</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a', marginBottom: 4 }}>
-                Select an asset type
-              </div>
-              <div style={{ fontSize: 12, color: '#94a3b8' }}>
-                Choose from business cards, yard signs, vehicle magnets, t-shirts, door hangers, or flyers
-              </div>
-            </div>
-          )}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8', fontSize: 13 }}>
+          Select an asset type above to get started
+        </div>
+      )}
     </div>
   );
 }
