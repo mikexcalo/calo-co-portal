@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { AssetType, BrandBuilderFields } from './types';
+import { AssetType, ASSET_TYPES, BrandBuilderFields } from './types';
 import { BusinessCard, YardSign, VehicleMagnet, TShirt, DoorHanger, Flyer } from './templates';
 import ExportButtons from './ExportButtons';
 
@@ -20,20 +20,13 @@ export default function AssetPreview({ assetType, fields }: AssetPreviewProps) {
 
   const renderTemplate = (side?: 'front' | 'back') => {
     switch (assetType) {
-      case 'business-card':
-        return <BusinessCard fields={fields} side={side || 'front'} />;
-      case 'yard-sign':
-        return <YardSign fields={fields} />;
-      case 'vehicle-magnet':
-        return <VehicleMagnet fields={fields} />;
-      case 't-shirt':
-        return <TShirt fields={fields} side={side || 'front'} />;
-      case 'door-hanger':
-        return <DoorHanger fields={fields} />;
-      case 'flyer':
-        return <Flyer fields={fields} />;
-      default:
-        return null;
+      case 'business-card': return <BusinessCard fields={fields} side={side || 'front'} />;
+      case 'yard-sign': return <YardSign fields={fields} />;
+      case 'vehicle-magnet': return <VehicleMagnet fields={fields} />;
+      case 't-shirt': return <TShirt fields={fields} side={side || 'front'} />;
+      case 'door-hanger': return <DoorHanger fields={fields} />;
+      case 'flyer': return <Flyer fields={fields} />;
+      default: return null;
     }
   };
 
@@ -46,30 +39,16 @@ export default function AssetPreview({ assetType, fields }: AssetPreviewProps) {
           background: '#f1f5f9', borderRadius: 8, border: '1px solid #e2e8f0', padding: 3,
         }}>
           {(['front', 'back'] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setActiveSide(s)}
-              style={{
-                flex: 1,
-                background: activeSide === s ? '#2563eb' : 'transparent',
-                color: activeSide === s ? '#ffffff' : '#64748b',
-                border: 'none',
-                borderRadius: 6,
-                padding: '8px 20px',
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: 'pointer',
-                fontFamily: 'Inter, sans-serif',
-                textTransform: 'capitalize',
-                transition: 'all 0.12s',
-              }}
-            >
-              {s}
-            </button>
+            <button key={s} onClick={() => setActiveSide(s)} style={{
+              flex: 1, background: activeSide === s ? '#2563eb' : 'transparent',
+              color: activeSide === s ? '#ffffff' : '#64748b', border: 'none', borderRadius: 6,
+              padding: '8px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              fontFamily: 'Inter, sans-serif', textTransform: 'capitalize', transition: 'all 0.12s',
+            }}>{s}</button>
           ))}
         </div>
 
-        {/* Preview with shadow */}
+        {/* Preview — visible side */}
         <div style={{
           display: 'flex', justifyContent: 'center', padding: 20,
           background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0', marginBottom: 14,
@@ -85,11 +64,19 @@ export default function AssetPreview({ assetType, fields }: AssetPreviewProps) {
           )}
         </div>
 
-        {/* Export buttons for active side */}
+        {/* Hidden off-screen renders for PNG/PDF export of BOTH sides (#4) */}
+        <div style={{ position: 'absolute', left: -9999, top: -9999, opacity: 0, pointerEvents: 'none' }}>
+          <div ref={activeSide !== 'front' ? frontRef : undefined}>{renderTemplate('front')}</div>
+          <div ref={activeSide !== 'back' ? backRef : undefined}>{renderTemplate('back')}</div>
+        </div>
+
+        {/* Export buttons */}
         <ExportButtons
           assetType={assetType}
           previewRef={activeSide === 'front' ? frontRef : backRef}
           side={activeSide}
+          frontRef={frontRef}
+          backRef={backRef}
         />
       </div>
     );
@@ -106,7 +93,6 @@ export default function AssetPreview({ assetType, fields }: AssetPreviewProps) {
           {renderTemplate()}
         </div>
       </div>
-
       <ExportButtons assetType={assetType} previewRef={singleRef} />
     </div>
   );

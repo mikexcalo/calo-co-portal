@@ -100,6 +100,15 @@ export interface BrandBuilderFields {
   showAddress: boolean;
   showLicense: boolean;
   showSocials: boolean;
+  // Field visibility toggles for business cards
+  showCompanyName: boolean;
+  showContactName: boolean;
+  showContactTitle: boolean;
+  showPhone: boolean;
+  showEmail: boolean;
+  showWebsite: boolean;
+  showQrCode: boolean;
+  showTagline: boolean;
 }
 
 export const DEFAULT_FIELDS: BrandBuilderFields = {
@@ -125,6 +134,14 @@ export const DEFAULT_FIELDS: BrandBuilderFields = {
   showAddress: false,
   showLicense: false,
   showSocials: false,
+  showCompanyName: true,
+  showContactName: true,
+  showContactTitle: true,
+  showPhone: true,
+  showEmail: true,
+  showWebsite: true,
+  showQrCode: true,
+  showTagline: true,
 };
 
 /** Field auto-fill source labels */
