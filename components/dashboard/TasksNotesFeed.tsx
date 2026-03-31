@@ -25,6 +25,25 @@ function relativeTime(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+/** Shorten company name — first 1-2 meaningful words */
+function shortName(full: string): string {
+  if (!full) return '';
+  // Remove common suffixes
+  const cleaned = full.replace(/\s+(Inc\.?|LLC|Co\.?|Corp\.?|Ltd\.?|Installation|Construction|Store)$/i, '').trim();
+  const words = cleaned.split(/\s+/);
+  // Keep first 2 words max, or first word if it's already distinctive
+  return words.slice(0, 2).join(' ');
+}
+
+/** Format date as short month + day, no year */
+function shortDate(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } catch { return dateStr; }
+}
+
 export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
   const router = useRouter();
   const [items, setItems] = useState<TaskNote[]>([]);
@@ -90,7 +109,7 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
           {/* Task cards — amber square icons (#5) */}
           {openTasks.map((task) => {
             const cl = DB.clients.find((c) => c.id === task.client_id);
-            const clientName = cl?.company || cl?.name || '';
+            const sn = shortName(cl?.company || cl?.name || '');
             return (
               <div key={task.id} style={{
                 background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10,
@@ -106,8 +125,8 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, color: '#1a1f2e', lineHeight: 1.4 }}>{task.content}</div>
                   <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>
-                    {clientName && <span onClick={() => router.push(`/clients/${task.client_id}`)} style={{ cursor: 'pointer', color: '#6b7280' }}>{clientName}</span>}
-                    {clientName && ' · '}{relativeTime(task.created_at)}
+                    {sn && <span onClick={() => router.push(`/clients/${task.client_id}`)} style={{ cursor: 'pointer', color: '#6b7280' }}>{sn}</span>}
+                    {sn && ' · '}{relativeTime(task.created_at)}
                   </div>
                 </div>
                 <div
@@ -127,7 +146,7 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
           {/* Invoice cards — white, no colored bg (#7) */}
           {unpaidInvoices.map((inv) => {
             const cl = DB.clients.find((c) => c.id === inv.clientId);
-            const clientName = cl?.company || cl?.name || '';
+            const sn = shortName(cl?.company || cl?.name || '');
             const total = (inv.items || []).reduce((s: number, i: any) => s + (i.qty || 1) * (i.price || 0), 0) + (inv.tax || 0) + (inv.shipping || 0);
             return (
               <div key={inv.id || inv._uuid} onClick={() => router.push(`/clients/${inv.clientId}/invoices`)} style={{
@@ -141,8 +160,8 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#185fa5" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, color: '#1a1f2e' }}>#{inv.id} — {currency(total)} · <span style={{ color: '#ba7517' }}>Unpaid</span></div>
-                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>{clientName}{inv.due ? ` · Due ${inv.due}` : ''}</div>
+                  <div style={{ fontSize: 13, color: '#1a1f2e' }}>{currency(total)} <span style={{ color: '#ba7517' }}>unpaid</span>{inv.due ? ` · due ${shortDate(inv.due)}` : ''}</div>
+                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>{sn}{sn && ' · '}{inv.id}</div>
                 </div>
               </div>
             );
@@ -156,14 +175,14 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9ca3af', marginBottom: 6 }}>Recent Activity</div>
           {activityItems.map((ev, idx) => {
             const cl = DB.clients.find((c) => c.id === ev.clientId);
-            const clientName = cl?.company || cl?.name || '';
+            const sn = shortName(cl?.company || cl?.name || '');
             return (
               <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '3px 0', fontSize: 12, color: '#9ca3af' }}>
                 <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#d1d5db', flexShrink: 0 }} />
                 <span style={{ flex: 1 }}>
                   {evLabels[ev.eventType] || ev.eventType}
-                  {clientName && ` · `}
-                  {clientName && <span style={{ color: '#6b7280' }}>{clientName}</span>}
+                  {sn && ` · `}
+                  {sn && <span style={{ color: '#6b7280' }}>{sn}</span>}
                 </span>
                 <span style={{ fontSize: 11, flexShrink: 0 }}>{relativeTime(ev.createdAt)}</span>
               </div>
