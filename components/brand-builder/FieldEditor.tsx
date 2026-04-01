@@ -20,13 +20,22 @@ const SIGN_SIZES = [
   { value: '36x24', label: '36" × 24" (landscape)' },
 ];
 
-function Field({ label, value, onChange, type = 'text', placeholder, disabled }: {
+function Field({ label, value, onChange, type = 'text', placeholder, disabled, checked, onToggle }: {
   label: string; value: string; onChange: (v: string) => void;
   type?: string; placeholder?: string; disabled?: boolean;
+  checked?: boolean; onToggle?: (v: boolean) => void;
 }) {
   return (
     <div>
-      {label && <label style={{ fontSize: 12, fontWeight: 500, color: '#9ca3af', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{label}</label>}
+      {label && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+          {onToggle !== undefined && (
+            <input type="checkbox" checked={checked} onChange={(e) => onToggle(e.target.checked)}
+              style={{ width: 16, height: 16, cursor: 'pointer', flexShrink: 0 }} />
+          )}
+          <label style={{ fontSize: 13, fontWeight: 400, color: '#6b7280' }}>{label}</label>
+        </div>
+      )}
       <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} disabled={disabled}
         style={{
           width: '100%', padding: '10px 12px', fontSize: 14, border: '1px solid #e5e7eb',
@@ -76,22 +85,31 @@ export default function FieldEditor({ fields, onChange, sources, assetType, clie
         </div>
       )}
 
-      {/* Core fields — two-column grid */}
+      {/* Core fields — two-column grid with visibility toggles */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <Field label="Company Name" value={fields.companyName} onChange={(v) => update('companyName', v)} />
-        <Field label="Contact Name" value={fields.contactName} onChange={(v) => update('contactName', v)} />
-        <Field label="Title" value={fields.contactTitle} onChange={(v) => update('contactTitle', v)} />
-        <Field label="Business Phone" value={fields.phone} onChange={(v) => update('phone', v)} type="tel" />
-        <Field label="Email" value={fields.email} onChange={(v) => update('email', v)} type="email" />
-        <Field label="Website" value={fields.website} onChange={(v) => update('website', v)} />
-        <Field label="QR Code URL" value={fields.qrCodeUrl} onChange={(v) => update('qrCodeUrl', v)} placeholder="https://example.com" />
-        <Field label="Tagline / Slogan" value={fields.tagline} onChange={(v) => update('tagline', v)} placeholder="Optional" />
+        <Field label="Company name" value={fields.companyName} onChange={(v) => update('companyName', v)}
+          checked={fields.showCompanyName} onToggle={(v) => update('showCompanyName', v)} />
+        <Field label="Contact name" value={fields.contactName} onChange={(v) => update('contactName', v)}
+          checked={fields.showContactName} onToggle={(v) => update('showContactName', v)} />
+        <Field label="Title" value={fields.contactTitle} onChange={(v) => update('contactTitle', v)}
+          checked={fields.showContactTitle} onToggle={(v) => update('showContactTitle', v)} />
+        <Field label="Business phone" value={fields.phone} onChange={(v) => update('phone', v)} type="tel"
+          checked={fields.showPhone} onToggle={(v) => update('showPhone', v)} />
+        <Field label="Email" value={fields.email} onChange={(v) => update('email', v)} type="email"
+          checked={fields.showEmail} onToggle={(v) => update('showEmail', v)} />
+        <Field label="Website" value={fields.website} onChange={(v) => update('website', v)}
+          checked={fields.showWebsite} onToggle={(v) => update('showWebsite', v)} />
+        <Field label="QR code URL" value={fields.qrCodeUrl} onChange={(v) => update('qrCodeUrl', v)} placeholder="https://example.com"
+          checked={fields.showQrCode} onToggle={(v) => update('showQrCode', v)} />
+        <Field label="Tagline / slogan" value={fields.tagline} onChange={(v) => update('tagline', v)} placeholder="Optional"
+          checked={fields.showTagline} onToggle={(v) => update('showTagline', v)} />
       </div>
 
       {/* Headline — full width */}
       {showHeadlineField && (
         <div style={{ marginTop: 12 }}>
-          <Field label="Headline" value={fields.headline} onChange={(v) => update('headline', v)} placeholder="Free Consultations!" />
+          <Field label="Headline" value={fields.headline} onChange={(v) => update('headline', v)} placeholder="Free Consultations!"
+            checked={fields.showHeadline} onToggle={(v) => update('showHeadline', v)} />
         </div>
       )}
 
