@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import Link from 'next/link';
 import { AssetType, ASSET_TYPES, BrandBuilderFields } from './types';
 import { BusinessCard, YardSign, VehicleMagnet, TShirt, DoorHanger, Flyer } from './templates';
 import ExportButtons from './ExportButtons';
@@ -8,19 +9,28 @@ import ExportButtons from './ExportButtons';
 interface AssetPreviewProps {
   assetType: AssetType;
   fields: BrandBuilderFields;
+  clientId?: string;
 }
 
-function ColorSwatches({ fields }: { fields: BrandBuilderFields }) {
+function ColorRow({ fields, clientId }: { fields: BrandBuilderFields; clientId?: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16 }}>
-      <div title="Primary" style={{ width: 20, height: 20, borderRadius: '50%', background: fields.primaryColor, border: '1px solid #e5e7eb' }} />
-      <div title="Secondary" style={{ width: 20, height: 20, borderRadius: '50%', background: fields.secondaryColor, border: '1px solid #e5e7eb' }} />
-      <div title="Background" style={{ width: 20, height: 20, borderRadius: '50%', background: fields.backgroundColor, border: '1px solid #e5e7eb' }} />
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 13, color: '#6b7280' }}>Colors</span>
+        <div style={{ width: 20, height: 20, borderRadius: '50%', background: fields.primaryColor, border: '1px solid #e5e7eb' }} />
+        <div style={{ width: 20, height: 20, borderRadius: '50%', background: fields.secondaryColor, border: '1px solid #e5e7eb' }} />
+        <div style={{ width: 20, height: 20, borderRadius: '50%', background: fields.backgroundColor, border: '1px solid #e5e7eb' }} />
+      </div>
+      {clientId && (
+        <Link href={`/clients/${clientId}/brand-kit`} style={{ fontSize: 13, color: '#2563eb', textDecoration: 'none', fontWeight: 500 }}>
+          Edit Brand Kit →
+        </Link>
+      )}
     </div>
   );
 }
 
-export default function AssetPreview({ assetType, fields }: AssetPreviewProps) {
+export default function AssetPreview({ assetType, fields, clientId }: AssetPreviewProps) {
   const frontRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLDivElement>(null);
   const singleRef = useRef<HTMLDivElement>(null);
@@ -88,7 +98,7 @@ export default function AssetPreview({ assetType, fields }: AssetPreviewProps) {
           frontRef={frontRef}
           backRef={backRef}
         />
-        <ColorSwatches fields={fields} />
+        <ColorRow fields={fields} clientId={clientId} />
       </div>
     );
   }
@@ -105,7 +115,7 @@ export default function AssetPreview({ assetType, fields }: AssetPreviewProps) {
         </div>
       </div>
       <ExportButtons assetType={assetType} previewRef={singleRef} />
-      <ColorSwatches fields={fields} />
+      <ColorRow fields={fields} clientId={clientId} />
     </div>
   );
 }

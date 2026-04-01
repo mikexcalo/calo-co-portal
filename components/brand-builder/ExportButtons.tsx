@@ -108,20 +108,12 @@ export default function ExportButtons({ assetType, previewRef, side, frontRef, b
   });
 
   return (
-    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
       <button onClick={handleExportPdf} disabled={!!exporting} style={btnStyle('primary', exporting === 'pdf')}>
-        {exporting === 'pdf' ? 'Generating...' : `Download PDF${sideLabel}`}
+        {exporting === 'pdf' ? 'Generating...' : 'Download PDF'}
       </button>
-
-      {/* Combined PDF — only for front/back assets */}
-      {frontRef && backRef && (
-        <button onClick={handleExportBoth} disabled={!!exporting} style={btnStyle('primary', exporting === 'both')}>
-          {exporting === 'both' ? 'Generating...' : 'Download Both (PDF)'}
-        </button>
-      )}
-
       <button onClick={handleExportPng} disabled={!!exporting} style={btnStyle('outline', exporting === 'png')}>
-        {exporting === 'png' ? 'Generating...' : `Download PNG${sideLabel}`}
+        {exporting === 'png' ? 'Generating...' : 'Download PNG'}
       </button>
     </div>
   );

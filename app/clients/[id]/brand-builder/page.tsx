@@ -184,14 +184,6 @@ export default function BrandBuilderPage() {
 
   return (
     <div className="page" style={{ paddingTop: 20, paddingBottom: 32 }}>
-      {/* Header */}
-      <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', marginBottom: 2 }}>
-        Brand Builder
-      </h1>
-      <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 14 }}>
-        Create print-ready branded assets for {clientName}
-      </p>
-
       {/* No brand kit notice */}
       {!hasBrandKit && (
         <div style={{
@@ -285,7 +277,7 @@ export default function BrandBuilderPage() {
 
         {/* Column 3: Live Preview (flex: 1.2) */}
         <div style={{ flex: 1.2, padding: 20, background: '#f9fafb' }}>
-          {assetType && <AssetPreview assetType={assetType} fields={fields} />}
+          {assetType && <AssetPreview assetType={assetType} fields={fields} clientId={clientId} />}
         </div>
       </div>
     </div>

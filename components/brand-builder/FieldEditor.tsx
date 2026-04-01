@@ -49,7 +49,6 @@ export default function FieldEditor({ fields, onChange, sources, assetType, clie
 
   return (
     <div>
-      <div style={{ fontSize: 14, fontWeight: 500, color: '#111827', marginBottom: 12 }}>Fields</div>
 
       {/* Size selector for Yard Signs */}
       {isYS && (
