@@ -129,10 +129,10 @@ export default function Home() {
   const clients = DB.clients.sort((a, b) => (a.company || a.name).localeCompare(b.company || b.name));
 
   return (
-    <div style={{ padding: '32px 40px', display: 'flex', gap: '32px' }}>
+    <div style={{ padding: '32px 40px', display: 'flex', gap: '40px' }}>
 
       {/* LEFT COLUMN */}
-      <div style={{ flex: 1, minWidth: 0, maxWidth: '640px' }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <h1 style={{ fontSize: '20px', fontWeight: 500, margin: '0 0 2px', color: colors.textPrimary }}>{greeting}</h1>
         <p style={{ fontSize: '13px', color: colors.textMuted, margin: '0 0 20px' }}>{dateline}</p>
 
@@ -215,7 +215,7 @@ export default function Home() {
       </div>
 
       {/* RIGHT COLUMN */}
-      <div style={{ width: '320px', flexShrink: 0 }}>
+      <div style={{ width: '340px', flexShrink: 0 }}>
         {/* Financials — two separate cards */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
           <div onClick={() => router.push('/financials')} style={{
