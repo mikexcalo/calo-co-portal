@@ -245,18 +245,10 @@ export default function BrandBuilderPage() {
             </div>
           </>
         ) : (
-          /* Welcome intro */
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ textAlign: 'center', maxWidth: 540 }}>
-              {/* Sparkle icon */}
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style={{ marginBottom: 16 }}>
-                <path d="M16 2L18.5 12.5L28 16L18.5 19.5L16 30L13.5 19.5L4 16L13.5 12.5Z" fill="#2563eb" />
-                <path d="M25 4L26 8L29 9L26 10L25 14L24 10L21 9L24 8Z" fill="#93c5fd" />
-              </svg>
-              <div style={{ fontSize: 24, fontWeight: 600, color: '#111827', marginBottom: 8, letterSpacing: '-0.3px' }}>Create print-ready assets</div>
-              <div style={{ fontSize: 15, color: '#6b7280', lineHeight: 1.6, maxWidth: 400, margin: '0 auto 28px' }}>
-                Choose an asset type to start designing. Every template pulls from your client's Brand Kit automatically.
-              </div>
+          /* Welcome state — centered, raised */
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', minHeight: 'calc(100vh - 60px)', paddingBottom: 80 }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 22, fontWeight: 600, color: '#111827', marginBottom: 32 }}>Create print-ready assets</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, maxWidth: 500, margin: '0 auto' }}>
                 {ASSET_TYPES.map((t) => {
                   const hoverColors: Record<string, string> = {
@@ -265,7 +257,7 @@ export default function BrandBuilderPage() {
                   };
                   return (
                     <button key={t.id} onClick={() => handleAssetTypeChange(t.id)} style={{
-                      padding: '24px 16px', border: '1px solid #f3f4f6', borderRadius: 12, background: '#fff',
+                      padding: '28px 20px', border: '1px solid #f3f4f6', borderRadius: 14, background: '#fff',
                       cursor: 'pointer', textAlign: 'center', fontFamily: 'Inter, sans-serif', transition: 'all 0.15s',
                     }}
                     onMouseEnter={(e) => { e.currentTarget.style.borderColor = hoverColors[t.id] || '#d1d5db'; e.currentTarget.style.background = '#fafafa'; }}
