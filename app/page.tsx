@@ -8,6 +8,7 @@ import {
   loadTasksNotes, DB, updateTaskStatus, deleteTaskNote,
 } from '@/lib/database';
 import { agencyStats, currency } from '@/lib/utils';
+import { colors, typography, spacing, radii, borders, cardStyles } from '@/lib/design-tokens';
 import CommandBar from '@/components/dashboard/CommandBar';
 
 function relTime(iso: string): string {
@@ -128,16 +129,16 @@ export default function Home() {
   const clients = DB.clients.sort((a, b) => (a.company || a.name).localeCompare(b.company || b.name));
 
   return (
-    <div style={{ display: 'flex', gap: 24, padding: '32px 40px' }}>
+    <div style={{ padding: '32px 40px', display: 'flex', gap: '32px' }}>
 
       {/* LEFT COLUMN */}
-      <div style={{ flex: 3, minWidth: 0 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 500, color: '#111827', margin: '0 0 4px' }}>{greeting}</h1>
-        <p style={{ fontSize: 13, color: '#9ca3af', margin: '0 0 20px' }}>{dateline}</p>
+      <div style={{ flex: 1, minWidth: 0, maxWidth: '640px' }}>
+        <h1 style={{ fontSize: '20px', fontWeight: 500, margin: '0 0 2px', color: colors.textPrimary }}>{greeting}</h1>
+        <p style={{ fontSize: '13px', color: colors.textMuted, margin: '0 0 20px' }}>{dateline}</p>
 
         <CommandBar onItemSaved={refreshFeed} />
 
-        <p style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '24px 0 8px' }}>Action items</p>
+        <p style={{ ...typography.sectionLabel, margin: '24px 0 8px' }}>Action items</p>
 
         {/* Action item cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -196,7 +197,7 @@ export default function Home() {
         {/* Recent activity */}
         {activityItems.length > 0 && (
           <>
-            <p style={{ fontSize: 10, color: '#9ca3af', letterSpacing: '0.3px', margin: '24px 0 4px', textTransform: 'uppercase' }}>Recent</p>
+            <p style={{ ...typography.sectionLabel, margin: '24px 0 8px' }}>Recent</p>
             {activityItems.map((ev, idx) => {
               const cl = DB.clients.find((c) => c.id === ev.clientId);
               return (
@@ -214,24 +215,24 @@ export default function Home() {
       </div>
 
       {/* RIGHT COLUMN */}
-      <div style={{ flex: 2, minWidth: 0 }}>
+      <div style={{ width: '320px', flexShrink: 0 }}>
         {/* Financials — two separate cards */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
           <div onClick={() => router.push('/financials')} style={{
             flex: 1, background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 12, cursor: 'pointer',
           }}>
-            <p style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.3px', margin: 0 }}>Outstanding</p>
+            <p style={{ ...typography.metricLabel, margin: '0 0 2px' }}>Outstanding</p>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-              <p style={{ fontSize: 20, fontWeight: 500, color: '#d97706', margin: '4px 0 0' }}>{currency(stats.outstanding)}</p>
+              <p style={{ fontSize: '20px', fontWeight: 500, color: colors.amber.value, margin: 0 }}>{currency(stats.outstanding)}</p>
               <span style={{ fontSize: 12, color: '#9ca3af' }}>→</span>
             </div>
           </div>
           <div onClick={() => router.push('/financials')} style={{
             flex: 1, background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 12, cursor: 'pointer',
           }}>
-            <p style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.3px', margin: 0 }}>Paid</p>
+            <p style={{ ...typography.metricLabel, margin: '0 0 2px' }}>Paid</p>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-              <p style={{ fontSize: 20, fontWeight: 500, color: '#111827', margin: '4px 0 0' }}>{currency(stats.paid)}</p>
+              <p style={{ fontSize: '20px', fontWeight: 500, color: colors.textPrimary, margin: 0 }}>{currency(stats.paid)}</p>
               <span style={{ fontSize: 12, color: '#9ca3af' }}>→</span>
             </div>
           </div>
@@ -239,7 +240,7 @@ export default function Home() {
 
         {/* Clients header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <p style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>Clients</p>
+          <p style={{ ...typography.sectionLabel, margin: 0 }}>Clients</p>
           <span onClick={() => router.push('/clients/new')} style={{ fontSize: 12, color: '#2563eb', fontWeight: 500, cursor: 'pointer' }}>+ Add</span>
         </div>
 
@@ -262,8 +263,8 @@ export default function Home() {
                   <div style={{ width: 32, height: 32, borderRadius: 6, background: '#f1f3f5', flexShrink: 0 }} />
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 500, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{client.company || client.name}</div>
-                  {primary && <div style={{ fontSize: 11, color: '#9ca3af' }}>{primary.name}</div>}
+                  <div style={{ fontSize: '12px', fontWeight: 500, color: colors.textPrimary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{client.company || client.name}</div>
+                  {primary && <div style={{ fontSize: '11px', color: colors.textMuted }}>{primary.name}</div>}
                 </div>
                 <span style={{ fontSize: 12, color: '#9ca3af' }}>→</span>
               </div>
