@@ -20,8 +20,18 @@ const RATIOS: Record<string, number> = {
 export default function YardSign({ fields }: YardSignProps) {
   const {
     logoUrl, companyName, phone, qrCodeUrl, headline, tagline,
-    primaryColor, fontFamily, showHeadline, showQrCode, showPhone, showTagline,
+    primaryColor, secondaryColor, backgroundColor, fontFamily,
+    showHeadline, showQrCode, showPhone, showTagline,
   } = fields;
+
+  // Colorway: use backgroundColor if set (from color dots), otherwise primaryColor
+  const isLightMode = backgroundColor === '#ffffff';
+  const isDarkMode = backgroundColor === '#1a1a1a';
+  const signBg = isDarkMode ? '#1a1a1a' : isLightMode ? '#ffffff' : (primaryColor || '#28502e');
+  const signText = isLightMode ? (primaryColor || '#28502e') : '#ffffff';
+  const qrFg = isLightMode ? (primaryColor || '#28502e') : (primaryColor || '#28502e');
+  const qrBg = isLightMode ? '#ffffff' : '#ffffff';
+  const logoFilter = isLightMode ? 'none' : 'brightness(0) invert(1)';
 
   const ratio = RATIOS[fields.signSize] || RATIOS['18x24'];
   const w = BASE_W;
@@ -32,9 +42,9 @@ export default function YardSign({ fields }: YardSignProps) {
 
   return (
     <div style={{
-      width: w, height: h, background: primaryColor || '#28502e', borderRadius: 4,
-      border: '3px solid rgba(0,0,0,0.25)',
-      fontFamily, color: '#ffffff',
+      width: w, height: h, background: signBg, borderRadius: 4,
+      border: '4px solid rgba(0,0,0,0.3)',
+      fontFamily, color: signText,
       display: 'flex', flexDirection: 'column', position: 'relative',
     }}>
       {/* Logo — centered, top section */}
@@ -46,7 +56,7 @@ export default function YardSign({ fields }: YardSignProps) {
         }}>
           <img src={logoUrl} alt="Logo" style={{
             maxHeight: 120, maxWidth: w * 0.7, objectFit: 'contain',
-            filter: 'brightness(0) invert(1)',
+            filter: logoFilter,
           }} />
         </div>
       )}
@@ -104,7 +114,7 @@ export default function YardSign({ fields }: YardSignProps) {
         {/* QR code — right, scales with sign height */}
         {showQrCode !== false && qrCodeUrl && (
           <div style={{ flexShrink: 0 }}>
-            <QRCode url={qrCodeUrl} size={Math.min(70, Math.max(48, Math.round(h * 0.15)))} color={primaryColor || '#28502e'} bgColor="#ffffff" />
+            <QRCode url={qrCodeUrl} size={Math.min(70, Math.max(48, Math.round(h * 0.15)))} color={qrFg} bgColor={qrBg} />
           </div>
         )}
       </div>

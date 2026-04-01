@@ -38,7 +38,7 @@ function ColorRow({ fields, clientId, onFieldsChange }: { fields: BrandBuilderFi
             border: '1px solid #e5e7eb', cursor: 'pointer',
             outline: activeIdx === i ? '2px solid #2563eb' : 'none',
             outlineOffset: activeIdx === i ? '2px' : '0',
-          }} title={cw.label} />
+          }} />
         ))}
       </div>
       {clientId && (
