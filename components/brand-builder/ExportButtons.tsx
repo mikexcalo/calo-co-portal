@@ -98,23 +98,22 @@ export default function ExportButtons({ assetType, previewRef, side, frontRef, b
     finally { setExporting(null); }
   };
 
-  const btnBase: React.CSSProperties = {
-    background: 'transparent', border: '1px solid #e5e7eb', color: '#374151',
-    borderRadius: 8, padding: '8px 20px', fontSize: 13, fontWeight: 500,
-    cursor: exporting ? 'wait' : 'pointer', fontFamily: 'Inter, sans-serif',
-    transition: 'all 0.12s',
-  };
-
   return (
     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-      <button onClick={handleExportPdf} disabled={!!exporting} style={{ ...btnBase, opacity: exporting && exporting !== 'pdf' ? 0.5 : 1 }}
-        onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.background = '#f9fafb'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = 'transparent'; }}>
+      <button onClick={handleExportPdf} disabled={!!exporting} style={{
+        background: '#2563eb', border: 'none', color: '#fff',
+        borderRadius: 8, padding: '10px 20px', fontSize: 13, fontWeight: 500,
+        cursor: exporting ? 'wait' : 'pointer', fontFamily: 'Inter, sans-serif',
+        opacity: exporting && exporting !== 'pdf' ? 0.5 : 1,
+      }}>
         {exporting === 'pdf' ? 'Generating...' : 'Download PDF'}
       </button>
-      <button onClick={handleExportPng} disabled={!!exporting} style={{ ...btnBase, opacity: exporting && exporting !== 'png' ? 0.5 : 1 }}
-        onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.background = '#f9fafb'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = 'transparent'; }}>
+      <button onClick={handleExportPng} disabled={!!exporting} style={{
+        background: 'transparent', border: '1px solid #2563eb', color: '#2563eb',
+        borderRadius: 8, padding: '10px 20px', fontSize: 13, fontWeight: 500,
+        cursor: exporting ? 'wait' : 'pointer', fontFamily: 'Inter, sans-serif',
+        opacity: exporting && exporting !== 'png' ? 0.5 : 1,
+      }}>
         {exporting === 'png' ? 'Generating...' : 'Download PNG'}
       </button>
     </div>

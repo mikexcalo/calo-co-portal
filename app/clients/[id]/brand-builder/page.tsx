@@ -276,7 +276,7 @@ export default function BrandBuilderPage() {
             </div>
             {/* Preview: flex: 1 */}
             <div style={{ flex: 1, padding: 32, background: '#f9fafb' }}>
-              <AssetPreview assetType={assetType} fields={fields} clientId={clientId} />
+              <AssetPreview assetType={assetType} fields={fields} clientId={clientId} onFieldsChange={handleFieldsChange} />
             </div>
           </>
         ) : (

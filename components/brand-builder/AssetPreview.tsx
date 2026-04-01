@@ -10,19 +10,39 @@ interface AssetPreviewProps {
   assetType: AssetType;
   fields: BrandBuilderFields;
   clientId?: string;
+  onFieldsChange?: (fields: BrandBuilderFields) => void;
 }
 
-function ColorRow({ fields, clientId }: { fields: BrandBuilderFields; clientId?: string }) {
+function ColorRow({ fields, clientId, onFieldsChange }: { fields: BrandBuilderFields; clientId?: string; onFieldsChange?: (f: BrandBuilderFields) => void }) {
+  const colorways = [
+    { bg: fields.primaryColor || '#2563eb', text: '#ffffff', label: 'Primary' },
+    { bg: '#1a1a1a', text: '#ffffff', label: 'Dark' },
+    { bg: '#ffffff', text: fields.primaryColor || '#2563eb', label: 'Light' },
+  ];
+  // Detect which is active
+  const activeIdx = fields.backgroundColor === '#ffffff' && fields.secondaryColor === (fields.primaryColor || '#2563eb') ? 2
+    : fields.backgroundColor === '#1a1a1a' ? 1 : 0;
+
+  const handleClick = (idx: number) => {
+    if (!onFieldsChange) return;
+    const cw = colorways[idx];
+    onFieldsChange({ ...fields, backgroundColor: cw.bg, secondaryColor: cw.text });
+  };
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 20 }}>
+    <div style={{ marginTop: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 13, color: '#6b7280' }}>Colors</span>
-        <div style={{ width: 20, height: 20, borderRadius: '50%', background: fields.primaryColor, border: '1px solid #e5e7eb' }} />
-        <div style={{ width: 20, height: 20, borderRadius: '50%', background: fields.secondaryColor, border: '1px solid #e5e7eb' }} />
-        <div style={{ width: 20, height: 20, borderRadius: '50%', background: fields.backgroundColor, border: '1px solid #e5e7eb' }} />
+        {colorways.map((cw, i) => (
+          <div key={i} onClick={() => handleClick(i)} style={{
+            width: 24, height: 24, borderRadius: '50%', background: cw.bg,
+            border: '1px solid #e5e7eb', cursor: 'pointer',
+            outline: activeIdx === i ? '2px solid #2563eb' : 'none',
+            outlineOffset: activeIdx === i ? '2px' : '0',
+          }} title={cw.label} />
+        ))}
       </div>
       {clientId && (
-        <Link href={`/clients/${clientId}/brand-kit`} style={{ fontSize: 13, color: '#2563eb', textDecoration: 'none', fontWeight: 500 }}>
+        <Link href={`/clients/${clientId}/brand-kit`} style={{ fontSize: 13, color: '#6b7280', textDecoration: 'none', display: 'inline-block', marginTop: 10 }}>
           Edit Brand Kit →
         </Link>
       )}
@@ -30,7 +50,7 @@ function ColorRow({ fields, clientId }: { fields: BrandBuilderFields; clientId?:
   );
 }
 
-export default function AssetPreview({ assetType, fields, clientId }: AssetPreviewProps) {
+export default function AssetPreview({ assetType, fields, clientId, onFieldsChange }: AssetPreviewProps) {
   const frontRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLDivElement>(null);
   const singleRef = useRef<HTMLDivElement>(null);
@@ -99,7 +119,7 @@ export default function AssetPreview({ assetType, fields, clientId }: AssetPrevi
           frontRef={frontRef}
           backRef={backRef}
         />
-        <ColorRow fields={fields} clientId={clientId} />
+        <ColorRow fields={fields} clientId={clientId} onFieldsChange={onFieldsChange} />
       </div>
     );
   }
@@ -116,7 +136,7 @@ export default function AssetPreview({ assetType, fields, clientId }: AssetPrevi
         </div>
       </div>
       <ExportButtons assetType={assetType} previewRef={singleRef} />
-      <ColorRow fields={fields} clientId={clientId} />
+      <ColorRow fields={fields} clientId={clientId} onFieldsChange={onFieldsChange} />
     </div>
   );
 }
