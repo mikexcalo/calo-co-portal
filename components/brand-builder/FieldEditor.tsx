@@ -103,25 +103,16 @@ export default function FieldEditor({ fields, onChange, sources, assetType, clie
         </div>
       )}
 
-      {/* Single-column field list */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <FieldInput label="Company Name" value={fields.companyName} onChange={(v) => update('companyName', v)} source={sources.companyName}
-          showToggle={showToggles} toggled={fields.showCompanyName} onToggle={(v) => update('showCompanyName', v)} disabled={showToggles && !fields.showCompanyName} />
-        <FieldInput label="Contact Name" value={fields.contactName} onChange={(v) => update('contactName', v)} source={sources.contactName}
-          showToggle={showToggles} toggled={fields.showContactName} onToggle={(v) => update('showContactName', v)} disabled={showToggles && !fields.showContactName} />
-        <FieldInput label="Title" value={fields.contactTitle} onChange={(v) => update('contactTitle', v)} source={sources.contactTitle}
-          showToggle={showToggles} toggled={fields.showContactTitle} onToggle={(v) => update('showContactTitle', v)} disabled={showToggles && !fields.showContactTitle} />
-        {/* Phone → Business Phone (#4) */}
-        <FieldInput label="Business Phone" value={fields.phone} onChange={(v) => update('phone', v)} source={sources.phone} type="tel"
-          showToggle={showToggles} toggled={fields.showPhone} onToggle={(v) => update('showPhone', v)} disabled={showToggles && !fields.showPhone} />
-        <FieldInput label="Email" value={fields.email} onChange={(v) => update('email', v)} source={sources.email} type="email"
-          showToggle={showToggles} toggled={fields.showEmail} onToggle={(v) => update('showEmail', v)} disabled={showToggles && !fields.showEmail} />
-        <FieldInput label="Website" value={fields.website} onChange={(v) => update('website', v)} source={sources.website}
-          showToggle={showToggles} toggled={fields.showWebsite} onToggle={(v) => update('showWebsite', v)} disabled={showToggles && !fields.showWebsite} />
-        <FieldInput label="QR Code URL" value={fields.qrCodeUrl} onChange={(v) => update('qrCodeUrl', v)} placeholder="https://example.com"
-          showToggle={showToggles} toggled={fields.showQrCode} onToggle={(v) => update('showQrCode', v)} disabled={showToggles && !fields.showQrCode} />
-        <FieldInput label="Tagline / Slogan" value={fields.tagline} onChange={(v) => update('tagline', v)} placeholder="Optional"
-          showToggle={showToggles} toggled={fields.showTagline} onToggle={(v) => update('showTagline', v)} disabled={showToggles && !fields.showTagline} />
+      {/* Core fields — two-column grid, NO checkboxes */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <FieldInput label="Company Name" value={fields.companyName} onChange={(v) => update('companyName', v)} source={sources.companyName} />
+        <FieldInput label="Contact Name" value={fields.contactName} onChange={(v) => update('contactName', v)} source={sources.contactName} />
+        <FieldInput label="Title" value={fields.contactTitle} onChange={(v) => update('contactTitle', v)} source={sources.contactTitle} />
+        <FieldInput label="Business Phone" value={fields.phone} onChange={(v) => update('phone', v)} source={sources.phone} type="tel" />
+        <FieldInput label="Email" value={fields.email} onChange={(v) => update('email', v)} source={sources.email} type="email" />
+        <FieldInput label="Website" value={fields.website} onChange={(v) => update('website', v)} source={sources.website} />
+        <FieldInput label="QR Code URL" value={fields.qrCodeUrl} onChange={(v) => update('qrCodeUrl', v)} placeholder="https://example.com" />
+        <FieldInput label="Tagline / Slogan" value={fields.tagline} onChange={(v) => update('tagline', v)} placeholder="Optional" />
       </div>
 
       {/* Headline — full width, for yard signs / flyers / door hangers (#3) */}
