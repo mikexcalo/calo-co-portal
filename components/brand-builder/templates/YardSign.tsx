@@ -33,7 +33,7 @@ export default function YardSign({ fields }: YardSignProps) {
   return (
     <div style={{
       width: w, height: h, background: primaryColor || '#28502e', borderRadius: 4,
-      border: '2px solid rgba(0,0,0,0.15)',
+      border: '3px solid rgba(0,0,0,0.25)',
       fontFamily, color: '#ffffff',
       display: 'flex', flexDirection: 'column', position: 'relative',
     }}>
@@ -79,8 +79,8 @@ export default function YardSign({ fields }: YardSignProps) {
           flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <div style={{
-            fontSize: Math.max(24, Math.round(scale * 0.1)), fontWeight: 900,
-            letterSpacing: '0.02em', textAlign: 'center',
+            fontSize: Math.max(28, Math.round(scale * 0.12)), fontWeight: 900,
+            letterSpacing: '0.02em', textAlign: 'center', whiteSpace: 'nowrap',
           }}>
             {phone || '(555) 000-0000'}
           </div>
