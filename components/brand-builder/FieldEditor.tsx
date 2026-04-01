@@ -103,8 +103,8 @@ export default function FieldEditor({ fields, onChange, sources, assetType, clie
         </div>
       )}
 
-      {/* Two-column grid for all asset types (#5) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      {/* Single-column field list */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <FieldInput label="Company Name" value={fields.companyName} onChange={(v) => update('companyName', v)} source={sources.companyName}
           showToggle={showToggles} toggled={fields.showCompanyName} onToggle={(v) => update('showCompanyName', v)} disabled={showToggles && !fields.showCompanyName} />
         <FieldInput label="Contact Name" value={fields.contactName} onChange={(v) => update('contactName', v)} source={sources.contactName}

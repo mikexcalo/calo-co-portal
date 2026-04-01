@@ -22,7 +22,7 @@ export default function BrandBuilderPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [client, setClient] = useState<Client | null>(null);
   const [primaryContact, setPrimaryContact] = useState<Contact | null>(null);
-  const [assetType, setAssetType] = useState<AssetType | null>(null);
+  const [assetType, setAssetType] = useState<AssetType | null>('business-card');
 
   // Reset asset type when breadcrumb "Brand Builder" is clicked
   useEffect(() => {
@@ -216,29 +216,62 @@ export default function BrandBuilderPage() {
         </div>
       )}
 
-      {/* Tab bar — full width, above the two-panel layout (#1) */}
-      <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', marginBottom: 16 }}>
-        {ASSET_TYPES.map((t) => (
-          <button key={t.id} onClick={() => handleAssetTypeChange(t.id)} style={{
-            padding: '10px 20px', fontSize: 13, fontWeight: 500, cursor: 'pointer',
-            color: assetType === t.id ? '#2563eb' : '#6b7280',
-            borderBottom: assetType === t.id ? '2px solid #2563eb' : '2px solid transparent',
-            background: 'none', border: 'none', borderBottomStyle: 'solid',
-            whiteSpace: 'nowrap', fontFamily: 'Inter, sans-serif',
-          }}>
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {/* Three-column layout: Sidebar Nav | Fields | Preview */}
+      <div style={{ display: 'flex', minHeight: 500, border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden', background: '#fff' }}>
 
-      {/* Two-column layout */}
-      {assetType ? (
-        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-          {/* Left: Fields */}
-          <div style={{
-            width: '34%', minWidth: 260, flexShrink: 0,
-            background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14,
-          }}>
+        {/* Column 1: Sidebar Nav (~180px) */}
+        <div style={{ width: 180, flexShrink: 0, borderRight: '1px solid #e5e7eb', padding: '16px 0' }}>
+          <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: '#9ca3af', letterSpacing: '0.5px', padding: '0 12px', marginBottom: 8 }}>Assets</div>
+          {ASSET_TYPES.map((t) => {
+            const active = assetType === t.id;
+            return (
+              <button key={t.id} onClick={() => handleAssetTypeChange(t.id)} style={{
+                display: 'flex', alignItems: 'center', gap: 10, width: 'calc(100% - 16px)',
+                padding: '8px 12px', margin: '0 8px', borderRadius: 6, border: 'none',
+                fontSize: 13, color: active ? '#111827' : '#6b7280', fontWeight: active ? 500 : 400,
+                background: active ? '#f3f4f6' : 'transparent', cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif', textAlign: 'left',
+              }}>
+                {/* Icons — simple SVGs per asset type */}
+                {t.id === 'business-card' && (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" strokeWidth="1.3">
+                    <rect x="2" y="5" width="20" height="14" rx="2" stroke="#2563eb" /><line x1="6" y1="11" x2="14" y2="11" stroke="#93c5fd" /><line x1="6" y1="14" x2="11" y2="14" stroke="#93c5fd" />
+                  </svg>
+                )}
+                {t.id === 'yard-sign' && (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" strokeWidth="1.3">
+                    <rect x="3" y="3" width="18" height="12" rx="1" stroke="#dc2626" /><line x1="8" y1="15" x2="8" y2="21" stroke="#92400e" /><line x1="16" y1="15" x2="16" y2="21" stroke="#92400e" />
+                  </svg>
+                )}
+                {t.id === 'vehicle-magnet' && (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" strokeWidth="1.3">
+                    <path d="M3 10h13l4 4v3H3V10z" stroke="#6b7280" /><circle cx="7" cy="17" r="2" stroke="#0d9488" /><circle cx="17" cy="17" r="2" stroke="#0d9488" />
+                  </svg>
+                )}
+                {t.id === 't-shirt' && (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" strokeWidth="1.3">
+                    <path d="M8 2l-5 4 2 2 3-2v14h8V6l3 2 2-2-5-4" stroke="#7c3aed" /><path d="M9 2c0 1.5 1.5 3 3 3s3-1.5 3-3" stroke="#c4b5fd" />
+                  </svg>
+                )}
+                {t.id === 'door-hanger' && (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" strokeWidth="1.3">
+                    <rect x="6" y="2" width="12" height="20" rx="2" stroke="#ea580c" /><circle cx="12" cy="6" r="2.5" stroke="#fdba74" />
+                  </svg>
+                )}
+                {t.id === 'flyer' && (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" strokeWidth="1.3">
+                    <rect x="4" y="2" width="16" height="20" rx="1" stroke="#059669" /><line x1="8" y1="7" x2="16" y2="7" stroke="#6ee7b7" /><line x1="8" y1="11" x2="16" y2="11" stroke="#6ee7b7" /><line x1="8" y1="15" x2="13" y2="15" stroke="#6ee7b7" />
+                  </svg>
+                )}
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Column 2: Fields Panel (flex: 1) */}
+        <div style={{ flex: 1, borderRight: '1px solid #e5e7eb', padding: 20, overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
+          {assetType && (
             <FieldEditor
               fields={fields}
               onChange={handleFieldsChange}
@@ -247,25 +280,14 @@ export default function BrandBuilderPage() {
               clientId={clientId}
               hasBrandKit={hasBrandKit}
             />
-          </div>
+          )}
+        </div>
 
-          {/* Right: Preview (sticky) */}
-          <div style={{ flex: 1, minWidth: 0, position: 'sticky', top: 72 }}>
-            <div style={{
-              background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 16,
-            }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', marginBottom: 10 }}>
-                Live Preview
-              </div>
-              <AssetPreview assetType={assetType} fields={fields} />
-            </div>
-          </div>
+        {/* Column 3: Live Preview (flex: 1.2) */}
+        <div style={{ flex: 1.2, padding: 20, background: '#f9fafb' }}>
+          {assetType && <AssetPreview assetType={assetType} fields={fields} />}
         </div>
-      ) : (
-        <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8', fontSize: 13 }}>
-          Select an asset type above to get started
-        </div>
-      )}
+      </div>
     </div>
   );
 }
