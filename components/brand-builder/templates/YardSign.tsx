@@ -19,8 +19,8 @@ const RATIOS: Record<string, number> = {
 
 export default function YardSign({ fields }: YardSignProps) {
   const {
-    logoUrl, companyName, phone, qrCodeUrl, headline,
-    primaryColor, fontFamily, showHeadline, showQrCode, showPhone,
+    logoUrl, companyName, phone, qrCodeUrl, headline, tagline,
+    primaryColor, fontFamily, showHeadline, showQrCode, showPhone, showTagline,
   } = fields;
 
   const ratio = RATIOS[fields.signSize] || RATIOS['18x24'];
@@ -61,6 +61,17 @@ export default function YardSign({ fields }: YardSignProps) {
         </div>
       )}
 
+      {/* Tagline — centered, between headline and phone */}
+      {showTagline !== false && tagline && (
+        <div style={{
+          textAlign: 'center', padding: '4px 20px 0',
+          fontSize: Math.max(12, Math.round(scale * 0.04)), fontWeight: 400,
+          color: 'rgba(255,255,255,0.85)', lineHeight: 1.3,
+        }}>
+          {tagline}
+        </div>
+      )}
+
       {/* Phone — centered, biggest text */}
       {showPhone !== false && (
         <div style={{
@@ -91,8 +102,8 @@ export default function YardSign({ fields }: YardSignProps) {
 
         {/* QR code — right */}
         {showQrCode !== false && qrCodeUrl && (
-          <div style={{ flexShrink: 0 }}>
-            <QRCode url={qrCodeUrl} size={70} color={primaryColor || '#28502e'} bgColor="#ffffff" />
+          <div style={{ flexShrink: 0, minWidth: 48, minHeight: 48 }}>
+            <QRCode url={qrCodeUrl} size={Math.max(48, 70)} color={primaryColor || '#28502e'} bgColor="#ffffff" />
           </div>
         )}
       </div>
