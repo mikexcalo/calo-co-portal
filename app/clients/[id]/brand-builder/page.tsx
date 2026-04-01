@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import {
   DB, loadClients, loadContacts, loadAllBrandKits,
 } from '@/lib/database';
+import supabase from '@/lib/supabase';
 import { extractHex } from '@/lib/utils';
 import { Client, Contact } from '@/lib/types';
 import {
@@ -156,6 +157,26 @@ export default function BrandBuilderPage() {
         newFields.qrCodeUrl = url;
       }
 
+      // Merge saved brand builder fields from Supabase (overrides auto-populated defaults)
+      try {
+        const { data: row } = await supabase
+          .from('clients')
+          .select('brand_builder_fields')
+          .eq('id', clientId)
+          .single();
+        if (row?.brand_builder_fields && typeof row.brand_builder_fields === 'object') {
+          const saved = row.brand_builder_fields as Record<string, any>;
+          // Only override fields that have actual saved values (non-empty strings)
+          for (const key of Object.keys(saved)) {
+            if (saved[key] !== '' && saved[key] !== undefined && saved[key] !== null) {
+              (newFields as any)[key] = saved[key];
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[BrandBuilder] Failed to load saved fields:', e);
+      }
+
       setFields(newFields);
       setSources(newSources);
       setIsLoading(false);
@@ -164,9 +185,24 @@ export default function BrandBuilderPage() {
     init();
   }, [clientId, router]);
 
+  // Debounced save to Supabase
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleFieldsChange = useCallback((newFields: BrandBuilderFields) => {
     setFields(newFields);
-  }, []);
+    // Debounce 500ms then save
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      try {
+        const { error } = await supabase
+          .from('clients')
+          .update({ brand_builder_fields: newFields })
+          .eq('id', clientId);
+        if (error) console.warn('[BrandBuilder] Save error:', error.message);
+      } catch (e) {
+        console.warn('[BrandBuilder] Save exception:', e);
+      }
+    }, 500);
+  }, [clientId]);
 
   if (isLoading) {
     return (
