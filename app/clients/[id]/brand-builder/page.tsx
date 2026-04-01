@@ -214,10 +214,7 @@ export default function BrandBuilderPage() {
       <div style={{ display: 'flex', minHeight: 'calc(100vh - 60px)', background: '#fff' }}>
 
         {/* Sidebar: 200px fixed */}
-        <div style={{ width: 200, flexShrink: 0, borderRight: '1px solid #e5e7eb', padding: '20px 0' }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', padding: '16px 16px 0 16px' }}>Design Studio</div>
-          <div style={{ fontSize: 11, color: '#9ca3af', padding: '0 16px', marginTop: 2, marginBottom: 20 }}>Print-ready assets from your Brand Kit</div>
-          <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: '#9ca3af', letterSpacing: '0.5px', padding: '0 14px', marginBottom: 8 }}>Assets</div>
+        <div style={{ width: 200, flexShrink: 0, borderRight: '1px solid #e5e7eb', paddingTop: 20 }}>
           {ASSET_TYPES.map((t) => {
             const active = assetType === t.id;
             return (
@@ -247,8 +244,10 @@ export default function BrandBuilderPage() {
             </div>
           </>
         ) : (
-          /* Welcome — tile grid only, centered */
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 60px)' }}>
+          /* Welcome */
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 60px)', width: '100%' }}>
+            <div style={{ fontSize: 26, fontWeight: 600, color: '#111827', marginBottom: 6, textAlign: 'center' }}>Design Studio</div>
+            <div style={{ fontSize: 14, color: '#9ca3af', marginBottom: 36, textAlign: 'center' }}>Create print-ready branded assets for your clients in minutes.</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 160px)', gap: 16 }}>
                 {ASSET_TYPES.map((t) => {
                   const hc: Record<string, string> = {
