@@ -78,7 +78,7 @@ export default function YardSign({ fields }: YardSignProps) {
       {/* Bottom bar — company name left, QR right */}
       <div style={{
         display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
-        padding: `${Math.round(h * 0.04)}px ${Math.round(w * 0.05)}px`,
+        padding: '16px 20px',
         gap: 12,
       }}>
         {/* Company name — left, bold, wraps if long */}
