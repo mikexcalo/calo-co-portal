@@ -66,6 +66,34 @@ export default function Home() {
 
   const refreshFeed = () => { setFeedKey((k) => k + 1); loadTasksNotes().then(setAllTasks); };
 
+  function getUrgencyStyle(createdAt: string) {
+    const daysSince = Math.floor((Date.now() - new Date(createdAt).getTime()) / 86400000);
+    if (daysSince >= 3) return {
+      background: '#FEF2F2', border: '0.5px solid rgba(252,165,165,0.27)', borderLeft: '3px solid #DC2626',
+      titleColor: '#991B1B', subtitleColor: '#B91C1C', arrowColor: '#B91C1C', iconColor: '#DC2626',
+      badge: { text: `${daysSince}d`, bg: '#DC2626', color: '#fff' },
+    };
+    if (daysSince >= 2) return {
+      background: '#FFFBEB', border: '0.5px solid rgba(245,158,11,0.2)', borderLeft: '3px solid #F59E0B',
+      titleColor: '#92400E', subtitleColor: '#B45309', arrowColor: '#B45309', iconColor: '#D97706',
+      badge: { text: `${daysSince}d`, bg: '#F59E0B', color: '#fff' },
+    };
+    return {
+      background: '#ffffff', border: '0.5px solid #e5e7eb', borderLeft: '3px solid #e5e7eb',
+      titleColor: '#111827', subtitleColor: '#9ca3af', arrowColor: '#9ca3af', iconColor: '#9ca3af',
+      badge: null as null,
+    };
+  }
+
+  function getActionIcon(content: string, color: string) {
+    const t = content.toLowerCase();
+    if (t.includes('text ') || t.includes('email ') || t.includes('call ') || t.includes('message'))
+      return <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}><rect x="1" y="3" width="14" height="10" rx="2" stroke={color} strokeWidth="1.4"/><path d="M1 5l7 4 7-4" stroke={color} strokeWidth="1.4"/></svg>;
+    if (t.includes('invoice'))
+      return <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}><rect x="2" y="1" width="12" height="14" rx="1.5" stroke={color} strokeWidth="1.4"/><path d="M5 5h6M5 8h6M5 11h3" stroke={color} strokeWidth="1.2" strokeLinecap="round"/></svg>;
+    return <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}><circle cx="8" cy="8" r="6.5" stroke={color} strokeWidth="1.4"/><path d="M8 4.5v4l2.5 1.5" stroke={color} strokeWidth="1.3" strokeLinecap="round"/></svg>;
+  }
+
   // Action items data
   const openTasks = allTasks.filter((t) => t.type === 'task' && t.status === 'open')
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -98,35 +126,48 @@ export default function Home() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {openTasks.map((task) => {
             const cl = DB.clients.find((c) => c.id === task.client_id);
+            const u = getUrgencyStyle(task.created_at);
             return (
               <div key={task.id} style={{
-                background: '#fff', border: '0.5px solid #e5e7eb', borderLeft: '3px solid #e5e7eb',
-                borderRadius: 8, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10,
-              }}>
-                <div style={{ width: 15, height: 15, borderRadius: '50%', background: '#e5e7eb', flexShrink: 0, cursor: 'pointer' }}
-                  onClick={async () => { await updateTaskStatus(task.id, 'complete'); refreshFeed(); }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{task.content}</div>
-                  <div style={{ fontSize: 12, color: '#9ca3af' }}>{cl?.company || cl?.name || ''} · {relTime(task.created_at)}</div>
+                background: u.background, border: u.border, borderLeft: u.borderLeft,
+                borderRadius: 8, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer',
+              }} onClick={() => cl && router.push(`/clients/${cl.id}`)}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                  <div onClick={async (e) => { e.stopPropagation(); await updateTaskStatus(task.id, 'complete'); refreshFeed(); }} style={{ cursor: 'pointer' }}>
+                    {getActionIcon(task.content, u.iconColor)}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                      <p style={{ fontSize: 13, fontWeight: 500, margin: 0, color: u.titleColor, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{task.content}</p>
+                      {u.badge && <span style={{ fontSize: 9, background: u.badge.bg, color: u.badge.color, padding: '1px 6px', borderRadius: 10, fontWeight: 500, flexShrink: 0 }}>{u.badge.text}</span>}
+                    </div>
+                    <p style={{ fontSize: 12, color: u.subtitleColor, margin: 0, opacity: 0.8 }}>{cl?.company || cl?.name || ''} · {relTime(task.created_at)}</p>
+                  </div>
                 </div>
-                <span onClick={() => cl && router.push(`/clients/${cl.id}`)} style={{ fontSize: 13, color: '#9ca3af', cursor: 'pointer' }}>→</span>
+                <span style={{ fontSize: 13, color: u.arrowColor, marginLeft: 12, flexShrink: 0 }}>→</span>
               </div>
             );
           })}
           {unpaidInvs.map((inv) => {
             const cl = DB.clients.find((c) => c.id === inv.clientId);
             const total = (inv.items || []).reduce((s: number, i: any) => s + (i.qty || 1) * (i.price || 0), 0) + (inv.tax || 0) + (inv.shipping || 0);
+            const u = getUrgencyStyle(inv.due || inv.date || new Date().toISOString());
             return (
               <div key={inv.id || inv._uuid} style={{
-                background: '#fff', border: '0.5px solid #e5e7eb', borderLeft: '3px solid #e5e7eb',
-                borderRadius: 8, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+                background: u.background, border: u.border, borderLeft: u.borderLeft,
+                borderRadius: 8, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer',
               }} onClick={() => router.push(`/clients/${inv.clientId}/invoices`)}>
-                <div style={{ width: 15, height: 15, borderRadius: '50%', background: '#e5e7eb', flexShrink: 0 }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>Invoice {inv.id} · {currency(total)}</div>
-                  <div style={{ fontSize: 12, color: '#9ca3af' }}>{cl?.company || cl?.name || ''}{inv.due ? ` · Due ${inv.due}` : ''}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                  {getActionIcon('invoice', u.iconColor)}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                      <p style={{ fontSize: 13, fontWeight: 500, margin: 0, color: u.titleColor, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Invoice {inv.id} · {currency(total)}</p>
+                      {u.badge && <span style={{ fontSize: 9, background: u.badge.bg, color: u.badge.color, padding: '1px 6px', borderRadius: 10, fontWeight: 500, flexShrink: 0 }}>{u.badge.text}</span>}
+                    </div>
+                    <p style={{ fontSize: 12, color: u.subtitleColor, margin: 0, opacity: 0.8 }}>{cl?.company || cl?.name || ''}{inv.due ? ` · Due ${inv.due}` : ''}</p>
+                  </div>
                 </div>
-                <span style={{ fontSize: 13, color: '#9ca3af' }}>→</span>
+                <span style={{ fontSize: 13, color: u.arrowColor, marginLeft: 12, flexShrink: 0 }}>→</span>
               </div>
             );
           })}
