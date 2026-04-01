@@ -221,7 +221,7 @@ export default function BrandBuilderPage() {
             return (
               <button key={t.id} onClick={() => handleAssetTypeChange(t.id)} style={{
                 display: 'flex', alignItems: 'center', gap: 10, width: 'calc(100% - 16px)',
-                padding: '8px 14px', margin: '0 8px', borderRadius: 6, border: 'none',
+                padding: '10px 14px', margin: '2px 8px', borderRadius: 8, border: 'none',
                 fontSize: 13, color: active ? '#111827' : '#6b7280', fontWeight: active ? 500 : 400,
                 background: active ? '#f3f4f6' : 'transparent', cursor: 'pointer',
                 fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -236,41 +236,48 @@ export default function BrandBuilderPage() {
         {assetType ? (
           <>
             {/* Fields: 420px fixed */}
-            <div style={{ width: 420, flexShrink: 0, borderRight: '1px solid #e5e7eb', padding: 24, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' }}>
+            <div style={{ width: 420, flexShrink: 0, borderRight: '1px solid #e5e7eb', padding: 32, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' }}>
               <FieldEditor fields={fields} onChange={handleFieldsChange} sources={sources} assetType={assetType} clientId={clientId} hasBrandKit={hasBrandKit} />
             </div>
             {/* Preview: flex: 1 */}
-            <div style={{ flex: 1, padding: 24, background: '#f9fafb' }}>
+            <div style={{ flex: 1, padding: 32, background: '#f9fafb' }}>
               <AssetPreview assetType={assetType} fields={fields} clientId={clientId} />
             </div>
           </>
         ) : (
-          /* Welcome intro state */
+          /* Welcome intro */
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ textAlign: 'center', maxWidth: 520 }}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" style={{ marginBottom: 16 }}>
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            <div style={{ textAlign: 'center', maxWidth: 540 }}>
+              {/* Sparkle icon */}
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style={{ marginBottom: 16 }}>
+                <path d="M16 2L18.5 12.5L28 16L18.5 19.5L16 30L13.5 19.5L4 16L13.5 12.5Z" fill="#2563eb" />
+                <path d="M25 4L26 8L29 9L26 10L25 14L24 10L21 9L24 8Z" fill="#93c5fd" />
               </svg>
-              <div style={{ fontSize: 20, fontWeight: 500, color: '#111827', marginBottom: 8 }}>Create print-ready assets</div>
-              <div style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.6, maxWidth: 400, margin: '0 auto 24px' }}>
+              <div style={{ fontSize: 24, fontWeight: 600, color: '#111827', marginBottom: 8, letterSpacing: '-0.3px' }}>Create print-ready assets</div>
+              <div style={{ fontSize: 15, color: '#6b7280', lineHeight: 1.6, maxWidth: 400, margin: '0 auto 28px' }}>
                 Choose an asset type to start designing. Every template pulls from your client's Brand Kit automatically.
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, maxWidth: 480, margin: '0 auto' }}>
-                {ASSET_TYPES.map((t) => (
-                  <button key={t.id} onClick={() => handleAssetTypeChange(t.id)} style={{
-                    padding: 16, border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff',
-                    cursor: 'pointer', textAlign: 'center', fontFamily: 'Inter, sans-serif',
-                    transition: 'all 0.12s',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.background = '#f9fafb'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = '#fff'; }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-                      <AssetIcon id={t.id} size={28} />
-                    </div>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>{t.label}</div>
-                  </button>
-                ))}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, maxWidth: 500, margin: '0 auto' }}>
+                {ASSET_TYPES.map((t) => {
+                  const hoverColors: Record<string, string> = {
+                    'business-card': '#93c5fd', 'yard-sign': '#fca5a5', 'vehicle-magnet': '#99f6e4',
+                    't-shirt': '#c4b5fd', 'door-hanger': '#fdba74', 'flyer': '#6ee7b7',
+                  };
+                  return (
+                    <button key={t.id} onClick={() => handleAssetTypeChange(t.id)} style={{
+                      padding: '24px 16px', border: '1px solid #f3f4f6', borderRadius: 12, background: '#fff',
+                      cursor: 'pointer', textAlign: 'center', fontFamily: 'Inter, sans-serif', transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = hoverColors[t.id] || '#d1d5db'; e.currentTarget.style.background = '#fafafa'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#f3f4f6'; e.currentTarget.style.background = '#fff'; }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+                        <AssetIcon id={t.id} size={28} />
+                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>{t.label}</div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -280,57 +287,64 @@ export default function BrandBuilderPage() {
   );
 }
 
-/* Emoji-hybrid filled icons */
+/* Multicolor filled icons */
 function AssetIcon({ id, size = 20 }: { id: string; size?: number }) {
   const s = size;
   if (id === 'business-card') return (
     <svg width={s} height={s} viewBox="0 0 20 20" fill="none">
-      <rect x="1" y="4" width="18" height="12" rx="2" fill="#DBEAFE" stroke="#2563EB" strokeWidth="1.2"/>
+      <rect x="1" y="4" width="18" height="12" rx="2" fill="#F8FAFC" stroke="#E2E8F0" strokeWidth="0.8"/>
       <rect x="1" y="4" width="18" height="3.5" rx="2" fill="#2563EB"/><rect x="1" y="6" width="18" height="1.5" fill="#2563EB"/>
-      <line x1="4" y1="11" x2="10" y2="11" stroke="#2563EB" strokeWidth="1.2" strokeLinecap="round"/>
-      <line x1="4" y1="13.5" x2="8" y2="13.5" stroke="#93C5FD" strokeWidth="1" strokeLinecap="round"/>
+      <line x1="4" y1="11" x2="10" y2="11" stroke="#64748B" strokeWidth="1.1" strokeLinecap="round"/>
+      <line x1="4" y1="13.5" x2="7.5" y2="13.5" stroke="#CBD5E1" strokeWidth="1" strokeLinecap="round"/>
+      <rect x="13.5" y="10" width="3.5" height="3.5" rx="0.8" fill="#DBEAFE" stroke="#93C5FD" strokeWidth="0.6"/>
     </svg>
   );
   if (id === 'yard-sign') return (
     <svg width={s} height={s} viewBox="0 0 20 20" fill="none">
-      <rect x="3" y="2" width="14" height="10" rx="1.5" fill="#FEE2E2" stroke="#DC2626" strokeWidth="1.2"/>
-      <line x1="6" y1="6" x2="14" y2="6" stroke="#DC2626" strokeWidth="1.2" strokeLinecap="round"/>
-      <line x1="6" y1="9" x2="11" y2="9" stroke="#FCA5A5" strokeWidth="1" strokeLinecap="round"/>
-      <line x1="7.5" y1="12" x2="7.5" y2="18.5" stroke="#92400E" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="12.5" y1="12" x2="12.5" y2="18.5" stroke="#92400E" strokeWidth="1.5" strokeLinecap="round"/>
+      <rect x="7" y="12" width="1.8" height="7" rx="0.5" fill="#92400E"/><rect x="11.2" y="12" width="1.8" height="7" rx="0.5" fill="#78350F"/>
+      <rect x="3" y="2" width="14" height="10.5" rx="1.5" fill="#DC2626" stroke="#B91C1C" strokeWidth="0.6"/>
+      <line x1="6" y1="5.5" x2="14" y2="5.5" stroke="#fff" strokeWidth="1.2" strokeLinecap="round"/>
+      <line x1="6" y1="8.5" x2="11" y2="8.5" stroke="#FECACA" strokeWidth="1" strokeLinecap="round"/>
     </svg>
   );
   if (id === 'vehicle-magnet') return (
     <svg width={s} height={s} viewBox="0 0 20 20" fill="none">
-      <rect x="1" y="6" width="13" height="8" rx="1.5" fill="#F1F5F9" stroke="#64748B" strokeWidth="1.2"/>
-      <path d="M14 6 L18 10 L18 14 L14 14 Z" fill="#E2E8F0" stroke="#64748B" strokeWidth="1.2"/>
-      <circle cx="5" cy="15" r="2" fill="#E2E8F0" stroke="#64748B" strokeWidth="1"/><circle cx="15.5" cy="15" r="2" fill="#E2E8F0" stroke="#64748B" strokeWidth="1"/>
-      <rect x="3" y="8.5" width="9" height="4" rx="1" fill="#0D9488" opacity="0.85"/>
+      <rect x="1" y="6" width="13" height="8" rx="1.5" fill="#F1F5F9" stroke="#CBD5E1" strokeWidth="0.8"/>
+      <path d="M14 6 L18 10 L18 14 L14 14 Z" fill="#E2E8F0" stroke="#CBD5E1" strokeWidth="0.8"/>
+      <rect x="15" y="10.5" width="2.2" height="2.5" rx="0.6" fill="#BFDBFE"/>
+      <circle cx="5" cy="15.5" r="2" fill="#475569"/><circle cx="5" cy="15.5" r="0.8" fill="#CBD5E1"/>
+      <circle cx="15.5" cy="15.5" r="2" fill="#475569"/><circle cx="15.5" cy="15.5" r="0.8" fill="#CBD5E1"/>
+      <rect x="3" y="8.5" width="9" height="4" rx="1" fill="#0D9488"/>
+      <line x1="5" y1="10.5" x2="10" y2="10.5" stroke="#fff" strokeWidth="0.9" strokeLinecap="round"/>
     </svg>
   );
   if (id === 't-shirt') return (
     <svg width={s} height={s} viewBox="0 0 20 20" fill="none">
-      <path d="M7 2 L5 2 L1.5 5.5 L1.5 7.5 L4.5 7.5 L4.5 18 L15.5 18 L15.5 7.5 L18.5 7.5 L18.5 5.5 L15 2 L13 2 C13 2 12 4 10 4 C8 4 7 2 7 2Z" fill="#EDE9FE" stroke="#7C3AED" strokeWidth="1.2"/>
-      <path d="M7 2 C7 2 8 4 10 4 C12 4 13 2 13 2" stroke="#C4B5FD" strokeWidth="1" fill="none"/>
+      <path d="M7 2 L5 2 L1.5 5.5 L1.5 7.5 L4.5 7.5 L4.5 18 L15.5 18 L15.5 7.5 L18.5 7.5 L18.5 5.5 L15 2 L13 2 C13 2 12 4 10 4 C8 4 7 2 7 2Z" fill="#EDE9FE" stroke="#C4B5FD" strokeWidth="0.8"/>
+      <path d="M1.5 5.5 L4.5 7.5 L4.5 5.5" fill="#DDD6FE"/><path d="M18.5 5.5 L15.5 7.5 L15.5 5.5" fill="#DDD6FE"/>
+      <path d="M7 2 C7 2 8 4 10 4 C12 4 13 2 13 2" stroke="#A78BFA" strokeWidth="0.8" fill="none"/>
+      <circle cx="10" cy="11.5" r="2.5" fill="#DDD6FE" stroke="#C4B5FD" strokeWidth="0.6"/>
     </svg>
   );
   if (id === 'door-hanger') return (
     <svg width={s} height={s} viewBox="0 0 20 20" fill="none">
-      <rect x="5" y="1" width="10" height="18" rx="2" fill="#FFF7ED" stroke="#EA580C" strokeWidth="1.2"/>
-      <rect x="5" y="1" width="10" height="5.5" rx="2" fill="#EA580C"/><rect x="5" y="5" width="10" height="1.5" fill="#EA580C"/>
-      <circle cx="10" cy="4" r="2" fill="#FFF7ED" stroke="#FFF7ED" strokeWidth="0.5"/>
-      <line x1="8" y1="10.5" x2="12" y2="10.5" stroke="#FDBA74" strokeWidth="1" strokeLinecap="round"/>
-      <line x1="8" y1="13" x2="12" y2="13" stroke="#FDBA74" strokeWidth="1" strokeLinecap="round"/>
+      <rect x="5" y="1" width="10" height="18" rx="2" fill="#FFF7ED" stroke="#FED7AA" strokeWidth="0.8"/>
+      <rect x="5" y="1" width="10" height="6" rx="2" fill="#EA580C"/><rect x="5" y="5" width="10" height="2" fill="#EA580C"/>
+      <circle cx="10" cy="4" r="2" fill="#FFF7ED" stroke="#FDBA74" strokeWidth="0.6"/>
+      <line x1="7.5" y1="10.5" x2="12.5" y2="10.5" stroke="#C2410C" strokeWidth="1" strokeLinecap="round"/>
+      <line x1="7.5" y1="13" x2="12.5" y2="13" stroke="#FDBA74" strokeWidth="0.8" strokeLinecap="round"/>
+      <line x1="7.5" y1="15" x2="10.5" y2="15" stroke="#FDBA74" strokeWidth="0.8" strokeLinecap="round"/>
     </svg>
   );
   if (id === 'flyer') return (
     <svg width={s} height={s} viewBox="0 0 20 20" fill="none">
-      <rect x="3" y="1" width="14" height="18" rx="1.5" fill="#F0FDF4" stroke="#059669" strokeWidth="1.2"/>
+      <rect x="3" y="1" width="14" height="18" rx="1.5" fill="#fff" stroke="#D1D5DB" strokeWidth="0.8"/>
       <rect x="3" y="1" width="14" height="5" rx="1.5" fill="#059669"/><rect x="3" y="4.5" width="14" height="1.5" fill="#059669"/>
-      <line x1="6" y1="3.5" x2="12" y2="3.5" stroke="#fff" strokeWidth="1" strokeLinecap="round"/>
-      <line x1="6" y1="10" x2="14" y2="10" stroke="#6EE7B7" strokeWidth="1" strokeLinecap="round"/>
-      <line x1="6" y1="12.5" x2="11" y2="12.5" stroke="#6EE7B7" strokeWidth="1" strokeLinecap="round"/>
-      <rect x="6" y="14.5" width="3.5" height="3" rx="0.5" fill="#D1FAE5"/>
+      <line x1="5.5" y1="3.5" x2="11" y2="3.5" stroke="#fff" strokeWidth="1" strokeLinecap="round"/>
+      <line x1="6" y1="9.5" x2="14" y2="9.5" stroke="#64748B" strokeWidth="1" strokeLinecap="round"/>
+      <line x1="6" y1="12" x2="11" y2="12" stroke="#D1D5DB" strokeWidth="0.8" strokeLinecap="round"/>
+      <rect x="6" y="14" width="3.5" height="3" rx="0.6" fill="#D1FAE5" stroke="#A7F3D0" strokeWidth="0.5"/>
+      <line x1="11" y1="15" x2="14" y2="15" stroke="#D1D5DB" strokeWidth="0.8" strokeLinecap="round"/>
     </svg>
   );
   return null;

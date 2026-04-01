@@ -98,21 +98,23 @@ export default function ExportButtons({ assetType, previewRef, side, frontRef, b
     finally { setExporting(null); }
   };
 
-  const btnStyle = (variant: 'primary' | 'outline' | 'disabled', active: boolean) => ({
-    background: variant === 'primary' ? (active ? '#93c5fd' : '#2563eb') : variant === 'outline' ? 'transparent' : '#f1f5f9',
-    color: variant === 'primary' ? '#fff' : variant === 'outline' ? '#2563eb' : '#94a3b8',
-    border: variant === 'outline' ? '1.5px solid #2563eb' : variant === 'disabled' ? '1px solid #e2e8f0' : 'none',
-    borderRadius: 6, padding: variant === 'outline' ? '7px 16px' : '8px 16px',
-    fontSize: 12, fontWeight: 600, cursor: exporting ? 'wait' : variant === 'disabled' ? 'not-allowed' : 'pointer',
-    fontFamily: 'Inter, sans-serif', opacity: exporting && !active ? 0.5 : 1,
-  });
+  const btnBase: React.CSSProperties = {
+    background: 'transparent', border: '1px solid #e5e7eb', color: '#374151',
+    borderRadius: 8, padding: '8px 20px', fontSize: 13, fontWeight: 500,
+    cursor: exporting ? 'wait' : 'pointer', fontFamily: 'Inter, sans-serif',
+    transition: 'all 0.12s',
+  };
 
   return (
     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-      <button onClick={handleExportPdf} disabled={!!exporting} style={btnStyle('primary', exporting === 'pdf')}>
+      <button onClick={handleExportPdf} disabled={!!exporting} style={{ ...btnBase, opacity: exporting && exporting !== 'pdf' ? 0.5 : 1 }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.background = '#f9fafb'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = 'transparent'; }}>
         {exporting === 'pdf' ? 'Generating...' : 'Download PDF'}
       </button>
-      <button onClick={handleExportPng} disabled={!!exporting} style={btnStyle('outline', exporting === 'png')}>
+      <button onClick={handleExportPng} disabled={!!exporting} style={{ ...btnBase, opacity: exporting && exporting !== 'png' ? 0.5 : 1 }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.background = '#f9fafb'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = 'transparent'; }}>
         {exporting === 'png' ? 'Generating...' : 'Download PNG'}
       </button>
     </div>

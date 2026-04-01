@@ -26,11 +26,11 @@ function Field({ label, value, onChange, type = 'text', placeholder, disabled }:
 }) {
   return (
     <div>
-      <label style={{ fontSize: 13, fontWeight: 400, color: '#6b7280', display: 'block', marginBottom: 3 }}>{label}</label>
+      {label && <label style={{ fontSize: 12, fontWeight: 500, color: '#9ca3af', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{label}</label>}
       <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} disabled={disabled}
         style={{
-          width: '100%', padding: '6px 8px', fontSize: 12, border: '1px solid #e2e8f0',
-          borderRadius: 5, fontFamily: 'Inter, sans-serif',
+          width: '100%', padding: '10px 12px', fontSize: 14, border: '1px solid #e5e7eb',
+          borderRadius: 8, fontFamily: 'Inter, sans-serif',
           color: disabled ? '#94a3b8' : '#0f172a', background: disabled ? '#f8fafc' : '#fff',
         }} />
     </div>
@@ -70,14 +70,14 @@ export default function FieldEditor({ fields, onChange, sources, assetType, clie
 
       {/* Logo row */}
       {fields.logoUrl && (
-        <div style={{ marginBottom: 12, padding: 6, background: '#f8fafc', borderRadius: 5, border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ marginBottom: 8, padding: 12, background: '#f8fafc', borderRadius: 10, border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 8 }}>
           <img src={fields.logoUrl} alt="Logo" style={{ maxWidth: 40, maxHeight: 28, objectFit: 'contain' }} />
           <span style={{ fontSize: 13, color: '#6b7280' }}>Logo</span>
         </div>
       )}
 
-      {/* Core fields — two-column grid, no checkboxes, no auto-fill labels */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      {/* Core fields — two-column grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
         <Field label="Company Name" value={fields.companyName} onChange={(v) => update('companyName', v)} />
         <Field label="Contact Name" value={fields.contactName} onChange={(v) => update('contactName', v)} />
         <Field label="Title" value={fields.contactTitle} onChange={(v) => update('contactTitle', v)} />
@@ -102,7 +102,7 @@ export default function FieldEditor({ fields, onChange, sources, assetType, clie
       )}
 
       {/* Collapsible "+ More fields" */}
-      <div style={{ marginTop: 14 }}>
+      <div style={{ marginTop: 16 }}>
         <button onClick={() => setMoreOpen(!moreOpen)} style={{
           background: 'none', border: 'none', padding: 0, cursor: 'pointer',
           fontSize: 13, fontWeight: 400, color: '#6b7280', fontFamily: 'Inter, sans-serif',

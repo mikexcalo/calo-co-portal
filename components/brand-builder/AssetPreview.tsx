@@ -14,7 +14,7 @@ interface AssetPreviewProps {
 
 function ColorRow({ fields, clientId }: { fields: BrandBuilderFields; clientId?: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ fontSize: 13, color: '#6b7280' }}>Colors</span>
         <div style={{ width: 20, height: 20, borderRadius: '50%', background: fields.primaryColor, border: '1px solid #e5e7eb' }} />
@@ -56,14 +56,15 @@ export default function AssetPreview({ assetType, fields, clientId }: AssetPrevi
         {/* Front / Back toggle */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 0, marginBottom: 14,
-          background: '#f1f5f9', borderRadius: 8, border: '1px solid #e2e8f0', padding: 3,
+          background: '#f3f4f6', borderRadius: 8, padding: 3,
         }}>
           {(['front', 'back'] as const).map((s) => (
             <button key={s} onClick={() => setActiveSide(s)} style={{
-              flex: 1, background: activeSide === s ? '#2563eb' : 'transparent',
-              color: activeSide === s ? '#ffffff' : '#64748b', border: 'none', borderRadius: 6,
-              padding: '8px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              flex: 1, background: activeSide === s ? '#fff' : 'transparent',
+              color: activeSide === s ? '#111827' : '#9ca3af', border: 'none', borderRadius: 6,
+              padding: '6px 20px', fontSize: 13, fontWeight: 500, cursor: 'pointer',
               fontFamily: 'Inter, sans-serif', textTransform: 'capitalize', transition: 'all 0.12s',
+              boxShadow: activeSide === s ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
             }}>{s}</button>
           ))}
         </div>
