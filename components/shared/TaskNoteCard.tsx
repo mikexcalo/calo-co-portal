@@ -41,17 +41,7 @@ export default function TaskNoteCard({ item, clientName, showClient = true, onTo
   const isComplete = item.status === 'complete';
   const isInvoice = item.type === 'note' && isInvoiceNote(item.content);
 
-  let bg: string, borderColor: string, iconColor: string;
-  if (isInvoice) {
-    bg = isComplete ? '#f9fafb' : '#f0fdf4';
-    borderColor = '#22c55e'; iconColor = '#22c55e';
-  } else if (item.type === 'task') {
-    bg = isComplete ? '#f9fafb' : '#fffbeb';
-    borderColor = isComplete ? '#d1d5db' : '#f59e0b';
-    iconColor = isComplete ? '#94a3b8' : '#f59e0b';
-  } else {
-    bg = '#eff6ff'; borderColor = '#3b82f6'; iconColor = '#3b82f6';
-  }
+  const iconColor = '#6b7280';
 
   const handleContentClick = () => {
     if (isInvoice) router.push(`/clients/${item.client_id}/invoices`);
@@ -63,10 +53,11 @@ export default function TaskNoteCard({ item, clientName, showClient = true, onTo
 
   return (
     <div style={{
-      display: 'flex', alignItems: 'flex-start', gap: 8, position: 'relative',
-      padding: '7px 10px', background: bg,
-      border: '1px solid #e2e8f0', borderLeft: `3px solid ${borderColor}`,
+      display: 'flex', alignItems: 'flex-start', gap: 10, position: 'relative',
+      padding: '10px 14px', background: '#ffffff',
+      border: '0.5px solid #e5e7eb',
       borderRadius: 6, opacity: isComplete ? 0.5 : 1,
+      marginBottom: 6,
     }}>
       {/* Icon */}
       {item.type === 'task' ? (
@@ -83,20 +74,16 @@ export default function TaskNoteCard({ item, clientName, showClient = true, onTo
         </svg>
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div onClick={isInvoice ? handleContentClick : undefined} style={{
-          fontSize: 12, color: isComplete ? '#94a3b8' : '#334155', lineHeight: 1.4,
+        <p onClick={isInvoice ? handleContentClick : undefined} style={{
+          fontSize: 13, fontWeight: 500, color: isComplete ? '#9ca3af' : '#111827',
+          margin: '0 0 2px', lineHeight: 1.4,
           textDecoration: isComplete ? 'line-through' : 'none',
           cursor: isInvoice ? 'pointer' : 'default',
-        }}>{item.content}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
-          {showClient && clientName && (
-            <span onClick={() => router.push(`/clients/${item.client_id}`)} style={{
-              fontSize: 10, padding: '1px 6px', borderRadius: 4,
-              background: '#eff6ff', color: '#2563eb', fontWeight: 500, cursor: 'pointer',
-            }}>{clientName}</span>
-          )}
-          <span style={{ fontSize: 10, color: '#94a3b8' }}>{relativeTime(item.created_at)}</span>
-        </div>
+        }}>{item.content}</p>
+        <p style={{ fontSize: 11, color: '#9ca3af', margin: 0 }}>
+          {showClient && clientName && <span onClick={() => router.push(`/clients/${item.client_id}`)} style={{ cursor: 'pointer', color: '#6b7280' }}>{clientName} · </span>}
+          {relativeTime(item.created_at)}
+        </p>
       </div>
       {/* Delete button */}
       {onDelete && (

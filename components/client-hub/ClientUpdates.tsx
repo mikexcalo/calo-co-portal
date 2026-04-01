@@ -54,9 +54,9 @@ export default function ClientUpdates({ clientId, isClient }: ClientUpdatesProps
       background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12,
       padding: '16px 18px', marginTop: 20,
     }}>
-      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 12 }}>
-        Tasks & Notes
-      </div>
+      <p style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 8px' }}>
+        Tasks & notes
+      </p>
 
       {!isClient && (
         <div style={{ display: 'flex', gap: 8, marginBottom: sorted.length > 0 ? 12 : 0 }}>
@@ -68,7 +68,7 @@ export default function ClientUpdates({ clientId, isClient }: ClientUpdatesProps
               flex: 1, padding: '8px 10px', fontSize: 13, border: '1px solid #e2e8f0',
               borderRadius: 8, fontFamily: 'Inter, sans-serif', color: '#1a1f2e',
             }} />
-          <button onClick={handleSend} className="cta-btn" style={{ height: 36, fontSize: 12, padding: '0 14px' }}>Add</button>
+          <button onClick={handleSend} style={{ height: 36, fontSize: 12, padding: '0 14px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 500, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>Add</button>
         </div>
       )}
 
