@@ -85,7 +85,7 @@ export default function ModulesGrid({
         className="module-card"
         onClick={() => router.push(`/clients/${clientId}/invoices`)}
       >
-        <div className="mc-icon">📋</div>
+        <div className="mc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="2" width="16" height="20" rx="2" stroke="#6b7280" strokeWidth="1.3"/><path d="M8 7h8M8 11h8M8 15h4" stroke="#6b7280" strokeWidth="1.2" strokeLinecap="round"/></svg></div>
         <div className="mc-name">Invoices</div>
         <div className="mc-meta">{invMeta}</div>
       </button>
@@ -96,7 +96,7 @@ export default function ModulesGrid({
           className="module-card"
           onClick={() => router.push(`/clients/${clientId}/financials`)}
         >
-          <div className="mc-icon">💲</div>
+          <div className="mc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#6b7280" strokeWidth="1.3"/><path d="M12 6v12M9 9.5c0-1.1 1.3-2 3-2s3 .9 3 2-1.3 2-3 2-3 .9-3 2 1.3 2 3 2 3-.9 3-2" stroke="#6b7280" strokeWidth="1.2" strokeLinecap="round"/></svg></div>
           <div className="mc-name">Financials</div>
           <div className="mc-meta">{finScopeMeta}</div>
         </button>
@@ -107,7 +107,7 @@ export default function ModulesGrid({
         className="module-card"
         onClick={() => router.push(`/clients/${clientId}/brand-kit${isClient ? '?viewMode=view' : ''}`)}
       >
-        <div className="mc-icon">🍎</div>
+        <div className="mc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="#6b7280" strokeWidth="1.3"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="#6b7280" strokeWidth="1.3"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="#6b7280" strokeWidth="1.3"/><circle cx="17.5" cy="17.5" r="3.5" stroke="#6b7280" strokeWidth="1.3"/></svg></div>
         <div className="mc-name">Brand Kit</div>
         <div className="mc-meta">{bkMeta}</div>
       </button>
@@ -117,7 +117,7 @@ export default function ModulesGrid({
         className="module-card"
         onClick={() => router.push(`/clients/${clientId}/email-signature`)}
       >
-        <div className="mc-icon">✉️</div>
+        <div className="mc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="#6b7280" strokeWidth="1.3"/><path d="M3 7l9 6 9-6" stroke="#6b7280" strokeWidth="1.3"/></svg></div>
         <div className="mc-name">Email Signature</div>
         <div className="mc-meta">{sigMeta}</div>
       </button>
@@ -127,7 +127,7 @@ export default function ModulesGrid({
         className="module-card"
         onClick={() => router.push(`/clients/${clientId}/brand-builder`)}
       >
-        <div className="mc-icon">🎨</div>
+        <div className="mc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#6b7280" strokeWidth="1.3" strokeLinejoin="round"/><path d="M2 17l10 5 10-5" stroke="#6b7280" strokeWidth="1.3" strokeLinejoin="round"/><path d="M2 12l10 5 10-5" stroke="#6b7280" strokeWidth="1.3" strokeLinejoin="round"/></svg></div>
         <div className="mc-name">Brand Builder</div>
         <div className="mc-meta">Get started</div>
       </button>
@@ -138,7 +138,7 @@ export default function ModulesGrid({
         onClick={() => alert('Want access to Content Suite?\nAsk us about adding this to your package.')}
       >
         <div className="module-card module-card-locked-inner" style={{ minHeight: 120 }}>
-          <div className="mc-icon">📸</div>
+          <div className="mc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="#6b7280" strokeWidth="1.3"/><path d="M8 11V7a4 4 0 018 0v4" stroke="#6b7280" strokeWidth="1.3" strokeLinecap="round"/></svg></div>
           <div className="mc-name">Content Suite</div>
           <div className="mc-meta">Social media · Photo library · Scheduling</div>
         </div>
