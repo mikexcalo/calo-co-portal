@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import GlobalNav from '@/components/layout/GlobalNav';
+import Sidebar from '@/components/Sidebar';
+import TopBar from '@/components/TopBar';
 
 export const metadata: Metadata = {
   title: 'CALO&CO Portal',
@@ -20,29 +21,16 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>
-        <GlobalNav />
-        <div style={{ minHeight: 'calc(100vh - 56px - 48px)' }}>
-          {children}
+      <body style={{ margin: 0, color: '#0f172a' }}>
+        <div style={{ display: 'flex', height: '100vh' }}>
+          <Sidebar />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <TopBar />
+            <main style={{ flex: 1, overflow: 'auto', background: '#f4f5f7' }}>
+              {children}
+            </main>
+          </div>
         </div>
-        <footer
-          style={{
-            textAlign: 'center',
-            padding: '14px 0',
-            fontSize: '11px',
-            color: '#94a3b8',
-            height: '48px',
-          }}
-        >
-          <a
-            href="https://mikecalo.co"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="footer-link"
-          >
-            Powered by CALO&CO
-          </a>
-        </footer>
       </body>
     </html>
   );
