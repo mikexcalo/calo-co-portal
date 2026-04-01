@@ -183,8 +183,9 @@ export default function BrandBuilderPage() {
   const clientName = client.company || client.name || 'Client';
 
   return (
-    <div className="page" style={{ paddingTop: 20, paddingBottom: 32 }}>
-      {/* No brand kit notice */}
+    <div style={{ padding: '0 0 0 0' }}>
+      {/* No brand kit notice — keep some padding for this */}
+      <div style={{ maxWidth: 980, margin: '0 auto', padding: '12px 24px 0' }}>
       {!hasBrandKit && (
         <div style={{
           background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8,
@@ -207,9 +208,10 @@ export default function BrandBuilderPage() {
           </span>
         </div>
       )}
+      </div>
 
-      {/* Three-column layout: Sidebar Nav | Fields | Preview */}
-      <div style={{ display: 'flex', minHeight: 500, border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden', background: '#fff' }}>
+      {/* Three-column layout: Sidebar Nav | Fields | Preview — full width */}
+      <div style={{ display: 'flex', minHeight: 'calc(100vh - 80px)', borderTop: '1px solid #e5e7eb', background: '#fff' }}>
 
         {/* Column 1: Sidebar Nav (~180px) */}
         <div style={{ width: 180, flexShrink: 0, borderRight: '1px solid #e5e7eb', padding: '16px 0' }}>
