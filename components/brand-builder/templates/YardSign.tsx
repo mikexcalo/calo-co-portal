@@ -33,7 +33,8 @@ export default function YardSign({ fields }: YardSignProps) {
   return (
     <div style={{
       width: w, height: h, background: primaryColor || '#28502e', borderRadius: 4,
-      fontFamily, color: '#ffffff', overflow: 'hidden',
+      border: '2px solid rgba(0,0,0,0.15)',
+      fontFamily, color: '#ffffff',
       display: 'flex', flexDirection: 'column', position: 'relative',
     }}>
       {/* Logo — centered, top section */}
@@ -89,8 +90,8 @@ export default function YardSign({ fields }: YardSignProps) {
       {/* Bottom bar — company name left, QR right */}
       <div style={{
         display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
-        padding: '16px 20px',
-        gap: 12,
+        padding: '14px 18px',
+        gap: 12, flexShrink: 0,
       }}>
         {/* Company name — left, bold, wraps if long */}
         <div style={{
@@ -100,10 +101,10 @@ export default function YardSign({ fields }: YardSignProps) {
           {companyName || 'Company Name'}
         </div>
 
-        {/* QR code — right */}
+        {/* QR code — right, scales with sign height */}
         {showQrCode !== false && qrCodeUrl && (
-          <div style={{ flexShrink: 0, minWidth: 48, minHeight: 48 }}>
-            <QRCode url={qrCodeUrl} size={Math.max(48, 70)} color={primaryColor || '#28502e'} bgColor="#ffffff" />
+          <div style={{ flexShrink: 0 }}>
+            <QRCode url={qrCodeUrl} size={Math.min(70, Math.max(48, Math.round(h * 0.15)))} color={primaryColor || '#28502e'} bgColor="#ffffff" />
           </div>
         )}
       </div>
