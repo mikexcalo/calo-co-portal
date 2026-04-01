@@ -66,23 +66,40 @@ export default function Home() {
 
   const refreshFeed = () => { setFeedKey((k) => k + 1); loadTasksNotes().then(setAllTasks); };
 
-  function getUrgencyStyle(createdAt: string) {
-    const daysSince = Math.floor((Date.now() - new Date(createdAt).getTime()) / 86400000);
-    if (daysSince >= 3) return {
-      background: '#FEF2F2', border: '0.5px solid rgba(252,165,165,0.27)', borderLeft: '3px solid #DC2626',
-      titleColor: '#991B1B', subtitleColor: '#B91C1C', arrowColor: '#B91C1C', iconColor: '#DC2626',
-      badge: { text: `${daysSince}d`, bg: '#DC2626', color: '#fff' },
-    };
-    if (daysSince >= 2) return {
-      background: '#FFFBEB', border: '0.5px solid rgba(245,158,11,0.2)', borderLeft: '3px solid #F59E0B',
-      titleColor: '#92400E', subtitleColor: '#B45309', arrowColor: '#B45309', iconColor: '#D97706',
-      badge: { text: `${daysSince}d`, bg: '#F59E0B', color: '#fff' },
-    };
-    return {
-      background: '#ffffff', border: '0.5px solid #e5e7eb', borderLeft: '3px solid #e5e7eb',
-      titleColor: '#111827', subtitleColor: '#9ca3af', arrowColor: '#9ca3af', iconColor: '#9ca3af',
-      badge: null as null,
-    };
+  function getUrgencyStyle(item: { content?: string; created_at?: string; due?: string; date?: string; id?: string }) {
+    const content = (item.content || item.id || '').toLowerCase();
+    const red = { background: '#FEF2F2', border: '0.5px solid rgba(252,165,165,0.27)', borderLeft: '3px solid #DC2626', titleColor: '#991B1B', subtitleColor: '#B91C1C', arrowColor: '#B91C1C', iconColor: '#DC2626' };
+    const amber = { background: '#FFFBEB', border: '0.5px solid rgba(245,158,11,0.2)', borderLeft: '3px solid #F59E0B', titleColor: '#92400E', subtitleColor: '#B45309', arrowColor: '#B45309', iconColor: '#D97706' };
+    const neutral = { background: '#ffffff', border: '0.5px solid #e5e7eb', borderLeft: '3px solid #e5e7eb', titleColor: '#111827', subtitleColor: '#9ca3af', arrowColor: '#9ca3af', iconColor: '#9ca3af' };
+
+    // Communication items — look for "X days" in content
+    if (content.includes('text ') || content.includes('call ') || content.includes('email ') || content.includes('message')) {
+      const match = content.match(/(\d+)\s*days?\s*(since|ago|no\s*response|without)/i);
+      const days = match ? parseInt(match[1], 10) : Math.floor((Date.now() - new Date(item.created_at || Date.now()).getTime()) / 86400000);
+      if (days >= 3) return { ...red, badge: { text: days + 'd', bg: '#DC2626', color: '#fff' } };
+      if (days >= 2) return { ...amber, badge: { text: days + 'd', bg: '#F59E0B', color: '#fff' } };
+      return { ...neutral, badge: null as null };
+    }
+
+    // Invoice items — calculate days until due
+    if (content.includes('invoice') && item.due) {
+      try {
+        const dueDate = new Date(item.due);
+        if (!isNaN(dueDate.getTime())) {
+          const daysUntil = Math.floor((dueDate.getTime() - Date.now()) / 86400000);
+          if (daysUntil <= 0) return { ...red, badge: { text: 'overdue', bg: '#DC2626', color: '#fff' } };
+          if (daysUntil <= 3) return { ...amber, badge: { text: daysUntil + 'd left', bg: '#F59E0B', color: '#fff' } };
+          if (daysUntil <= 7) return { ...amber, badge: { text: daysUntil + 'd left', bg: '#F59E0B', color: '#fff' } };
+        }
+      } catch {}
+    }
+
+    // Default — fallback to created_at age
+    const created = new Date(item.created_at || item.date || Date.now());
+    const daysSince = Math.floor((Date.now() - created.getTime()) / 86400000);
+    if (daysSince >= 3) return { ...red, badge: { text: daysSince + 'd', bg: '#DC2626', color: '#fff' } };
+    if (daysSince >= 2) return { ...amber, badge: { text: daysSince + 'd', bg: '#F59E0B', color: '#fff' } };
+    return { ...neutral, badge: null as null };
   }
 
   function getActionIcon(content: string, color: string) {
@@ -114,7 +131,7 @@ export default function Home() {
     <div style={{ display: 'flex', gap: 24, padding: '32px 40px' }}>
 
       {/* LEFT COLUMN */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: 3, minWidth: 0 }}>
         <h1 style={{ fontSize: 22, fontWeight: 500, color: '#111827', margin: '0 0 4px' }}>{greeting}</h1>
         <p style={{ fontSize: 13, color: '#9ca3af', margin: '0 0 20px' }}>{dateline}</p>
 
@@ -126,7 +143,7 @@ export default function Home() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {openTasks.map((task) => {
             const cl = DB.clients.find((c) => c.id === task.client_id);
-            const u = getUrgencyStyle(task.created_at);
+            const u = getUrgencyStyle(task);
             return (
               <div key={task.id} style={{
                 background: u.background, border: u.border, borderLeft: u.borderLeft,
@@ -151,7 +168,7 @@ export default function Home() {
           {unpaidInvs.map((inv) => {
             const cl = DB.clients.find((c) => c.id === inv.clientId);
             const total = (inv.items || []).reduce((s: number, i: any) => s + (i.qty || 1) * (i.price || 0), 0) + (inv.tax || 0) + (inv.shipping || 0);
-            const u = getUrgencyStyle(inv.due || inv.date || new Date().toISOString());
+            const u = getUrgencyStyle({ content: `invoice ${inv.id}`, due: inv.due, date: inv.date, created_at: inv.date });
             return (
               <div key={inv.id || inv._uuid} style={{
                 background: u.background, border: u.border, borderLeft: u.borderLeft,
@@ -197,7 +214,7 @@ export default function Home() {
       </div>
 
       {/* RIGHT COLUMN */}
-      <div style={{ width: 280, flexShrink: 0 }}>
+      <div style={{ flex: 2, minWidth: 0 }}>
         {/* Financials — two separate cards */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
           <div onClick={() => router.push('/financials')} style={{
