@@ -58,14 +58,16 @@ export default function TopBar() {
       {/* Right: toggle + avatar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {isClientRoute && (
-          <div style={{ display: 'flex', background: '#f1f3f5', borderRadius: 6, padding: 2 }}>
+          <div style={{ display: 'inline-flex', background: '#f1f3f5', borderRadius: 6, padding: 2 }}>
             {(['agency', 'client'] as const).map((m) => (
               <button key={m} onClick={() => handleToggle(m)} style={{
-                padding: '4px 10px', fontSize: 11, fontWeight: 500, borderRadius: 4, border: 'none',
+                padding: '4px 10px', fontSize: 11, fontWeight: viewMode === m ? 500 : 400,
+                borderRadius: 4,
+                border: viewMode === m ? '0.5px solid rgba(0,0,0,0.08)' : '0.5px solid transparent',
                 background: viewMode === m ? '#fff' : 'transparent',
                 color: viewMode === m ? '#111827' : '#9ca3af',
                 cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-                boxShadow: viewMode === m ? '0 0.5px 2px rgba(0,0,0,0.1)' : 'none',
+                boxShadow: viewMode === m ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
               }}>
                 {m === 'agency' ? 'Agency' : 'Client'}
               </button>

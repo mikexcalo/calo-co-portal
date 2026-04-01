@@ -34,12 +34,22 @@ export default function BrandBuilderPage() {
     }
   }, [searchParams, clientId, router]);
 
-  // Dispatch asset type to breadcrumb nav
+  // Dispatch asset type to breadcrumb + sidebar sync
   const handleAssetTypeChange = useCallback((type: AssetType) => {
     setAssetType(type);
     const label = ASSET_TYPES.find((t) => t.id === type)?.label || type;
     window.dispatchEvent(new CustomEvent('bbAssetTypeChange', { detail: label }));
   }, []);
+
+  // Listen for sidebar asset selection
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const id = (e as CustomEvent).detail as AssetType;
+      if (id) handleAssetTypeChange(id);
+    };
+    window.addEventListener('sidebarAssetSelect', handler);
+    return () => window.removeEventListener('sidebarAssetSelect', handler);
+  }, [handleAssetTypeChange]);
   const [fields, setFields] = useState<BrandBuilderFields>(DEFAULT_FIELDS);
   const [sources, setSources] = useState<Record<string, string>>({});
   const [hasBrandKit, setHasBrandKit] = useState(false);
@@ -246,28 +256,8 @@ export default function BrandBuilderPage() {
       )}
       </div>
 
-      {/* Three-column layout — full width */}
+      {/* Two-column layout — fields + preview, full width (sidebar is global) */}
       <div style={{ display: 'flex', minHeight: 'calc(100vh - 60px)', background: '#fff' }}>
-
-        {/* Sidebar: 200px fixed */}
-        <div style={{ width: 200, flexShrink: 0, borderRight: '1px solid #e5e7eb', paddingTop: 20 }}>
-          {ASSET_TYPES.map((t) => {
-            const active = assetType === t.id;
-            return (
-              <button key={t.id} onClick={() => handleAssetTypeChange(t.id)} style={{
-                display: 'flex', alignItems: 'center', gap: 10, width: 'calc(100% - 16px)',
-                padding: '10px 14px', margin: '2px 8px', borderRadius: 8, border: 'none',
-                fontSize: 13, color: active ? '#111827' : '#6b7280', fontWeight: active ? 500 : 400,
-                background: active ? '#f3f4f6' : 'transparent', cursor: 'pointer',
-                fontFamily: 'Inter, sans-serif', textAlign: 'left',
-              }}>
-                <AssetIcon id={t.id} size={20} />
-                {t.label}
-              </button>
-            );
-          })}
-        </div>
-
         {assetType ? (
           <>
             {/* Fields: 420px fixed */}
