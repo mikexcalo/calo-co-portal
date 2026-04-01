@@ -245,26 +245,29 @@ export default function BrandBuilderPage() {
             </div>
           </>
         ) : (
-          /* Welcome state — centered, raised */
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', minHeight: 'calc(100vh - 60px)', paddingBottom: 80 }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 22, fontWeight: 600, color: '#111827', marginBottom: 32 }}>Create print-ready assets</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, maxWidth: 500, margin: '0 auto' }}>
+          /* Welcome — Design Studio */
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 60px)', paddingBottom: 60 }}>
+            <div style={{ textAlign: 'center', maxWidth: 560 }}>
+              <div style={{ fontSize: 28, fontWeight: 700, color: '#111827', fontFamily: 'Inter, sans-serif', marginBottom: 8 }}>Design Studio</div>
+              <div style={{ fontSize: 15, color: '#9ca3af', fontFamily: 'Inter, sans-serif', marginBottom: 40, lineHeight: 1.5 }}>
+                Create print-ready branded assets for your clients in minutes.
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 160px)', gap: 16, justifyContent: 'center' }}>
                 {ASSET_TYPES.map((t) => {
-                  const hoverColors: Record<string, string> = {
+                  const hc: Record<string, string> = {
                     'business-card': '#93c5fd', 'yard-sign': '#fca5a5', 'vehicle-magnet': '#99f6e4',
                     't-shirt': '#c4b5fd', 'door-hanger': '#fdba74', 'flyer': '#6ee7b7',
                   };
                   return (
                     <button key={t.id} onClick={() => handleAssetTypeChange(t.id)} style={{
-                      padding: '28px 20px', border: '1px solid #f3f4f6', borderRadius: 14, background: '#fff',
-                      cursor: 'pointer', textAlign: 'center', fontFamily: 'Inter, sans-serif', transition: 'all 0.15s',
+                      padding: '28px 16px', border: '1px solid #f3f4f6', borderRadius: 14, background: '#fff',
+                      cursor: 'pointer', textAlign: 'center', fontFamily: 'Inter, sans-serif', transition: 'all 0.15s ease',
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = hoverColors[t.id] || '#d1d5db'; e.currentTarget.style.background = '#fafafa'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = hc[t.id] || '#d1d5db'; e.currentTarget.style.background = '#f9fafb'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#f3f4f6'; e.currentTarget.style.background = '#fff'; }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
-                        <AssetIcon id={t.id} size={28} />
+                      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+                        <AssetIcon id={t.id} size={32} />
                       </div>
                       <div style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>{t.label}</div>
                     </button>
