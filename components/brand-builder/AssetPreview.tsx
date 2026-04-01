@@ -10,6 +10,16 @@ interface AssetPreviewProps {
   fields: BrandBuilderFields;
 }
 
+function ColorSwatches({ fields }: { fields: BrandBuilderFields }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16 }}>
+      <div title="Primary" style={{ width: 20, height: 20, borderRadius: '50%', background: fields.primaryColor, border: '1px solid #e5e7eb' }} />
+      <div title="Secondary" style={{ width: 20, height: 20, borderRadius: '50%', background: fields.secondaryColor, border: '1px solid #e5e7eb' }} />
+      <div title="Background" style={{ width: 20, height: 20, borderRadius: '50%', background: fields.backgroundColor, border: '1px solid #e5e7eb' }} />
+    </div>
+  );
+}
+
 export default function AssetPreview({ assetType, fields }: AssetPreviewProps) {
   const frontRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLDivElement>(null);
@@ -78,6 +88,7 @@ export default function AssetPreview({ assetType, fields }: AssetPreviewProps) {
           frontRef={frontRef}
           backRef={backRef}
         />
+        <ColorSwatches fields={fields} />
       </div>
     );
   }
@@ -94,6 +105,7 @@ export default function AssetPreview({ assetType, fields }: AssetPreviewProps) {
         </div>
       </div>
       <ExportButtons assetType={assetType} previewRef={singleRef} />
+      <ColorSwatches fields={fields} />
     </div>
   );
 }
