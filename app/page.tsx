@@ -129,7 +129,7 @@ export default function Home() {
   const clients = DB.clients.sort((a, b) => (a.company || a.name).localeCompare(b.company || b.name));
 
   return (
-    <div style={{ padding: '32px 40px', display: 'flex', gap: '40px' }}>
+    <div style={{ display: 'flex', gap: '40px', padding: '32px 40px', maxWidth: '1100px' }}>
 
       {/* LEFT COLUMN */}
       <div style={{ flex: 1, minWidth: 0 }}>
