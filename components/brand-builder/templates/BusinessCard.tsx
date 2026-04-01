@@ -40,6 +40,7 @@ export default function BusinessCard({ fields, side }: BusinessCardProps) {
   // ===== SQUARE LOGO (0.7–1.3) =====
   if (isSquare) {
     if (side === 'back') {
+      // BACK: full primaryColor bg, centered logo 100px, company name white, tagline
       return (
         <div style={{
           ...cardBase, background: primaryColor, color: '#fff',
@@ -47,11 +48,11 @@ export default function BusinessCard({ fields, side }: BusinessCardProps) {
         }}>
           {logoUrl && (
             <img src={logoUrl} alt="Logo" style={{
-              height: 120, maxWidth: w * 0.6, objectFit: 'contain', filter: 'brightness(0) invert(1)',
+              height: 100, maxWidth: w * 0.6, objectFit: 'contain', filter: 'brightness(0) invert(1)',
             }} />
           )}
           {showCompanyName && companyName && (
-            <div style={{ fontSize: 14, fontWeight: 700, textAlign: 'center' }}>{companyName}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, textAlign: 'center' }}>{companyName}</div>
           )}
           {showTagline && tagline && (
             <div style={{ fontSize: 9, opacity: 0.8, textAlign: 'center', padding: '0 24px' }}>{tagline}</div>
@@ -60,17 +61,20 @@ export default function BusinessCard({ fields, side }: BusinessCardProps) {
       );
     }
 
-    // FRONT — Square: accent bar → logo(80) left + QR(70) right → company → contact
+    // FRONT: accent bar 6px → logo(80) LEFT + QR(70) RIGHT → company name → contact stacked
     return (
       <div style={{
         ...cardBase, background: backgroundColor || '#fff', color: secondaryColor,
         display: 'flex', flexDirection: 'column',
       }}>
-        {/* Accent bar */}
+        {/* Accent bar — full width, 6px, primaryColor */}
         <div style={{ height: 6, background: primaryColor, flexShrink: 0 }} />
 
-        {/* Logo left + QR right */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px 6px' }}>
+        {/* Logo left + QR right row */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: 12,
+        }}>
           {logoUrl && (
             <img src={logoUrl} alt="Logo" style={{ height: 80, maxWidth: 100, objectFit: 'contain', flexShrink: 0 }} />
           )}
@@ -82,14 +86,12 @@ export default function BusinessCard({ fields, side }: BusinessCardProps) {
         </div>
 
         {/* Company name + contact details, left-aligned */}
-        <div style={{ padding: '0 20px 14px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+        <div style={{ paddingLeft: 12, paddingRight: 12, paddingBottom: 12, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
           {showCompanyName && companyName && (
-            <div style={{ fontSize: 12, fontWeight: 700, color: primaryColor, marginBottom: 3 }}>{companyName}</div>
-          )}
-          {showContactName && contactName && (
-            <div style={{ fontSize: 10, fontWeight: 600, color: secondaryColor, marginBottom: 1 }}>{contactName}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: primaryColor, marginBottom: 3 }}>{companyName}</div>
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {showContactName && contactName && <div style={{ fontSize: 8, color: '#6b7280' }}>{contactName}</div>}
             {showPhone && phone && <div style={{ fontSize: 8, color: '#6b7280' }}>{phone}</div>}
             {showEmail && email && <div style={{ fontSize: 8, color: '#6b7280' }}>{email}</div>}
             {showWebsite && website && <div style={{ fontSize: 8, color: primaryColor }}>{website}</div>}
