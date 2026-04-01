@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { BrandBuilderFields } from '../types';
 import QRCode from '../QRCode';
 
@@ -8,96 +7,97 @@ interface YardSignProps {
   fields: BrandBuilderFields;
 }
 
-const SIZES: Record<string, { wIn: number; hIn: number; pw: number; ph: number }> = {
-  '18x24': { wIn: 18, hIn: 24, pw: 360, ph: 480 },
-  '24x18': { wIn: 24, hIn: 18, pw: 480, ph: 360 },
-  '12x18': { wIn: 12, hIn: 18, pw: 300, ph: 450 },
-  '24x36': { wIn: 24, hIn: 36, pw: 400, ph: 600 },
-  '36x24': { wIn: 36, hIn: 24, pw: 600, ph: 400 },
+// Fixed preview width, height calculated from aspect ratio
+const BASE_W = 360;
+const RATIOS: Record<string, number> = {
+  '18x24': 24 / 18,   // 1.333 — portrait
+  '24x18': 18 / 24,   // 0.75  — landscape
+  '12x18': 18 / 12,   // 1.5   — tall portrait
+  '24x36': 36 / 24,   // 1.5   — tall portrait
+  '36x24': 24 / 36,   // 0.667 — wide landscape
 };
 
 export default function YardSign({ fields }: YardSignProps) {
   const {
-    logoUrl, companyName, phone, website, qrCodeUrl, headline,
-    primaryColor, fontFamily, showHeadline, showQrCode, showPhone, showWebsite,
+    logoUrl, companyName, phone, qrCodeUrl, headline,
+    primaryColor, fontFamily, showHeadline, showQrCode, showPhone,
   } = fields;
 
-  const size = SIZES[fields.signSize] || SIZES['18x24'];
-  const w = size.pw;
-  const h = size.ph;
+  const ratio = RATIOS[fields.signSize] || RATIOS['18x24'];
+  const w = BASE_W;
+  const h = Math.round(BASE_W * ratio);
 
-  // Detect logo aspect ratio
-  const [logoAspect, setLogoAspect] = useState(1);
-  useEffect(() => {
-    if (!logoUrl) return;
-    const img = new Image();
-    img.onload = () => setLogoAspect(img.naturalWidth / img.naturalHeight);
-    img.src = logoUrl;
-  }, [logoUrl]);
-
-  const isWide = logoAspect > 1.2;
-  const qrSize = Math.round(w * 0.15);
+  // Scale fonts relative to smallest dimension
+  const scale = Math.min(w, h);
 
   return (
     <div style={{
-      width: w, height: h, background: primaryColor, borderRadius: 4,
-      fontFamily, color: '#ffffff', position: 'relative', overflow: 'hidden',
-      display: 'flex', flexDirection: 'column', padding: 0,
+      width: w, height: h, background: primaryColor || '#28502e', borderRadius: 4,
+      fontFamily, color: '#ffffff', overflow: 'hidden',
+      display: 'flex', flexDirection: 'column', position: 'relative',
     }}>
-      {/* Top ~40%: Logo */}
-      <div style={{
-        flex: '0 0 40%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '16px 24px 8px',
-      }}>
-        {logoUrl && (
+      {/* Logo — centered, top section */}
+      {logoUrl && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: `${Math.round(h * 0.06)}px ${Math.round(w * 0.08)}px`,
+          flex: '0 0 auto',
+        }}>
           <img src={logoUrl} alt="Logo" style={{
-            maxWidth: isWide ? w * 0.75 : w * 0.3,
-            maxHeight: h * 0.3,
-            objectFit: 'contain',
+            maxHeight: 120, maxWidth: w * 0.7, objectFit: 'contain',
             filter: 'brightness(0) invert(1)',
           }} />
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Middle: Headline */}
-      {showHeadline && headline && (
+      {/* Headline — centered */}
+      {showHeadline !== false && headline && (
         <div style={{
           textAlign: 'center', padding: '0 20px',
-          fontSize: Math.round(w * 0.045), fontWeight: 700, opacity: 0.95,
+          fontSize: Math.max(16, Math.round(scale * 0.055)), fontWeight: 700,
           lineHeight: 1.2,
         }}>
           {headline}
         </div>
       )}
 
-      {/* Bottom: Phone (largest) + Website */}
-      <div style={{
-        flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-        justifyContent: 'center', gap: 4, padding: '8px 20px 20px',
-      }}>
-        {showPhone !== false && (
+      {/* Phone — centered, biggest text */}
+      {showPhone !== false && (
+        <div style={{
+          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
           <div style={{
-            fontSize: Math.round(w * 0.09), fontWeight: 900,
-            letterSpacing: '0.03em', textAlign: 'center',
+            fontSize: Math.max(24, Math.round(scale * 0.1)), fontWeight: 900,
+            letterSpacing: '0.02em', textAlign: 'center',
           }}>
             {phone || '(555) 000-0000'}
           </div>
-        )}
-        {showWebsite !== false && website && (
-          <div style={{ fontSize: Math.round(w * 0.035), opacity: 0.85, textAlign: 'center' }}>
-            {website}
+        </div>
+      )}
+
+      {/* Bottom bar — company name left, QR right */}
+      <div style={{
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+        padding: `${Math.round(h * 0.04)}px ${Math.round(w * 0.05)}px`,
+        gap: 12,
+      }}>
+        {/* Company name — left, bold, wraps if long */}
+        <div style={{
+          fontSize: Math.max(14, Math.round(scale * 0.06)), fontWeight: 800,
+          lineHeight: 1.15, flex: 1, minWidth: 0,
+        }}>
+          {companyName || 'Company Name'}
+        </div>
+
+        {/* QR code — right */}
+        {showQrCode !== false && qrCodeUrl && (
+          <div style={{ flexShrink: 0 }}>
+            <QRCode url={qrCodeUrl} size={70} color={primaryColor || '#28502e'} bgColor="#ffffff" />
           </div>
         )}
       </div>
-
-      {/* QR Code — bottom-right corner */}
-      {showQrCode !== false && qrCodeUrl && (
-        <div style={{ position: 'absolute', bottom: 14, right: 14 }}>
-          <QRCode url={qrCodeUrl} size={qrSize} color="#ffffff" bgColor={primaryColor} />
-        </div>
-      )}
     </div>
   );
 }
 
-export { SIZES as YARD_SIGN_SIZES };
+export { RATIOS as YARD_SIGN_RATIOS };
