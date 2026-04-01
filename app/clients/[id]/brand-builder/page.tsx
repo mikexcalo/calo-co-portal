@@ -273,35 +273,70 @@ export default function BrandBuilderPage() {
           <div style={{ flex: 1, padding: '40px 48px' }}>
             <div style={{ fontSize: 26, fontWeight: 700, color: '#111827' }}>Design Studio</div>
             <div style={{ fontSize: 14, color: '#9ca3af', marginTop: 6, marginBottom: 32 }}>Choose a template to start designing. Every asset pulls from your client's Brand Kit.</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-              {(() => {
-                const descs: Record<string, string> = {
-                  'business-card': 'Professional cards with your logo, contact info, and QR code',
-                  'yard-sign': 'High-visibility signs with bold branding for job sites',
-                  'vehicle-magnet': 'Branded panels sized for trucks and vans',
-                  't-shirt': 'Team apparel with your logo and company name',
-                  'door-hanger': 'Leave-behind marketing for residential neighborhoods',
-                  'flyer': 'Full-page promotional handouts with all your details',
-                };
-                const hc: Record<string, string> = {
-                  'business-card': '#93c5fd', 'yard-sign': '#fca5a5', 'vehicle-magnet': '#99f6e4',
-                  't-shirt': '#c4b5fd', 'door-hanger': '#fdba74', 'flyer': '#6ee7b7',
-                };
-                return ASSET_TYPES.map((t) => (
-                  <button key={t.id} onClick={() => handleAssetTypeChange(t.id)} style={{
-                    padding: 24, border: '1px solid #f3f4f6', borderRadius: 14, background: '#fff',
-                    cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif', transition: 'all 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = hc[t.id] || '#d1d5db'; e.currentTarget.style.background = '#f9fafb'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#f3f4f6'; e.currentTarget.style.background = '#fff'; }}
-                  >
-                    <AssetIcon id={t.id} size={32} />
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginTop: 14, marginBottom: 4 }}>{t.label}</div>
-                    <div style={{ fontSize: 12, color: '#9ca3af', lineHeight: 1.4 }}>{descs[t.id]}</div>
-                  </button>
-                ));
-              })()}
-            </div>
+
+            {(() => {
+              const descs: Record<string, string> = {
+                'business-card': 'Professional cards with your logo, contact info, and QR code',
+                'yard-sign': 'High-visibility signs with bold branding for job sites',
+                'vehicle-magnet': 'Branded panels sized for trucks and vans',
+                't-shirt': 'Team apparel with your logo and company name',
+                'door-hanger': 'Leave-behind marketing for residential neighborhoods',
+                'flyer': 'Full-page promotional handouts with all your details',
+              };
+              const hc: Record<string, string> = {
+                'business-card': '#93c5fd', 'yard-sign': '#fca5a5', 'vehicle-magnet': '#99f6e4',
+                't-shirt': '#c4b5fd', 'door-hanger': '#fdba74', 'flyer': '#6ee7b7',
+              };
+              const printAssets = ASSET_TYPES;
+
+              const tileStyle: React.CSSProperties = {
+                padding: 24, border: '1px solid #f3f4f6', borderRadius: 14, background: '#fff',
+                cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif', transition: 'all 0.15s ease',
+              };
+              const onEnter = (e: React.MouseEvent<HTMLButtonElement>, color: string) => { e.currentTarget.style.borderColor = color; e.currentTarget.style.background = '#f9fafb'; };
+              const onLeave = (e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.borderColor = '#f3f4f6'; e.currentTarget.style.background = '#fff'; };
+
+              return (
+                <>
+                  {/* Print section */}
+                  <p style={{ fontSize: '10px', fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' }}>
+                    Print
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
+                    {printAssets.map((t) => (
+                      <button key={t.id} onClick={() => handleAssetTypeChange(t.id)} style={tileStyle}
+                        onMouseEnter={(e) => onEnter(e, hc[t.id] || '#d1d5db')}
+                        onMouseLeave={onLeave}
+                      >
+                        <AssetIcon id={t.id} size={32} />
+                        <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginTop: 14, marginBottom: 4 }}>{t.label}</div>
+                        <div style={{ fontSize: 12, color: '#9ca3af', lineHeight: 1.4 }}>{descs[t.id]}</div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Digital section */}
+                  <p style={{ fontSize: '10px', fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' }}>
+                    Digital
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+                    <button onClick={() => router.push(`/clients/${clientId}/email-signature`)} style={tileStyle}
+                      onMouseEnter={(e) => onEnter(e, '#93c5fd')}
+                      onMouseLeave={onLeave}
+                    >
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 0 }}>
+                        <rect x="3" y="5" width="18" height="14" rx="2" fill="#EFF6FF" stroke="#93C5FD" strokeWidth="0.8"/>
+                        <path d="M3 7l9 6 9-6" stroke="#2563EB" strokeWidth="1.2"/>
+                        <line x1="7" y1="13" x2="11" y2="13" stroke="#93C5FD" strokeWidth="1" strokeLinecap="round"/>
+                        <line x1="7" y1="15.5" x2="9.5" y2="15.5" stroke="#BFDBFE" strokeWidth="0.8" strokeLinecap="round"/>
+                      </svg>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginTop: 14, marginBottom: 4 }}>Email Signature</div>
+                      <div style={{ fontSize: 12, color: '#9ca3af', lineHeight: 1.4 }}>HTML signatures for Gmail, Outlook, and more</div>
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         )}
       </div>
