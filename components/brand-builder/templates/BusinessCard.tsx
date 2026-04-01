@@ -17,8 +17,10 @@ export default function BusinessCard({ fields, side }: BusinessCardProps) {
     showWebsite, showQrCode, showTagline,
   } = fields;
 
+  // 3.5" × 2" card → 350×200 preview
   const w = 350, h = 200;
 
+  // Detect logo aspect ratio
   const [logoAspect, setLogoAspect] = useState(1);
   useEffect(() => {
     if (!logoUrl) { setLogoAspect(1); return; }
@@ -27,54 +29,69 @@ export default function BusinessCard({ fields, side }: BusinessCardProps) {
     img.src = logoUrl;
   }, [logoUrl]);
 
+  // Square: 0.7–1.3, Horizontal: >1.3
   const isSquare = logoAspect >= 0.7 && logoAspect <= 1.3;
 
-  // ===== MODE A: Square logo (0.7–1.3) =====
+  const cardBase: React.CSSProperties = {
+    width: w, height: h, borderRadius: 8, fontFamily,
+    overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+  };
+
+  // ===== SQUARE LOGO (0.7–1.3) =====
   if (isSquare) {
     if (side === 'back') {
       return (
         <div style={{
-          width: w, height: h, background: primaryColor, borderRadius: 4,
-          fontFamily, color: '#fff', display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center', gap: 6, overflow: 'hidden',
+          ...cardBase, background: primaryColor, color: '#fff',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6,
         }}>
           {logoUrl && (
             <img src={logoUrl} alt="Logo" style={{
-              maxWidth: 100, maxHeight: 80, objectFit: 'contain', filter: 'brightness(0) invert(1)',
+              height: 120, maxWidth: w * 0.6, objectFit: 'contain', filter: 'brightness(0) invert(1)',
             }} />
           )}
           {showCompanyName && companyName && (
             <div style={{ fontSize: 14, fontWeight: 700, textAlign: 'center' }}>{companyName}</div>
           )}
           {showTagline && tagline && (
-            <div style={{ fontSize: 9, opacity: 0.8, textAlign: 'center', padding: '0 20px' }}>{tagline}</div>
+            <div style={{ fontSize: 9, opacity: 0.8, textAlign: 'center', padding: '0 24px' }}>{tagline}</div>
           )}
         </div>
       );
     }
 
-    // FRONT A: accent bar → logo(80) left + QR(70) right → company name → contact details
+    // FRONT — Square: accent bar → logo(80) left + QR(70) right → company → contact
     return (
       <div style={{
-        width: w, height: h, background: backgroundColor || '#fff', borderRadius: 4,
-        fontFamily, color: secondaryColor, overflow: 'hidden', display: 'flex', flexDirection: 'column',
+        ...cardBase, background: backgroundColor || '#fff', color: secondaryColor,
+        display: 'flex', flexDirection: 'column',
       }}>
+        {/* Accent bar */}
         <div style={{ height: 6, background: primaryColor, flexShrink: 0 }} />
+
+        {/* Logo left + QR right */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px 6px' }}>
-          {logoUrl && <img src={logoUrl} alt="Logo" style={{ width: 80, height: 80, objectFit: 'contain', flexShrink: 0 }} />}
+          {logoUrl && (
+            <img src={logoUrl} alt="Logo" style={{ height: 80, maxWidth: 100, objectFit: 'contain', flexShrink: 0 }} />
+          )}
           {showQrCode && qrCodeUrl && (
             <div style={{ flexShrink: 0 }}>
               <QRCode url={qrCodeUrl} size={70} color={primaryColor} bgColor={backgroundColor || '#fff'} />
             </div>
           )}
         </div>
+
+        {/* Company name + contact details, left-aligned */}
         <div style={{ padding: '0 20px 14px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-          {showCompanyName && <div style={{ fontSize: 12, fontWeight: 700, color: primaryColor, marginBottom: 3 }}>{companyName}</div>}
-          {showContactName && contactName && <div style={{ fontSize: 10, fontWeight: 600, marginBottom: 1 }}>{contactName}</div>}
-          {showContactTitle && contactTitle && <div style={{ fontSize: 8, color: '#64748b', marginBottom: 3 }}>{contactTitle}</div>}
+          {showCompanyName && companyName && (
+            <div style={{ fontSize: 12, fontWeight: 700, color: primaryColor, marginBottom: 3 }}>{companyName}</div>
+          )}
+          {showContactName && contactName && (
+            <div style={{ fontSize: 10, fontWeight: 600, color: secondaryColor, marginBottom: 1 }}>{contactName}</div>
+          )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            {showPhone && phone && <div style={{ fontSize: 8, color: '#475569' }}>{phone}</div>}
-            {showEmail && email && <div style={{ fontSize: 8, color: '#475569' }}>{email}</div>}
+            {showPhone && phone && <div style={{ fontSize: 8, color: '#6b7280' }}>{phone}</div>}
+            {showEmail && email && <div style={{ fontSize: 8, color: '#6b7280' }}>{email}</div>}
             {showWebsite && website && <div style={{ fontSize: 8, color: primaryColor }}>{website}</div>}
           </div>
         </div>
@@ -82,25 +99,27 @@ export default function BusinessCard({ fields, side }: BusinessCardProps) {
     );
   }
 
-  // ===== MODE B: Wide/horizontal logo (>1.3) =====
+  // ===== HORIZONTAL LOGO (>1.3) =====
   if (side === 'back') {
-    // BACK B: QR left + divider + contact right + company name at bottom
+    // BACK — QR(80) left + divider + contact right
     return (
       <div style={{
-        width: w, height: h, background: primaryColor, borderRadius: 4,
-        fontFamily, color: '#fff', overflow: 'hidden',
+        ...cardBase, background: primaryColor, color: '#fff',
         display: 'flex', flexDirection: 'column',
       }}>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', padding: '0 24px', gap: 16 }}>
+          {/* QR left */}
           {showQrCode && qrCodeUrl && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-              <QRCode url={qrCodeUrl} size={120} color="#ffffff" bgColor={primaryColor} />
+              <QRCode url={qrCodeUrl} size={80} color="#ffffff" bgColor={primaryColor} />
               <div style={{ fontSize: 7, opacity: 0.7 }}>Scan for website</div>
             </div>
           )}
+          {/* Vertical divider */}
           {showQrCode && qrCodeUrl && (
-            <div style={{ width: 1, height: 100, background: 'rgba(255,255,255,0.25)', flexShrink: 0 }} />
+            <div style={{ width: 1, height: '60%', background: 'rgba(255,255,255,0.25)', flexShrink: 0 }} />
           )}
+          {/* Contact info right */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1 }}>
             {showContactName && contactName && <div style={{ fontSize: 12, fontWeight: 600 }}>{contactName}</div>}
             {showContactTitle && contactTitle && <div style={{ fontSize: 9, opacity: 0.8 }}>{contactTitle}</div>}
@@ -109,32 +128,32 @@ export default function BusinessCard({ fields, side }: BusinessCardProps) {
             {showWebsite && website && <div style={{ fontSize: 9, opacity: 0.85 }}>{website}</div>}
           </div>
         </div>
-        {showCompanyName && companyName && (
-          <div style={{
-            padding: '6px 24px 10px', fontSize: 10, fontWeight: 600, opacity: 0.7,
-            textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.15)',
-          }}>{companyName}</div>
-        )}
       </div>
     );
   }
 
-  // FRONT B: accent bar → logo spanning ~70% → company name centered
+  // FRONT — Horizontal: accent bar → logo ~70% width → company name → contact centered
   return (
     <div style={{
-      width: w, height: h, background: backgroundColor || '#fff', borderRadius: 4,
-      fontFamily, color: secondaryColor, overflow: 'hidden',
+      ...cardBase, background: backgroundColor || '#fff', color: secondaryColor,
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      position: 'relative',
     }}>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 6, background: primaryColor }} />
       {logoUrl && (
         <img src={logoUrl} alt="Logo" style={{
-          maxWidth: w * 0.7, maxHeight: h * 0.45, objectFit: 'contain', marginBottom: 8,
+          maxWidth: w * 0.7, maxHeight: h * 0.4, objectFit: 'contain', marginBottom: 8,
         }} />
       )}
       {showCompanyName && companyName && (
-        <div style={{ fontSize: 13, fontWeight: 700, color: primaryColor, textAlign: 'center' }}>{companyName}</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: primaryColor, textAlign: 'center', marginBottom: 4 }}>{companyName}</div>
       )}
+      {/* Contact details centered below */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+        {showContactName && contactName && <div style={{ fontSize: 9, color: '#6b7280' }}>{contactName}</div>}
+        {showPhone && phone && <div style={{ fontSize: 8, color: '#6b7280' }}>{phone}</div>}
+        {showEmail && email && <div style={{ fontSize: 8, color: '#6b7280' }}>{email}</div>}
+      </div>
     </div>
   );
 }
