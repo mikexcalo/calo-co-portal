@@ -5,24 +5,29 @@ import { useRouter } from 'next/navigation';
 import {
   initSupabase, initAgency, loadClients, loadInvoices, loadContacts,
   loadAllBrandKits, loadActivityLog, loadExpenses, loadAgencySettings,
-  loadTasksNotes, DB,
+  loadTasksNotes, DB, updateTaskStatus, deleteTaskNote,
 } from '@/lib/database';
 import { agencyStats, currency } from '@/lib/utils';
-import ClientCard from '@/components/dashboard/ClientCard';
-import TasksNotesFeed from '@/components/dashboard/TasksNotesFeed';
 import CommandBar from '@/components/dashboard/CommandBar';
+
+function relTime(iso: string): string {
+  const d = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(d / 60000);
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  const dy = Math.floor(h / 24);
+  return dy === 1 ? '1d' : `${dy}d`;
+}
 
 export default function Home() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [greeting, setGreeting] = useState('Good morning');
   const [dateline, setDateline] = useState('');
-  const [timeLine, setTimeLine] = useState('');
   const [stats, setStats] = useState(agencyStats([], []));
-  const [search, setSearch] = useState('');
   const [feedKey, setFeedKey] = useState(0);
   const [allTasks, setAllTasks] = useState<any[]>([]);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -51,150 +56,161 @@ export default function Home() {
       const tod = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
       setGreeting(`Good ${tod}, Mike`);
       setDateline(now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }));
-      setTimeLine(now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }));
     };
     tick();
     const iv = setInterval(tick, 60000);
     return () => clearInterval(iv);
   }, []);
 
-  if (isLoading) return <div style={{ maxWidth: 960, margin: '0 auto', padding: 24, opacity: 0.5, fontSize: 13, color: '#6b7280' }}>Loading dashboard…</div>;
-
-  const searchLower = search.toLowerCase();
-  const filteredClients = DB.clients
-    .filter((c) => {
-      if (!searchLower) return true;
-      const ct = DB.contacts[c.id] || [];
-      const p = ct.find((x) => x.isPrimary) || ct[0];
-      return (c.company || c.name || '').toLowerCase().includes(searchLower)
-        || (p?.name || '').toLowerCase().includes(searchLower);
-    })
-    .sort((a, b) => (a.company || a.name).localeCompare(b.company || b.name));
-
-  const getTaskCount = (clientId: string) =>
-    allTasks.filter((t) => t.client_id === clientId && t.type === 'task' && t.status === 'open').length;
-  const getInvoiceCount = (clientId: string) =>
-    DB.invoices.filter((i) => i.clientId === clientId && (i.status === 'unpaid' || i.status === 'overdue')).length;
+  if (isLoading) return <div style={{ padding: '32px 40px', opacity: 0.5, fontSize: 13, color: '#6b7280' }}>Loading dashboard…</div>;
 
   const refreshFeed = () => { setFeedKey((k) => k + 1); loadTasksNotes().then(setAllTasks); };
 
-  // Priority nudge data (#4)
-  const openTaskTotal = allTasks.filter((t) => t.type === 'task' && t.status === 'open').length;
-  const unpaidInvs = DB.invoices.filter((i) => i.status === 'unpaid' || i.status === 'overdue');
-  const unpaidTotal = unpaidInvs.length;
-  const nearestDue = unpaidInvs
-    .map((i) => ({ due: i.due ? new Date(i.due) : null, total: (i.items || []).reduce((s: number, it: any) => s + (it.qty || 1) * (it.price || 0), 0) + (i.tax || 0) + (i.shipping || 0) }))
-    .filter((x) => x.due && !isNaN(x.due.getTime()))
-    .sort((a, b) => a.due!.getTime() - b.due!.getTime())[0];
+  // Action items data
+  const openTasks = allTasks.filter((t) => t.type === 'task' && t.status === 'open')
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const unpaidInvs = DB.invoices.filter((i) => i.status === 'unpaid' || i.status === 'overdue')
+    .sort((a, b) => { const da = a.due ? new Date(a.due).getTime() : Infinity; const db = b.due ? new Date(b.due).getTime() : Infinity; return da - db; });
 
-  let nudgeText = 'All clear — no urgent items.';
-  if (openTaskTotal > 0 || unpaidTotal > 0) {
-    const parts = [];
-    if (openTaskTotal > 0) parts.push(`${openTaskTotal} open task${openTaskTotal !== 1 ? 's' : ''}`);
-    if (unpaidTotal > 0) parts.push(`${unpaidTotal} unpaid invoice${unpaidTotal !== 1 ? 's' : ''}`);
-    nudgeText = parts.join(' · ');
-    if (nearestDue) {
-      nudgeText += ` — ${currency(nearestDue.total)} due ${nearestDue.due!.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-    }
-  }
+  // Recent activity
+  const activityItems = DB.activityLog
+    .filter((e) => ['invoice_created', 'invoice_paid', 'client_added', 'task_added', 'note_added'].includes(e.eventType))
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 4);
+  const evLabels: Record<string, string> = { invoice_created: 'Invoice created', invoice_paid: 'Invoice paid', client_added: 'Client added', task_added: 'Task added', note_added: 'Note added' };
+
+  // Clients
+  const clients = DB.clients.sort((a, b) => (a.company || a.name).localeCompare(b.company || b.name));
 
   return (
-    <div style={{ maxWidth: 960, margin: '0 auto', padding: 24 }}>
+    <div style={{ display: 'flex', gap: 24, padding: '32px 40px' }}>
 
-      {/* ROW 1: Greeting + Financials — mb: 24px */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-        <div>
-          <div style={{ fontSize: 22, fontWeight: 500, color: '#1a1f2e' }}>{greeting}</div>
-          <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 2 }}>{dateline}{timeLine ? ` · ${timeLine}` : ''}</div>
-        </div>
-        <div onClick={() => router.push('/financials')} style={{
-          background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10,
-          padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer',
-        }}>
-          <div>
-            <div style={{ fontSize: 10, textTransform: 'uppercase', color: '#9ca3af', fontWeight: 600 }}>Outstanding</div>
-            <div style={{ fontSize: 16, fontWeight: 600, color: '#ba7517' }}>{currency(stats.outstanding)}</div>
-          </div>
-          <div style={{ width: 1, height: 24, background: '#e5e7eb' }} />
-          <div>
-            <div style={{ fontSize: 10, textTransform: 'uppercase', color: '#9ca3af', fontWeight: 600 }}>Paid</div>
-            <div style={{ fontSize: 16, fontWeight: 600, color: '#1a1f2e' }}>{currency(stats.paid)}</div>
-          </div>
-          <span style={{ color: '#9ca3af', fontSize: 16 }}>›</span>
-        </div>
-      </div>
+      {/* LEFT COLUMN */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 500, color: '#111827', margin: '0 0 4px' }}>{greeting}</h1>
+        <p style={{ fontSize: 13, color: '#9ca3af', margin: '0 0 20px' }}>{dateline}</p>
 
-      {/* ROW 2: AI bar (flex:1.3) + Priority nudge (flex:1) — same layout as Row 3 */}
-      <div style={{ display: 'flex', gap: 32, marginBottom: 28 }}>
-        <div style={{ flex: 1.3, minWidth: 0 }}>
-          <CommandBar onItemSaved={refreshFeed} />
-        </div>
-        <div style={{
-          flex: 1, minWidth: 0, background: '#e6f1fb', border: '1px solid #b5d4f4', borderRadius: 10,
-          padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10,
-        }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#185fa5" strokeWidth="2" style={{ flexShrink: 0 }}>
-            <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
-          </svg>
-          <span style={{ fontSize: 12, fontWeight: 500, color: '#185fa5' }}>{nudgeText}</span>
-        </div>
-      </div>
+        <CommandBar onItemSaved={refreshFeed} />
 
-      {/* ROW 3: Two columns — gap: 32px, same flex ratios */}
-      <div style={{ display: 'flex', gap: 32 }}>
-        {/* LEFT: Clients (flex: 1.3) */}
-        <div style={{ flex: 1.3, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9ca3af' }}>Clients</span>
-            <div style={{ flex: 1 }} />
-            <div style={{ position: 'relative' }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"
-                style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search..." style={{
-                  padding: '6px 10px 6px 28px', fontSize: 12, border: 'none',
-                  borderRadius: 6, fontFamily: 'Inter, sans-serif', color: '#1a1f2e', width: 140,
-                  background: '#f4f5f7', outline: 'none',
-                }} />
-            </div>
-            <button onClick={() => router.push('/clients/new')} style={{
-              background: '#2563eb', color: '#fff', border: 'none', borderRadius: 6,
-              padding: '6px 12px', fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-            }}>+ Add</button>
-          </div>
+        <p style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '24px 0 8px' }}>Action items</p>
 
-          {DB.clientsState === 'loading' ? (
-            <div style={{ opacity: 0.5, fontSize: 13, color: '#6b7280' }}>Loading clients…</div>
-          ) : DB.clientsState === 'error' ? (
-            <div style={{ fontSize: 13, color: '#dc2626' }}>Unable to load clients</div>
-          ) : filteredClients.length === 0 ? (
-            <div style={{ color: '#9ca3af', fontSize: 13, padding: '12px 0' }}>
-              {search ? 'No clients found' : 'No clients yet.'}
-            </div>
-          ) : (
-            filteredClients.map((client) => (
-              <ClientCard
-                key={client.id}
-                client={client}
-                taskCount={getTaskCount(client.id)}
-                invoiceCount={getInvoiceCount(client.id)}
-                expanded={expandedId === client.id}
-                onToggle={() => setExpandedId(expandedId === client.id ? null : client.id)}
-                onNavigate={() => {
-                  localStorage.setItem(`client_accessed_${client.id}`, String(Date.now()));
-                  router.push(`/clients/${client.id}`);
-                }}
-                onTaskCompleted={refreshFeed}
-              />
-            ))
+        {/* Action item cards */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {openTasks.map((task) => {
+            const cl = DB.clients.find((c) => c.id === task.client_id);
+            return (
+              <div key={task.id} style={{
+                background: '#fff', border: '0.5px solid #e5e7eb', borderLeft: '3px solid #e5e7eb',
+                borderRadius: 8, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10,
+              }}>
+                <div style={{ width: 15, height: 15, borderRadius: '50%', background: '#e5e7eb', flexShrink: 0, cursor: 'pointer' }}
+                  onClick={async () => { await updateTaskStatus(task.id, 'complete'); refreshFeed(); }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{task.content}</div>
+                  <div style={{ fontSize: 12, color: '#9ca3af' }}>{cl?.company || cl?.name || ''} · {relTime(task.created_at)}</div>
+                </div>
+                <span onClick={() => cl && router.push(`/clients/${cl.id}`)} style={{ fontSize: 13, color: '#9ca3af', cursor: 'pointer' }}>→</span>
+              </div>
+            );
+          })}
+          {unpaidInvs.map((inv) => {
+            const cl = DB.clients.find((c) => c.id === inv.clientId);
+            const total = (inv.items || []).reduce((s: number, i: any) => s + (i.qty || 1) * (i.price || 0), 0) + (inv.tax || 0) + (inv.shipping || 0);
+            return (
+              <div key={inv.id || inv._uuid} style={{
+                background: '#fff', border: '0.5px solid #e5e7eb', borderLeft: '3px solid #e5e7eb',
+                borderRadius: 8, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+              }} onClick={() => router.push(`/clients/${inv.clientId}/invoices`)}>
+                <div style={{ width: 15, height: 15, borderRadius: '50%', background: '#e5e7eb', flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>Invoice {inv.id} · {currency(total)}</div>
+                  <div style={{ fontSize: 12, color: '#9ca3af' }}>{cl?.company || cl?.name || ''}{inv.due ? ` · Due ${inv.due}` : ''}</div>
+                </div>
+                <span style={{ fontSize: 13, color: '#9ca3af' }}>→</span>
+              </div>
+            );
+          })}
+          {openTasks.length === 0 && unpaidInvs.length === 0 && (
+            <div style={{ fontSize: 12, color: '#9ca3af', padding: '8px 0' }}>No action items right now.</div>
           )}
         </div>
 
-        {/* RIGHT: Action Items + Recent Activity (flex: 1) */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <TasksNotesFeed refreshKey={feedKey} />
+        {/* Recent activity */}
+        {activityItems.length > 0 && (
+          <>
+            <p style={{ fontSize: 10, color: '#9ca3af', letterSpacing: '0.3px', margin: '24px 0 4px', textTransform: 'uppercase' }}>Recent</p>
+            {activityItems.map((ev, idx) => {
+              const cl = DB.clients.find((c) => c.id === ev.clientId);
+              return (
+                <div key={idx} style={{ display: 'flex', alignItems: 'center', padding: '4px 0', fontSize: 11, color: '#9ca3af' }}>
+                  <span style={{ flex: 1 }}>
+                    {evLabels[ev.eventType] || ev.eventType}
+                    {cl && <> · <span style={{ color: '#6b7280', cursor: 'pointer' }} onClick={() => router.push(`/clients/${cl.id}`)}>{cl.company || cl.name} →</span></>}
+                  </span>
+                  <span style={{ fontSize: 10, color: '#9ca3af', flexShrink: 0 }}>{relTime(ev.createdAt)}</span>
+                </div>
+              );
+            })}
+          </>
+        )}
+      </div>
+
+      {/* RIGHT COLUMN */}
+      <div style={{ width: 280, flexShrink: 0 }}>
+        {/* Financials — two separate cards */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+          <div onClick={() => router.push('/financials')} style={{
+            flex: 1, background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 12, cursor: 'pointer',
+          }}>
+            <p style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.3px', margin: 0 }}>Outstanding</p>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+              <p style={{ fontSize: 20, fontWeight: 500, color: '#d97706', margin: '4px 0 0' }}>{currency(stats.outstanding)}</p>
+              <span style={{ fontSize: 12, color: '#9ca3af' }}>→</span>
+            </div>
+          </div>
+          <div onClick={() => router.push('/financials')} style={{
+            flex: 1, background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 12, cursor: 'pointer',
+          }}>
+            <p style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.3px', margin: 0 }}>Paid</p>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+              <p style={{ fontSize: 20, fontWeight: 500, color: '#111827', margin: '4px 0 0' }}>{currency(stats.paid)}</p>
+              <span style={{ fontSize: 12, color: '#9ca3af' }}>→</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Clients header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <p style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>Clients</p>
+          <span onClick={() => router.push('/clients/new')} style={{ fontSize: 12, color: '#2563eb', fontWeight: 500, cursor: 'pointer' }}>+ Add</span>
+        </div>
+
+        {/* Client list — compact rows */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {clients.map((client) => {
+            const ct = DB.contacts[client.id] || [];
+            const primary = ct.find((c) => c.isPrimary) || ct[0];
+            return (
+              <div key={client.id} onClick={() => {
+                localStorage.setItem(`client_accessed_${client.id}`, String(Date.now()));
+                router.push(`/clients/${client.id}`);
+              }} style={{
+                background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 8,
+                padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+              }}>
+                {client.logo ? (
+                  <img src={client.logo} alt="" style={{ width: 32, height: 32, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+                ) : (
+                  <div style={{ width: 32, height: 32, borderRadius: 6, background: '#f1f3f5', flexShrink: 0 }} />
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{client.company || client.name}</div>
+                  {primary && <div style={{ fontSize: 11, color: '#9ca3af' }}>{primary.name}</div>}
+                </div>
+                <span style={{ fontSize: 12, color: '#9ca3af' }}>→</span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
