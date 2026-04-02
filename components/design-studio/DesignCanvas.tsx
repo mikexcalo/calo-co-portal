@@ -85,6 +85,8 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           width: obj.width,
           height: obj.height,
           fill: obj.fill,
+          rx: obj.rx || 0,
+          ry: obj.ry || 0,
           selectable: obj.selectable !== false,
           evented: obj.evented !== false,
           lockMovementX: obj.lockMovement || false,
@@ -98,6 +100,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           left: obj.left,
           top: obj.top,
           width: obj.width,
+          originX: obj.originX || 'left',
           fontSize: obj.fontSize || 24,
           fontWeight: obj.fontWeight || 400,
           fontFamily: obj.fontFamily || 'Inter, Helvetica, Arial, sans-serif',
@@ -108,22 +111,32 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         });
       } else if (obj.type === 'image' && obj.src) {
         try {
-          const img = await fabric.FabricImage.fromURL(obj.src, { crossOrigin: 'anonymous' });
+          // Handle both URLs and base64 data URIs
+          const imgOptions: any = {};
+          if (obj.src.startsWith('http')) {
+            imgOptions.crossOrigin = 'anonymous';
+          }
+          const img = await fabric.FabricImage.fromURL(obj.src, imgOptions);
+          if (!img || !img.width) {
+            console.warn('Image loaded but has no dimensions:', obj.src.slice(0, 50));
+            continue;
+          }
           img.set({
             left: obj.left,
             top: obj.top,
+            originX: obj.originX || 'left',
             scaleX: obj.scaleX || 1,
             scaleY: obj.scaleY || 1,
             name: obj.name || '',
           });
           if (obj.maxWidth && img.width) {
-            const scale = Math.min(obj.maxWidth / img.width, (obj.maxHeight || obj.maxWidth) / (img.height || img.width));
-            img.scaleX = scale;
-            img.scaleY = scale;
+            const s = Math.min(obj.maxWidth / img.width, (obj.maxHeight || obj.maxWidth) / (img.height || img.width));
+            img.scaleX = s;
+            img.scaleY = s;
           }
           fc.add(img);
         } catch (e) {
-          console.error('Failed to load image:', obj.src);
+          console.error('Failed to load image:', obj.src?.slice(0, 80), e);
         }
         continue;
       }

@@ -4,14 +4,13 @@ interface YardSignTemplateProps {
   headline: string;
   logoUrl: string | null;
   qrCodeUrl: string;
-  email?: string;
   website?: string;
   brandColor: string;
   size: string;
 }
 
 export function getYardSignTemplate(props: YardSignTemplateProps) {
-  const { companyName, phone, headline, logoUrl, qrCodeUrl, email, website, brandColor, size } = props;
+  const { companyName, phone, headline, logoUrl, qrCodeUrl, website, brandColor, size } = props;
 
   // Canvas dimensions in points
   const sizes: Record<string, { w: number; h: number }> = {
@@ -26,6 +25,7 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
   const isLandscape = dim.w > dim.h;
   const stripHeight = Math.round(dim.h * 0.22);
   const brandHeight = dim.h - stripHeight;
+  const pad = Math.round(dim.w * 0.05);
 
   // Format phone
   const digits = phone.replace(/\D/g, '');
@@ -37,7 +37,7 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
   }
 
   const objects: any[] = [
-    // Brand color background
+    // Brand color background — full canvas width
     {
       type: 'rect',
       left: 0, top: 0,
@@ -47,7 +47,7 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
       lockMovement: true, lockScaling: true,
       name: 'brand-bg',
     },
-    // White strip
+    // White strip — full canvas width
     {
       type: 'rect',
       left: 0, top: brandHeight,
@@ -59,28 +59,29 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
     },
   ];
 
-  // Logo
+  // Logo — centered horizontally using originX: 'center'
   if (logoUrl) {
-    const logoSize = isLandscape ? 60 : 80;
     objects.push({
       type: 'image',
       src: logoUrl,
-      left: dim.w / 2 - logoSize / 2,
-      top: isLandscape ? brandHeight * 0.12 : brandHeight * 0.1,
-      maxWidth: logoSize * 1.5,
-      maxHeight: logoSize,
+      left: dim.w / 2,
+      top: isLandscape ? brandHeight * 0.08 : brandHeight * 0.08,
+      originX: 'center',
+      maxWidth: isLandscape ? 120 : 140,
+      maxHeight: isLandscape ? 60 : 80,
       name: 'logo',
     });
   }
 
-  // Headline
+  // Headline — centered
   if (headline) {
     objects.push({
       type: 'textbox',
       text: headline,
-      left: dim.w * 0.1,
-      top: isLandscape ? brandHeight * 0.45 : brandHeight * 0.4,
+      left: dim.w / 2,
+      top: isLandscape ? brandHeight * 0.42 : brandHeight * 0.38,
       width: dim.w * 0.8,
+      originX: 'center',
       fontSize: isLandscape ? 28 : 32,
       fontWeight: 800,
       fill: '#ffffff',
@@ -89,14 +90,15 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
     });
   }
 
-  // Phone — biggest text
+  // Phone — biggest text, centered
   if (phone) {
     objects.push({
       type: 'textbox',
       text: formattedPhone,
-      left: dim.w * 0.05,
-      top: isLandscape ? brandHeight * 0.62 : brandHeight * 0.58,
+      left: dim.w / 2,
+      top: isLandscape ? brandHeight * 0.6 : brandHeight * 0.56,
       width: dim.w * 0.9,
+      originX: 'center',
       fontSize: isLandscape ? 44 : 52,
       fontWeight: 800,
       fill: '#ffffff',
@@ -105,14 +107,14 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
     });
   }
 
-  // Company name — in white strip, brand colored
+  // Company name — in white strip, left-aligned with padding
   if (companyName) {
     objects.push({
       type: 'textbox',
       text: companyName,
-      left: dim.w * 0.05,
-      top: brandHeight + stripHeight * 0.15,
-      width: dim.w * 0.65,
+      left: pad,
+      top: brandHeight + stripHeight * 0.2,
+      width: dim.w * 0.6,
       fontSize: isLandscape ? 18 : 20,
       fontWeight: 800,
       fill: brandColor,
@@ -121,15 +123,14 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
     });
   }
 
-  // Detail text (email or website) — in white strip
-  const detail = email || website || '';
-  if (detail) {
+  // Website — small text below company name in white strip
+  if (website) {
     objects.push({
       type: 'textbox',
-      text: detail,
-      left: dim.w * 0.05,
+      text: website,
+      left: pad,
       top: brandHeight + stripHeight * 0.6,
-      width: dim.w * 0.65,
+      width: dim.w * 0.6,
       fontSize: 11,
       fontWeight: 400,
       fill: '#6b7280',
@@ -138,16 +139,18 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
     });
   }
 
-  // QR code placeholder
+  // QR code placeholder — right-aligned in white strip
   if (qrCodeUrl) {
-    const qrSize = isLandscape ? stripHeight * 0.65 : stripHeight * 0.7;
+    const qrSize = Math.round(isLandscape ? stripHeight * 0.65 : stripHeight * 0.7);
     objects.push({
       type: 'rect',
-      left: dim.w * 0.78,
-      top: brandHeight + stripHeight * 0.12,
+      left: dim.w - pad - qrSize,
+      top: brandHeight + Math.round((stripHeight - qrSize) / 2),
       width: qrSize,
       height: qrSize,
       fill: '#f3f4f6',
+      rx: 4,
+      ry: 4,
       name: 'qr-placeholder',
     });
   }

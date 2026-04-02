@@ -304,7 +304,6 @@ export default function BrandBuilderPage() {
                   headline: fields.headline || 'Free Estimates!',
                   logoUrl: fields.logoUrl || null,
                   qrCodeUrl: fields.qrCodeUrl || fields.website || '',
-                  email: fields.email || '',
                   website: fields.website || '',
                   brandColor: fields.primaryColor || '#28502e',
                   size: fields.signSize || '18x24',
