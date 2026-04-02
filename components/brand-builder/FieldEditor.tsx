@@ -85,72 +85,144 @@ export default function FieldEditor({ fields, onChange, sources, assetType, clie
         </div>
       )}
 
-      {/* Core fields — two-column grid with visibility toggles */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <Field label="Company name" value={fields.companyName} onChange={(v) => update('companyName', v)}
-          checked={fields.showCompanyName} onToggle={(v) => update('showCompanyName', v)} />
-        <Field label="Contact name" value={fields.contactName} onChange={(v) => update('contactName', v)}
-          checked={fields.showContactName} onToggle={(v) => update('showContactName', v)} />
-        <Field label="Title" value={fields.contactTitle} onChange={(v) => update('contactTitle', v)}
-          checked={fields.showContactTitle} onToggle={(v) => update('showContactTitle', v)} />
-        <Field label="Business phone" value={fields.phone} onChange={(v) => update('phone', v)} type="tel"
-          checked={fields.showPhone} onToggle={(v) => update('showPhone', v)} />
-        <Field label="Email" value={fields.email} onChange={(v) => update('email', v)} type="email"
-          checked={fields.showEmail} onToggle={(v) => update('showEmail', v)} />
-        <Field label="Website" value={fields.website} onChange={(v) => update('website', v)}
-          checked={fields.showWebsite} onToggle={(v) => update('showWebsite', v)} />
-        <Field label="QR code URL" value={fields.qrCodeUrl} onChange={(v) => update('qrCodeUrl', v)} placeholder="https://example.com"
-          checked={fields.showQrCode} onToggle={(v) => update('showQrCode', v)} />
-        <Field label="Tagline / slogan" value={fields.tagline} onChange={(v) => update('tagline', v)} placeholder="Optional"
-          checked={fields.showTagline} onToggle={(v) => update('showTagline', v)} />
-      </div>
+      {/* === YARD SIGN: single-column layout with core/bonus split === */}
+      {isYS ? (
+        <>
+          {/* Core fields — single column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <Field label="Headline" value={fields.headline} onChange={(v) => update('headline', v)} placeholder="Free Consultations!"
+              checked={fields.showHeadline} onToggle={(v) => update('showHeadline', v)}
+              disabled={fields.showHeadline === false} />
+            <Field label="Business phone" value={fields.phone} onChange={(v) => update('phone', v)} type="tel"
+              checked={fields.showPhone} onToggle={(v) => update('showPhone', v)}
+              disabled={fields.showPhone === false} />
+            <Field label="Company name" value={fields.companyName} onChange={(v) => update('companyName', v)}
+              checked={fields.showCompanyName} onToggle={(v) => update('showCompanyName', v)}
+              disabled={fields.showCompanyName === false} />
+            <Field label="QR code URL" value={fields.qrCodeUrl} onChange={(v) => update('qrCodeUrl', v)} placeholder="https://example.com"
+              checked={fields.showQrCode} onToggle={(v) => update('showQrCode', v)}
+              disabled={fields.showQrCode === false} />
+          </div>
 
-      {/* Headline — full width */}
-      {showHeadlineField && (
-        <div style={{ marginTop: 12 }}>
-          <Field label="Headline" value={fields.headline} onChange={(v) => update('headline', v)} placeholder="Free Consultations!"
-            checked={fields.showHeadline} onToggle={(v) => update('showHeadline', v)} />
-        </div>
-      )}
+          {/* "+ More fields" toggle */}
+          <div style={{ marginTop: 16 }}>
+            <div
+              onClick={() => setMoreOpen(!moreOpen)}
+              style={{ cursor: 'pointer', fontSize: 13, color: '#2563eb', fontFamily: 'Inter, sans-serif' }}
+            >
+              {moreOpen ? '− Fewer fields' : '+ More fields'}
+            </div>
+            {moreOpen && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+                <Field label="Tagline / slogan" value={fields.tagline} onChange={(v) => update('tagline', v)} placeholder="Your trusted partner"
+                  checked={fields.showTagline} onToggle={(v) => update('showTagline', v)}
+                  disabled={fields.showTagline === false} />
+                <Field label="Contact name" value={fields.contactName} onChange={(v) => update('contactName', v)}
+                  checked={fields.showContactName} onToggle={(v) => update('showContactName', v)}
+                  disabled={fields.showContactName === false} />
+                <Field label="Title" value={fields.contactTitle} onChange={(v) => update('contactTitle', v)}
+                  checked={fields.showContactTitle} onToggle={(v) => update('showContactTitle', v)}
+                  disabled={fields.showContactTitle === false} />
+                <Field label="Email" value={fields.email} onChange={(v) => update('email', v)} type="email"
+                  checked={fields.showEmail} onToggle={(v) => update('showEmail', v)}
+                  disabled={fields.showEmail === false} />
+                <Field label="Website" value={fields.website} onChange={(v) => update('website', v)}
+                  checked={fields.showWebsite} onToggle={(v) => update('showWebsite', v)}
+                  disabled={fields.showWebsite === false} />
 
-      {showBodyText && (
-        <div style={{ marginTop: 12 }}>
-          <Field label="Body Text" value={fields.bodyText} onChange={(v) => update('bodyText', v)} placeholder="Description of services..." />
-        </div>
-      )}
+                {/* Address / License / Socials */}
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={fields.showAddress} onChange={(e) => update('showAddress', e.target.checked)} /> Address
+                </label>
+                {fields.showAddress && <Field label="" value={fields.address} onChange={(v) => update('address', v)} />}
 
-      {/* Collapsible "+ More fields" */}
-      <div style={{ marginTop: 16 }}>
-        <button onClick={() => setMoreOpen(!moreOpen)} style={{
-          background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-          fontSize: 13, fontWeight: 400, color: '#6b7280', fontFamily: 'Inter, sans-serif',
-        }}>
-          {moreOpen ? '− Fewer fields' : '+ More fields'}
-        </button>
-        {moreOpen && (
-          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
-              <input type="checkbox" checked={fields.showAddress} onChange={(e) => update('showAddress', e.target.checked)} /> Address
-            </label>
-            {fields.showAddress && <Field label="" value={fields.address} onChange={(v) => update('address', v)} />}
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={fields.showLicense} onChange={(e) => update('showLicense', e.target.checked)} /> License / Certification #
+                </label>
+                {fields.showLicense && <Field label="" value={fields.licenseNumber} onChange={(v) => update('licenseNumber', v)} placeholder="e.g. LIC-12345" />}
 
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
-              <input type="checkbox" checked={fields.showLicense} onChange={(e) => update('showLicense', e.target.checked)} /> License / Certification #
-            </label>
-            {fields.showLicense && <Field label="" value={fields.licenseNumber} onChange={(v) => update('licenseNumber', v)} placeholder="e.g. LIC-12345" />}
-
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
-              <input type="checkbox" checked={fields.showSocials} onChange={(e) => update('showSocials', e.target.checked)} /> Social Handles
-            </label>
-            {fields.showSocials && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <Field label="Facebook" value={fields.socialFacebook} onChange={(v) => update('socialFacebook', v)} placeholder="@handle" />
-                <Field label="Instagram" value={fields.socialInstagram} onChange={(v) => update('socialInstagram', v)} placeholder="@handle" />
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={fields.showSocials} onChange={(e) => update('showSocials', e.target.checked)} /> Social Handles
+                </label>
+                {fields.showSocials && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <Field label="Facebook" value={fields.socialFacebook} onChange={(v) => update('socialFacebook', v)} placeholder="@handle" />
+                    <Field label="Instagram" value={fields.socialInstagram} onChange={(v) => update('socialInstagram', v)} placeholder="@handle" />
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
-      </div>
+        </>
+      ) : (
+        /* === NON-YARD-SIGN: original 2-column layout === */
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <Field label="Company name" value={fields.companyName} onChange={(v) => update('companyName', v)}
+              checked={fields.showCompanyName} onToggle={(v) => update('showCompanyName', v)} />
+            <Field label="Contact name" value={fields.contactName} onChange={(v) => update('contactName', v)}
+              checked={fields.showContactName} onToggle={(v) => update('showContactName', v)} />
+            <Field label="Title" value={fields.contactTitle} onChange={(v) => update('contactTitle', v)}
+              checked={fields.showContactTitle} onToggle={(v) => update('showContactTitle', v)} />
+            <Field label="Business phone" value={fields.phone} onChange={(v) => update('phone', v)} type="tel"
+              checked={fields.showPhone} onToggle={(v) => update('showPhone', v)} />
+            <Field label="Email" value={fields.email} onChange={(v) => update('email', v)} type="email"
+              checked={fields.showEmail} onToggle={(v) => update('showEmail', v)} />
+            <Field label="Website" value={fields.website} onChange={(v) => update('website', v)}
+              checked={fields.showWebsite} onToggle={(v) => update('showWebsite', v)} />
+            <Field label="QR code URL" value={fields.qrCodeUrl} onChange={(v) => update('qrCodeUrl', v)} placeholder="https://example.com"
+              checked={fields.showQrCode} onToggle={(v) => update('showQrCode', v)} />
+            <Field label="Tagline / slogan" value={fields.tagline} onChange={(v) => update('tagline', v)} placeholder="Optional"
+              checked={fields.showTagline} onToggle={(v) => update('showTagline', v)} />
+          </div>
+
+          {showHeadlineField && (
+            <div style={{ marginTop: 12 }}>
+              <Field label="Headline" value={fields.headline} onChange={(v) => update('headline', v)} placeholder="Free Consultations!"
+                checked={fields.showHeadline} onToggle={(v) => update('showHeadline', v)} />
+            </div>
+          )}
+
+          {showBodyText && (
+            <div style={{ marginTop: 12 }}>
+              <Field label="Body Text" value={fields.bodyText} onChange={(v) => update('bodyText', v)} placeholder="Description of services..." />
+            </div>
+          )}
+
+          {/* Collapsible "+ More fields" */}
+          <div style={{ marginTop: 16 }}>
+            <button onClick={() => setMoreOpen(!moreOpen)} style={{
+              background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+              fontSize: 13, fontWeight: 400, color: '#6b7280', fontFamily: 'Inter, sans-serif',
+            }}>
+              {moreOpen ? '− Fewer fields' : '+ More fields'}
+            </button>
+            {moreOpen && (
+              <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={fields.showAddress} onChange={(e) => update('showAddress', e.target.checked)} /> Address
+                </label>
+                {fields.showAddress && <Field label="" value={fields.address} onChange={(v) => update('address', v)} />}
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={fields.showLicense} onChange={(e) => update('showLicense', e.target.checked)} /> License / Certification #
+                </label>
+                {fields.showLicense && <Field label="" value={fields.licenseNumber} onChange={(v) => update('licenseNumber', v)} placeholder="e.g. LIC-12345" />}
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={fields.showSocials} onChange={(e) => update('showSocials', e.target.checked)} /> Social Handles
+                </label>
+                {fields.showSocials && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <Field label="Facebook" value={fields.socialFacebook} onChange={(v) => update('socialFacebook', v)} placeholder="@handle" />
+                    <Field label="Instagram" value={fields.socialInstagram} onChange={(v) => update('socialInstagram', v)} placeholder="@handle" />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
