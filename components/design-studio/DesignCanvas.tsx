@@ -85,6 +85,8 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           width: obj.width,
           height: obj.height,
           fill: obj.fill,
+          stroke: obj.stroke || null,
+          strokeWidth: obj.strokeWidth ?? 0,
           rx: obj.rx || 0,
           ry: obj.ry || 0,
           selectable: obj.selectable !== false,
