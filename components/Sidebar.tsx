@@ -10,7 +10,7 @@ const mainNav = [
 ];
 
 const agencyNav = [
-  { label: 'Brand Kit', href: '/brand-kit', icon: '◎' },
+  { label: 'Brand Kit', href: '/settings', icon: '◎' },
 ];
 
 const assetTypes = [
