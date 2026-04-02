@@ -30,30 +30,25 @@ function formatPhone(phone: string): string {
 
 export default function YardSign({ fields }: YardSignProps) {
   const {
-    logoUrl, companyName, contactName, phone, email, website, qrCodeUrl,
-    headline, tagline, address, licenseNumber,
-    primaryColor, secondaryColor, backgroundColor, fontFamily,
-    showCompanyName, showContactName, showPhone, showEmail, showWebsite,
-    showQrCode, showTagline, showHeadline, showAddress, showLicense,
+    logoUrl, companyName, phone, email, website, qrCodeUrl,
+    headline, tagline,
+    primaryColor, backgroundColor,
+    showCompanyName, showPhone, showEmail, showWebsite,
+    showQrCode, showTagline, showHeadline,
   } = fields;
 
-  // Color modes — driven by backgroundColor from color dot switcher
+  // Color modes
   const isLightMode = backgroundColor === '#ffffff';
   const isDarkMode = backgroundColor === '#1a1a1a';
 
-  // Top section (brand area) colors
   const topBg = isLightMode ? '#ffffff' : isDarkMode ? '#1a1a1a' : (primaryColor || '#28502e');
   const topText = isLightMode ? (primaryColor || '#28502e') : '#ffffff';
 
-  // Bottom strip colors — swaps in light mode
   const bottomBg = isLightMode ? (primaryColor || '#28502e') : '#ffffff';
   const bottomNameColor = isLightMode ? '#ffffff' : topBg;
   const bottomDetailColor = isLightMode ? 'rgba(255,255,255,0.7)' : '#6b7280';
 
-  // Logo filter: invert on dark backgrounds, not on light/white
   const logoFilter = isLightMode ? 'none' : 'brightness(0) invert(1)';
-
-  // QR: dark on white in normal/dark mode, brand color on white in light mode
   const qrFg = isLightMode ? (primaryColor || '#28502e') : (topBg === '#ffffff' ? (primaryColor || '#28502e') : topBg);
 
   const ratio = RATIOS[fields.signSize] || RATIOS['18x24'];
@@ -77,8 +72,9 @@ export default function YardSign({ fields }: YardSignProps) {
       <div style={{
         flex: 3, background: topBg, color: topText,
         display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
+        alignItems: 'center', justifyContent: 'flex-end',
         padding: isLandscape ? '16px 24px' : '20px 18px',
+        paddingBottom: isLandscape ? 24 : 32,
         textAlign: 'center',
       }}>
         {/* Logo */}
@@ -88,15 +84,15 @@ export default function YardSign({ fields }: YardSignProps) {
             crossOrigin="anonymous"
             alt="Logo"
             style={{
-              maxHeight: isLandscape ? 52 : 64, maxWidth: '40%', objectFit: 'contain',
-              marginBottom: isLandscape ? 8 : 10,
+              maxHeight: isLandscape ? 64 : 80, maxWidth: '50%', objectFit: 'contain',
+              marginBottom: isLandscape ? 12 : 16,
               filter: logoFilter,
             }}
           />
         )}
 
         {/* Headline / CTA */}
-        {showHeadline !== false && headline && (
+        {showHeadline === true && headline && (
           <p style={{
             fontSize: isLandscape ? 18 : 20, fontWeight: 800,
             margin: '0 0 2px', lineHeight: 1.15,
@@ -106,7 +102,7 @@ export default function YardSign({ fields }: YardSignProps) {
         )}
 
         {/* Tagline */}
-        {showTagline !== false && tagline && (
+        {showTagline === true && tagline && (
           <p style={{
             fontSize: isLandscape ? 11 : 13, opacity: 0.85, margin: '2px 0 0',
           }}>
@@ -134,7 +130,6 @@ export default function YardSign({ fields }: YardSignProps) {
         gap: 12,
       }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Company name — brand colored */}
           {showCompanyName !== false && companyName && (
             <p style={{
               fontSize: isLandscape ? 15 : 16, fontWeight: 800,
@@ -143,20 +138,18 @@ export default function YardSign({ fields }: YardSignProps) {
               {companyName}
             </p>
           )}
-          {/* Optional: email or website — small, secondary */}
-          {showEmail !== false && email && (
+          {showEmail === true && email && (
             <p style={{ fontSize: 10, color: bottomDetailColor, margin: '2px 0 0' }}>
               {email}
             </p>
           )}
-          {!(showEmail !== false && email) && showWebsite !== false && website && (
+          {!(showEmail === true && email) && showWebsite === true && website && (
             <p style={{ fontSize: 10, color: bottomDetailColor, margin: '2px 0 0' }}>
               {website}
             </p>
           )}
         </div>
 
-        {/* QR Code */}
         {showQrCode !== false && qrCodeUrl && (
           <div style={{
             flexShrink: 0, background: '#fff', borderRadius: 3,

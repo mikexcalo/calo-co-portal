@@ -46,6 +46,37 @@ function Field({ label, value, onChange, type = 'text', placeholder, disabled, c
   );
 }
 
+// Email-sig style field row — label left, "Shown"/"Hidden" right
+function SigField({ label, value, showKey, fields, update, fieldKey, type = 'text', placeholder }: {
+  label: string; value: string; showKey: string; fields: BrandBuilderFields;
+  update: (key: keyof BrandBuilderFields, value: string | boolean) => void;
+  fieldKey?: string; type?: string; placeholder?: string;
+}) {
+  const isShown = (fields as any)[showKey] !== false;
+  const fk = fieldKey || label.toLowerCase().replace(/\s+/g, '');
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+        <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{label}</span>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+          <input type="checkbox" checked={isShown} onChange={() => update(showKey as keyof BrandBuilderFields, !isShown)}
+            style={{ accentColor: '#6366f1' }} />
+          <span style={{ fontSize: 12, color: isShown ? '#6366f1' : '#9ca3af' }}>
+            {isShown ? 'Shown' : 'Hidden'}
+          </span>
+        </label>
+      </div>
+      <input type={type} value={value || ''} onChange={(e) => update(fk as keyof BrandBuilderFields, e.target.value)}
+        placeholder={placeholder || `Enter ${label.toLowerCase()}`} disabled={!isShown}
+        style={{
+          width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb',
+          borderRadius: 8, fontSize: 14, color: '#111827', fontFamily: 'Inter, sans-serif',
+          background: isShown ? '#fff' : '#f9fafb', opacity: isShown ? 1 : 0.5,
+        }} />
+    </div>
+  );
+}
+
 export default function FieldEditor({ fields, onChange, sources, assetType, clientId, hasBrandKit }: FieldEditorProps) {
   const update = (key: keyof BrandBuilderFields, value: string | boolean) => {
     onChange({ ...fields, [key]: value });
@@ -79,80 +110,41 @@ export default function FieldEditor({ fields, onChange, sources, assetType, clie
 
       {/* Logo row */}
       {fields.logoUrl && (
-        <div style={{ marginBottom: 8, padding: 12, background: '#f8fafc', borderRadius: 10, border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <img src={fields.logoUrl} alt="Logo" style={{ maxWidth: 40, maxHeight: 28, objectFit: 'contain' }} />
-          <span style={{ fontSize: 13, color: '#6b7280' }}>Logo</span>
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>Logo</span>
+          </div>
+          <div style={{ background: '#f9fafb', borderRadius: 8, padding: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <img src={fields.logoUrl} alt="Logo" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+            <span style={{ fontSize: 13, color: '#6b7280' }}>Logo uploaded</span>
+          </div>
         </div>
       )}
 
-      {/* === YARD SIGN: single-column layout with core/bonus split === */}
+      {/* === YARD SIGN: email-sig style field panel === */}
       {isYS ? (
         <>
-          {/* Core fields — single column */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <Field label="Headline" value={fields.headline} onChange={(v) => update('headline', v)} placeholder="Free Consultations!"
-              checked={fields.showHeadline} onToggle={(v) => update('showHeadline', v)}
-              disabled={fields.showHeadline === false} />
-            <Field label="Business phone" value={fields.phone} onChange={(v) => update('phone', v)} type="tel"
-              checked={fields.showPhone} onToggle={(v) => update('showPhone', v)}
-              disabled={fields.showPhone === false} />
-            <Field label="Company name" value={fields.companyName} onChange={(v) => update('companyName', v)}
-              checked={fields.showCompanyName} onToggle={(v) => update('showCompanyName', v)}
-              disabled={fields.showCompanyName === false} />
-            <Field label="QR code URL" value={fields.qrCodeUrl} onChange={(v) => update('qrCodeUrl', v)} placeholder="https://example.com"
-              checked={fields.showQrCode} onToggle={(v) => update('showQrCode', v)}
-              disabled={fields.showQrCode === false} />
+          {/* Core fields */}
+          <SigField label="Headline" value={fields.headline} showKey="showHeadline" fields={fields} update={update} placeholder="Free Estimates!" />
+          <SigField label="Business phone" value={fields.phone} showKey="showPhone" fields={fields} update={update} fieldKey="phone" type="tel" placeholder="(207) 555-1234" />
+          <SigField label="Company name" value={fields.companyName} showKey="showCompanyName" fields={fields} update={update} placeholder="Your Business Name" />
+          <SigField label="QR code URL" value={fields.qrCodeUrl} showKey="showQrCode" fields={fields} update={update} fieldKey="qrCodeUrl" placeholder="yourwebsite.com" />
+
+          {/* Divider + More fields */}
+          <div
+            onClick={() => setMoreOpen(!moreOpen)}
+            style={{ cursor: 'pointer', fontSize: 13, color: '#2563eb', padding: '8px 0', borderTop: '1px solid #f1f3f5', marginTop: 4 }}
+          >
+            {moreOpen ? '− Fewer fields' : '+ More fields'}
           </div>
 
-          {/* "+ More fields" toggle */}
-          <div style={{ marginTop: 16 }}>
-            <div
-              onClick={() => setMoreOpen(!moreOpen)}
-              style={{ cursor: 'pointer', fontSize: 13, color: '#2563eb', fontFamily: 'Inter, sans-serif' }}
-            >
-              {moreOpen ? '− Fewer fields' : '+ More fields'}
+          {moreOpen && (
+            <div style={{ marginTop: 4 }}>
+              <SigField label="Tagline" value={fields.tagline} showKey="showTagline" fields={fields} update={update} fieldKey="tagline" placeholder="Your trusted partner" />
+              <SigField label="Email" value={fields.email} showKey="showEmail" fields={fields} update={update} fieldKey="email" type="email" placeholder="email@example.com" />
+              <SigField label="Website" value={fields.website} showKey="showWebsite" fields={fields} update={update} fieldKey="website" placeholder="yoursite.com" />
             </div>
-            {moreOpen && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
-                <Field label="Tagline / slogan" value={fields.tagline} onChange={(v) => update('tagline', v)} placeholder="Your trusted partner"
-                  checked={fields.showTagline} onToggle={(v) => update('showTagline', v)}
-                  disabled={fields.showTagline === false} />
-                <Field label="Contact name" value={fields.contactName} onChange={(v) => update('contactName', v)}
-                  checked={fields.showContactName} onToggle={(v) => update('showContactName', v)}
-                  disabled={fields.showContactName === false} />
-                <Field label="Title" value={fields.contactTitle} onChange={(v) => update('contactTitle', v)}
-                  checked={fields.showContactTitle} onToggle={(v) => update('showContactTitle', v)}
-                  disabled={fields.showContactTitle === false} />
-                <Field label="Email" value={fields.email} onChange={(v) => update('email', v)} type="email"
-                  checked={fields.showEmail} onToggle={(v) => update('showEmail', v)}
-                  disabled={fields.showEmail === false} />
-                <Field label="Website" value={fields.website} onChange={(v) => update('website', v)}
-                  checked={fields.showWebsite} onToggle={(v) => update('showWebsite', v)}
-                  disabled={fields.showWebsite === false} />
-
-                {/* Address / License / Socials */}
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={fields.showAddress} onChange={(e) => update('showAddress', e.target.checked)} /> Address
-                </label>
-                {fields.showAddress && <Field label="" value={fields.address} onChange={(v) => update('address', v)} />}
-
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={fields.showLicense} onChange={(e) => update('showLicense', e.target.checked)} /> License / Certification #
-                </label>
-                {fields.showLicense && <Field label="" value={fields.licenseNumber} onChange={(v) => update('licenseNumber', v)} placeholder="e.g. LIC-12345" />}
-
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={fields.showSocials} onChange={(e) => update('showSocials', e.target.checked)} /> Social Handles
-                </label>
-                {fields.showSocials && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                    <Field label="Facebook" value={fields.socialFacebook} onChange={(v) => update('socialFacebook', v)} placeholder="@handle" />
-                    <Field label="Instagram" value={fields.socialInstagram} onChange={(v) => update('socialInstagram', v)} placeholder="@handle" />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          )}
         </>
       ) : (
         /* === NON-YARD-SIGN: original 2-column layout === */
