@@ -11,7 +11,7 @@ import {
 import { agencyStats, currency } from '@/lib/utils';
 import InvoiceTable from '@/components/invoices/InvoiceTable';
 import { Invoice } from '@/lib/types';
-import styles from './page.module.css';
+import { colors, typography } from '@/lib/design-tokens';
 
 export default function AllInvoicesPage() {
   const router = useRouter();
@@ -59,16 +59,22 @@ export default function AllInvoicesPage() {
   };
 
   if (isLoading) {
-    return <div className={styles.loading}>Loading invoices...</div>;
+    return <div style={{ padding: '32px 40px', color: '#6b7280', fontSize: 13 }}>Loading invoices...</div>;
   }
 
+  const metricLbl: React.CSSProperties = { fontSize: '10px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.3px', margin: '0 0 2px' };
+
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>All Invoices</h1>
+    <div style={{ padding: '32px 40px', maxWidth: '1100px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <div>
+          <h1 style={{ fontSize: '20px', fontWeight: 500, margin: '0 0 2px', color: colors.textPrimary }}>All Invoices</h1>
+          <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0 }}>Track and manage client invoices</p>
+        </div>
         <button
-          className={styles.newBtn}
           onClick={() => router.push('/clients')}
+          style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'Inter, sans-serif' }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <line x1="12" y1="5" x2="12" y2="19" />
@@ -78,24 +84,30 @@ export default function AllInvoicesPage() {
         </button>
       </div>
 
-      {error && <div className={styles.errorBanner}>{error}</div>}
+      {error && (
+        <div style={{ padding: '12px 16px', background: colors.red.bg, border: `1px solid ${colors.red.border}`, borderRadius: 6, color: colors.red.accent, fontSize: 13, marginBottom: 24 }}>
+          {error}
+        </div>
+      )}
 
-      <div className={styles.statsRow}>
-        <div className={styles.statCard}>
-          <div className={styles.statLabel}>Total Billed</div>
-          <div className={styles.statValue}>{currency(stats.billed)}</div>
+      {/* Metric cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 24 }}>
+        <div style={{ background: '#ffffff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 12 }}>
+          <p style={metricLbl}>Total billed</p>
+          <p style={{ fontSize: '20px', fontWeight: 500, color: colors.textPrimary, margin: 0 }}>{currency(stats.billed)}</p>
         </div>
-        <div className={styles.statCard}>
-          <div className={styles.statLabel}>Outstanding</div>
-          <div className={styles.statValue}>{currency(stats.outstanding)}</div>
+        <div style={{ background: '#ffffff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 12 }}>
+          <p style={metricLbl}>Outstanding</p>
+          <p style={{ fontSize: '20px', fontWeight: 500, color: colors.amber.value, margin: 0 }}>{currency(stats.outstanding)}</p>
         </div>
-        <div className={styles.statCard}>
-          <div className={styles.statLabel}>Collected</div>
-          <div className={styles.statValue}>{currency(stats.paid)}</div>
+        <div style={{ background: '#ffffff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 12 }}>
+          <p style={metricLbl}>Collected</p>
+          <p style={{ fontSize: '20px', fontWeight: 500, color: colors.green.value, margin: 0 }}>{currency(stats.paid)}</p>
         </div>
       </div>
 
-      <div className={styles.card}>
+      {/* Invoice table */}
+      <div style={{ background: '#ffffff', border: '0.5px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
         <InvoiceTable invoices={invoices} onDelete={handleDelete} showDelete isAgencyView />
       </div>
     </div>

@@ -1,65 +1,64 @@
 .tableWrapper {
   width: 100%;
   overflow-x: auto;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .table thead {
   background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 0.5px solid #e5e7eb;
 }
 
 .table th {
-  padding: 12px;
+  padding: 10px 16px;
   text-align: left;
   font-weight: 600;
-  color: #6b7280;
-  font-size: 11px;
+  color: #9ca3af;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .table td {
-  padding: 12px;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 12px 16px;
+  border-bottom: 0.5px solid #f1f3f5;
   vertical-align: middle;
+  color: #111827;
 }
 
 .toggleCol {
   width: 40px;
-  padding: 0;
+  padding: 0 0 0 8px !important;
 }
 
 .toggleBtn {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: none;
-  border: 1px solid #e5e7eb;
+  border: none;
   border-radius: 4px;
   cursor: pointer;
-  color: #6b7280;
-  transition: all 200ms ease;
+  color: #9ca3af;
+  transition: all 150ms ease;
 }
 
 .toggleBtn:hover {
   background: #f3f4f6;
-  color: #1f2937;
+  color: #6b7280;
 }
 
 .chevron {
-  width: 16px;
-  height: 16px;
-  transition: transform 200ms ease;
+  width: 14px;
+  height: 14px;
+  transition: transform 150ms ease;
 }
 
 .toggleBtn[aria-expanded="true"] .chevron {
@@ -67,7 +66,7 @@
 }
 
 .row {
-  transition: background 200ms ease;
+  transition: background 150ms ease;
 }
 
 .row:hover {
@@ -75,12 +74,13 @@
 }
 
 .invoiceNum {
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: 500;
+  color: #111827;
 }
 
 .amountCol {
   text-align: right;
+  font-weight: 500;
 }
 
 .actionCol {
@@ -89,8 +89,8 @@
 }
 
 .deleteIconBtn {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -99,7 +99,7 @@
   cursor: pointer;
   color: #ef4444;
   opacity: 0;
-  transition: all 200ms ease;
+  transition: all 150ms ease;
 }
 
 .row:hover .deleteIconBtn {
@@ -120,7 +120,7 @@
 .expandRow td {
   padding: 0;
   background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 0.5px solid #e5e7eb;
 }
 
 .expandContent {
@@ -138,11 +138,11 @@
 }
 
 .sectionTitle {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
-  color: #6b7280;
+  color: #9ca3af;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   margin: 0 0 8px 0;
 }
 
@@ -153,22 +153,22 @@
 }
 
 .itemsTable thead {
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 0.5px solid #e5e7eb;
 }
 
 .itemsTable th {
   padding: 6px 0;
   text-align: left;
   font-weight: 600;
-  color: #6b7280;
+  color: #9ca3af;
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .itemsTable td {
   padding: 6px 0;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 0.5px solid #f3f4f6;
 }
 
 .narrow {
@@ -187,18 +187,18 @@
 
 .actionBtn {
   padding: 8px 12px;
-  background: #3b82f6;
+  background: #2563eb;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 200ms ease;
+  transition: background 150ms ease;
 }
 
 .actionBtn:hover {
-  background: #2563eb;
+  background: #1d4ed8;
 }
 
 .actionBtn:disabled {
@@ -209,9 +209,9 @@
 .notes {
   padding: 8px 12px;
   background: #f3f4f6;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 12px;
-  color: #4b5563;
+  color: #6b7280;
   line-height: 1.4;
 }
 
@@ -219,5 +219,5 @@
   padding: 32px;
   text-align: center;
   color: #9ca3af;
-  font-size: 13px;
+  font-size: 12px;
 }
