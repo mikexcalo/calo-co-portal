@@ -34,11 +34,14 @@ interface TwoColumnLayoutProps {
   right: React.ReactNode;
   rightWidth?: string;
   header?: React.ReactNode;
+  maxWidth?: string;
+  padding?: string;
+  gap?: string;
 }
 
-export function TwoColumnLayout({ title, subtitle, action, left, right, rightWidth = '320px', header }: TwoColumnLayoutProps) {
+export function TwoColumnLayout({ title, subtitle, action, left, right, rightWidth = '320px', header, maxWidth = '960px', padding = '24px 32px', gap = '24px' }: TwoColumnLayoutProps) {
   return (
-    <div style={{ padding: '24px 32px', maxWidth: '960px' }}>
+    <div style={{ padding, maxWidth }}>
       {title && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
           <div>
@@ -49,7 +52,7 @@ export function TwoColumnLayout({ title, subtitle, action, left, right, rightWid
         </div>
       )}
       {header && <div style={{ marginBottom: '24px' }}>{header}</div>}
-      <div style={{ display: 'grid', gridTemplateColumns: `1fr ${rightWidth}`, gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: `1fr ${rightWidth}`, gap }}>
         <div style={{ minWidth: 0 }}>{left}</div>
         <div style={{ minWidth: 0 }}>{right}</div>
       </div>

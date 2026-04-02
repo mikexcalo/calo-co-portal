@@ -8,8 +8,9 @@ import {
   loadTasksNotes, DB, updateTaskStatus, deleteTaskNote,
 } from '@/lib/database';
 import { agencyStats, currency } from '@/lib/utils';
-import { colors, typography, spacing, radii, borders, cardStyles } from '@/lib/design-tokens';
+import { colors, typography } from '@/lib/design-tokens';
 import CommandBar from '@/components/dashboard/CommandBar';
+import { TwoColumnLayout, SectionLabel, MetricCard } from '@/components/shared/PageLayout';
 
 function relTime(iso: string): string {
   const d = Date.now() - new Date(iso).getTime();
@@ -129,149 +130,138 @@ export default function Home() {
   const clients = DB.clients.sort((a, b) => (a.company || a.name).localeCompare(b.company || b.name));
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '36px', padding: '32px 40px', maxWidth: '1100px' }}>
+    <TwoColumnLayout
+      title={greeting}
+      subtitle={dateline}
+      rightWidth="340px"
+      maxWidth="1100px"
+      padding="32px 40px"
+      gap="36px"
+      left={
+        <>
+          <CommandBar onItemSaved={refreshFeed} />
 
-      {/* LEFT COLUMN */}
-      <div style={{ minWidth: 0 }}>
-        <h1 style={{ fontSize: '20px', fontWeight: 500, margin: '0 0 2px', color: colors.textPrimary }}>{greeting}</h1>
-        <p style={{ fontSize: '13px', color: colors.textMuted, margin: '0 0 20px' }}>{dateline}</p>
+          <div style={{ marginTop: 24 }}>
+            <SectionLabel>Action items</SectionLabel>
 
-        <CommandBar onItemSaved={refreshFeed} />
-
-        <p style={{ ...typography.sectionLabel, margin: '24px 0 8px' }}>Action items</p>
-
-        {/* Action item cards */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {openTasks.map((task) => {
-            const cl = DB.clients.find((c) => c.id === task.client_id);
-            const u = getUrgencyStyle(task);
-            return (
-              <div key={task.id} style={{
-                background: u.background, border: u.border, borderLeft: u.borderLeft,
-                borderRadius: 8, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer',
-              }} onClick={() => cl && router.push(`/clients/${cl.id}`)}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-                  <div onClick={async (e) => { e.stopPropagation(); await updateTaskStatus(task.id, 'complete'); refreshFeed(); }} style={{ cursor: 'pointer' }}>
-                    {getActionIcon(task.content, u.iconColor)}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                      <p style={{ fontSize: 13, fontWeight: 500, margin: 0, color: u.titleColor, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{task.content}</p>
-                      {u.badge && <span style={{ fontSize: 9, background: u.badge.bg, color: u.badge.color, padding: '1px 6px', borderRadius: 10, fontWeight: 500, flexShrink: 0 }}>{u.badge.text}</span>}
+            {/* Action item cards */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {openTasks.map((task) => {
+                const cl = DB.clients.find((c) => c.id === task.client_id);
+                const u = getUrgencyStyle(task);
+                return (
+                  <div key={task.id} style={{
+                    background: u.background, border: u.border, borderLeft: u.borderLeft,
+                    borderRadius: 8, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer',
+                  }} onClick={() => cl && router.push(`/clients/${cl.id}`)}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                      <div onClick={async (e) => { e.stopPropagation(); await updateTaskStatus(task.id, 'complete'); refreshFeed(); }} style={{ cursor: 'pointer' }}>
+                        {getActionIcon(task.content, u.iconColor)}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                          <p style={{ fontSize: 13, fontWeight: 500, margin: 0, color: u.titleColor, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{task.content}</p>
+                          {u.badge && <span style={{ fontSize: 9, background: u.badge.bg, color: u.badge.color, padding: '1px 6px', borderRadius: 10, fontWeight: 500, flexShrink: 0 }}>{u.badge.text}</span>}
+                        </div>
+                        <p style={{ fontSize: 12, color: u.subtitleColor, margin: 0, opacity: 0.8 }}>{cl?.company || cl?.name || ''} · {relTime(task.created_at)}</p>
+                      </div>
                     </div>
-                    <p style={{ fontSize: 12, color: u.subtitleColor, margin: 0, opacity: 0.8 }}>{cl?.company || cl?.name || ''} · {relTime(task.created_at)}</p>
+                    <span style={{ fontSize: 13, color: u.arrowColor, marginLeft: 12, flexShrink: 0 }}>→</span>
                   </div>
-                </div>
-                <span style={{ fontSize: 13, color: u.arrowColor, marginLeft: 12, flexShrink: 0 }}>→</span>
-              </div>
-            );
-          })}
-          {unpaidInvs.map((inv) => {
-            const cl = DB.clients.find((c) => c.id === inv.clientId);
-            const total = (inv.items || []).reduce((s: number, i: any) => s + (i.qty || 1) * (i.price || 0), 0) + (inv.tax || 0) + (inv.shipping || 0);
-            const u = getUrgencyStyle({ content: `invoice ${inv.id}`, due: inv.due, date: inv.date, created_at: inv.date });
-            return (
-              <div key={inv.id || inv._uuid} style={{
-                background: u.background, border: u.border, borderLeft: u.borderLeft,
-                borderRadius: 8, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer',
-              }} onClick={() => router.push(`/clients/${inv.clientId}/invoices`)}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-                  {getActionIcon('invoice', u.iconColor)}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                      <p style={{ fontSize: 13, fontWeight: 500, margin: 0, color: u.titleColor, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Invoice {inv.id} · {currency(total)}</p>
-                      {u.badge && <span style={{ fontSize: 9, background: u.badge.bg, color: u.badge.color, padding: '1px 6px', borderRadius: 10, fontWeight: 500, flexShrink: 0 }}>{u.badge.text}</span>}
+                );
+              })}
+              {unpaidInvs.map((inv) => {
+                const cl = DB.clients.find((c) => c.id === inv.clientId);
+                const total = (inv.items || []).reduce((s: number, i: any) => s + (i.qty || 1) * (i.price || 0), 0) + (inv.tax || 0) + (inv.shipping || 0);
+                const u = getUrgencyStyle({ content: `invoice ${inv.id}`, due: inv.due, date: inv.date, created_at: inv.date });
+                return (
+                  <div key={inv.id || inv._uuid} style={{
+                    background: u.background, border: u.border, borderLeft: u.borderLeft,
+                    borderRadius: 8, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer',
+                  }} onClick={() => router.push(`/clients/${inv.clientId}/invoices`)}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                      {getActionIcon('invoice', u.iconColor)}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                          <p style={{ fontSize: 13, fontWeight: 500, margin: 0, color: u.titleColor, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Invoice {inv.id} · {currency(total)}</p>
+                          {u.badge && <span style={{ fontSize: 9, background: u.badge.bg, color: u.badge.color, padding: '1px 6px', borderRadius: 10, fontWeight: 500, flexShrink: 0 }}>{u.badge.text}</span>}
+                        </div>
+                        <p style={{ fontSize: 12, color: u.subtitleColor, margin: 0, opacity: 0.8 }}>{cl?.company || cl?.name || ''}{inv.due ? ` · Due ${inv.due}` : ''}</p>
+                      </div>
                     </div>
-                    <p style={{ fontSize: 12, color: u.subtitleColor, margin: 0, opacity: 0.8 }}>{cl?.company || cl?.name || ''}{inv.due ? ` · Due ${inv.due}` : ''}</p>
+                    <span style={{ fontSize: 13, color: u.arrowColor, marginLeft: 12, flexShrink: 0 }}>→</span>
                   </div>
-                </div>
-                <span style={{ fontSize: 13, color: u.arrowColor, marginLeft: 12, flexShrink: 0 }}>→</span>
-              </div>
-            );
-          })}
-          {openTasks.length === 0 && unpaidInvs.length === 0 && (
-            <div style={{ fontSize: 12, color: '#9ca3af', padding: '8px 0' }}>No action items right now.</div>
+                );
+              })}
+              {openTasks.length === 0 && unpaidInvs.length === 0 && (
+                <div style={{ fontSize: 12, color: '#9ca3af', padding: '8px 0' }}>No action items right now.</div>
+              )}
+            </div>
+          </div>
+
+          {/* Recent activity */}
+          {activityItems.length > 0 && (
+            <div style={{ marginTop: 24 }}>
+              <SectionLabel>Recent</SectionLabel>
+              {activityItems.map((ev, idx) => {
+                const cl = DB.clients.find((c) => c.id === ev.clientId);
+                return (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', padding: '4px 0', fontSize: 11, color: '#9ca3af' }}>
+                    <span style={{ flex: 1 }}>
+                      {evLabels[ev.eventType] || ev.eventType}
+                      {cl && <> · <span style={{ color: '#6b7280', cursor: 'pointer' }} onClick={() => router.push(`/clients/${cl.id}`)}>{cl.company || cl.name} →</span></>}
+                    </span>
+                    <span style={{ fontSize: 10, color: '#9ca3af', flexShrink: 0 }}>{relTime(ev.createdAt)}</span>
+                  </div>
+                );
+              })}
+            </div>
           )}
-        </div>
+        </>
+      }
+      right={
+        <>
+          {/* Financials — two metric cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 20 }}>
+            <MetricCard label="Outstanding" value={currency(stats.outstanding)} color="#D97706" onClick={() => router.push('/financials')} />
+            <MetricCard label="Paid" value={currency(stats.paid)} onClick={() => router.push('/financials')} />
+          </div>
 
-        {/* Recent activity */}
-        {activityItems.length > 0 && (
-          <>
-            <p style={{ ...typography.sectionLabel, margin: '24px 0 8px' }}>Recent</p>
-            {activityItems.map((ev, idx) => {
-              const cl = DB.clients.find((c) => c.id === ev.clientId);
+          {/* Clients header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <SectionLabel>Clients</SectionLabel>
+            <span onClick={() => router.push('/clients/new')} style={{ fontSize: 12, color: '#2563eb', fontWeight: 500, cursor: 'pointer' }}>+ Add</span>
+          </div>
+
+          {/* Client list — compact rows */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {clients.map((client) => {
+              const ct = DB.contacts[client.id] || [];
+              const primary = ct.find((c) => c.isPrimary) || ct[0];
               return (
-                <div key={idx} style={{ display: 'flex', alignItems: 'center', padding: '4px 0', fontSize: 11, color: '#9ca3af' }}>
-                  <span style={{ flex: 1 }}>
-                    {evLabels[ev.eventType] || ev.eventType}
-                    {cl && <> · <span style={{ color: '#6b7280', cursor: 'pointer' }} onClick={() => router.push(`/clients/${cl.id}`)}>{cl.company || cl.name} →</span></>}
-                  </span>
-                  <span style={{ fontSize: 10, color: '#9ca3af', flexShrink: 0 }}>{relTime(ev.createdAt)}</span>
+                <div key={client.id} onClick={() => {
+                  localStorage.setItem(`client_accessed_${client.id}`, String(Date.now()));
+                  router.push(`/clients/${client.id}`);
+                }} style={{
+                  background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 8,
+                  padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+                }}>
+                  {client.logo ? (
+                    <img src={client.logo} alt="" style={{ width: 32, height: 32, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+                  ) : (
+                    <div style={{ width: 32, height: 32, borderRadius: 6, background: '#f1f3f5', flexShrink: 0 }} />
+                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '12px', fontWeight: 500, color: colors.textPrimary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{client.company || client.name}</div>
+                    {primary && <div style={{ fontSize: '11px', color: colors.textMuted }}>{primary.name}</div>}
+                  </div>
+                  <span style={{ fontSize: 12, color: '#9ca3af' }}>→</span>
                 </div>
               );
             })}
-          </>
-        )}
-      </div>
-
-      {/* RIGHT COLUMN */}
-      <div style={{ minWidth: 0 }}>
-        {/* Financials — two separate cards */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-          <div onClick={() => router.push('/financials')} style={{
-            flex: 1, background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 12, cursor: 'pointer',
-          }}>
-            <p style={{ ...typography.metricLabel, margin: '0 0 2px' }}>Outstanding</p>
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-              <p style={{ fontSize: '20px', fontWeight: 500, color: colors.amber.value, margin: 0 }}>{currency(stats.outstanding)}</p>
-              <span style={{ fontSize: 12, color: '#9ca3af' }}>→</span>
-            </div>
           </div>
-          <div onClick={() => router.push('/financials')} style={{
-            flex: 1, background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 12, cursor: 'pointer',
-          }}>
-            <p style={{ ...typography.metricLabel, margin: '0 0 2px' }}>Paid</p>
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-              <p style={{ fontSize: '20px', fontWeight: 500, color: colors.textPrimary, margin: 0 }}>{currency(stats.paid)}</p>
-              <span style={{ fontSize: 12, color: '#9ca3af' }}>→</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Clients header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <p style={{ ...typography.sectionLabel, margin: 0 }}>Clients</p>
-          <span onClick={() => router.push('/clients/new')} style={{ fontSize: 12, color: '#2563eb', fontWeight: 500, cursor: 'pointer' }}>+ Add</span>
-        </div>
-
-        {/* Client list — compact rows */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {clients.map((client) => {
-            const ct = DB.contacts[client.id] || [];
-            const primary = ct.find((c) => c.isPrimary) || ct[0];
-            return (
-              <div key={client.id} onClick={() => {
-                localStorage.setItem(`client_accessed_${client.id}`, String(Date.now()));
-                router.push(`/clients/${client.id}`);
-              }} style={{
-                background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 8,
-                padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
-              }}>
-                {client.logo ? (
-                  <img src={client.logo} alt="" style={{ width: 32, height: 32, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
-                ) : (
-                  <div style={{ width: 32, height: 32, borderRadius: 6, background: '#f1f3f5', flexShrink: 0 }} />
-                )}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '12px', fontWeight: 500, color: colors.textPrimary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{client.company || client.name}</div>
-                  {primary && <div style={{ fontSize: '11px', color: colors.textMuted }}>{primary.name}</div>}
-                </div>
-                <span style={{ fontSize: 12, color: '#9ca3af' }}>→</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   );
 }
