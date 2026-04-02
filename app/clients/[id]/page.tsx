@@ -20,6 +20,10 @@ export default function ClientHubPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState({
+    company: '', firstName: '', lastName: '', title: '',
+    email: '', contactPhone: '', businessPhone: '', address: '', website: '',
+  });
 
   // Listen for view mode changes from the nav toggle
   useEffect(() => {
@@ -64,6 +68,24 @@ export default function ClientHubPage() {
     initData();
   }, [clientId, router]);
 
+  // Populate edit form when client/contacts data is available
+  useEffect(() => {
+    if (!client) return;
+    const p = contacts.find((c) => c.isPrimary) || contacts[0];
+    const parts = (p?.name || '').split(/\s+/);
+    setForm({
+      company: client.company || client.name || '',
+      firstName: parts[0] || '',
+      lastName: parts.slice(1).join(' ') || '',
+      title: p?.title || p?.role || '',
+      email: p?.email || client.email || '',
+      contactPhone: p?.phone || '',
+      businessPhone: client.phone || '',
+      address: client.address || '',
+      website: client.website || '',
+    });
+  }, [client, contacts]);
+
   if (isLoading) {
     return (
       <div style={{ padding: '24px 32px', color: '#94a3b8', fontSize: 13 }}>
@@ -82,20 +104,7 @@ export default function ClientHubPage() {
 
   const primary = contacts.find((c) => c.isPrimary) || contacts[0];
   const stats = clientStats(invoices, clientId);
-
-  // --- Edit form state ---
   const nameParts = (primary?.name || '').split(/\s+/);
-  const [form, setForm] = useState({
-    company: client.company || client.name || '',
-    firstName: nameParts[0] || '',
-    lastName: nameParts.slice(1).join(' ') || '',
-    title: primary?.title || primary?.role || '',
-    email: primary?.email || client.email || '',
-    contactPhone: primary?.phone || '',
-    businessPhone: client.phone || '',
-    address: client.address || '',
-    website: client.website || '',
-  });
 
   const valid = {
     company: form.company.trim().length > 0,
