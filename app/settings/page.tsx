@@ -13,11 +13,7 @@ export default function SettingsPage() {
   const [website, setWebsite] = useState(DB.agency.url);
   const [city, setCity] = useState(DB.agency.location);
 
-  // Brand Kit
-  const [bkAgencyName, setBkAgencyName] = useState(DB.agency.name);
-  const [bkFounderName, setBkFounderName] = useState(DB.agency.founder);
-  const [bkWebsite, setBkWebsite] = useState(DB.agency.url);
-  const [bkCity, setBkCity] = useState(DB.agency.location);
+  // Brand Kit (Primary Color + Logo)
   const [bkPrimaryColor, setBkPrimaryColor] = useState('#3b82f6');
   const [bkColorHex, setBkColorHex] = useState('#3b82f6');
   const [bkLogoPreview, setBkLogoPreview] = useState<string | null>(null);
@@ -152,12 +148,12 @@ export default function SettingsPage() {
   return (
     <div className="page">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-1">Settings</h1>
-        <p className="text-sm text-slate-500">Manage your agency configuration</p>
+        <h1 style={{ fontSize: '20px', fontWeight: 500, margin: '0 0 2px', color: '#111827' }}>Settings</h1>
+        <p style={{ fontSize: '13px', color: '#9ca3af', margin: 0 }}>Manage your agency configuration</p>
       </div>
 
-      {/* Agency Info Section */}
-      <Section title="Agency Info">
+      {/* Agency Section — merged Agency Info + Brand Kit */}
+      <Section title="Agency">
         <div className="grid grid-cols-2 gap-6">
           <div className="form-group">
             <label className="form-label">Agency Name</label>
@@ -197,54 +193,6 @@ export default function SettingsPage() {
               type="text"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              placeholder="Portland, Maine"
-              className="form-input"
-            />
-          </div>
-        </div>
-      </Section>
-
-      {/* Agency Brand Kit Section */}
-      <Section title="Agency Brand Kit" subtitle="These fields populate invoice PDF headers">
-        <div className="grid grid-cols-2 gap-6">
-          <div className="form-group">
-            <label className="form-label">Agency Name</label>
-            <input
-              type="text"
-              value={bkAgencyName}
-              onChange={(e) => setBkAgencyName(e.target.value)}
-              placeholder="CALO&CO"
-              className="form-input"
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Founder Name</label>
-            <input
-              type="text"
-              value={bkFounderName}
-              onChange={(e) => setBkFounderName(e.target.value)}
-              placeholder="Mike Calo"
-              className="form-input"
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-6">
-          <div className="form-group">
-            <label className="form-label">Website</label>
-            <input
-              type="text"
-              value={bkWebsite}
-              onChange={(e) => setBkWebsite(e.target.value)}
-              placeholder="mikecalo.co"
-              className="form-input"
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">City</label>
-            <input
-              type="text"
-              value={bkCity}
-              onChange={(e) => setBkCity(e.target.value)}
               placeholder="Portland, Maine"
               className="form-input"
             />
@@ -298,7 +246,7 @@ export default function SettingsPage() {
       </Section>
 
       {/* Financial Settings Section */}
-      <Section title="Financial Settings">
+      <Section title="Financial settings">
         <div className="grid grid-cols-2 gap-6">
           <div className="form-group">
             <label className="form-label">Tax Estimate Rate (%)</label>
@@ -331,7 +279,7 @@ export default function SettingsPage() {
       </Section>
 
       {/* Payment Methods Section */}
-      <Section title="Payment Methods">
+      <Section title="Payment methods">
         <div className="space-y-3 mb-4">
           {paymentMethods.map((method, idx) => (
             <div key={idx} className="bg-slate-50 border border-slate-200 rounded p-4 grid grid-cols-4 gap-3 items-end">
@@ -385,7 +333,7 @@ export default function SettingsPage() {
       </Section>
 
       {/* Communication Preferences Section */}
-      <Section title="Communication Preferences">
+      <Section title="Communication preferences">
         <div className="grid grid-cols-3 gap-6">
           <div className="form-group">
             <label className="form-label">Default Email Client</label>
@@ -414,7 +362,7 @@ export default function SettingsPage() {
       </Section>
 
       {/* Claude API Key Section */}
-      <Section title="Claude API Key">
+      <Section title="Claude API key">
         <div className="form-group">
           <label className="form-label">API Key</label>
           <div className="flex gap-2">
@@ -469,18 +417,15 @@ export default function SettingsPage() {
 
 function Section({
   title,
-  subtitle,
   children,
 }: {
   title: string;
-  subtitle?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="bg-white rounded-lg border border-slate-200 p-6 mb-6">
-      <div className="mb-6">
-        <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wide mb-1">{title}</h2>
-        {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
+      <div style={{ marginBottom: 16 }}>
+        <h2 style={{ fontSize: '10px', fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>{title}</h2>
       </div>
       {children}
     </div>
