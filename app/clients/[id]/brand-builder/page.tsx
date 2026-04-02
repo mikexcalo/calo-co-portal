@@ -13,6 +13,13 @@ import {
 } from '@/components/brand-builder/types';
 import FieldEditor from '@/components/brand-builder/FieldEditor';
 import AssetPreview from '@/components/brand-builder/AssetPreview';
+import dynamic from 'next/dynamic';
+import { getYardSignTemplate } from '@/lib/templates/yard-sign';
+
+const DesignCanvas = dynamic(
+  () => import('@/components/design-studio/DesignCanvas'),
+  { ssr: false, loading: () => <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>Loading editor...</div> }
+);
 
 export default function BrandBuilderPage() {
   const router = useRouter();
@@ -259,16 +266,70 @@ export default function BrandBuilderPage() {
       {/* Two-column layout — fields + preview, full width (sidebar is global) */}
       <div style={{ display: 'flex', minHeight: 'calc(100vh - 60px)', background: '#fff' }}>
         {assetType ? (
-          <>
-            {/* Fields: 420px fixed */}
-            <div style={{ width: 420, flexShrink: 0, borderRight: '1px solid #e5e7eb', padding: 32, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' }}>
-              <FieldEditor fields={fields} onChange={handleFieldsChange} sources={sources} assetType={assetType} clientId={clientId} hasBrandKit={hasBrandKit} />
-            </div>
-            {/* Preview: flex: 1 */}
+          assetType === 'yard-sign' ? (
+            /* Yard Sign — Fabric.js canvas editor */
             <div style={{ flex: 1, padding: 32, background: '#f9fafb' }}>
-              <AssetPreview assetType={assetType} fields={fields} clientId={clientId} onFieldsChange={handleFieldsChange} />
+              {/* Size selector */}
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+                {[
+                  { value: '18x24', label: '18" × 24"' },
+                  { value: '24x18', label: '24" × 18" (landscape)' },
+                  { value: '12x18', label: '12" × 18"' },
+                  { value: '24x36', label: '24" × 36"' },
+                  { value: '36x24', label: '36" × 24" (landscape)' },
+                ].map((s) => (
+                  <button
+                    key={s.value}
+                    onClick={() => handleFieldsChange({ ...fields, signSize: s.value })}
+                    style={{
+                      padding: '6px 14px', fontSize: 12, borderRadius: 6, cursor: 'pointer',
+                      border: fields.signSize === s.value ? '2px solid #2563eb' : '1px solid #e5e7eb',
+                      background: fields.signSize === s.value ? '#eff6ff' : '#fff',
+                      color: fields.signSize === s.value ? '#2563eb' : '#374151',
+                      fontWeight: fields.signSize === s.value ? 600 : 400,
+                      fontFamily: 'Inter, sans-serif',
+                    }}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Fabric.js Canvas */}
+              <DesignCanvas
+                key={fields.signSize}
+                template={getYardSignTemplate({
+                  companyName: fields.companyName || '',
+                  phone: fields.phone || '',
+                  headline: fields.headline || 'Free Estimates!',
+                  logoUrl: fields.logoUrl || null,
+                  qrCodeUrl: fields.qrCodeUrl || fields.website || '',
+                  email: fields.email || '',
+                  website: fields.website || '',
+                  brandColor: fields.primaryColor || '#28502e',
+                  size: fields.signSize || '18x24',
+                })}
+                brandColor={fields.primaryColor || '#28502e'}
+                darkColor={fields.secondaryColor || '#1a1a1a'}
+                savedState={null}
+                onSave={(json) => {
+                  console.log('[DesignCanvas] State saved:', json.length, 'bytes');
+                }}
+              />
             </div>
-          </>
+          ) : (
+            /* Other templates — existing FieldEditor + AssetPreview layout */
+            <>
+              {/* Fields: 420px fixed */}
+              <div style={{ width: 420, flexShrink: 0, borderRight: '1px solid #e5e7eb', padding: 32, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' }}>
+                <FieldEditor fields={fields} onChange={handleFieldsChange} sources={sources} assetType={assetType} clientId={clientId} hasBrandKit={hasBrandKit} />
+              </div>
+              {/* Preview: flex: 1 */}
+              <div style={{ flex: 1, padding: 32, background: '#f9fafb' }}>
+                <AssetPreview assetType={assetType} fields={fields} clientId={clientId} onFieldsChange={handleFieldsChange} />
+              </div>
+            </>
+          )
         ) : (
           <div style={{ flex: 1, padding: '40px 48px' }}>
             <div style={{ fontSize: 26, fontWeight: 700, color: '#111827' }}>Design Studio</div>
