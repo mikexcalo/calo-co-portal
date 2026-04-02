@@ -30,129 +30,107 @@ export default function YardSign({ fields }: YardSignProps) {
   const isDarkMode = backgroundColor === '#1a1a1a';
   const signBg = isDarkMode ? '#1a1a1a' : isLightMode ? '#ffffff' : (primaryColor || '#28502e');
   const signText = isLightMode ? (primaryColor || '#28502e') : '#ffffff';
-  const subtleText = isLightMode ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.75)';
-  const qrFg = isLightMode ? (primaryColor || '#28502e') : (primaryColor || '#28502e');
-  const qrBg = '#ffffff';
+  const qrFg = signBg === '#ffffff' ? (primaryColor || '#28502e') : signBg;
   const logoFilter = isLightMode ? 'none' : 'brightness(0) invert(1)';
 
   const ratio = RATIOS[fields.signSize] || RATIOS['18x24'];
   const isLandscape = ratio < 1;
   const w = BASE_W;
   const h = Math.round(BASE_W * ratio);
-  const scale = Math.min(w, h);
 
-  const qrSize = Math.min(isLandscape ? 52 : 60, Math.max(40, Math.round(h * 0.14)));
+  const qrSize = isLandscape ? 48 : 56;
 
   return (
     <div style={{
-      width: w, height: h, background: signBg, borderRadius: 4,
+      width: w, height: h, borderRadius: 4,
       border: '6px solid rgba(0,0,0,0.25)',
-      fontFamily, color: signText,
+      fontFamily, overflow: 'hidden',
       display: 'flex', flexDirection: 'column',
-      padding: isLandscape ? '16px 20px' : '20px 16px',
-      overflow: 'hidden',
     }}>
-      {/* Logo — centered */}
-      {logoUrl && (
-        <div style={{
-          display: 'flex', justifyContent: 'center', flexShrink: 0,
-          marginBottom: isLandscape ? 6 : 12,
-        }}>
+      {/* TOP SECTION — brand color, ~65% height */}
+      <div style={{
+        flex: 2, background: signBg, color: signText,
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        padding: isLandscape ? '16px 24px' : '20px 20px',
+        textAlign: 'center', gap: isLandscape ? 6 : 10,
+      }}>
+        {/* Logo */}
+        {logoUrl && (
           <img src={logoUrl} alt="Logo" style={{
-            maxHeight: isLandscape ? 60 : 90, maxWidth: '50%', objectFit: 'contain',
+            maxHeight: isLandscape ? 50 : 70, maxWidth: '40%', objectFit: 'contain',
             filter: logoFilter,
           }} />
-        </div>
-      )}
+        )}
 
-      {/* Headline + Phone: side by side in landscape, stacked in portrait */}
-      <div style={{
-        display: 'flex',
-        flexDirection: isLandscape ? 'row' : 'column',
-        alignItems: 'center',
-        justifyContent: isLandscape ? 'space-between' : 'center',
-        width: '100%',
-        gap: isLandscape ? 12 : 4,
-        textAlign: 'center',
-      }}>
-        <div>
-          {showHeadline !== false && headline && (
-            <div style={{
-              fontSize: isLandscape ? Math.max(14, Math.round(scale * 0.05)) : Math.max(16, Math.round(scale * 0.055)),
-              fontWeight: 700, lineHeight: 1.2,
-            }}>
-              {headline}
-            </div>
-          )}
-          {showTagline !== false && tagline && (
-            <div style={{
-              fontSize: isLandscape ? Math.max(10, Math.round(scale * 0.035)) : Math.max(12, Math.round(scale * 0.04)),
-              fontWeight: 400, color: subtleText, lineHeight: 1.3,
-              marginTop: 2,
-            }}>
-              {tagline}
-            </div>
-          )}
-        </div>
+        {/* Headline */}
+        {showHeadline !== false && headline && (
+          <p style={{
+            fontSize: isLandscape ? 18 : 22, fontWeight: 700,
+            margin: 0, lineHeight: 1.2,
+          }}>
+            {headline}
+          </p>
+        )}
 
+        {/* Tagline */}
+        {showTagline !== false && tagline && (
+          <p style={{
+            fontSize: isLandscape ? 11 : 13, opacity: 0.85, margin: 0,
+          }}>
+            {tagline}
+          </p>
+        )}
+
+        {/* Phone — largest text */}
         {showPhone !== false && phone && (
-          <div style={{
-            fontSize: isLandscape ? Math.max(22, Math.round(scale * 0.09)) : Math.max(28, Math.round(scale * 0.12)),
-            fontWeight: 900, letterSpacing: '0.02em', whiteSpace: 'nowrap',
-            margin: isLandscape ? 0 : '8px 0',
+          <p style={{
+            fontSize: isLandscape ? 28 : 36, fontWeight: 700,
+            margin: isLandscape ? '4px 0 0' : '8px 0 0',
+            whiteSpace: 'nowrap', letterSpacing: '0.5px',
           }}>
             {phone}
-          </div>
+          </p>
         )}
       </div>
 
-      {/* Spacer — pushes bottom section down */}
-      <div style={{ flex: 1 }} />
-
-      {/* Bottom: company name + details left, QR right */}
+      {/* BOTTOM SECTION — white, ~35% height */}
       <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
-        width: '100%', gap: 10, flexShrink: 0,
+        flex: 1, background: '#ffffff',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: isLandscape ? '10px 20px' : '12px 16px',
       }}>
-        <div style={{ maxWidth: '65%', minWidth: 0 }}>
+        {/* Left: company name + contact details */}
+        <div style={{ flex: 1, minWidth: 0 }}>
           {showCompanyName !== false && companyName && (
-            <div style={{
-              fontSize: isLandscape ? Math.max(12, Math.round(scale * 0.05)) : Math.max(14, Math.round(scale * 0.06)),
-              fontWeight: 800, lineHeight: 1.15,
+            <p style={{
+              fontSize: isLandscape ? 13 : 15, fontWeight: 700,
+              color: signBg, margin: '0 0 2px', lineHeight: 1.2,
             }}>
               {companyName}
-            </div>
+            </p>
           )}
           {showContactName !== false && contactName && (
-            <div style={{ fontSize: Math.max(9, Math.round(scale * 0.03)), color: subtleText, marginTop: 2 }}>
-              {contactName}
-            </div>
+            <p style={{ fontSize: 9, color: '#374151', margin: '1px 0 0' }}>{contactName}</p>
           )}
           {showEmail !== false && email && (
-            <div style={{ fontSize: Math.max(8, Math.round(scale * 0.026)), color: subtleText, marginTop: 1 }}>
-              {email}
-            </div>
+            <p style={{ fontSize: 8, color: '#6b7280', margin: '1px 0 0' }}>{email}</p>
           )}
           {showWebsite !== false && website && (
-            <div style={{ fontSize: Math.max(8, Math.round(scale * 0.026)), color: subtleText, marginTop: 1 }}>
-              {website}
-            </div>
+            <p style={{ fontSize: 8, color: '#6b7280', margin: '1px 0 0' }}>{website}</p>
           )}
           {showAddress !== false && address && (
-            <div style={{ fontSize: Math.max(8, Math.round(scale * 0.026)), color: subtleText, marginTop: 1 }}>
-              {address}
-            </div>
+            <p style={{ fontSize: 8, color: '#6b7280', margin: '1px 0 0' }}>{address}</p>
           )}
           {showLicense !== false && licenseNumber && (
-            <div style={{ fontSize: Math.max(7, Math.round(scale * 0.022)), color: subtleText, marginTop: 1 }}>
-              {licenseNumber}
-            </div>
+            <p style={{ fontSize: 7, color: '#9ca3af', margin: '1px 0 0' }}>{licenseNumber}</p>
           )}
         </div>
 
+        {/* Right: QR code */}
         {showQrCode !== false && qrCodeUrl && (
-          <div style={{ flexShrink: 0 }}>
-            <QRCode url={qrCodeUrl} size={qrSize} color={qrFg} bgColor={qrBg} />
+          <div style={{ flexShrink: 0, marginLeft: 12 }}>
+            <QRCode url={qrCodeUrl} size={qrSize} color={qrFg} bgColor="#ffffff" />
           </div>
         )}
       </div>
