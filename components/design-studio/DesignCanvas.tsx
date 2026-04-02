@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
+import { SIGN_PHYSICAL_SIZES } from '@/lib/templates/yard-sign';
 
 interface CanvasTemplate {
   width: number;
@@ -14,31 +15,25 @@ interface DesignCanvasProps {
   savedState?: string | null;
   brandColor?: string;
   darkColor?: string;
+  signSize?: string;
 }
 
-export default function DesignCanvas({ template, onSave, savedState, brandColor = '#28502e', darkColor = '#1a1a1a' }: DesignCanvasProps) {
+export default function DesignCanvas({ template, onSave, savedState, brandColor = '#28502e', darkColor = '#1a1a1a', signSize = '18x24' }: DesignCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricRef = useRef<any>(null);
   const [selectedObject, setSelectedObject] = useState<any>(null);
   const [colorMode, setColorMode] = useState<'brand' | 'dark' | 'light'>('brand');
   const [canvasReady, setCanvasReady] = useState(false);
 
-  // Display sizing — fit canvas into max 600px wide container using Fabric zoom
-  const maxDisplayWidth = 600;
-  const zoom = maxDisplayWidth / template.width;
-  const displayWidth = maxDisplayWidth;
-  const displayHeight = Math.round(template.height * zoom);
-
-  // Initialize canvas
+  // Initialize canvas — created at EXACT display dimensions, no scaling
   useEffect(() => {
     let fc: any = null;
 
     const initCanvas = async () => {
       const fabric = await import('fabric');
-
       if (!canvasRef.current) return;
 
-      // Create canvas at LOGICAL (template) dimensions
+      // Canvas dimensions = template dimensions = display dimensions
       fc = new fabric.Canvas(canvasRef.current, {
         width: template.width,
         height: template.height,
@@ -49,39 +44,30 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
 
       fabricRef.current = fc;
 
-      // Load saved state or template
       if (savedState) {
         fc.loadFromJSON(savedState, () => {
           fc.renderAll();
+          setCanvasReady(true);
         });
       } else {
         await loadTemplate(fc, fabric, template);
+        fc.renderAll();
+        setCanvasReady(true);
       }
 
-      // Apply zoom to fit display area — AFTER loading objects
-      fc.setZoom(zoom);
-      fc.setDimensions({ width: displayWidth, height: displayHeight });
-      fc.renderAll();
-      setCanvasReady(true);
+      // NO setZoom. NO setDimensions. NO CSS transform.
 
-      // Selection events
       fc.on('selection:created', (e: any) => setSelectedObject(e.selected?.[0] || null));
       fc.on('selection:updated', (e: any) => setSelectedObject(e.selected?.[0] || null));
       fc.on('selection:cleared', () => setSelectedObject(null));
 
-      // Auto-save on modification
       fc.on('object:modified', () => {
-        if (onSave) {
-          onSave(JSON.stringify(fc.toJSON()));
-        }
+        if (onSave) onSave(JSON.stringify(fc.toJSON()));
       });
     };
 
     initCanvas();
-
-    return () => {
-      if (fc) fc.dispose();
-    };
+    return () => { if (fc) fc.dispose(); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -91,15 +77,12 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
 
       if (obj.type === 'rect') {
         fabricObj = new fabric.Rect({
-          left: obj.left,
-          top: obj.top,
-          width: obj.width,
-          height: obj.height,
+          left: obj.left, top: obj.top,
+          width: obj.width, height: obj.height,
           fill: obj.fill,
           stroke: obj.stroke || null,
           strokeWidth: obj.strokeWidth ?? 0,
-          rx: obj.rx || 0,
-          ry: obj.ry || 0,
+          rx: obj.rx || 0, ry: obj.ry || 0,
           selectable: obj.selectable !== false,
           evented: obj.evented !== false,
           lockMovementX: obj.lockMovement || false,
@@ -110,8 +93,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         });
       } else if (obj.type === 'textbox') {
         fabricObj = new fabric.Textbox(obj.text, {
-          left: obj.left,
-          top: obj.top,
+          left: obj.left, top: obj.top,
           width: obj.width,
           originX: obj.originX || 'left',
           fontSize: obj.fontSize || 24,
@@ -125,20 +107,13 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
       } else if (obj.type === 'image' && obj.src) {
         try {
           const imgOptions: any = {};
-          if (obj.src.startsWith('http')) {
-            imgOptions.crossOrigin = 'anonymous';
-          }
+          if (obj.src.startsWith('http')) imgOptions.crossOrigin = 'anonymous';
           const img = await fabric.FabricImage.fromURL(obj.src, imgOptions);
-          if (!img || !img.width) {
-            console.warn('Image loaded but has no dimensions:', obj.src.slice(0, 50));
-            continue;
-          }
+          if (!img || !img.width) continue;
           img.set({
-            left: obj.left,
-            top: obj.top,
+            left: obj.left, top: obj.top,
             originX: obj.originX || 'left',
-            scaleX: obj.scaleX || 1,
-            scaleY: obj.scaleY || 1,
+            scaleX: obj.scaleX || 1, scaleY: obj.scaleY || 1,
             name: obj.name || '',
           });
           if (obj.maxWidth && img.width) {
@@ -155,54 +130,37 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
 
       if (fabricObj) fc.add(fabricObj);
     }
-    fc.renderAll();
   };
 
-  // Helper: temporarily reset zoom for full-res export, then restore
-  const withFullRes = (fc: any, fn: () => any) => {
-    fc.setZoom(1);
-    fc.setDimensions({ width: template.width, height: template.height });
-    fc.renderAll();
-    const result = fn();
-    fc.setZoom(zoom);
-    fc.setDimensions({ width: displayWidth, height: displayHeight });
-    fc.renderAll();
-    return result;
-  };
-
-  // Export PNG
+  // Export PNG — use multiplier for print quality
   const handleExportPNG = () => {
     if (!fabricRef.current) return;
     const fc = fabricRef.current;
     fc.discardActiveObject();
     fc.renderAll();
-    const dataURL = withFullRes(fc, () =>
-      fc.toDataURL({ format: 'png', multiplier: 3, quality: 1 })
-    );
+    const dataURL = fc.toDataURL({ format: 'png', multiplier: 3, quality: 1 });
     const link = document.createElement('a');
     link.download = 'yard-sign.png';
     link.href = dataURL;
     link.click();
   };
 
-  // Export PDF
+  // Export PDF — physical inches from sign size
   const handleExportPDF = async () => {
     if (!fabricRef.current) return;
     const fc = fabricRef.current;
     fc.discardActiveObject();
     fc.renderAll();
-    const dataURL = withFullRes(fc, () =>
-      fc.toDataURL({ format: 'png', multiplier: 3, quality: 1 })
-    );
+    const dataURL = fc.toDataURL({ format: 'png', multiplier: 3, quality: 1 });
 
+    const phys = SIGN_PHYSICAL_SIZES[signSize] || SIGN_PHYSICAL_SIZES['18x24'];
     const { jsPDF } = await import('jspdf');
-    const isLandscape = template.width > template.height;
     const pdf = new jsPDF({
-      orientation: isLandscape ? 'landscape' : 'portrait',
-      unit: 'px',
-      format: [template.width, template.height],
+      orientation: phys.w > phys.h ? 'landscape' : 'portrait',
+      unit: 'in',
+      format: [phys.w, phys.h],
     });
-    pdf.addImage(dataURL, 'PNG', 0, 0, template.width, template.height);
+    pdf.addImage(dataURL, 'PNG', 0, 0, phys.w, phys.h);
     pdf.save('yard-sign.pdf');
   };
 
@@ -226,7 +184,6 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
     fc.renderAll();
   };
 
-  // Delete selected object
   const handleDelete = () => {
     if (!fabricRef.current || !selectedObject) return;
     if (selectedObject.name === 'brand-bg' || selectedObject.name === 'white-strip') return;
@@ -234,18 +191,15 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
     setSelectedObject(null);
   };
 
-  // Add text — uses logical (template) coordinates
   const handleAddText = async () => {
     if (!fabricRef.current) return;
     const fabric = await import('fabric');
     const text = new fabric.Textbox('New text', {
       left: template.width / 2 - 60,
       top: template.height / 2 - 15,
-      width: 120,
-      fontSize: 18,
+      width: 120, fontSize: 18,
       fontFamily: 'Inter, Helvetica, Arial, sans-serif',
-      fill: '#ffffff',
-      textAlign: 'center',
+      fill: '#ffffff', textAlign: 'center',
     });
     fabricRef.current.add(text);
     fabricRef.current.setActiveObject(text);
@@ -255,44 +209,34 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
   return (
     <div>
       {/* Toolbar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap', maxWidth: displayWidth }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap', maxWidth: template.width }}>
         <button onClick={handleAddText} style={{
           padding: '6px 12px', fontSize: 12, border: '1px solid #e5e7eb',
           borderRadius: 6, background: '#fff', cursor: 'pointer', color: '#374151',
           fontFamily: 'Inter, sans-serif',
-        }}>
-          + Text
-        </button>
+        }}>+ Text</button>
         {selectedObject && selectedObject.name !== 'brand-bg' && selectedObject.name !== 'white-strip' && (
           <button onClick={handleDelete} style={{
             padding: '6px 12px', fontSize: 12, border: '1px solid #fecaca',
             borderRadius: 6, background: '#fef2f2', cursor: 'pointer', color: '#991b1b',
             fontFamily: 'Inter, sans-serif',
-          }}>
-            Delete
-          </button>
+          }}>Delete</button>
         )}
         <div style={{ flex: 1 }} />
-        {/* Color dots */}
         {([
           { mode: 'brand' as const, color: brandColor },
           { mode: 'dark' as const, color: darkColor },
           { mode: 'light' as const, color: '#ffffff' },
         ]).map(({ mode, color }) => (
-          <div
-            key={mode}
-            onClick={() => handleColorMode(mode)}
-            style={{
-              width: 28, height: 28, borderRadius: '50%',
-              backgroundColor: color,
-              border: colorMode === mode ? '2px solid #2563eb' : '1px solid #d1d5db',
-              cursor: 'pointer',
-            }}
-          />
+          <div key={mode} onClick={() => handleColorMode(mode)} style={{
+            width: 28, height: 28, borderRadius: '50%', backgroundColor: color,
+            border: colorMode === mode ? '2px solid #2563eb' : '1px solid #d1d5db',
+            cursor: 'pointer',
+          }} />
         ))}
       </div>
 
-      {/* Canvas — Fabric.js handles sizing via zoom, no CSS transform */}
+      {/* Canvas — no transform, no zoom, display size = canvas size */}
       <div style={{ borderRadius: 4, border: '1px solid #e5e7eb', display: 'inline-block' }}>
         <canvas ref={canvasRef} />
       </div>
@@ -303,16 +247,12 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           padding: '8px 20px', fontSize: 13, fontWeight: 500,
           background: '#2563eb', color: '#fff', border: 'none',
           borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-        }}>
-          Download PDF
-        </button>
+        }}>Download PDF</button>
         <button onClick={handleExportPNG} style={{
           padding: '8px 20px', fontSize: 13, fontWeight: 500,
           background: '#fff', color: '#2563eb', border: '1px solid #2563eb',
           borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-        }}>
-          Download PNG
-        </button>
+        }}>Download PNG</button>
       </div>
     </div>
   );

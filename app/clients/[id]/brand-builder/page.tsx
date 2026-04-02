@@ -306,9 +306,11 @@ export default function BrandBuilderPage() {
                   qrCodeUrl: fields.qrCodeUrl || fields.website || '',
                   brandColor: fields.primaryColor || '#28502e',
                   size: fields.signSize || '18x24',
+                  displayWidth: 600,
                 })}
                 brandColor={fields.primaryColor || '#28502e'}
                 darkColor={fields.secondaryColor || '#1a1a1a'}
+                signSize={fields.signSize || '18x24'}
                 savedState={null}
                 onSave={(json) => {
                   console.log('[DesignCanvas] State saved:', json.length, 'bytes');
