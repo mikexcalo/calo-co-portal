@@ -11,7 +11,8 @@ import {
 import { agencyStats, currency } from '@/lib/utils';
 import InvoiceTable from '@/components/invoices/InvoiceTable';
 import { Invoice } from '@/lib/types';
-import { colors, typography } from '@/lib/design-tokens';
+import { colors } from '@/lib/design-tokens';
+import { PageLayout, MetricCard } from '@/components/shared/PageLayout';
 
 export default function AllInvoicesPage() {
   const router = useRouter();
@@ -62,16 +63,11 @@ export default function AllInvoicesPage() {
     return <div style={{ padding: '32px 40px', color: '#6b7280', fontSize: 13 }}>Loading invoices...</div>;
   }
 
-  const metricLbl: React.CSSProperties = { fontSize: '10px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.3px', margin: '0 0 2px' };
-
   return (
-    <div style={{ padding: '32px 40px', maxWidth: '1100px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-        <div>
-          <h1 style={{ fontSize: '20px', fontWeight: 500, margin: '0 0 2px', color: colors.textPrimary }}>All Invoices</h1>
-          <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0 }}>Track and manage client invoices</p>
-        </div>
+    <PageLayout
+      title="All Invoices"
+      subtitle="Track and manage client invoices"
+      action={
         <button
           onClick={() => router.push('/clients')}
           style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'Inter, sans-serif' }}
@@ -82,8 +78,8 @@ export default function AllInvoicesPage() {
           </svg>
           New Invoice
         </button>
-      </div>
-
+      }
+    >
       {error && (
         <div style={{ padding: '12px 16px', background: colors.red.bg, border: `1px solid ${colors.red.border}`, borderRadius: 6, color: colors.red.accent, fontSize: 13, marginBottom: 24 }}>
           {error}
@@ -92,24 +88,15 @@ export default function AllInvoicesPage() {
 
       {/* Metric cards */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 24 }}>
-        <div style={{ background: '#ffffff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 12 }}>
-          <p style={metricLbl}>Total billed</p>
-          <p style={{ fontSize: '20px', fontWeight: 500, color: colors.textPrimary, margin: 0 }}>{currency(stats.billed)}</p>
-        </div>
-        <div style={{ background: '#ffffff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 12 }}>
-          <p style={metricLbl}>Outstanding</p>
-          <p style={{ fontSize: '20px', fontWeight: 500, color: colors.amber.value, margin: 0 }}>{currency(stats.outstanding)}</p>
-        </div>
-        <div style={{ background: '#ffffff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 12 }}>
-          <p style={metricLbl}>Collected</p>
-          <p style={{ fontSize: '20px', fontWeight: 500, color: colors.green.value, margin: 0 }}>{currency(stats.paid)}</p>
-        </div>
+        <MetricCard label="Total billed" value={currency(stats.billed)} />
+        <MetricCard label="Outstanding" value={currency(stats.outstanding)} color="#D97706" />
+        <MetricCard label="Collected" value={currency(stats.paid)} color="#16a34a" />
       </div>
 
       {/* Invoice table */}
       <div style={{ background: '#ffffff', border: '0.5px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
         <InvoiceTable invoices={invoices} onDelete={handleDelete} showDelete isAgencyView />
       </div>
-    </div>
+    </PageLayout>
   );
 }
