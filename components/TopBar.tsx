@@ -1,11 +1,12 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { DB } from '@/lib/database';
 
 export default function TopBar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [viewMode, setViewMode] = useState<'agency' | 'client'>('agency');
 
   useEffect(() => {
@@ -19,30 +20,38 @@ export default function TopBar() {
     window.dispatchEvent(new CustomEvent('viewModeChange', { detail: mode }));
   };
 
-  // Build breadcrumb from pathname
-  const buildCrumb = (): string => {
-    if (pathname === '/') return 'Dashboard';
+  // Build breadcrumb segments: { label, href? }
+  const buildSegments = (): { label: string; href?: string }[] => {
+    if (pathname === '/') return [{ label: 'Dashboard' }];
+
     const clientMatch = pathname.match(/^\/clients\/([^/]+)/);
     if (clientMatch) {
       const clientId = clientMatch[1];
-      if (clientId === 'new') return 'New Client';
+      if (clientId === 'new') return [{ label: 'New Client' }];
+
       const client = DB.clients.find((c) => c.id === clientId);
       const name = client?.company || client?.name || 'Client';
       const sub = pathname.replace(`/clients/${clientId}`, '');
       const moduleMap: Record<string, string> = {
         '/brand-kit': 'Brand Kit', '/invoices': 'Invoices', '/invoices/new': 'New Invoice',
-        '/financials': 'Financials', '/email-signature': 'Email Signature', '/brand-builder': 'Brand Builder',
+        '/financials': 'Financials', '/email-signature': 'Email Signature', '/brand-builder': 'Design Studio',
       };
-      if (!sub || sub === '/') return name;
-      return `${name} / ${moduleMap[sub] || sub.slice(1)}`;
+
+      if (!sub || sub === '/') return [{ label: name }];
+      return [
+        { label: name, href: `/clients/${clientId}` },
+        { label: moduleMap[sub] || sub.slice(1) },
+      ];
     }
+
     const routes: Record<string, string> = {
       '/invoices': 'All Invoices', '/financials': 'Financials',
-      '/settings': 'Settings', '/brand-kit': 'Agency Brand Kit',
+      '/settings': 'Settings',
     };
-    return routes[pathname] || pathname.slice(1);
+    return [{ label: routes[pathname] || pathname.slice(1) }];
   };
 
+  const segments = buildSegments();
   const isClientRoute = pathname.match(/^\/clients\/([^/]+)/) && !pathname.includes('/new');
 
   return (
@@ -53,7 +62,25 @@ export default function TopBar() {
       padding: '0 20px', fontFamily: 'Inter, sans-serif',
     }}>
       {/* Breadcrumb */}
-      <div style={{ fontSize: 13, color: '#9ca3af' }}>{buildCrumb()}</div>
+      <div style={{ fontSize: 13, color: '#9ca3af', display: 'flex', alignItems: 'center', gap: 6 }}>
+        {segments.map((seg, i) => (
+          <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {i > 0 && <span style={{ color: '#d1d5db' }}>/</span>}
+            {seg.href ? (
+              <span
+                style={{ cursor: 'pointer', color: '#9ca3af' }}
+                onClick={() => router.push(seg.href!)}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#111827')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#9ca3af')}
+              >
+                {seg.label}
+              </span>
+            ) : (
+              <span style={{ color: i === segments.length - 1 && segments.length > 1 ? '#6b7280' : '#9ca3af' }}>{seg.label}</span>
+            )}
+          </span>
+        ))}
+      </div>
 
       {/* Right: toggle + avatar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -74,11 +101,14 @@ export default function TopBar() {
             ))}
           </div>
         )}
-        <div style={{
-          width: 30, height: 30, borderRadius: '50%', background: '#2563eb',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#fff', fontSize: 11, fontWeight: 600,
-        }}>MC</div>
+        <div
+          onClick={() => router.push('/settings')}
+          style={{
+            width: 30, height: 30, borderRadius: '50%', background: '#2563eb',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+          }}
+        >MC</div>
       </div>
     </div>
   );
