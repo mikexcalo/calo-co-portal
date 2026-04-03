@@ -37,8 +37,12 @@ export default function TopBar() {
         '/financials': 'Financials', '/email-signature': 'Email Signature', '/brand-builder': 'Design Studio',
       };
 
-      if (!sub || sub === '/') return [{ label: name }];
+      if (!sub || sub === '/') return [
+        { label: 'Clients', href: '/clients' },
+        { label: name },
+      ];
       return [
+        { label: 'Clients', href: '/clients' },
         { label: name, href: `/clients/${clientId}` },
         { label: moduleMap[sub] || sub.slice(1) },
       ];

@@ -6,6 +6,7 @@ import { Client, Contact, Invoice } from '@/lib/types';
 import { DB, loadClients, loadContacts, loadInvoices, loadAllBrandKits, saveClient, saveContact } from '@/lib/database';
 import { clientStats, currency, invTotal } from '@/lib/utils';
 import ClientUpdates from '@/components/client-hub/ClientUpdates';
+import { PageLayout, Section, CardGrid, Card, InfoBar, SectionLabel } from '@/components/shared/PageLayout';
 
 export default function ClientHubPage() {
   const params = useParams();
@@ -228,127 +229,99 @@ export default function ClientHubPage() {
   }
 
   return (
-    <div style={{ padding: '24px 32px', maxWidth: '960px' }}>
-
-      {/* SECTION 1: Profile card */}
-      <div style={{ background: '#ffffff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: '16px 20px', marginBottom: 24 }}>
-        {/* Top row: logo + name + edit */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {client.logo ? (
-              <img src={client.logo} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
-            ) : (
-              <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f1f3f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: '#475569', flexShrink: 0 }}>
-                {(client.company || client.name).charAt(0).toUpperCase()}
-              </div>
-            )}
-            <div>
-              <p style={{ fontSize: 16, fontWeight: 500, margin: 0, color: '#111827' }}>{client.company || client.name}</p>
-              {missing.length === 0 ? (
-                <span style={{ fontSize: 11, color: '#16a34a' }}>Profile complete</span>
-              ) : (
-                <span style={{ fontSize: 11, color: '#f59e0b' }}>Missing: {missing.join(', ')}</span>
-              )}
-            </div>
+    <PageLayout>
+      {/* Client info bar */}
+      <InfoBar>
+        {client.logo ? (
+          <img src={client.logo} alt="" style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
+        ) : (
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: '#f1f3f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: '#475569', flexShrink: 0 }}>
+            {(client.company || client.name).charAt(0).toUpperCase()}
           </div>
-          {!isClient && (
-            <span style={{ fontSize: 11, color: '#2563eb', cursor: 'pointer', fontWeight: 500 }} onClick={() => setIsEditOpen(true)}>Edit</span>
+        )}
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 18, fontWeight: 600, color: '#111827' }}>{client.company || client.name}</div>
+          {missing.length === 0 ? (
+            <span style={{ fontSize: 13, color: '#16a34a' }}>Profile complete</span>
+          ) : (
+            <span style={{ fontSize: 13, color: '#f59e0b' }}>Missing: {missing.join(', ')}</span>
           )}
         </div>
+        {!isClient && (
+          <button onClick={() => setIsEditOpen(true)} style={{
+            background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
+            padding: '6px 14px', fontSize: 13, fontWeight: 500, color: '#374151',
+            cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+          }}>Edit Client</button>
+        )}
+      </InfoBar>
 
-        {/* Contact fields — 5-column grid with vertical dividers */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', gap: 0, borderTop: '0.5px solid #e5e7eb', paddingTop: 12 }}>
-          <div style={{ paddingRight: 16 }}>
-            <p style={metricLbl}>Contact</p>
-            <p style={{ fontSize: 12, fontWeight: 500, color: '#111827', margin: 0 }}>{primary?.name || '—'}</p>
-            <p style={{ fontSize: 11, color: '#6b7280', margin: '2px 0 0' }}>{primary?.title || primary?.role || ''}</p>
-          </div>
-          <div style={{ padding: '0 16px', borderLeft: '0.5px solid #e5e7eb' }}>
-            <p style={metricLbl}>Business phone</p>
-            <p style={{ fontSize: 12, color: '#111827', margin: 0 }}>{client.phone || '—'}</p>
-          </div>
-          <div style={{ padding: '0 16px', borderLeft: '0.5px solid #e5e7eb' }}>
-            <p style={metricLbl}>Mobile</p>
-            <p style={{ fontSize: 12, color: '#111827', margin: 0 }}>{primary?.phone || '—'}</p>
-          </div>
-          <div style={{ padding: '0 16px', borderLeft: '0.5px solid #e5e7eb' }}>
-            <p style={metricLbl}>Email</p>
-            <p style={{ fontSize: 12, color: '#111827', margin: 0 }}>{primary?.email || client.email || '—'}</p>
-          </div>
-          <div style={{ paddingLeft: 16, borderLeft: '0.5px solid #e5e7eb' }}>
-            <p style={metricLbl}>Address</p>
-            <p style={{ fontSize: 12, color: '#111827', margin: 0 }}>{client.address || '—'}</p>
-          </div>
-        </div>
-      </div>
+      {/* Contacts section */}
+      <Section label="Contacts">
+        <CardGrid columns={3}>
+          {contacts.map((c) => (
+            <Card key={c.id || c.name}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: '50%', background: '#f1f3f5',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 13, fontWeight: 600, color: '#475569', flexShrink: 0,
+                }}>
+                  {(c.name || '?').charAt(0).toUpperCase()}
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{c.name}</div>
+                  {(c.title || c.role) && <div style={{ fontSize: 12, color: '#9ca3af' }}>{c.title || c.role}</div>}
+                </div>
+              </div>
+              {(c.email || c.phone) && (
+                <div style={{ marginTop: 8, fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>
+                  {c.email && <div>{c.email}</div>}
+                  {c.phone && <div>{c.phone}</div>}
+                </div>
+              )}
+            </Card>
+          ))}
+        </CardGrid>
+      </Section>
 
-      {/* SECTION 2: Two-column — Tasks left, Modules right */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24 }}>
-
-        {/* Left column — Tasks & Notes */}
+      {/* Two-column: Tasks + Quick links */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24 }}>
+        {/* Tasks & Notes */}
         <div>
           <ClientUpdates clientId={clientId} isClient={isClient} />
         </div>
 
-        {/* Right column — Modules */}
+        {/* Quick links */}
         <div>
-          <p style={sectionLbl}>Modules</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-
-            {/* Invoices */}
-            <div onClick={() => router.push(`/clients/${clientId}/invoices`)} style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 14, cursor: 'pointer', textAlign: 'center' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ margin: '0 auto 6px', display: 'block' }}><rect x="4" y="2" width="16" height="20" rx="2" stroke="#6b7280" strokeWidth="1.3"/><path d="M8 7h8M8 11h8M8 15h4" stroke="#6b7280" strokeWidth="1.2" strokeLinecap="round"/></svg>
-              <p style={{ fontSize: 11, fontWeight: 500, color: '#111827', margin: '0 0 2px' }}>Invoices</p>
-              <p style={{ fontSize: 9, color: '#9ca3af', margin: 0 }}>{invMeta}</p>
-            </div>
-
-            {/* Financials — agency only */}
-            {!isClient && (
-              <div onClick={() => router.push(`/clients/${clientId}/financials`)} style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 14, cursor: 'pointer', textAlign: 'center' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ margin: '0 auto 6px', display: 'block' }}><circle cx="12" cy="12" r="9" stroke="#6b7280" strokeWidth="1.3"/><path d="M12 6v12M9 9.5c0-1.1 1.3-2 3-2s3 .9 3 2-1.3 2-3 2-3 .9-3 2 1.3 2 3 2 3-.9 3-2" stroke="#6b7280" strokeWidth="1.2" strokeLinecap="round"/></svg>
-                <p style={{ fontSize: 11, fontWeight: 500, color: '#111827', margin: '0 0 2px' }}>Financials</p>
-                <p style={{ fontSize: 9, color: '#9ca3af', margin: 0 }}>{finMeta}</p>
-              </div>
-            )}
-
-            {/* Brand Kit */}
-            <div onClick={() => router.push(`/clients/${clientId}/brand-kit${isClient ? '?viewMode=view' : ''}`)} style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 14, cursor: 'pointer', textAlign: 'center' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ margin: '0 auto 6px', display: 'block' }}><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="#6b7280" strokeWidth="1.3"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="#6b7280" strokeWidth="1.3"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="#6b7280" strokeWidth="1.3"/><circle cx="17.5" cy="17.5" r="3.5" stroke="#6b7280" strokeWidth="1.3"/></svg>
-              <p style={{ fontSize: 11, fontWeight: 500, color: '#111827', margin: '0 0 2px' }}>Brand Kit</p>
-              <p style={{ fontSize: 9, color: '#9ca3af', margin: 0 }}>{bkMeta}</p>
-            </div>
-
-            {/* Email Signature */}
-            <div onClick={() => router.push(`/clients/${clientId}/email-signature`)} style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 14, cursor: 'pointer', textAlign: 'center' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ margin: '0 auto 6px', display: 'block' }}><rect x="3" y="5" width="18" height="14" rx="2" stroke="#6b7280" strokeWidth="1.3"/><path d="M3 7l9 6 9-6" stroke="#6b7280" strokeWidth="1.3"/></svg>
-              <p style={{ fontSize: 11, fontWeight: 500, color: '#111827', margin: '0 0 2px' }}>Email Signature</p>
-              <p style={{ fontSize: 9, color: '#9ca3af', margin: 0 }}>{sigMeta}</p>
-            </div>
-
-            {/* Design Studio */}
-            <div onClick={() => router.push(`/clients/${clientId}/brand-builder`)} style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 14, cursor: 'pointer', textAlign: 'center' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ margin: '0 auto 6px', display: 'block' }}><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#6b7280" strokeWidth="1.3" strokeLinejoin="round"/><path d="M2 17l10 5 10-5" stroke="#6b7280" strokeWidth="1.3" strokeLinejoin="round"/><path d="M2 12l10 5 10-5" stroke="#6b7280" strokeWidth="1.3" strokeLinejoin="round"/></svg>
-              <p style={{ fontSize: 11, fontWeight: 500, color: '#111827', margin: '0 0 2px' }}>Design Studio</p>
-              <p style={{ fontSize: 9, color: '#9ca3af', margin: 0 }}>Get started</p>
-            </div>
-
-            {/* Content Suite — locked add-on */}
-            <div onClick={() => alert('Want access to Content Suite?\nAsk us about adding this to your package.')} style={{ background: '#fff', border: '0.5px dashed #d1d5db', borderRadius: 8, padding: 14, cursor: 'pointer', textAlign: 'center' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ margin: '0 auto 6px', display: 'block' }}><rect x="5" y="11" width="14" height="10" rx="2" stroke="#9ca3af" strokeWidth="1.3"/><path d="M8 11V7a4 4 0 018 0v4" stroke="#9ca3af" strokeWidth="1.3" strokeLinecap="round"/></svg>
-              <p style={{ fontSize: 11, fontWeight: 500, color: '#9ca3af', margin: '0 0 2px' }}>Content Suite</p>
-              <p style={{ fontSize: 9, color: '#2563eb', margin: 0 }}>Unlock →</p>
-            </div>
-
-          </div>
-
-          {/* Manage access link */}
-          {!isClient && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 10, borderTop: '0.5px solid #e5e7eb', marginTop: 12 }}>
-              <span style={{ fontSize: 11, color: '#9ca3af', cursor: 'pointer' }} onClick={() => router.push(`/clients/${clientId}/access`)}>Manage access →</span>
-            </div>
-          )}
+          <Section label="Quick links">
+            <CardGrid columns={2}>
+              <Card onClick={() => router.push(`/clients/${clientId}/brand-builder`)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.3" style={{ marginBottom: 6 }}><rect x="1.5" y="1.5" width="21" height="21" rx="2"/><line x1="1.5" y1="8" x2="22.5" y2="8"/><line x1="8" y1="8" x2="8" y2="22.5"/></svg>
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>Design Studio</div>
+                <div style={{ fontSize: 13, color: '#9ca3af' }}>Create print + digital assets</div>
+              </Card>
+              <Card onClick={() => router.push(`/clients/${clientId}/brand-kit${isClient ? '?viewMode=view' : ''}`)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.3" style={{ marginBottom: 6 }}><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.2"/></svg>
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>Brand Kit</div>
+                <div style={{ fontSize: 13, color: '#9ca3af' }}>{bkMeta}</div>
+              </Card>
+              <Card onClick={() => router.push(`/clients/${clientId}/invoices`)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.3" style={{ marginBottom: 6 }}><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 11h8M8 15h4" strokeLinecap="round"/></svg>
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>Invoices</div>
+                <div style={{ fontSize: 13, color: '#9ca3af' }}>{invMeta}</div>
+              </Card>
+              {!isClient && (
+                <Card onClick={() => router.push(`/clients/${clientId}/financials`)}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.3" style={{ marginBottom: 6 }}><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="17" x2="7" y2="12" strokeLinecap="round"/><line x1="12" y1="17" x2="12" y2="8" strokeLinecap="round"/><line x1="17" y1="17" x2="17" y2="13" strokeLinecap="round"/></svg>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>Financials</div>
+                  <div style={{ fontSize: 13, color: '#9ca3af' }}>{finMeta}</div>
+                </Card>
+              )}
+            </CardGrid>
+          </Section>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }
