@@ -7,6 +7,10 @@ interface YardSignTemplateProps {
   brandColor: string;
   size: string;
   displayWidth?: number;
+  showHeadline?: boolean;
+  showPhone?: boolean;
+  showCompanyName?: boolean;
+  showQrCode?: boolean;
 }
 
 // Physical dimensions in inches for PDF export
@@ -19,13 +23,16 @@ export const SIGN_PHYSICAL_SIZES: Record<string, { w: number; h: number }> = {
 };
 
 export function getYardSignTemplate(props: YardSignTemplateProps) {
-  const { companyName, phone, headline, logoUrl, qrCodeUrl, brandColor, size, displayWidth = 600 } = props;
+  const {
+    companyName, phone, headline, logoUrl, qrCodeUrl, brandColor, size,
+    displayWidth = 600,
+    showHeadline = true, showPhone = true, showCompanyName = true, showQrCode = true,
+  } = props;
 
   const phys = SIGN_PHYSICAL_SIZES[size] || SIGN_PHYSICAL_SIZES['18x24'];
   const aspectRatio = phys.h / phys.w;
   const isLandscape = phys.w > phys.h;
 
-  // Canvas = display dimensions. No scaling later.
   const maxHeight = 500;
   let W = displayWidth;
   let H = Math.round(displayWidth * aspectRatio);
@@ -48,105 +55,81 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
   }
 
   const objects: any[] = [
-    // Brand color background — full canvas width
     {
-      type: 'rect',
-      left: 0, top: 0,
-      width: W, height: topH,
-      fill: brandColor,
-      strokeWidth: 0,
-      selectable: false, evented: false,
-      lockMovement: true, lockScaling: true,
-      name: 'brand-bg',
+      type: 'rect', left: 0, top: 0,
+      width: W, height: topH, fill: brandColor,
+      strokeWidth: 0, selectable: false, evented: false,
+      lockMovement: true, lockScaling: true, name: 'brand-bg',
     },
-    // White strip — full canvas width
     {
-      type: 'rect',
-      left: 0, top: topH,
-      width: W, height: bottomH,
-      fill: '#ffffff',
-      strokeWidth: 0,
-      selectable: false, evented: false,
-      lockMovement: true, lockScaling: true,
-      name: 'white-strip',
+      type: 'rect', left: 0, top: topH,
+      width: W, height: bottomH, fill: '#ffffff',
+      strokeWidth: 0, selectable: false, evented: false,
+      lockMovement: true, lockScaling: true, name: 'white-strip',
     },
   ];
 
-  // Logo — centered
+  // Logo — bigger, higher
   if (logoUrl) {
     objects.push({
-      type: 'image',
-      src: logoUrl,
+      type: 'image', src: logoUrl,
       left: W / 2,
-      top: isLandscape ? topH * 0.08 : topH * 0.08,
+      top: Math.round(topH * 0.03),
       originX: 'center',
-      maxWidth: isLandscape ? W * 0.25 : W * 0.3,
-      maxHeight: isLandscape ? topH * 0.2 : topH * 0.2,
+      maxWidth: isLandscape ? W * 0.35 : W * 0.4,
+      maxHeight: isLandscape ? topH * 0.22 : topH * 0.25,
       name: 'logo',
     });
   }
 
-  // Headline — centered
-  if (headline) {
+  // Headline — bigger, higher
+  if (headline && showHeadline !== false) {
     objects.push({
-      type: 'textbox',
-      text: headline,
+      type: 'textbox', text: headline,
       left: W / 2,
-      top: isLandscape ? topH * 0.42 : topH * 0.38,
-      width: W * 0.8,
-      originX: 'center',
-      fontSize: isLandscape ? Math.round(W * 0.047) : Math.round(W * 0.053),
-      fontWeight: 800,
-      fill: '#ffffff',
-      textAlign: 'center',
+      top: Math.round(isLandscape ? topH * 0.36 : topH * 0.32),
+      width: W * 0.85, originX: 'center',
+      fontSize: Math.round(isLandscape ? W * 0.055 : W * 0.065),
+      fontWeight: 800, fill: '#ffffff', textAlign: 'center',
       name: 'headline-text',
     });
   }
 
-  // Phone — biggest text, centered
-  if (phone) {
+  // Phone — much bigger
+  if (phone && showPhone !== false) {
     objects.push({
-      type: 'textbox',
-      text: formattedPhone,
+      type: 'textbox', text: formattedPhone,
       left: W / 2,
-      top: isLandscape ? topH * 0.6 : topH * 0.56,
-      width: W * 0.9,
-      originX: 'center',
-      fontSize: isLandscape ? Math.round(W * 0.073) : Math.round(W * 0.087),
-      fontWeight: 800,
-      fill: '#ffffff',
-      textAlign: 'center',
+      top: Math.round(isLandscape ? topH * 0.52 : topH * 0.50),
+      width: W * 0.95, originX: 'center',
+      fontSize: Math.round(isLandscape ? W * 0.1 : W * 0.13),
+      fontWeight: 800, fill: '#ffffff', textAlign: 'center',
       name: 'phone-text',
     });
   }
 
-  // Company name — white strip, left-aligned
-  if (companyName) {
+  // Company name — bigger
+  if (companyName && showCompanyName !== false) {
     objects.push({
-      type: 'textbox',
-      text: companyName,
+      type: 'textbox', text: companyName,
       left: pad,
-      top: topH + Math.round(bottomH * 0.25),
+      top: topH + Math.round(bottomH * 0.2),
       width: W * 0.6,
-      fontSize: isLandscape ? Math.round(W * 0.03) : Math.round(W * 0.033),
-      fontWeight: 800,
-      fill: brandColor,
-      textAlign: 'left',
+      fontSize: Math.round(isLandscape ? W * 0.04 : W * 0.05),
+      fontWeight: 900, fill: brandColor, textAlign: 'left',
       name: 'company-text',
     });
   }
 
-  // QR code placeholder — right-aligned in white strip
-  if (qrCodeUrl) {
+  // QR code placeholder
+  if (qrCodeUrl && showQrCode !== false) {
     const qrSize = Math.round(bottomH * 0.6);
     objects.push({
       type: 'rect',
       left: W - pad - qrSize,
       top: topH + Math.round((bottomH - qrSize) / 2),
       width: qrSize, height: qrSize,
-      fill: '#f3f4f6',
-      strokeWidth: 0,
-      rx: 4, ry: 4,
+      fill: '#f3f4f6', strokeWidth: 0, rx: 4, ry: 4,
       name: 'qr-placeholder',
     });
   }

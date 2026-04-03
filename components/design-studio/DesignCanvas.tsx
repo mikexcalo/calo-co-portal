@@ -250,16 +250,15 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
     const fc = fabricRef.current;
     setColorMode(mode);
 
-    const bgColors = { brand: brandColor, dark: darkColor, light: '#ffffff' };
-    const textColors = { brand: '#ffffff', dark: '#ffffff', light: '#111827' };
-    const stripBg = { brand: '#ffffff', dark: '#ffffff', light: brandColor };
-    const stripText = { brand: brandColor, dark: darkColor, light: '#ffffff' };
+    const colorMap: Record<string, Record<string, string>> = {
+      brand: { 'brand-bg': brandColor, 'white-strip': '#ffffff', 'headline-text': '#ffffff', 'phone-text': '#ffffff', 'company-text': brandColor },
+      dark: { 'brand-bg': darkColor, 'white-strip': '#ffffff', 'headline-text': '#ffffff', 'phone-text': '#ffffff', 'company-text': darkColor },
+      light: { 'brand-bg': '#ffffff', 'white-strip': brandColor, 'headline-text': brandColor, 'phone-text': brandColor, 'company-text': '#ffffff' },
+    };
+    const fills = colorMap[mode];
 
     fc.getObjects().forEach((obj: any) => {
-      if (obj.name === 'brand-bg') obj.set('fill', bgColors[mode]);
-      if (obj.name === 'white-strip') obj.set('fill', stripBg[mode]);
-      if (obj.name === 'headline-text' || obj.name === 'phone-text') obj.set('fill', textColors[mode]);
-      if (obj.name === 'company-text') obj.set('fill', stripText[mode]);
+      if (fills[obj.name]) obj.set('fill', fills[obj.name]);
 
       // Logo: swap between original and white version
       if (obj.name === 'logo' && obj.__originalElement && obj.__whiteElement) {

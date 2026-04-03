@@ -267,56 +267,67 @@ export default function BrandBuilderPage() {
       <div style={{ display: 'flex', minHeight: 'calc(100vh - 60px)', background: '#fff' }}>
         {assetType ? (
           assetType === 'yard-sign' ? (
-            /* Yard Sign — Fabric.js canvas editor */
-            <div style={{ flex: 1, padding: 32, background: '#f9fafb' }}>
-              {/* Size selector */}
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
-                {[
-                  { value: '18x24', label: '18" × 24"' },
-                  { value: '24x18', label: '24" × 18" (landscape)' },
-                  { value: '12x18', label: '12" × 18"' },
-                  { value: '24x36', label: '24" × 36"' },
-                  { value: '36x24', label: '36" × 24" (landscape)' },
-                ].map((s) => (
-                  <button
-                    key={s.value}
-                    onClick={() => handleFieldsChange({ ...fields, signSize: s.value })}
-                    style={{
-                      padding: '6px 14px', fontSize: 12, borderRadius: 6, cursor: 'pointer',
-                      border: fields.signSize === s.value ? '2px solid #2563eb' : '1px solid #e5e7eb',
-                      background: fields.signSize === s.value ? '#eff6ff' : '#fff',
-                      color: fields.signSize === s.value ? '#2563eb' : '#374151',
-                      fontWeight: fields.signSize === s.value ? 600 : 400,
-                      fontFamily: 'Inter, sans-serif',
-                    }}
-                  >
-                    {s.label}
-                  </button>
-                ))}
+            /* Yard Sign — field panel + Fabric.js canvas editor */
+            <>
+              {/* Field panel: 320px */}
+              <div style={{ width: 320, flexShrink: 0, borderRight: '1px solid #e5e7eb', padding: 24, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' }}>
+                <FieldEditor fields={fields} onChange={handleFieldsChange} sources={sources} assetType={assetType} clientId={clientId} hasBrandKit={hasBrandKit} />
               </div>
+              {/* Canvas preview */}
+              <div style={{ flex: 1, padding: 32, background: '#f9fafb' }}>
+                {/* Size selector */}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+                  {[
+                    { value: '18x24', label: '18" × 24"' },
+                    { value: '24x18', label: '24" × 18" (landscape)' },
+                    { value: '12x18', label: '12" × 18"' },
+                    { value: '24x36', label: '24" × 36"' },
+                    { value: '36x24', label: '36" × 24" (landscape)' },
+                  ].map((s) => (
+                    <button
+                      key={s.value}
+                      onClick={() => handleFieldsChange({ ...fields, signSize: s.value })}
+                      style={{
+                        padding: '6px 14px', fontSize: 12, borderRadius: 6, cursor: 'pointer',
+                        border: fields.signSize === s.value ? '2px solid #2563eb' : '1px solid #e5e7eb',
+                        background: fields.signSize === s.value ? '#eff6ff' : '#fff',
+                        color: fields.signSize === s.value ? '#2563eb' : '#374151',
+                        fontWeight: fields.signSize === s.value ? 600 : 400,
+                        fontFamily: 'Inter, sans-serif',
+                      }}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
 
-              {/* Fabric.js Canvas */}
-              <DesignCanvas
-                key={fields.signSize}
-                template={getYardSignTemplate({
-                  companyName: fields.companyName || '',
-                  phone: fields.phone || '',
-                  headline: fields.headline || 'Free Estimates!',
-                  logoUrl: fields.logoUrl || null,
-                  qrCodeUrl: fields.qrCodeUrl || fields.website || '',
-                  brandColor: fields.primaryColor || '#28502e',
-                  size: fields.signSize || '18x24',
-                  displayWidth: 600,
-                })}
-                brandColor={fields.primaryColor || '#28502e'}
-                darkColor={fields.secondaryColor || '#1a1a1a'}
-                signSize={fields.signSize || '18x24'}
-                savedState={null}
-                onSave={(json) => {
-                  console.log('[DesignCanvas] State saved:', json.length, 'bytes');
-                }}
-              />
-            </div>
+                {/* Fabric.js Canvas — key includes all toggle states to force remount */}
+                <DesignCanvas
+                  key={`${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}`}
+                  template={getYardSignTemplate({
+                    companyName: fields.companyName || '',
+                    phone: fields.phone || '',
+                    headline: fields.headline || 'Free Estimates!',
+                    logoUrl: fields.logoUrl || null,
+                    qrCodeUrl: fields.qrCodeUrl || fields.website || '',
+                    brandColor: fields.primaryColor || '#28502e',
+                    size: fields.signSize || '18x24',
+                    displayWidth: 540,
+                    showHeadline: fields.showHeadline,
+                    showPhone: fields.showPhone,
+                    showCompanyName: fields.showCompanyName,
+                    showQrCode: fields.showQrCode,
+                  })}
+                  brandColor={fields.primaryColor || '#28502e'}
+                  darkColor={fields.secondaryColor || '#1a1a1a'}
+                  signSize={fields.signSize || '18x24'}
+                  savedState={null}
+                  onSave={(json) => {
+                    console.log('[DesignCanvas] State saved:', json.length, 'bytes');
+                  }}
+                />
+              </div>
+            </>
           ) : (
             /* Other templates — existing FieldEditor + AssetPreview layout */
             <>
