@@ -190,7 +190,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         fabricObj = new fabric.Rect({
           left: obj.left, top: obj.top,
           width: obj.width, height: obj.height,
-          fill: obj.fill,
+          fill: obj.fill, opacity: obj.opacity ?? 1,
           stroke: obj.stroke || null,
           strokeWidth: obj.strokeWidth ?? 0,
           rx: obj.rx || 0, ry: obj.ry || 0,
@@ -211,6 +211,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           originY: 'top',
           fontSize: obj.fontSize || 24,
           fontWeight: obj.fontWeight || 400,
+          fontStyle: obj.fontStyle || 'normal',
           fontFamily: obj.fontFamily || 'Inter, Helvetica, Arial, sans-serif',
           fill: obj.fill || '#ffffff',
           textAlign: obj.textAlign || 'center',
@@ -320,11 +321,20 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
     setColorMode(mode);
 
     const colorMap: Record<string, Record<string, string>> = {
+      // Yard sign
       brand: { 'brand-bg': brandColor, 'white-strip': '#ffffff', 'headline-text': '#ffffff', 'phone-text': '#ffffff', 'company-text': brandColor },
       dark: { 'brand-bg': darkColor, 'white-strip': '#ffffff', 'headline-text': '#ffffff', 'phone-text': '#ffffff', 'company-text': darkColor },
       light: { 'brand-bg': '#ffffff', 'white-strip': brandColor, 'headline-text': brandColor, 'phone-text': brandColor, 'company-text': '#ffffff' },
     };
-    const fills = colorMap[mode];
+    // Business card overrides
+    const bcMap: Record<string, Record<string, string>> = {
+      brand: { 'card-bg': brandColor, 'company-text': '#ffffff', 'contact-name-text': '#ffffff', 'title-text': 'rgba(255,255,255,0.7)', 'contact-info-text': 'rgba(255,255,255,0.85)', 'tagline-text': 'rgba(255,255,255,0.5)', 'accent-line': 'rgba(255,255,255,0.3)' },
+      dark: { 'card-bg': '#111827', 'company-text': '#ffffff', 'contact-name-text': '#ffffff', 'title-text': 'rgba(255,255,255,0.7)', 'contact-info-text': 'rgba(255,255,255,0.85)', 'tagline-text': 'rgba(255,255,255,0.5)', 'accent-line': 'rgba(255,255,255,0.3)' },
+      light: { 'card-bg': '#ffffff', 'company-text': brandColor, 'contact-name-text': '#111827', 'title-text': '#6b7280', 'contact-info-text': '#374151', 'tagline-text': '#9ca3af', 'accent-line': brandColor },
+    };
+    // Merge: check if canvas has card-bg (business card) or brand-bg (yard sign)
+    const hasCardBg = fc.getObjects().some((o: any) => o.name === 'card-bg');
+    const fills = hasCardBg ? bcMap[mode] : colorMap[mode];
 
     fc.getObjects().forEach((obj: any) => {
       if (fills[obj.name]) obj.set('fill', fills[obj.name]);

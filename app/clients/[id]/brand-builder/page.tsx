@@ -16,6 +16,7 @@ import AssetPreview from '@/components/brand-builder/AssetPreview';
 import { Section, CardGrid, Card, InfoBar } from '@/components/shared/PageLayout';
 import dynamic from 'next/dynamic';
 import { getYardSignTemplate } from '@/lib/templates/yard-sign';
+import { getBusinessCardTemplate, getBusinessCardBackTemplate } from '@/lib/templates/business-card';
 
 const DesignCanvas = dynamic(
   () => import('@/components/design-studio/DesignCanvas'),
@@ -69,6 +70,7 @@ export default function BrandBuilderPage() {
     };
   }, [handleAssetTypeChange]);
   const [fields, setFields] = useState<BrandBuilderFields>(DEFAULT_FIELDS);
+  const [cardSide, setCardSide] = useState<'front' | 'back'>('front');
   const [sources, setSources] = useState<Record<string, string>>({});
   const [hasBrandKit, setHasBrandKit] = useState(false);
 
@@ -277,8 +279,8 @@ export default function BrandBuilderPage() {
       {/* Two-column layout — fields + preview, full width (sidebar is global) */}
       <div style={{ display: 'flex', minHeight: 'calc(100vh - 60px)', background: '#fff' }}>
         {assetType ? (
-          assetType === 'yard-sign' ? (
-            /* Yard Sign — field panel + Fabric.js canvas editor */
+          (assetType === 'yard-sign' || assetType === 'business-card') ? (
+            /* Fabric.js canvas editor — Yard Sign + Business Card */
             <>
               {/* Field panel: 320px */}
               <div style={{ width: 320, flexShrink: 0, borderRight: '1px solid #e5e7eb', padding: 24, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' }}>
@@ -286,24 +288,74 @@ export default function BrandBuilderPage() {
               </div>
               {/* Canvas preview */}
               <div style={{ flex: 1, padding: 32, background: '#f9fafb' }}>
-                {/* Fabric.js Canvas — key includes all toggle states to force remount */}
+                {/* Front/Back toggle for business cards */}
+                {assetType === 'business-card' && (
+                  <div style={{ display: 'inline-flex', background: '#f1f3f5', borderRadius: 6, padding: 2, marginBottom: 16 }}>
+                    {(['front', 'back'] as const).map((side) => (
+                      <button key={side} onClick={() => setCardSide(side)} style={{
+                        padding: '5px 14px', fontSize: 12, fontWeight: cardSide === side ? 500 : 400, borderRadius: 4,
+                        border: cardSide === side ? '0.5px solid rgba(0,0,0,0.08)' : '0.5px solid transparent',
+                        background: cardSide === side ? '#fff' : 'transparent',
+                        color: cardSide === side ? '#111827' : '#9ca3af',
+                        cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                        boxShadow: cardSide === side ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                        textTransform: 'capitalize',
+                      }}>{side}</button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Fabric.js Canvas */}
                 <DesignCanvas
-                  key={`${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}`}
-                  template={getYardSignTemplate({
-                    companyName: fields.companyName || '',
-                    phone: fields.phone || '',
-                    headline: fields.headline || 'Free Estimates!',
-                    logoUrl: fields.logoUrl || null,
-                    qrCodeUrl: fields.qrCodeUrl || fields.website || '',
-                    brandColor: fields.primaryColor || '#28502e',
-                    size: fields.signSize || '18x24',
-                    displayWidth: 540,
-                    showHeadline: fields.showHeadline,
-                    showPhone: fields.showPhone,
-                    showCompanyName: fields.showCompanyName,
-                    showQrCode: fields.showQrCode,
-                  })}
-                  brandColor={fields.primaryColor || '#28502e'}
+                  key={assetType === 'yard-sign'
+                    ? `ys-${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}`
+                    : `bc-${cardSide}-${fields.showCompanyName}-${fields.showContactName}-${fields.showPhone}-${fields.showEmail}-${fields.showWebsite}-${fields.showQrCode}-${fields.showTagline}-${fields.showContactTitle}`
+                  }
+                  template={assetType === 'yard-sign'
+                    ? getYardSignTemplate({
+                        companyName: fields.companyName || '',
+                        phone: fields.phone || '',
+                        headline: fields.headline || 'Free Estimates!',
+                        logoUrl: fields.logoUrl || null,
+                        qrCodeUrl: fields.qrCodeUrl || fields.website || '',
+                        brandColor: fields.primaryColor || '#28502e',
+                        size: fields.signSize || '18x24',
+                        displayWidth: 540,
+                        showHeadline: fields.showHeadline,
+                        showPhone: fields.showPhone,
+                        showCompanyName: fields.showCompanyName,
+                        showQrCode: fields.showQrCode,
+                      })
+                    : cardSide === 'front'
+                      ? getBusinessCardTemplate({
+                          companyName: fields.companyName || '',
+                          contactName: fields.contactName || '',
+                          contactTitle: fields.contactTitle || '',
+                          phone: fields.phone || '',
+                          email: fields.email || '',
+                          website: fields.website || '',
+                          tagline: fields.tagline || '',
+                          logoUrl: fields.logoUrl || null,
+                          qrCodeUrl: fields.qrCodeUrl || fields.website || '',
+                          brandColor: fields.primaryColor || '#2563eb',
+                          displayWidth: 525,
+                          showCompanyName: fields.showCompanyName,
+                          showContactName: fields.showContactName,
+                          showContactTitle: fields.showContactTitle,
+                          showPhone: fields.showPhone,
+                          showEmail: fields.showEmail,
+                          showWebsite: fields.showWebsite,
+                          showTagline: fields.showTagline,
+                          showQrCode: fields.showQrCode,
+                        })
+                      : getBusinessCardBackTemplate({
+                          companyName: fields.companyName || '',
+                          logoUrl: fields.logoUrl || null,
+                          brandColor: fields.primaryColor || '#2563eb',
+                          displayWidth: 525,
+                        })
+                  }
+                  brandColor={fields.primaryColor || (assetType === 'yard-sign' ? '#28502e' : '#2563eb')}
                   darkColor={fields.secondaryColor || '#1a1a1a'}
                   signSize={fields.signSize || '18x24'}
                   savedState={null}
