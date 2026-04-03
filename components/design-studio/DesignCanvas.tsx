@@ -41,9 +41,12 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         selection: true,
         preserveObjectStacking: true,
         enableRetinaScaling: false,
+        devicePixelRatio: 1,
       });
 
       fabricRef.current = fc;
+
+      console.log('CANVAS DEBUG:', fc.width, fc.height, fc.getRetinaScaling?.(), fc.lowerCanvasEl?.width, fc.lowerCanvasEl?.height);
 
       if (savedState) {
         fc.loadFromJSON(savedState, () => {
