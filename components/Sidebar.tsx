@@ -93,6 +93,13 @@ export default function Sidebar() {
         {navBtn('Invoices', '/invoices', icons.invoices)}
         {navBtn('Financials', '/financials', icons.financials)}
 
+        {/* Agency section */}
+        <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '16px 12px 6px', fontWeight: 600 }}>
+          Agency
+        </div>
+        {navBtn('Brand Kit', '/agency/brand-kit', icons.brandKit)}
+        {navBtn('Design Studio', '/agency/design-studio', icons.designStudio)}
+
         {/* Client section — only when viewing a client */}
         {clientId && clientId !== 'new' && (
           <>

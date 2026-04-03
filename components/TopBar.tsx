@@ -50,7 +50,9 @@ export default function TopBar() {
 
     const routes: Record<string, string> = {
       '/invoices': 'All Invoices', '/financials': 'Financials',
-      '/settings': 'Settings',
+      '/settings': 'Settings', '/clients': 'Clients',
+      '/agency/brand-kit': 'Agency Brand Kit',
+      '/agency/design-studio': 'Agency Design Studio',
     };
     return [{ label: routes[pathname] || pathname.slice(1) }];
   };
