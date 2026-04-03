@@ -342,73 +342,85 @@ export default function BrandBuilderPage() {
             </>
           )
         ) : (
-          <div style={{ flex: 1, padding: '40px 48px' }}>
-            <div style={{ fontSize: 26, fontWeight: 700, color: '#111827' }}>Design Studio</div>
-            <div style={{ fontSize: 14, color: '#9ca3af', marginTop: 6, marginBottom: 32 }}>Choose a template to start designing. Every asset pulls from your client's Brand Kit.</div>
+          <div style={{ flex: 1, padding: '32px 40px' }}>
+            {/* Brand summary bar */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28,
+              padding: '12px 16px', background: '#f9fafb', borderRadius: 8, border: '0.5px solid #e5e7eb',
+            }}>
+              {client.logo ? (
+                <img src={client.logo} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'cover' }} />
+              ) : (
+                <div style={{ width: 28, height: 28, borderRadius: 6, background: '#e5e7eb', flexShrink: 0 }} />
+              )}
+              <span style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{clientName}</span>
+              <span style={{ fontSize: 12, color: '#9ca3af' }}>·</span>
+              <span
+                style={{ fontSize: 12, color: '#2563eb', cursor: 'pointer' }}
+                onClick={() => router.push(`/clients/${clientId}/brand-kit`)}
+              >
+                {hasBrandKit ? 'Brand Kit →' : 'Set up Brand Kit →'}
+              </span>
+            </div>
 
-            {(() => {
-              const descs: Record<string, string> = {
-                'business-card': 'Professional cards with your logo, contact info, and QR code',
-                'yard-sign': 'High-visibility signs with bold branding for job sites',
-                'vehicle-magnet': 'Branded panels sized for trucks and vans',
-                't-shirt': 'Team apparel with your logo and company name',
-                'door-hanger': 'Leave-behind marketing for residential neighborhoods',
-                'flyer': 'Full-page promotional handouts with all your details',
-              };
-              const hc: Record<string, string> = {
-                'business-card': '#93c5fd', 'yard-sign': '#fca5a5', 'vehicle-magnet': '#99f6e4',
-                't-shirt': '#c4b5fd', 'door-hanger': '#fdba74', 'flyer': '#6ee7b7',
-              };
-              const printAssets = ASSET_TYPES;
+            {/* Print section */}
+            <p style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' }}>Print</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
+              {ASSET_TYPES.map((t) => {
+                const descs: Record<string, string> = {
+                  'business-card': '3.5 × 2 in', 'yard-sign': '5 sizes',
+                  'vehicle-magnet': '24 × 12 in', 't-shirt': 'Front + Back',
+                  'door-hanger': '4.25 × 11 in', 'flyer': '8.5 × 11 in',
+                };
+                return (
+                  <button key={t.id} onClick={() => handleAssetTypeChange(t.id)} style={{
+                    padding: 20, border: '0.5px solid #e5e7eb', borderRadius: 12, background: '#fff',
+                    cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
+                  >
+                    <AssetIcon id={t.id} size={24} />
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginTop: 12, marginBottom: 2 }}>{t.label}</div>
+                    <div style={{ fontSize: 12, color: '#9ca3af' }}>{descs[t.id]}</div>
+                  </button>
+                );
+              })}
+            </div>
 
-              const tileStyle: React.CSSProperties = {
-                padding: 24, border: '1px solid #f3f4f6', borderRadius: 14, background: '#fff',
-                cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif', transition: 'all 0.15s ease',
-              };
-              const onEnter = (e: React.MouseEvent<HTMLButtonElement>, color: string) => { e.currentTarget.style.borderColor = color; e.currentTarget.style.background = '#f9fafb'; };
-              const onLeave = (e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.borderColor = '#f3f4f6'; e.currentTarget.style.background = '#fff'; };
-
-              return (
-                <>
-                  {/* Print section */}
-                  <p style={{ fontSize: '10px', fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' }}>
-                    Print
-                  </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
-                    {printAssets.map((t) => (
-                      <button key={t.id} onClick={() => handleAssetTypeChange(t.id)} style={tileStyle}
-                        onMouseEnter={(e) => onEnter(e, hc[t.id] || '#d1d5db')}
-                        onMouseLeave={onLeave}
-                      >
-                        <AssetIcon id={t.id} size={32} />
-                        <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginTop: 14, marginBottom: 4 }}>{t.label}</div>
-                        <div style={{ fontSize: 12, color: '#9ca3af', lineHeight: 1.4 }}>{descs[t.id]}</div>
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Digital section */}
-                  <p style={{ fontSize: '10px', fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' }}>
-                    Digital
-                  </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-                    <button onClick={() => router.push(`/clients/${clientId}/email-signature`)} style={tileStyle}
-                      onMouseEnter={(e) => onEnter(e, '#93c5fd')}
-                      onMouseLeave={onLeave}
-                    >
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 0 }}>
-                        <rect x="3" y="5" width="18" height="14" rx="2" fill="#EFF6FF" stroke="#93C5FD" strokeWidth="0.8"/>
-                        <path d="M3 7l9 6 9-6" stroke="#2563EB" strokeWidth="1.2"/>
-                        <line x1="7" y1="13" x2="11" y2="13" stroke="#93C5FD" strokeWidth="1" strokeLinecap="round"/>
-                        <line x1="7" y1="15.5" x2="9.5" y2="15.5" stroke="#BFDBFE" strokeWidth="0.8" strokeLinecap="round"/>
-                      </svg>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginTop: 14, marginBottom: 4 }}>Email Signature</div>
-                      <div style={{ fontSize: 12, color: '#9ca3af', lineHeight: 1.4 }}>HTML signatures for Gmail, Outlook, and more</div>
-                    </button>
-                  </div>
-                </>
-              );
-            })()}
+            {/* Digital section */}
+            <p style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' }}>Digital</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              <button onClick={() => router.push(`/clients/${clientId}/email-signature`)} style={{
+                padding: 20, border: '0.5px solid #e5e7eb', borderRadius: 12, background: '#fff',
+                cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.4"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginTop: 12, marginBottom: 2 }}>Email Signature</div>
+                <div style={{ fontSize: 12, color: '#9ca3af' }}>Gmail, Outlook, more</div>
+              </button>
+              <div style={{
+                padding: 20, border: '0.5px solid #e5e7eb', borderRadius: 12, background: '#fff',
+                textAlign: 'left', opacity: 0.5,
+              }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginTop: 12, marginBottom: 2 }}>Social Images</div>
+                <div style={{ fontSize: 10, color: '#9ca3af' }}>Coming soon</div>
+              </div>
+              <div style={{
+                padding: 20, border: '0.5px solid #e5e7eb', borderRadius: 12, background: '#fff',
+                textAlign: 'left', opacity: 0.5,
+              }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.4"><rect x="2" y="4" width="20" height="6" rx="1.5"/><rect x="2" y="14" width="20" height="6" rx="1.5"/></svg>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginTop: 12, marginBottom: 2 }}>Web Banners</div>
+                <div style={{ fontSize: 10, color: '#9ca3af' }}>Coming soon</div>
+              </div>
+            </div>
           </div>
         )}
       </div>

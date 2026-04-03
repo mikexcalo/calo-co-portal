@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import ConfirmModal from '@/components/shared/ConfirmModal';
 import {
   loadClients,
   loadInvoices,
@@ -21,6 +22,7 @@ export default function AllInvoicesPage() {
   const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -50,7 +52,6 @@ export default function AllInvoicesPage() {
   }, []);
 
   const handleDelete = async (invoiceId: string) => {
-    if (!confirm('Delete this invoice?')) return;
     try {
       setLoadingId(invoiceId);
       await deleteInvoice(invoiceId);
@@ -156,7 +157,7 @@ export default function AllInvoicesPage() {
                 {/* Delete */}
                 <span style={{ textAlign: 'center' }}>
                   <button
-                    onClick={(e) => { e.stopPropagation(); handleDelete(inv.id); }}
+                    onClick={(e) => { e.stopPropagation(); setDeleteTarget(inv.id); }}
                     disabled={loadingId === inv.id}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#cbd5e1', opacity: 0.5 }}
                     title="Delete"
@@ -220,6 +221,16 @@ export default function AllInvoicesPage() {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        title="Delete invoice"
+        message="This cannot be undone."
+        confirmLabel="Delete"
+        destructive
+        onConfirm={() => { if (deleteTarget) handleDelete(deleteTarget); setDeleteTarget(null); }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </PageLayout>
   );
 }

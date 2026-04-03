@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import ConfirmModal from './ConfirmModal';
 
 interface TaskNoteCardProps {
   item: {
@@ -38,6 +39,7 @@ function isInvoiceNote(content: string): boolean {
 export default function TaskNoteCard({ item, clientName, showClient = true, onToggle, onDelete }: TaskNoteCardProps) {
   const router = useRouter();
   const [delHover, setDelHover] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const isComplete = item.status === 'complete';
   const isInvoice = item.type === 'note' && isInvoiceNote(item.content);
 
@@ -48,7 +50,7 @@ export default function TaskNoteCard({ item, clientName, showClient = true, onTo
   };
 
   const handleDelete = () => {
-    if (onDelete && confirm('Delete this item?')) onDelete();
+    if (onDelete) setShowConfirm(true);
   };
 
   return (
@@ -104,6 +106,15 @@ export default function TaskNoteCard({ item, clientName, showClient = true, onTo
           </svg>
         </button>
       )}
+      <ConfirmModal
+        isOpen={showConfirm}
+        title="Delete item"
+        message="This cannot be undone."
+        confirmLabel="Delete"
+        destructive
+        onConfirm={() => { setShowConfirm(false); onDelete?.(); }}
+        onCancel={() => setShowConfirm(false)}
+      />
     </div>
   );
 }
