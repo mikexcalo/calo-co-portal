@@ -286,32 +286,6 @@ export default function BrandBuilderPage() {
               </div>
               {/* Canvas preview */}
               <div style={{ flex: 1, padding: 32, background: '#f9fafb' }}>
-                {/* Size selector */}
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
-                  {[
-                    { value: '18x24', label: '18" × 24"' },
-                    { value: '24x18', label: '24" × 18" (landscape)' },
-                    { value: '12x18', label: '12" × 18"' },
-                    { value: '24x36', label: '24" × 36"' },
-                    { value: '36x24', label: '36" × 24" (landscape)' },
-                  ].map((s) => (
-                    <button
-                      key={s.value}
-                      onClick={() => handleFieldsChange({ ...fields, signSize: s.value })}
-                      style={{
-                        padding: '6px 14px', fontSize: 12, borderRadius: 6, cursor: 'pointer',
-                        border: fields.signSize === s.value ? '2px solid #2563eb' : '1px solid #e5e7eb',
-                        background: fields.signSize === s.value ? '#eff6ff' : '#fff',
-                        color: fields.signSize === s.value ? '#2563eb' : '#374151',
-                        fontWeight: fields.signSize === s.value ? 600 : 400,
-                        fontFamily: 'Inter, sans-serif',
-                      }}
-                    >
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
-
                 {/* Fabric.js Canvas — key includes all toggle states to force remount */}
                 <DesignCanvas
                   key={`${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}`}

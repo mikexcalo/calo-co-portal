@@ -87,6 +87,22 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         }
       }
 
+      // Create snap guide lines (hidden by default)
+      const guideH = new fabric.Line([0, 0, template.width, 0], {
+        stroke: '#2563eb', strokeWidth: 1, opacity: 0.7, strokeDashArray: [4, 4],
+        selectable: false, evented: false, visible: false,
+        originX: 'left', originY: 'top',
+        data: { isGuide: true },
+      } as any);
+      const guideV = new fabric.Line([0, 0, 0, template.height], {
+        stroke: '#2563eb', strokeWidth: 1, opacity: 0.7, strokeDashArray: [4, 4],
+        selectable: false, evented: false, visible: false,
+        originX: 'left', originY: 'top',
+        data: { isGuide: true },
+      } as any);
+      fc.add(guideH);
+      fc.add(guideV);
+
       fc.renderAll();
       setCanvasReady(true);
 
@@ -95,11 +111,61 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
       historyRef.current = [initialState];
       historyIndexRef.current = 0;
 
+      // Snap-to-grid alignment guides
+      fc.on('object:moving', (e: any) => {
+        const obj = e.target;
+        if (!obj || (obj as any).data?.isGuide) return;
+        const snap = 8;
+        const cx = template.width / 2;
+        const cy = template.height / 2;
+        const objCx = obj.left + obj.getScaledWidth() / 2;
+        const objCy = obj.top + obj.getScaledHeight() / 2;
+        let showH = false, showV = false;
+
+        // Snap to canvas center X
+        if (Math.abs(objCx - cx) < snap) {
+          obj.set('left', cx - obj.getScaledWidth() / 2);
+          guideV.set({ x1: cx, y1: 0, x2: cx, y2: template.height, visible: true } as any);
+          showV = true;
+        }
+        // Snap to canvas center Y
+        if (Math.abs(objCy - cy) < snap) {
+          obj.set('top', cy - obj.getScaledHeight() / 2);
+          guideH.set({ x1: 0, y1: cy, x2: template.width, y2: cy, visible: true } as any);
+          showH = true;
+        }
+
+        // Snap to other objects
+        fc.getObjects().forEach((other: any) => {
+          if (other === obj || !other.visible || other.data?.isGuide) return;
+          const otherCx = other.left + other.getScaledWidth() / 2;
+          const otherCy = other.top + other.getScaledHeight() / 2;
+          if (!showV && Math.abs(objCx - otherCx) < snap) {
+            obj.set('left', otherCx - obj.getScaledWidth() / 2);
+            guideV.set({ x1: otherCx, y1: 0, x2: otherCx, y2: template.height, visible: true } as any);
+            showV = true;
+          }
+          if (!showH && Math.abs(objCy - otherCy) < snap) {
+            obj.set('top', otherCy - obj.getScaledHeight() / 2);
+            guideH.set({ x1: 0, y1: otherCy, x2: template.width, y2: otherCy, visible: true } as any);
+            showH = true;
+          }
+        });
+
+        if (!showH) guideH.set('visible', false);
+        if (!showV) guideV.set('visible', false);
+        fc.renderAll();
+      });
+
       fc.on('selection:created', (e: any) => setSelectedObject(e.selected?.[0] || null));
       fc.on('selection:updated', (e: any) => setSelectedObject(e.selected?.[0] || null));
       fc.on('selection:cleared', () => setSelectedObject(null));
 
       fc.on('object:modified', () => {
+        // Hide guides on mouse up
+        guideH.set('visible', false);
+        guideV.set('visible', false);
+        fc.renderAll();
         if (!isUndoRedoRef.current) {
           const json = JSON.stringify(fc.toJSON());
           historyRef.current = historyRef.current.slice(0, historyIndexRef.current + 1);
@@ -217,12 +283,18 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
     }
   };
 
+  // Helper: hide guide lines for clean export
+  const exportDataURL = (fc: any) => {
+    fc.discardActiveObject();
+    fc.getObjects().forEach((o: any) => { if (o.data?.isGuide) o.set('visible', false); });
+    fc.renderAll();
+    const url = fc.toDataURL({ format: 'png', multiplier: 3, quality: 1 });
+    return url;
+  };
+
   const handleExportPNG = () => {
     if (!fabricRef.current) return;
-    const fc = fabricRef.current;
-    fc.discardActiveObject();
-    fc.renderAll();
-    const dataURL = fc.toDataURL({ format: 'png', multiplier: 3, quality: 1 });
+    const dataURL = exportDataURL(fabricRef.current);
     const link = document.createElement('a');
     link.download = 'yard-sign.png';
     link.href = dataURL;
@@ -231,10 +303,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
 
   const handleExportPDF = async () => {
     if (!fabricRef.current) return;
-    const fc = fabricRef.current;
-    fc.discardActiveObject();
-    fc.renderAll();
-    const dataURL = fc.toDataURL({ format: 'png', multiplier: 3, quality: 1 });
+    const dataURL = exportDataURL(fabricRef.current);
     const phys = SIGN_PHYSICAL_SIZES[signSize] || SIGN_PHYSICAL_SIZES['18x24'];
     const { jsPDF } = await import('jspdf');
     const pdf = new jsPDF({

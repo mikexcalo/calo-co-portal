@@ -90,7 +90,7 @@ export default function CommandBar({ onItemSaved }: CommandBarProps) {
           <button onClick={() => router.push(`/clients/${toast.clientId}`)} style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>Open →</button>
         </div>
       )}
-      <style>{`@keyframes cmd-spin { to { transform: translateY(-50%) rotate(360deg); } }`}</style>
+      <style dangerouslySetInnerHTML={{ __html: '@keyframes cmd-spin { to { transform: translateY(-50%) rotate(360deg); } }' }} />
     </div>
   );
 }
