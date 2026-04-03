@@ -378,11 +378,9 @@ export default function BrandBuilderPage() {
                     'door-hanger': '4.25 × 11 in', 'flyer': '8.5 × 11 in',
                   };
                   return (
-                    <Card key={t.id} onClick={() => handleAssetTypeChange(t.id)}>
-                      <AssetIcon id={t.id} size={24} />
-                      <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginTop: 12, marginBottom: 2 }}>{t.label}</div>
-                      <div style={{ fontSize: 13, color: '#9ca3af' }}>{descs[t.id]}</div>
-                    </Card>
+                    <TemplateCard key={t.id} id={t.id} label={t.label} desc={descs[t.id]}
+                      brandColor={fields.primaryColor || '#28502e'}
+                      onClick={() => handleAssetTypeChange(t.id)} />
                   );
                 })}
               </CardGrid>
@@ -391,21 +389,13 @@ export default function BrandBuilderPage() {
             {/* Digital section */}
             <Section label="Digital">
               <CardGrid>
-                <Card onClick={() => router.push(`/clients/${clientId}/email-signature`)}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginTop: 12, marginBottom: 2 }}>Email Signature</div>
-                  <div style={{ fontSize: 13, color: '#9ca3af' }}>Gmail, Outlook, more</div>
-                </Card>
-                <Card disabled>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginTop: 12, marginBottom: 2 }}>Social Images</div>
-                  <div style={{ fontSize: 10, color: '#9ca3af' }}>Coming soon</div>
-                </Card>
-                <Card disabled>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="4" width="20" height="6" rx="1.5"/><rect x="2" y="14" width="20" height="6" rx="1.5"/></svg>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginTop: 12, marginBottom: 2 }}>Web Banners</div>
-                  <div style={{ fontSize: 10, color: '#9ca3af' }}>Coming soon</div>
-                </Card>
+                <TemplateCard id="email-signature" label="Email Signature" desc="Gmail, Outlook, more"
+                  brandColor={fields.primaryColor || '#28502e'} digital
+                  onClick={() => router.push(`/clients/${clientId}/email-signature`)} />
+                <TemplateCard id="social-images" label="Social Images" desc="Coming soon"
+                  brandColor="#f9fafb" disabled />
+                <TemplateCard id="web-banners" label="Web Banners" desc="Coming soon"
+                  brandColor="#f9fafb" disabled />
               </CardGrid>
             </Section>
           </div>
@@ -413,6 +403,114 @@ export default function BrandBuilderPage() {
       </div>
     </div>
   );
+}
+
+/* Template card with preview thumbnail */
+function TemplateCard({ id, label, desc, brandColor, onClick, disabled, digital }: {
+  id: string; label: string; desc: string; brandColor: string;
+  onClick?: () => void; disabled?: boolean; digital?: boolean;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const bg = disabled ? '#f9fafb' : digital ? '#f4f5f7' : brandColor;
+  return (
+    <button
+      onClick={disabled ? undefined : onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: '#fff', border: `0.5px solid ${hovered && !disabled ? '#2563eb' : '#e5e7eb'}`,
+        borderRadius: 12, padding: 0, overflow: 'hidden',
+        cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1,
+        transition: 'border-color 150ms, transform 150ms, box-shadow 150ms',
+        transform: hovered && !disabled ? 'translateY(-1px)' : 'none',
+        boxShadow: hovered && !disabled ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+        width: '100%', textAlign: 'left' as const, fontFamily: 'Inter, sans-serif',
+      }}
+    >
+      {/* Preview area */}
+      <div style={{
+        height: 100, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        filter: hovered && !disabled ? 'brightness(1.05)' : 'none', transition: 'filter 150ms',
+        borderRadius: '12px 12px 0 0',
+      }}>
+        <TemplatePreview id={id} brandColor={brandColor} digital={digital} />
+      </div>
+      {/* Label area */}
+      <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ color: '#6b7280', flexShrink: 0 }}><AssetIcon id={id} size={20} /></div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>{label}</span>
+            <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 4, background: '#f9fafb', color: '#9ca3af' }}>Not started</span>
+          </div>
+          <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 1 }}>{desc}</div>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/* Miniature preview thumbnails for each template */
+function TemplatePreview({ id, brandColor, digital }: { id: string; brandColor: string; digital?: boolean }) {
+  const bc = brandColor;
+  const w = '#ffffff';
+  const g = '#d1d5db';
+  if (id === 'business-card') return (
+    <div style={{ width: '60%', height: '50%', background: w, borderRadius: 4, boxShadow: '0 1px 4px rgba(0,0,0,0.12)', padding: 6, position: 'relative' }}>
+      <div style={{ width: 10, height: 10, background: bc, borderRadius: 2 }} />
+      <div style={{ width: '50%', height: 3, background: g, borderRadius: 2, marginTop: 4 }} />
+      <div style={{ width: '35%', height: 3, background: '#e5e7eb', borderRadius: 2, marginTop: 3 }} />
+    </div>
+  );
+  if (id === 'yard-sign') return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ width: 60, height: 40, background: bc, borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ color: w, fontSize: 8, fontWeight: 700, letterSpacing: 1 }}>SIGN</span>
+      </div>
+      <div style={{ display: 'flex', gap: 16, marginTop: 2 }}>
+        <div style={{ width: 2, height: 14, background: g, borderRadius: 1 }} />
+        <div style={{ width: 2, height: 14, background: g, borderRadius: 1 }} />
+      </div>
+    </div>
+  );
+  if (id === 'vehicle-magnet') return (
+    <div style={{ width: '65%', height: 30, background: bc, borderRadius: 3, display: 'flex', alignItems: 'center', padding: '0 8px' }}>
+      <div style={{ width: '40%', height: 3, background: 'rgba(255,255,255,0.5)', borderRadius: 2 }} />
+    </div>
+  );
+  if (id === 't-shirt') return (
+    <svg width="50" height="50" viewBox="0 0 24 24" fill={bc} stroke="none">
+      <path d="M8 2l-2 0-4 4v3h4v13h12V9h4V6l-4-4h-2c0 0-1 2-4 2s-4-2-4-2z"/>
+    </svg>
+  );
+  if (id === 'door-hanger') return (
+    <div style={{ width: 28, height: 52, background: bc, borderRadius: 4, position: 'relative', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ width: 10, height: 10, borderRadius: '50%', background: w, marginTop: 6 }} />
+    </div>
+  );
+  if (id === 'flyer') return (
+    <div style={{ width: '45%', height: '70%', background: w, borderRadius: 3, boxShadow: '0 1px 4px rgba(0,0,0,0.12)', overflow: 'hidden' }}>
+      <div style={{ height: '30%', background: bc }} />
+      <div style={{ padding: 4 }}>
+        <div style={{ width: '60%', height: 2, background: g, borderRadius: 1, marginBottom: 3 }} />
+        <div style={{ width: '40%', height: 2, background: '#e5e7eb', borderRadius: 1 }} />
+      </div>
+    </div>
+  );
+  if (id === 'email-signature') return (
+    <div style={{ width: '70%', height: '70%', background: w, borderRadius: 4, padding: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+      <div style={{ width: '60%', height: 2, background: '#e5e7eb', borderRadius: 1, marginBottom: 4 }} />
+      <div style={{ width: '80%', height: 2, background: '#e5e7eb', borderRadius: 1, marginBottom: 6 }} />
+      <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 6, display: 'flex', gap: 6, alignItems: 'center' }}>
+        <div style={{ width: 12, height: 12, background: bc, borderRadius: 2, flexShrink: 0 }} />
+        <div>
+          <div style={{ width: 30, height: 2, background: g, borderRadius: 1, marginBottom: 2 }} />
+          <div style={{ width: 20, height: 2, background: '#e5e7eb', borderRadius: 1 }} />
+        </div>
+      </div>
+    </div>
+  );
+  return null;
 }
 
 /* Monochrome stroke-only template icons */
