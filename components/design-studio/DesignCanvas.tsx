@@ -40,6 +40,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         backgroundColor: '#f4f5f7',
         selection: true,
         preserveObjectStacking: true,
+        enableRetinaScaling: false,
       });
 
       fabricRef.current = fc;
