@@ -94,7 +94,21 @@ export default function Sidebar() {
               Client
             </div>
             {navBtn('Brand Kit', `/clients/${clientId}/brand-kit`, icons.brandKit)}
-            {navBtn('Design Studio', `/clients/${clientId}/brand-builder`, icons.designStudio)}
+            <button onClick={() => {
+              // Reset active template and navigate to template picker
+              window.dispatchEvent(new CustomEvent('sidebarResetTemplate'));
+              router.push(`/clients/${clientId}/brand-builder`);
+            }} style={{
+              display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+              padding: '8px 12px', margin: '1px 0', borderRadius: 6, border: 'none',
+              fontSize: 13, fontWeight: isBrandBuilder ? 500 : 400,
+              color: isBrandBuilder ? '#111827' : '#6b7280',
+              background: isBrandBuilder && !activeAsset ? '#f3f4f6' : 'transparent',
+              cursor: 'pointer', fontFamily: 'Inter, sans-serif', textAlign: 'left' as const,
+            }}>
+              <span style={{ width: 16, height: 16, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icons.designStudio}</span>
+              Design Studio
+            </button>
 
             {/* Active template — indented under Design Studio */}
             {isBrandBuilder && activeAsset && assetLabels[activeAsset] && (

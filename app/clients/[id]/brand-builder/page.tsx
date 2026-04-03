@@ -13,6 +13,7 @@ import {
 } from '@/components/brand-builder/types';
 import FieldEditor from '@/components/brand-builder/FieldEditor';
 import AssetPreview from '@/components/brand-builder/AssetPreview';
+import { Section, CardGrid, Card, InfoBar } from '@/components/shared/PageLayout';
 import dynamic from 'next/dynamic';
 import { getYardSignTemplate } from '@/lib/templates/yard-sign';
 
@@ -54,7 +55,18 @@ export default function BrandBuilderPage() {
       if (id) handleAssetTypeChange(id);
     };
     window.addEventListener('sidebarAssetSelect', handler);
-    return () => window.removeEventListener('sidebarAssetSelect', handler);
+
+    // Listen for sidebar "Design Studio" click to reset template
+    const resetHandler = () => {
+      setAssetType(null);
+      window.dispatchEvent(new CustomEvent('bbAssetTypeChange', { detail: null }));
+    };
+    window.addEventListener('sidebarResetTemplate', resetHandler);
+
+    return () => {
+      window.removeEventListener('sidebarAssetSelect', handler);
+      window.removeEventListener('sidebarResetTemplate', resetHandler);
+    };
   }, [handleAssetTypeChange]);
   const [fields, setFields] = useState<BrandBuilderFields>(DEFAULT_FIELDS);
   const [sources, setSources] = useState<Record<string, string>>({});
@@ -341,12 +353,9 @@ export default function BrandBuilderPage() {
             </>
           )
         ) : (
-          <div style={{ flex: 1, padding: '32px 40px' }}>
+          <div style={{ flex: 1, padding: 32 }}>
             {/* Brand summary bar */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28,
-              padding: '12px 16px', background: '#f9fafb', borderRadius: 8, border: '0.5px solid #e5e7eb',
-            }}>
+            <InfoBar>
               {client.logo ? (
                 <img src={client.logo} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'cover' }} />
               ) : (
@@ -354,72 +363,51 @@ export default function BrandBuilderPage() {
               )}
               <span style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{clientName}</span>
               <span style={{ fontSize: 12, color: '#9ca3af' }}>·</span>
-              <span
-                style={{ fontSize: 12, color: '#2563eb', cursor: 'pointer' }}
-                onClick={() => router.push(`/clients/${clientId}/brand-kit`)}
-              >
+              <span style={{ fontSize: 12, color: '#2563eb', cursor: 'pointer' }} onClick={() => router.push(`/clients/${clientId}/brand-kit`)}>
                 {hasBrandKit ? 'Brand Kit →' : 'Set up Brand Kit →'}
               </span>
-            </div>
+            </InfoBar>
 
             {/* Print section */}
-            <p style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' }}>Print</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
-              {ASSET_TYPES.map((t) => {
-                const descs: Record<string, string> = {
-                  'business-card': '3.5 × 2 in', 'yard-sign': '5 sizes',
-                  'vehicle-magnet': '24 × 12 in', 't-shirt': 'Front + Back',
-                  'door-hanger': '4.25 × 11 in', 'flyer': '8.5 × 11 in',
-                };
-                return (
-                  <button key={t.id} onClick={() => handleAssetTypeChange(t.id)} style={{
-                    padding: 20, border: '0.5px solid #e5e7eb', borderRadius: 12, background: '#fff',
-                    cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif',
-                    transition: 'all 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
-                  >
-                    <AssetIcon id={t.id} size={24} />
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginTop: 12, marginBottom: 2 }}>{t.label}</div>
-                    <div style={{ fontSize: 12, color: '#9ca3af' }}>{descs[t.id]}</div>
-                  </button>
-                );
-              })}
-            </div>
+            <Section label="Print">
+              <CardGrid>
+                {ASSET_TYPES.map((t) => {
+                  const descs: Record<string, string> = {
+                    'business-card': '3.5 × 2 in', 'yard-sign': '5 sizes',
+                    'vehicle-magnet': '24 × 12 in', 't-shirt': 'Front + Back',
+                    'door-hanger': '4.25 × 11 in', 'flyer': '8.5 × 11 in',
+                  };
+                  return (
+                    <Card key={t.id} onClick={() => handleAssetTypeChange(t.id)}>
+                      <AssetIcon id={t.id} size={24} />
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginTop: 12, marginBottom: 2 }}>{t.label}</div>
+                      <div style={{ fontSize: 13, color: '#9ca3af' }}>{descs[t.id]}</div>
+                    </Card>
+                  );
+                })}
+              </CardGrid>
+            </Section>
 
             {/* Digital section */}
-            <p style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' }}>Digital</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-              <button onClick={() => router.push(`/clients/${clientId}/email-signature`)} style={{
-                padding: 20, border: '0.5px solid #e5e7eb', borderRadius: 12, background: '#fff',
-                cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.4"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
-                <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginTop: 12, marginBottom: 2 }}>Email Signature</div>
-                <div style={{ fontSize: 12, color: '#9ca3af' }}>Gmail, Outlook, more</div>
-              </button>
-              <div style={{
-                padding: 20, border: '0.5px solid #e5e7eb', borderRadius: 12, background: '#fff',
-                textAlign: 'left', opacity: 0.5,
-              }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
-                <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginTop: 12, marginBottom: 2 }}>Social Images</div>
-                <div style={{ fontSize: 10, color: '#9ca3af' }}>Coming soon</div>
-              </div>
-              <div style={{
-                padding: 20, border: '0.5px solid #e5e7eb', borderRadius: 12, background: '#fff',
-                textAlign: 'left', opacity: 0.5,
-              }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.4"><rect x="2" y="4" width="20" height="6" rx="1.5"/><rect x="2" y="14" width="20" height="6" rx="1.5"/></svg>
-                <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginTop: 12, marginBottom: 2 }}>Web Banners</div>
-                <div style={{ fontSize: 10, color: '#9ca3af' }}>Coming soon</div>
-              </div>
-            </div>
+            <Section label="Digital">
+              <CardGrid>
+                <Card onClick={() => router.push(`/clients/${clientId}/email-signature`)}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginTop: 12, marginBottom: 2 }}>Email Signature</div>
+                  <div style={{ fontSize: 13, color: '#9ca3af' }}>Gmail, Outlook, more</div>
+                </Card>
+                <Card disabled>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginTop: 12, marginBottom: 2 }}>Social Images</div>
+                  <div style={{ fontSize: 10, color: '#9ca3af' }}>Coming soon</div>
+                </Card>
+                <Card disabled>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="4" width="20" height="6" rx="1.5"/><rect x="2" y="14" width="20" height="6" rx="1.5"/></svg>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginTop: 12, marginBottom: 2 }}>Web Banners</div>
+                  <div style={{ fontSize: 10, color: '#9ca3af' }}>Coming soon</div>
+                </Card>
+              </CardGrid>
+            </Section>
           </div>
         )}
       </div>
