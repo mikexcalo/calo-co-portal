@@ -26,8 +26,13 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
   const isLandscape = phys.w > phys.h;
 
   // Canvas = display dimensions. No scaling later.
-  const W = displayWidth;
-  const H = Math.round(displayWidth * aspectRatio);
+  const maxHeight = 500;
+  let W = displayWidth;
+  let H = Math.round(displayWidth * aspectRatio);
+  if (H > maxHeight) {
+    H = maxHeight;
+    W = Math.round(maxHeight / aspectRatio);
+  }
 
   const topH = Math.round(H * 0.75);
   const bottomH = H - topH;
@@ -146,5 +151,5 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
     });
   }
 
-  return { width: W, height: H, objects };
+  return { width: W, height: H, objects, qrCodeUrl: qrCodeUrl || '' };
 }
