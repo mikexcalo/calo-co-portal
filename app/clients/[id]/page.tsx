@@ -21,6 +21,7 @@ export default function ClientHubPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [contactsOpen, setContactsOpen] = useState(false);
   const [form, setForm] = useState({
     company: '', firstName: '', lastName: '', title: '',
     email: '', contactPhone: '', businessPhone: '', address: '', website: '',
@@ -230,7 +231,7 @@ export default function ClientHubPage() {
 
   return (
     <PageLayout>
-      {/* Client info bar */}
+      {/* Client info bar with contacts dropdown */}
       <InfoBar>
         {client.logo ? (
           <img src={client.logo} alt="" style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
@@ -247,6 +248,40 @@ export default function ClientHubPage() {
             <span style={{ fontSize: 13, color: '#f59e0b' }}>Missing: {missing.join(', ')}</span>
           )}
         </div>
+        <div style={{ position: 'relative' }}>
+          <button onClick={() => setContactsOpen(!contactsOpen)} style={{
+            background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
+            padding: '6px 14px', fontSize: 13, fontWeight: 500, color: '#374151',
+            cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            display: 'flex', alignItems: 'center', gap: 4,
+          }}>
+            Contacts
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+              style={{ transform: contactsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }}>
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          {contactsOpen && (
+            <>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 10 }} onClick={() => setContactsOpen(false)} />
+              <div style={{
+                position: 'absolute', top: '100%', right: 0, marginTop: 6, zIndex: 11,
+                background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 12,
+                boxShadow: '0 4px 16px rgba(0,0,0,0.1)', maxWidth: 320, minWidth: 260, padding: 12,
+              }}>
+                {contacts.map((c, i) => (
+                  <div key={c.id || c.name} style={{ padding: '8px 0', borderBottom: i < contacts.length - 1 ? '0.5px solid #f1f3f5' : 'none' }}>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: '#111827' }}>{c.name}</div>
+                    {(c.title || c.role) && <div style={{ fontSize: 12, color: '#9ca3af' }}>{c.title || c.role}</div>}
+                    {c.email && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{c.email}</div>}
+                    {c.phone && <div style={{ fontSize: 12, color: '#6b7280' }}>{c.phone}</div>}
+                  </div>
+                ))}
+                {contacts.length === 0 && <div style={{ fontSize: 13, color: '#9ca3af', padding: 4 }}>No contacts</div>}
+              </div>
+            </>
+          )}
+        </div>
         {!isClient && (
           <button onClick={() => setIsEditOpen(true)} style={{
             background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
@@ -255,35 +290,6 @@ export default function ClientHubPage() {
           }}>Edit Client</button>
         )}
       </InfoBar>
-
-      {/* Contacts section */}
-      <Section label="Contacts">
-        <CardGrid columns={3}>
-          {contacts.map((c) => (
-            <Card key={c.id || c.name}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{
-                  width: 32, height: 32, borderRadius: '50%', background: '#f1f3f5',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 600, color: '#475569', flexShrink: 0,
-                }}>
-                  {(c.name || '?').charAt(0).toUpperCase()}
-                </div>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{c.name}</div>
-                  {(c.title || c.role) && <div style={{ fontSize: 12, color: '#9ca3af' }}>{c.title || c.role}</div>}
-                </div>
-              </div>
-              {(c.email || c.phone) && (
-                <div style={{ marginTop: 8, fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>
-                  {c.email && <div>{c.email}</div>}
-                  {c.phone && <div>{c.phone}</div>}
-                </div>
-              )}
-            </Card>
-          ))}
-        </CardGrid>
-      </Section>
 
       {/* Two-column: Tasks + Quick links */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24 }}>
