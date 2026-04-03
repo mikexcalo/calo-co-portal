@@ -87,6 +87,8 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           stroke: obj.stroke || null,
           strokeWidth: obj.strokeWidth ?? 0,
           rx: obj.rx || 0, ry: obj.ry || 0,
+          originX: 'left',
+          originY: 'top',
           selectable: obj.selectable !== false,
           evented: obj.evented !== false,
           lockMovementX: obj.lockMovement || false,
