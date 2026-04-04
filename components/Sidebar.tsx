@@ -117,9 +117,6 @@ export default function Sidebar() {
         {navBtn('Clients', '/clients', icons.clients)}
         {navBtn('Invoices', '/invoices', icons.invoices)}
         {navBtn('Financials', '/financials', icons.financials)}
-
-        {sectionLabel('Agency')}
-        {navBtn('Brand Kit', '/agency/brand-kit', icons.brandKit)}
         {navBtn('Design Studio', '/agency/design-studio', icons.designStudio)}
 
         {clientId && clientId !== 'new' && (
