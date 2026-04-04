@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTheme } from '@/lib/theme';
 
 // --- Page wrapper ---
 interface PageLayoutProps {
@@ -13,13 +14,14 @@ interface PageLayoutProps {
 }
 
 export function PageLayout({ title, subtitle, action, children, maxWidth = '960px', padding = '32px' }: PageLayoutProps) {
+  const { t } = useTheme();
   return (
     <div style={{ padding, maxWidth }}>
       {title && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 20, fontWeight: 500, margin: '0 0 2px', color: '#111827' }}>{title}</h1>
-            {subtitle && <p style={{ fontSize: 13, color: '#9ca3af', margin: 0 }}>{subtitle}</p>}
+            <h1 style={{ fontSize: 20, fontWeight: 500, margin: '0 0 2px', color: t.text.primary }}>{title}</h1>
+            {subtitle && <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>{subtitle}</p>}
           </div>
           {action && <div>{action}</div>}
         </div>
@@ -44,13 +46,14 @@ interface TwoColumnLayoutProps {
 }
 
 export function TwoColumnLayout({ title, subtitle, action, left, right, rightWidth = '320px', header, maxWidth = '960px', padding = '32px', gap = '24px' }: TwoColumnLayoutProps) {
+  const { t } = useTheme();
   return (
     <div style={{ padding, maxWidth }}>
       {title && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 20, fontWeight: 500, margin: '0 0 2px', color: '#111827' }}>{title}</h1>
-            {subtitle && <p style={{ fontSize: 13, color: '#9ca3af', margin: 0 }}>{subtitle}</p>}
+            <h1 style={{ fontSize: 20, fontWeight: 500, margin: '0 0 2px', color: t.text.primary }}>{title}</h1>
+            {subtitle && <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>{subtitle}</p>}
           </div>
           {action && <div>{action}</div>}
         </div>
@@ -72,10 +75,11 @@ interface SectionProps {
 }
 
 export function Section({ label, children, style }: SectionProps) {
+  const { t } = useTheme();
   return (
     <div style={{ marginBottom: 24, ...style }}>
       {label && (
-        <div style={{ fontSize: 11, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>
+        <div style={{ fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>
           {label}
         </div>
       )}
@@ -86,8 +90,9 @@ export function Section({ label, children, style }: SectionProps) {
 
 // --- Section label (standalone) ---
 export function SectionLabel({ children }: { children: React.ReactNode }) {
+  const { t } = useTheme();
   return (
-    <p style={{ fontSize: 11, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 8px' }}>
+    <p style={{ fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 8px' }}>
       {children}
     </p>
   );
@@ -116,6 +121,7 @@ interface CardProps {
 }
 
 export function Card({ onClick, disabled, children, style }: CardProps) {
+  const { t } = useTheme();
   const [hovered, setHovered] = useState(false);
   return (
     <button
@@ -123,13 +129,14 @@ export function Card({ onClick, disabled, children, style }: CardProps) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: '#fff', border: `0.5px solid ${hovered && !disabled ? '#2563eb' : '#e5e7eb'}`,
+        background: t.bg.surface,
+        border: `0.5px solid ${hovered && !disabled ? t.border.hover : t.border.default}`,
         borderRadius: 12, padding: 20, textAlign: 'left' as const,
         cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1,
         transition: 'border-color 150ms, transform 150ms, box-shadow 150ms',
         transform: hovered && !disabled ? 'translateY(-1px)' : 'none',
-        boxShadow: hovered && !disabled ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
-        width: '100%', fontFamily: 'inherit',
+        boxShadow: hovered && !disabled ? t.shadow.card : 'none',
+        width: '100%', fontFamily: 'inherit', color: t.text.primary,
         ...style,
       }}
     >
@@ -140,11 +147,12 @@ export function Card({ onClick, disabled, children, style }: CardProps) {
 
 // --- Info bar ---
 export function InfoBar({ children }: { children: React.ReactNode }) {
+  const { t } = useTheme();
   return (
     <div style={{
-      background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 12,
+      background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 12,
       padding: '12px 20px', marginBottom: 24,
-      display: 'flex', alignItems: 'center', gap: 12,
+      display: 'flex', alignItems: 'center', gap: 12, color: t.text.secondary,
     }}>
       {children}
     </div>
@@ -159,13 +167,17 @@ interface MetricCardProps {
   onClick?: () => void;
 }
 
-export function MetricCard({ label, value, color = '#111827', onClick }: MetricCardProps) {
+export function MetricCard({ label, value, color, onClick }: MetricCardProps) {
+  const { t } = useTheme();
   return (
-    <div onClick={onClick} style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: 12, cursor: onClick ? 'pointer' : 'default' }}>
-      <p style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.3px', margin: '0 0 2px' }}>{label}</p>
+    <div onClick={onClick} style={{
+      background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8,
+      padding: 12, cursor: onClick ? 'pointer' : 'default',
+    }}>
+      <p style={{ fontSize: 10, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px', margin: '0 0 2px' }}>{label}</p>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-        <p style={{ fontSize: 20, fontWeight: 500, color, margin: 0 }}>{value}</p>
-        {onClick && <span style={{ fontSize: 12, color: '#9ca3af' }}>→</span>}
+        <p style={{ fontSize: 20, fontWeight: 500, color: color || t.text.primary, margin: 0 }}>{value}</p>
+        {onClick && <span style={{ fontSize: 12, color: t.text.tertiary }}>→</span>}
       </div>
     </div>
   );
