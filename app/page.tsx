@@ -1,27 +1,32 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   initSupabase, initAgency, loadClients, loadInvoices, loadContacts,
   loadAllBrandKits, loadActivityLog, loadExpenses, loadAgencySettings,
-  loadTasksNotes, DB, updateTaskStatus, deleteTaskNote,
+  loadTasksNotes, DB, updateTaskStatus,
 } from '@/lib/database';
-import { agencyStats, currency } from '@/lib/utils';
+import { agencyStats, currency, invTotal } from '@/lib/utils';
 import CommandBar from '@/components/dashboard/CommandBar';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme';
+
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } };
 
 function relTime(iso: string): string {
   const d = Date.now() - new Date(iso).getTime();
   const m = Math.floor(d / 60000);
-  if (m < 60) return `${m}m`;
+  if (m < 60) return `${m}m ago`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h`;
+  if (h < 24) return `${h}h ago`;
   const dy = Math.floor(h / 24);
-  return dy === 1 ? '1d' : `${dy}d`;
+  return dy === 1 ? '1d ago' : `${dy}d ago`;
+}
+
+function ageDays(iso: string): number {
+  return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
 }
 
 export default function Home() {
@@ -31,8 +36,8 @@ export default function Home() {
   const [greeting, setGreeting] = useState('Good morning');
   const [dateline, setDateline] = useState('');
   const [stats, setStats] = useState(agencyStats([], []));
-  const [feedKey, setFeedKey] = useState(0);
   const [allTasks, setAllTasks] = useState<any[]>([]);
+  const [toast, setToast] = useState<{ id: string; text: string } | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -67,233 +72,207 @@ export default function Home() {
     return () => clearInterval(iv);
   }, []);
 
-  if (isLoading) return <div style={{ padding: '32px 40px', opacity: 0.5, fontSize: 13, color: '#6b7280' }}>Loading dashboard…</div>;
+  const refreshFeed = useCallback(() => { loadTasksNotes().then(setAllTasks); }, []);
 
-  const refreshFeed = () => { setFeedKey((k) => k + 1); loadTasksNotes().then(setAllTasks); };
+  const handleTrash = async (taskId: string, text: string) => {
+    await updateTaskStatus(taskId, 'complete');
+    setAllTasks((prev) => prev.filter((t) => t.id !== taskId));
+    setToast({ id: taskId, text });
+    setTimeout(() => setToast(null), 5000);
+  };
 
-  function getUrgencyStyle(item: { content?: string; created_at?: string; due?: string; date?: string; id?: string }) {
-    const content = (item.content || item.id || '').toLowerCase();
-    const red = { background: '#FEF2F2', border: '0.5px solid rgba(252,165,165,0.27)', borderLeft: '3px solid #DC2626', titleColor: '#991B1B', subtitleColor: '#B91C1C', arrowColor: '#B91C1C', iconColor: '#DC2626' };
-    const amber = { background: '#FFFBEB', border: '0.5px solid rgba(245,158,11,0.2)', borderLeft: '3px solid #F59E0B', titleColor: '#92400E', subtitleColor: '#B45309', arrowColor: '#B45309', iconColor: '#D97706' };
-    const neutral = { background: '#ffffff', border: '0.5px solid #e5e7eb', borderLeft: '3px solid #e5e7eb', titleColor: '#111827', subtitleColor: '#9ca3af', arrowColor: '#9ca3af', iconColor: '#9ca3af' };
+  const handleUndo = async () => {
+    if (!toast) return;
+    await updateTaskStatus(toast.id, 'open');
+    setToast(null);
+    refreshFeed();
+  };
 
-    // Communication items — look for "X days" in content
-    if (content.includes('text ') || content.includes('call ') || content.includes('email ') || content.includes('message')) {
-      const match = content.match(/(\d+)\s*days?\s*(since|ago|no\s*response|without)/i);
-      const days = match ? parseInt(match[1], 10) : Math.floor((Date.now() - new Date(item.created_at || Date.now()).getTime()) / 86400000);
-      if (days >= 3) return { ...red, badge: { text: days + 'd', bg: '#DC2626', color: '#fff' } };
-      if (days >= 2) return { ...amber, badge: { text: days + 'd', bg: '#F59E0B', color: '#fff' } };
-      return { ...neutral, badge: null as null };
-    }
+  if (isLoading) return <div style={{ padding: 32, opacity: 0.5, fontSize: 13, color: t.text.tertiary }}>Loading dashboard...</div>;
 
-    // Invoice items — calculate days until due
-    if (content.includes('invoice') && item.due) {
-      try {
-        const dueDate = new Date(item.due);
-        if (!isNaN(dueDate.getTime())) {
-          const daysUntil = Math.floor((dueDate.getTime() - Date.now()) / 86400000);
-          if (daysUntil <= 0) return { ...red, badge: { text: 'overdue', bg: '#DC2626', color: '#fff' } };
-          if (daysUntil <= 3) return { ...amber, badge: { text: daysUntil + 'd left', bg: '#F59E0B', color: '#fff' } };
-          if (daysUntil <= 7) return { ...amber, badge: { text: daysUntil + 'd left', bg: '#F59E0B', color: '#fff' } };
-        }
-      } catch {}
-    }
-
-    // Default — fallback to created_at age
-    const created = new Date(item.created_at || item.date || Date.now());
-    const daysSince = Math.floor((Date.now() - created.getTime()) / 86400000);
-    if (daysSince >= 3) return { ...red, badge: { text: daysSince + 'd', bg: '#DC2626', color: '#fff' } };
-    if (daysSince >= 2) return { ...amber, badge: { text: daysSince + 'd', bg: '#F59E0B', color: '#fff' } };
-    return { ...neutral, badge: null as null };
-  }
-
-  function getActionIcon(content: string, color: string) {
-    const t = content.toLowerCase();
-    if (t.includes('text ') || t.includes('email ') || t.includes('call ') || t.includes('message'))
-      return <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}><rect x="1" y="3" width="14" height="10" rx="2" stroke={color} strokeWidth="1.4"/><path d="M1 5l7 4 7-4" stroke={color} strokeWidth="1.4"/></svg>;
-    if (t.includes('invoice'))
-      return <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}><rect x="2" y="1" width="12" height="14" rx="1.5" stroke={color} strokeWidth="1.4"/><path d="M5 5h6M5 8h6M5 11h3" stroke={color} strokeWidth="1.2" strokeLinecap="round"/></svg>;
-    return <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}><circle cx="8" cy="8" r="6.5" stroke={color} strokeWidth="1.4"/><path d="M8 4.5v4l2.5 1.5" stroke={color} strokeWidth="1.3" strokeLinecap="round"/></svg>;
-  }
-
-  // Action items data
-  const openTasks = allTasks.filter((t) => t.type === 'task' && t.status === 'open')
+  // Data
+  const openTasks = allTasks.filter((tk) => tk.type === 'task' && tk.status === 'open')
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   const unpaidInvs = DB.invoices.filter((i) => i.status === 'unpaid' || i.status === 'overdue')
     .sort((a, b) => { const da = a.due ? new Date(a.due).getTime() : Infinity; const db = b.due ? new Date(b.due).getTime() : Infinity; return da - db; });
-
-  // Recent activity
-  const activityItems = DB.activityLog
-    .filter((e) => ['invoice_created', 'invoice_paid', 'client_added', 'task_added', 'note_added'].includes(e.eventType))
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 4);
-  const evLabels: Record<string, string> = { invoice_created: 'Invoice created', invoice_paid: 'Invoice paid', client_added: 'Client added', task_added: 'Task added', note_added: 'Note added' };
-
-  // Clients
-  const clients = DB.clients.sort((a, b) => (a.company || a.name).localeCompare(b.company || b.name));
-
-  const paidMTD = DB.invoices.filter((i) => i.status === 'paid').reduce((s, i) => {
-    const t = (i.items || []).reduce((a: number, x: any) => a + (x.qty || 1) * (x.price || 0), 0) + (i.tax || 0) + (i.shipping || 0);
-    return s + t;
-  }, 0);
-
-  // Recent clients — sorted by last access
-  const recentClients = [...clients].sort((a, b) => {
+  const clients = DB.clients.sort((a, b) => {
     const ta = parseInt(localStorage.getItem(`client_accessed_${a.id}`) || '0', 10);
     const tb = parseInt(localStorage.getItem(`client_accessed_${b.id}`) || '0', 10);
     return tb - ta;
-  }).slice(0, 8);
+  });
+
+  // Inline metrics
+  const clientCount = DB.clients.length;
+  const openInvCount = unpaidInvs.length;
+  const pendingAmt = currency(stats.outstanding);
+
+  // All action items combined
+  const actionItems: { id: string; icon: string; text: string; client: string; clientId?: string; age: number; badge?: string }[] = [];
+  openTasks.forEach((tk) => {
+    const cl = DB.clients.find((c) => c.id === tk.client_id);
+    const days = ageDays(tk.created_at);
+    actionItems.push({ id: tk.id, icon: 'task', text: tk.content, client: cl?.company || cl?.name || '', clientId: cl?.id, age: days, badge: days >= 3 ? `${days}d` : days >= 2 ? `${days}d` : undefined });
+  });
+  unpaidInvs.forEach((inv) => {
+    const cl = DB.clients.find((c) => c.id === inv.clientId);
+    const total = invTotal(inv);
+    const days = inv.due ? Math.max(0, Math.floor((Date.now() - new Date(inv.due).getTime()) / 86400000)) : 0;
+    actionItems.push({ id: inv.id || inv._uuid || '', icon: 'invoice', text: `Invoice ${inv.id} · ${currency(total)}`, client: cl?.company || cl?.name || '', clientId: inv.clientId, age: days, badge: days > 0 ? 'overdue' : undefined });
+  });
 
   const sectionLbl: React.CSSProperties = { fontSize: 11, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' };
 
   return (
-    <div style={{ padding: 32, maxWidth: 960 }}>
-      <motion.div variants={stagger} initial="hidden" animate="show">
-        {/* Greeting */}
-        <motion.div variants={fadeUp}>
-          <h1 style={{ fontSize: 24, fontWeight: 400, color: t.text.primary, margin: '0 0 2px' }}>{greeting}</h1>
-          <p style={{ fontSize: 13, color: t.text.tertiary, margin: '0 0 24px' }}>{dateline}</p>
+    <div style={{ padding: '24px 32px', maxWidth: 960, height: 'calc(100vh - 48px)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <motion.div variants={stagger} initial="hidden" animate="show" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+
+        {/* Greeting + inline metrics */}
+        <motion.div variants={fadeUp} style={{ marginBottom: 16, flexShrink: 0 }}>
+          <p style={{ fontSize: 18, fontWeight: 400, color: t.text.primary, margin: '0 0 2px' }}>
+            {greeting} — <span style={{ color: t.text.secondary }}>
+              <span style={{ color: t.text.primary }}>{clientCount}</span> clients · <span style={{ color: t.text.primary }}>{openInvCount}</span> open invoice{openInvCount !== 1 ? 's' : ''} · <span style={{ color: t.text.primary }}>{pendingAmt}</span> pending
+            </span>
+          </p>
+          <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>{dateline}</p>
         </motion.div>
 
-        {/* Metric cards */}
-        <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, marginBottom: 24 }}>
-          {[
-            { label: 'Active Clients', value: String(clients.length), href: '/clients' },
-            { label: 'Open Invoices', value: String(unpaidInvs.length), href: '/invoices', color: t.status.warning },
-            { label: 'Revenue (MTD)', value: currency(paidMTD), href: '/financials', color: t.status.success },
-            { label: 'Pending', value: currency(stats.outstanding), href: '/financials', color: t.status.warning },
-          ].map((m) => (
-            <motion.div key={m.label} whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-              onClick={() => router.push(m.href)} style={{
-                background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg,
-                padding: 16, cursor: 'pointer', transition: 'border-color 200ms, background 200ms',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = t.border.hover; e.currentTarget.style.background = t.bg.surfaceHover; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = t.border.default; e.currentTarget.style.background = t.bg.surface; }}
-            >
-              <div style={{ fontSize: 11, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>{m.label}</div>
-              <div style={{ fontSize: 28, fontWeight: 500, color: m.color || t.text.primary }}>{m.value}</div>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Command Bar */}
-        <motion.div variants={fadeUp} style={{ marginBottom: 24 }}>
+        {/* Command bar — hero */}
+        <motion.div variants={fadeUp} style={{ marginBottom: 20, flexShrink: 0 }}>
           <CommandBar onItemSaved={refreshFeed} />
         </motion.div>
 
-        {/* Action items */}
-        {(openTasks.length > 0 || unpaidInvs.length > 0) && (
-          <motion.div variants={fadeUp} style={{ marginBottom: 24 }}>
+        {/* Two-column content */}
+        <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 24, flex: 1, minHeight: 0 }}>
+
+          {/* Left — Action items */}
+          <div style={{ minHeight: 0, overflow: 'auto' }}>
             <div style={sectionLbl}>Action items</div>
-            <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg, overflow: 'hidden' }}>
-              {openTasks.map((task) => {
-                const cl = DB.clients.find((c) => c.id === task.client_id);
-                const u = getUrgencyStyle(task);
-                const isUrgent = u.badge && (u.badge.bg === '#DC2626' || u.badge.bg === '#F59E0B');
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <AnimatePresence>
+                {actionItems.map((item) => {
+                  const isUrgent = item.age >= 3;
+                  const isMedium = item.age >= 2;
+                  return (
+                    <motion.div key={item.id}
+                      initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95, height: 0, marginBottom: 0, padding: 0, overflow: 'hidden' }}
+                      transition={{ duration: 0.2 }}
+                      whileHover={{ y: -1 }}
+                      onClick={() => item.clientId && router.push(`/clients/${item.clientId}`)}
+                      style={{
+                        background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.md,
+                        padding: 14, minHeight: 80, cursor: 'pointer', display: 'flex', flexDirection: 'column',
+                        transition: 'border-color 150ms',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.borderColor = t.border.hover}
+                      onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.borderColor = t.border.default}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, flex: 1 }}>
+                        <span style={{ color: t.text.tertiary, flexShrink: 0, marginTop: 1 }}>
+                          {item.icon === 'invoice'
+                            ? <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" strokeWidth="1.3"/><path d="M5 5h6M5 8h6M5 11h3" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/></svg>
+                            : <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3"/><path d="M8 4.5v4l2.5 1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                          }
+                        </span>
+                        <span style={{ fontSize: 13, color: t.text.primary, lineHeight: 1.4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' } as any}>{item.text}</span>
+                      </div>
+                      <div style={{ fontSize: 12, color: t.text.secondary, marginTop: 4 }}>{item.client}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 }}>
+                        {item.badge ? (
+                          <span style={{ fontSize: 11, padding: '1px 6px', borderRadius: 4, background: isUrgent ? t.accent.subtle : t.bg.surfaceHover, color: isUrgent ? t.accent.text : isMedium ? t.status.warning : t.text.secondary, fontWeight: 500 }}>{item.badge}</span>
+                        ) : <span />}
+                        <button onClick={(e) => { e.stopPropagation(); handleTrash(item.id, item.text); }} style={{
+                          background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: t.text.tertiary,
+                          transition: 'color 150ms', fontSize: 0,
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = t.status.danger}
+                        onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg>
+                        </button>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+              {actionItems.length === 0 && (
+                <div style={{ gridColumn: '1 / -1', background: t.bg.surface, border: `1px dashed ${t.border.default}`, borderRadius: t.radius.md, padding: 24, textAlign: 'center', color: t.text.tertiary, fontSize: 13 }}>
+                  All clear
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right — Clients */}
+          <div style={{ minHeight: 0, overflow: 'auto' }}>
+            <div style={sectionLbl}>Clients</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {clients.map((client) => {
+                const ct = DB.contacts[client.id] || [];
+                const primary = ct.find((c) => c.isPrimary) || ct[0];
+                const clientInvs = DB.invoices.filter((i) => i.clientId === client.id);
+                const clientUnpaid = clientInvs.filter((i) => i.status === 'unpaid' || i.status === 'overdue');
+                const due = clientUnpaid.reduce((s, i) => s + invTotal(i), 0);
+                const lastAccess = localStorage.getItem(`client_accessed_${client.id}`);
+                const lastStr = lastAccess ? relTime(new Date(parseInt(lastAccess, 10)).toISOString()) : '—';
+                const brandColor = client.brandKit?.colors?.[0] || '#6b7280';
+
                 return (
-                  <div key={task.id} onClick={() => cl && router.push(`/clients/${cl.id}`)} style={{
-                    padding: '12px 16px', borderBottom: `1px solid ${t.border.default}`, display: 'flex', alignItems: 'center', cursor: 'pointer',
-                    transition: 'background 150ms',
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = t.bg.surfaceHover}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  <motion.div key={client.id} whileHover={{ y: -1 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                    onClick={() => { localStorage.setItem(`client_accessed_${client.id}`, String(Date.now())); router.push(`/clients/${client.id}`); }}
+                    style={{
+                      background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg,
+                      padding: 16, cursor: 'pointer', transition: 'border-color 150ms',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.borderColor = t.border.hover}
+                    onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.borderColor = t.border.default}
                   >
-                    <div onClick={async (e) => { e.stopPropagation(); await updateTaskStatus(task.id, 'complete'); refreshFeed(); }} style={{ cursor: 'pointer', marginRight: 10, color: t.text.tertiary }}>
-                      {getActionIcon(task.content, t.text.tertiary)}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                      {client.logo ? (
+                        <img src={client.logo} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+                      ) : (
+                        <div style={{ width: 28, height: 28, borderRadius: 6, background: t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600, color: t.text.secondary, flexShrink: 0 }}>
+                          {(client.company || client.name).charAt(0)}
+                        </div>
+                      )}
+                      <span style={{ fontSize: 14, fontWeight: 500, color: t.text.primary, flex: 1 }}>{client.company || client.name}</span>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: typeof brandColor === 'string' ? brandColor : '#6b7280', flexShrink: 0 }} />
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: 14, fontWeight: 500, color: t.text.primary }}>{task.content}</span>
-                      {u.badge && <span style={{ fontSize: 9, background: isUrgent ? t.accent.subtle : t.bg.surfaceHover, color: isUrgent ? t.accent.text : t.text.secondary, padding: '2px 6px', borderRadius: 4, fontWeight: 500, marginLeft: 6 }}>{u.badge.text}</span>}
+                    {primary && <div style={{ fontSize: 13, color: t.text.secondary, marginBottom: 4 }}>{primary.name}</div>}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                      <span style={{ color: t.text.secondary }}>{clientInvs.length} inv · {currency(due)} due</span>
+                      <span style={{ color: t.text.tertiary }}>Last: {lastStr}</span>
                     </div>
-                    <span style={{ fontSize: 13, color: t.text.tertiary, flexShrink: 0 }}>{cl?.company || cl?.name || ''}</span>
-                  </div>
-                );
-              })}
-              {unpaidInvs.map((inv) => {
-                const cl = DB.clients.find((c) => c.id === inv.clientId);
-                const total = (inv.items || []).reduce((s: number, i: any) => s + (i.qty || 1) * (i.price || 0), 0) + (inv.tax || 0) + (inv.shipping || 0);
-                const u = getUrgencyStyle({ content: `invoice ${inv.id}`, due: inv.due, date: inv.date, created_at: inv.date });
-                const isUrgent = u.badge && (u.badge.bg === '#DC2626' || u.badge.bg === '#F59E0B');
-                return (
-                  <div key={inv.id || inv._uuid} onClick={() => router.push(`/clients/${inv.clientId}/invoices`)} style={{
-                    padding: '12px 16px', borderBottom: `1px solid ${t.border.default}`, display: 'flex', alignItems: 'center', cursor: 'pointer',
-                    transition: 'background 150ms',
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = t.bg.surfaceHover}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                  >
-                    <span style={{ color: t.text.tertiary, marginRight: 10 }}>{getActionIcon('invoice', t.text.tertiary)}</span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: 14, fontWeight: 500, color: t.text.primary }}>Invoice {inv.id} · {currency(total)}</span>
-                      {u.badge && <span style={{ fontSize: 9, background: isUrgent ? t.accent.subtle : t.bg.surfaceHover, color: isUrgent ? t.accent.text : t.text.secondary, padding: '2px 6px', borderRadius: 4, fontWeight: 500, marginLeft: 6 }}>{u.badge.text}</span>}
-                    </div>
-                    <span style={{ fontSize: 13, color: t.text.tertiary, flexShrink: 0 }}>{cl?.company || cl?.name || ''}</span>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
+          </div>
+        </motion.div>
+      </motion.div>
+
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 100,
+              background: t.bg.elevated, border: `1px solid ${t.border.default}`, borderRadius: t.radius.md,
+              padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10,
+              boxShadow: t.shadow.elevated, maxWidth: 400,
+            }}
+          >
+            <span style={{ fontSize: 13, color: t.text.primary, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {toast.text.length > 30 ? toast.text.slice(0, 30) + '...' : toast.text} trashed
+            </span>
+            <button onClick={handleUndo} style={{ background: 'none', border: 'none', color: t.accent.text, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
+              Undo
+            </button>
           </motion.div>
         )}
-
-        {/* Recent activity */}
-        <motion.div variants={fadeUp} style={{ marginBottom: 24 }}>
-          <div style={sectionLbl}>Recent activity</div>
-          <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg, overflow: 'hidden' }}>
-            {recentClients.map((client) => (
-              <div key={client.id} onClick={() => { localStorage.setItem(`client_accessed_${client.id}`, String(Date.now())); router.push(`/clients/${client.id}`); }}
-                style={{ padding: '10px 16px', borderBottom: `1px solid ${t.border.default}`, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', transition: 'background 150ms' }}
-                onMouseEnter={(e) => e.currentTarget.style.background = t.bg.surfaceHover}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-              >
-                {client.logo ? (
-                  <img src={client.logo} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
-                ) : (
-                  <div style={{ width: 28, height: 28, borderRadius: 6, background: t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600, color: t.text.secondary, flexShrink: 0 }}>
-                    {(client.company || client.name).charAt(0)}
-                  </div>
-                )}
-                <span style={{ fontSize: 14, fontWeight: 500, color: t.text.primary, flex: 1 }}>{client.company || client.name}</span>
-                <span style={{ fontSize: 13, color: t.text.tertiary, transition: 'transform 200ms' }}>→</span>
-              </div>
-            ))}
-            {recentClients.length === 0 && (
-              <div style={{ padding: 20, textAlign: 'center', fontSize: 13, color: t.text.tertiary }}>No clients yet</div>
-            )}
-          </div>
-        </motion.div>
-
-        {/* Quick actions */}
-        <motion.div variants={fadeUp}>
-          <div style={sectionLbl}>Quick actions</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
-            {[
-              { label: '+ New Client', sub: 'Add a new client', href: '/clients/new', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><line x1="18" y1="5" x2="18" y2="11"/><line x1="15" y1="8" x2="21" y2="8"/></svg> },
-              { label: '+ New Invoice', sub: 'Create an invoice', href: '/invoices', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7" strokeLinecap="round"/><line x1="8" y1="11" x2="16" y2="11" strokeLinecap="round"/><line x1="8" y1="15" x2="12" y2="15" strokeLinecap="round"/></svg> },
-              { label: 'Design Studio', sub: 'Open a client\u2019s studio', href: '/clients', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="1.5" y="1.5" width="21" height="21" rx="2"/><line x1="1.5" y1="8" x2="22.5" y2="8"/><line x1="8" y1="8" x2="8" y2="22.5"/></svg> },
-            ].map((a) => (
-              <motion.button key={a.label} whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                onClick={() => router.push(a.href)} style={{
-                  background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg,
-                  padding: 24, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', width: '100%',
-                  transition: 'border-color 200ms, box-shadow 200ms',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = t.border.hover; e.currentTarget.style.boxShadow = t.shadow.card; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = t.border.default; e.currentTarget.style.boxShadow = 'none'; }}
-              >
-                <div style={{ color: t.text.tertiary, marginBottom: 8 }}>{a.icon}</div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: t.text.primary }}>{a.label.startsWith('+') ? <><span style={{ color: t.accent.text }}>+</span>{a.label.slice(1)}</> : a.label}</div>
-                <div style={{ fontSize: 13, color: t.text.tertiary, marginTop: 2 }}>{a.sub}</div>
-              </motion.button>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Footer */}
-        <div style={{ textAlign: 'center', padding: '32px 0 8px', fontSize: 11, color: t.text.tertiary }}>
-          Powered by CALO&CO
-        </div>
-      </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
