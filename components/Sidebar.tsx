@@ -159,13 +159,9 @@ export default function Sidebar() {
         )}
       </div>
 
-      {/* Settings + Footer */}
+      {/* Settings */}
       <div style={{ borderTop: `1px solid ${t.border.default}`, padding: '8px' }}>
         {navBtn('Settings', '/settings', icons.settings)}
-        <a href="https://mikecalo.co" target="_blank" rel="noopener noreferrer"
-          style={{ display: 'block', fontSize: 10, color: t.text.tertiary, padding: '8px 12px', textDecoration: 'none', fontFamily: 'inherit' }}>
-          Powered by CALO&CO
-        </a>
       </div>
     </div>
   );
