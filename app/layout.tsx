@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { GeistSans } from 'geist/font/sans';
 import Sidebar from '@/components/Sidebar';
 import TopBar from '@/components/TopBar';
 
@@ -14,19 +15,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body style={{ margin: 0, color: '#0f172a' }}>
+    <html lang="en" className={GeistSans.className}>
+      <body style={{ margin: 0, color: '#f5f5f5' }}>
         <div style={{ display: 'flex', height: '100vh' }}>
           <Sidebar />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             <TopBar />
-            <main style={{ flex: 1, overflow: 'auto', background: '#f4f5f7' }}>
+            <main style={{ flex: 1, overflow: 'auto', background: '#0a0a0b' }}>
               {children}
             </main>
           </div>

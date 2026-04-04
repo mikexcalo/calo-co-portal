@@ -8,9 +8,13 @@ import {
   loadTasksNotes, DB, updateTaskStatus, deleteTaskNote,
 } from '@/lib/database';
 import { agencyStats, currency } from '@/lib/utils';
-import { colors } from '@/lib/design-tokens';
+import { tokens } from '@/lib/design-tokens';
 import CommandBar from '@/components/dashboard/CommandBar';
-import { PageLayout, Section, SectionLabel, MetricCard, Card, CardGrid } from '@/components/shared/PageLayout';
+import { motion } from 'framer-motion';
+
+const t = tokens;
+const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
+const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } };
 
 function relTime(iso: string): string {
   const d = Date.now() - new Date(iso).getTime();
@@ -141,109 +145,156 @@ export default function Home() {
     return tb - ta;
   }).slice(0, 8);
 
+  const sectionLbl: React.CSSProperties = { fontSize: 11, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' };
+
   return (
-    <PageLayout title={greeting} subtitle={dateline} maxWidth="960px">
-      {/* Summary metrics */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, marginBottom: 24 }}>
-        <MetricCard label="Active Clients" value={String(clients.length)} onClick={() => router.push('/clients')} />
-        <MetricCard label="Open Invoices" value={String(unpaidInvs.length)} color="#D97706" onClick={() => router.push('/invoices')} />
-        <MetricCard label="Revenue (MTD)" value={currency(paidMTD)} color="#16a34a" onClick={() => router.push('/financials')} />
-        <MetricCard label="Pending" value={currency(stats.outstanding)} color="#D97706" onClick={() => router.push('/financials')} />
-      </div>
+    <div style={{ padding: 32, maxWidth: 960 }}>
+      <motion.div variants={stagger} initial="hidden" animate="show">
+        {/* Greeting */}
+        <motion.div variants={fadeUp}>
+          <h1 style={{ fontSize: 24, fontWeight: 400, color: t.text.primary, margin: '0 0 2px' }}>{greeting}</h1>
+          <p style={{ fontSize: 13, color: t.text.tertiary, margin: '0 0 24px' }}>{dateline}</p>
+        </motion.div>
 
-      {/* AI Command Bar */}
-      <div style={{ marginBottom: 24 }}>
-        <CommandBar onItemSaved={refreshFeed} />
-      </div>
-
-      {/* Action items */}
-      {(openTasks.length > 0 || unpaidInvs.length > 0) && (
-        <Section label="Action items">
-          <div style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
-            {openTasks.map((task) => {
-              const cl = DB.clients.find((c) => c.id === task.client_id);
-              const u = getUrgencyStyle(task);
-              return (
-                <div key={task.id} style={{
-                  padding: '10px 16px', borderBottom: '0.5px solid #f1f3f5', display: 'flex', alignItems: 'center', cursor: 'pointer',
-                  borderLeft: u.borderLeft,
-                }} onClick={() => cl && router.push(`/clients/${cl.id}`)}>
-                  <div onClick={async (e) => { e.stopPropagation(); await updateTaskStatus(task.id, 'complete'); refreshFeed(); }} style={{ cursor: 'pointer', marginRight: 10 }}>
-                    {getActionIcon(task.content, u.iconColor)}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ fontSize: 14, fontWeight: 500, color: u.titleColor }}>{task.content}</span>
-                    {u.badge && <span style={{ fontSize: 9, background: u.badge.bg, color: u.badge.color, padding: '1px 6px', borderRadius: 10, fontWeight: 500, marginLeft: 6 }}>{u.badge.text}</span>}
-                  </div>
-                  <span style={{ fontSize: 13, color: '#9ca3af', flexShrink: 0 }}>{cl?.company || cl?.name || ''}</span>
-                </div>
-              );
-            })}
-            {unpaidInvs.map((inv) => {
-              const cl = DB.clients.find((c) => c.id === inv.clientId);
-              const total = (inv.items || []).reduce((s: number, i: any) => s + (i.qty || 1) * (i.price || 0), 0) + (inv.tax || 0) + (inv.shipping || 0);
-              const u = getUrgencyStyle({ content: `invoice ${inv.id}`, due: inv.due, date: inv.date, created_at: inv.date });
-              return (
-                <div key={inv.id || inv._uuid} style={{
-                  padding: '10px 16px', borderBottom: '0.5px solid #f1f3f5', display: 'flex', alignItems: 'center', cursor: 'pointer',
-                  borderLeft: u.borderLeft,
-                }} onClick={() => router.push(`/clients/${inv.clientId}/invoices`)}>
-                  {getActionIcon('invoice', u.iconColor)}
-                  <div style={{ flex: 1, minWidth: 0, marginLeft: 10 }}>
-                    <span style={{ fontSize: 14, fontWeight: 500, color: u.titleColor }}>Invoice {inv.id} · {currency(total)}</span>
-                    {u.badge && <span style={{ fontSize: 9, background: u.badge.bg, color: u.badge.color, padding: '1px 6px', borderRadius: 10, fontWeight: 500, marginLeft: 6 }}>{u.badge.text}</span>}
-                  </div>
-                  <span style={{ fontSize: 13, color: '#9ca3af', flexShrink: 0 }}>{cl?.company || cl?.name || ''}</span>
-                </div>
-              );
-            })}
-          </div>
-        </Section>
-      )}
-
-      {/* Recent activity */}
-      <Section label="Recent activity">
-        <div style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
-          {recentClients.map((client) => (
-            <div key={client.id} onClick={() => { localStorage.setItem(`client_accessed_${client.id}`, String(Date.now())); router.push(`/clients/${client.id}`); }}
-              style={{ padding: '10px 16px', borderBottom: '0.5px solid #f1f3f5', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-              {client.logo ? (
-                <img src={client.logo} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
-              ) : (
-                <div style={{ width: 28, height: 28, borderRadius: 6, background: '#f1f3f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600, color: '#475569', flexShrink: 0 }}>
-                  {(client.company || client.name).charAt(0)}
-                </div>
-              )}
-              <span style={{ fontSize: 14, fontWeight: 500, color: '#111827', flex: 1 }}>{client.company || client.name}</span>
-              <span style={{ fontSize: 13, color: '#9ca3af' }}>→</span>
-            </div>
+        {/* Metric cards */}
+        <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, marginBottom: 24 }}>
+          {[
+            { label: 'Active Clients', value: String(clients.length), href: '/clients' },
+            { label: 'Open Invoices', value: String(unpaidInvs.length), href: '/invoices', color: t.status.warning },
+            { label: 'Revenue (MTD)', value: currency(paidMTD), href: '/financials', color: t.status.success },
+            { label: 'Pending', value: currency(stats.outstanding), href: '/financials', color: t.status.warning },
+          ].map((m) => (
+            <motion.div key={m.label} whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              onClick={() => router.push(m.href)} style={{
+                background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg,
+                padding: 16, cursor: 'pointer', transition: 'border-color 200ms, background 200ms',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = t.border.hover; e.currentTarget.style.background = t.bg.surfaceHover; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = t.border.default; e.currentTarget.style.background = t.bg.surface; }}
+            >
+              <div style={{ fontSize: 11, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>{m.label}</div>
+              <div style={{ fontSize: 28, fontWeight: 500, color: m.color || t.text.primary }}>{m.value}</div>
+            </motion.div>
           ))}
-          {recentClients.length === 0 && (
-            <div style={{ padding: 20, textAlign: 'center', fontSize: 13, color: '#9ca3af' }}>No clients yet</div>
-          )}
-        </div>
-      </Section>
+        </motion.div>
 
-      {/* Quick actions */}
-      <Section label="Quick actions">
-        <CardGrid columns={3}>
-          <Card onClick={() => router.push('/clients/new')}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.3" style={{ marginBottom: 8 }}><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><line x1="18" y1="5" x2="18" y2="11"/><line x1="15" y1="8" x2="21" y2="8"/></svg>
-            <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>+ New Client</div>
-            <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 2 }}>Add a new client</div>
-          </Card>
-          <Card onClick={() => router.push('/invoices')}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.3" style={{ marginBottom: 8 }}><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7" strokeLinecap="round"/><line x1="8" y1="11" x2="16" y2="11" strokeLinecap="round"/><line x1="8" y1="15" x2="12" y2="15" strokeLinecap="round"/></svg>
-            <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>+ New Invoice</div>
-            <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 2 }}>Create an invoice</div>
-          </Card>
-          <Card onClick={() => router.push('/clients')}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.3" style={{ marginBottom: 8 }}><rect x="1.5" y="1.5" width="21" height="21" rx="2"/><line x1="1.5" y1="8" x2="22.5" y2="8"/><line x1="8" y1="8" x2="8" y2="22.5"/></svg>
-            <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>Design Studio</div>
-            <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 2 }}>Open a client&apos;s studio</div>
-          </Card>
-        </CardGrid>
-      </Section>
-    </PageLayout>
+        {/* Command Bar */}
+        <motion.div variants={fadeUp} style={{ marginBottom: 24 }}>
+          <CommandBar onItemSaved={refreshFeed} />
+        </motion.div>
+
+        {/* Action items */}
+        {(openTasks.length > 0 || unpaidInvs.length > 0) && (
+          <motion.div variants={fadeUp} style={{ marginBottom: 24 }}>
+            <div style={sectionLbl}>Action items</div>
+            <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg, overflow: 'hidden' }}>
+              {openTasks.map((task) => {
+                const cl = DB.clients.find((c) => c.id === task.client_id);
+                const u = getUrgencyStyle(task);
+                const isUrgent = u.badge && (u.badge.bg === '#DC2626' || u.badge.bg === '#F59E0B');
+                return (
+                  <div key={task.id} onClick={() => cl && router.push(`/clients/${cl.id}`)} style={{
+                    padding: '12px 16px', borderBottom: `1px solid ${t.border.default}`, display: 'flex', alignItems: 'center', cursor: 'pointer',
+                    transition: 'background 150ms',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = t.bg.surfaceHover}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <div onClick={async (e) => { e.stopPropagation(); await updateTaskStatus(task.id, 'complete'); refreshFeed(); }} style={{ cursor: 'pointer', marginRight: 10, color: t.text.tertiary }}>
+                      {getActionIcon(task.content, t.text.tertiary)}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: t.text.primary }}>{task.content}</span>
+                      {u.badge && <span style={{ fontSize: 9, background: isUrgent ? t.accent.subtle : t.bg.surfaceHover, color: isUrgent ? t.accent.text : t.text.secondary, padding: '2px 6px', borderRadius: 4, fontWeight: 500, marginLeft: 6 }}>{u.badge.text}</span>}
+                    </div>
+                    <span style={{ fontSize: 13, color: t.text.tertiary, flexShrink: 0 }}>{cl?.company || cl?.name || ''}</span>
+                  </div>
+                );
+              })}
+              {unpaidInvs.map((inv) => {
+                const cl = DB.clients.find((c) => c.id === inv.clientId);
+                const total = (inv.items || []).reduce((s: number, i: any) => s + (i.qty || 1) * (i.price || 0), 0) + (inv.tax || 0) + (inv.shipping || 0);
+                const u = getUrgencyStyle({ content: `invoice ${inv.id}`, due: inv.due, date: inv.date, created_at: inv.date });
+                const isUrgent = u.badge && (u.badge.bg === '#DC2626' || u.badge.bg === '#F59E0B');
+                return (
+                  <div key={inv.id || inv._uuid} onClick={() => router.push(`/clients/${inv.clientId}/invoices`)} style={{
+                    padding: '12px 16px', borderBottom: `1px solid ${t.border.default}`, display: 'flex', alignItems: 'center', cursor: 'pointer',
+                    transition: 'background 150ms',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = t.bg.surfaceHover}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <span style={{ color: t.text.tertiary, marginRight: 10 }}>{getActionIcon('invoice', t.text.tertiary)}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: t.text.primary }}>Invoice {inv.id} · {currency(total)}</span>
+                      {u.badge && <span style={{ fontSize: 9, background: isUrgent ? t.accent.subtle : t.bg.surfaceHover, color: isUrgent ? t.accent.text : t.text.secondary, padding: '2px 6px', borderRadius: 4, fontWeight: 500, marginLeft: 6 }}>{u.badge.text}</span>}
+                    </div>
+                    <span style={{ fontSize: 13, color: t.text.tertiary, flexShrink: 0 }}>{cl?.company || cl?.name || ''}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Recent activity */}
+        <motion.div variants={fadeUp} style={{ marginBottom: 24 }}>
+          <div style={sectionLbl}>Recent activity</div>
+          <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg, overflow: 'hidden' }}>
+            {recentClients.map((client) => (
+              <div key={client.id} onClick={() => { localStorage.setItem(`client_accessed_${client.id}`, String(Date.now())); router.push(`/clients/${client.id}`); }}
+                style={{ padding: '10px 16px', borderBottom: `1px solid ${t.border.default}`, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', transition: 'background 150ms' }}
+                onMouseEnter={(e) => e.currentTarget.style.background = t.bg.surfaceHover}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              >
+                {client.logo ? (
+                  <img src={client.logo} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+                ) : (
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600, color: t.text.secondary, flexShrink: 0 }}>
+                    {(client.company || client.name).charAt(0)}
+                  </div>
+                )}
+                <span style={{ fontSize: 14, fontWeight: 500, color: t.text.primary, flex: 1 }}>{client.company || client.name}</span>
+                <span style={{ fontSize: 13, color: t.text.tertiary, transition: 'transform 200ms' }}>→</span>
+              </div>
+            ))}
+            {recentClients.length === 0 && (
+              <div style={{ padding: 20, textAlign: 'center', fontSize: 13, color: t.text.tertiary }}>No clients yet</div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Quick actions */}
+        <motion.div variants={fadeUp}>
+          <div style={sectionLbl}>Quick actions</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+            {[
+              { label: '+ New Client', sub: 'Add a new client', href: '/clients/new', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><line x1="18" y1="5" x2="18" y2="11"/><line x1="15" y1="8" x2="21" y2="8"/></svg> },
+              { label: '+ New Invoice', sub: 'Create an invoice', href: '/invoices', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7" strokeLinecap="round"/><line x1="8" y1="11" x2="16" y2="11" strokeLinecap="round"/><line x1="8" y1="15" x2="12" y2="15" strokeLinecap="round"/></svg> },
+              { label: 'Design Studio', sub: 'Open a client\u2019s studio', href: '/clients', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="1.5" y="1.5" width="21" height="21" rx="2"/><line x1="1.5" y1="8" x2="22.5" y2="8"/><line x1="8" y1="8" x2="8" y2="22.5"/></svg> },
+            ].map((a) => (
+              <motion.button key={a.label} whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                onClick={() => router.push(a.href)} style={{
+                  background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg,
+                  padding: 24, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', width: '100%',
+                  transition: 'border-color 200ms, box-shadow 200ms',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = t.border.hover; e.currentTarget.style.boxShadow = t.shadow.card; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = t.border.default; e.currentTarget.style.boxShadow = 'none'; }}
+              >
+                <div style={{ color: t.text.tertiary, marginBottom: 8 }}>{a.icon}</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: t.text.primary }}>{a.label.startsWith('+') ? <><span style={{ color: t.accent.text }}>+</span>{a.label.slice(1)}</> : a.label}</div>
+                <div style={{ fontSize: 13, color: t.text.tertiary, marginTop: 2 }}>{a.sub}</div>
+              </motion.button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Footer */}
+        <div style={{ textAlign: 'center', padding: '32px 0 8px', fontSize: 11, color: t.text.tertiary }}>
+          Powered by CALO&CO
+        </div>
+      </motion.div>
+    </div>
   );
 }

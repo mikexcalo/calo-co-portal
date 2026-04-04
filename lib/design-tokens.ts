@@ -179,6 +179,45 @@ export const cardStyles = {
   },
 } as const;
 
+// === NEW DARK THEME TOKENS (Brief 30) ===
+export const tokens = {
+  bg: {
+    primary: '#0a0a0b',
+    surface: '#141416',
+    surfaceHover: '#1c1c1f',
+    elevated: '#1c1c1f',
+    sidebar: '#0f0f11',
+  },
+  border: {
+    default: 'rgba(255, 255, 255, 0.06)',
+    hover: 'rgba(255, 255, 255, 0.12)',
+    active: 'rgba(255, 255, 255, 0.18)',
+  },
+  text: {
+    primary: '#f5f5f5',
+    secondary: '#8a8a8d',
+    tertiary: '#5a5a5d',
+    inverse: '#0a0a0b',
+  },
+  accent: {
+    primary: '#ff4d00',
+    primaryHover: '#ff6a2a',
+    subtle: 'rgba(255, 77, 0, 0.08)',
+    text: '#ff6a2a',
+  },
+  status: {
+    success: '#00c853',
+    warning: '#ffab00',
+    danger: '#ff3d3d',
+    info: '#4da6ff',
+  },
+  radius: { sm: '6px', md: '8px', lg: '12px' },
+  shadow: {
+    card: '0 1px 2px rgba(0, 0, 0, 0.3)',
+    elevated: '0 4px 12px rgba(0, 0, 0, 0.4)',
+  },
+} as const;
+
 // Status pill styles
 export const pillStyles = {
   unpaid: {

@@ -62,27 +62,27 @@ export default function TopBar() {
 
   return (
     <div style={{
-      height: 48, flexShrink: 0, background: '#fff',
-      borderBottom: '0.5px solid rgba(0,0,0,0.08)',
+      height: 48, flexShrink: 0, background: '#0a0a0b',
+      borderBottom: '1px solid rgba(255,255,255,0.06)',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 20px', fontFamily: 'Inter, sans-serif',
+      padding: '0 20px', fontFamily: 'inherit',
     }}>
       {/* Breadcrumb */}
-      <div style={{ fontSize: 13, color: '#9ca3af', display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div style={{ fontSize: 13, color: '#5a5a5d', display: 'flex', alignItems: 'center', gap: 6 }}>
         {segments.map((seg, i) => (
           <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {i > 0 && <span style={{ color: '#d1d5db' }}>/</span>}
+            {i > 0 && <span style={{ color: '#3a3a3d' }}>/</span>}
             {seg.href ? (
               <span
-                style={{ cursor: 'pointer', color: '#9ca3af' }}
+                style={{ cursor: 'pointer', color: '#5a5a5d' }}
                 onClick={() => router.push(seg.href!)}
-                onMouseEnter={(e) => (e.currentTarget.style.color = '#111827')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = '#9ca3af')}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#f5f5f5')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#5a5a5d')}
               >
                 {seg.label}
               </span>
             ) : (
-              <span style={{ color: i === segments.length - 1 && segments.length > 1 ? '#6b7280' : '#9ca3af' }}>{seg.label}</span>
+              <span style={{ color: i === segments.length - 1 && segments.length > 1 ? '#8a8a8d' : '#5a5a5d' }}>{seg.label}</span>
             )}
           </span>
         ))}
@@ -91,16 +91,16 @@ export default function TopBar() {
       {/* Right: toggle + avatar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {isClientRoute && (
-          <div style={{ display: 'inline-flex', background: '#f1f3f5', borderRadius: 6, padding: 2 }}>
+          <div style={{ display: 'inline-flex', background: 'rgba(255,255,255,0.04)', borderRadius: 6, padding: 2 }}>
             {(['agency', 'client'] as const).map((m) => (
               <button key={m} onClick={() => handleToggle(m)} style={{
                 padding: '4px 10px', fontSize: 11, fontWeight: viewMode === m ? 500 : 400,
                 borderRadius: 4,
-                border: viewMode === m ? '0.5px solid rgba(0,0,0,0.08)' : '0.5px solid transparent',
-                background: viewMode === m ? '#fff' : 'transparent',
-                color: viewMode === m ? '#111827' : '#9ca3af',
-                cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-                boxShadow: viewMode === m ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                border: viewMode === m ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent',
+                background: viewMode === m ? 'rgba(255,255,255,0.06)' : 'transparent',
+                color: viewMode === m ? '#f5f5f5' : '#5a5a5d',
+                cursor: 'pointer', fontFamily: 'inherit',
+                boxShadow: 'none',
               }}>
                 {m === 'agency' ? 'Agency' : 'Client'}
               </button>
