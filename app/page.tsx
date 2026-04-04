@@ -14,32 +14,29 @@ import { useTheme } from '@/lib/theme';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } };
-
-function relTime(iso: string): string {
-  const d = Date.now() - new Date(iso).getTime();
-  const m = Math.floor(d / 60000);
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  const dy = Math.floor(h / 24);
-  return dy === 1 ? '1d ago' : `${dy}d ago`;
-}
+const spring = { type: 'spring' as const, stiffness: 400, damping: 25 };
 
 function ageDays(iso: string): number {
   return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
 }
 
-// Small SVG icons
-const icons = {
-  checkbox: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="16" height="16" rx="4" stroke="currentColor" strokeWidth="1.5"/></svg>,
-  dollar: <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="9" cy="9" r="7"/><path d="M9 4v10M7 6.5c0-.8 1-1.5 2-1.5s2 .7 2 1.5-1 1.5-2 1.5-2 .7-2 1.5 1 1.5 2 1.5 2-.7 2-1.5" strokeLinecap="round"/></svg>,
-  pencil: <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M10 3l5 5-9 9H1v-5l9-9z"/><path d="M8.5 4.5l5 5"/></svg>,
-  trash: <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg>,
-  chevron: <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="6 4 10 8 6 12"/></svg>,
+const ic = {
+  checkbox: <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="1" width="16" height="16" rx="4"/></svg>,
+  receipt: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 11h8M8 15h4"/></svg>,
+  pencil: <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M10 3l5 5-9 9H1v-5l9-9z"/></svg>,
+  trashCan: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
+  chevron: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="6 4 10 8 6 12"/></svg>,
   ds: <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2"><rect x="1.5" y="1.5" width="13" height="13" rx="1.5"/><line x1="1.5" y1="6" x2="14.5" y2="6"/><line x1="6" y1="6" x2="6" y2="14.5"/></svg>,
   bk: <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="3"/></svg>,
   inv: <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2"><rect x="2" y="1" width="12" height="14" rx="1.5"/><line x1="5" y1="5" x2="11" y2="5" strokeLinecap="round"/><line x1="5" y1="8" x2="11" y2="8" strokeLinecap="round"/></svg>,
 };
+
+const placeholders = [
+  'What needs to happen today?',
+  'Log a note about a client...',
+  'Search across everything...',
+  'Jot down what\u2019s on your mind...',
+];
 
 export default function Home() {
   const router = useRouter();
@@ -50,6 +47,9 @@ export default function Home() {
   const [stats, setStats] = useState(agencyStats([], []));
   const [allTasks, setAllTasks] = useState<any[]>([]);
   const [toast, setToast] = useState<{ id: string; text: string } | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [phIdx, setPhIdx] = useState(0);
+  const [phVisible, setPhVisible] = useState(true);
 
   useEffect(() => {
     const init = async () => {
@@ -78,10 +78,19 @@ export default function Home() {
       const tod = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
       setGreeting(`Good ${tod}, Mike`);
       setDateline(now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
-        + ' · ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
+        + ' \u00b7 ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
     };
     tick();
     const iv = setInterval(tick, 60000);
+    return () => clearInterval(iv);
+  }, []);
+
+  // Rotating placeholder
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setPhVisible(false);
+      setTimeout(() => { setPhIdx((i) => (i + 1) % placeholders.length); setPhVisible(true); }, 300);
+    }, 4000);
     return () => clearInterval(iv);
   }, []);
 
@@ -110,44 +119,29 @@ export default function Home() {
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 3);
   const unpaidInvs = DB.invoices.filter((i) => i.status === 'unpaid' || i.status === 'overdue')
     .sort((a, b) => { const da = a.due ? new Date(a.due).getTime() : Infinity; const db = b.due ? new Date(b.due).getTime() : Infinity; return da - db; });
-
   const paidMTD = DB.invoices.filter((i) => i.status === 'paid').reduce((s, i) => s + invTotal(i), 0);
-  const collected = paidMTD;
-
   const clients = [...DB.clients].sort((a, b) => {
     const ta = parseInt(localStorage.getItem(`client_accessed_${a.id}`) || '0', 10);
     const tb = parseInt(localStorage.getItem(`client_accessed_${b.id}`) || '0', 10);
     return tb - ta;
   });
 
-  // Build action items
-  type ActionItem = { id: string; type: 'task' | 'invoice' | 'note'; text: string; client: string; clientId?: string; age: number };
+  type ActionItem = { id: string; type: 'task' | 'invoice' | 'note'; text: string; client: string; clientId?: string; age: number; created?: string };
   const actionItems: ActionItem[] = [];
   openTasks.forEach((tk) => {
     const cl = DB.clients.find((c) => c.id === tk.client_id);
-    actionItems.push({ id: tk.id, type: 'task', text: tk.content, client: cl?.company || cl?.name || '', clientId: cl?.id, age: ageDays(tk.created_at) });
+    actionItems.push({ id: tk.id, type: 'task', text: tk.content, client: cl?.company || cl?.name || '', clientId: cl?.id, age: ageDays(tk.created_at), created: tk.created_at });
   });
   unpaidInvs.forEach((inv) => {
     const cl = DB.clients.find((c) => c.id === inv.clientId);
-    actionItems.push({ id: inv.id || inv._uuid || '', type: 'invoice', text: `${currency(invTotal(inv))} ${inv.id}`, client: cl?.company || cl?.name || '', clientId: inv.clientId, age: inv.due ? Math.max(0, ageDays(inv.due)) : 0 });
+    actionItems.push({ id: inv.id || inv._uuid || '', type: 'invoice', text: `${currency(invTotal(inv))} ${inv.id}`, client: cl?.company || cl?.name || '', clientId: inv.clientId, age: inv.due ? Math.max(0, ageDays(inv.due)) : 0, created: inv.date });
   });
   openNotes.forEach((n) => {
     const cl = DB.clients.find((c) => c.id === n.client_id);
-    actionItems.push({ id: n.id, type: 'note', text: n.content, client: cl?.company || cl?.name || '', clientId: cl?.id, age: ageDays(n.created_at) });
+    actionItems.push({ id: n.id, type: 'note', text: n.content, client: cl?.company || cl?.name || '', clientId: cl?.id, age: ageDays(n.created_at), created: n.created_at });
   });
 
   const sectionLbl: React.CSSProperties = { fontSize: 10, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 10px' };
-
-  const iconBtn = (icon: React.ReactNode, onClick: (e: React.MouseEvent) => void, hover?: string) => (
-    <button onClick={onClick} style={{
-      width: 28, height: 28, borderRadius: 6, background: t.bg.surfaceHover, border: 'none',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      cursor: 'pointer', color: t.text.secondary, transition: 'color 150ms',
-    }}
-    onMouseEnter={(e) => { if (hover) e.currentTarget.style.color = hover; }}
-    onMouseLeave={(e) => e.currentTarget.style.color = t.text.secondary}
-    >{icon}</button>
-  );
 
   return (
     <div style={{ padding: '20px 32px', maxWidth: 960, height: 'calc(100vh - 48px)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -156,11 +150,16 @@ export default function Home() {
         {/* Greeting */}
         <motion.div variants={fadeUp} style={{ marginBottom: 14, flexShrink: 0 }}>
           <p style={{ fontSize: 20, fontWeight: 400, color: t.text.primary, margin: '0 0 2px' }}>{greeting}</p>
-          <p style={{ fontSize: 12, color: t.text.tertiary, margin: 0 }}>{dateline}</p>
+          <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>{dateline}</p>
         </motion.div>
 
-        {/* Command bar — hero */}
-        <motion.div variants={fadeUp} style={{ marginBottom: 16, flexShrink: 0 }}>
+        {/* Command bar — Captain's Log with orange border */}
+        <motion.div variants={fadeUp} style={{
+          marginBottom: 16, flexShrink: 0, position: 'relative',
+          border: `1.5px solid ${t.accent.primary}`, borderRadius: 14,
+          boxShadow: '0 0 12px rgba(255, 77, 0, 0.06)',
+          overflow: 'hidden',
+        }}>
           <CommandBar onItemSaved={refreshFeed} />
         </motion.div>
 
@@ -169,21 +168,25 @@ export default function Home() {
           {[
             { label: 'Revenue (MTD)', value: currency(paidMTD), color: t.status.success },
             { label: 'Outstanding', value: currency(stats.outstanding), color: t.status.warning },
-            { label: 'Collected', value: currency(collected), color: t.text.primary },
+            { label: 'Collected', value: currency(paidMTD), color: t.text.primary },
           ].map((m) => (
-            <div key={m.label} style={{ background: t.bg.surface, borderRadius: t.radius.md, padding: '12px 14px' }}>
+            <motion.div key={m.label} whileHover={{ y: -1 }} transition={spring}
+              style={{ background: t.bg.surface, borderRadius: t.radius.md, padding: '12px 14px', border: `1px solid ${t.border.default}`, transition: 'border-color 150ms' }}
+              onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.borderColor = t.border.hover}
+              onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.borderColor = t.border.default}
+            >
               <div style={{ fontSize: 10, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px', marginBottom: 2 }}>{m.label}</div>
               <div style={{ fontSize: 22, fontWeight: 500, color: m.color }}>{m.value}</div>
-            </div>
+            </motion.div>
           ))}
         </motion.div>
 
         {/* Two-column content */}
         <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 20, flex: 1, minHeight: 0 }}>
 
-          {/* Left — Needs attention */}
+          {/* Left — Action items */}
           <div style={{ minHeight: 0, overflow: 'auto' }}>
-            <div style={sectionLbl}>Needs attention</div>
+            <div style={sectionLbl}>Action items</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <AnimatePresence>
                 {actionItems.map((item) => {
@@ -191,56 +194,73 @@ export default function Home() {
                   const isInv = item.type === 'invoice';
                   const isNote = item.type === 'note';
                   const ageColor = item.age >= 3 ? t.status.danger : item.age >= 2 ? t.status.warning : t.text.tertiary;
+                  const isExpanded = expandedId === item.id;
                   return (
                     <motion.div key={item.id}
                       initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0, overflow: 'hidden' }} transition={{ duration: 0.2 }}
                     >
-                      <div style={{
-                        background: t.bg.surface,
-                        border: `0.5px ${isNote ? 'dashed' : 'solid'} ${t.border.default}`,
-                        borderRadius: 8, padding: '10px 12px', display: 'flex', alignItems: 'flex-start', gap: 10,
-                      }}>
-                        {/* Left icon */}
-                        <span style={{ color: t.text.tertiary, flexShrink: 0, marginTop: 1 }}>
-                          {isTask && icons.checkbox}
-                          {isInv && icons.dollar}
-                          {isNote && icons.pencil}
-                        </span>
-                        {/* Content */}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          {isInv ? (
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                              <span style={{ fontSize: 16, fontWeight: 500, color: t.text.primary }}>{item.text.split(' ')[0]}</span>
-                              <span style={{ fontSize: 11, color: t.text.tertiary }}>{item.text.split(' ').slice(1).join(' ')} · {item.client}</span>
-                              {item.age > 0 && <span style={{ fontSize: 11, color: t.status.warning }}>{item.age}d</span>}
-                            </div>
-                          ) : (
-                            <>
-                              <div style={{ fontSize: 12, fontWeight: 500, color: isNote ? t.text.secondary : t.text.primary, fontStyle: isNote ? 'italic' : 'normal', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.text}</div>
-                              <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 2 }}>
-                                {item.client}{item.age > 0 ? ' · ' : ''}{item.age > 0 && <span style={{ color: ageColor }}>{item.age}d</span>}
+                      <div
+                        onClick={() => setExpandedId(isExpanded ? null : item.id)}
+                        style={{
+                          background: t.bg.surface,
+                          border: `0.5px ${isNote ? 'dashed' : 'solid'} ${t.border.default}`,
+                          borderRadius: 8, padding: '10px 12px', cursor: 'pointer',
+                          transition: 'border-color 150ms',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.borderColor = t.border.hover}
+                        onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.borderColor = t.border.default}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                          <span style={{ color: t.text.tertiary, flexShrink: 0, marginTop: 1 }}>
+                            {isTask && ic.checkbox}
+                            {isInv && ic.receipt}
+                            {isNote && ic.pencil}
+                          </span>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            {isInv ? (
+                              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: 16, fontWeight: 500, color: t.text.primary }}>{item.text.split(' ')[0]}</span>
+                                <span style={{ fontSize: 11, color: t.text.tertiary }}>{item.text.split(' ').slice(1).join(' ')} · {item.client}</span>
+                                {item.age > 0 && <span style={{ fontSize: 11, color: t.status.warning }}>{item.age}d</span>}
                               </div>
-                            </>
+                            ) : (
+                              <>
+                                <div style={{ fontSize: 12, fontWeight: 500, color: isNote ? t.text.secondary : t.text.primary, fontStyle: isNote ? 'italic' : 'normal', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: isExpanded ? 'normal' : 'nowrap' }}>{item.text}</div>
+                                <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 2 }}>
+                                  {item.client}{item.age > 0 ? ' · ' : ''}{item.age > 0 && <span style={{ color: ageColor }}>{item.age}d</span>}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                            <button onClick={(e) => { e.stopPropagation(); handleTrash(item.id, item.text); }} style={{
+                              background: 'none', border: 'none', cursor: 'pointer', padding: 2,
+                              color: t.text.tertiary, transition: 'color 150ms',
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.color = t.status.danger}
+                            onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}
+                            >{ic.trashCan}</button>
+                            <button onClick={(e) => { e.stopPropagation(); if (item.clientId) router.push(isInv ? `/clients/${item.clientId}/invoices` : `/clients/${item.clientId}`); }} style={{
+                              background: 'none', border: 'none', cursor: 'pointer', padding: 2,
+                              color: t.text.tertiary, transition: 'color 150ms',
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.color = t.text.primary}
+                            onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}
+                            >{ic.chevron}</button>
+                          </div>
+                        </div>
+                        {/* Expanded details */}
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.15 }}
+                              style={{ overflow: 'hidden', marginTop: 8, paddingTop: 8, borderTop: `0.5px solid ${t.border.default}` }}>
+                              {item.created && <div style={{ fontSize: 11, color: t.text.tertiary, marginBottom: 4 }}>Created: {new Date(item.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>}
+                              {item.clientId && <span onClick={(e) => { e.stopPropagation(); router.push(`/clients/${item.clientId}`); }} style={{ fontSize: 11, color: t.accent.text, cursor: 'pointer' }}>{item.client} →</span>}
+                              {isTask && <button onClick={(e) => { e.stopPropagation(); handleTrash(item.id, item.text); }} style={{ display: 'block', marginTop: 6, fontSize: 11, fontWeight: 500, color: t.status.success, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>Mark complete</button>}
+                            </motion.div>
                           )}
-                        </div>
-                        {/* Actions */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-                          <button onClick={(e) => { e.stopPropagation(); handleTrash(item.id, item.text); }} style={{
-                            background: 'none', border: 'none', cursor: 'pointer', padding: 2,
-                            color: t.text.tertiary, opacity: 0.5, transition: 'opacity 150ms, color 150ms',
-                          }}
-                          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = t.status.danger; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = t.text.tertiary; }}
-                          >{icons.trash}</button>
-                          <button onClick={(e) => { e.stopPropagation(); if (item.clientId) router.push(`/clients/${item.clientId}`); }} style={{
-                            background: 'none', border: 'none', cursor: 'pointer', padding: 2,
-                            color: t.text.tertiary, opacity: 0.5, transition: 'opacity 150ms',
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
-                          >{icons.chevron}</button>
-                        </div>
+                        </AnimatePresence>
                       </div>
                     </motion.div>
                   );
@@ -259,11 +279,10 @@ export default function Home() {
               {clients.map((client) => {
                 const ct = DB.contacts[client.id] || [];
                 const primary = ct.find((c) => c.isPrimary) || ct[0];
-                const clientInvs = DB.invoices.filter((i) => i.clientId === client.id);
                 const brandColor = (typeof client.brandKit?.colors?.[0] === 'string' ? client.brandKit.colors[0] : null) || t.text.tertiary;
 
                 return (
-                  <motion.div key={client.id} whileHover={{ y: -1 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                  <motion.div key={client.id} whileHover={{ y: -1 }} transition={spring}
                     style={{
                       background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10,
                       padding: 12, cursor: 'pointer', transition: 'border-color 150ms',
@@ -272,29 +291,44 @@ export default function Home() {
                     onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.borderColor = t.border.default}
                     onClick={() => { localStorage.setItem(`client_accessed_${client.id}`, String(Date.now())); router.push(`/clients/${client.id}`); }}
                   >
-                    {/* Top row: logo + name + contact */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                       <div style={{
                         width: 32, height: 32, borderRadius: 7, flexShrink: 0, overflow: 'hidden',
-                        background: brandColor, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: client.logo ? 'transparent' : brandColor,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
                         color: '#fff', fontSize: 10, fontWeight: 700,
                       }}>
                         {client.logo ? <img src={client.logo} alt="" style={{ width: 32, height: 32, objectFit: 'cover' }} /> : (client.company || client.name).charAt(0)}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>{client.company || client.name}</div>
-                        <div style={{ fontSize: 11, color: t.text.tertiary }}>{primary ? `${primary.name}${primary.title ? ' · ' + primary.title : ''}` : 'No contact'}</div>
+                        <div style={{ fontSize: 11, color: t.text.tertiary }}>{primary ? `${primary.name}${primary.title ? ' \u00b7 ' + primary.title : ''}` : 'No contact'}</div>
                       </div>
                     </div>
-                    {/* Bottom row: quick actions + chevron */}
                     <div style={{ display: 'flex', alignItems: 'center', paddingLeft: 42 }}>
                       <div style={{ display: 'flex', gap: 4 }} onClick={(e) => e.stopPropagation()}>
-                        {iconBtn(icons.ds, (e) => { e.stopPropagation(); router.push(`/clients/${client.id}/brand-builder`); })}
-                        {iconBtn(icons.bk, (e) => { e.stopPropagation(); router.push(`/clients/${client.id}/brand-kit`); })}
-                        {iconBtn(icons.inv, (e) => { e.stopPropagation(); router.push(`/clients/${client.id}/invoices`); })}
+                        {[
+                          { icon: ic.ds, href: `/clients/${client.id}/brand-builder` },
+                          { icon: ic.bk, href: `/clients/${client.id}/brand-kit` },
+                          { icon: ic.inv, href: `/clients/${client.id}/invoices` },
+                        ].map((btn, i) => (
+                          <button key={i} onClick={(e) => { e.stopPropagation(); router.push(btn.href); }}
+                            style={{
+                              width: 28, height: 28, borderRadius: 6, background: t.bg.surfaceHover, border: 'none',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              cursor: 'pointer', color: t.text.secondary, transition: 'background 150ms, color 150ms',
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = t.accent.primary; e.currentTarget.style.color = '#fff'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = t.bg.surfaceHover; e.currentTarget.style.color = t.text.secondary; }}
+                          >{btn.icon}</button>
+                        ))}
                       </div>
                       <div style={{ flex: 1 }} />
-                      <span style={{ color: t.text.tertiary, opacity: 0.5 }}>{icons.chevron}</span>
+                      <button onClick={(e) => { e.stopPropagation(); localStorage.setItem(`client_accessed_${client.id}`, String(Date.now())); router.push(`/clients/${client.id}`); }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: t.text.tertiary, transition: 'color 150ms' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = t.text.primary}
+                        onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}
+                      >{ic.chevron}</button>
                     </div>
                   </motion.div>
                 );
