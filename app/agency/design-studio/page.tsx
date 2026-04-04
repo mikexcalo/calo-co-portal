@@ -2,22 +2,20 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { PageLayout, Section, CardGrid, InfoBar } from '@/components/shared/PageLayout';
+import { useTheme } from '@/lib/theme';
+import { motion } from 'framer-motion';
 import ConfirmModal from '@/components/shared/ConfirmModal';
 
-const templateDescs: Record<string, string> = {
-  'business-card': '3.5 × 2 in', 'yard-sign': '5 sizes',
-  'vehicle-magnet': '24 × 12 in', 't-shirt': 'Front + Back',
-  'door-hanger': '4.25 × 11 in', 'flyer': '8.5 × 11 in',
-};
+const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
+const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } };
 
 const templates = [
-  { id: 'business-card', label: 'Business Cards' },
-  { id: 'yard-sign', label: 'Yard Signs' },
-  { id: 'vehicle-magnet', label: 'Vehicle Magnets' },
-  { id: 't-shirt', label: 'T-Shirts' },
-  { id: 'door-hanger', label: 'Door Hangers' },
-  { id: 'flyer', label: 'Flyers' },
+  { id: 'business-card', label: 'Business Cards', desc: '3.5 × 2 in' },
+  { id: 'yard-sign', label: 'Yard Signs', desc: '5 sizes' },
+  { id: 'vehicle-magnet', label: 'Vehicle Magnets', desc: '24 × 12 in' },
+  { id: 't-shirt', label: 'T-Shirts', desc: 'Front + Back' },
+  { id: 'door-hanger', label: 'Door Hangers', desc: '4.25 × 11 in' },
+  { id: 'flyer', label: 'Flyers', desc: '8.5 × 11 in' },
 ];
 
 function TemplateIcon({ id, size = 24 }: { id: string; size?: number }) {
@@ -33,87 +31,93 @@ function TemplateIcon({ id, size = 24 }: { id: string; size?: number }) {
   }
 }
 
-function FlatCard({ id, label, desc, onClick, disabled }: {
-  id: string; label: string; desc: string; onClick?: () => void; disabled?: boolean;
+export default function AgencyDesignStudioPage() {
+  const router = useRouter();
+  const { t } = useTheme();
+  const [showAlert, setShowAlert] = useState(false);
+
+  return (
+    <div style={{ padding: 32, maxWidth: 960 }}>
+      <motion.div variants={stagger} initial="hidden" animate="show">
+
+        {/* Header */}
+        <motion.div variants={fadeUp} style={{ marginBottom: 24 }}>
+          <h1 style={{ fontSize: 20, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>Design Studio</h1>
+          <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>Agency-level templates and assets</p>
+        </motion.div>
+
+        {/* Identity bar */}
+        <motion.div variants={fadeUp} style={{
+          background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12,
+          padding: '12px 20px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12,
+        }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: 8, background: '#2563eb', flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontSize: 14, fontWeight: 700,
+          }}>C</div>
+          <span style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>CALO&CO</span>
+          <span style={{ fontSize: 12, color: t.text.tertiary }}>·</span>
+          <span style={{ fontSize: 12, color: t.accent.text, cursor: 'pointer' }} onClick={() => router.push('/agency/brand-kit')}>Brand Kit →</span>
+        </motion.div>
+
+        {/* Print section */}
+        <motion.div variants={fadeUp} style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>Print</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+            {templates.map((tmpl) => (
+              <TemplateCard key={tmpl.id} t={t} icon={<TemplateIcon id={tmpl.id} size={28} />}
+                label={tmpl.label} desc={tmpl.desc} onClick={() => setShowAlert(true)} />
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Digital section */}
+        <motion.div variants={fadeUp}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>Digital</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+            <TemplateCard t={t} icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 6l10 7 10-7"/></svg>}
+              label="Email Signature" desc="Gmail, Outlook, more" onClick={() => setShowAlert(true)} />
+            <TemplateCard t={t} icon={null} label="Social Images" desc="Coming soon" disabled />
+            <TemplateCard t={t} icon={null} label="Web Banners" desc="Coming soon" disabled />
+          </div>
+        </motion.div>
+      </motion.div>
+
+      <ConfirmModal isOpen={showAlert} title="Agency Templates"
+        message="Agency templates use CALO&CO brand data. This feature is coming soon."
+        alertOnly onConfirm={() => setShowAlert(false)} onCancel={() => setShowAlert(false)} />
+    </div>
+  );
+}
+
+function TemplateCard({ t, icon, label, desc, onClick, disabled }: {
+  t: any; icon: React.ReactNode; label: string; desc: string; onClick?: () => void; disabled?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
   return (
-    <button
-      onClick={disabled ? undefined : onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+    <button onClick={disabled ? undefined : onClick}
+      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{
-        background: '#fff', border: `0.5px solid ${hovered && !disabled ? '#2563eb' : '#e5e7eb'}`,
+        background: t.bg.surface,
+        border: `0.5px solid ${hovered && !disabled ? t.border.hover : t.border.default}`,
         borderRadius: 12, padding: 24, minHeight: 140,
         cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1,
         transition: 'border-color 150ms, transform 150ms, box-shadow 150ms',
         transform: hovered && !disabled ? 'translateY(-2px)' : 'none',
-        boxShadow: hovered && !disabled ? '0 4px 12px rgba(0,0,0,0.08)' : 'none',
+        boxShadow: hovered && !disabled ? t.shadow.card : 'none',
         width: '100%', textAlign: 'left' as const, fontFamily: 'inherit',
-        display: 'flex', flexDirection: 'column' as const,
+        display: 'flex', flexDirection: 'column' as const, color: t.text.primary,
       }}
     >
-      <div style={{ color: hovered && !disabled ? '#2563eb' : '#6b7280', transition: 'color 150ms' }}>
-        <TemplateIcon id={id} size={28} />
-      </div>
-      <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginTop: 16 }}>{label}</div>
-      <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 2, flex: 1 }}>{desc}</div>
+      {icon && <div style={{ color: hovered && !disabled ? t.accent.text : t.text.tertiary, transition: 'color 150ms' }}>{icon}</div>}
+      <div style={{ fontSize: 15, fontWeight: 600, marginTop: icon ? 16 : 0 }}>{label}</div>
+      <div style={{ fontSize: 13, color: t.text.tertiary, marginTop: 2, flex: 1 }}>{desc}</div>
       <div style={{ marginTop: 8 }}>
-        <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 4, background: '#f9fafb', color: '#9ca3af' }}>
+        <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: t.bg.surfaceHover, color: t.text.tertiary }}>
           {disabled ? 'Coming soon' : 'Not started'}
         </span>
       </div>
     </button>
-  );
-}
-
-export default function AgencyDesignStudioPage() {
-  const router = useRouter();
-  const [showAlert, setShowAlert] = useState(false);
-
-  const handleTemplateClick = () => {
-    setShowAlert(true);
-  };
-
-  return (
-    <PageLayout title="Agency Design Studio" subtitle="Create print and digital assets for CALO&CO">
-      <InfoBar>
-        <div style={{
-          width: 28, height: 28, borderRadius: 8, background: '#2563eb',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#fff', fontSize: 14, fontWeight: 700, flexShrink: 0,
-        }}>C</div>
-        <span style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>CALO&CO</span>
-        <span style={{ fontSize: 12, color: '#9ca3af' }}>·</span>
-        <span style={{ fontSize: 12, color: '#2563eb', cursor: 'pointer' }} onClick={() => router.push('/agency/brand-kit')}>
-          Brand Kit →
-        </span>
-      </InfoBar>
-
-      <Section label="Print">
-        <CardGrid>
-          {templates.map((t) => (
-            <FlatCard key={t.id} id={t.id} label={t.label} desc={templateDescs[t.id]} onClick={handleTemplateClick} />
-          ))}
-        </CardGrid>
-      </Section>
-
-      <Section label="Digital">
-        <CardGrid>
-          <FlatCard id="email-signature" label="Email Signature" desc="Gmail, Outlook, more" onClick={handleTemplateClick} />
-          <FlatCard id="social-images" label="Social Images" desc="Coming soon" disabled />
-          <FlatCard id="web-banners" label="Web Banners" desc="Coming soon" disabled />
-        </CardGrid>
-      </Section>
-
-      <ConfirmModal
-        isOpen={showAlert}
-        title="Agency Templates"
-        message="Agency templates use CALO&CO brand data. This feature is coming soon."
-        alertOnly
-        onConfirm={() => setShowAlert(false)}
-        onCancel={() => setShowAlert(false)}
-      />
-    </PageLayout>
   );
 }
