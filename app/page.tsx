@@ -8,11 +8,9 @@ import {
   loadTasksNotes, DB, updateTaskStatus, deleteTaskNote,
 } from '@/lib/database';
 import { agencyStats, currency } from '@/lib/utils';
-import { tokens } from '@/lib/design-tokens';
 import CommandBar from '@/components/dashboard/CommandBar';
 import { motion } from 'framer-motion';
-
-const t = tokens;
+import { useTheme } from '@/lib/theme';
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } };
 
@@ -28,6 +26,7 @@ function relTime(iso: string): string {
 
 export default function Home() {
   const router = useRouter();
+  const { t } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [greeting, setGreeting] = useState('Good morning');
   const [dateline, setDateline] = useState('');

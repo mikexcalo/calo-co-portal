@@ -3,9 +3,11 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { DB } from '@/lib/database';
+import { useTheme } from '@/lib/theme';
 
 export default function TopBar() {
   const pathname = usePathname();
+  const { t } = useTheme();
   const router = useRouter();
   const [viewMode, setViewMode] = useState<'agency' | 'client'>('agency');
 
@@ -62,27 +64,27 @@ export default function TopBar() {
 
   return (
     <div style={{
-      height: 48, flexShrink: 0, background: '#0a0a0b',
-      borderBottom: '1px solid rgba(255,255,255,0.06)',
+      height: 48, flexShrink: 0, background: t.bg.primary,
+      borderBottom: `1px solid ${t.border.default}`,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '0 20px', fontFamily: 'inherit',
     }}>
       {/* Breadcrumb */}
-      <div style={{ fontSize: 13, color: '#5a5a5d', display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div style={{ fontSize: 13, color: t.text.tertiary, display: 'flex', alignItems: 'center', gap: 6 }}>
         {segments.map((seg, i) => (
           <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {i > 0 && <span style={{ color: '#3a3a3d' }}>/</span>}
+            {i > 0 && <span style={{ color: t.text.tertiary, opacity: 0.5 }}>/</span>}
             {seg.href ? (
               <span
-                style={{ cursor: 'pointer', color: '#5a5a5d' }}
+                style={{ cursor: 'pointer', color: t.text.tertiary }}
                 onClick={() => router.push(seg.href!)}
-                onMouseEnter={(e) => (e.currentTarget.style.color = '#f5f5f5')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = '#5a5a5d')}
+                onMouseEnter={(e) => (e.currentTarget.style.color = t.text.primary)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = t.text.tertiary)}
               >
                 {seg.label}
               </span>
             ) : (
-              <span style={{ color: i === segments.length - 1 && segments.length > 1 ? '#8a8a8d' : '#5a5a5d' }}>{seg.label}</span>
+              <span style={{ color: i === segments.length - 1 && segments.length > 1 ? t.text.secondary : t.text.tertiary }}>{seg.label}</span>
             )}
           </span>
         ))}

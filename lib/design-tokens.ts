@@ -179,25 +179,25 @@ export const cardStyles = {
   },
 } as const;
 
-// === NEW DARK THEME TOKENS (Brief 30) ===
+// === DARK THEME TOKENS (Brief 30+31) — use `useTheme().t` for dynamic tokens ===
 export const tokens = {
   bg: {
-    primary: '#0a0a0b',
-    surface: '#141416',
-    surfaceHover: '#1c1c1f',
-    elevated: '#1c1c1f',
-    sidebar: '#0f0f11',
+    primary: '#111113',
+    surface: '#1a1a1d',
+    surfaceHover: '#222225',
+    elevated: '#222225',
+    sidebar: '#111113',
   },
   border: {
-    default: 'rgba(255, 255, 255, 0.06)',
-    hover: 'rgba(255, 255, 255, 0.12)',
-    active: 'rgba(255, 255, 255, 0.18)',
+    default: 'rgba(255, 255, 255, 0.08)',
+    hover: 'rgba(255, 255, 255, 0.15)',
+    active: 'rgba(255, 255, 255, 0.2)',
   },
   text: {
     primary: '#f5f5f5',
     secondary: '#8a8a8d',
     tertiary: '#5a5a5d',
-    inverse: '#0a0a0b',
+    inverse: '#111113',
   },
   accent: {
     primary: '#ff4d00',

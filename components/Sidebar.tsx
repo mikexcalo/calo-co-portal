@@ -2,9 +2,7 @@
 
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { tokens } from '@/lib/design-tokens';
-
-const t = tokens;
+import { useTheme } from '@/lib/theme';
 
 const icons: Record<string, React.ReactNode> = {
   dashboard: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="1.5" y="1.5" width="5" height="5" rx="1"/><rect x="9.5" y="1.5" width="5" height="5" rx="1"/><rect x="1.5" y="9.5" width="5" height="5" rx="1"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/></svg>,
@@ -15,11 +13,14 @@ const icons: Record<string, React.ReactNode> = {
   settings: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.1 3.1l1.1 1.1M11.8 11.8l1.1 1.1M3.1 12.9l1.1-1.1M11.8 4.2l1.1-1.1"/></svg>,
   yardSign: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="3" y="1.5" width="10" height="8" rx="1"/><line x1="6" y1="9.5" x2="6" y2="14.5" strokeLinecap="round"/><line x1="10" y1="9.5" x2="10" y2="14.5" strokeLinecap="round"/></svg>,
   clients: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="6" cy="5" r="2.5"/><path d="M1.5 14c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5"/><circle cx="11" cy="4.5" r="2"/><path d="M14.5 13c0-2 1.5-3.5-1.5-3.5"/></svg>,
+  sun: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="8" cy="8" r="3"/><line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/><line x1="3" y1="3" x2="4.4" y2="4.4"/><line x1="11.6" y1="11.6" x2="13" y2="13"/><line x1="3" y1="13" x2="4.4" y2="11.6"/><line x1="11.6" y1="4.4" x2="13" y2="3"/></svg>,
+  moon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M13.5 8.5a5.5 5.5 0 1 1-6-6 4.5 4.5 0 0 0 6 6z"/></svg>,
 };
 
 export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
+  const { theme, setTheme, t } = useTheme();
   const [activeAsset, setActiveAsset] = useState<string | null>(null);
 
   const isBrandBuilder = pathname.includes('/brand-builder') || pathname.includes('/design-studio');
@@ -48,14 +49,13 @@ export default function Sidebar() {
       <button key={label} onClick={() => router.push(href)} style={{
         display: 'flex', alignItems: 'center', gap: 10, width: '100%',
         padding: '8px 12px', margin: '1px 0', borderRadius: 6, border: 'none',
-        borderLeft: active ? `2px solid ${t.accent.primary}` : '2px solid transparent',
         fontSize: 13, color: active ? t.text.primary : t.text.secondary,
         fontWeight: active ? 500 : 400,
-        background: 'transparent', cursor: 'pointer',
-        fontFamily: 'inherit', textAlign: 'left',
+        background: active ? (theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)') : 'transparent',
+        cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
         transition: 'all 150ms',
       }}
-      onMouseEnter={(e) => { if (!active) { e.currentTarget.style.background = t.bg.surfaceHover; e.currentTarget.style.color = t.text.primary; }}}
+      onMouseEnter={(e) => { if (!active) { e.currentTarget.style.background = theme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'; e.currentTarget.style.color = t.text.primary; }}}
       onMouseLeave={(e) => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = t.text.secondary; }}}
       >
         <span style={{ width: 16, height: 16, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</span>
@@ -86,17 +86,29 @@ export default function Sidebar() {
       display: 'flex', flexDirection: 'column', height: '100vh',
       fontFamily: 'inherit',
     }}>
-      {/* Logo */}
-      <div onClick={() => router.push('/')} style={{
-        height: 52, display: 'flex', alignItems: 'center', gap: 8,
-        padding: '0 16px', cursor: 'pointer', flexShrink: 0,
+      {/* Logo + Theme Toggle */}
+      <div style={{
+        height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 16px', flexShrink: 0,
       }}>
-        <div style={{
-          width: 28, height: 28, borderRadius: 8, background: '#2563eb',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#fff', fontSize: 14, fontWeight: 700,
-        }}>C</div>
-        <span style={{ fontSize: 14, fontWeight: 500, color: t.text.primary }}>CALO&CO</span>
+        <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: 8, background: '#2563eb',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontSize: 14, fontWeight: 700,
+          }}>C</div>
+          <span style={{ fontSize: 14, fontWeight: 500, color: t.text.primary }}>CALO&CO</span>
+        </div>
+        <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
+          width: 28, height: 28, border: 'none', borderRadius: 6, background: 'transparent',
+          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: t.text.tertiary, transition: 'color 150ms',
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.color = t.text.secondary}
+        onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}
+        >
+          {theme === 'dark' ? icons.sun : icons.moon}
+        </button>
       </div>
 
       {/* Nav */}
@@ -120,11 +132,10 @@ export default function Sidebar() {
             }} style={{
               display: 'flex', alignItems: 'center', gap: 10, width: '100%',
               padding: '8px 12px', margin: '1px 0', borderRadius: 6, border: 'none',
-              borderLeft: isBrandBuilder ? `2px solid ${t.accent.primary}` : '2px solid transparent',
               fontSize: 13, fontWeight: isBrandBuilder ? 500 : 400,
               color: isBrandBuilder ? t.text.primary : t.text.secondary,
-              background: 'transparent', cursor: 'pointer',
-              fontFamily: 'inherit', textAlign: 'left' as const,
+              background: isBrandBuilder && !activeAsset ? (theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)') : 'transparent',
+              cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' as const,
             }}>
               <span style={{ width: 16, height: 16, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icons.designStudio}</span>
               Design Studio
