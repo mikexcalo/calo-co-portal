@@ -76,7 +76,7 @@ export default function CommandBar({ onItemSaved }: CommandBarProps) {
         {loading && (
           <div style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
             width: 16, height: 16, border: '2px solid #e5e7eb', borderTopColor: '#2563eb',
-            borderRadius: '50%', animation: 'cmd-spin 0.6s linear infinite' }} />
+            borderRadius: '50%' }} className="animate-spin" />
         )}
       </div>
       {response && (
@@ -90,7 +90,6 @@ export default function CommandBar({ onItemSaved }: CommandBarProps) {
           <button onClick={() => router.push(`/clients/${toast.clientId}`)} style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>Open →</button>
         </div>
       )}
-      <style dangerouslySetInnerHTML={{ __html: '@keyframes cmd-spin { to { transform: translateY(-50%) rotate(360deg); } }' }} />
     </div>
   );
 }
