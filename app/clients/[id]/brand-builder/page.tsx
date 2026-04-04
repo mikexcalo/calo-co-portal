@@ -250,8 +250,21 @@ export default function BrandBuilderPage() {
 
   return (
     <div style={{ padding: '0 0 0 0' }}>
-      {/* No brand kit notice — keep some padding for this */}
-      <div style={{ maxWidth: 980, margin: '0 auto', padding: '12px 24px 0' }}>
+      {/* Brand Kit shortcut + notice */}
+      <div style={{ maxWidth: 980, margin: '0 auto', padding: '12px 24px 0', display: 'flex', justifyContent: 'flex-end' }}>
+        <button title="Brand Kit" onClick={() => router.push(`/clients/${clientId}/brand-kit`)} style={{
+          background: 'transparent', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 6,
+          color: '#8a8a8d', transition: 'color 150ms, background 150ms', marginBottom: 8,
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.color = '#f5f5f5'; e.currentTarget.style.background = '#1a1a1d'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.color = '#8a8a8d'; e.currentTarget.style.background = 'transparent'; }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="8" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/>
+          </svg>
+        </button>
+      </div>
+      <div style={{ maxWidth: 980, margin: '0 auto', padding: '0 24px' }}>
       {!hasBrandKit && (
         <div style={{
           background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8,

@@ -69,9 +69,22 @@ function DesignStudioContent() {
       <motion.div variants={stagger} initial="hidden" animate="show">
 
         {/* Header */}
-        <motion.div variants={fadeUp} style={{ marginBottom: 20 }}>
-          <h1 style={{ fontSize: 20, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>Design Studio</h1>
-          <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>Agency brand assets and templates</p>
+        <motion.div variants={fadeUp} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div>
+            <h1 style={{ fontSize: 20, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>Design Studio</h1>
+            <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>Agency brand assets and templates</p>
+          </div>
+          <button title="Brand Kit" onClick={() => setTab('brand-kit')} style={{
+            background: 'transparent', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 6,
+            color: t.text.secondary, transition: 'color 150ms, background 150ms',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = t.text.primary; e.currentTarget.style.background = t.bg.surface; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = t.text.secondary; e.currentTarget.style.background = 'transparent'; }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="8" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/>
+            </svg>
+          </button>
         </motion.div>
 
         {/* Segmented control */}
