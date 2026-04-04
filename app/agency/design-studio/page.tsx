@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useTheme } from '@/lib/theme';
 import { motion, AnimatePresence } from 'framer-motion';
 import ConfirmModal from '@/components/shared/ConfirmModal';
@@ -41,6 +41,10 @@ function TemplateIcon({ id, size = 24 }: { id: string; size?: number }) {
 }
 
 export default function AgencyDesignStudioPage() {
+  return <Suspense fallback={<div style={{ padding: 32, opacity: 0.5, fontSize: 13 }}>Loading...</div>}><DesignStudioContent /></Suspense>;
+}
+
+function DesignStudioContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useTheme();

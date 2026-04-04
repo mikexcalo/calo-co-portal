@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DB, saveAgencySettings } from '@/lib/database';
 import { PaymentMethod } from '@/lib/types';
@@ -13,6 +13,10 @@ const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transit
 type Tab = 'agency' | 'financial' | 'communication';
 
 export default function SettingsPage() {
+  return <Suspense fallback={<div style={{ padding: 32, opacity: 0.5, fontSize: 13 }}>Loading...</div>}><SettingsContent /></Suspense>;
+}
+
+function SettingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useTheme();
