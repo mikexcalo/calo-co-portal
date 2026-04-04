@@ -76,7 +76,7 @@ export const borders = {
 } as const;
 
 export const typography = {
-  fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+  fontFamily: 'inherit',
 
   // Page titles
   h1: { fontSize: '20px', fontWeight: 500 },
@@ -200,10 +200,10 @@ export const tokens = {
     inverse: '#111113',
   },
   accent: {
-    primary: '#ff4d00',
-    primaryHover: '#ff6a2a',
-    subtle: 'rgba(255, 77, 0, 0.08)',
-    text: '#ff6a2a',
+    primary: '#0ea5e9',
+    primaryHover: '#38bdf8',
+    subtle: 'rgba(14, 165, 233, 0.08)',
+    text: '#38bdf8',
   },
   status: {
     success: '#00c853',

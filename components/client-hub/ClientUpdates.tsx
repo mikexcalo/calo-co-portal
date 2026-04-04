@@ -66,9 +66,9 @@ export default function ClientUpdates({ clientId, isClient }: ClientUpdatesProps
             placeholder="Add a note..."
             style={{
               flex: 1, padding: '8px 10px', fontSize: 13, border: '1px solid #e2e8f0',
-              borderRadius: 8, fontFamily: 'Inter, sans-serif', color: '#1a1f2e',
+              borderRadius: 8, fontFamily: 'inherit', color: '#1a1f2e',
             }} />
-          <button onClick={handleSend} style={{ height: 36, fontSize: 12, padding: '0 14px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 500, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>Add</button>
+          <button onClick={handleSend} style={{ height: 36, fontSize: 12, padding: '0 14px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>Add</button>
         </div>
       )}
 

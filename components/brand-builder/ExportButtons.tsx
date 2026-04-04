@@ -103,7 +103,7 @@ export default function ExportButtons({ assetType, previewRef, side, frontRef, b
       <button onClick={handleExportPdf} disabled={!!exporting} style={{
         background: '#2563eb', border: 'none', color: '#fff',
         borderRadius: 8, padding: '10px 20px', fontSize: 13, fontWeight: 500,
-        cursor: exporting ? 'wait' : 'pointer', fontFamily: 'Inter, sans-serif',
+        cursor: exporting ? 'wait' : 'pointer', fontFamily: 'inherit',
         opacity: exporting && exporting !== 'pdf' ? 0.5 : 1,
       }}>
         {exporting === 'pdf' ? 'Generating...' : 'Download PDF'}
@@ -111,7 +111,7 @@ export default function ExportButtons({ assetType, previewRef, side, frontRef, b
       <button onClick={handleExportPng} disabled={!!exporting} style={{
         background: 'transparent', border: '1px solid #2563eb', color: '#2563eb',
         borderRadius: 8, padding: '10px 20px', fontSize: 13, fontWeight: 500,
-        cursor: exporting ? 'wait' : 'pointer', fontFamily: 'Inter, sans-serif',
+        cursor: exporting ? 'wait' : 'pointer', fontFamily: 'inherit',
         opacity: exporting && exporting !== 'png' ? 0.5 : 1,
       }}>
         {exporting === 'png' ? 'Generating...' : 'Download PNG'}

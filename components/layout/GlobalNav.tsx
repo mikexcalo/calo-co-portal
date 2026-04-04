@@ -64,7 +64,7 @@ export default function GlobalNav() {
   return (
     <nav style={{
       position: 'sticky', top: 0, zIndex: 100, height: '56px', background: '#1a1f2e',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit',
     }}>
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -92,7 +92,7 @@ export default function GlobalNav() {
                       background: 'none', border: 'none', padding: '2px 0',
                       color: isLast ? '#f1f5f9' : '#94a3b8', fontSize: 13,
                       fontWeight: isLast ? 600 : 500, cursor: 'pointer',
-                      fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', gap: 4,
+                      fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4,
                     }}
                     onMouseEnter={(e) => { if (!isLast) e.currentTarget.style.color = '#e2e8f0'; }}
                     onMouseLeave={(e) => { if (!isLast) e.currentTarget.style.color = '#94a3b8'; }}
@@ -120,7 +120,7 @@ export default function GlobalNav() {
                             display: 'flex', alignItems: 'center', gap: 8, width: '100%',
                             padding: '8px 14px', border: 'none', cursor: 'pointer', textAlign: 'left',
                             background: isCurrent ? '#334155' : 'transparent',
-                            fontFamily: 'Inter, sans-serif',
+                            fontFamily: 'inherit',
                           }}
                           onMouseEnter={(e) => { if (!isCurrent) e.currentTarget.style.background = '#293548'; }}
                           onMouseLeave={(e) => { if (!isCurrent) e.currentTarget.style.background = 'transparent'; }}
@@ -151,7 +151,7 @@ export default function GlobalNav() {
               ) : (
                 <button onClick={() => router.push(crumb.href!)} style={{
                   background: 'none', border: 'none', color: '#94a3b8', fontSize: 13,
-                  fontWeight: 500, cursor: 'pointer', padding: 0, fontFamily: 'Inter, sans-serif',
+                  fontWeight: 500, cursor: 'pointer', padding: 0, fontFamily: 'inherit',
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = '#e2e8f0')}
                 onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
@@ -173,7 +173,7 @@ export default function GlobalNav() {
                 background: viewMode === mode ? '#2563eb' : 'transparent',
                 color: viewMode === mode ? '#ffffff' : '#94a3b8',
                 border: 'none', padding: '5px 12px', fontSize: 11, fontWeight: 600,
-                cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                cursor: 'pointer', fontFamily: 'inherit',
               }}>
                 {mode === 'agency' ? 'Agency' : 'Client'} View
               </button>
@@ -184,7 +184,7 @@ export default function GlobalNav() {
           background: 'none', border: 'none',
           color: pathname === '/settings' ? '#ffffff' : 'rgba(255,255,255,0.6)',
           cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
-          fontSize: 12, fontWeight: 600, fontFamily: 'Inter, sans-serif',
+          fontSize: 12, fontWeight: 600, fontFamily: 'inherit',
         }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />

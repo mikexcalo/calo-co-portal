@@ -20,23 +20,17 @@ function ageDays(iso: string): number {
   return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
 }
 
+// Icons — 14-16px stroke-only
 const ic = {
   checkbox: <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="1" width="16" height="16" rx="4"/></svg>,
   receipt: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 11h8M8 15h4"/></svg>,
   pencil: <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M10 3l5 5-9 9H1v-5l9-9z"/></svg>,
-  trashCan: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
+  trash: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
   chevron: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="6 4 10 8 6 12"/></svg>,
   ds: <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2"><rect x="1.5" y="1.5" width="13" height="13" rx="1.5"/><line x1="1.5" y1="6" x2="14.5" y2="6"/><line x1="6" y1="6" x2="6" y2="14.5"/></svg>,
   bk: <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="3"/></svg>,
   inv: <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2"><rect x="2" y="1" width="12" height="14" rx="1.5"/><line x1="5" y1="5" x2="11" y2="5" strokeLinecap="round"/><line x1="5" y1="8" x2="11" y2="8" strokeLinecap="round"/></svg>,
 };
-
-const placeholders = [
-  'What needs to happen today?',
-  'Log a note about a client...',
-  'Search across everything...',
-  'Jot down what\u2019s on your mind...',
-];
 
 export default function Home() {
   const router = useRouter();
@@ -48,8 +42,6 @@ export default function Home() {
   const [allTasks, setAllTasks] = useState<any[]>([]);
   const [toast, setToast] = useState<{ id: string; text: string } | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [phIdx, setPhIdx] = useState(0);
-  const [phVisible, setPhVisible] = useState(true);
 
   useEffect(() => {
     const init = async () => {
@@ -85,15 +77,6 @@ export default function Home() {
     return () => clearInterval(iv);
   }, []);
 
-  // Rotating placeholder
-  useEffect(() => {
-    const iv = setInterval(() => {
-      setPhVisible(false);
-      setTimeout(() => { setPhIdx((i) => (i + 1) % placeholders.length); setPhVisible(true); }, 300);
-    }, 4000);
-    return () => clearInterval(iv);
-  }, []);
-
   const refreshFeed = useCallback(() => { loadTasksNotes().then(setAllTasks); }, []);
 
   const handleTrash = async (id: string, text: string) => {
@@ -126,6 +109,7 @@ export default function Home() {
     return tb - ta;
   });
 
+  // Build action items
   type ActionItem = { id: string; type: 'task' | 'invoice' | 'note'; text: string; client: string; clientId?: string; age: number; created?: string };
   const actionItems: ActionItem[] = [];
   openTasks.forEach((tk) => {
@@ -141,53 +125,62 @@ export default function Home() {
     actionItems.push({ id: n.id, type: 'note', text: n.content, client: cl?.company || cl?.name || '', clientId: cl?.id, age: ageDays(n.created_at), created: n.created_at });
   });
 
-  const sectionLbl: React.CSSProperties = { fontSize: 10, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 10px' };
+  const sectionLbl: React.CSSProperties = { fontSize: 10, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' };
 
   return (
-    <div style={{ padding: '20px 32px', maxWidth: 960, height: 'calc(100vh - 48px)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <motion.div variants={stagger} initial="hidden" animate="show" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+    <div style={{ padding: 32, maxWidth: 960, minHeight: 'calc(100vh - 48px)' }}>
+      <motion.div variants={stagger} initial="hidden" animate="show">
 
-        {/* Greeting */}
-        <motion.div variants={fadeUp} style={{ marginBottom: 14, flexShrink: 0 }}>
-          <p style={{ fontSize: 20, fontWeight: 400, color: t.text.primary, margin: '0 0 2px' }}>{greeting}</p>
+        {/* Greeting — BIG, editorial */}
+        <motion.div variants={fadeUp} style={{ marginBottom: 20 }}>
+          <h1 style={{ fontSize: 28, fontWeight: 400, color: t.text.primary, margin: '0 0 4px', letterSpacing: '-0.01em' }}>{greeting}</h1>
           <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>{dateline}</p>
         </motion.div>
 
-        {/* Command bar — Captain's Log with orange border */}
+        {/* Captain's Log — accent border, glow */}
         <motion.div variants={fadeUp} style={{
-          marginBottom: 16, flexShrink: 0, position: 'relative',
-          border: `1.5px solid ${t.accent.primary}`, borderRadius: 14,
-          boxShadow: '0 0 12px rgba(255, 77, 0, 0.06)',
+          marginBottom: 20,
+          border: `1.5px solid ${t.accent.primary}`,
+          borderRadius: 14,
+          boxShadow: `0 0 12px ${t.accent.subtle}`,
           overflow: 'hidden',
         }}>
           <CommandBar onItemSaved={refreshFeed} />
         </motion.div>
 
-        {/* Financial tiles */}
-        <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16, flexShrink: 0 }}>
+        {/* Financial tiles — 4 columns */}
+        <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
           {[
-            { label: 'Revenue (MTD)', value: currency(paidMTD), color: t.status.success },
-            { label: 'Outstanding', value: currency(stats.outstanding), color: t.status.warning },
-            { label: 'Collected', value: currency(paidMTD), color: t.text.primary },
+            { label: 'Revenue (MTD)', value: currency(paidMTD), color: t.status.success, href: '/financials' },
+            { label: 'Outstanding', value: currency(stats.outstanding), color: t.status.warning, href: '/financials' },
+            { label: 'Collected', value: currency(paidMTD), color: t.text.primary, href: '/financials' },
+            { label: 'Active Clients', value: String(DB.clients.length), color: t.text.primary, href: '/clients' },
           ].map((m) => (
-            <motion.div key={m.label} whileHover={{ y: -1 }} transition={spring}
-              style={{ background: t.bg.surface, borderRadius: t.radius.md, padding: '12px 14px', border: `1px solid ${t.border.default}`, transition: 'border-color 150ms' }}
-              onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.borderColor = t.border.hover}
-              onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.borderColor = t.border.default}
+            <motion.div key={m.label} whileHover={{ y: -2 }} transition={spring}
+              onClick={() => router.push(m.href)}
+              style={{
+                background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg,
+                padding: 16, cursor: 'pointer', transition: 'border-color 200ms, background 200ms',
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = t.border.hover; (e.currentTarget as HTMLElement).style.background = t.bg.surfaceHover; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = t.border.default; (e.currentTarget as HTMLElement).style.background = t.bg.surface; }}
             >
-              <div style={{ fontSize: 10, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px', marginBottom: 2 }}>{m.label}</div>
-              <div style={{ fontSize: 22, fontWeight: 500, color: m.color }}>{m.value}</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>{m.label}</div>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 28, fontWeight: 500, color: m.color }}>{m.value}</span>
+                <span style={{ fontSize: 12, color: t.text.tertiary }}>→</span>
+              </div>
             </motion.div>
           ))}
         </motion.div>
 
-        {/* Two-column content */}
-        <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 20, flex: 1, minHeight: 0 }}>
+        {/* Two-column content — 1fr 1fr, aligned to tile widths */}
+        <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
-          {/* Left — Action items */}
-          <div style={{ minHeight: 0, overflow: 'auto' }}>
-            <div style={sectionLbl}>Action items</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {/* Left — On deck */}
+          <div>
+            <div style={sectionLbl}>On deck</div>
+            <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg, overflow: 'hidden' }}>
               <AnimatePresence>
                 {actionItems.map((item) => {
                   const isTask = item.type === 'task';
@@ -197,36 +190,33 @@ export default function Home() {
                   const isExpanded = expandedId === item.id;
                   return (
                     <motion.div key={item.id}
-                      initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
+                      initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                       exit={{ opacity: 0, height: 0, overflow: 'hidden' }} transition={{ duration: 0.2 }}
                     >
                       <div
                         onClick={() => setExpandedId(isExpanded ? null : item.id)}
                         style={{
-                          background: t.bg.surface,
-                          border: `0.5px ${isNote ? 'dashed' : 'solid'} ${t.border.default}`,
-                          borderRadius: 8, padding: '10px 12px', cursor: 'pointer',
-                          transition: 'border-color 150ms',
+                          padding: '12px 16px', borderBottom: `1px solid ${t.border.default}`,
+                          cursor: 'pointer', transition: 'background 150ms',
+                          borderLeft: isNote ? `2px dashed ${t.border.active}` : 'none',
                         }}
-                        onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.borderColor = t.border.hover}
-                        onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.borderColor = t.border.default}
+                        onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.background = t.bg.surfaceHover}
+                        onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.background = 'transparent'}
                       >
                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                           <span style={{ color: t.text.tertiary, flexShrink: 0, marginTop: 1 }}>
-                            {isTask && ic.checkbox}
-                            {isInv && ic.receipt}
-                            {isNote && ic.pencil}
+                            {isTask && ic.checkbox}{isInv && ic.receipt}{isNote && ic.pencil}
                           </span>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             {isInv ? (
                               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
                                 <span style={{ fontSize: 16, fontWeight: 500, color: t.text.primary }}>{item.text.split(' ')[0]}</span>
                                 <span style={{ fontSize: 11, color: t.text.tertiary }}>{item.text.split(' ').slice(1).join(' ')} · {item.client}</span>
-                                {item.age > 0 && <span style={{ fontSize: 11, color: t.status.warning }}>{item.age}d</span>}
+                                {item.age > 0 && <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 4, background: t.accent.subtle, color: t.accent.text, fontWeight: 500 }}>{item.age}d</span>}
                               </div>
                             ) : (
                               <>
-                                <div style={{ fontSize: 12, fontWeight: 500, color: isNote ? t.text.secondary : t.text.primary, fontStyle: isNote ? 'italic' : 'normal', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: isExpanded ? 'normal' : 'nowrap' }}>{item.text}</div>
+                                <div style={{ fontSize: 13, fontWeight: 500, color: isNote ? t.text.secondary : t.text.primary, fontStyle: isNote ? 'italic' : 'normal', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: isExpanded ? 'normal' : 'nowrap' }}>{item.text}</div>
                                 <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 2 }}>
                                   {item.client}{item.age > 0 ? ' · ' : ''}{item.age > 0 && <span style={{ color: ageColor }}>{item.age}d</span>}
                                 </div>
@@ -240,7 +230,7 @@ export default function Home() {
                             }}
                             onMouseEnter={(e) => e.currentTarget.style.color = t.status.danger}
                             onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}
-                            >{ic.trashCan}</button>
+                            >{ic.trash}</button>
                             <button onClick={(e) => { e.stopPropagation(); if (item.clientId) router.push(isInv ? `/clients/${item.clientId}/invoices` : `/clients/${item.clientId}`); }} style={{
                               background: 'none', border: 'none', cursor: 'pointer', padding: 2,
                               color: t.text.tertiary, transition: 'color 150ms',
@@ -250,7 +240,6 @@ export default function Home() {
                             >{ic.chevron}</button>
                           </div>
                         </div>
-                        {/* Expanded details */}
                         <AnimatePresence>
                           {isExpanded && (
                             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.15 }}
@@ -267,31 +256,31 @@ export default function Home() {
                 })}
               </AnimatePresence>
               {actionItems.length === 0 && (
-                <div style={{ textAlign: 'center', padding: 24, fontSize: 13, color: t.text.tertiary }}>All clear</div>
+                <div style={{ padding: 32, textAlign: 'center', fontSize: 13, color: t.text.tertiary }}>All clear</div>
               )}
             </div>
           </div>
 
           {/* Right — Clients */}
-          <div style={{ minHeight: 0, overflow: 'auto' }}>
+          <div>
             <div style={sectionLbl}>Clients</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {clients.map((client) => {
                 const ct = DB.contacts[client.id] || [];
                 const primary = ct.find((c) => c.isPrimary) || ct[0];
                 const brandColor = (typeof client.brandKit?.colors?.[0] === 'string' ? client.brandKit.colors[0] : null) || t.text.tertiary;
 
                 return (
-                  <motion.div key={client.id} whileHover={{ y: -1 }} transition={spring}
+                  <motion.div key={client.id} whileHover={{ y: -2 }} transition={spring}
                     style={{
                       background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10,
-                      padding: 12, cursor: 'pointer', transition: 'border-color 150ms',
+                      padding: 14, cursor: 'pointer', transition: 'border-color 150ms',
                     }}
                     onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.borderColor = t.border.hover}
                     onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.borderColor = t.border.default}
                     onClick={() => { localStorage.setItem(`client_accessed_${client.id}`, String(Date.now())); router.push(`/clients/${client.id}`); }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                       <div style={{
                         width: 32, height: 32, borderRadius: 7, flexShrink: 0, overflow: 'hidden',
                         background: client.logo ? 'transparent' : brandColor,
@@ -305,6 +294,7 @@ export default function Home() {
                         <div style={{ fontSize: 11, color: t.text.tertiary }}>{primary ? `${primary.name}${primary.title ? ' \u00b7 ' + primary.title : ''}` : 'No contact'}</div>
                       </div>
                     </div>
+                    {/* Quick action buttons */}
                     <div style={{ display: 'flex', alignItems: 'center', paddingLeft: 42 }}>
                       <div style={{ display: 'flex', gap: 4 }} onClick={(e) => e.stopPropagation()}>
                         {[

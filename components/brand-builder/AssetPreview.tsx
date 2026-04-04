@@ -83,7 +83,7 @@ export default function AssetPreview({ assetType, fields, clientId, onFieldsChan
               flex: 1, background: activeSide === s ? '#fff' : 'transparent',
               color: activeSide === s ? '#111827' : '#9ca3af', border: 'none', borderRadius: 6,
               padding: '6px 20px', fontSize: 13, fontWeight: 500, cursor: 'pointer',
-              fontFamily: 'Inter, sans-serif', textTransform: 'capitalize', transition: 'all 0.12s',
+              fontFamily: 'inherit', textTransform: 'capitalize', transition: 'all 0.12s',
               boxShadow: activeSide === s ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
             }}>{s}</button>
           ))}

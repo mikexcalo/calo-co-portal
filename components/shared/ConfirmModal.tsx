@@ -50,14 +50,14 @@ export default function ConfirmModal({
               padding: '8px 16px', fontSize: 13, fontWeight: 500,
               border: '1px solid #d1d5db', borderRadius: 8,
               background: '#fff', color: '#374151', cursor: 'pointer',
-              fontFamily: 'Inter, sans-serif',
+              fontFamily: 'inherit',
             }}>{cancelLabel}</button>
           )}
           <button onClick={onConfirm} style={{
             padding: '8px 16px', fontSize: 13, fontWeight: 500,
             border: 'none', borderRadius: 8, cursor: 'pointer',
             background: destructive ? '#DC2626' : '#2563eb',
-            color: '#fff', fontFamily: 'Inter, sans-serif',
+            color: '#fff', fontFamily: 'inherit',
           }}>{confirmLabel}</button>
         </div>
       </div>

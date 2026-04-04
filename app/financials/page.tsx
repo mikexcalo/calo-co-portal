@@ -82,7 +82,7 @@ export default function FinancialsPage() {
         <button onClick={handlePrintPL} style={{
           background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
           padding: '6px 14px', fontSize: 13, fontWeight: 500, color: '#374151',
-          cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+          cursor: 'pointer', fontFamily: 'inherit',
           display: 'flex', alignItems: 'center', gap: 6,
         }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="1" width="16" height="22" rx="2"/><line x1="8" y1="7" x2="16" y2="7" strokeLinecap="round"/><line x1="8" y1="11" x2="16" y2="11" strokeLinecap="round"/></svg>
@@ -98,7 +98,7 @@ export default function FinancialsPage() {
             border: period === p ? '1.5px solid #2563eb' : '1px solid #e5e7eb',
             background: period === p ? '#eff6ff' : '#fff',
             color: period === p ? '#2563eb' : '#6b7280',
-            cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            cursor: 'pointer', fontFamily: 'inherit',
           }}>
             {p === 'month' ? 'Month' : p === 'quarter' ? 'Quarter' : p === 'year' ? 'Year' : 'All Time'}
           </button>
@@ -139,7 +139,7 @@ export default function FinancialsPage() {
       <div style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 12, padding: 20 }}>
         <button onClick={() => setTaxSettingsOpen(!taxSettingsOpen)} style={{
           background: 'none', border: 'none', fontSize: 12, color: '#9ca3af',
-          cursor: 'pointer', fontFamily: 'Inter, sans-serif', padding: 0,
+          cursor: 'pointer', fontFamily: 'inherit', padding: 0,
         }}>
           {taxSettingsOpen ? '− Tax Settings' : '+ Tax Settings'}
         </button>
@@ -150,21 +150,21 @@ export default function FinancialsPage() {
                 <label style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', display: 'block', marginBottom: 4 }}>Tax Rate %</label>
                 <input type="number" min="0" max="100" step="0.1" value={taxRate}
                   onChange={(e) => setTaxRate(parseFloat(e.target.value) || 28)}
-                  style={{ width: 90, padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontFamily: 'Inter, sans-serif' }} />
+                  style={{ width: 90, padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontFamily: 'inherit' }} />
               </div>
               <div>
                 <label style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', display: 'block', marginBottom: 4 }}>Fiscal Year Start</label>
                 <input type="number" min="1" max="12" value={fiscalYearStart}
                   onChange={(e) => setFiscalYearStart(parseInt(e.target.value) || 1)}
-                  style={{ width: 70, padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontFamily: 'Inter, sans-serif' }} />
+                  style={{ width: 70, padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontFamily: 'inherit' }} />
               </div>
               <button onClick={handleSaveTaxSettings} disabled={loading} style={{
                 padding: '8px 16px', fontSize: 13, fontWeight: 500, background: '#2563eb', color: '#fff',
-                border: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                border: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
               }}>{loading ? 'Saving...' : 'Save'}</button>
               <button onClick={() => setTaxSettingsOpen(false)} style={{
                 padding: '8px 16px', fontSize: 13, fontWeight: 500, background: '#fff', color: '#6b7280',
-                border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
               }}>Cancel</button>
               {saveStatus && <span style={{ fontSize: 12, color: '#16a34a' }}>{saveStatus}</span>}
             </div>

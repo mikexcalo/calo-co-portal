@@ -187,7 +187,7 @@ export default function ClientFinancialsPage() {
                 border: period === p ? '1.5px solid #2563eb' : '1.5px solid #d1d5db',
                 background: period === p ? '#eff6ff' : '#ffffff',
                 color: period === p ? '#2563eb' : '#64748b',
-                cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                cursor: 'pointer', fontFamily: 'inherit',
               }}
             >
               {p === 'month' ? 'Month' : p === 'quarter' ? 'Quarter' : p === 'year' ? 'Year' : 'All Time'}

@@ -27,7 +27,7 @@ export default function AssetTypeSelector({ selected, onSelect }: AssetTypeSelec
                 cursor: 'pointer',
                 fontSize: 11,
                 fontWeight: 600,
-                fontFamily: 'Inter, sans-serif',
+                fontFamily: 'inherit',
                 transition: 'all 0.12s',
                 whiteSpace: 'nowrap',
               }}
@@ -54,7 +54,7 @@ export default function AssetTypeSelector({ selected, onSelect }: AssetTypeSelec
             padding: '10px 12px',
             cursor: 'pointer',
             textAlign: 'left',
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'inherit',
             transition: 'all 0.12s',
           }}
         >

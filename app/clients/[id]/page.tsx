@@ -178,7 +178,7 @@ export default function ClientHubPage() {
   // --- Shared styles ---
   const metricLbl: React.CSSProperties = { fontSize: '10px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.3px', margin: '0 0 2px' };
   const sectionLbl: React.CSSProperties = { fontSize: '10px', fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 8px' };
-  const inputStyle: React.CSSProperties = { width: '100%', padding: '7px 10px', fontSize: 13, marginTop: 4, border: '1px solid #e2e8f0', borderRadius: 8, fontFamily: 'Inter, sans-serif' };
+  const inputStyle: React.CSSProperties = { width: '100%', padding: '7px 10px', fontSize: 13, marginTop: 4, border: '1px solid #e2e8f0', borderRadius: 8, fontFamily: 'inherit' };
   const errorInputStyle: React.CSSProperties = { ...inputStyle, borderColor: '#ef4444' };
   const editLbl: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: '#334155', display: 'block' };
   const req = <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>;
@@ -219,10 +219,10 @@ export default function ClientHubPage() {
             </label>
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-            <button onClick={handleSave} disabled={saving} style={{ height: 32, fontSize: 12, fontWeight: 500, padding: '0 14px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>
+            <button onClick={handleSave} disabled={saving} style={{ height: 32, fontSize: 12, fontWeight: 500, padding: '0 14px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }}>
               {saving ? 'Saving...' : 'Save'}
             </button>
-            <button onClick={() => { setIsEditOpen(false); setSubmitted(false); }} style={{ padding: '0 14px', height: 32, fontSize: 12, fontWeight: 600, border: '1px solid #d1d5db', borderRadius: 8, background: '#fff', color: '#64748b', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>Cancel</button>
+            <button onClick={() => { setIsEditOpen(false); setSubmitted(false); }} style={{ padding: '0 14px', height: 32, fontSize: 12, fontWeight: 600, border: '1px solid #d1d5db', borderRadius: 8, background: '#fff', color: '#64748b', cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
           </div>
         </div>
       </div>
@@ -252,7 +252,7 @@ export default function ClientHubPage() {
           <button onClick={() => setContactsOpen(!contactsOpen)} style={{
             background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
             padding: '6px 14px', fontSize: 13, fontWeight: 500, color: '#374151',
-            cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            cursor: 'pointer', fontFamily: 'inherit',
             display: 'flex', alignItems: 'center', gap: 4,
           }}>
             Contacts
@@ -286,7 +286,7 @@ export default function ClientHubPage() {
           <button onClick={() => setIsEditOpen(true)} style={{
             background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
             padding: '6px 14px', fontSize: 13, fontWeight: 500, color: '#374151',
-            cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            cursor: 'pointer', fontFamily: 'inherit',
           }}>Edit Client</button>
         )}
       </InfoBar>

@@ -49,7 +49,7 @@ function FlatCard({ id, label, desc, onClick, disabled }: {
         transition: 'border-color 150ms, transform 150ms, box-shadow 150ms',
         transform: hovered && !disabled ? 'translateY(-2px)' : 'none',
         boxShadow: hovered && !disabled ? '0 4px 12px rgba(0,0,0,0.08)' : 'none',
-        width: '100%', textAlign: 'left' as const, fontFamily: 'Inter, sans-serif',
+        width: '100%', textAlign: 'left' as const, fontFamily: 'inherit',
         display: 'flex', flexDirection: 'column' as const,
       }}
     >

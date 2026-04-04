@@ -14,7 +14,7 @@ interface HeroCardProps {
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '7px 10px', fontSize: 13, marginTop: 4,
-  border: '1px solid #e2e8f0', borderRadius: 8, fontFamily: 'Inter, sans-serif',
+  border: '1px solid #e2e8f0', borderRadius: 8, fontFamily: 'inherit',
 };
 const errorInputStyle: React.CSSProperties = { ...inputStyle, borderColor: '#ef4444' };
 const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: '#334155', display: 'block' };
@@ -171,7 +171,7 @@ export default function HeroCard({ client, contacts, isClient, onClientUpdate }:
           <button onClick={() => { setIsEditOpen(false); setSubmitted(false); }} style={{
             padding: '0 14px', height: 32, fontSize: 12, fontWeight: 600,
             border: '1px solid #d1d5db', borderRadius: 8, background: '#fff',
-            color: '#64748b', cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            color: '#64748b', cursor: 'pointer', fontFamily: 'inherit',
           }}>Cancel</button>
         </div>
       </div>

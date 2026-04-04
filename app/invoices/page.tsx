@@ -84,7 +84,7 @@ export default function AllInvoicesPage() {
           style={{
             background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8,
             padding: '8px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'Inter, sans-serif',
+            display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'inherit',
           }}
         >
           + New Invoice

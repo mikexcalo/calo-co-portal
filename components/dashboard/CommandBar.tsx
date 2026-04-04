@@ -70,7 +70,7 @@ export default function CommandBar({ onItemSaved }: CommandBarProps) {
           placeholder="Ask a question or jot a note..." disabled={loading}
           style={{
             width: '100%', padding: '10px 14px 10px 36px', fontSize: 13,
-            border: '1px solid #e5e7eb', borderRadius: 10, fontFamily: 'Inter, sans-serif',
+            border: '1px solid #e5e7eb', borderRadius: 10, fontFamily: 'inherit',
             color: '#1a1f2e', background: '#fff', outline: 'none',
           }} />
         {loading && (
@@ -81,13 +81,13 @@ export default function CommandBar({ onItemSaved }: CommandBarProps) {
       </div>
       {response && (
         <div ref={cardRef} style={{ marginTop: 8, padding: '12px 16px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: '#334155', lineHeight: 1.5, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          {response.type === 'clarify' ? <div>{response.message}</div> : (<><div>{response.answer}</div>{response.client_id && <button onClick={() => router.push(`/clients/${response.client_id}`)} style={{ marginTop: 8, background: 'none', border: 'none', padding: 0, color: '#2563eb', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>Open →</button>}</>)}
+          {response.type === 'clarify' ? <div>{response.message}</div> : (<><div>{response.answer}</div>{response.client_id && <button onClick={() => router.push(`/clients/${response.client_id}`)} style={{ marginTop: 8, background: 'none', border: 'none', padding: 0, color: '#2563eb', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Open →</button>}</>)}
         </div>
       )}
       {toast && (
         <div style={{ marginTop: 8, padding: '8px 14px', borderRadius: 8, background: '#f0fdf4', border: '1px solid #bbf7d0', fontSize: 12, color: '#166534', display: 'flex', alignItems: 'center', gap: 8 }}>
           <span>✓ {toast.type === 'task' ? 'Task' : 'Note'} saved to <strong>{toast.text}</strong></span>
-          <button onClick={() => router.push(`/clients/${toast.clientId}`)} style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>Open →</button>
+          <button onClick={() => router.push(`/clients/${toast.clientId}`)} style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Open →</button>
         </div>
       )}
     </div>

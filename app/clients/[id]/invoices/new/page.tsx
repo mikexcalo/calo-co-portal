@@ -35,7 +35,7 @@ function calcTerms(date: string, due: string): string {
 
 const inputStyle: React.CSSProperties = {
   padding: '8px 10px', fontSize: 13, border: '1px solid #e2e8f0', borderRadius: 6,
-  fontFamily: 'Inter, sans-serif', width: '100%', outline: 'none',
+  fontFamily: 'inherit', width: '100%', outline: 'none',
 };
 const labelStyle: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 };
 

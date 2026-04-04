@@ -129,7 +129,7 @@ export function Card({ onClick, disabled, children, style }: CardProps) {
         transition: 'border-color 150ms, transform 150ms, box-shadow 150ms',
         transform: hovered && !disabled ? 'translateY(-1px)' : 'none',
         boxShadow: hovered && !disabled ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
-        width: '100%', fontFamily: 'Inter, sans-serif',
+        width: '100%', fontFamily: 'inherit',
         ...style,
       }}
     >

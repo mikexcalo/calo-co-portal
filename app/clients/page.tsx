@@ -55,7 +55,7 @@ export default function ClientsPage() {
           style={{
             background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8,
             padding: '8px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer',
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'inherit',
           }}
         >
           + Add Client
@@ -72,7 +72,7 @@ export default function ClientsPage() {
           style={{
             width: '100%', maxWidth: 360, padding: '10px 14px',
             border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14,
-            color: '#111827', fontFamily: 'Inter, sans-serif',
+            color: '#111827', fontFamily: 'inherit',
           }}
         />
       </div>

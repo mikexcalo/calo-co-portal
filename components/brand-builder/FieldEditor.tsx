@@ -39,7 +39,7 @@ function Field({ label, value, onChange, type = 'text', placeholder, disabled, c
       <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} disabled={disabled}
         style={{
           width: '100%', padding: '10px 12px', fontSize: 14, border: '1px solid #e5e7eb',
-          borderRadius: 8, fontFamily: 'Inter, sans-serif',
+          borderRadius: 8, fontFamily: 'inherit',
           color: disabled ? '#94a3b8' : '#0f172a', background: disabled ? '#f8fafc' : '#fff',
         }} />
     </div>
@@ -70,7 +70,7 @@ function SigField({ label, value, showKey, fields, update, fieldKey, type = 'tex
         placeholder={placeholder || `Enter ${label.toLowerCase()}`} disabled={!isShown}
         style={{
           width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb',
-          borderRadius: 8, fontSize: 14, color: '#111827', fontFamily: 'Inter, sans-serif',
+          borderRadius: 8, fontSize: 14, color: '#111827', fontFamily: 'inherit',
           background: isShown ? '#fff' : '#f9fafb', opacity: isShown ? 1 : 0.5,
         }} />
     </div>
@@ -101,7 +101,7 @@ export default function FieldEditor({ fields, onChange, sources, assetType, clie
                 border: fields.signSize === s.value ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
                 background: fields.signSize === s.value ? '#eff6ff' : '#fff',
                 color: fields.signSize === s.value ? '#2563eb' : '#6b7280',
-                fontFamily: 'Inter, sans-serif',
+                fontFamily: 'inherit',
               }}>{s.label}</button>
             ))}
           </div>
@@ -185,7 +185,7 @@ export default function FieldEditor({ fields, onChange, sources, assetType, clie
           <div style={{ marginTop: 16 }}>
             <button onClick={() => setMoreOpen(!moreOpen)} style={{
               background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-              fontSize: 13, fontWeight: 400, color: '#6b7280', fontFamily: 'Inter, sans-serif',
+              fontSize: 13, fontWeight: 400, color: '#6b7280', fontFamily: 'inherit',
             }}>
               {moreOpen ? '− Fewer fields' : '+ More fields'}
             </button>

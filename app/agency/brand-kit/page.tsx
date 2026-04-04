@@ -72,7 +72,7 @@ export default function AgencyBrandKitPage() {
                 <div style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.3px', marginBottom: 6 }}>{label}</div>
                 <input
                   type="text" placeholder={`${label} font`}
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, color: '#111827', fontFamily: 'Inter, sans-serif' }}
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, color: '#111827', fontFamily: 'inherit' }}
                 />
               </div>
             ))}

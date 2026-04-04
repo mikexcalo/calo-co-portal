@@ -85,7 +85,7 @@ export default function ClientCard({ client, onNavigate, taskCount, invoiceCount
         </div>
         <button onClick={(e) => { e.stopPropagation(); onNavigate(); }} style={{
           background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 12px',
-          color: '#2563eb', fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: 'Inter, sans-serif', flexShrink: 0,
+          color: '#2563eb', fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
         }}>Manage →</button>
       </div>
 

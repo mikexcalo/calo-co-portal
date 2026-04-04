@@ -8,7 +8,7 @@ import { Client } from '@/lib/types';
 const inputStyle: React.CSSProperties = {
   display: 'block', width: '100%', marginTop: 4, padding: '8px 10px',
   fontSize: 13, border: '1px solid #e2e8f0', borderRadius: 8,
-  fontFamily: 'Inter, sans-serif', color: '#1a1f2e',
+  fontFamily: 'inherit', color: '#1a1f2e',
 };
 const errorInputStyle: React.CSSProperties = { ...inputStyle, borderColor: '#ef4444' };
 const labelStyle: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: '#334155', display: 'block' };
@@ -154,7 +154,7 @@ export default function NewClientPage() {
           <button type="button" onClick={() => router.push('/')} style={{
             padding: '0 20px', height: 36, fontSize: 13, fontWeight: 600,
             border: '1.5px solid #d1d5db', borderRadius: 8,
-            background: '#fff', color: '#64748b', cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+            background: '#fff', color: '#64748b', cursor: 'pointer', fontFamily: 'inherit',
           }}>Cancel</button>
         </div>
       </form>

@@ -407,7 +407,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
   const btnStyle: React.CSSProperties = {
     padding: '6px 12px', fontSize: 12, border: '1px solid #e5e7eb',
     borderRadius: 6, background: '#fff', cursor: 'pointer', color: '#374151',
-    fontFamily: 'Inter, sans-serif',
+    fontFamily: 'inherit',
   };
 
   return (
@@ -446,12 +446,12 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         <button onClick={handleExportPDF} style={{
           padding: '8px 20px', fontSize: 13, fontWeight: 500,
           background: '#2563eb', color: '#fff', border: 'none',
-          borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+          borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
         }}>Download PDF</button>
         <button onClick={handleExportPNG} style={{
           padding: '8px 20px', fontSize: 13, fontWeight: 500,
           background: '#fff', color: '#2563eb', border: '1px solid #2563eb',
-          borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+          borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
         }}>Download PNG</button>
       </div>
     </div>

@@ -266,7 +266,7 @@ export default function BrandBuilderPage() {
               style={{
                 background: 'none', border: 'none', color: '#2563eb', fontSize: 12,
                 fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', padding: 0,
-                fontFamily: 'Inter, sans-serif',
+                fontFamily: 'inherit',
               }}
             >
               set up the Brand Kit first
@@ -297,7 +297,7 @@ export default function BrandBuilderPage() {
                         border: cardSide === side ? '0.5px solid rgba(0,0,0,0.08)' : '0.5px solid transparent',
                         background: cardSide === side ? '#fff' : 'transparent',
                         color: cardSide === side ? '#111827' : '#9ca3af',
-                        cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                        cursor: 'pointer', fontFamily: 'inherit',
                         boxShadow: cardSide === side ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
                         textTransform: 'capitalize',
                       }}>{side}</button>
@@ -449,7 +449,7 @@ function TemplateCard({ id, label, desc, onClick, disabled }: {
         transition: 'border-color 150ms, transform 150ms, box-shadow 150ms',
         transform: hovered && !disabled ? 'translateY(-2px)' : 'none',
         boxShadow: hovered && !disabled ? '0 4px 12px rgba(0,0,0,0.08)' : 'none',
-        width: '100%', textAlign: 'left' as const, fontFamily: 'Inter, sans-serif',
+        width: '100%', textAlign: 'left' as const, fontFamily: 'inherit',
         display: 'flex', flexDirection: 'column' as const,
       }}
     >
