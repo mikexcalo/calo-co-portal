@@ -5,6 +5,7 @@ import { useState, Suspense } from 'react';
 import { useTheme } from '@/lib/theme';
 import { motion, AnimatePresence } from 'framer-motion';
 import ConfirmModal from '@/components/shared/ConfirmModal';
+import SegmentedControl from '@/components/shared/SegmentedControl';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } };
@@ -76,21 +77,13 @@ function DesignStudioContent() {
           <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>Agency brand assets and templates</p>
         </motion.div>
 
-        {/* Tab bar */}
-        <motion.div variants={fadeUp} style={{ display: 'flex', gap: 0, borderBottom: `1px solid ${t.border.default}`, marginBottom: 24 }}>
-          {tabs.map((tab) => (
-            <button key={tab.id} onClick={() => setTab(tab.id)} style={{
-              padding: '12px 16px', fontSize: 13, fontWeight: activeTab === tab.id ? 500 : 400,
-              color: activeTab === tab.id ? t.text.primary : t.text.secondary,
-              background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-              borderBottom: activeTab === tab.id ? `2px solid ${t.accent.primary}` : '2px solid transparent',
-              transition: 'color 150ms',
-              marginBottom: -1,
-            }}
-            onMouseEnter={(e) => { if (activeTab !== tab.id) e.currentTarget.style.color = t.text.primary; }}
-            onMouseLeave={(e) => { if (activeTab !== tab.id) e.currentTarget.style.color = t.text.secondary; }}
-            >{tab.label}</button>
-          ))}
+        {/* Segmented control */}
+        <motion.div variants={fadeUp} style={{ marginBottom: 24 }}>
+          <SegmentedControl
+            tabs={tabs.map((tb) => ({ key: tb.id, label: tb.label }))}
+            activeTab={activeTab}
+            onChange={(key) => setTab(key as Tab)}
+          />
         </motion.div>
 
         {/* Tab content */}
