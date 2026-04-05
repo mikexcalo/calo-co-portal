@@ -110,25 +110,17 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
         </div>
       )}
 
-      <BrandDetails t={t} entityId={entityId} readOnly={readOnly} />
-
+      {/* Logo Suite — top */}
       <Section label="Logo Suite">
         <div style={card}>
-          {/* Primary row — reorderable */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
             {topOrder.map((slot, idx) => (
               <div key={slot} style={{ position: 'relative' }}>
                 {!readOnly && (
-                  <button
-                    onClick={() => handleSwap(idx)}
-                    title={swapSource === idx ? 'Click another slot to swap' : 'Reorder'}
-                    style={{
-                      position: 'absolute', top: 4, left: 4, zIndex: 2,
-                      width: 18, height: 18, borderRadius: 4, border: 'none',
-                      background: swapSource === idx ? t.accent.primary : 'transparent',
-                      color: swapSource === idx ? '#fff' : t.text.tertiary,
-                      cursor: 'pointer', fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      transition: 'background 150ms, color 150ms',
+                  <button onClick={() => handleSwap(idx)} title={swapSource === idx ? 'Click another to swap' : 'Reorder'}
+                    style={{ position: 'absolute', top: 4, left: 4, zIndex: 2, width: 18, height: 18, borderRadius: 4, border: 'none',
+                      background: swapSource === idx ? t.accent.primary : 'transparent', color: swapSource === idx ? '#fff' : t.text.tertiary,
+                      cursor: 'pointer', fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms, color 150ms',
                     }}
                     onMouseEnter={(e) => { if (swapSource !== idx) e.currentTarget.style.color = t.text.primary; }}
                     onMouseLeave={(e) => { if (swapSource !== idx) e.currentTarget.style.color = t.text.tertiary; }}
@@ -138,70 +130,109 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
               </div>
             ))}
           </div>
-
-          {/* Secondary row — accordion */}
-          <button
-            onClick={() => setSecondaryOpen(!secondaryOpen)}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-              fontSize: 12, color: t.text.secondary, display: 'flex', alignItems: 'center', gap: 4,
-              padding: '6px 0', transition: 'color 150ms',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.color = t.text.primary}
-            onMouseLeave={(e) => e.currentTarget.style.color = t.text.secondary}
-          >
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"
-              style={{ transition: 'transform 150ms', transform: secondaryOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}>
-              <polyline points="6 4 10 8 6 12"/>
-            </svg>
-            More logo variants
+          <button onClick={() => setSecondaryOpen(!secondaryOpen)} style={{
+            background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+            fontSize: 12, color: t.text.secondary, display: 'flex', alignItems: 'center', gap: 4, padding: '4px 0', transition: 'color 150ms',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.color = t.text.primary}
+          onMouseLeave={(e) => e.currentTarget.style.color = t.text.secondary}>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ transition: 'transform 150ms', transform: secondaryOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}><polyline points="6 4 10 8 6 12"/></svg>
+            More variants
           </button>
           {secondaryOpen && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 6 }}>
               {SECONDARY_SLOTS.map((slot) => (
                 <LogoSlot key={slot} clientId={entityId} slotKey={slot} label={SLOT_LABELS[slot]} brandKit={brandKit} readOnly={readOnly} onFilesChange={handleLogoChange} />
               ))}
             </div>
           )}
-
-          <div style={{ marginTop: 10, fontSize: 11, color: t.text.tertiary, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ marginTop: 8, fontSize: 11, color: t.text.tertiary, display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ width: 5, height: 5, borderRadius: '50%', background: t.status.success, flexShrink: 0 }} />
             Full Color PNG/SVG is used in invoice headers and PDF exports.
           </div>
-
         </div>
       </Section>
 
+      {/* Colors | Typography | Headshot */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
         <Section label="Colors"><div style={card}><ColorPalette colors={brandKit.colors || []} readOnly={readOnly} onColorsChange={handleColorChange} /></div></Section>
         <Section label="Typography"><div style={card}><Typography fonts={brandKit.fonts} readOnly={readOnly} onFontChange={handleFontChange} /></div></Section>
-        <Section label="Notes"><div style={card}><BrandNotes notes={brandKit.notes || ''} readOnly={readOnly} onNotesChange={handleNotesChange} /></div></Section>
+        <HeadshotTile t={t} entityId={entityId} readOnly={readOnly} />
       </div>
+
+      {/* Business Info + Notes — full width */}
+      <BusinessInfoCard t={t} entityId={entityId} readOnly={readOnly} brandKit={brandKit} handleNotesChange={handleNotesChange} />
     </BrandKitErrorBoundary>
   );
 }
 
 
-function BrandDetails({ t, entityId, readOnly }: { t: any; entityId: string; readOnly: boolean }) {
-  const [fields, setFields] = useState({ tagline: '', serviceArea: '', licenseNumber: '', socialInstagram: '', socialFacebook: '' });
-  const [headshots, setHeadshots] = useState<{ owner?: { url: string; filename: string }; team?: { url: string; filename: string } }>({});
-  const [loaded, setLoaded] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
+function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; readOnly: boolean }) {
+  const [headshot, setHeadshot] = useState<{ url: string; filename: string } | null>(null);
   useEffect(() => {
     const cl = DB.clients.find((c) => c.id === entityId);
-    if (cl) {
-      const bbf = (cl as any).brand_builder_fields || {};
-      setFields({
-        tagline: bbf.tagline || '', serviceArea: bbf.serviceArea || '',
-        licenseNumber: bbf.licenseNumber || '', socialInstagram: bbf.socialInstagram || '', socialFacebook: bbf.socialFacebook || '',
-      });
-      setHeadshots(bbf.headshots || {});
-    }
-    setLoaded(true);
+    const hs = (cl as any)?.brand_builder_fields?.headshots?.owner;
+    if (hs) setHeadshot(hs);
   }, [entityId]);
 
-  const saveFields = useCallback((next: any) => {
+  const handleUpload = async (file: File) => {
+    try {
+      const supabase = (await import('@/lib/supabase')).default;
+      const path = `headshots/${entityId}/owner-${Date.now()}-${file.name}`;
+      await supabase.storage.from('brand-assets').upload(path, file, { upsert: true });
+      const { data } = supabase.storage.from('brand-assets').getPublicUrl(path);
+      const hs = { url: data.publicUrl, filename: file.name };
+      setHeadshot(hs);
+      const cl = DB.clients.find((c) => c.id === entityId);
+      const existing = (cl as any)?.brand_builder_fields || {};
+      await supabase.from('clients').update({ brand_builder_fields: { ...existing, headshots: { ...existing.headshots, owner: hs } } }).eq('id', entityId);
+    } catch (e) { console.warn('[Headshot upload]', e); }
+  };
+
+  const remove = async () => {
+    setHeadshot(null);
+    try {
+      const supabase = (await import('@/lib/supabase')).default;
+      const cl = DB.clients.find((c) => c.id === entityId);
+      const existing = (cl as any)?.brand_builder_fields || {};
+      const hs = { ...existing.headshots }; delete hs.owner;
+      await supabase.from('clients').update({ brand_builder_fields: { ...existing, headshots: hs } }).eq('id', entityId);
+    } catch {}
+  };
+
+  const card: React.CSSProperties = { background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 16 };
+
+  return (
+    <Section label="Headshot">
+      <div style={card}>
+        {headshot?.url ? (
+          <div style={{ position: 'relative', borderRadius: t.radius.sm, overflow: 'hidden', border: `1px solid ${t.border.default}` }}>
+            <img src={headshot.url} alt="" style={{ width: '100%', height: 120, objectFit: 'cover', display: 'block' }} />
+            {!readOnly && <button onClick={remove} style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>}
+          </div>
+        ) : (
+          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 120, border: `1px dashed ${t.border.default}`, borderRadius: t.radius.sm, cursor: readOnly ? 'default' : 'pointer', color: t.text.tertiary, fontSize: 12 }}>
+            {readOnly ? 'No headshot' : '+ Upload headshot'}
+            {!readOnly && <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0]); }} />}
+          </label>
+        )}
+      </div>
+    </Section>
+  );
+}
+
+function BusinessInfoCard({ t, entityId, readOnly, brandKit, handleNotesChange }: { t: any; entityId: string; readOnly: boolean; brandKit: any; handleNotesChange: (n: string) => void }) {
+  const [fields, setFields] = useState({ tagline: '', serviceArea: '', licenseNumber: '', socialInstagram: '', socialFacebook: '' });
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const cl = DB.clients.find((c) => c.id === entityId);
+    const bbf = (cl as any)?.brand_builder_fields || {};
+    setFields({ tagline: bbf.tagline || '', serviceArea: bbf.serviceArea || '', licenseNumber: bbf.licenseNumber || '', socialInstagram: bbf.socialInstagram || '', socialFacebook: bbf.socialFacebook || '' });
+  }, [entityId]);
+
+  const update = (key: string, value: string) => {
+    const next = { ...fields, [key]: value };
+    setFields(next);
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(async () => {
       try {
@@ -209,98 +240,30 @@ function BrandDetails({ t, entityId, readOnly }: { t: any; entityId: string; rea
         const cl = DB.clients.find((c) => c.id === entityId);
         const existing = (cl as any)?.brand_builder_fields || {};
         await supabase.from('clients').update({ brand_builder_fields: { ...existing, ...next } }).eq('id', entityId);
-      } catch (e) { console.warn('[BrandDetails] save failed:', e); }
+      } catch {}
     }, 500);
-  }, [entityId]);
-
-  const updateField = (key: string, value: string) => {
-    const next = { ...fields, [key]: value };
-    setFields(next);
-    saveFields(next);
   };
 
-  const handleUpload = async (slot: 'owner' | 'team', file: File) => {
-    try {
-      const supabase = (await import('@/lib/supabase')).default;
-      const prefix = entityId === 'agency' ? 'headshots/agency' : `headshots/${entityId}`;
-      const path = `${prefix}/${slot}-${Date.now()}-${file.name}`;
-      const { error } = await supabase.storage.from('brand-assets').upload(path, file, { upsert: true });
-      if (error) { console.warn('[Headshot upload]', error); return; }
-      const { data: urlData } = supabase.storage.from('brand-assets').getPublicUrl(path);
-      const updated = { ...headshots, [slot]: { url: urlData.publicUrl, filename: file.name } };
-      setHeadshots(updated);
-      saveFields({ ...fields, headshots: updated });
-    } catch (e) { console.warn('[Headshot upload error]', e); }
-  };
-
-  const removeHeadshot = (slot: 'owner' | 'team') => {
-    const updated = { ...headshots };
-    delete updated[slot];
-    setHeadshots(updated);
-    saveFields({ ...fields, headshots: updated });
-  };
-
-  const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '8px 10px', fontSize: 13,
-    border: `1px solid ${t.border.default}`, borderRadius: t.radius.sm,
-    background: t.bg.primary, color: t.text.primary, fontFamily: 'inherit', outline: 'none',
-  };
+  const inputStyle: React.CSSProperties = { width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${t.border.default}`, borderRadius: t.radius.sm, background: t.bg.primary, color: t.text.primary, fontFamily: 'inherit', outline: 'none' };
   const labelStyle: React.CSSProperties = { fontSize: 11, color: t.text.secondary, display: 'block', marginBottom: 4 };
   const card: React.CSSProperties = { background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 16 };
 
-  if (!loaded) return null;
-
   return (
-    <Section label="Brand Details">
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        {/* Photos */}
-        <div style={card}>
-          <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary, marginBottom: 10 }}>Photos</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            {(['owner', 'team'] as const).map((slot) => {
-              const data = headshots[slot];
-              return (
-                <div key={slot}>
-                  <label style={labelStyle}>{slot === 'owner' ? 'Headshot' : 'Team Photo'}</label>
-                  {data?.url ? (
-                    <div style={{ position: 'relative', borderRadius: t.radius.sm, overflow: 'hidden', border: `1px solid ${t.border.default}` }}>
-                      <img src={data.url} alt={data.filename} style={{ width: '100%', height: 80, objectFit: 'cover', display: 'block' }} />
-                      {!readOnly && (
-                        <button onClick={() => removeHeadshot(slot)} style={{
-                          position: 'absolute', top: 4, right: 4, width: 18, height: 18, borderRadius: '50%',
-                          background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', fontSize: 10,
-                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}>×</button>
-                      )}
-                    </div>
-                  ) : (
-                    <label style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', height: 80,
-                      border: `1px dashed ${t.border.default}`, borderRadius: t.radius.sm,
-                      cursor: readOnly ? 'default' : 'pointer', color: t.text.tertiary, fontSize: 12,
-                    }}>
-                      {readOnly ? 'No photo' : '+ Upload'}
-                      {!readOnly && <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) handleUpload(slot, e.target.files[0]); }} />}
-                    </label>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+    <Section label="Business Info">
+      <div style={card}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
+          <div><label style={labelStyle}>Tagline / Slogan</label><input value={fields.tagline} onChange={(e) => update('tagline', e.target.value)} placeholder="Your trusted partner" disabled={readOnly} style={inputStyle} /></div>
+          <div><label style={labelStyle}>Service Area</label><input value={fields.serviceArea} onChange={(e) => update('serviceArea', e.target.value)} placeholder="Portland Metro" disabled={readOnly} style={inputStyle} /></div>
+          <div><label style={labelStyle}>License / Cert #</label><input value={fields.licenseNumber} onChange={(e) => update('licenseNumber', e.target.value)} placeholder="LIC-12345" disabled={readOnly} style={inputStyle} /></div>
         </div>
-
-        {/* Business Info */}
-        <div style={card}>
-          <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary, marginBottom: 10 }}>Business Info</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div><label style={labelStyle}>Tagline / Slogan</label><input value={fields.tagline} onChange={(e) => updateField('tagline', e.target.value)} placeholder="Your trusted partner" disabled={readOnly} style={inputStyle} /></div>
-            <div><label style={labelStyle}>Service Area</label><input value={fields.serviceArea} onChange={(e) => updateField('serviceArea', e.target.value)} placeholder="Portland Metro, South Portland" disabled={readOnly} style={inputStyle} /></div>
-            <div><label style={labelStyle}>License / Certification #</label><input value={fields.licenseNumber} onChange={(e) => updateField('licenseNumber', e.target.value)} placeholder="e.g. LIC-12345" disabled={readOnly} style={inputStyle} /></div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <div><label style={labelStyle}>Instagram</label><input value={fields.socialInstagram} onChange={(e) => updateField('socialInstagram', e.target.value)} placeholder="@handle" disabled={readOnly} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Facebook</label><input value={fields.socialFacebook} onChange={(e) => updateField('socialFacebook', e.target.value)} placeholder="facebook.com/yourpage" disabled={readOnly} style={inputStyle} /></div>
-            </div>
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
+          <div><label style={labelStyle}>Instagram</label><input value={fields.socialInstagram} onChange={(e) => update('socialInstagram', e.target.value)} placeholder="@handle" disabled={readOnly} style={inputStyle} /></div>
+          <div><label style={labelStyle}>Facebook</label><input value={fields.socialFacebook} onChange={(e) => update('socialFacebook', e.target.value)} placeholder="facebook.com/page" disabled={readOnly} style={inputStyle} /></div>
+          <div />
+        </div>
+        <div>
+          <label style={labelStyle}>Notes</label>
+          <BrandNotes notes={brandKit.notes || ''} readOnly={readOnly} onNotesChange={handleNotesChange} />
         </div>
       </div>
     </Section>
