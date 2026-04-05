@@ -190,6 +190,7 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
   const [headshot, setHeadshot] = useState<{ url: string; filename: string } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [feedback, setFeedback] = useState<'success' | 'error' | null>(null);
+  const [avatarSaved, setAvatarSaved] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
@@ -197,6 +198,12 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    // Inject spinner keyframes once
+    if (!document.getElementById('hs-spin-kf')) {
+      const style = document.createElement('style'); style.id = 'hs-spin-kf';
+      style.textContent = '@keyframes hs-spin { to { transform: rotate(360deg); } }';
+      document.head.appendChild(style);
+    }
     (async () => {
       try {
         const bbf = await loadBbf(entityId);
@@ -309,7 +316,8 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
       const avatarUrl = canvas.toDataURL('image/png');
       try {
         await saveBbf(entityId, { avatarUrl });
-        setFeedback('success'); setTimeout(() => setFeedback(null), 1500);
+        if (entityId === AGENCY_BRAND_ID) localStorage.setItem('calo-agency-avatar', avatarUrl);
+        setAvatarSaved(true); setTimeout(() => setAvatarSaved(false), 1500);
       } catch { setFeedback('error'); setTimeout(() => setFeedback(null), 2000); }
     };
     img.src = headshot.url;
@@ -340,14 +348,33 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
             )}
             {/* Download + avatar buttons */}
             <div style={{ display: 'flex', gap: 4, justifyContent: 'center', marginTop: 6, flexWrap: 'wrap' }}>
-              <button onClick={() => downloadCropped('square')} style={btnStyle}>Square</button>
-              <button onClick={() => downloadCropped('circle')} style={btnStyle}>Circle</button>
-              {!readOnly && <button onClick={useAsAvatar} style={{ ...btnStyle, color: t.accent.text }}>Use as avatar</button>}
+              <button onClick={() => downloadCropped('square')} style={btnStyle}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 3, verticalAlign: '-1px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Square
+              </button>
+              <button onClick={() => downloadCropped('circle')} style={btnStyle}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 3, verticalAlign: '-1px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Circle
+              </button>
+              {!readOnly && (
+                <button onClick={useAsAvatar} style={{ ...btnStyle, color: avatarSaved ? t.status.success : t.accent.text }}>
+                  {avatarSaved ? (
+                    <><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ marginRight: 3, verticalAlign: '-1px' }}><polyline points="20 6 9 17 4 12"/></svg>Saved</>
+                  ) : (
+                    <><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 3, verticalAlign: '-1px' }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Set as profile pic</>
+                  )}
+                </button>
+              )}
             </div>
           </>
         ) : (
-          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 120, height: 120, borderRadius: '50%', border: `1px dashed ${feedback === 'error' ? t.status.danger : t.border.default}`, cursor: readOnly ? 'default' : 'pointer', color: feedback === 'error' ? t.status.danger : t.text.tertiary, fontSize: uploading ? 11 : 18, margin: '0 auto', transition: 'border-color 300ms' }}>
-            {uploading ? 'Uploading...' : feedback === 'error' ? 'Failed' : '+'}
+          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 120, height: 120, borderRadius: '50%', border: `1px dashed ${feedback === 'error' ? t.status.danger : t.border.default}`, cursor: readOnly ? 'default' : 'pointer', color: feedback === 'error' ? t.status.danger : t.text.tertiary, fontSize: 18, margin: '0 auto', transition: 'border-color 300ms', position: 'relative' }}>
+            {uploading ? (
+              <svg width="28" height="28" viewBox="0 0 28 28" style={{ animation: 'hs-spin 1s linear infinite' }}>
+                <circle cx="14" cy="14" r="12" fill="none" stroke={t.border.default} strokeWidth="2.5" opacity="0.3" />
+                <circle cx="14" cy="14" r="12" fill="none" stroke={t.accent.primary} strokeWidth="2.5" strokeDasharray="60 40" strokeLinecap="round" />
+              </svg>
+            ) : feedback === 'error' ? 'Failed' : '+'}
             {!readOnly && !uploading && <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0]); }} />}
           </label>
         )}

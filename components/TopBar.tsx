@@ -112,7 +112,8 @@ export default function TopBar() {
         {(() => {
           const clientMatch = pathname.match(/^\/clients\/([^/]+)/);
           const cl = clientMatch ? DB.clients.find((c) => c.id === clientMatch[1]) : null;
-          const avatarUrl = (cl as any)?.brand_builder_fields?.avatarUrl;
+          const avatarUrl = (cl as any)?.brand_builder_fields?.avatarUrl
+            || (typeof window !== 'undefined' ? localStorage.getItem('calo-agency-avatar') : null);
           return avatarUrl ? (
             <img src={avatarUrl} alt="" onClick={() => router.push('/settings')}
               style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer' }} />
