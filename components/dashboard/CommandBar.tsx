@@ -49,8 +49,20 @@ export default function CommandBar({ onItemSaved }: CommandBarProps) {
       const resp = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text }) });
       const data: CommandResponse = await resp.json();
       if ((data.type === 'task' || data.type === 'note') && data.client_id && data.content) {
-        await saveTaskNote(data.client_id, data.type, data.content);
+        const saved = await saveTaskNote(data.client_id, data.type, data.content);
         await logActivity(data.client_id, data.type === 'task' ? 'task_added' : 'note_added', { content: data.content }).catch(() => {});
+        // AI cleanup for notes
+        if (data.type === 'note' && saved?.id) {
+          try {
+            const cleanResp = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ message: `Clean up this note for a CRM. Fix grammar, capitalize properly, remove filler words. Return only the cleaned text, nothing else: ${data.content}` }) });
+            const cleanData = await cleanResp.json();
+            if (cleanData.answer && cleanData.answer.length > 0) {
+              const { default: supabase } = await import('@/lib/supabase');
+              await supabase.from('client_tasks_notes').update({ content: cleanData.answer }).eq('id', saved.id);
+            }
+          } catch { /* graceful fallback — keep original */ }
+        }
         setInput('');
         setToast({ type: data.type, text: data.client_name || 'client', clientId: data.client_id });
         onItemSaved?.();
