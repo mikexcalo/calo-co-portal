@@ -405,9 +405,9 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
   };
 
   const btnStyle: React.CSSProperties = {
-    padding: '6px 12px', fontSize: 12, border: '1px solid #e5e7eb',
-    borderRadius: 6, background: '#fff', cursor: 'pointer', color: '#374151',
-    fontFamily: 'inherit',
+    padding: '6px 12px', fontSize: 12, border: '1px solid #e2e2e5',
+    borderRadius: 6, background: 'transparent', cursor: 'pointer', color: '#6e6e76',
+    fontFamily: 'inherit', transition: 'background 150ms',
   };
 
   return (
@@ -420,7 +420,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           style={{ ...btnStyle, opacity: historyIndexRef.current >= historyRef.current.length - 1 ? 0.4 : 1 }}>↪ Redo</button>
         <button onClick={handleAddText} style={btnStyle}>+ Text</button>
         {selectedObject && selectedObject.name !== 'brand-bg' && selectedObject.name !== 'white-strip' && (
-          <button onClick={handleDelete} style={{ ...btnStyle, border: '1px solid #fecaca', background: '#fef2f2', color: '#991b1b' }}>Delete</button>
+          <button onClick={handleDelete} style={{ ...btnStyle, color: '#991b1b' }}>Delete</button>
         )}
         <div style={{ flex: 1 }} />
         {([
@@ -430,28 +430,29 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         ]).map(({ mode, color }) => (
           <div key={mode} onClick={(e) => { e.stopPropagation(); handleColorMode(mode); }} style={{
             width: 28, height: 28, borderRadius: '50%', backgroundColor: color,
-            border: colorMode === mode ? '2px solid #2563eb' : '1px solid #d1d5db',
-            cursor: 'pointer',
+            border: colorMode === mode ? '2px solid #2563eb' : '2px solid #e2e2e5',
+            boxShadow: colorMode === mode ? '0 0 0 2px rgba(37,99,235,0.15)' : 'none',
+            cursor: 'pointer', transition: 'border-color 150ms, box-shadow 150ms',
           }} />
         ))}
       </div>
 
       {/* Canvas */}
-      <div style={{ borderRadius: 4, border: '1px solid #e5e7eb', display: 'inline-block' }}>
+      <div style={{ borderRadius: 8, border: '1px solid #e2e2e5', display: 'inline-block', overflow: 'hidden' }}>
         <canvas ref={canvasRef} />
       </div>
 
       {/* Export buttons */}
       <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
         <button onClick={handleExportPDF} style={{
-          padding: '8px 20px', fontSize: 13, fontWeight: 500,
+          padding: '8px 20px', fontSize: 14, fontWeight: 500,
           background: '#2563eb', color: '#fff', border: 'none',
-          borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
+          borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit',
         }}>Download PDF</button>
         <button onClick={handleExportPNG} style={{
-          padding: '8px 20px', fontSize: 13, fontWeight: 500,
-          background: '#fff', color: '#2563eb', border: '1px solid #2563eb',
-          borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
+          padding: '8px 20px', fontSize: 14, fontWeight: 500,
+          background: 'transparent', color: '#2563eb', border: '1px solid #2563eb',
+          borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit',
         }}>Download PNG</button>
       </div>
     </div>

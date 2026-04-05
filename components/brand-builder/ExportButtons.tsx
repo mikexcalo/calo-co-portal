@@ -102,7 +102,7 @@ export default function ExportButtons({ assetType, previewRef, side, frontRef, b
     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
       <button onClick={handleExportPdf} disabled={!!exporting} style={{
         background: '#2563eb', border: 'none', color: '#fff',
-        borderRadius: 8, padding: '10px 20px', fontSize: 13, fontWeight: 500,
+        borderRadius: 6, padding: '8px 20px', fontSize: 14, fontWeight: 500,
         cursor: exporting ? 'wait' : 'pointer', fontFamily: 'inherit',
         opacity: exporting && exporting !== 'pdf' ? 0.5 : 1,
       }}>
@@ -110,7 +110,7 @@ export default function ExportButtons({ assetType, previewRef, side, frontRef, b
       </button>
       <button onClick={handleExportPng} disabled={!!exporting} style={{
         background: 'transparent', border: '1px solid #2563eb', color: '#2563eb',
-        borderRadius: 8, padding: '10px 20px', fontSize: 13, fontWeight: 500,
+        borderRadius: 6, padding: '8px 20px', fontSize: 14, fontWeight: 500,
         cursor: exporting ? 'wait' : 'pointer', fontFamily: 'inherit',
         opacity: exporting && exporting !== 'png' ? 0.5 : 1,
       }}>

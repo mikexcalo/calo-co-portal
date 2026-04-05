@@ -28,20 +28,22 @@ function Field({ label, value, onChange, type = 'text', placeholder, disabled, c
   return (
     <div>
       {label && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
           {onToggle !== undefined && (
             <input type="checkbox" checked={checked} onChange={(e) => onToggle(e.target.checked)}
-              style={{ width: 16, height: 16, cursor: 'pointer', flexShrink: 0 }} />
+              style={{ width: 16, height: 16, cursor: 'pointer', flexShrink: 0, accentColor: '#2563eb' }} />
           )}
-          <label style={{ fontSize: 13, fontWeight: 400, color: '#6b7280' }}>{label}</label>
+          <label style={{ fontSize: 13, fontWeight: 500, color: '#111113' }}>{label}</label>
         </div>
       )}
       <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} disabled={disabled}
         style={{
-          width: '100%', padding: '10px 12px', fontSize: 14, border: '1px solid #e5e7eb',
-          borderRadius: 8, fontFamily: 'inherit',
-          color: disabled ? '#94a3b8' : '#0f172a', background: disabled ? '#f8fafc' : '#fff',
-        }} />
+          width: '100%', padding: '8px 12px', fontSize: 14, border: '1px solid #e2e2e5',
+          borderRadius: 6, fontFamily: 'inherit', outline: 'none',
+          color: disabled ? '#94a3b8' : '#111113', background: disabled ? '#f8fafc' : '#fff',
+        }}
+        onFocus={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.08)'; }}
+        onBlur={(e) => { e.currentTarget.style.borderColor = '#e2e2e5'; e.currentTarget.style.boxShadow = 'none'; }} />
     </div>
   );
 }
@@ -57,11 +59,11 @@ function SigField({ label, value, showKey, fields, update, fieldKey, type = 'tex
   return (
     <div style={{ marginBottom: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{label}</span>
+        <span style={{ fontSize: 13, fontWeight: 500, color: '#111113' }}>{label}</span>
         <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
           <input type="checkbox" checked={isShown} onChange={() => update(showKey as keyof BrandBuilderFields, !isShown)}
-            style={{ accentColor: '#6366f1' }} />
-          <span style={{ fontSize: 12, color: isShown ? '#6366f1' : '#9ca3af' }}>
+            style={{ accentColor: '#2563eb' }} />
+          <span style={{ fontSize: 12, color: isShown ? '#2563eb' : '#9ca3af' }}>
             {isShown ? 'Shown' : 'Hidden'}
           </span>
         </label>
@@ -69,10 +71,12 @@ function SigField({ label, value, showKey, fields, update, fieldKey, type = 'tex
       <input type={type} value={value || ''} onChange={(e) => update(fk as keyof BrandBuilderFields, e.target.value)}
         placeholder={placeholder || `Enter ${label.toLowerCase()}`} disabled={!isShown}
         style={{
-          width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb',
-          borderRadius: 8, fontSize: 14, color: '#111827', fontFamily: 'inherit',
+          width: '100%', padding: '8px 12px', border: '1px solid #e2e2e5',
+          borderRadius: 6, fontSize: 14, color: '#111113', fontFamily: 'inherit', outline: 'none',
           background: isShown ? '#fff' : '#f9fafb', opacity: isShown ? 1 : 0.5,
-        }} />
+        }}
+        onFocus={(e) => { if (isShown) { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.08)'; } }}
+        onBlur={(e) => { e.currentTarget.style.borderColor = '#e2e2e5'; e.currentTarget.style.boxShadow = 'none'; }} />
     </div>
   );
 }
@@ -93,14 +97,14 @@ export default function FieldEditor({ fields, onChange, sources, assetType, clie
       {/* Size selector for Yard Signs */}
       {isYS && (
         <div style={{ marginBottom: 12 }}>
-          <label style={{ fontSize: 13, fontWeight: 400, color: '#6b7280', display: 'block', marginBottom: 4 }}>Sign Size</label>
+          <label style={{ fontSize: 13, fontWeight: 500, color: '#111113', display: 'block', marginBottom: 4 }}>Sign Size</label>
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             {SIGN_SIZES.map((s) => (
               <button key={s.value} onClick={() => update('signSize', s.value)} style={{
-                padding: '4px 10px', fontSize: 11, fontWeight: 500, borderRadius: 6, cursor: 'pointer',
-                border: fields.signSize === s.value ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
-                background: fields.signSize === s.value ? '#eff6ff' : '#fff',
-                color: fields.signSize === s.value ? '#2563eb' : '#6b7280',
+                padding: '5px 10px', fontSize: 13, fontWeight: 400, borderRadius: 6, cursor: 'pointer',
+                border: fields.signSize === s.value ? '1px solid #2563eb' : '1px solid #e2e2e5',
+                background: fields.signSize === s.value ? 'rgba(37,99,235,0.04)' : 'transparent',
+                color: fields.signSize === s.value ? '#2563eb' : '#6e6e76',
                 fontFamily: 'inherit',
               }}>{s.label}</button>
             ))}
@@ -112,7 +116,7 @@ export default function FieldEditor({ fields, onChange, sources, assetType, clie
       {fields.logoUrl && (
         <div style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>Logo</span>
+            <span style={{ fontSize: 13, fontWeight: 500, color: '#111113' }}>Logo</span>
           </div>
           <div style={{ background: '#f9fafb', borderRadius: 8, padding: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
             <img src={fields.logoUrl} alt="Logo" style={{ width: 36, height: 36, objectFit: 'contain' }} />
@@ -133,7 +137,7 @@ export default function FieldEditor({ fields, onChange, sources, assetType, clie
           {/* Divider + More fields */}
           <div
             onClick={() => setMoreOpen(!moreOpen)}
-            style={{ cursor: 'pointer', fontSize: 13, color: '#2563eb', padding: '8px 0', borderTop: '1px solid #f1f3f5', marginTop: 4 }}
+            style={{ cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#2563eb', padding: '8px 0', borderTop: '1px solid #e2e2e5', marginTop: 4 }}
           >
             {moreOpen ? '− Fewer fields' : '+ More fields'}
           </div>
@@ -185,7 +189,7 @@ export default function FieldEditor({ fields, onChange, sources, assetType, clie
           <div style={{ marginTop: 16 }}>
             <button onClick={() => setMoreOpen(!moreOpen)} style={{
               background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-              fontSize: 13, fontWeight: 400, color: '#6b7280', fontFamily: 'inherit',
+              fontSize: 13, fontWeight: 500, color: '#2563eb', fontFamily: 'inherit',
             }}>
               {moreOpen ? '− Fewer fields' : '+ More fields'}
             </button>

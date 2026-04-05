@@ -34,10 +34,10 @@ function ColorRow({ fields, clientId, onFieldsChange }: { fields: BrandBuilderFi
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         {colorways.map((cw, i) => (
           <div key={i} onClick={() => handleClick(i)} style={{
-            width: 24, height: 24, borderRadius: '50%', background: cw.bg,
-            border: '1px solid #e5e7eb', cursor: 'pointer',
-            outline: activeIdx === i ? '2px solid #2563eb' : 'none',
-            outlineOffset: activeIdx === i ? '2px' : '0',
+            width: 28, height: 28, borderRadius: '50%', background: cw.bg,
+            border: activeIdx === i ? '2px solid #2563eb' : '2px solid #e2e2e5',
+            boxShadow: activeIdx === i ? '0 0 0 2px rgba(37,99,235,0.15)' : 'none',
+            cursor: 'pointer', transition: 'border-color 150ms, box-shadow 150ms',
           }} />
         ))}
       </div>

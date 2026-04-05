@@ -358,7 +358,7 @@ export default function BrandBuilderPage() {
             /* Other templates — existing FieldEditor + AssetPreview layout */
             <>
               {/* Fields: 420px fixed */}
-              <div style={{ width: 420, flexShrink: 0, borderRight: `1px solid ${t.border.default}`, padding: 32, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' }}>
+              <div style={{ width: 380, flexShrink: 0, borderRight: `1px solid ${t.border.default}`, padding: 24, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' }}>
                 <FieldEditor fields={fields} onChange={handleFieldsChange} sources={sources} assetType={assetType} clientId={clientId} hasBrandKit={hasBrandKit} />
               </div>
               {/* Preview: flex: 1 */}
