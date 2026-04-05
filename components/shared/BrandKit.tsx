@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { BrandKit as BrandKitType } from '@/lib/types';
 import { DB, loadClients, loadAllBrandKits, saveBrandKit } from '@/lib/database';
 import LogoSlot from '@/components/brand-kit/LogoSlot';
@@ -177,6 +177,8 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
         <Section label="Typography"><div style={card}><Typography fonts={brandKit.fonts} readOnly={readOnly} onFontChange={handleFontChange} /></div></Section>
         <Section label="Notes"><div style={card}><BrandNotes notes={brandKit.notes || ''} readOnly={readOnly} onNotesChange={handleNotesChange} /></div></Section>
       </div>
+
+      <BrandDetails t={t} entityId={entityId} readOnly={readOnly} />
     </BrandKitErrorBoundary>
   );
 }
@@ -216,5 +218,130 @@ function FileTypeGuide({ t }: { t: any }) {
         </div>
       )}
     </div>
+  );
+}
+
+function BrandDetails({ t, entityId, readOnly }: { t: any; entityId: string; readOnly: boolean }) {
+  const [fields, setFields] = useState({ tagline: '', serviceArea: '', licenseNumber: '', socialInstagram: '', socialFacebook: '' });
+  const [headshots, setHeadshots] = useState<{ owner?: { url: string; filename: string }; team?: { url: string; filename: string } }>({});
+  const [loaded, setLoaded] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const cl = DB.clients.find((c) => c.id === entityId);
+    if (cl) {
+      const bbf = (cl as any).brand_builder_fields || {};
+      setFields({
+        tagline: bbf.tagline || '', serviceArea: bbf.serviceArea || '',
+        licenseNumber: bbf.licenseNumber || '', socialInstagram: bbf.socialInstagram || '', socialFacebook: bbf.socialFacebook || '',
+      });
+      setHeadshots(bbf.headshots || {});
+    }
+    setLoaded(true);
+  }, [entityId]);
+
+  const saveFields = useCallback((next: any) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(async () => {
+      try {
+        const supabase = (await import('@/lib/supabase')).default;
+        const cl = DB.clients.find((c) => c.id === entityId);
+        const existing = (cl as any)?.brand_builder_fields || {};
+        await supabase.from('clients').update({ brand_builder_fields: { ...existing, ...next } }).eq('id', entityId);
+      } catch (e) { console.warn('[BrandDetails] save failed:', e); }
+    }, 500);
+  }, [entityId]);
+
+  const updateField = (key: string, value: string) => {
+    const next = { ...fields, [key]: value };
+    setFields(next);
+    saveFields(next);
+  };
+
+  const handleUpload = async (slot: 'owner' | 'team', file: File) => {
+    try {
+      const supabase = (await import('@/lib/supabase')).default;
+      const prefix = entityId === 'agency' ? 'headshots/agency' : `headshots/${entityId}`;
+      const path = `${prefix}/${slot}-${Date.now()}-${file.name}`;
+      const { error } = await supabase.storage.from('brand-assets').upload(path, file, { upsert: true });
+      if (error) { console.warn('[Headshot upload]', error); return; }
+      const { data: urlData } = supabase.storage.from('brand-assets').getPublicUrl(path);
+      const updated = { ...headshots, [slot]: { url: urlData.publicUrl, filename: file.name } };
+      setHeadshots(updated);
+      saveFields({ ...fields, headshots: updated });
+    } catch (e) { console.warn('[Headshot upload error]', e); }
+  };
+
+  const removeHeadshot = (slot: 'owner' | 'team') => {
+    const updated = { ...headshots };
+    delete updated[slot];
+    setHeadshots(updated);
+    saveFields({ ...fields, headshots: updated });
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '8px 10px', fontSize: 13,
+    border: `1px solid ${t.border.default}`, borderRadius: t.radius.sm,
+    background: t.bg.primary, color: t.text.primary, fontFamily: 'inherit', outline: 'none',
+  };
+  const labelStyle: React.CSSProperties = { fontSize: 11, color: t.text.secondary, display: 'block', marginBottom: 4 };
+  const card: React.CSSProperties = { background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 16 };
+
+  if (!loaded) return null;
+
+  return (
+    <Section label="Brand Details">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        {/* Photos */}
+        <div style={card}>
+          <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary, marginBottom: 10 }}>Photos</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {(['owner', 'team'] as const).map((slot) => {
+              const data = headshots[slot];
+              return (
+                <div key={slot}>
+                  <label style={labelStyle}>{slot === 'owner' ? 'Owner / Primary' : 'Team Photo'}</label>
+                  {data?.url ? (
+                    <div style={{ position: 'relative', borderRadius: t.radius.sm, overflow: 'hidden', border: `1px solid ${t.border.default}` }}>
+                      <img src={data.url} alt={data.filename} style={{ width: '100%', height: 80, objectFit: 'cover', display: 'block' }} />
+                      {!readOnly && (
+                        <button onClick={() => removeHeadshot(slot)} style={{
+                          position: 'absolute', top: 4, right: 4, width: 18, height: 18, borderRadius: '50%',
+                          background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', fontSize: 10,
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>×</button>
+                      )}
+                    </div>
+                  ) : (
+                    <label style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', height: 80,
+                      border: `1px dashed ${t.border.default}`, borderRadius: t.radius.sm,
+                      cursor: readOnly ? 'default' : 'pointer', color: t.text.tertiary, fontSize: 12,
+                    }}>
+                      {readOnly ? 'No photo' : '+ Upload'}
+                      {!readOnly && <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) handleUpload(slot, e.target.files[0]); }} />}
+                    </label>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Business Info */}
+        <div style={card}>
+          <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary, marginBottom: 10 }}>Business Info</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div><label style={labelStyle}>Tagline / Slogan</label><input value={fields.tagline} onChange={(e) => updateField('tagline', e.target.value)} placeholder="Your trusted partner" disabled={readOnly} style={inputStyle} /></div>
+            <div><label style={labelStyle}>Service Area</label><input value={fields.serviceArea} onChange={(e) => updateField('serviceArea', e.target.value)} placeholder="Portland Metro, South Portland" disabled={readOnly} style={inputStyle} /></div>
+            <div><label style={labelStyle}>License / Certification #</label><input value={fields.licenseNumber} onChange={(e) => updateField('licenseNumber', e.target.value)} placeholder="e.g. LIC-12345" disabled={readOnly} style={inputStyle} /></div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div><label style={labelStyle}>Instagram</label><input value={fields.socialInstagram} onChange={(e) => updateField('socialInstagram', e.target.value)} placeholder="@handle" disabled={readOnly} style={inputStyle} /></div>
+              <div><label style={labelStyle}>Facebook</label><input value={fields.socialFacebook} onChange={(e) => updateField('socialFacebook', e.target.value)} placeholder="facebook.com/yourpage" disabled={readOnly} style={inputStyle} /></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Section>
   );
 }
