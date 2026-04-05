@@ -8,6 +8,7 @@ import { ThemeProvider } from '@/lib/theme';
 export const metadata: Metadata = {
   title: 'CALO&CO Portal',
   description: 'CALO&CO Agency Management Portal',
+  icons: { icon: '/favicon.svg' },
 };
 
 export default function RootLayout({

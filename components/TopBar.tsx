@@ -86,10 +86,10 @@ export default function TopBar() {
       <div style={{ fontSize: 13, color: t.text.tertiary, display: 'flex', alignItems: 'center', gap: 6 }}>
         {segments.map((seg, i) => (
           <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {i > 0 && <span style={{ color: t.text.tertiary, opacity: 0.5 }}>/</span>}
+            {i > 0 && <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.3" style={{ opacity: 0.4, flexShrink: 0, color: t.text.tertiary }}><polyline points="3 1.5 7 5 3 8.5" /></svg>}
             {seg.href ? (
               <span
-                style={{ cursor: 'pointer', color: t.text.tertiary }}
+                style={{ cursor: 'pointer', color: t.text.tertiary, fontWeight: 400 }}
                 onClick={() => router.push(seg.href!)}
                 onMouseEnter={(e) => (e.currentTarget.style.color = t.text.primary)}
                 onMouseLeave={(e) => (e.currentTarget.style.color = t.text.tertiary)}
@@ -97,7 +97,7 @@ export default function TopBar() {
                 {seg.label}
               </span>
             ) : (
-              <span style={{ color: i === segments.length - 1 && segments.length > 1 ? t.text.secondary : t.text.tertiary }}>{seg.label}</span>
+              <span style={{ color: i === segments.length - 1 ? t.text.primary : t.text.tertiary, fontWeight: i === segments.length - 1 ? 600 : 400 }}>{seg.label}</span>
             )}
           </span>
         ))}
