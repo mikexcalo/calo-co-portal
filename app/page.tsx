@@ -8,7 +8,6 @@ import {
   loadTasksNotes, DB, updateTaskStatus,
 } from '@/lib/database';
 import { agencyStats, currency, invTotal } from '@/lib/utils';
-import CommandBar from '@/components/dashboard/CommandBar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme';
 
@@ -131,29 +130,31 @@ export default function Home() {
     <div style={{ padding: 32, maxWidth: 960, minHeight: 'calc(100vh - 48px)' }}>
       <motion.div variants={stagger} initial="hidden" animate="show">
 
-        {/* Greeting — BIG, editorial */}
-        <motion.div variants={fadeUp} style={{ marginBottom: 20 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 400, color: t.text.primary, margin: '0 0 4px', letterSpacing: '-0.01em' }}>{greeting}</h1>
-          <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>{dateline}</p>
-        </motion.div>
-
-        {/* Captain's Log — accent border, glow */}
-        <motion.div variants={fadeUp} style={{
-          marginBottom: 20,
-          border: `1.5px solid ${t.accent.primary}`,
-          borderRadius: 14,
-          boxShadow: `0 0 12px ${t.accent.subtle}`,
-          overflow: 'hidden',
-        }}>
-          <CommandBar onItemSaved={refreshFeed} />
+        {/* Greeting + search bar */}
+        <motion.div variants={fadeUp} style={{ marginBottom: 20, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <div>
+            <h1 style={{ fontSize: 28, fontWeight: 400, color: t.text.primary, margin: '0 0 4px', letterSpacing: '-0.01em' }}>{greeting}</h1>
+            <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>{dateline}</p>
+          </div>
+          <div style={{ position: 'relative', maxWidth: 280, width: '100%' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a1a1a5" strokeWidth="2" style={{ position: 'absolute', left: 10, top: 11, pointerEvents: 'none' }}>
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              placeholder="Search..."
+              style={{ width: '100%', height: 36, paddingLeft: 32, paddingRight: 12, fontSize: 13, fontFamily: 'inherit', border: `1px solid ${t.border.default}`, borderRadius: 6, background: t.bg.surface, color: t.text.primary, outline: 'none', transition: 'border-color 150ms, box-shadow 150ms' }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.08)'; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = t.border.default; e.currentTarget.style.boxShadow = 'none'; }}
+            />
+          </div>
         </motion.div>
 
         {/* Financial tiles — 4 columns */}
         <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
           {[
-            { label: 'Revenue (MTD)', value: currency(paidMTD), color: t.status.success, href: '/financials' },
-            { label: 'Outstanding', value: currency(stats.outstanding), color: t.status.warning, href: '/financials' },
-            { label: 'Collected', value: currency(paidMTD), color: t.text.primary, href: '/financials' },
+            { label: 'Revenue (MTD)', value: currency(paidMTD), color: paidMTD > 0 ? t.status.success : t.text.secondary, href: '/financials' },
+            { label: 'Outstanding', value: currency(stats.outstanding), color: stats.outstanding > 0 ? t.status.warning : t.text.secondary, href: '/financials' },
+            { label: 'Collected', value: currency(paidMTD), color: paidMTD > 0 ? t.text.primary : t.text.secondary, href: '/financials' },
             { label: 'Active Clients', value: String(DB.clients.length), color: t.text.primary, href: '/clients' },
           ].map((m) => (
             <motion.div key={m.label} whileHover={{ y: -2 }} transition={spring}
@@ -296,21 +297,22 @@ export default function Home() {
                     </div>
                     {/* Quick action buttons */}
                     <div style={{ display: 'flex', alignItems: 'center', paddingLeft: 42 }}>
-                      <div style={{ display: 'flex', gap: 4 }} onClick={(e) => e.stopPropagation()}>
+                      <div style={{ display: 'flex', gap: 6 }} onClick={(e) => e.stopPropagation()}>
                         {[
-                          { icon: ic.ds, href: `/clients/${client.id}/brand-builder`, label: 'Design Studio' },
-                          { icon: ic.bk, href: `/clients/${client.id}/brand-kit`, label: 'Brand Kit' },
+                          { icon: ic.bk, href: `/clients/${client.id}/brand-kit`, label: 'Brand' },
+                          { icon: ic.ds, href: `/clients/${client.id}/brand-builder`, label: 'Studio' },
                           { icon: ic.inv, href: `/clients/${client.id}/invoices`, label: 'Invoices' },
                         ].map((btn, i) => (
                           <button key={i} title={btn.label} onClick={(e) => { e.stopPropagation(); router.push(btn.href); }}
                             style={{
-                              width: 28, height: 28, borderRadius: 6, background: t.bg.surfaceHover, border: 'none',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              height: 26, borderRadius: 6, background: t.bg.surfaceHover, border: 'none',
+                              display: 'flex', alignItems: 'center', gap: 4, padding: '0 8px',
                               cursor: 'pointer', color: t.text.secondary, transition: 'background 150ms, color 150ms',
+                              fontSize: 11, fontWeight: 500, fontFamily: 'inherit',
                             }}
                             onMouseEnter={(e) => { e.currentTarget.style.background = t.accent.primary; e.currentTarget.style.color = '#fff'; }}
                             onMouseLeave={(e) => { e.currentTarget.style.background = t.bg.surfaceHover; e.currentTarget.style.color = t.text.secondary; }}
-                          >{btn.icon}</button>
+                          >{btn.icon}{btn.label}</button>
                         ))}
                       </div>
                       <div style={{ flex: 1 }} />
