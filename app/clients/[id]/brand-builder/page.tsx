@@ -371,18 +371,27 @@ export default function BrandBuilderPage() {
             {/* Print section */}
             <div style={{ fontSize: 12, fontWeight: 500, color: t.text.secondary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>Print</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 28 }}>
-              {ASSET_TYPES.map((tmpl) => {
-                const descs: Record<string, string> = { 'business-card': '3.5 × 2 in', 'yard-sign': '5 sizes', 'vehicle-magnet': '24 × 12 in', 't-shirt': 'Front + Back', 'door-hanger': '4.25 × 11 in', 'flyer': '8.5 × 11 in' };
-                return <TemplateCard key={tmpl.id} id={tmpl.id} label={tmpl.label} desc={descs[tmpl.id]} onClick={() => handleAssetTypeChange(tmpl.id)} />;
-              })}
+              {([
+                { id: 'business-card' as AssetType, label: 'Business Cards', desc: '3.5 × 2 in' },
+                { id: 'yard-sign' as AssetType, label: 'Yard Signs', desc: '5 sizes' },
+                { id: 'vehicle-magnet' as AssetType, label: 'Vehicle Magnets', desc: '24 × 12 in' },
+                { id: 't-shirt' as AssetType, label: 'T-Shirts', desc: 'Front + Back' },
+                { id: 'door-hanger' as AssetType, label: 'Door Hangers', desc: '4.25 × 11 in' },
+                { id: 'flyer' as AssetType, label: 'Flyers', desc: '8.5 × 11 in' },
+              ]).map((tmpl) => (
+                <TemplateCard key={tmpl.id} id={tmpl.id} label={tmpl.label} desc={tmpl.desc} onClick={() => handleAssetTypeChange(tmpl.id)} />
+              ))}
+              <TemplateCard id="poster" label="Posters" desc="3 sizes" />
+              <TemplateCard id="one-pager" label="One-Pagers" desc="Sales + case study" />
+              <TemplateCard id="direct-mail" label="Direct Mail" desc="Postcards · 6 × 4 in" />
             </div>
 
             {/* Digital section */}
             <div style={{ fontSize: 12, fontWeight: 500, color: t.text.secondary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>Digital</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-              <TemplateCard id="email-signature" label="Email Signature" desc="Gmail, Outlook, more" onClick={() => router.push(`/clients/${clientId}/email-signature`)} />
-              <TemplateCard id="social-images" label="Social Images" desc="Coming soon" disabled />
-              <TemplateCard id="web-banners" label="Web Banners" desc="Coming soon" disabled />
+              <TemplateCard id="email-signature" label="Email Signature" desc="Gmail · Outlook" onClick={() => router.push(`/clients/${clientId}/email-signature`)} />
+              <TemplateCard id="social-graphics" label="Social Graphics" desc="IG · LinkedIn · FB" />
+              <TemplateCard id="web-banners" label="Web Banners" desc="Hero · sidebar · leaderboard" comingSoon />
             </div>
           </div>
         )}
@@ -392,9 +401,9 @@ export default function BrandBuilderPage() {
 }
 
 /* Clean flat template card */
-function TemplateCard({ id, label, desc, onClick, disabled }: {
+function TemplateCard({ id, label, desc, onClick, disabled, comingSoon }: {
   id: string; label: string; desc: string;
-  onClick?: () => void; disabled?: boolean;
+  onClick?: () => void; disabled?: boolean; comingSoon?: boolean;
 }) {
   const { t } = useTheme();
   const [hovered, setHovered] = useState(false);
@@ -418,9 +427,11 @@ function TemplateCard({ id, label, desc, onClick, disabled }: {
       <div style={{ fontSize: 14, fontWeight: 500, marginTop: 16 }}>{label}</div>
       <div style={{ fontSize: 13, color: t.text.secondary, marginTop: 2, flex: 1 }}>{desc}</div>
       <div style={{ marginTop: 8 }}>
-        <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: t.bg.primary, color: t.text.secondary }}>
-          {disabled ? 'Coming soon' : 'Not started'}
-        </span>
+        {comingSoon ? (
+          <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(14,165,233,0.1)', color: '#0ea5e9' }}>Coming soon</span>
+        ) : (
+          <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: t.bg.primary, color: t.text.secondary }}>Not started</span>
+        )}
       </div>
     </button>
   );
@@ -436,6 +447,12 @@ function AssetIcon({ id, size = 24 }: { id: string; size?: number }) {
     case 't-shirt': return <svg {...p}><path d="M8 2l-2 0-4 4v3h4v13h12V9h4V6l-4-4h-2c0 0-1 2-4 2s-4-2-4-2z"/></svg>;
     case 'door-hanger': return <svg {...p}><rect x="6" y="1" width="12" height="22" rx="2"/><circle cx="12" cy="5" r="2.5"/></svg>;
     case 'flyer': return <svg {...p}><rect x="4" y="1" width="16" height="22" rx="2"/><line x1="8" y1="7" x2="16" y2="7" strokeLinecap="round"/><line x1="8" y1="11" x2="14" y2="11" strokeLinecap="round"/><line x1="8" y1="15" x2="12" y2="15" strokeLinecap="round"/></svg>;
+    case 'poster': return <svg {...p}><rect x="3" y="1" width="18" height="22" rx="2"/><rect x="6" y="4" width="12" height="8" rx="1" opacity="0.3" fill="currentColor" stroke="none"/><line x1="6" y1="15" x2="18" y2="15" strokeLinecap="round"/><line x1="6" y1="18" x2="14" y2="18" strokeLinecap="round"/></svg>;
+    case 'one-pager': return <svg {...p}><rect x="4" y="1" width="16" height="22" rx="2"/><line x1="8" y1="6" x2="16" y2="6" strokeLinecap="round"/><line x1="8" y1="10" x2="16" y2="10" strokeLinecap="round"/><rect x="8" y="13" width="8" height="5" rx="1" opacity="0.2" fill="currentColor" stroke="none"/></svg>;
+    case 'direct-mail': return <svg {...p}><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 6l10 7 10-7"/></svg>;
+    case 'email-signature': return <svg {...p}><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 6l10 7 10-7"/><line x1="6" y1="14" x2="10" y2="14" strokeLinecap="round"/><line x1="6" y1="17" x2="8" y2="17" strokeLinecap="round"/></svg>;
+    case 'social-graphics': return <svg {...p}><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="18" cy="6" r="1.5" fill="currentColor" stroke="none"/></svg>;
+    case 'web-banners': return <svg {...p}><rect x="1" y="5" width="22" height="14" rx="2"/><line x1="1" y1="9" x2="23" y2="9"/><rect x="4" y="11" width="6" height="5" rx="1" opacity="0.2" fill="currentColor" stroke="none"/></svg>;
     default: return null;
   }
 }
