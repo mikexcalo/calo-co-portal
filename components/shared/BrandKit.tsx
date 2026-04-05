@@ -329,64 +329,69 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
 
   return (
     <Section label="Headshot">
-      <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 16, minHeight: 180, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+      <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 16 }}>
         {headshot?.url ? (
           <>
-            {/* Edit/Done toggle */}
-            {!readOnly && (
-              <button onClick={() => { if (editing) { saveAdjustments(zoom, offset.x, offset.y); setEditing(false); } else { setEditing(true); } }}
-                style={{ position: 'absolute', top: 10, right: 12, background: 'none', border: 'none', fontSize: 11, color: t.text.secondary, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}
-                onMouseEnter={(e) => e.currentTarget.style.color = t.text.primary}
-                onMouseLeave={(e) => e.currentTarget.style.color = t.text.secondary}>
-                {editing ? 'Done' : 'Edit'}
-              </button>
-            )}
-            {/* Circle viewport */}
-            <div style={{ position: 'relative', width: 120, height: 120, borderRadius: '50%', overflow: 'hidden', border: `2px solid ${borderColor}`, margin: '0 auto', cursor: editing ? (dragging ? 'grabbing' : 'grab') : 'default', transition: 'border-color 300ms' }}
-              onMouseDown={editing ? onDragStart : undefined} onTouchStart={editing ? onDragStart : undefined}>
-              <img src={headshot.url} alt="" draggable={false} style={{ position: 'absolute', width: '100%', height: '100%', objectFit: 'cover', transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`, pointerEvents: 'none' }} />
-              {!readOnly && <button onClick={(e) => { e.stopPropagation(); remove(); setEditing(false); }} style={{ position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>×</button>}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              {/* Left: circle viewport */}
+              <div style={{ flexShrink: 0 }}>
+                <div style={{ position: 'relative', width: 100, height: 100, borderRadius: '50%', overflow: 'hidden', border: `2px solid ${borderColor}`, cursor: editing ? (dragging ? 'grabbing' : 'grab') : 'default', transition: 'border-color 300ms' }}
+                  onMouseDown={editing ? onDragStart : undefined} onTouchStart={editing ? onDragStart : undefined}>
+                  <img src={headshot.url} alt="" draggable={false} style={{ position: 'absolute', width: '100%', height: '100%', objectFit: 'cover', transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`, pointerEvents: 'none' }} />
+                  {!readOnly && <button onClick={(e) => { e.stopPropagation(); remove(); setEditing(false); }} style={{ position: 'absolute', top: 2, right: 2, width: 16, height: 16, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', fontSize: 9, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>×</button>}
+                </div>
+              </div>
+              {/* Right: buttons stacked */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {!readOnly && (
+                  <button onClick={() => { if (editing) { saveAdjustments(zoom, offset.x, offset.y); setEditing(false); } else { setEditing(true); } }}
+                    style={{ alignSelf: 'flex-end', background: 'none', border: 'none', fontSize: 11, color: t.text.secondary, cursor: 'pointer', fontFamily: 'inherit', padding: 0, marginBottom: 2 }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = t.text.primary}
+                    onMouseLeave={(e) => e.currentTarget.style.color = t.text.secondary}>
+                    {editing ? 'Done' : 'Edit'}
+                  </button>
+                )}
+                <button onClick={() => downloadCropped('square')} style={{ ...btnStyle, width: '100%', textAlign: 'left' }}>
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 3, verticalAlign: '-1px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Square
+                </button>
+                <button onClick={() => downloadCropped('circle')} style={{ ...btnStyle, width: '100%', textAlign: 'left' }}>
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 3, verticalAlign: '-1px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Circle
+                </button>
+                {!readOnly && (
+                  <button onClick={useAsAvatar} style={{ ...btnStyle, width: '100%', textAlign: 'left', color: avatarSaved ? t.status.success : t.accent.text }}>
+                    {avatarSaved ? (
+                      <><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ marginRight: 3, verticalAlign: '-1px' }}><polyline points="20 6 9 17 4 12"/></svg>Saved</>
+                    ) : (
+                      <><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 3, verticalAlign: '-1px' }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile pic</>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
-            {/* Zoom slider — only in edit mode */}
+            {/* Zoom slider — full width, only in edit mode */}
             {editing && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, width: 120 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 10 }}>
                 <span style={{ fontSize: 12 }}>🔍</span>
                 <input type="range" min="1" max="3" step="0.05" value={zoom}
                   onChange={(e) => { const z = parseFloat(e.target.value); setZoom(z); saveAdjustments(z, offset.x, offset.y); }}
                   style={{ flex: 1, height: 4, cursor: 'pointer' }} />
               </div>
             )}
-            {/* Action buttons — single row */}
-            <div style={{ display: 'flex', gap: 4, justifyContent: 'center', marginTop: 6, flexWrap: 'nowrap' }}>
-              <button onClick={() => downloadCropped('square')} style={btnStyle}>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 2, verticalAlign: '-1px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Square
-              </button>
-              <button onClick={() => downloadCropped('circle')} style={btnStyle}>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 2, verticalAlign: '-1px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Circle
-              </button>
-              {!readOnly && (
-                <button onClick={useAsAvatar} style={{ ...btnStyle, color: avatarSaved ? t.status.success : t.accent.text }}>
-                  {avatarSaved ? (
-                    <><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ marginRight: 2, verticalAlign: '-1px' }}><polyline points="20 6 9 17 4 12"/></svg>Saved</>
-                  ) : (
-                    <><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 2, verticalAlign: '-1px' }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile pic</>
-                  )}
-                </button>
-              )}
-            </div>
           </>
         ) : (
-          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 120, height: 120, borderRadius: '50%', border: `1px dashed ${feedback === 'error' ? t.status.danger : t.border.default}`, cursor: readOnly ? 'default' : 'pointer', color: feedback === 'error' ? t.status.danger : t.text.tertiary, fontSize: 18, margin: '0 auto', transition: 'border-color 300ms', position: 'relative' }}>
-            {uploading ? (
-              <svg width="28" height="28" viewBox="0 0 28 28" style={{ animation: 'hs-spin 1s linear infinite' }}>
-                <circle cx="14" cy="14" r="12" fill="none" stroke={t.border.default} strokeWidth="2.5" opacity="0.3" />
-                <circle cx="14" cy="14" r="12" fill="none" stroke={t.accent.primary} strokeWidth="2.5" strokeDasharray="60 40" strokeLinecap="round" />
-              </svg>
-            ) : feedback === 'error' ? 'Failed' : '+'}
-            {!readOnly && !uploading && <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0]); }} />}
-          </label>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 100, height: 100, borderRadius: '50%', border: `1px dashed ${feedback === 'error' ? t.status.danger : t.border.default}`, cursor: readOnly ? 'default' : 'pointer', color: feedback === 'error' ? t.status.danger : t.text.tertiary, fontSize: 18, transition: 'border-color 300ms' }}>
+              {uploading ? (
+                <svg width="28" height="28" viewBox="0 0 28 28" style={{ animation: 'hs-spin 1s linear infinite' }}>
+                  <circle cx="14" cy="14" r="12" fill="none" stroke={t.border.default} strokeWidth="2.5" opacity="0.3" />
+                  <circle cx="14" cy="14" r="12" fill="none" stroke={t.accent.primary} strokeWidth="2.5" strokeDasharray="60 40" strokeLinecap="round" />
+                </svg>
+              ) : feedback === 'error' ? 'Failed' : '+'}
+              {!readOnly && !uploading && <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0]); }} />}
+            </label>
+          </div>
         )}
       </div>
     </Section>
