@@ -27,9 +27,9 @@ const ic = {
   pencil: <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M10 3l5 5-9 9H1v-5l9-9z"/></svg>,
   trash: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
   chevron: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="6 4 10 8 6 12"/></svg>,
-  ds: <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2"><rect x="1.5" y="1.5" width="13" height="13" rx="1.5"/><line x1="1.5" y1="6" x2="14.5" y2="6"/><line x1="6" y1="6" x2="6" y2="14.5"/></svg>,
-  bk: <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="3"/></svg>,
-  inv: <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2"><rect x="2" y="1" width="12" height="14" rx="1.5"/><line x1="5" y1="5" x2="11" y2="5" strokeLinecap="round"/><line x1="5" y1="8" x2="11" y2="8" strokeLinecap="round"/></svg>,
+  ds: <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><ellipse cx="7.5" cy="8.5" rx="6.5" ry="5.5"/><circle cx="5" cy="7" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="10.5" cy="8" r="1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="10" r="0.8" fill="none" stroke="currentColor" strokeWidth="1"/></svg>,
+  bk: <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="3"/><circle cx="8" cy="8" r="0.8"/></svg>,
+  inv: <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="2" y="1" width="12" height="14" rx="1.5"/><line x1="5" y1="5" x2="11" y2="5" strokeLinecap="round"/><line x1="5" y1="8" x2="11" y2="8" strokeLinecap="round"/><line x1="5" y1="11" x2="8" y2="11" strokeLinecap="round"/></svg>,
 };
 
 export default function Home() {
@@ -224,14 +224,14 @@ export default function Home() {
                             )}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                            <button onClick={(e) => { e.stopPropagation(); handleTrash(item.id, item.text); }} style={{
+                            <button title="Remove" onClick={(e) => { e.stopPropagation(); handleTrash(item.id, item.text); }} style={{
                               background: 'none', border: 'none', cursor: 'pointer', padding: 2,
                               color: t.text.tertiary, transition: 'color 150ms',
                             }}
                             onMouseEnter={(e) => e.currentTarget.style.color = t.status.danger}
                             onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}
                             >{ic.trash}</button>
-                            <button onClick={(e) => { e.stopPropagation(); if (item.clientId) router.push(isInv ? `/clients/${item.clientId}/invoices` : `/clients/${item.clientId}`); }} style={{
+                            <button title="Open" onClick={(e) => { e.stopPropagation(); if (item.clientId) router.push(isInv ? `/clients/${item.clientId}/invoices` : `/clients/${item.clientId}`); }} style={{
                               background: 'none', border: 'none', cursor: 'pointer', padding: 2,
                               color: t.text.tertiary, transition: 'color 150ms',
                             }}
@@ -298,11 +298,11 @@ export default function Home() {
                     <div style={{ display: 'flex', alignItems: 'center', paddingLeft: 42 }}>
                       <div style={{ display: 'flex', gap: 4 }} onClick={(e) => e.stopPropagation()}>
                         {[
-                          { icon: ic.ds, href: `/clients/${client.id}/brand-builder` },
-                          { icon: ic.bk, href: `/clients/${client.id}/brand-kit` },
-                          { icon: ic.inv, href: `/clients/${client.id}/invoices` },
+                          { icon: ic.ds, href: `/clients/${client.id}/brand-builder`, label: 'Design Studio' },
+                          { icon: ic.bk, href: `/clients/${client.id}/brand-kit`, label: 'Brand Kit' },
+                          { icon: ic.inv, href: `/clients/${client.id}/invoices`, label: 'Invoices' },
                         ].map((btn, i) => (
-                          <button key={i} onClick={(e) => { e.stopPropagation(); router.push(btn.href); }}
+                          <button key={i} title={btn.label} onClick={(e) => { e.stopPropagation(); router.push(btn.href); }}
                             style={{
                               width: 28, height: 28, borderRadius: 6, background: t.bg.surfaceHover, border: 'none',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
