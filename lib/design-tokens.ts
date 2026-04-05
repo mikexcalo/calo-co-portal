@@ -183,20 +183,20 @@ export const cardStyles = {
 export const tokens = {
   bg: {
     primary: '#111113',
-    surface: '#1a1a1d',
-    surfaceHover: '#222225',
-    elevated: '#222225',
+    surface: '#1c1c20',
+    surfaceHover: '#242428',
+    elevated: '#242428',
     sidebar: '#111113',
   },
   border: {
-    default: 'rgba(255, 255, 255, 0.08)',
-    hover: 'rgba(255, 255, 255, 0.15)',
-    active: 'rgba(255, 255, 255, 0.2)',
+    default: 'rgba(255, 255, 255, 0.10)',
+    hover: 'rgba(255, 255, 255, 0.16)',
+    active: 'rgba(255, 255, 255, 0.22)',
   },
   text: {
     primary: '#f5f5f5',
-    secondary: '#8a8a8d',
-    tertiary: '#5a5a5d',
+    secondary: '#a1a1a5',
+    tertiary: '#6a6a6e',
     inverse: '#111113',
   },
   accent: {
@@ -206,9 +206,9 @@ export const tokens = {
     text: '#38bdf8',
   },
   status: {
-    success: '#00c853',
-    warning: '#ffab00',
-    danger: '#ff3d3d',
+    success: '#10b981',
+    warning: '#f59e0b',
+    danger: '#f87171',
     info: '#4da6ff',
   },
   radius: { sm: '6px', md: '8px', lg: '12px' },
