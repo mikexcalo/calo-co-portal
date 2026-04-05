@@ -87,6 +87,7 @@ export default function Sidebar() {
         {navBtn('Financials', '/financials', icons.financials)}
         {navBtn('Brand Kit', '/agency/brand-kit', icons.brandKit)}
         {navBtn('Design Studio', '/agency/design-studio', icons.designStudio)}
+        <div style={{ marginTop: 'auto' }} />
         <div style={{ height: 8 }} />
         {navBtn('Settings', '/settings', icons.settings)}
       </div>

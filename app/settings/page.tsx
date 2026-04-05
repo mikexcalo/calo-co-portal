@@ -86,6 +86,7 @@ function SettingsContent() {
       ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
       const dataUrl = canvas.toDataURL('image/png');
       localStorage.setItem('calo-agency-avatar', dataUrl);
+      window.dispatchEvent(new Event('storage'));
       setAvatar(dataUrl);
       setSavedMsg(true);
       setTimeout(() => setSavedMsg(false), 2000);
@@ -96,6 +97,27 @@ function SettingsContent() {
   const handleRemoveAvatar = () => {
     setAvatar(null);
     localStorage.removeItem('calo-agency-avatar');
+    window.dispatchEvent(new Event('storage'));
+  };
+
+  const handleDownload = (circle: boolean) => {
+    if (!avatar) return;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const size = 200;
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d')!;
+      if (circle) { ctx.beginPath(); ctx.arc(100, 100, 100, 0, Math.PI * 2); ctx.clip(); }
+      const min = Math.min(img.width, img.height);
+      ctx.drawImage(img, (img.width - min) / 2, (img.height - min) / 2, min, min, 0, 0, size, size);
+      const link = document.createElement('a');
+      link.download = `headshot-${circle ? 'circle' : 'square'}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    };
+    img.src = avatar;
   };
 
   // ── Agency helpers ──
@@ -159,12 +181,19 @@ function SettingsContent() {
                     )}
 
                     {avatar && (
-                      <span onClick={handleRemoveAvatar}
-                        style={{ fontSize: 11, color: t.text.tertiary, cursor: 'pointer' }}
-                        onMouseEnter={(e) => e.currentTarget.style.color = t.status.danger}
-                        onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}>
-                        Remove
-                      </span>
+                      <>
+                        <span onClick={handleRemoveAvatar}
+                          style={{ fontSize: 11, color: t.text.tertiary, cursor: 'pointer' }}
+                          onMouseEnter={(e) => e.currentTarget.style.color = t.status.danger}
+                          onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}>
+                          Remove
+                        </span>
+                        <div style={{ fontSize: 11, color: t.accent.text, display: 'flex', gap: 4 }}>
+                          <span onClick={() => handleDownload(true)} style={{ cursor: 'pointer' }}>Download circle PNG</span>
+                          <span style={{ color: t.text.tertiary }}>·</span>
+                          <span onClick={() => handleDownload(false)} style={{ cursor: 'pointer' }}>Download square PNG</span>
+                        </div>
+                      </>
                     )}
 
                     {!avatar && (
