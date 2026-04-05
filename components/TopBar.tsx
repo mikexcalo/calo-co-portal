@@ -10,15 +10,23 @@ export default function TopBar() {
   const { t } = useTheme();
   const router = useRouter();
   const [viewMode, setViewMode] = useState<'agency' | 'client'>('agency');
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatar, setAvatar] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('viewMode') : null;
     if (stored === 'client') setViewMode('client');
-    setAvatarUrl(localStorage.getItem('calo-agency-avatar'));
-    const onStorage = () => setAvatarUrl(localStorage.getItem('calo-agency-avatar'));
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+
+    // Read avatar immediately
+    const av = localStorage.getItem('calo-agency-avatar');
+    if (av && av.startsWith('data:image/')) setAvatar(av);
+
+    // Listen for changes (both cross-tab AND same-tab dispatched StorageEvents)
+    const handler = () => {
+      const val = localStorage.getItem('calo-agency-avatar');
+      setAvatar(val && val.startsWith('data:image/') ? val : null);
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
   }, []);
 
   const handleToggle = (mode: 'agency' | 'client') => {
@@ -114,8 +122,8 @@ export default function TopBar() {
             ))}
           </div>
         )}
-        {avatarUrl ? (
-          <img src={avatarUrl} alt="" title="Settings" onClick={() => router.push('/settings?tab=profile')}
+        {avatar ? (
+          <img src={avatar} alt="" title="Settings" onClick={() => router.push('/settings?tab=profile')}
             style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer' }} />
         ) : (
           <div title="Settings" onClick={() => router.push('/settings?tab=profile')}
