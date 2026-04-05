@@ -191,6 +191,7 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
   const [uploading, setUploading] = useState(false);
   const [feedback, setFeedback] = useState<'success' | 'error' | null>(null);
   const [avatarSaved, setAvatarSaved] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
@@ -324,21 +325,30 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
   };
 
   const borderColor = feedback === 'success' ? t.status.success : feedback === 'error' ? t.status.danger : t.border.default;
-  const btnStyle: React.CSSProperties = { fontSize: 11, padding: '4px 10px', border: `1px solid ${t.border.default}`, borderRadius: t.radius.sm, background: t.bg.primary, color: t.text.secondary, cursor: 'pointer', fontFamily: 'inherit' };
+  const btnStyle: React.CSSProperties = { fontSize: 10, padding: '3px 8px', border: `1px solid ${t.border.default}`, borderRadius: t.radius.sm, background: t.bg.primary, color: t.text.secondary, cursor: 'pointer', fontFamily: 'inherit' };
 
   return (
     <Section label="Headshot">
-      <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 16, minHeight: 180, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 16, minHeight: 180, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
         {headshot?.url ? (
           <>
-            {/* Circle viewport with zoom/pan */}
-            <div style={{ position: 'relative', width: 120, height: 120, borderRadius: '50%', overflow: 'hidden', border: `2px solid ${borderColor}`, margin: '0 auto', cursor: dragging ? 'grabbing' : 'grab', transition: 'border-color 300ms' }}
-              onMouseDown={!readOnly ? onDragStart : undefined} onTouchStart={!readOnly ? onDragStart : undefined}>
-              <img src={headshot.url} alt="" draggable={false} style={{ position: 'absolute', width: '100%', height: '100%', objectFit: 'cover', transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`, pointerEvents: 'none' }} />
-              {!readOnly && <button onClick={(e) => { e.stopPropagation(); remove(); }} style={{ position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>×</button>}
-            </div>
-            {/* Zoom slider */}
+            {/* Edit/Done toggle */}
             {!readOnly && (
+              <button onClick={() => { if (editing) { saveAdjustments(zoom, offset.x, offset.y); setEditing(false); } else { setEditing(true); } }}
+                style={{ position: 'absolute', top: 10, right: 12, background: 'none', border: 'none', fontSize: 11, color: t.text.secondary, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}
+                onMouseEnter={(e) => e.currentTarget.style.color = t.text.primary}
+                onMouseLeave={(e) => e.currentTarget.style.color = t.text.secondary}>
+                {editing ? 'Done' : 'Edit'}
+              </button>
+            )}
+            {/* Circle viewport */}
+            <div style={{ position: 'relative', width: 120, height: 120, borderRadius: '50%', overflow: 'hidden', border: `2px solid ${borderColor}`, margin: '0 auto', cursor: editing ? (dragging ? 'grabbing' : 'grab') : 'default', transition: 'border-color 300ms' }}
+              onMouseDown={editing ? onDragStart : undefined} onTouchStart={editing ? onDragStart : undefined}>
+              <img src={headshot.url} alt="" draggable={false} style={{ position: 'absolute', width: '100%', height: '100%', objectFit: 'cover', transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`, pointerEvents: 'none' }} />
+              {!readOnly && <button onClick={(e) => { e.stopPropagation(); remove(); setEditing(false); }} style={{ position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>×</button>}
+            </div>
+            {/* Zoom slider — only in edit mode */}
+            {editing && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, width: 120 }}>
                 <span style={{ fontSize: 12 }}>🔍</span>
                 <input type="range" min="1" max="3" step="0.05" value={zoom}
@@ -346,22 +356,22 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
                   style={{ flex: 1, height: 4, cursor: 'pointer' }} />
               </div>
             )}
-            {/* Download + avatar buttons */}
-            <div style={{ display: 'flex', gap: 4, justifyContent: 'center', marginTop: 6, flexWrap: 'wrap' }}>
+            {/* Action buttons — single row */}
+            <div style={{ display: 'flex', gap: 4, justifyContent: 'center', marginTop: 6, flexWrap: 'nowrap' }}>
               <button onClick={() => downloadCropped('square')} style={btnStyle}>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 3, verticalAlign: '-1px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 2, verticalAlign: '-1px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Square
               </button>
               <button onClick={() => downloadCropped('circle')} style={btnStyle}>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 3, verticalAlign: '-1px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 2, verticalAlign: '-1px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Circle
               </button>
               {!readOnly && (
                 <button onClick={useAsAvatar} style={{ ...btnStyle, color: avatarSaved ? t.status.success : t.accent.text }}>
                   {avatarSaved ? (
-                    <><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ marginRight: 3, verticalAlign: '-1px' }}><polyline points="20 6 9 17 4 12"/></svg>Saved</>
+                    <><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ marginRight: 2, verticalAlign: '-1px' }}><polyline points="20 6 9 17 4 12"/></svg>Saved</>
                   ) : (
-                    <><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 3, verticalAlign: '-1px' }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Set as profile pic</>
+                    <><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 2, verticalAlign: '-1px' }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile pic</>
                   )}
                 </button>
               )}

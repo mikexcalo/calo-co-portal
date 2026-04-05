@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { useTheme } from '@/lib/theme';
 
 const icons: Record<string, React.ReactNode> = {
@@ -20,6 +21,14 @@ export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const { theme, setTheme, t } = useTheme();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAvatarUrl(localStorage.getItem('calo-agency-avatar'));
+    const onStorage = () => setAvatarUrl(localStorage.getItem('calo-agency-avatar'));
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
     if (href === '/clients') return pathname === '/clients';
@@ -92,8 +101,15 @@ export default function Sidebar() {
       </div>
 
       {/* Settings + Footer */}
-      <div style={{ borderTop: `1px solid ${t.border.default}`, padding: '8px' }}>
-        {navBtn('Settings', '/settings', icons.settings)}
+      <div style={{ padding: '0 8px 8px' }}>
+        {navBtn('Settings', '/settings', avatarUrl
+          ? <img src={avatarUrl} alt="" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
+          : <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 9, fontWeight: 600 }}>MC</div>
+        )}
+        <a href="https://mikecalo.co" target="_blank" rel="noopener noreferrer"
+          style={{ display: 'block', fontSize: 8, color: t.text.tertiary, padding: '4px 12px', textDecoration: 'none', fontFamily: 'inherit' }}>
+          Powered by CALO&CO
+        </a>
       </div>
     </div>
   );
