@@ -17,6 +17,7 @@ import dynamic from 'next/dynamic';
 import { getYardSignTemplate } from '@/lib/templates/yard-sign';
 import { getBusinessCardTemplate, getBusinessCardBackTemplate } from '@/lib/templates/business-card';
 import { useTheme } from '@/lib/theme';
+import { motion } from 'framer-motion';
 
 const DesignCanvas = dynamic(
   () => import('@/components/design-studio/DesignCanvas'),
@@ -369,29 +370,25 @@ export default function BrandBuilderPage() {
         ) : (
           <div style={{ flex: 1, padding: 32 }}>
             {/* Print section */}
-            <div style={{ fontSize: 12, fontWeight: 500, color: t.text.secondary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>Print</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 28 }}>
-              {([
-                { id: 'business-card' as AssetType, label: 'Business Cards', desc: '3.5 × 2 in' },
-                { id: 'yard-sign' as AssetType, label: 'Yard Signs', desc: '5 sizes' },
-                { id: 'vehicle-magnet' as AssetType, label: 'Vehicle Magnets', desc: '24 × 12 in' },
-                { id: 't-shirt' as AssetType, label: 'T-Shirts', desc: 'Front + Back' },
-                { id: 'door-hanger' as AssetType, label: 'Door Hangers', desc: '4.25 × 11 in' },
-                { id: 'flyer' as AssetType, label: 'Flyers', desc: '8.5 × 11 in' },
-              ]).map((tmpl) => (
-                <TemplateCard key={tmpl.id} id={tmpl.id} label={tmpl.label} desc={tmpl.desc} onClick={() => handleAssetTypeChange(tmpl.id)} />
-              ))}
-              <TemplateCard id="poster" label="Posters" desc="3 sizes" />
-              <TemplateCard id="one-pager" label="One-Pagers" desc="Sales + case study" />
-              <TemplateCard id="direct-mail" label="Direct Mail" desc="Postcards · 6 × 4 in" />
+            <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Print</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
+              <TemplateCard id="business-card" label="Business Cards" desc="Front + Back" status="not-started" onClick={() => handleAssetTypeChange('business-card' as AssetType)} />
+              <TemplateCard id="yard-sign" label="Yard Signs" desc="5 sizes" status="in-progress" onClick={() => handleAssetTypeChange('yard-sign' as AssetType)} />
+              <TemplateCard id="vehicle-magnet" label="Vehicle Magnets" desc="24 × 12 in" status="not-started" onClick={() => handleAssetTypeChange('vehicle-magnet' as AssetType)} />
+              <TemplateCard id="t-shirt" label="T-Shirts" desc="Front + Back" status="not-started" onClick={() => handleAssetTypeChange('t-shirt' as AssetType)} />
+              <TemplateCard id="door-hanger" label="Door Hangers" desc="4.25 × 11 in" status="not-started" onClick={() => handleAssetTypeChange('door-hanger' as AssetType)} />
+              <TemplateCard id="flyer" label="Flyers" desc="8.5 × 11 in" status="not-started" onClick={() => handleAssetTypeChange('flyer' as AssetType)} />
+              <TemplateCard id="poster" label="Posters" desc="3 sizes" status="not-started" />
+              <TemplateCard id="one-pager" label="One-Pagers" desc="Sales + case study" status="not-started" />
+              <TemplateCard id="direct-mail" label="Direct Mail" desc="Postcards · 6 × 4 in" status="not-started" />
             </div>
 
             {/* Digital section */}
-            <div style={{ fontSize: 12, fontWeight: 500, color: t.text.secondary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>Digital</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-              <TemplateCard id="email-signature" label="Email Signature" desc="Gmail · Outlook" onClick={() => router.push(`/clients/${clientId}/email-signature`)} />
-              <TemplateCard id="social-graphics" label="Social Graphics" desc="IG · LinkedIn · FB" />
-              <TemplateCard id="web-banners" label="Web Banners" desc="Hero · sidebar · leaderboard" comingSoon />
+            <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Digital</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              <TemplateCard id="email-signature" label="Email Signature" desc="Gmail · Outlook" status="not-started" onClick={() => router.push(`/clients/${clientId}/email-signature`)} />
+              <TemplateCard id="social-graphics" label="Social Graphics" desc="IG · LinkedIn · FB" status="not-started" />
+              <TemplateCard id="web-banners" label="Web Banners" desc="Hero · sidebar · leaderboard" status="coming-soon" />
             </div>
           </div>
         )}
@@ -401,39 +398,36 @@ export default function BrandBuilderPage() {
 }
 
 /* Clean flat template card */
-function TemplateCard({ id, label, desc, onClick, disabled, comingSoon }: {
+function TemplateCard({ id, label, desc, onClick, status = 'not-started' }: {
   id: string; label: string; desc: string;
-  onClick?: () => void; disabled?: boolean; comingSoon?: boolean;
+  onClick?: () => void; status?: 'in-progress' | 'not-started' | 'coming-soon';
 }) {
   const { t } = useTheme();
   const [hovered, setHovered] = useState(false);
   return (
-    <button onClick={disabled ? undefined : onClick}
+    <motion.button whileHover={{ scale: 1.02 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      onClick={onClick}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{
-        background: t.bg.surface, border: `1px solid ${hovered && !disabled ? t.border.hover : t.border.default}`,
-        borderRadius: t.radius.md, padding: 24, minHeight: 140,
-        cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1,
-        transition: 'border-color 150ms, transform 150ms, box-shadow 150ms',
-        transform: hovered && !disabled ? 'translateY(-2px)' : 'none',
-        boxShadow: hovered && !disabled ? t.shadow.card : 'none',
+        background: hovered ? t.bg.surfaceHover : t.bg.surface,
+        border: `1px solid ${hovered ? t.border.hover : t.border.default}`,
+        borderRadius: t.radius.md, padding: 20, minHeight: 130,
+        cursor: 'pointer', transition: 'border-color 150ms, background 150ms',
         width: '100%', textAlign: 'left' as const, fontFamily: 'inherit',
         display: 'flex', flexDirection: 'column' as const, color: t.text.primary,
       }}
     >
-      <div style={{ color: hovered && !disabled ? t.accent.text : t.text.tertiary, transition: 'color 150ms' }}>
-        <AssetIcon id={id} size={28} />
+      <div style={{ color: hovered ? t.accent.text : t.text.secondary, transition: 'color 150ms', marginBottom: 14 }}>
+        <AssetIcon id={id} size={24} />
       </div>
-      <div style={{ fontSize: 14, fontWeight: 500, marginTop: 16 }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 500 }}>{label}</div>
       <div style={{ fontSize: 13, color: t.text.secondary, marginTop: 2, flex: 1 }}>{desc}</div>
-      <div style={{ marginTop: 8 }}>
-        {comingSoon ? (
-          <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(14,165,233,0.1)', color: '#0ea5e9' }}>Coming soon</span>
-        ) : (
-          <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: t.bg.primary, color: t.text.secondary }}>Not started</span>
-        )}
+      <div style={{ marginTop: 10 }}>
+        {status === 'in-progress' && <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: t.radius.sm, background: 'rgba(245,158,11,0.1)', color: '#f59e0b' }}>In progress</span>}
+        {status === 'coming-soon' && <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: t.radius.sm, background: 'rgba(14,165,233,0.1)', color: '#0ea5e9' }}>Coming soon</span>}
+        {status === 'not-started' && <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: t.radius.sm, background: t.bg.primary, color: t.text.secondary }}>Not started</span>}
       </div>
-    </button>
+    </motion.button>
   );
 }
 
