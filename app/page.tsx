@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   initSupabase, initAgency, loadClients, loadInvoices, loadContacts,
   loadAllBrandKits, loadActivityLog, loadExpenses, loadAgencySettings,
-  loadTasksNotes, DB, updateTaskStatus,
+  loadTasksNotes, DB, updateTaskStatus, deleteInvoice,
 } from '@/lib/database';
 import { agencyStats, currency, invTotal } from '@/lib/utils';
 import CommandBar from '@/components/dashboard/CommandBar';
@@ -40,7 +40,7 @@ export default function Home() {
   const [dateline, setDateline] = useState('');
   const [stats, setStats] = useState(agencyStats([], []));
   const [allTasks, setAllTasks] = useState<any[]>([]);
-  const [toast, setToast] = useState<{ id: string; text: string } | null>(null);
+  const [toast, setToast] = useState<{ id: string; text: string; itemType: 'task' | 'invoice' | 'note' } | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -79,15 +79,24 @@ export default function Home() {
 
   const refreshFeed = useCallback(() => { loadTasksNotes().then(setAllTasks); }, []);
 
-  const handleTrash = async (id: string, text: string) => {
-    await updateTaskStatus(id, 'complete');
+  const handleTrash = async (id: string, text: string, itemType: 'task' | 'invoice' | 'note') => {
+    if (itemType === 'invoice') {
+      await deleteInvoice(id);
+    } else {
+      await updateTaskStatus(id, 'complete');
+    }
     setAllTasks((prev) => prev.filter((tk) => tk.id !== id));
-    setToast({ id, text });
+    setToast({ id, text, itemType });
     setTimeout(() => setToast(null), 5000);
   };
 
   const handleUndo = async () => {
     if (!toast) return;
+    if (toast.itemType === 'invoice') {
+      // Hard-deleted invoices can't be restored — just dismiss toast
+      setToast(null);
+      return;
+    }
     await updateTaskStatus(toast.id, 'open');
     setToast(null);
     refreshFeed();
@@ -218,7 +227,7 @@ export default function Home() {
                             )}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                            <button title="Remove" onClick={(e) => { e.stopPropagation(); handleTrash(item.id, item.text); }} style={{
+                            <button title="Remove" onClick={(e) => { e.stopPropagation(); handleTrash(item.id, item.text, item.type); }} style={{
                               background: 'none', border: 'none', cursor: 'pointer', padding: 2,
                               color: t.text.tertiary, transition: 'color 150ms',
                             }}
@@ -240,7 +249,7 @@ export default function Home() {
                               style={{ overflow: 'hidden', marginTop: 8, paddingTop: 8, borderTop: `0.5px solid ${t.border.default}` }}>
                               {item.created && <div style={{ fontSize: 11, color: t.text.tertiary, marginBottom: 4 }}>Created: {new Date(item.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>}
                               {item.clientId && <span onClick={(e) => { e.stopPropagation(); router.push(`/clients/${item.clientId}`); }} style={{ fontSize: 11, color: t.accent.text, cursor: 'pointer' }}>{item.client} →</span>}
-                              {isTask && <button onClick={(e) => { e.stopPropagation(); handleTrash(item.id, item.text); }} style={{ display: 'block', marginTop: 6, fontSize: 11, fontWeight: 500, color: t.status.success, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>Mark complete</button>}
+                              {isTask && <button onClick={(e) => { e.stopPropagation(); handleTrash(item.id, item.text, 'task'); }} style={{ display: 'block', marginTop: 6, fontSize: 11, fontWeight: 500, color: t.status.success, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>Mark complete</button>}
                             </motion.div>
                           )}
                         </AnimatePresence>
@@ -337,7 +346,7 @@ export default function Home() {
             <span style={{ fontSize: 13, color: t.text.primary, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {toast.text.length > 30 ? toast.text.slice(0, 30) + '...' : toast.text} removed
             </span>
-            <button onClick={handleUndo} style={{ background: 'none', border: 'none', color: t.accent.text, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>Undo</button>
+            {toast.itemType !== 'invoice' && <button onClick={handleUndo} style={{ background: 'none', border: 'none', color: t.accent.text, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>Undo</button>}
           </motion.div>
         )}
       </AnimatePresence>
