@@ -100,7 +100,7 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
     }
   };
 
-  const card: React.CSSProperties = { background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 16 };
+  const card: React.CSSProperties = { background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 16, minHeight: 180, display: 'flex', flexDirection: 'column' };
 
   return (
     <BrandKitErrorBoundary clientId={entityId} clientName={entityName}>
@@ -204,15 +204,15 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
 
   return (
     <Section label="Headshot">
-      <div style={card}>
+      <div style={{ ...card, alignItems: 'center', justifyContent: 'center' }}>
         {headshot?.url ? (
-          <div style={{ position: 'relative', borderRadius: t.radius.sm, overflow: 'hidden', border: `1px solid ${t.border.default}` }}>
-            <img src={headshot.url} alt="" style={{ width: '100%', height: 120, objectFit: 'cover', display: 'block' }} />
-            {!readOnly && <button onClick={remove} style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>}
+          <div style={{ position: 'relative', width: 100, height: 100, borderRadius: '50%', overflow: 'hidden', border: `1px solid ${t.border.default}`, margin: '0 auto' }}>
+            <img src={headshot.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            {!readOnly && <button onClick={remove} style={{ position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>}
           </div>
         ) : (
-          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 120, border: `1px dashed ${t.border.default}`, borderRadius: t.radius.sm, cursor: readOnly ? 'default' : 'pointer', color: t.text.tertiary, fontSize: 12 }}>
-            {readOnly ? 'No headshot' : '+ Upload headshot'}
+          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 100, height: 100, borderRadius: '50%', border: `1px dashed ${t.border.default}`, cursor: readOnly ? 'default' : 'pointer', color: t.text.tertiary, fontSize: 18, margin: '0 auto' }}>
+            +
             {!readOnly && <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0]); }} />}
           </label>
         )}

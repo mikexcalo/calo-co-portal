@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useTheme } from '@/lib/theme';
 
 interface ColorPaletteProps {
   colors: string[];
@@ -9,6 +10,7 @@ interface ColorPaletteProps {
 }
 
 export default function ColorPalette({ colors, readOnly, onColorsChange }: ColorPaletteProps) {
+  const { t } = useTheme();
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
   const [editHex, setEditHex] = useState('');
@@ -220,7 +222,7 @@ export default function ColorPalette({ colors, readOnly, onColorsChange }: Color
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L3 14.67V21h6.33l10.06-10.06a5.5 5.5 0 0 0 0-7.77z" />
               <line x1="17.5" y1="7.5" x2="6.5" y2="18.5" />
             </svg>
-            Extract colors from image
+            Extract colors from image <span style={{ fontSize: 10, color: t.text.tertiary, marginLeft: 4 }}>(from logo or screenshot)</span>
           </button>
 
           <input
