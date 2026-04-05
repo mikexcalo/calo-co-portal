@@ -15,7 +15,7 @@ type Tab = 'profile' | 'agency';
 const PROFILE_KEY = 'calo-settings-profile';
 const AGENCY_KEY = 'calo-agency-settings';
 
-function loadJson(key: string, defaults: Record<string, string>): Record<string, string> {
+function loadJson<T extends Record<string, string>>(key: string, defaults: T): T {
   try { return { ...defaults, ...JSON.parse(localStorage.getItem(key) || '{}') }; } catch { return defaults; }
 }
 
