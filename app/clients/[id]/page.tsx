@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Client, Contact, Invoice } from '@/lib/types';
 import { DB, loadClients, loadContacts, loadInvoices, loadAllBrandKits, saveClient, saveContact } from '@/lib/database';
-import { clientStats, currency, invTotal } from '@/lib/utils';
+import { clientStats, currency, invTotal, formatPhone } from '@/lib/utils';
 import ClientUpdates from '@/components/client-hub/ClientUpdates';
 import { PageLayout, Section, CardGrid, Card, InfoBar, SectionLabel } from '@/components/shared/PageLayout';
 import { useTheme } from '@/lib/theme';
@@ -134,7 +134,13 @@ export default function ClientHubPage() {
       const nc = await saveContact({ clientId: client.id, name: contactName, role: form.title, email: form.email, phone: form.contactPhone, isPrimary: true });
       if (nc) DB.contacts[client.id] = [nc];
     }
+    // Update local DB cache so data persists across navigation
+    const idx = DB.clients.findIndex((c) => c.id === client.id);
+    if (idx >= 0) DB.clients[idx] = updated;
     setClient(updated);
+    // Refresh contacts in local state
+    const freshContacts = DB.contacts[client.id] || [];
+    setContacts([...freshContacts]);
     setIsEditOpen(false);
     setSaving(false);
   };
@@ -195,8 +201,8 @@ export default function ClientHubPage() {
             <label style={editLbl}>Last Name {req}<input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} style={submitted && !valid.lastName ? errorInputStyle : inputStyle} /></label>
             <label style={editLbl}>Title<input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Owner" style={inputStyle} /></label>
             <label style={editLbl}>Email {req}<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} style={submitted && !valid.email ? errorInputStyle : inputStyle} /></label>
-            <label style={editLbl}>Contact Phone<input type="tel" value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} style={inputStyle} /></label>
-            <label style={editLbl}>Business Phone<input type="tel" value={form.businessPhone} onChange={(e) => setForm({ ...form, businessPhone: e.target.value })} style={inputStyle} /></label>
+            <label style={editLbl}>Contact Phone<input type="tel" value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} onBlur={() => setForm((f) => ({ ...f, contactPhone: formatPhone(f.contactPhone) }))} style={inputStyle} /></label>
+            <label style={editLbl}>Business Phone<input type="tel" value={form.businessPhone} onChange={(e) => setForm({ ...form, businessPhone: e.target.value })} onBlur={() => setForm((f) => ({ ...f, businessPhone: formatPhone(f.businessPhone) }))} style={inputStyle} /></label>
             <label style={editLbl}>Address<input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} style={inputStyle} /></label>
             <label style={editLbl}>Website<input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} style={inputStyle} /></label>
           </div>
