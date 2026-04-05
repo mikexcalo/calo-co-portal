@@ -131,24 +131,10 @@ export default function Home() {
     <div style={{ padding: 32, maxWidth: 960, minHeight: 'calc(100vh - 48px)' }}>
       <motion.div variants={stagger} initial="hidden" animate="show">
 
-        {/* Greeting — BIG, editorial + avatar */}
-        <motion.div variants={fadeUp} style={{ marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <h1 style={{ fontSize: 28, fontWeight: 400, color: t.text.primary, margin: '0 0 4px', letterSpacing: '-0.01em' }}>{greeting}</h1>
-            <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>{dateline}</p>
-          </div>
-          {(() => {
-            const av = typeof window !== 'undefined' ? localStorage.getItem('calo-agency-avatar') : null;
-            return (
-              <div onClick={() => router.push('/settings?tab=profile')} style={{ cursor: 'pointer', flexShrink: 0 }}>
-                {av ? (
-                  <img src={av} alt="" style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover' }} />
-                ) : (
-                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 600 }}>MC</div>
-                )}
-              </div>
-            );
-          })()}
+        {/* Greeting — BIG, editorial */}
+        <motion.div variants={fadeUp} style={{ marginBottom: 20 }}>
+          <h1 style={{ fontSize: 28, fontWeight: 400, color: t.text.primary, margin: '0 0 4px', letterSpacing: '-0.01em' }}>{greeting}</h1>
+          <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>{dateline}</p>
         </motion.div>
 
         {/* Captain's Log — accent border, glow */}

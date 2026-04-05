@@ -178,8 +178,10 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
         <Section label="Typography"><div style={card}><Typography fonts={brandKit.fonts} readOnly={readOnly} onFontChange={handleFontChange} /></div></Section>
       </div>
 
-      {/* Business Info + Notes — full width */}
-      <BusinessInfoCard t={t} entityId={entityId} readOnly={readOnly} brandKit={brandKit} handleNotesChange={handleNotesChange} />
+      {/* Business Info + Notes — full width (client context only) */}
+      {context.type === 'client' && (
+        <BusinessInfoCard t={t} entityId={entityId} readOnly={readOnly} brandKit={brandKit} handleNotesChange={handleNotesChange} />
+      )}
     </BrandKitErrorBoundary>
   );
 }
@@ -267,10 +269,18 @@ function BusinessInfoCard({ t, entityId, readOnly, brandKit, handleNotesChange }
           {/* Headshot circle */}
           <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             {headshot?.url ? (
-              <div style={{ position: 'relative', width: 60, height: 60, borderRadius: '50%', overflow: 'hidden', border: `1px solid ${t.border.default}` }}>
-                <img src={headshot.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                {!readOnly && <button onClick={removeHs} style={{ position: 'absolute', top: 1, right: 1, width: 14, height: 14, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', fontSize: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>}
-              </div>
+              <>
+                <div style={{ width: 60, height: 60, borderRadius: '50%', overflow: 'hidden', border: `1px solid ${t.border.default}` }}>
+                  <img src={headshot.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                </div>
+                {!readOnly && (
+                  <span onClick={removeHs} style={{ fontSize: 11, color: t.text.tertiary, cursor: 'pointer' }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = t.status.danger}
+                    onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}>
+                    Remove
+                  </span>
+                )}
+              </>
             ) : (
               <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 60, height: 60, borderRadius: '50%', border: `1px dashed ${t.border.default}`, cursor: readOnly ? 'default' : 'pointer', color: t.text.tertiary, fontSize: 16 }}>
                 {hsUploading ? (
