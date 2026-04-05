@@ -171,6 +171,11 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
   const [headshot, setHeadshot] = useState<{ url: string; filename: string } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [feedback, setFeedback] = useState<'success' | 'error' | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const dragStart = useRef({ x: 0, y: 0, ox: 0, oy: 0 });
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -178,9 +183,25 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
         const supabase = (await import('@/lib/supabase')).default;
         const { data } = await supabase.from('clients').select('brand_builder_fields').eq('id', entityId).single();
         const hs = data?.brand_builder_fields?.headshots?.owner;
-        if (hs) setHeadshot(hs);
+        if (hs) {
+          setHeadshot(hs);
+          if (hs.adjustments) { setZoom(hs.adjustments.zoom || 1); setOffset({ x: hs.adjustments.offsetX || 0, y: hs.adjustments.offsetY || 0 }); }
+        }
       } catch {}
     })();
+  }, [entityId]);
+
+  const saveAdjustments = useCallback((z: number, ox: number, oy: number) => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      try {
+        const supabase = (await import('@/lib/supabase')).default;
+        const { data } = await supabase.from('clients').select('brand_builder_fields').eq('id', entityId).single();
+        const existing = data?.brand_builder_fields || {};
+        const owner = { ...existing.headshots?.owner, adjustments: { zoom: z, offsetX: ox, offsetY: oy } };
+        await supabase.from('clients').update({ brand_builder_fields: { ...existing, headshots: { ...existing.headshots, owner } } }).eq('id', entityId);
+      } catch {}
+    }, 500);
   }, [entityId]);
 
   const handleUpload = async (file: File) => {
@@ -191,9 +212,9 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
       await supabase.storage.from('brand-assets').upload(path, file, { upsert: true });
       const { data } = supabase.storage.from('brand-assets').getPublicUrl(path);
       const hs = { url: data.publicUrl, filename: file.name };
-      setHeadshot(hs);
-      const cl = DB.clients.find((c) => c.id === entityId);
-      const existing = (cl as any)?.brand_builder_fields || {};
+      setHeadshot(hs); setZoom(1); setOffset({ x: 0, y: 0 });
+      const { data: row } = await supabase.from('clients').select('brand_builder_fields').eq('id', entityId).single();
+      const existing = row?.brand_builder_fields || {};
       await supabase.from('clients').update({ brand_builder_fields: { ...existing, headshots: { ...existing.headshots, owner: hs } } }).eq('id', entityId);
       setFeedback('success'); setTimeout(() => setFeedback(null), 1500);
     } catch (e) { console.warn('[Headshot upload]', e); setFeedback('error'); setTimeout(() => setFeedback(null), 2000); }
@@ -201,59 +222,121 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
   };
 
   const remove = async () => {
-    setHeadshot(null);
+    setHeadshot(null); setZoom(1); setOffset({ x: 0, y: 0 });
     try {
       const supabase = (await import('@/lib/supabase')).default;
-      const cl = DB.clients.find((c) => c.id === entityId);
-      const existing = (cl as any)?.brand_builder_fields || {};
+      const { data } = await supabase.from('clients').select('brand_builder_fields').eq('id', entityId).single();
+      const existing = data?.brand_builder_fields || {};
       const hs = { ...existing.headshots }; delete hs.owner;
       await supabase.from('clients').update({ brand_builder_fields: { ...existing, headshots: hs } }).eq('id', entityId);
     } catch {}
   };
 
-  const downloadCropped = (url: string, shape: 'square' | 'circle') => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
+  const onDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    const pt = 'touches' in e ? e.touches[0] : e;
+    dragStart.current = { x: pt.clientX, y: pt.clientY, ox: offset.x, oy: offset.y };
+    setDragging(true);
+  };
+  useEffect(() => {
+    if (!dragging) return;
+    const onMove = (e: MouseEvent | TouchEvent) => {
+      const pt = 'touches' in e ? e.touches[0] : e;
+      const maxOff = 40 * zoom;
+      const nx = Math.max(-maxOff, Math.min(maxOff, dragStart.current.ox + pt.clientX - dragStart.current.x));
+      const ny = Math.max(-maxOff, Math.min(maxOff, dragStart.current.oy + pt.clientY - dragStart.current.y));
+      setOffset({ x: nx, y: ny });
+    };
+    const onUp = () => { setDragging(false); saveAdjustments(zoom, offset.x, offset.y); };
+    window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchmove', onMove); window.addEventListener('touchend', onUp);
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onUp); };
+  }, [dragging, zoom, offset, saveAdjustments]);
+
+  const renderCropped = (size: number, circle: boolean): string | null => {
+    if (!headshot?.url) return null;
+    const canvas = document.createElement('canvas'); canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d'); if (!ctx) return null;
+    if (circle) { ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2); ctx.clip(); }
+    const img = new Image(); img.crossOrigin = 'anonymous'; img.src = headshot.url;
+    // Sync draw — only works if image is cached
+    const s = size * zoom; const dx = (size - s) / 2 + offset.x * (size / 120); const dy = (size - s) / 2 + offset.y * (size / 120);
+    ctx.drawImage(img, dx, dy, s, s);
+    return canvas.toDataURL('image/png');
+  };
+
+  const downloadCropped = (shape: 'square' | 'circle') => {
+    if (!headshot?.url) return;
+    const img = new Image(); img.crossOrigin = 'anonymous';
     img.onload = () => {
-      const size = 500;
-      const min = Math.min(img.width, img.height);
-      const sx = (img.width - min) / 2, sy = (img.height - min) / 2;
-      const canvas = document.createElement('canvas');
-      canvas.width = size; canvas.height = size;
+      const size = 500; const canvas = document.createElement('canvas'); canvas.width = size; canvas.height = size;
       const ctx = canvas.getContext('2d')!;
       if (shape === 'circle') { ctx.beginPath(); ctx.arc(250, 250, 250, 0, Math.PI * 2); ctx.clip(); }
-      ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
-      const link = document.createElement('a');
-      link.download = `headshot-${shape}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+      const min = Math.min(img.width, img.height);
+      const sx = (img.width - min) / 2 - (offset.x / 120) * min / zoom;
+      const sy = (img.height - min) / 2 - (offset.y / 120) * min / zoom;
+      const sw = min / zoom;
+      ctx.drawImage(img, sx, sy, sw, sw, 0, 0, size, size);
+      const link = document.createElement('a'); link.download = `headshot-${shape}.png`; link.href = canvas.toDataURL('image/png'); link.click();
     };
-    img.src = url;
+    img.src = headshot.url;
+  };
+
+  const useAsAvatar = async () => {
+    if (!headshot?.url) return;
+    const img = new Image(); img.crossOrigin = 'anonymous';
+    img.onload = async () => {
+      const size = 200; const canvas = document.createElement('canvas'); canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d')!;
+      ctx.beginPath(); ctx.arc(100, 100, 100, 0, Math.PI * 2); ctx.clip();
+      const min = Math.min(img.width, img.height);
+      const sx = (img.width - min) / 2 - (offset.x / 120) * min / zoom;
+      const sy = (img.height - min) / 2 - (offset.y / 120) * min / zoom;
+      ctx.drawImage(img, sx, sy, min / zoom, min / zoom, 0, 0, size, size);
+      const avatarUrl = canvas.toDataURL('image/png');
+      try {
+        const supabase = (await import('@/lib/supabase')).default;
+        const { data } = await supabase.from('clients').select('brand_builder_fields').eq('id', entityId).single();
+        const existing = data?.brand_builder_fields || {};
+        await supabase.from('clients').update({ brand_builder_fields: { ...existing, avatarUrl } }).eq('id', entityId);
+        setFeedback('success'); setTimeout(() => setFeedback(null), 1500);
+      } catch { setFeedback('error'); setTimeout(() => setFeedback(null), 2000); }
+    };
+    img.src = headshot.url;
   };
 
   const borderColor = feedback === 'success' ? t.status.success : feedback === 'error' ? t.status.danger : t.border.default;
+  const btnStyle: React.CSSProperties = { fontSize: 11, padding: '4px 10px', border: `1px solid ${t.border.default}`, borderRadius: t.radius.sm, background: t.bg.primary, color: t.text.secondary, cursor: 'pointer', fontFamily: 'inherit' };
 
   return (
     <Section label="Headshot">
       <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 16, minHeight: 180, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         {headshot?.url ? (
           <>
-            <div style={{ position: 'relative', width: 100, height: 100, borderRadius: '50%', overflow: 'hidden', border: `2px solid ${borderColor}`, margin: '0 auto', transition: 'border-color 300ms' }}>
-              <img src={headshot.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              {!readOnly && <button onClick={remove} style={{ position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>}
+            {/* Circle viewport with zoom/pan */}
+            <div style={{ position: 'relative', width: 120, height: 120, borderRadius: '50%', overflow: 'hidden', border: `2px solid ${borderColor}`, margin: '0 auto', cursor: dragging ? 'grabbing' : 'grab', transition: 'border-color 300ms' }}
+              onMouseDown={!readOnly ? onDragStart : undefined} onTouchStart={!readOnly ? onDragStart : undefined}>
+              <img src={headshot.url} alt="" draggable={false} style={{ position: 'absolute', width: '100%', height: '100%', objectFit: 'cover', transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`, pointerEvents: 'none' }} />
+              {!readOnly && <button onClick={(e) => { e.stopPropagation(); remove(); }} style={{ position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>×</button>}
             </div>
-            <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 8 }}>
-              {(['square', 'circle'] as const).map((shape) => (
-                <button key={shape} onClick={() => downloadCropped(headshot.url, shape)} style={{
-                  fontSize: 11, padding: '4px 10px', border: `1px solid ${t.border.default}`,
-                  borderRadius: t.radius.sm, background: t.bg.primary, color: t.text.secondary,
-                  cursor: 'pointer', fontFamily: 'inherit', textTransform: 'capitalize',
-                }}>{shape} PNG</button>
-              ))}
+            {/* Zoom slider */}
+            {!readOnly && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, width: 120 }}>
+                <span style={{ fontSize: 12 }}>🔍</span>
+                <input type="range" min="1" max="3" step="0.05" value={zoom}
+                  onChange={(e) => { const z = parseFloat(e.target.value); setZoom(z); saveAdjustments(z, offset.x, offset.y); }}
+                  style={{ flex: 1, height: 4, cursor: 'pointer' }} />
+              </div>
+            )}
+            {/* Download + avatar buttons */}
+            <div style={{ display: 'flex', gap: 4, justifyContent: 'center', marginTop: 6, flexWrap: 'wrap' }}>
+              <button onClick={() => downloadCropped('square')} style={btnStyle}>Square</button>
+              <button onClick={() => downloadCropped('circle')} style={btnStyle}>Circle</button>
+              {!readOnly && <button onClick={useAsAvatar} style={{ ...btnStyle, color: t.accent.text }}>Use as avatar</button>}
             </div>
           </>
         ) : (
-          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 100, height: 100, borderRadius: '50%', border: `1px dashed ${feedback === 'error' ? t.status.danger : t.border.default}`, cursor: readOnly ? 'default' : 'pointer', color: feedback === 'error' ? t.status.danger : t.text.tertiary, fontSize: uploading ? 11 : 18, margin: '0 auto', transition: 'border-color 300ms' }}>
+          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 120, height: 120, borderRadius: '50%', border: `1px dashed ${feedback === 'error' ? t.status.danger : t.border.default}`, cursor: readOnly ? 'default' : 'pointer', color: feedback === 'error' ? t.status.danger : t.text.tertiary, fontSize: uploading ? 11 : 18, margin: '0 auto', transition: 'border-color 300ms' }}>
             {uploading ? 'Uploading...' : feedback === 'error' ? 'Failed' : '+'}
             {!readOnly && !uploading && <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0]); }} />}
           </label>

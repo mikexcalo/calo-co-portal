@@ -109,14 +109,18 @@ export default function TopBar() {
             ))}
           </div>
         )}
-        <div
-          onClick={() => router.push('/settings')}
-          style={{
-            width: 30, height: 30, borderRadius: '50%', background: '#2563eb',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer',
-          }}
-        >MC</div>
+        {(() => {
+          const clientMatch = pathname.match(/^\/clients\/([^/]+)/);
+          const cl = clientMatch ? DB.clients.find((c) => c.id === clientMatch[1]) : null;
+          const avatarUrl = (cl as any)?.brand_builder_fields?.avatarUrl;
+          return avatarUrl ? (
+            <img src={avatarUrl} alt="" onClick={() => router.push('/settings')}
+              style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer' }} />
+          ) : (
+            <div onClick={() => router.push('/settings')}
+              style={{ width: 30, height: 30, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>MC</div>
+          );
+        })()}
       </div>
     </div>
   );
