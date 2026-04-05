@@ -1,12 +1,27 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTheme } from '@/lib/theme';
+import { motion } from 'framer-motion';
+import BrandKit from '@/components/shared/BrandKit';
 
-export default function AgencyBrandKitRedirect() {
-  const router = useRouter();
-  useEffect(() => {
-    router.replace('/agency/design-studio?tab=brand-kit');
-  }, [router]);
-  return null;
+const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
+const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } };
+
+export default function AgencyBrandKitPage() {
+  const { t } = useTheme();
+
+  return (
+    <div style={{ padding: 32, maxWidth: 960 }}>
+      <motion.div variants={stagger} initial="hidden" animate="show">
+        <motion.div variants={fadeUp} style={{ marginBottom: 24 }}>
+          <h1 style={{ fontSize: 20, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>Brand Kit</h1>
+          <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>CALO&CO brand assets and guidelines</p>
+        </motion.div>
+
+        <motion.div variants={fadeUp}>
+          <BrandKit context={{ type: 'agency' }} />
+        </motion.div>
+      </motion.div>
+    </div>
+  );
 }
