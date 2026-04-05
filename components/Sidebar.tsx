@@ -1,7 +1,6 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import { useTheme } from '@/lib/theme';
 
 const icons: Record<string, React.ReactNode> = {
@@ -9,7 +8,7 @@ const icons: Record<string, React.ReactNode> = {
   invoices: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="2" y="1" width="12" height="14" rx="1.5"/><line x1="5" y1="5" x2="11" y2="5" strokeLinecap="round"/><line x1="5" y1="8" x2="11" y2="8" strokeLinecap="round"/><line x1="5" y1="11" x2="8" y2="11" strokeLinecap="round"/></svg>,
   financials: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="2" y="1" width="12" height="14" rx="1.5"/><line x1="5" y1="11" x2="5" y2="7" strokeLinecap="round"/><line x1="8" y1="11" x2="8" y2="5" strokeLinecap="round"/><line x1="11" y1="11" x2="11" y2="8" strokeLinecap="round"/></svg>,
   brandKit: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="3"/><circle cx="8" cy="8" r="0.8"/></svg>,
-  studio: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><ellipse cx="7.5" cy="8.5" rx="6.5" ry="5.5"/><circle cx="5" cy="7" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="10.5" cy="8" r="1" fill="currentColor" stroke="none"/><path d="M12 4.5c1.5-1.5 3-1 2.5.5s-1.5 2-2.5 1.5"/></svg>,
+  designStudio: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><ellipse cx="7.5" cy="8.5" rx="6.5" ry="5.5"/><circle cx="5" cy="7" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="10.5" cy="8" r="1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="10" r="0.8" fill="none" stroke="currentColor" strokeWidth="1"/></svg>,
   settings: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>,
   yardSign: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="3" y="1.5" width="10" height="8" rx="1"/><line x1="6" y1="9.5" x2="6" y2="14.5" strokeLinecap="round"/><line x1="10" y1="9.5" x2="10" y2="14.5" strokeLinecap="round"/></svg>,
   clients: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="6" cy="5" r="2.5"/><path d="M1.5 14c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5"/><circle cx="11" cy="4.5" r="2"/><path d="M14.5 13c0-2 1.5-3.5-1.5-3.5"/></svg>,
@@ -21,22 +20,6 @@ export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const { theme, setTheme, t } = useTheme();
-  const [activeAsset, setActiveAsset] = useState<string | null>(null);
-
-  const isBrandBuilder = pathname.includes('/brand-builder') || pathname.includes('/design-studio');
-  const clientMatch = pathname.match(/^\/clients\/([^/]+)/);
-  const clientId = clientMatch?.[1];
-
-  useEffect(() => {
-    const handler = (e: Event) => setActiveAsset((e as CustomEvent).detail || null);
-    window.addEventListener('bbAssetTypeChange', handler);
-    return () => window.removeEventListener('bbAssetTypeChange', handler);
-  }, []);
-
-  useEffect(() => {
-    if (!isBrandBuilder) setActiveAsset(null);
-  }, [isBrandBuilder]);
-
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
     if (href === '/clients') return pathname === '/clients';
@@ -62,21 +45,6 @@ export default function Sidebar() {
         {label}
       </button>
     );
-  };
-
-  const sectionLabel = (text: string) => (
-    <div style={{ fontSize: 10, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', padding: '16px 12px 6px', fontWeight: 500 }}>
-      {text}
-    </div>
-  );
-
-  const assetLabels: Record<string, { label: string; icon: React.ReactNode }> = {
-    'yard-sign': { label: 'Yard Signs', icon: icons.yardSign },
-    'business-card': { label: 'Business Cards', icon: icons.invoices },
-    'vehicle-magnet': { label: 'Vehicle Magnets', icon: icons.invoices },
-    't-shirt': { label: 'T-Shirts', icon: icons.invoices },
-    'door-hanger': { label: 'Door Hangers', icon: icons.invoices },
-    'flyer': { label: 'Flyers', icon: icons.invoices },
   };
 
   return (
@@ -117,43 +85,9 @@ export default function Sidebar() {
         {navBtn('Clients', '/clients', icons.clients)}
         {navBtn('Invoices', '/invoices', icons.invoices)}
         {navBtn('Financials', '/financials', icons.financials)}
-        {navBtn('Studio', '/agency/design-studio', icons.studio)}
+        {navBtn('Design Studio', '/agency/design-studio', icons.designStudio)}
 
-        {clientId && clientId !== 'new' && (
-          <>
-            {sectionLabel('Client')}
-            {navBtn('Brand Kit', `/clients/${clientId}/brand-kit`, icons.brandKit)}
-            <button onClick={() => {
-              window.dispatchEvent(new CustomEvent('sidebarResetTemplate'));
-              router.push(`/clients/${clientId}/brand-builder`);
-            }} style={{
-              display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-              padding: '8px 12px', margin: '1px 0', borderRadius: 6, border: 'none',
-              fontSize: 13, fontWeight: isBrandBuilder ? 500 : 400,
-              color: isBrandBuilder ? t.text.primary : t.text.secondary,
-              background: isBrandBuilder && !activeAsset ? (theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)') : 'transparent',
-              cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' as const,
-            }}>
-              <span style={{ width: 16, height: 16, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icons.studio}</span>
-              Studio
-            </button>
-
-            {isBrandBuilder && activeAsset && assetLabels[activeAsset] && (
-              <button style={{
-                display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-                padding: '7px 12px 7px 32px', margin: '1px 0', borderRadius: 6, border: 'none',
-                fontSize: 12, color: t.accent.text, fontWeight: 500,
-                background: t.accent.subtle, cursor: 'default',
-                fontFamily: 'inherit', textAlign: 'left',
-              }}>
-                <span style={{ width: 16, height: 16, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {assetLabels[activeAsset].icon}
-                </span>
-                {assetLabels[activeAsset].label}
-              </button>
-            )}
-          </>
-        )}
+        {/* TODO: role-based sidebar — client users will see a different nav set */}
       </div>
 
       {/* Settings + Footer */}
