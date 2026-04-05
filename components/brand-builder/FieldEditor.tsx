@@ -12,12 +12,14 @@ interface FieldEditorProps {
   hasBrandKit?: boolean;
 }
 
-const SIGN_SIZES = [
+const SIGN_SIZES_VERTICAL = [
   { value: '18x24', label: '18" × 24"' },
-  { value: '24x18', label: '24" × 18" (landscape)' },
-  { value: '12x18', label: '12" × 18"' },
   { value: '24x36', label: '24" × 36"' },
-  { value: '36x24', label: '36" × 24" (landscape)' },
+];
+const SIGN_SIZES_HORIZONTAL = [
+  { value: '24x18', label: '24" × 18"' },
+  { value: '36x24', label: '36" × 24"' },
+  { value: '12x18', label: '12" × 18"' },
 ];
 
 function Field({ label, value, onChange, type = 'text', placeholder, disabled, checked, onToggle }: {
@@ -97,9 +99,22 @@ export default function FieldEditor({ fields, onChange, sources, assetType, clie
       {/* Size selector for Yard Signs */}
       {isYS && (
         <div style={{ marginBottom: 12 }}>
-          <label style={{ fontSize: 13, fontWeight: 500, color: '#111113', display: 'block', marginBottom: 4 }}>Sign Size</label>
+          <label style={{ fontSize: 13, fontWeight: 500, color: '#111113', display: 'block', marginBottom: 8 }}>Sign Size</label>
+          <div style={{ fontSize: 11, color: '#6e6e76', marginBottom: 4 }}>Vertical</div>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
+            {SIGN_SIZES_VERTICAL.map((s) => (
+              <button key={s.value} onClick={() => update('signSize', s.value)} style={{
+                padding: '5px 10px', fontSize: 13, fontWeight: 400, borderRadius: 6, cursor: 'pointer',
+                border: fields.signSize === s.value ? '1px solid #2563eb' : '1px solid #e2e2e5',
+                background: fields.signSize === s.value ? 'rgba(37,99,235,0.04)' : 'transparent',
+                color: fields.signSize === s.value ? '#2563eb' : '#6e6e76',
+                fontFamily: 'inherit',
+              }}>{s.label}</button>
+            ))}
+          </div>
+          <div style={{ fontSize: 11, color: '#6e6e76', marginBottom: 4 }}>Horizontal</div>
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-            {SIGN_SIZES.map((s) => (
+            {SIGN_SIZES_HORIZONTAL.map((s) => (
               <button key={s.value} onClick={() => update('signSize', s.value)} style={{
                 padding: '5px 10px', fontSize: 13, fontWeight: 400, borderRadius: 6, cursor: 'pointer',
                 border: fields.signSize === s.value ? '1px solid #2563eb' : '1px solid #e2e2e5',

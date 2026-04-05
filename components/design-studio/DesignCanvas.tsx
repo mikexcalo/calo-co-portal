@@ -25,6 +25,8 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
   const [selectedObject, setSelectedObject] = useState<any>(null);
   const [colorMode, setColorMode] = useState<'brand' | 'dark' | 'light'>('brand');
   const [canvasReady, setCanvasReady] = useState(false);
+  const [bleedWarning, setBleedWarning] = useState(false);
+  const bleedPxRef = useRef(0);
 
   // Undo/redo state
   const historyRef = useRef<string[]>([]);
@@ -55,6 +57,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
       const phys = SIGN_PHYSICAL_SIZES[signSize] || SIGN_PHYSICAL_SIZES['18x24'];
       const pxPerInch = template.width / phys.w;
       const bleedPx = Math.round(0.125 * pxPerInch);
+      bleedPxRef.current = bleedPx;
       const safePx = Math.round(0.375 * pxPerInch); // 0.125 bleed + 0.25 safe
 
       if (savedState) {
@@ -105,10 +108,12 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
                 scaleX: (qrPlaceholder.width || 80) / qrImg.width,
                 scaleY: (qrPlaceholder.height || 80) / qrImg.height,
                 name: 'qr-code',
-                selectable: false, evented: false,
+                selectable: true, evented: true,
+                hasControls: true, hasBorders: true,
               });
               fc.remove(qrPlaceholder);
               fc.add(qrImg);
+              fc.bringObjectToFront(qrImg);
             }
           } catch (e) {
             console.warn('QR code generation failed:', e);
@@ -228,12 +233,29 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
 
         if (!showH) guideH.set('visible', false);
         if (!showV) guideV.set('visible', false);
+
+        // Bleed zone check
+        const inBleed = obj.left < bleedPx || obj.top < bleedPx ||
+          (obj.left + obj.getScaledWidth()) > (W - bleedPx) ||
+          (obj.top + obj.getScaledHeight()) > (H - bleedPx);
+        setBleedWarning(inBleed);
+
         fc.renderAll();
+      });
+
+      fc.on('object:scaling', (e: any) => {
+        const obj = e.target;
+        if (!obj || obj.data?.isGuide) return;
+        const W = template.width; const H = template.height;
+        const inBleed = obj.left < bleedPx || obj.top < bleedPx ||
+          (obj.left + obj.getScaledWidth()) > (W - bleedPx) ||
+          (obj.top + obj.getScaledHeight()) > (H - bleedPx);
+        setBleedWarning(inBleed);
       });
 
       fc.on('selection:created', (e: any) => setSelectedObject(e.selected?.[0] || null));
       fc.on('selection:updated', (e: any) => setSelectedObject(e.selected?.[0] || null));
-      fc.on('selection:cleared', () => setSelectedObject(null));
+      fc.on('selection:cleared', () => { setSelectedObject(null); setBleedWarning(false); });
 
       fc.on('object:modified', () => {
         // Hide guides on mouse up
@@ -519,8 +541,15 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
       </div>
 
       {/* Canvas */}
-      <div style={{ borderRadius: 8, border: '1px solid #e2e2e5', display: 'inline-block', overflow: 'hidden' }}>
-        <canvas ref={canvasRef} />
+      <div style={{ position: 'relative', display: 'inline-block' }}>
+        {bleedWarning && (
+          <div style={{ position: 'absolute', top: -28, left: 0, zIndex: 10, fontSize: 11, background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: 4, padding: '2px 8px', whiteSpace: 'nowrap' }}>
+            ⚠ Object in bleed zone
+          </div>
+        )}
+        <div style={{ borderRadius: 8, border: '1px solid #e2e2e5', overflow: 'hidden' }}>
+          <canvas ref={canvasRef} />
+        </div>
       </div>
 
       {/* Export buttons */}
