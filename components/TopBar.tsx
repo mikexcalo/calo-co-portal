@@ -114,12 +114,16 @@ export default function TopBar() {
           const cl = clientMatch ? DB.clients.find((c) => c.id === clientMatch[1]) : null;
           const avatarUrl = (cl as any)?.brand_builder_fields?.avatarUrl
             || (typeof window !== 'undefined' ? localStorage.getItem('calo-agency-avatar') : null);
+          const avatarHover = (e: React.MouseEvent<HTMLElement>) => e.currentTarget.style.outline = `2px solid ${t.border.hover}`;
+          const avatarLeave = (e: React.MouseEvent<HTMLElement>) => e.currentTarget.style.outline = 'none';
           return avatarUrl ? (
             <img src={avatarUrl} alt="" onClick={() => router.push('/settings')}
-              style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer' }} />
+              onMouseEnter={avatarHover} onMouseLeave={avatarLeave}
+              style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer', outlineOffset: 1, transition: 'outline 150ms' }} />
           ) : (
             <div onClick={() => router.push('/settings')}
-              style={{ width: 30, height: 30, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>MC</div>
+              onMouseEnter={avatarHover} onMouseLeave={avatarLeave}
+              style={{ width: 30, height: 30, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', outlineOffset: 1, transition: 'outline 150ms' }}>MC</div>
           );
         })()}
       </div>

@@ -3,6 +3,7 @@ import './globals.css';
 import { GeistSans } from 'geist/font/sans';
 import Sidebar from '@/components/Sidebar';
 import TopBar from '@/components/TopBar';
+import ContentFooter from '@/components/ContentFooter';
 import { ThemeProvider } from '@/lib/theme';
 
 export const metadata: Metadata = {
@@ -26,6 +27,7 @@ export default function RootLayout({
               <main style={{ flex: 1, overflow: 'auto' }}>
                 {children}
               </main>
+              <ContentFooter />
             </div>
           </div>
         </ThemeProvider>
