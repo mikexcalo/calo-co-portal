@@ -169,6 +169,9 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
 
 function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; readOnly: boolean }) {
   const [headshot, setHeadshot] = useState<{ url: string; filename: string } | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [feedback, setFeedback] = useState<'success' | 'error' | null>(null);
+
   useEffect(() => {
     (async () => {
       try {
@@ -181,6 +184,7 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
   }, [entityId]);
 
   const handleUpload = async (file: File) => {
+    setUploading(true); setFeedback(null);
     try {
       const supabase = (await import('@/lib/supabase')).default;
       const path = `headshots/${entityId}/owner-${Date.now()}-${file.name}`;
@@ -191,7 +195,9 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
       const cl = DB.clients.find((c) => c.id === entityId);
       const existing = (cl as any)?.brand_builder_fields || {};
       await supabase.from('clients').update({ brand_builder_fields: { ...existing, headshots: { ...existing.headshots, owner: hs } } }).eq('id', entityId);
-    } catch (e) { console.warn('[Headshot upload]', e); }
+      setFeedback('success'); setTimeout(() => setFeedback(null), 1500);
+    } catch (e) { console.warn('[Headshot upload]', e); setFeedback('error'); setTimeout(() => setFeedback(null), 2000); }
+    finally { setUploading(false); }
   };
 
   const remove = async () => {
@@ -225,14 +231,14 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
     img.src = url;
   };
 
-  const card: React.CSSProperties = { background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 16 };
+  const borderColor = feedback === 'success' ? t.status.success : feedback === 'error' ? t.status.danger : t.border.default;
 
   return (
     <Section label="Headshot">
-      <div style={{ ...card, alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 16, minHeight: 180, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         {headshot?.url ? (
           <>
-            <div style={{ position: 'relative', width: 100, height: 100, borderRadius: '50%', overflow: 'hidden', border: `1px solid ${t.border.default}`, margin: '0 auto' }}>
+            <div style={{ position: 'relative', width: 100, height: 100, borderRadius: '50%', overflow: 'hidden', border: `2px solid ${borderColor}`, margin: '0 auto', transition: 'border-color 300ms' }}>
               <img src={headshot.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               {!readOnly && <button onClick={remove} style={{ position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>}
             </div>
@@ -247,9 +253,9 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
             </div>
           </>
         ) : (
-          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 100, height: 100, borderRadius: '50%', border: `1px dashed ${t.border.default}`, cursor: readOnly ? 'default' : 'pointer', color: t.text.tertiary, fontSize: 18, margin: '0 auto' }}>
-            +
-            {!readOnly && <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0]); }} />}
+          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 100, height: 100, borderRadius: '50%', border: `1px dashed ${feedback === 'error' ? t.status.danger : t.border.default}`, cursor: readOnly ? 'default' : 'pointer', color: feedback === 'error' ? t.status.danger : t.text.tertiary, fontSize: uploading ? 11 : 18, margin: '0 auto', transition: 'border-color 300ms' }}>
+            {uploading ? 'Uploading...' : feedback === 'error' ? 'Failed' : '+'}
+            {!readOnly && !uploading && <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0]); }} />}
           </label>
         )}
       </div>
