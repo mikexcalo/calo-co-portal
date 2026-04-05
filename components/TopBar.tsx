@@ -10,10 +10,15 @@ export default function TopBar() {
   const { t } = useTheme();
   const router = useRouter();
   const [viewMode, setViewMode] = useState<'agency' | 'client'>('agency');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('viewMode') : null;
     if (stored === 'client') setViewMode('client');
+    setAvatarUrl(localStorage.getItem('calo-agency-avatar'));
+    const onStorage = () => setAvatarUrl(localStorage.getItem('calo-agency-avatar'));
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
   }, []);
 
   const handleToggle = (mode: 'agency' | 'client') => {
@@ -109,16 +114,13 @@ export default function TopBar() {
             ))}
           </div>
         )}
-        {(() => {
-          const avatarUrl = typeof window !== 'undefined' ? localStorage.getItem('calo-agency-avatar') : null;
-          return avatarUrl ? (
-            <img src={avatarUrl} alt="" title="Settings" onClick={() => router.push('/settings?tab=profile')}
-              style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer' }} />
-          ) : (
-            <div title="Settings" onClick={() => router.push('/settings?tab=profile')}
-              style={{ width: 30, height: 30, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>MC</div>
-          );
-        })()}
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="" title="Settings" onClick={() => router.push('/settings?tab=profile')}
+            style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer' }} />
+        ) : (
+          <div title="Settings" onClick={() => router.push('/settings?tab=profile')}
+            style={{ width: 30, height: 30, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>MC</div>
+        )}
       </div>
     </div>
   );

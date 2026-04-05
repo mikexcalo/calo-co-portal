@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTheme } from '@/lib/theme';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -45,11 +45,6 @@ function SettingsContent() {
   const [profileTitle, setProfileTitle] = useState('');
   const [profileEmail, setProfileEmail] = useState('');
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
-  const [profileZoom, setProfileZoom] = useState(1);
-  const [profileOffset, setProfileOffset] = useState({ x: 0, y: 0 });
-  const [profileDragging, setProfileDragging] = useState(false);
-  const [profileEditing, setProfileEditing] = useState(false);
-  const profileDragStart = React.useRef({ x: 0, y: 0, ox: 0, oy: 0 });
   const [profileSaved, setProfileSaved] = useState(false);
 
   // ── Agency state ──
@@ -80,22 +75,6 @@ function SettingsContent() {
     setAgencyFooterText(ag.footerText || '');
   }, []);
 
-  // Profile drag
-  useEffect(() => {
-    if (!profileDragging) return;
-    const onMove = (e: MouseEvent | TouchEvent) => {
-      const pt = 'touches' in e ? e.touches[0] : e;
-      const maxOff = 40 * profileZoom;
-      const nx = Math.max(-maxOff, Math.min(maxOff, profileDragStart.current.ox + pt.clientX - profileDragStart.current.x));
-      const ny = Math.max(-maxOff, Math.min(maxOff, profileDragStart.current.oy + pt.clientY - profileDragStart.current.y));
-      setProfileOffset({ x: nx, y: ny });
-    };
-    const onUp = () => setProfileDragging(false);
-    window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onUp);
-    window.addEventListener('touchmove', onMove); window.addEventListener('touchend', onUp);
-    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onUp); };
-  }, [profileDragging, profileZoom]);
-
   const handleProfileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -103,8 +82,6 @@ function SettingsContent() {
     reader.onload = (ev) => {
       const url = ev.target?.result as string;
       setProfileAvatar(url);
-      setProfileZoom(1);
-      setProfileOffset({ x: 0, y: 0 });
       localStorage.setItem('calo-agency-avatar', url);
     };
     reader.readAsDataURL(file);
@@ -119,9 +96,8 @@ function SettingsContent() {
       const ctx = canvas.getContext('2d')!;
       ctx.beginPath(); ctx.arc(100, 100, 100, 0, Math.PI * 2); ctx.clip();
       const min = Math.min(img.width, img.height);
-      const sx = (img.width - min) / 2 - (profileOffset.x / 120) * min / profileZoom;
-      const sy = (img.height - min) / 2 - (profileOffset.y / 120) * min / profileZoom;
-      ctx.drawImage(img, sx, sy, min / profileZoom, min / profileZoom, 0, 0, size, size);
+      const sx = (img.width - min) / 2; const sy = (img.height - min) / 2;
+      ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
       const cropped = canvas.toDataURL('image/png');
       localStorage.setItem('calo-agency-avatar', cropped);
       setProfileAvatar(cropped);
@@ -168,49 +144,33 @@ function SettingsContent() {
             <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
 
               {activeTab === 'profile' && (
-                <div style={{ display: 'grid', gridTemplateColumns: '40% 60%', gap: 24 }}>
-                  {/* Left: headshot */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 24 }}>
+                  {/* Left: headshot 80×80 */}
+                  <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
                     {profileAvatar ? (
                       <>
-                        <div style={{ position: 'relative', width: 120, height: 120, borderRadius: '50%', overflow: 'hidden', border: `2px solid ${profileSaved ? t.status.success : t.border.default}`, cursor: profileEditing ? (profileDragging ? 'grabbing' : 'grab') : 'default', transition: 'border-color 300ms' }}
-                          onMouseDown={profileEditing ? (e) => { e.preventDefault(); profileDragStart.current = { x: e.clientX, y: e.clientY, ox: profileOffset.x, oy: profileOffset.y }; setProfileDragging(true); } : undefined}
-                          onTouchStart={profileEditing ? (e) => { const pt = e.touches[0]; profileDragStart.current = { x: pt.clientX, y: pt.clientY, ox: profileOffset.x, oy: profileOffset.y }; setProfileDragging(true); } : undefined}>
-                          <img src={profileAvatar} alt="" draggable={false} style={{ position: 'absolute', width: '100%', height: '100%', objectFit: 'cover', transform: `translate(${profileOffset.x}px, ${profileOffset.y}px) scale(${profileZoom})`, pointerEvents: 'none' }} />
-                          <button onClick={(e) => { e.stopPropagation(); setProfileAvatar(null); localStorage.removeItem('calo-agency-avatar'); setProfileEditing(false); }}
-                            style={{ position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>×</button>
+                        <div style={{ position: 'relative', width: 80, height: 80, borderRadius: '50%', overflow: 'hidden', border: `2px solid ${profileSaved ? t.status.success : t.border.default}`, transition: 'border-color 300ms' }}>
+                          <img src={profileAvatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <button onClick={() => { setProfileAvatar(null); localStorage.removeItem('calo-agency-avatar'); }}
+                            style={{ position: 'absolute', top: 2, right: 2, width: 16, height: 16, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', fontSize: 9, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                         </div>
-                        {profileEditing && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, width: 120 }}>
-                            <span style={{ fontSize: 12 }}>🔍</span>
-                            <input type="range" min="1" max="3" step="0.05" value={profileZoom}
-                              onChange={(e) => setProfileZoom(parseFloat(e.target.value))}
-                              style={{ flex: 1, height: 4, cursor: 'pointer' }} />
-                          </div>
-                        )}
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <button onClick={() => setProfileEditing(!profileEditing)}
-                            style={{ fontSize: 11, padding: '4px 10px', border: `1px solid ${t.border.default}`, borderRadius: t.radius.sm, background: t.bg.primary, color: t.text.secondary, cursor: 'pointer', fontFamily: 'inherit' }}>
-                            {profileEditing ? 'Done' : 'Edit'}
-                          </button>
-                          <button onClick={handleSetProfilePic} style={{ fontSize: 11, padding: '4px 10px', border: `1px solid ${t.border.default}`, borderRadius: t.radius.sm, background: t.bg.primary, color: profileSaved ? t.status.success : t.accent.text, cursor: 'pointer', fontFamily: 'inherit' }}>
-                            {profileSaved ? (
-                              <><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ marginRight: 3, verticalAlign: '-1px' }}><polyline points="20 6 9 17 4 12"/></svg>Saved</>
-                            ) : (
-                              <><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 3, verticalAlign: '-1px' }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Set as profile pic</>
-                            )}
-                          </button>
-                        </div>
+                        <button onClick={handleSetProfilePic} style={{ fontSize: 10, padding: '3px 8px', border: `1px solid ${t.border.default}`, borderRadius: t.radius.sm, background: t.bg.primary, color: profileSaved ? t.status.success : t.accent.text, cursor: 'pointer', fontFamily: 'inherit' }}>
+                          {profileSaved ? (
+                            <><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ marginRight: 2, verticalAlign: '-1px' }}><polyline points="20 6 9 17 4 12"/></svg>Saved</>
+                          ) : (
+                            <><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 2, verticalAlign: '-1px' }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Set as profile pic</>
+                          )}
+                        </button>
                       </>
                     ) : (
-                      <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 120, height: 120, borderRadius: '50%', border: `1px dashed ${t.border.default}`, cursor: 'pointer', color: t.text.tertiary, fontSize: 18 }}>
+                      <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 80, height: 80, borderRadius: '50%', border: `1px dashed ${t.border.default}`, cursor: 'pointer', color: t.text.tertiary, fontSize: 16 }}>
                         +
                         <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleProfileUpload} />
                       </label>
                     )}
                   </div>
                   {/* Right: text fields */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12, justifyContent: 'center' }}>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, justifyContent: 'center' }}>
                     <div style={rowStyle}>
                       <span style={lblStyle}>Name</span>
                       <input type="text" value={profileName} onChange={(e) => { setProfileName(e.target.value); localStorage.setItem('calo-agency-profile-name', e.target.value); }}
