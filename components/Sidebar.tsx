@@ -87,12 +87,7 @@ export default function Sidebar() {
         {navBtn('Financials', '/financials', icons.financials)}
         {navBtn('Brand Kit', '/agency/brand-kit', icons.brandKit)}
         {navBtn('Design Studio', '/agency/design-studio', icons.designStudio)}
-
-        {/* TODO: role-based sidebar — client users will see a different nav set */}
-      </div>
-
-      {/* Settings */}
-      <div style={{ padding: '0 8px 8px' }}>
+        <div style={{ height: 8 }} />
         {navBtn('Settings', '/settings', icons.settings)}
       </div>
     </div>

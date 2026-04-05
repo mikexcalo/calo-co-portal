@@ -7,7 +7,7 @@ export default function ContentFooter() {
   return (
     <div style={{
       height: 28, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      borderTop: `1px solid ${t.border.default}`, background: t.bg.primary,
+      background: t.bg.primary,
     }}>
       <a href="https://mikecalo.co" target="_blank" rel="noopener noreferrer"
         style={{ fontSize: 9, color: t.text.tertiary, textDecoration: 'none', fontFamily: 'inherit' }}>

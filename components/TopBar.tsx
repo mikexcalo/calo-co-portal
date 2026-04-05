@@ -90,24 +90,36 @@ export default function TopBar() {
         ))}
       </div>
 
-      {/* Right: client toggle */}
-      {isClientRoute && (
-        <div style={{ display: 'inline-flex', background: 'rgba(255,255,255,0.04)', borderRadius: 6, padding: 2 }}>
-          {(['agency', 'client'] as const).map((m) => (
-            <button key={m} onClick={() => handleToggle(m)} style={{
-              padding: '4px 10px', fontSize: 11, fontWeight: viewMode === m ? 500 : 400,
-              borderRadius: 4,
-              border: viewMode === m ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent',
-              background: viewMode === m ? 'rgba(255,255,255,0.06)' : 'transparent',
-              color: viewMode === m ? '#f5f5f5' : '#5a5a5d',
-              cursor: 'pointer', fontFamily: 'inherit',
-              boxShadow: 'none',
-            }}>
-              {m === 'agency' ? 'Agency' : 'Client'}
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Right: client toggle + avatar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {isClientRoute && (
+          <div style={{ display: 'inline-flex', background: 'rgba(255,255,255,0.04)', borderRadius: 6, padding: 2 }}>
+            {(['agency', 'client'] as const).map((m) => (
+              <button key={m} onClick={() => handleToggle(m)} style={{
+                padding: '4px 10px', fontSize: 11, fontWeight: viewMode === m ? 500 : 400,
+                borderRadius: 4,
+                border: viewMode === m ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent',
+                background: viewMode === m ? 'rgba(255,255,255,0.06)' : 'transparent',
+                color: viewMode === m ? '#f5f5f5' : '#5a5a5d',
+                cursor: 'pointer', fontFamily: 'inherit',
+                boxShadow: 'none',
+              }}>
+                {m === 'agency' ? 'Agency' : 'Client'}
+              </button>
+            ))}
+          </div>
+        )}
+        {(() => {
+          const avatarUrl = typeof window !== 'undefined' ? localStorage.getItem('calo-agency-avatar') : null;
+          return avatarUrl ? (
+            <img src={avatarUrl} alt="" title="Settings" onClick={() => router.push('/settings?tab=profile')}
+              style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer' }} />
+          ) : (
+            <div title="Settings" onClick={() => router.push('/settings?tab=profile')}
+              style={{ width: 30, height: 30, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>MC</div>
+          );
+        })()}
+      </div>
     </div>
   );
 }

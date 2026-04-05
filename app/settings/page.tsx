@@ -57,6 +57,8 @@ function SettingsContent() {
   const [agencyAddress, setAgencyAddress] = useState('');
   const [agencyTaxRate, setAgencyTaxRate] = useState('');
   const [agencyPayTerms, setAgencyPayTerms] = useState('');
+  const [agencyPayMethod, setAgencyPayMethod] = useState('');
+  const [agencyDisplayName, setAgencyDisplayName] = useState('');
   const [agencyReplyEmail, setAgencyReplyEmail] = useState('');
   const [agencyFooterText, setAgencyFooterText] = useState('');
 
@@ -72,6 +74,8 @@ function SettingsContent() {
     setAgencyAddress(ag.address || '');
     setAgencyTaxRate(ag.taxRate || '');
     setAgencyPayTerms(ag.paymentTerms || '');
+    setAgencyPayMethod(ag.paymentMethod || '');
+    setAgencyDisplayName(ag.displayName || '');
     setAgencyReplyEmail(ag.replyEmail || '');
     setAgencyFooterText(ag.footerText || '');
   }, []);
@@ -138,7 +142,7 @@ function SettingsContent() {
   ];
 
   const rowStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 8 };
-  const lblStyle: React.CSSProperties = { fontSize: 11, color: t.text.secondary, width: 80, flexShrink: 0 };
+  const lblStyle: React.CSSProperties = { fontSize: 11, color: t.text.secondary, width: 100, flexShrink: 0 };
   const divider: React.CSSProperties = { height: 1, background: t.border.default, margin: '16px 0' };
   const sectionTitle: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 };
 
@@ -250,8 +254,8 @@ function SettingsContent() {
 
                   <div style={divider} />
 
-                  {/* Financial */}
-                  <div style={sectionTitle}>Financial</div>
+                  {/* Billing */}
+                  <div style={sectionTitle}>Billing</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <div style={rowStyle}>
                       <span style={lblStyle}>Tax Rate %</span>
@@ -270,13 +274,25 @@ function SettingsContent() {
                         <option value="Net 60">Net 60</option>
                       </select>
                     </div>
+                    <div style={rowStyle}>
+                      <span style={lblStyle}>Pay Method</span>
+                      <input value={agencyPayMethod} onChange={(e) => updateAgency('paymentMethod', e.target.value, setAgencyPayMethod)}
+                        placeholder="Zelle, Venmo, Check" style={{ ...inputStyle, flex: 1 }}
+                        onFocus={(e) => e.currentTarget.style.borderColor = t.border.active} onBlur={(e) => e.currentTarget.style.borderColor = t.border.default} />
+                    </div>
                   </div>
 
                   <div style={divider} />
 
-                  {/* Communication */}
-                  <div style={sectionTitle}>Communication</div>
+                  {/* Account */}
+                  <div style={sectionTitle}>Account</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={rowStyle}>
+                      <span style={lblStyle}>Display Name</span>
+                      <input value={agencyDisplayName} onChange={(e) => updateAgency('displayName', e.target.value, setAgencyDisplayName)}
+                        placeholder="Mike Calo" style={{ ...inputStyle, flex: 1 }}
+                        onFocus={(e) => e.currentTarget.style.borderColor = t.border.active} onBlur={(e) => e.currentTarget.style.borderColor = t.border.default} />
+                    </div>
                     <div style={rowStyle}>
                       <span style={lblStyle}>Reply Email</span>
                       <input type="email" value={agencyReplyEmail} onChange={(e) => updateAgency('replyEmail', e.target.value, setAgencyReplyEmail)}
