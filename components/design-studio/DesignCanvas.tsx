@@ -141,6 +141,24 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
       historyRef.current = [initialState];
       historyIndexRef.current = 0;
 
+      // Helper: get bounding box edges regardless of originX/originY
+      const getBounds = (o: any) => {
+        const w = o.getScaledWidth();
+        const h = o.getScaledHeight();
+        let l = o.left, t2 = o.top;
+        if (o.originX === 'center') l -= w / 2;
+        if (o.originY === 'center') t2 -= h / 2;
+        return { l, t: t2, r: l + w, b: t2 + h, cx: l + w / 2, cy: t2 + h / 2, w, h };
+      };
+      const setLeft = (o: any, left: number) => {
+        if (o.originX === 'center') o.set('left', left + o.getScaledWidth() / 2);
+        else o.set('left', left);
+      };
+      const setTop = (o: any, top: number) => {
+        if (o.originY === 'center') o.set('top', top + o.getScaledHeight() / 2);
+        else o.set('top', top);
+      };
+
       // ── Snap-to-center + edge + object alignment guides ──
       fc.on('object:moving', (e: any) => {
         const obj = e.target;
@@ -150,83 +168,62 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         const H = template.height;
         const cx = W / 2;
         const cy = H / 2;
-        const objW = obj.getScaledWidth();
-        const objH = obj.getScaledHeight();
-        const objL = obj.left;
-        const objT = obj.top;
-        const objR = objL + objW;
-        const objB = objT + objH;
-        const objCx = objL + objW / 2;
-        const objCy = objT + objH / 2;
+        const b = getBounds(obj);
+        const objL = b.l, objT = b.t, objR = b.r, objB = b.b;
+        const objCx = b.cx, objCy = b.cy;
+        const objW = b.w, objH = b.h;
         let showH = false, showV = false;
 
         // Snap to canvas center X
         if (Math.abs(objCx - cx) < snap) {
-          obj.set('left', cx - objW / 2);
+          setLeft(obj, cx - objW / 2);
           guideV.set({ x1: cx, y1: 0, x2: cx, y2: H, visible: true } as any);
           showV = true;
         }
         // Snap to canvas center Y
         if (Math.abs(objCy - cy) < snap) {
-          obj.set('top', cy - objH / 2);
+          setTop(obj, cy - objH / 2);
           guideH.set({ x1: 0, y1: cy, x2: W, y2: cy, visible: true } as any);
           showH = true;
         }
 
         // Snap to safe zone edges
         if (!showV) {
-          if (Math.abs(objL - safePx) < snap) { obj.set('left', safePx); guideV.set({ x1: safePx, y1: 0, x2: safePx, y2: H, visible: true } as any); showV = true; }
-          else if (Math.abs(objR - (W - safePx)) < snap) { obj.set('left', W - safePx - objW); guideV.set({ x1: W - safePx, y1: 0, x2: W - safePx, y2: H, visible: true } as any); showV = true; }
+          if (Math.abs(objL - safePx) < snap) { setLeft(obj, safePx); guideV.set({ x1: safePx, y1: 0, x2: safePx, y2: H, visible: true } as any); showV = true; }
+          else if (Math.abs(objR - (W - safePx)) < snap) { setLeft(obj, W - safePx - objW); guideV.set({ x1: W - safePx, y1: 0, x2: W - safePx, y2: H, visible: true } as any); showV = true; }
         }
         if (!showH) {
-          if (Math.abs(objT - safePx) < snap) { obj.set('top', safePx); guideH.set({ x1: 0, y1: safePx, x2: W, y2: safePx, visible: true } as any); showH = true; }
-          else if (Math.abs(objB - (H - safePx)) < snap) { obj.set('top', H - safePx - objH); guideH.set({ x1: 0, y1: H - safePx, x2: W, y2: H - safePx, visible: true } as any); showH = true; }
+          if (Math.abs(objT - safePx) < snap) { setTop(obj, safePx); guideH.set({ x1: 0, y1: safePx, x2: W, y2: safePx, visible: true } as any); showH = true; }
+          else if (Math.abs(objB - (H - safePx)) < snap) { setTop(obj, H - safePx - objH); guideH.set({ x1: 0, y1: H - safePx, x2: W, y2: H - safePx, visible: true } as any); showH = true; }
         }
 
         // Snap to other objects' edges and centers
         fc.getObjects().forEach((other: any) => {
           if (other === obj || !other.visible || other.data?.isGuide) return;
-          const oW = other.getScaledWidth();
-          const oH = other.getScaledHeight();
-          const oL = other.left;
-          const oT = other.top;
-          const oR = oL + oW;
-          const oB = oT + oH;
-          const oCx = oL + oW / 2;
-          const oCy = oT + oH / 2;
+          const ob = getBounds(other);
 
           if (!showV) {
-            // Center-to-center X
-            if (Math.abs(objCx - oCx) < snap) {
-              obj.set('left', oCx - objW / 2);
-              guideV.set({ x1: oCx, y1: 0, x2: oCx, y2: H, visible: true } as any); showV = true;
-            }
-            // Left edge to left edge
-            else if (Math.abs(objL - oL) < snap) {
-              obj.set('left', oL);
-              guideV.set({ x1: oL, y1: 0, x2: oL, y2: H, visible: true } as any); showV = true;
-            }
-            // Right edge to right edge
-            else if (Math.abs(objR - oR) < snap) {
-              obj.set('left', oR - objW);
-              guideV.set({ x1: oR, y1: 0, x2: oR, y2: H, visible: true } as any); showV = true;
+            if (Math.abs(objCx - ob.cx) < snap) {
+              setLeft(obj, ob.cx - objW / 2);
+              guideV.set({ x1: ob.cx, y1: 0, x2: ob.cx, y2: H, visible: true } as any); showV = true;
+            } else if (Math.abs(objL - ob.l) < snap) {
+              setLeft(obj, ob.l);
+              guideV.set({ x1: ob.l, y1: 0, x2: ob.l, y2: H, visible: true } as any); showV = true;
+            } else if (Math.abs(objR - ob.r) < snap) {
+              setLeft(obj, ob.r - objW);
+              guideV.set({ x1: ob.r, y1: 0, x2: ob.r, y2: H, visible: true } as any); showV = true;
             }
           }
           if (!showH) {
-            // Center-to-center Y
-            if (Math.abs(objCy - oCy) < snap) {
-              obj.set('top', oCy - objH / 2);
-              guideH.set({ x1: 0, y1: oCy, x2: W, y2: oCy, visible: true } as any); showH = true;
-            }
-            // Top edge to top edge
-            else if (Math.abs(objT - oT) < snap) {
-              obj.set('top', oT);
-              guideH.set({ x1: 0, y1: oT, x2: W, y2: oT, visible: true } as any); showH = true;
-            }
-            // Bottom edge to bottom edge
-            else if (Math.abs(objB - oB) < snap) {
-              obj.set('top', oB - objH);
-              guideH.set({ x1: 0, y1: oB, x2: W, y2: oB, visible: true } as any); showH = true;
+            if (Math.abs(objCy - ob.cy) < snap) {
+              setTop(obj, ob.cy - objH / 2);
+              guideH.set({ x1: 0, y1: ob.cy, x2: W, y2: ob.cy, visible: true } as any); showH = true;
+            } else if (Math.abs(objT - ob.t) < snap) {
+              setTop(obj, ob.t);
+              guideH.set({ x1: 0, y1: ob.t, x2: W, y2: ob.t, visible: true } as any); showH = true;
+            } else if (Math.abs(objB - ob.b) < snap) {
+              setTop(obj, ob.b - objH);
+              guideH.set({ x1: 0, y1: ob.b, x2: W, y2: ob.b, visible: true } as any); showH = true;
             }
           }
         });
@@ -234,10 +231,10 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         if (!showH) guideH.set('visible', false);
         if (!showV) guideV.set('visible', false);
 
-        // Bleed zone check
-        const inBleed = obj.left < bleedPx || obj.top < bleedPx ||
-          (obj.left + obj.getScaledWidth()) > (W - bleedPx) ||
-          (obj.top + obj.getScaledHeight()) > (H - bleedPx);
+        // Bleed zone check (use bounds, not raw left/top)
+        const bb = getBounds(obj);
+        const inBleed = bb.l < bleedPx || bb.t < bleedPx ||
+          bb.r > (W - bleedPx) || bb.b > (H - bleedPx);
         setBleedWarning(inBleed);
 
         fc.renderAll();
@@ -247,9 +244,8 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         const obj = e.target;
         if (!obj || obj.data?.isGuide) return;
         const W = template.width; const H = template.height;
-        const inBleed = obj.left < bleedPx || obj.top < bleedPx ||
-          (obj.left + obj.getScaledWidth()) > (W - bleedPx) ||
-          (obj.top + obj.getScaledHeight()) > (H - bleedPx);
+        const sb = getBounds(obj);
+        const inBleed = sb.l < bleedPx || sb.t < bleedPx || sb.r > (W - bleedPx) || sb.b > (H - bleedPx);
         setBleedWarning(inBleed);
       });
 
@@ -472,6 +468,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
       width: 120, fontSize: 18,
       fontFamily: 'Inter, Helvetica, Arial, sans-serif',
       fill: '#ffffff', textAlign: 'center',
+      originX: 'left', originY: 'top',
     });
     fabricRef.current.add(text);
     fabricRef.current.setActiveObject(text);
