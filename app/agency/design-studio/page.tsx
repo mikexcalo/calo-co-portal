@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTheme } from '@/lib/theme';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.04 } } };
 const fadeUp = { hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: 'easeOut' as const } } };
@@ -49,6 +50,21 @@ const digital: { id: string; label: string; desc: string; status: Status }[] = [
 
 export default function AgencyDesignStudioPage() {
   const { t } = useTheme();
+  const router = useRouter();
+  const [toast, setToast] = useState<string | null>(null);
+  const [dismissed, setDismissed] = useState(() => typeof window !== 'undefined' && sessionStorage.getItem('agency-bk-alert-dismissed') === '1');
+
+  // Check agency brand kit completeness from localStorage
+  const agBrand = (() => { try { return JSON.parse(localStorage.getItem('calo-agency-brand-details') || '{}'); } catch { return {}; } })();
+  const missingBk = !agBrand.logoUrl && !agBrand.colors?.length;
+
+  const handleClick = (id: string, status: Status) => {
+    if (status === 'coming-soon') { setToast('Coming soon'); setTimeout(() => setToast(null), 2000); return; }
+    // Route to agency design studio module — currently only yard-sign has a dedicated builder
+    // For now, log and navigate to a placeholder
+    console.log('Open agency template:', id);
+  };
+
   return (
     <div style={{ padding: 32, maxWidth: 960 }}>
       <motion.div variants={stagger} initial="hidden" animate="show">
@@ -57,20 +73,43 @@ export default function AgencyDesignStudioPage() {
           <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>Create and manage CALO&CO marketing assets</p>
         </motion.div>
 
+        {/* Brand Kit alert */}
+        {missingBk && !dismissed && (
+          <motion.div variants={fadeUp} style={{
+            background: 'rgba(37,99,235,0.04)', border: '1px solid rgba(37,99,235,0.12)', borderRadius: 8,
+            padding: '10px 16px', marginBottom: 20, fontSize: 13, color: t.text.secondary,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <span>Complete your Brand Kit to auto-populate templates <span onClick={() => router.push('/agency/brand-kit')} style={{ color: t.accent.text, fontWeight: 500, cursor: 'pointer' }}>Go to Brand Kit →</span></span>
+            <button onClick={() => { setDismissed(true); sessionStorage.setItem('agency-bk-alert-dismissed', '1'); }}
+              style={{ background: 'none', border: 'none', color: t.text.tertiary, fontSize: 14, cursor: 'pointer', padding: 0, lineHeight: 1 }}>×</button>
+          </motion.div>
+        )}
+
         <motion.div variants={fadeUp} style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Print</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-            {print.map((tmpl) => <TCard key={tmpl.id} t={t} id={tmpl.id} label={tmpl.label} desc={tmpl.desc} status={tmpl.status} />)}
+            {print.map((tmpl) => <TCard key={tmpl.id} t={t} id={tmpl.id} label={tmpl.label} desc={tmpl.desc} status={tmpl.status} onClick={() => handleClick(tmpl.id, tmpl.status)} />)}
           </div>
         </motion.div>
 
         <motion.div variants={fadeUp}>
           <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Digital</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-            {digital.map((tmpl) => <TCard key={tmpl.id} t={t} id={tmpl.id} label={tmpl.label} desc={tmpl.desc} status={tmpl.status} />)}
+            {digital.map((tmpl) => <TCard key={tmpl.id} t={t} id={tmpl.id} label={tmpl.label} desc={tmpl.desc} status={tmpl.status} onClick={() => handleClick(tmpl.id, tmpl.status)} />)}
           </div>
         </motion.div>
       </motion.div>
+
+      {/* Coming soon toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 100, background: t.bg.elevated, border: `1px solid ${t.border.default}`, borderRadius: t.radius.md, padding: '10px 16px', boxShadow: t.shadow.elevated, fontSize: 13, color: t.text.primary }}>
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -81,11 +120,11 @@ function StatusBadge({ status, t }: { status: Status; t: any }) {
   return <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: t.radius.sm, background: t.bg.primary, color: t.text.secondary }}>Not started</span>;
 }
 
-function TCard({ t, id, label, desc, status }: { t: any; id: string; label: string; desc: string; status: Status }) {
+function TCard({ t, id, label, desc, status, onClick }: { t: any; id: string; label: string; desc: string; status: Status; onClick?: () => void }) {
   const [hovered, setHovered] = useState(false);
   return (
     <motion.div whileHover={{ scale: 1.02 }} transition={spring}
-      onClick={() => console.log('Open template:', id)}
+      onClick={onClick}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{
         background: hovered ? t.bg.surfaceHover : t.bg.surface,

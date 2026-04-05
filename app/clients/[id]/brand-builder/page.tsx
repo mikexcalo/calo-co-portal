@@ -256,12 +256,11 @@ export default function BrandBuilderPage() {
       <div style={{ maxWidth: 980, margin: '0 auto', padding: '12px 24px 0' }}>
       {!hasBrandKit && (
         <div style={{
-          background: t.accent.subtle, border: `1px solid ${t.border.default}`, borderRadius: 8,
-          padding: '10px 14px', marginBottom: 18, fontSize: 12, color: t.text.secondary,
-          display: 'flex', alignItems: 'center', gap: 8,
+          background: 'rgba(37,99,235,0.04)', border: '1px solid rgba(37,99,235,0.12)', borderRadius: 8,
+          padding: '10px 16px', marginBottom: 18, fontSize: 13, color: t.text.secondary,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
-          <span style={{ fontSize: 14 }}>⚠</span>
-          <span>No Brand Kit found — <button onClick={() => router.push(`/clients/${clientId}/brand-kit`)} style={{ background: 'none', border: 'none', color: t.accent.text, fontSize: 12, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', padding: 0, fontFamily: 'inherit' }}>set up the Brand Kit first</button></span>
+          <span>Complete your Brand Kit to auto-populate templates <span onClick={() => router.push(`/clients/${clientId}/brand-kit`)} style={{ color: t.accent.text, fontWeight: 500, cursor: 'pointer' }}>Go to Brand Kit →</span></span>
         </div>
       )}
       </div>
