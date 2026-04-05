@@ -12,6 +12,25 @@ import { Section } from '@/components/shared/PageLayout';
 import { useTheme } from '@/lib/theme';
 
 const AGENCY_BRAND_ID = 'agency';
+const AGENCY_LS_KEY = 'calo-agency-brand-details';
+
+function loadAgencyData(): any { try { return JSON.parse(localStorage.getItem(AGENCY_LS_KEY) || '{}'); } catch { return {}; } }
+function saveAgencyData(patch: any) { const cur = loadAgencyData(); localStorage.setItem(AGENCY_LS_KEY, JSON.stringify({ ...cur, ...patch })); }
+
+async function loadBbf(entityId: string): Promise<any> {
+  if (entityId === AGENCY_BRAND_ID) return loadAgencyData();
+  const supabase = (await import('@/lib/supabase')).default;
+  const { data } = await supabase.from('clients').select('brand_builder_fields').eq('id', entityId).single();
+  return data?.brand_builder_fields || {};
+}
+
+async function saveBbf(entityId: string, patch: any) {
+  if (entityId === AGENCY_BRAND_ID) { saveAgencyData(patch); return; }
+  const supabase = (await import('@/lib/supabase')).default;
+  const { data } = await supabase.from('clients').select('brand_builder_fields').eq('id', entityId).single();
+  const existing = data?.brand_builder_fields || {};
+  await supabase.from('clients').update({ brand_builder_fields: { ...existing, ...patch } }).eq('id', entityId);
+}
 
 const DEFAULT_TOP_ORDER: SlotKey[] = ['color', 'light', 'dark', 'icon'];
 const SECONDARY_SLOTS: SlotKey[] = ['secondary', 'favicon'];
@@ -180,9 +199,8 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
   useEffect(() => {
     (async () => {
       try {
-        const supabase = (await import('@/lib/supabase')).default;
-        const { data } = await supabase.from('clients').select('brand_builder_fields').eq('id', entityId).single();
-        const hs = data?.brand_builder_fields?.headshots?.owner;
+        const bbf = await loadBbf(entityId);
+        const hs = bbf?.headshots?.owner;
         if (hs) {
           setHeadshot(hs);
           if (hs.adjustments) { setZoom(hs.adjustments.zoom || 1); setOffset({ x: hs.adjustments.offsetX || 0, y: hs.adjustments.offsetY || 0 }); }
@@ -195,11 +213,9 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       try {
-        const supabase = (await import('@/lib/supabase')).default;
-        const { data } = await supabase.from('clients').select('brand_builder_fields').eq('id', entityId).single();
-        const existing = data?.brand_builder_fields || {};
-        const owner = { ...existing.headshots?.owner, adjustments: { zoom: z, offsetX: ox, offsetY: oy } };
-        await supabase.from('clients').update({ brand_builder_fields: { ...existing, headshots: { ...existing.headshots, owner } } }).eq('id', entityId);
+        const bbf = await loadBbf(entityId);
+        const owner = { ...bbf.headshots?.owner, adjustments: { zoom: z, offsetX: ox, offsetY: oy } };
+        await saveBbf(entityId, { headshots: { ...bbf.headshots, owner } });
       } catch {}
     }, 500);
   }, [entityId]);
@@ -213,9 +229,8 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
       const { data } = supabase.storage.from('brand-assets').getPublicUrl(path);
       const hs = { url: data.publicUrl, filename: file.name };
       setHeadshot(hs); setZoom(1); setOffset({ x: 0, y: 0 });
-      const { data: row } = await supabase.from('clients').select('brand_builder_fields').eq('id', entityId).single();
-      const existing = row?.brand_builder_fields || {};
-      await supabase.from('clients').update({ brand_builder_fields: { ...existing, headshots: { ...existing.headshots, owner: hs } } }).eq('id', entityId);
+      const bbf = await loadBbf(entityId);
+      await saveBbf(entityId, { headshots: { ...bbf.headshots, owner: hs } });
       setFeedback('success'); setTimeout(() => setFeedback(null), 1500);
     } catch (e) { console.warn('[Headshot upload]', e); setFeedback('error'); setTimeout(() => setFeedback(null), 2000); }
     finally { setUploading(false); }
@@ -224,11 +239,9 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
   const remove = async () => {
     setHeadshot(null); setZoom(1); setOffset({ x: 0, y: 0 });
     try {
-      const supabase = (await import('@/lib/supabase')).default;
-      const { data } = await supabase.from('clients').select('brand_builder_fields').eq('id', entityId).single();
-      const existing = data?.brand_builder_fields || {};
-      const hs = { ...existing.headshots }; delete hs.owner;
-      await supabase.from('clients').update({ brand_builder_fields: { ...existing, headshots: hs } }).eq('id', entityId);
+      const bbf = await loadBbf(entityId);
+      const hs = { ...bbf.headshots }; delete hs.owner;
+      await saveBbf(entityId, { headshots: hs });
     } catch {}
   };
 
@@ -295,10 +308,7 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
       ctx.drawImage(img, sx, sy, min / zoom, min / zoom, 0, 0, size, size);
       const avatarUrl = canvas.toDataURL('image/png');
       try {
-        const supabase = (await import('@/lib/supabase')).default;
-        const { data } = await supabase.from('clients').select('brand_builder_fields').eq('id', entityId).single();
-        const existing = data?.brand_builder_fields || {};
-        await supabase.from('clients').update({ brand_builder_fields: { ...existing, avatarUrl } }).eq('id', entityId);
+        await saveBbf(entityId, { avatarUrl });
         setFeedback('success'); setTimeout(() => setFeedback(null), 1500);
       } catch { setFeedback('error'); setTimeout(() => setFeedback(null), 2000); }
     };
@@ -352,9 +362,7 @@ function BusinessInfoCard({ t, entityId, readOnly, brandKit, handleNotesChange }
   useEffect(() => {
     (async () => {
       try {
-        const supabase = (await import('@/lib/supabase')).default;
-        const { data } = await supabase.from('clients').select('brand_builder_fields').eq('id', entityId).single();
-        const bbf = data?.brand_builder_fields || {};
+        const bbf = await loadBbf(entityId);
         setFields({ tagline: bbf.tagline || '', serviceArea: bbf.serviceArea || '', licenseNumber: bbf.licenseNumber || '', socialInstagram: bbf.socialInstagram || '', socialFacebook: bbf.socialFacebook || '' });
       } catch {}
     })();
@@ -366,10 +374,7 @@ function BusinessInfoCard({ t, entityId, readOnly, brandKit, handleNotesChange }
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(async () => {
       try {
-        const supabase = (await import('@/lib/supabase')).default;
-        const cl = DB.clients.find((c) => c.id === entityId);
-        const existing = (cl as any)?.brand_builder_fields || {};
-        await supabase.from('clients').update({ brand_builder_fields: { ...existing, ...next } }).eq('id', entityId);
+        await saveBbf(entityId, next);
       } catch {}
     }, 500);
   };
