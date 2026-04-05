@@ -117,11 +117,11 @@ export default function TopBar() {
           const avatarHover = (e: React.MouseEvent<HTMLElement>) => e.currentTarget.style.outline = `2px solid ${t.border.hover}`;
           const avatarLeave = (e: React.MouseEvent<HTMLElement>) => e.currentTarget.style.outline = 'none';
           return avatarUrl ? (
-            <img src={avatarUrl} alt="" onClick={() => router.push('/settings')}
+            <img src={avatarUrl} alt="" title="Settings" onClick={() => router.push('/settings')}
               onMouseEnter={avatarHover} onMouseLeave={avatarLeave}
               style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer', outlineOffset: 1, transition: 'outline 150ms' }} />
           ) : (
-            <div onClick={() => router.push('/settings')}
+            <div title="Settings" onClick={() => router.push('/settings')}
               onMouseEnter={avatarHover} onMouseLeave={avatarLeave}
               style={{ width: 30, height: 30, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', outlineOffset: 1, transition: 'outline 150ms' }}>MC</div>
           );
