@@ -20,7 +20,7 @@ import { useTheme } from '@/lib/theme';
 
 const DesignCanvas = dynamic(
   () => import('@/components/design-studio/DesignCanvas'),
-  { ssr: false, loading: () => <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>Loading editor...</div> }
+  { ssr: false, loading: () => <div style={{ padding: 40, textAlign: 'center', opacity: 0.5, fontSize: 13 }}>Loading editor...</div> }
 );
 
 export default function BrandBuilderPage() {
@@ -279,16 +279,15 @@ export default function BrandBuilderPage() {
               <div style={{ flex: 1, padding: 32, background: t.bg.surfaceHover }}>
                 {/* Front/Back toggle for business cards */}
                 {assetType === 'business-card' && (
-                  <div style={{ display: 'inline-flex', background: t.bg.surfaceHover, borderRadius: 6, padding: 2, marginBottom: 16 }}>
+                  <div style={{ display: 'inline-flex', background: t.bg.primary, borderRadius: 8, padding: 4, marginBottom: 16, border: `1px solid ${t.border.default}` }}>
                     {(['front', 'back'] as const).map((side) => (
                       <button key={side} onClick={() => setCardSide(side)} style={{
-                        padding: '5px 14px', fontSize: 12, fontWeight: cardSide === side ? 500 : 400, borderRadius: 4,
-                        border: cardSide === side ? '0.5px solid rgba(0,0,0,0.08)' : '0.5px solid transparent',
-                        background: cardSide === side ? '#fff' : 'transparent',
-                        color: cardSide === side ? '#111827' : '#9ca3af',
+                        padding: '6px 16px', fontSize: 13, fontWeight: 500, borderRadius: 6, border: 'none',
+                        background: cardSide === side ? t.bg.surface : 'transparent',
+                        color: cardSide === side ? t.text.primary : t.text.secondary,
                         cursor: 'pointer', fontFamily: 'inherit',
-                        boxShadow: cardSide === side ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
-                        textTransform: 'capitalize',
+                        boxShadow: cardSide === side ? t.shadow.card : 'none',
+                        textTransform: 'capitalize', transition: 'all 150ms',
                       }}>{side}</button>
                     ))}
                   </div>
