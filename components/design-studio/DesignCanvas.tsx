@@ -51,11 +51,40 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
 
       fabricRef.current = fc;
 
+      // ── Calculate bleed & safe zone in pixels ──
+      const phys = SIGN_PHYSICAL_SIZES[signSize] || SIGN_PHYSICAL_SIZES['18x24'];
+      const pxPerInch = template.width / phys.w;
+      const bleedPx = Math.round(0.125 * pxPerInch);
+      const safePx = Math.round(0.375 * pxPerInch); // 0.125 bleed + 0.25 safe
+
       if (savedState) {
         fc.loadFromJSON(savedState, () => { fc.renderAll(); });
       } else {
         await loadTemplate(fc, fabric, template);
       }
+
+      // ── Bleed zone overlays (translucent pink, non-interactive) ──
+      const bleedProps = {
+        fill: 'rgba(255,0,0,0.08)', selectable: false, evented: false,
+        originX: 'left' as const, originY: 'top' as const,
+        data: { isGuide: true, excludeFromExport: true },
+      };
+      fc.add(new fabric.Rect({ left: 0, top: 0, width: template.width, height: bleedPx, ...bleedProps }));                   // top
+      fc.add(new fabric.Rect({ left: 0, top: template.height - bleedPx, width: template.width, height: bleedPx, ...bleedProps })); // bottom
+      fc.add(new fabric.Rect({ left: 0, top: bleedPx, width: bleedPx, height: template.height - bleedPx * 2, ...bleedProps }));    // left
+      fc.add(new fabric.Rect({ left: template.width - bleedPx, top: bleedPx, width: bleedPx, height: template.height - bleedPx * 2, ...bleedProps })); // right
+
+      // ── Safe zone dashed rectangle ──
+      const safeRect = new fabric.Rect({
+        left: safePx, top: safePx,
+        width: template.width - safePx * 2, height: template.height - safePx * 2,
+        fill: 'transparent', stroke: '#cccccc', strokeWidth: 1,
+        strokeDashArray: [4, 4],
+        selectable: false, evented: false,
+        originX: 'left', originY: 'top',
+        data: { isGuide: true, excludeFromExport: true },
+      } as any);
+      fc.add(safeRect);
 
       // Replace QR placeholder with real QR code
       if (template.qrCodeUrl) {
@@ -87,68 +116,113 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         }
       }
 
-      // Create snap guide lines (hidden by default)
-      const guideH = new fabric.Line([0, 0, template.width, 0], {
-        stroke: '#2563eb', strokeWidth: 1, opacity: 0.7, strokeDashArray: [4, 4],
+      // ── Snap guide lines (hidden by default, solid blue, non-exportable) ──
+      const guideProps = {
+        stroke: '#2563eb', strokeWidth: 1, opacity: 0.8,
         selectable: false, evented: false, visible: false,
-        originX: 'left', originY: 'top',
-        data: { isGuide: true },
-      } as any);
-      const guideV = new fabric.Line([0, 0, 0, template.height], {
-        stroke: '#2563eb', strokeWidth: 1, opacity: 0.7, strokeDashArray: [4, 4],
-        selectable: false, evented: false, visible: false,
-        originX: 'left', originY: 'top',
-        data: { isGuide: true },
-      } as any);
+        originX: 'left' as const, originY: 'top' as const,
+        data: { isGuide: true, excludeFromExport: true },
+      };
+      const guideH = new fabric.Line([0, 0, template.width, 0], { ...guideProps } as any);
+      const guideV = new fabric.Line([0, 0, 0, template.height], { ...guideProps } as any);
       fc.add(guideH);
       fc.add(guideV);
 
       fc.renderAll();
       setCanvasReady(true);
 
-      // Save initial state for undo
+      // Save initial state for undo (exclude guide objects)
       const initialState = JSON.stringify(fc.toJSON());
       historyRef.current = [initialState];
       historyIndexRef.current = 0;
 
-      // Snap-to-grid alignment guides
+      // ── Snap-to-center + edge + object alignment guides ──
       fc.on('object:moving', (e: any) => {
         const obj = e.target;
-        if (!obj || (obj as any).data?.isGuide) return;
+        if (!obj || obj.data?.isGuide) return;
         const snap = 8;
-        const cx = template.width / 2;
-        const cy = template.height / 2;
-        const objCx = obj.left + obj.getScaledWidth() / 2;
-        const objCy = obj.top + obj.getScaledHeight() / 2;
+        const W = template.width;
+        const H = template.height;
+        const cx = W / 2;
+        const cy = H / 2;
+        const objW = obj.getScaledWidth();
+        const objH = obj.getScaledHeight();
+        const objL = obj.left;
+        const objT = obj.top;
+        const objR = objL + objW;
+        const objB = objT + objH;
+        const objCx = objL + objW / 2;
+        const objCy = objT + objH / 2;
         let showH = false, showV = false;
 
         // Snap to canvas center X
         if (Math.abs(objCx - cx) < snap) {
-          obj.set('left', cx - obj.getScaledWidth() / 2);
-          guideV.set({ x1: cx, y1: 0, x2: cx, y2: template.height, visible: true } as any);
+          obj.set('left', cx - objW / 2);
+          guideV.set({ x1: cx, y1: 0, x2: cx, y2: H, visible: true } as any);
           showV = true;
         }
         // Snap to canvas center Y
         if (Math.abs(objCy - cy) < snap) {
-          obj.set('top', cy - obj.getScaledHeight() / 2);
-          guideH.set({ x1: 0, y1: cy, x2: template.width, y2: cy, visible: true } as any);
+          obj.set('top', cy - objH / 2);
+          guideH.set({ x1: 0, y1: cy, x2: W, y2: cy, visible: true } as any);
           showH = true;
         }
 
-        // Snap to other objects
+        // Snap to safe zone edges
+        if (!showV) {
+          if (Math.abs(objL - safePx) < snap) { obj.set('left', safePx); guideV.set({ x1: safePx, y1: 0, x2: safePx, y2: H, visible: true } as any); showV = true; }
+          else if (Math.abs(objR - (W - safePx)) < snap) { obj.set('left', W - safePx - objW); guideV.set({ x1: W - safePx, y1: 0, x2: W - safePx, y2: H, visible: true } as any); showV = true; }
+        }
+        if (!showH) {
+          if (Math.abs(objT - safePx) < snap) { obj.set('top', safePx); guideH.set({ x1: 0, y1: safePx, x2: W, y2: safePx, visible: true } as any); showH = true; }
+          else if (Math.abs(objB - (H - safePx)) < snap) { obj.set('top', H - safePx - objH); guideH.set({ x1: 0, y1: H - safePx, x2: W, y2: H - safePx, visible: true } as any); showH = true; }
+        }
+
+        // Snap to other objects' edges and centers
         fc.getObjects().forEach((other: any) => {
           if (other === obj || !other.visible || other.data?.isGuide) return;
-          const otherCx = other.left + other.getScaledWidth() / 2;
-          const otherCy = other.top + other.getScaledHeight() / 2;
-          if (!showV && Math.abs(objCx - otherCx) < snap) {
-            obj.set('left', otherCx - obj.getScaledWidth() / 2);
-            guideV.set({ x1: otherCx, y1: 0, x2: otherCx, y2: template.height, visible: true } as any);
-            showV = true;
+          const oW = other.getScaledWidth();
+          const oH = other.getScaledHeight();
+          const oL = other.left;
+          const oT = other.top;
+          const oR = oL + oW;
+          const oB = oT + oH;
+          const oCx = oL + oW / 2;
+          const oCy = oT + oH / 2;
+
+          if (!showV) {
+            // Center-to-center X
+            if (Math.abs(objCx - oCx) < snap) {
+              obj.set('left', oCx - objW / 2);
+              guideV.set({ x1: oCx, y1: 0, x2: oCx, y2: H, visible: true } as any); showV = true;
+            }
+            // Left edge to left edge
+            else if (Math.abs(objL - oL) < snap) {
+              obj.set('left', oL);
+              guideV.set({ x1: oL, y1: 0, x2: oL, y2: H, visible: true } as any); showV = true;
+            }
+            // Right edge to right edge
+            else if (Math.abs(objR - oR) < snap) {
+              obj.set('left', oR - objW);
+              guideV.set({ x1: oR, y1: 0, x2: oR, y2: H, visible: true } as any); showV = true;
+            }
           }
-          if (!showH && Math.abs(objCy - otherCy) < snap) {
-            obj.set('top', otherCy - obj.getScaledHeight() / 2);
-            guideH.set({ x1: 0, y1: otherCy, x2: template.width, y2: otherCy, visible: true } as any);
-            showH = true;
+          if (!showH) {
+            // Center-to-center Y
+            if (Math.abs(objCy - oCy) < snap) {
+              obj.set('top', oCy - objH / 2);
+              guideH.set({ x1: 0, y1: oCy, x2: W, y2: oCy, visible: true } as any); showH = true;
+            }
+            // Top edge to top edge
+            else if (Math.abs(objT - oT) < snap) {
+              obj.set('top', oT);
+              guideH.set({ x1: 0, y1: oT, x2: W, y2: oT, visible: true } as any); showH = true;
+            }
+            // Bottom edge to bottom edge
+            else if (Math.abs(objB - oB) < snap) {
+              obj.set('top', oB - objH);
+              guideH.set({ x1: 0, y1: oB, x2: W, y2: oB, visible: true } as any); showH = true;
+            }
           }
         });
 
@@ -220,21 +294,26 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         });
       } else if (obj.type === 'image' && obj.src) {
         try {
-          const imgOptions: any = {};
-          if (obj.src.startsWith('http')) imgOptions.crossOrigin = 'anonymous';
+          const imgOptions: any = { crossOrigin: 'anonymous' };
           const img = await fabric.FabricImage.fromURL(obj.src, imgOptions);
           if (!img || !img.width) continue;
           img.set({
             left: obj.left, top: obj.top,
             originX: obj.originX || 'left',
             originY: 'top',
-            scaleX: obj.scaleX || 1, scaleY: obj.scaleY || 1,
             name: obj.name || '',
+            objectCaching: false, // Preserve full resolution
           });
+
+          // Scale to desired display size using scaleToWidth/scaleToHeight
           if (obj.maxWidth && img.width) {
-            const s = Math.min(obj.maxWidth / img.width, (obj.maxHeight || obj.maxWidth) / (img.height || img.width));
+            const targetW = obj.maxWidth;
+            const targetH = obj.maxHeight || obj.maxWidth;
+            const s = Math.min(targetW / img.width, targetH / img.height);
             img.scaleX = s;
             img.scaleY = s;
+          } else {
+            img.set({ scaleX: obj.scaleX || 1, scaleY: obj.scaleY || 1 });
           }
 
           // Logo: create white version for dark backgrounds
@@ -284,12 +363,19 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
     }
   };
 
-  // Helper: hide guide lines for clean export
+  // Helper: hide guide/bleed objects for clean export
   const exportDataURL = (fc: any) => {
     fc.discardActiveObject();
-    fc.getObjects().forEach((o: any) => { if (o.data?.isGuide) o.set('visible', false); });
+    const guideObjs = fc.getObjects().filter((o: any) => o.data?.excludeFromExport || o.data?.isGuide);
+    guideObjs.forEach((o: any) => o.set('visible', false));
     fc.renderAll();
     const url = fc.toDataURL({ format: 'png', multiplier: 3, quality: 1 });
+    guideObjs.forEach((o: any) => {
+      // Restore visibility for non-guide overlays (bleed/safe are always visible during editing)
+      if (!o.data?.excludeFromExport) return;
+      o.set('visible', true);
+    });
+    fc.renderAll();
     return url;
   };
 
@@ -321,25 +407,20 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
     setColorMode(mode);
 
     const colorMap: Record<string, Record<string, string>> = {
-      // Yard sign
       brand: { 'brand-bg': brandColor, 'white-strip': '#ffffff', 'headline-text': '#ffffff', 'phone-text': '#ffffff', 'company-text': brandColor },
       dark: { 'brand-bg': darkColor, 'white-strip': '#ffffff', 'headline-text': '#ffffff', 'phone-text': '#ffffff', 'company-text': darkColor },
       light: { 'brand-bg': '#ffffff', 'white-strip': brandColor, 'headline-text': brandColor, 'phone-text': brandColor, 'company-text': '#ffffff' },
     };
-    // Business card overrides
     const bcMap: Record<string, Record<string, string>> = {
       brand: { 'card-bg': brandColor, 'company-text': '#ffffff', 'contact-name-text': '#ffffff', 'title-text': 'rgba(255,255,255,0.7)', 'contact-info-text': 'rgba(255,255,255,0.85)', 'tagline-text': 'rgba(255,255,255,0.5)', 'accent-line': 'rgba(255,255,255,0.3)' },
       dark: { 'card-bg': '#111827', 'company-text': '#ffffff', 'contact-name-text': '#ffffff', 'title-text': 'rgba(255,255,255,0.7)', 'contact-info-text': 'rgba(255,255,255,0.85)', 'tagline-text': 'rgba(255,255,255,0.5)', 'accent-line': 'rgba(255,255,255,0.3)' },
       light: { 'card-bg': '#ffffff', 'company-text': brandColor, 'contact-name-text': '#111827', 'title-text': '#6b7280', 'contact-info-text': '#374151', 'tagline-text': '#9ca3af', 'accent-line': brandColor },
     };
-    // Merge: check if canvas has card-bg (business card) or brand-bg (yard sign)
     const hasCardBg = fc.getObjects().some((o: any) => o.name === 'card-bg');
     const fills = hasCardBg ? bcMap[mode] : colorMap[mode];
 
     fc.getObjects().forEach((obj: any) => {
       if (fills[obj.name]) obj.set('fill', fills[obj.name]);
-
-      // Logo: swap between original and white version
       if (obj.name === 'logo' && obj.__originalElement && obj.__whiteElement) {
         if (mode === 'light') {
           obj._element = obj.__originalElement;
