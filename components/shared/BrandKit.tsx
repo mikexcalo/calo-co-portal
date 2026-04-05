@@ -170,9 +170,14 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
 function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; readOnly: boolean }) {
   const [headshot, setHeadshot] = useState<{ url: string; filename: string } | null>(null);
   useEffect(() => {
-    const cl = DB.clients.find((c) => c.id === entityId);
-    const hs = (cl as any)?.brand_builder_fields?.headshots?.owner;
-    if (hs) setHeadshot(hs);
+    (async () => {
+      try {
+        const supabase = (await import('@/lib/supabase')).default;
+        const { data } = await supabase.from('clients').select('brand_builder_fields').eq('id', entityId).single();
+        const hs = data?.brand_builder_fields?.headshots?.owner;
+        if (hs) setHeadshot(hs);
+      } catch {}
+    })();
   }, [entityId]);
 
   const handleUpload = async (file: File) => {
@@ -200,16 +205,47 @@ function HeadshotTile({ t, entityId, readOnly }: { t: any; entityId: string; rea
     } catch {}
   };
 
+  const downloadCropped = (url: string, shape: 'square' | 'circle') => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const size = 500;
+      const min = Math.min(img.width, img.height);
+      const sx = (img.width - min) / 2, sy = (img.height - min) / 2;
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d')!;
+      if (shape === 'circle') { ctx.beginPath(); ctx.arc(250, 250, 250, 0, Math.PI * 2); ctx.clip(); }
+      ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+      const link = document.createElement('a');
+      link.download = `headshot-${shape}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    };
+    img.src = url;
+  };
+
   const card: React.CSSProperties = { background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 16 };
 
   return (
     <Section label="Headshot">
       <div style={{ ...card, alignItems: 'center', justifyContent: 'center' }}>
         {headshot?.url ? (
-          <div style={{ position: 'relative', width: 100, height: 100, borderRadius: '50%', overflow: 'hidden', border: `1px solid ${t.border.default}`, margin: '0 auto' }}>
-            <img src={headshot.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-            {!readOnly && <button onClick={remove} style={{ position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>}
-          </div>
+          <>
+            <div style={{ position: 'relative', width: 100, height: 100, borderRadius: '50%', overflow: 'hidden', border: `1px solid ${t.border.default}`, margin: '0 auto' }}>
+              <img src={headshot.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              {!readOnly && <button onClick={remove} style={{ position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>}
+            </div>
+            <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 8 }}>
+              {(['square', 'circle'] as const).map((shape) => (
+                <button key={shape} onClick={() => downloadCropped(headshot.url, shape)} style={{
+                  fontSize: 11, padding: '4px 10px', border: `1px solid ${t.border.default}`,
+                  borderRadius: t.radius.sm, background: t.bg.primary, color: t.text.secondary,
+                  cursor: 'pointer', fontFamily: 'inherit', textTransform: 'capitalize',
+                }}>{shape} PNG</button>
+              ))}
+            </div>
+          </>
         ) : (
           <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 100, height: 100, borderRadius: '50%', border: `1px dashed ${t.border.default}`, cursor: readOnly ? 'default' : 'pointer', color: t.text.tertiary, fontSize: 18, margin: '0 auto' }}>
             +
@@ -225,9 +261,14 @@ function BusinessInfoCard({ t, entityId, readOnly, brandKit, handleNotesChange }
   const [fields, setFields] = useState({ tagline: '', serviceArea: '', licenseNumber: '', socialInstagram: '', socialFacebook: '' });
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    const cl = DB.clients.find((c) => c.id === entityId);
-    const bbf = (cl as any)?.brand_builder_fields || {};
-    setFields({ tagline: bbf.tagline || '', serviceArea: bbf.serviceArea || '', licenseNumber: bbf.licenseNumber || '', socialInstagram: bbf.socialInstagram || '', socialFacebook: bbf.socialFacebook || '' });
+    (async () => {
+      try {
+        const supabase = (await import('@/lib/supabase')).default;
+        const { data } = await supabase.from('clients').select('brand_builder_fields').eq('id', entityId).single();
+        const bbf = data?.brand_builder_fields || {};
+        setFields({ tagline: bbf.tagline || '', serviceArea: bbf.serviceArea || '', licenseNumber: bbf.licenseNumber || '', socialInstagram: bbf.socialInstagram || '', socialFacebook: bbf.socialFacebook || '' });
+      } catch {}
+    })();
   }, [entityId]);
 
   const update = (key: string, value: string) => {
