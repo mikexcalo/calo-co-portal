@@ -13,10 +13,10 @@ import {
 } from '@/components/brand-builder/types';
 import FieldEditor from '@/components/brand-builder/FieldEditor';
 import AssetPreview from '@/components/brand-builder/AssetPreview';
-import { Section, CardGrid, Card, InfoBar } from '@/components/shared/PageLayout';
 import dynamic from 'next/dynamic';
 import { getYardSignTemplate } from '@/lib/templates/yard-sign';
 import { getBusinessCardTemplate, getBusinessCardBackTemplate } from '@/lib/templates/business-card';
+import { useTheme } from '@/lib/theme';
 
 const DesignCanvas = dynamic(
   () => import('@/components/design-studio/DesignCanvas'),
@@ -246,64 +246,40 @@ export default function BrandBuilderPage() {
 
   if (!client) return null;
 
+  const { t } = useTheme();
   const clientName = client.company || client.name || 'Client';
 
   return (
     <div style={{ padding: '0 0 0 0' }}>
-      {/* Brand Kit shortcut + notice */}
-      <div style={{ maxWidth: 980, margin: '0 auto', padding: '12px 24px 0', display: 'flex', justifyContent: 'flex-end' }}>
-        <button title="Brand Kit" onClick={() => router.push(`/clients/${clientId}/brand-kit`)} style={{
-          background: 'transparent', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 6,
-          color: '#8a8a8d', transition: 'color 150ms, background 150ms', marginBottom: 8,
-        }}
-        onMouseEnter={(e) => { e.currentTarget.style.color = '#f5f5f5'; e.currentTarget.style.background = '#1a1a1d'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.color = '#8a8a8d'; e.currentTarget.style.background = 'transparent'; }}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="8" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/>
-          </svg>
-        </button>
-      </div>
-      <div style={{ maxWidth: 980, margin: '0 auto', padding: '0 24px' }}>
+      {/* Notice */}
+      <div style={{ maxWidth: 980, margin: '0 auto', padding: '12px 24px 0' }}>
       {!hasBrandKit && (
         <div style={{
-          background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8,
-          padding: '10px 14px', marginBottom: 18, fontSize: 12, color: '#92400e',
+          background: t.accent.subtle, border: `1px solid ${t.border.default}`, borderRadius: 8,
+          padding: '10px 14px', marginBottom: 18, fontSize: 12, color: t.text.secondary,
           display: 'flex', alignItems: 'center', gap: 8,
         }}>
-          <span style={{ fontSize: 16 }}>⚠️</span>
-          <span>
-            No Brand Kit found —{' '}
-            <button
-              onClick={() => router.push(`/clients/${clientId}/brand-kit`)}
-              style={{
-                background: 'none', border: 'none', color: '#2563eb', fontSize: 12,
-                fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', padding: 0,
-                fontFamily: 'inherit',
-              }}
-            >
-              set up the Brand Kit first
-            </button>
-          </span>
+          <span style={{ fontSize: 14 }}>⚠</span>
+          <span>No Brand Kit found — <button onClick={() => router.push(`/clients/${clientId}/brand-kit`)} style={{ background: 'none', border: 'none', color: t.accent.text, fontSize: 12, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', padding: 0, fontFamily: 'inherit' }}>set up the Brand Kit first</button></span>
         </div>
       )}
       </div>
 
       {/* Two-column layout — fields + preview, full width (sidebar is global) */}
-      <div style={{ display: 'flex', minHeight: 'calc(100vh - 60px)', background: '#fff' }}>
+      <div style={{ display: 'flex', minHeight: 'calc(100vh - 60px)' }}>
         {assetType ? (
           (assetType === 'yard-sign' || assetType === 'business-card') ? (
             /* Fabric.js canvas editor — Yard Sign + Business Card */
             <>
               {/* Field panel: 320px */}
-              <div style={{ width: 320, flexShrink: 0, borderRight: '1px solid #e5e7eb', padding: 24, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' }}>
+              <div style={{ width: 320, flexShrink: 0, borderRight: `1px solid ${t.border.default}`, padding: 24, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' }}>
                 <FieldEditor fields={fields} onChange={handleFieldsChange} sources={sources} assetType={assetType} clientId={clientId} hasBrandKit={hasBrandKit} />
               </div>
               {/* Canvas preview */}
-              <div style={{ flex: 1, padding: 32, background: '#f9fafb' }}>
+              <div style={{ flex: 1, padding: 32, background: t.bg.surfaceHover }}>
                 {/* Front/Back toggle for business cards */}
                 {assetType === 'business-card' && (
-                  <div style={{ display: 'inline-flex', background: '#f1f3f5', borderRadius: 6, padding: 2, marginBottom: 16 }}>
+                  <div style={{ display: 'inline-flex', background: t.bg.surfaceHover, borderRadius: 6, padding: 2, marginBottom: 16 }}>
                     {(['front', 'back'] as const).map((side) => (
                       <button key={side} onClick={() => setCardSide(side)} style={{
                         padding: '5px 14px', fontSize: 12, fontWeight: cardSide === side ? 500 : 400, borderRadius: 4,
@@ -382,61 +358,33 @@ export default function BrandBuilderPage() {
             /* Other templates — existing FieldEditor + AssetPreview layout */
             <>
               {/* Fields: 420px fixed */}
-              <div style={{ width: 420, flexShrink: 0, borderRight: '1px solid #e5e7eb', padding: 32, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' }}>
+              <div style={{ width: 420, flexShrink: 0, borderRight: `1px solid ${t.border.default}`, padding: 32, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' }}>
                 <FieldEditor fields={fields} onChange={handleFieldsChange} sources={sources} assetType={assetType} clientId={clientId} hasBrandKit={hasBrandKit} />
               </div>
               {/* Preview: flex: 1 */}
-              <div style={{ flex: 1, padding: 32, background: '#f9fafb' }}>
+              <div style={{ flex: 1, padding: 32, background: t.bg.surfaceHover }}>
                 <AssetPreview assetType={assetType} fields={fields} clientId={clientId} onFieldsChange={handleFieldsChange} />
               </div>
             </>
           )
         ) : (
           <div style={{ flex: 1, padding: 32 }}>
-            {/* Brand summary bar */}
-            <InfoBar>
-              {client.logo ? (
-                <img src={client.logo} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'cover' }} />
-              ) : (
-                <div style={{ width: 28, height: 28, borderRadius: 6, background: '#e5e7eb', flexShrink: 0 }} />
-              )}
-              <span style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{clientName}</span>
-              <span style={{ fontSize: 12, color: '#9ca3af' }}>·</span>
-              <span style={{ fontSize: 12, color: '#2563eb', cursor: 'pointer' }} onClick={() => router.push(`/clients/${clientId}/brand-kit`)}>
-                {hasBrandKit ? 'Brand Kit →' : 'Set up Brand Kit →'}
-              </span>
-            </InfoBar>
-
             {/* Print section */}
-            <Section label="Print">
-              <CardGrid>
-                {ASSET_TYPES.map((t) => {
-                  const descs: Record<string, string> = {
-                    'business-card': '3.5 × 2 in', 'yard-sign': '5 sizes',
-                    'vehicle-magnet': '24 × 12 in', 't-shirt': 'Front + Back',
-                    'door-hanger': '4.25 × 11 in', 'flyer': '8.5 × 11 in',
-                  };
-                  return (
-                    <TemplateCard key={t.id} id={t.id} label={t.label} desc={descs[t.id]}
-                      brandColor={fields.primaryColor || '#28502e'}
-                      onClick={() => handleAssetTypeChange(t.id)} />
-                  );
-                })}
-              </CardGrid>
-            </Section>
+            <div style={{ fontSize: 12, fontWeight: 500, color: t.text.secondary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>Print</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 28 }}>
+              {ASSET_TYPES.map((tmpl) => {
+                const descs: Record<string, string> = { 'business-card': '3.5 × 2 in', 'yard-sign': '5 sizes', 'vehicle-magnet': '24 × 12 in', 't-shirt': 'Front + Back', 'door-hanger': '4.25 × 11 in', 'flyer': '8.5 × 11 in' };
+                return <TemplateCard key={tmpl.id} id={tmpl.id} label={tmpl.label} desc={descs[tmpl.id]} onClick={() => handleAssetTypeChange(tmpl.id)} />;
+              })}
+            </div>
 
             {/* Digital section */}
-            <Section label="Digital">
-              <CardGrid>
-                <TemplateCard id="email-signature" label="Email Signature" desc="Gmail, Outlook, more"
-                  brandColor={fields.primaryColor || '#28502e'} digital
-                  onClick={() => router.push(`/clients/${clientId}/email-signature`)} />
-                <TemplateCard id="social-images" label="Social Images" desc="Coming soon"
-                  brandColor="#f9fafb" disabled />
-                <TemplateCard id="web-banners" label="Web Banners" desc="Coming soon"
-                  brandColor="#f9fafb" disabled />
-              </CardGrid>
-            </Section>
+            <div style={{ fontSize: 12, fontWeight: 500, color: t.text.secondary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>Digital</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+              <TemplateCard id="email-signature" label="Email Signature" desc="Gmail, Outlook, more" onClick={() => router.push(`/clients/${clientId}/email-signature`)} />
+              <TemplateCard id="social-images" label="Social Images" desc="Coming soon" disabled />
+              <TemplateCard id="web-banners" label="Web Banners" desc="Coming soon" disabled />
+            </div>
           </div>
         )}
       </div>
@@ -446,33 +394,32 @@ export default function BrandBuilderPage() {
 
 /* Clean flat template card */
 function TemplateCard({ id, label, desc, onClick, disabled }: {
-  id: string; label: string; desc: string; brandColor?: string;
-  onClick?: () => void; disabled?: boolean; digital?: boolean;
+  id: string; label: string; desc: string;
+  onClick?: () => void; disabled?: boolean;
 }) {
+  const { t } = useTheme();
   const [hovered, setHovered] = useState(false);
   return (
-    <button
-      onClick={disabled ? undefined : onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+    <button onClick={disabled ? undefined : onClick}
+      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{
-        background: '#fff', border: `0.5px solid ${hovered && !disabled ? '#2563eb' : '#e5e7eb'}`,
-        borderRadius: 12, padding: 24, minHeight: 140,
+        background: t.bg.surface, border: `1px solid ${hovered && !disabled ? t.border.hover : t.border.default}`,
+        borderRadius: t.radius.md, padding: 24, minHeight: 140,
         cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1,
         transition: 'border-color 150ms, transform 150ms, box-shadow 150ms',
         transform: hovered && !disabled ? 'translateY(-2px)' : 'none',
-        boxShadow: hovered && !disabled ? '0 4px 12px rgba(0,0,0,0.08)' : 'none',
+        boxShadow: hovered && !disabled ? t.shadow.card : 'none',
         width: '100%', textAlign: 'left' as const, fontFamily: 'inherit',
-        display: 'flex', flexDirection: 'column' as const,
+        display: 'flex', flexDirection: 'column' as const, color: t.text.primary,
       }}
     >
-      <div style={{ color: hovered && !disabled ? '#2563eb' : '#6b7280', transition: 'color 150ms' }}>
+      <div style={{ color: hovered && !disabled ? t.accent.text : t.text.tertiary, transition: 'color 150ms' }}>
         <AssetIcon id={id} size={28} />
       </div>
-      <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginTop: 16 }}>{label}</div>
-      <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 2, flex: 1 }}>{desc}</div>
+      <div style={{ fontSize: 14, fontWeight: 500, marginTop: 16 }}>{label}</div>
+      <div style={{ fontSize: 13, color: t.text.secondary, marginTop: 2, flex: 1 }}>{desc}</div>
       <div style={{ marginTop: 8 }}>
-        <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 4, background: '#f9fafb', color: '#9ca3af' }}>
+        <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: t.bg.primary, color: t.text.secondary }}>
           {disabled ? 'Coming soon' : 'Not started'}
         </span>
       </div>
