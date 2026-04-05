@@ -7,6 +7,7 @@ import { DB, loadClients, loadContacts, loadInvoices, loadAllBrandKits, saveClie
 import { clientStats, currency, invTotal } from '@/lib/utils';
 import ClientUpdates from '@/components/client-hub/ClientUpdates';
 import { PageLayout, Section, CardGrid, Card, InfoBar, SectionLabel } from '@/components/shared/PageLayout';
+import { useTheme } from '@/lib/theme';
 
 export default function ClientHubPage() {
   const params = useParams();
@@ -18,6 +19,7 @@ export default function ClientHubPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isClient, setIsClient] = useState(false);
+  const { t } = useTheme();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -90,7 +92,7 @@ export default function ClientHubPage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: '24px 32px', color: '#94a3b8', fontSize: 13 }}>
+      <div style={{ padding: 32, opacity: 0.5, fontSize: 13, color: t.text.tertiary }}>
         Loading client data...
       </div>
     );
@@ -98,7 +100,7 @@ export default function ClientHubPage() {
 
   if (!client) {
     return (
-      <div style={{ padding: '24px 32px', color: '#ef4444', fontSize: 13 }}>
+      <div style={{ padding: 32, fontSize: 13, color: t.status.danger }}>
         Client not found.
       </div>
     );
@@ -176,53 +178,33 @@ export default function ClientHubPage() {
   const finMeta = finScopeRev > 0 ? `${currency(finScopeRev)} rev` : 'Revenue · P&L';
 
   // --- Shared styles ---
-  const metricLbl: React.CSSProperties = { fontSize: '10px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.3px', margin: '0 0 2px' };
-  const sectionLbl: React.CSSProperties = { fontSize: '10px', fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 8px' };
-  const inputStyle: React.CSSProperties = { width: '100%', padding: '7px 10px', fontSize: 13, marginTop: 4, border: '1px solid #e2e8f0', borderRadius: 8, fontFamily: 'inherit' };
-  const errorInputStyle: React.CSSProperties = { ...inputStyle, borderColor: '#ef4444' };
-  const editLbl: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: '#334155', display: 'block' };
-  const req = <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>;
+  const inputStyle: React.CSSProperties = { width: '100%', padding: '10px 14px', fontSize: 14, marginTop: 4, border: `1px solid ${t.border.default}`, borderRadius: 8, fontFamily: 'inherit', background: t.bg.primary, color: t.text.primary, outline: 'none' };
+  const errorInputStyle: React.CSSProperties = { ...inputStyle, borderColor: t.status.danger };
+  const editLbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: t.text.secondary, display: 'block' };
+  const req = <span style={{ color: t.status.danger, marginLeft: 2 }}>*</span>;
 
   // --- Edit mode ---
   if (isEditOpen) {
     return (
-      <div style={{ padding: '24px 32px', maxWidth: '960px' }}>
-        <div style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 8, padding: '16px 20px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <label style={editLbl}>Company Name {req}
-              <input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} style={submitted && !valid.company ? errorInputStyle : inputStyle} />
-            </label>
+      <div style={{ padding: 32, maxWidth: 960 }}>
+        <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: '20px 24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <label style={editLbl}>Company Name {req}<input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} style={submitted && !valid.company ? errorInputStyle : inputStyle} /></label>
             <div />
-            <label style={editLbl}>First Name {req}
-              <input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} style={submitted && !valid.firstName ? errorInputStyle : inputStyle} />
-            </label>
-            <label style={editLbl}>Last Name {req}
-              <input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} style={submitted && !valid.lastName ? errorInputStyle : inputStyle} />
-            </label>
-            <label style={editLbl}>Title
-              <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Owner" style={inputStyle} />
-            </label>
-            <label style={editLbl}>Email {req}
-              <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} style={submitted && !valid.email ? errorInputStyle : inputStyle} />
-            </label>
-            <label style={editLbl}>Contact Phone
-              <input type="tel" value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} style={inputStyle} />
-            </label>
-            <label style={editLbl}>Business Phone
-              <input type="tel" value={form.businessPhone} onChange={(e) => setForm({ ...form, businessPhone: e.target.value })} style={inputStyle} />
-            </label>
-            <label style={editLbl}>Address
-              <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} style={inputStyle} />
-            </label>
-            <label style={editLbl}>Website
-              <input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} style={inputStyle} />
-            </label>
+            <label style={editLbl}>First Name {req}<input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} style={submitted && !valid.firstName ? errorInputStyle : inputStyle} /></label>
+            <label style={editLbl}>Last Name {req}<input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} style={submitted && !valid.lastName ? errorInputStyle : inputStyle} /></label>
+            <label style={editLbl}>Title<input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Owner" style={inputStyle} /></label>
+            <label style={editLbl}>Email {req}<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} style={submitted && !valid.email ? errorInputStyle : inputStyle} /></label>
+            <label style={editLbl}>Contact Phone<input type="tel" value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} style={inputStyle} /></label>
+            <label style={editLbl}>Business Phone<input type="tel" value={form.businessPhone} onChange={(e) => setForm({ ...form, businessPhone: e.target.value })} style={inputStyle} /></label>
+            <label style={editLbl}>Address<input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} style={inputStyle} /></label>
+            <label style={editLbl}>Website<input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} style={inputStyle} /></label>
           </div>
-          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-            <button onClick={handleSave} disabled={saving} style={{ height: 32, fontSize: 12, fontWeight: 500, padding: '0 14px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+            <button onClick={handleSave} disabled={saving} style={{ height: 32, fontSize: 13, fontWeight: 500, padding: '0 16px', background: t.accent.primary, color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }}>
               {saving ? 'Saving...' : 'Save'}
             </button>
-            <button onClick={() => { setIsEditOpen(false); setSubmitted(false); }} style={{ padding: '0 14px', height: 32, fontSize: 12, fontWeight: 600, border: '1px solid #d1d5db', borderRadius: 8, background: '#fff', color: '#64748b', cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
+            <button onClick={() => { setIsEditOpen(false); setSubmitted(false); }} style={{ padding: '0 16px', height: 32, fontSize: 13, fontWeight: 500, border: `1px solid ${t.border.default}`, borderRadius: 8, background: t.bg.surface, color: t.text.secondary, cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
           </div>
         </div>
       </div>
@@ -236,24 +218,23 @@ export default function ClientHubPage() {
         {client.logo ? (
           <img src={client.logo} alt="" style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
         ) : (
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: '#f1f3f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: '#475569', flexShrink: 0 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: t.text.secondary, flexShrink: 0 }}>
             {(client.company || client.name).charAt(0).toUpperCase()}
           </div>
         )}
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 18, fontWeight: 600, color: '#111827' }}>{client.company || client.name}</div>
+          <div style={{ fontSize: 18, fontWeight: 600, color: t.text.primary }}>{client.company || client.name}</div>
           {missing.length === 0 ? (
-            <span style={{ fontSize: 13, color: '#16a34a' }}>Profile complete</span>
+            <span style={{ fontSize: 13, color: t.status.success }}>Profile complete</span>
           ) : (
-            <span style={{ fontSize: 13, color: '#f59e0b' }}>Missing: {missing.join(', ')}</span>
+            <span style={{ fontSize: 13, color: t.status.warning }}>Missing: {missing.join(', ')}</span>
           )}
         </div>
         <div style={{ position: 'relative' }}>
           <button onClick={() => setContactsOpen(!contactsOpen)} style={{
-            background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
-            padding: '6px 14px', fontSize: 13, fontWeight: 500, color: '#374151',
-            cursor: 'pointer', fontFamily: 'inherit',
-            display: 'flex', alignItems: 'center', gap: 4,
+            background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8,
+            padding: '6px 14px', fontSize: 13, fontWeight: 500, color: t.text.secondary,
+            cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4,
           }}>
             Contacts
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
@@ -266,26 +247,26 @@ export default function ClientHubPage() {
               <div style={{ position: 'fixed', inset: 0, zIndex: 10 }} onClick={() => setContactsOpen(false)} />
               <div style={{
                 position: 'absolute', top: '100%', right: 0, marginTop: 6, zIndex: 11,
-                background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 12,
-                boxShadow: '0 4px 16px rgba(0,0,0,0.1)', maxWidth: 320, minWidth: 260, padding: 12,
+                background: t.bg.elevated, border: `1px solid ${t.border.default}`, borderRadius: 12,
+                boxShadow: t.shadow.elevated, maxWidth: 320, minWidth: 260, padding: 12,
               }}>
                 {contacts.map((c, i) => (
-                  <div key={c.id || c.name} style={{ padding: '8px 0', borderBottom: i < contacts.length - 1 ? '0.5px solid #f1f3f5' : 'none' }}>
-                    <div style={{ fontSize: 14, fontWeight: 500, color: '#111827' }}>{c.name}</div>
-                    {(c.title || c.role) && <div style={{ fontSize: 12, color: '#9ca3af' }}>{c.title || c.role}</div>}
-                    {c.email && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{c.email}</div>}
-                    {c.phone && <div style={{ fontSize: 12, color: '#6b7280' }}>{c.phone}</div>}
+                  <div key={c.id || c.name} style={{ padding: '8px 0', borderBottom: i < contacts.length - 1 ? `0.5px solid ${t.border.default}` : 'none' }}>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: t.text.primary }}>{c.name}</div>
+                    {(c.title || c.role) && <div style={{ fontSize: 12, color: t.text.tertiary }}>{c.title || c.role}</div>}
+                    {c.email && <div style={{ fontSize: 12, color: t.text.secondary, marginTop: 2 }}>{c.email}</div>}
+                    {c.phone && <div style={{ fontSize: 12, color: t.text.secondary }}>{c.phone}</div>}
                   </div>
                 ))}
-                {contacts.length === 0 && <div style={{ fontSize: 13, color: '#9ca3af', padding: 4 }}>No contacts</div>}
+                {contacts.length === 0 && <div style={{ fontSize: 13, color: t.text.tertiary, padding: 4 }}>No contacts</div>}
               </div>
             </>
           )}
         </div>
         {!isClient && (
           <button onClick={() => setIsEditOpen(true)} style={{
-            background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
-            padding: '6px 14px', fontSize: 13, fontWeight: 500, color: '#374151',
+            background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8,
+            padding: '6px 14px', fontSize: 13, fontWeight: 500, color: t.text.secondary,
             cursor: 'pointer', fontFamily: 'inherit',
           }}>Edit Client</button>
         )}
@@ -293,35 +274,33 @@ export default function ClientHubPage() {
 
       {/* Two-column: Tasks + Quick links */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24 }}>
-        {/* Tasks & Notes */}
         <div>
           <ClientUpdates clientId={clientId} isClient={isClient} />
         </div>
 
-        {/* Quick links */}
         <div>
           <Section label="Quick links">
             <CardGrid columns={2}>
               <Card onClick={() => router.push(`/clients/${clientId}/brand-builder`)}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.3" style={{ marginBottom: 6 }}><rect x="1.5" y="1.5" width="21" height="21" rx="2"/><line x1="1.5" y1="8" x2="22.5" y2="8"/><line x1="8" y1="8" x2="8" y2="22.5"/></svg>
-                <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>Design Studio</div>
-                <div style={{ fontSize: 13, color: '#9ca3af' }}>Create print + digital assets</div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={t.text.secondary} strokeWidth="1.3" style={{ marginBottom: 6 }}><rect x="1.5" y="1.5" width="21" height="21" rx="2"/><line x1="1.5" y1="8" x2="22.5" y2="8"/><line x1="8" y1="8" x2="8" y2="22.5"/></svg>
+                <div style={{ fontSize: 15, fontWeight: 600, color: t.text.primary }}>Design Studio</div>
+                <div style={{ fontSize: 13, color: t.text.tertiary }}>Create print + digital assets</div>
               </Card>
               <Card onClick={() => router.push(`/clients/${clientId}/brand-kit${isClient ? '?viewMode=view' : ''}`)}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.3" style={{ marginBottom: 6 }}><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.2"/></svg>
-                <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>Brand Kit</div>
-                <div style={{ fontSize: 13, color: '#9ca3af' }}>{bkMeta}</div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={t.text.secondary} strokeWidth="1.3" style={{ marginBottom: 6 }}><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.2"/></svg>
+                <div style={{ fontSize: 15, fontWeight: 600, color: t.text.primary }}>Brand Kit</div>
+                <div style={{ fontSize: 13, color: t.text.tertiary }}>{bkMeta}</div>
               </Card>
               <Card onClick={() => router.push(`/clients/${clientId}/invoices`)}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.3" style={{ marginBottom: 6 }}><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 11h8M8 15h4" strokeLinecap="round"/></svg>
-                <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>Invoices</div>
-                <div style={{ fontSize: 13, color: '#9ca3af' }}>{invMeta}</div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={t.text.secondary} strokeWidth="1.3" style={{ marginBottom: 6 }}><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 11h8M8 15h4" strokeLinecap="round"/></svg>
+                <div style={{ fontSize: 15, fontWeight: 600, color: t.text.primary }}>Invoices</div>
+                <div style={{ fontSize: 13, color: t.text.tertiary }}>{invMeta}</div>
               </Card>
               {!isClient && (
                 <Card onClick={() => router.push(`/clients/${clientId}/financials`)}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.3" style={{ marginBottom: 6 }}><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="17" x2="7" y2="12" strokeLinecap="round"/><line x1="12" y1="17" x2="12" y2="8" strokeLinecap="round"/><line x1="17" y1="17" x2="17" y2="13" strokeLinecap="round"/></svg>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>Financials</div>
-                  <div style={{ fontSize: 13, color: '#9ca3af' }}>{finMeta}</div>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={t.text.secondary} strokeWidth="1.3" style={{ marginBottom: 6 }}><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="17" x2="7" y2="12" strokeLinecap="round"/><line x1="12" y1="17" x2="12" y2="8" strokeLinecap="round"/><line x1="17" y1="17" x2="17" y2="13" strokeLinecap="round"/></svg>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: t.text.primary }}>Financials</div>
+                  <div style={{ fontSize: 13, color: t.text.tertiary }}>{finMeta}</div>
                 </Card>
               )}
             </CardGrid>
