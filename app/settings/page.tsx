@@ -7,11 +7,12 @@ import { PaymentMethod } from '@/lib/types';
 import { useTheme } from '@/lib/theme';
 import { motion, AnimatePresence } from 'framer-motion';
 import SegmentedControl from '@/components/shared/SegmentedControl';
+import BrandKit from '@/components/shared/BrandKit';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } };
 
-type Tab = 'agency' | 'financial' | 'communication';
+type Tab = 'agency' | 'brand-kit' | 'financial' | 'communication';
 
 export default function SettingsPage() {
   return <Suspense fallback={<div style={{ padding: 32, opacity: 0.5, fontSize: 13 }}>Loading...</div>}><SettingsContent /></Suspense>;
@@ -77,6 +78,7 @@ function SettingsContent() {
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'agency', label: 'Agency' },
+    { id: 'brand-kit', label: 'Brand Kit' },
     { id: 'financial', label: 'Financial' },
     { id: 'communication', label: 'Communication' },
   ];
@@ -133,6 +135,10 @@ function SettingsContent() {
                     </div>
                   </div>
                 </>
+              )}
+
+              {activeTab === 'brand-kit' && (
+                <BrandKit context={{ type: 'agency' }} />
               )}
 
               {activeTab === 'financial' && (
