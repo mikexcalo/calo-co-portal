@@ -13,8 +13,8 @@ import { useTheme } from '@/lib/theme';
 
 const AGENCY_BRAND_ID = 'agency';
 
-const DEFAULT_TOP_ORDER: SlotKey[] = ['color', 'light', 'dark'];
-const SECONDARY_SLOTS: SlotKey[] = ['icon', 'secondary', 'favicon'];
+const DEFAULT_TOP_ORDER: SlotKey[] = ['color', 'light', 'dark', 'icon'];
+const SECONDARY_SLOTS: SlotKey[] = ['secondary', 'favicon'];
 type SlotKey = 'color' | 'light' | 'dark' | 'icon' | 'secondary' | 'favicon';
 
 const SLOT_LABELS: Record<SlotKey, string> = {
@@ -110,10 +110,12 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
         </div>
       )}
 
+      <BrandDetails t={t} entityId={entityId} readOnly={readOnly} />
+
       <Section label="Logo Suite">
         <div style={card}>
           {/* Primary row — reorderable */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
             {topOrder.map((slot, idx) => (
               <div key={slot} style={{ position: 'relative' }}>
                 {!readOnly && (
@@ -155,7 +157,7 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
             More logo variants
           </button>
           {secondaryOpen && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginTop: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>
               {SECONDARY_SLOTS.map((slot) => (
                 <LogoSlot key={slot} clientId={entityId} slotKey={slot} label={SLOT_LABELS[slot]} brandKit={brandKit} readOnly={readOnly} onFilesChange={handleLogoChange} />
               ))}
@@ -177,8 +179,6 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
         <Section label="Typography"><div style={card}><Typography fonts={brandKit.fonts} readOnly={readOnly} onFontChange={handleFontChange} /></div></Section>
         <Section label="Notes"><div style={card}><BrandNotes notes={brandKit.notes || ''} readOnly={readOnly} onNotesChange={handleNotesChange} /></div></Section>
       </div>
-
-      <BrandDetails t={t} entityId={entityId} readOnly={readOnly} />
     </BrandKitErrorBoundary>
   );
 }
@@ -300,7 +300,7 @@ function BrandDetails({ t, entityId, readOnly }: { t: any; entityId: string; rea
               const data = headshots[slot];
               return (
                 <div key={slot}>
-                  <label style={labelStyle}>{slot === 'owner' ? 'Owner / Primary' : 'Team Photo'}</label>
+                  <label style={labelStyle}>{slot === 'owner' ? 'Headshot' : 'Team Photo'}</label>
                   {data?.url ? (
                     <div style={{ position: 'relative', borderRadius: t.radius.sm, overflow: 'hidden', border: `1px solid ${t.border.default}` }}>
                       <img src={data.url} alt={data.filename} style={{ width: '100%', height: 80, objectFit: 'cover', display: 'block' }} />

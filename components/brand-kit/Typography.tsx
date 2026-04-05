@@ -32,31 +32,21 @@ export default function Typography({ fonts, readOnly, onFontChange }: Typography
     outline: 'none', transition: 'border-color 150ms',
   });
 
-  const labelStyle: React.CSSProperties = { fontSize: 11, color: t.text.secondary, display: 'block', marginBottom: 4 };
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <div>
-        <label style={labelStyle}>Heading</label>
-        <input type="text" value={fonts.heading || ''} onChange={(e) => onFontChange?.('heading', e.target.value)}
-          placeholder="e.g. Playfair Display" disabled={readOnly} style={inputStyle(fonts.heading)}
-          onFocus={(e) => e.currentTarget.style.borderColor = t.border.active}
-          onBlur={(e) => e.currentTarget.style.borderColor = t.border.default} />
-      </div>
-      <div>
-        <label style={labelStyle}>Body</label>
-        <input type="text" value={fonts.body || ''} onChange={(e) => onFontChange?.('body', e.target.value)}
-          placeholder="e.g. Inter" disabled={readOnly} style={inputStyle(fonts.body)}
-          onFocus={(e) => e.currentTarget.style.borderColor = t.border.active}
-          onBlur={(e) => e.currentTarget.style.borderColor = t.border.default} />
-      </div>
-      <div>
-        <label style={labelStyle}>Accent</label>
-        <input type="text" value={fonts.accent || ''} onChange={(e) => onFontChange?.('accent', e.target.value)}
-          placeholder="e.g. Dancing Script" disabled={readOnly} style={inputStyle(fonts.accent)}
-          onFocus={(e) => e.currentTarget.style.borderColor = t.border.active}
-          onBlur={(e) => e.currentTarget.style.borderColor = t.border.default} />
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {[
+        { key: 'heading' as const, label: 'Heading', placeholder: 'e.g. Playfair Display', value: fonts.heading },
+        { key: 'body' as const, label: 'Body', placeholder: 'e.g. Inter', value: fonts.body },
+        { key: 'accent' as const, label: 'Accent', placeholder: 'e.g. Dancing Script', value: fonts.accent },
+      ].map((f) => (
+        <div key={f.key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 11, color: t.text.secondary, width: 54, flexShrink: 0 }}>{f.label}</span>
+          <input type="text" value={f.value || ''} onChange={(e) => onFontChange?.(f.key, e.target.value)}
+            placeholder={f.placeholder} disabled={readOnly} style={{ ...inputStyle(f.value), flex: 1 }}
+            onFocus={(e) => e.currentTarget.style.borderColor = t.border.active}
+            onBlur={(e) => e.currentTarget.style.borderColor = t.border.default} />
+        </div>
+      ))}
     </div>
   );
 }
