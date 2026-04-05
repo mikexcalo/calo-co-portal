@@ -87,9 +87,14 @@ export default function Sidebar() {
         {navBtn('Financials', '/financials', icons.financials)}
         {navBtn('Brand Kit', '/agency/brand-kit', icons.brandKit)}
         {navBtn('Design Studio', '/agency/design-studio', icons.designStudio)}
-        <div style={{ marginTop: 'auto' }} />
         <div style={{ height: 8 }} />
         {navBtn('Settings', '/settings', icons.settings)}
+      </div>
+      <div style={{ padding: '12px 16px', textAlign: 'center' }}>
+        <a href="https://mikecalo.co" target="_blank" rel="noopener noreferrer"
+          style={{ fontSize: 9, color: t.text.tertiary, textDecoration: 'none', fontFamily: 'inherit' }}>
+          Powered by CALO&CO
+        </a>
       </div>
     </div>
   );

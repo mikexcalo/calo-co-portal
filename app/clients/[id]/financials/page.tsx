@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { DB, loadInvoices, loadExpenses, saveExpense } from '@/lib/database';
 import { Client, Invoice, Expense } from '@/lib/types';
-import { currency, invTotal } from '@/lib/utils';
+import { currency, invTotal, metricColor } from '@/lib/utils';
 import { useTheme } from '@/lib/theme';
 import { motion } from 'framer-motion';
 import SegmentedControl from '@/components/shared/SegmentedControl';
@@ -96,8 +96,8 @@ export default function ClientFinancialsPage() {
 
         <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10, marginBottom: 24 }}>
           {[
-            { label: 'Gross Revenue', value: currency(grossRevenue), color: t.status.success },
-            { label: 'Total Expenses', value: currency(totalExpenses), color: t.status.danger },
+            { label: 'Gross Revenue', value: currency(grossRevenue), color: metricColor(grossRevenue, t.status.success, t.text.secondary) },
+            { label: 'Total Expenses', value: currency(totalExpenses), color: metricColor(totalExpenses, t.status.danger, t.text.secondary) },
             { label: 'Net Income', value: currency(netIncome), color: t.text.primary },
             { label: `Tax Est. (${taxRate}%)`, value: currency(taxEstimate), color: t.text.secondary },
           ].map((m) => (

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { loadInvoices, saveInvoice, deleteInvoice, logActivity, DB } from '@/lib/database';
-import { clientStats, invTotal, currency } from '@/lib/utils';
+import { clientStats, invTotal, currency, metricColor } from '@/lib/utils';
 import InvoiceTable from '@/components/invoices/InvoiceTable';
 import { Invoice } from '@/lib/types';
 import { useTheme } from '@/lib/theme';
@@ -76,8 +76,8 @@ export default function ClientInvoicesPage() {
 
         <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 24 }}>
           {[
-            { label: 'Outstanding', value: currency(stats.outstanding), color: t.status.warning },
-            { label: 'Paid', value: currency(stats.paid), color: t.status.success },
+            { label: 'Outstanding', value: currency(stats.outstanding), color: metricColor(stats.outstanding, t.status.warning, t.text.secondary) },
+            { label: 'Paid', value: currency(stats.paid), color: metricColor(stats.paid, t.status.success, t.text.secondary) },
             { label: 'Total Billed', value: currency(stats.billed), color: t.text.primary },
           ].map((m) => (
             <motion.div key={m.label} whileHover={{ y: -1 }} transition={spring} style={{

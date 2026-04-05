@@ -7,7 +7,7 @@ import { Expense } from '@/lib/types';
 import ProfitLoss from '@/components/financials/ProfitLoss';
 import ExpensesList from '@/components/financials/ExpensesList';
 import RevenueByClient from '@/components/financials/RevenueByClient';
-import { currency } from '@/lib/utils';
+import { currency, metricColor } from '@/lib/utils';
 import { useTheme } from '@/lib/theme';
 import { motion } from 'framer-motion';
 
@@ -107,8 +107,8 @@ export default function FinancialsPage() {
         {/* Metric tiles */}
         <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10, marginBottom: 24 }}>
           {[
-            { label: 'Gross Revenue', value: currency(0), color: t.status.success },
-            { label: 'Total Expenses', value: currency(totalExpenses), color: t.status.danger },
+            { label: 'Gross Revenue', value: currency(0), color: metricColor(0, t.status.success, t.text.secondary) },
+            { label: 'Total Expenses', value: currency(totalExpenses), color: metricColor(totalExpenses, t.status.danger, t.text.secondary) },
             { label: 'Net Income', value: currency(0), color: t.text.primary },
             { label: `Tax Est. (${taxRate}%)`, value: currency(0), color: t.text.secondary },
           ].map((m) => (

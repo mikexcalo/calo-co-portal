@@ -272,3 +272,10 @@ export function formatPhone(phone: string): string {
   }
   return phone;
 }
+
+/**
+ * Return positiveColor for non-zero values, neutralColor for zero.
+ */
+export function metricColor(value: number, positiveColor: string, neutralColor: string): string {
+  return value === 0 ? neutralColor : positiveColor;
+}

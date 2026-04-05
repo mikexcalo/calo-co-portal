@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ConfirmModal from '@/components/shared/ConfirmModal';
 import { loadClients, loadInvoices, deleteInvoice, DB } from '@/lib/database';
-import { agencyStats, currency, invTotal } from '@/lib/utils';
+import { agencyStats, currency, invTotal, metricColor } from '@/lib/utils';
 import { Invoice } from '@/lib/types';
 import { useTheme } from '@/lib/theme';
 import { motion } from 'framer-motion';
@@ -92,8 +92,8 @@ export default function AllInvoicesPage() {
         <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 24 }}>
           {[
             { label: 'Total billed', value: currency(stats.billed), color: t.text.primary },
-            { label: 'Outstanding', value: currency(stats.outstanding), color: t.status.warning },
-            { label: 'Collected', value: currency(stats.paid), color: t.status.success },
+            { label: 'Outstanding', value: currency(stats.outstanding), color: metricColor(stats.outstanding, t.status.warning, t.text.secondary) },
+            { label: 'Collected', value: currency(stats.paid), color: metricColor(stats.paid, t.status.success, t.text.secondary) },
           ].map((m) => (
             <motion.div key={m.label} whileHover={{ y: -1 }} transition={spring} style={{
               background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg,
