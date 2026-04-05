@@ -298,53 +298,45 @@ export default function LogoSlot({
       {/* Slot label */}
       <div className="bk-slot-label">{label}</div>
 
-      {/* File list — card rows */}
+      {/* File list — 2-column badge grid, sorted by type */}
       {hasFiles && (
-        <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4, width: '100%' }}>
-          {files.map((file, idx) => {
-            const ext = getExt(file.name);
-            const isFirst = idx === files.findIndex((f) => isRenderable(f));
-            return (
-              <div key={idx} onClick={(e) => e.stopPropagation()} style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '5px 8px',
-                background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6,
-              }}>
-                {/* File type badge */}
-                <span style={{
-                  fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em',
-                  color: '#64748b', background: '#e2e8f0', borderRadius: 3, padding: '2px 5px',
-                  flexShrink: 0,
-                }}>{ext}</span>
-                {/* Filename */}
-                <span style={{
-                  flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap', fontSize: 10, color: '#334155',
-                  fontWeight: isFirst && isRenderable(file) ? 600 : 400,
+        <div style={{ marginTop: 6, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, width: '100%' }}>
+          {(() => {
+            const order = ['SVG', 'PNG', 'PDF', 'AI', 'EPS', 'JPG'];
+            const sorted = [...files].map((f, i) => ({ file: f, origIdx: i }))
+              .sort((a, b) => {
+                const ea = getExt(a.file.name); const eb = getExt(b.file.name);
+                const ia = order.indexOf(ea); const ib = order.indexOf(eb);
+                return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+              });
+            return sorted.map(({ file, origIdx }) => {
+              const ext = getExt(file.name);
+              return (
+                <div key={origIdx} onClick={(e) => e.stopPropagation()} style={{
+                  display: 'flex', alignItems: 'center', gap: 4, padding: '4px 6px',
+                  background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 4,
                 }}>
-                  {file.name}
-                </span>
-                {/* Download */}
-                {file.data && (
-                  <a href={file.data} download={file.name} onClick={(e) => e.stopPropagation()}
-                    title="Download" style={{ color: '#64748b', flexShrink: 0, display: 'flex' }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                      <polyline points="7 10 12 15 17 10" />
-                      <line x1="12" y1="15" x2="12" y2="3" />
-                    </svg>
-                  </a>
-                )}
-                {/* Delete */}
-                {!readOnly && (
-                  <button onClick={(e) => { e.stopPropagation(); handleDelete(idx); }}
-                    title="Delete" style={{
-                      background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer',
-                      fontSize: 13, padding: 0, lineHeight: 1, flexShrink: 0,
-                    }}>×</button>
-                )}
-              </div>
-            );
-          })}
+                  <span style={{
+                    fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em',
+                    color: '#64748b', background: '#e2e8f0', borderRadius: 3, padding: '1px 4px', flexShrink: 0,
+                  }}>{ext}</span>
+                  <div style={{ flex: 1 }} />
+                  {file.data && (
+                    <a href={file.data} download={file.name} onClick={(e) => e.stopPropagation()}
+                      title="Download" style={{ color: '#94a3b8', flexShrink: 0, display: 'flex' }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                      </svg>
+                    </a>
+                  )}
+                  {!readOnly && (
+                    <button onClick={(e) => { e.stopPropagation(); handleDelete(origIdx); }}
+                      title="Delete" style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 11, padding: 0, lineHeight: 1, flexShrink: 0 }}>×</button>
+                  )}
+                </div>
+              );
+            });
+          })()}
         </div>
       )}
 
