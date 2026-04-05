@@ -368,7 +368,7 @@ export default function BrandBuilderPage() {
             </>
           )
         ) : (
-          <div style={{ flex: 1, padding: 32 }}>
+          <div style={{ flex: 1, padding: 32, maxWidth: 960 }}>
             {/* Print section */}
             <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Print</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
