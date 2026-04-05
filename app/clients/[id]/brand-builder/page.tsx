@@ -370,8 +370,8 @@ export default function BrandBuilderPage() {
         ) : (
           <div style={{ flex: 1, padding: 32 }}>
             {/* Print section */}
-            <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Print</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Print</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
               <TemplateCard id="business-card" label="Business Cards" desc="Front + Back" status="not-started" onClick={() => handleAssetTypeChange('business-card' as AssetType)} />
               <TemplateCard id="yard-sign" label="Yard Signs" desc="5 sizes" status="in-progress" onClick={() => handleAssetTypeChange('yard-sign' as AssetType)} />
               <TemplateCard id="vehicle-magnet" label="Vehicle Magnets" desc="24 × 12 in" status="not-started" onClick={() => handleAssetTypeChange('vehicle-magnet' as AssetType)} />
@@ -384,8 +384,8 @@ export default function BrandBuilderPage() {
             </div>
 
             {/* Digital section */}
-            <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Digital</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Digital</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
               <TemplateCard id="email-signature" label="Email Signature" desc="Gmail · Outlook" status="not-started" onClick={() => router.push(`/clients/${clientId}/email-signature`)} />
               <TemplateCard id="social-graphics" label="Social Graphics" desc="IG · LinkedIn · FB" status="not-started" />
               <TemplateCard id="web-banners" label="Web Banners" desc="Hero · sidebar · leaderboard" status="coming-soon" />
@@ -411,18 +411,18 @@ function TemplateCard({ id, label, desc, onClick, status = 'not-started' }: {
       style={{
         background: hovered ? t.bg.surfaceHover : t.bg.surface,
         border: `1px solid ${hovered ? t.border.hover : t.border.default}`,
-        borderRadius: t.radius.md, padding: 20, minHeight: 130,
+        borderRadius: t.radius.md, padding: 16, minHeight: 100,
         cursor: 'pointer', transition: 'border-color 150ms, background 150ms',
         width: '100%', textAlign: 'left' as const, fontFamily: 'inherit',
         display: 'flex', flexDirection: 'column' as const, color: t.text.primary,
       }}
     >
-      <div style={{ color: hovered ? t.accent.text : t.text.secondary, transition: 'color 150ms', marginBottom: 14 }}>
-        <AssetIcon id={id} size={24} />
+      <div style={{ color: hovered ? t.accent.text : t.text.secondary, transition: 'color 150ms', marginBottom: 10 }}>
+        <AssetIcon id={id} size={20} />
       </div>
-      <div style={{ fontSize: 14, fontWeight: 500 }}>{label}</div>
-      <div style={{ fontSize: 13, color: t.text.secondary, marginTop: 2, flex: 1 }}>{desc}</div>
-      <div style={{ marginTop: 10 }}>
+      <div style={{ fontSize: 13, fontWeight: 500 }}>{label}</div>
+      <div style={{ fontSize: 12, color: t.text.secondary, marginTop: 2, flex: 1 }}>{desc}</div>
+      <div style={{ marginTop: 8 }}>
         {status === 'in-progress' && <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: t.radius.sm, background: 'rgba(245,158,11,0.1)', color: '#f59e0b' }}>In progress</span>}
         {status === 'coming-soon' && <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: t.radius.sm, background: 'rgba(14,165,233,0.1)', color: '#0ea5e9' }}>Coming soon</span>}
         {status === 'not-started' && <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: t.radius.sm, background: t.bg.primary, color: t.text.secondary }}>Not started</span>}
