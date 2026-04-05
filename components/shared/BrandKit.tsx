@@ -169,8 +169,6 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
             Full Color PNG/SVG is used in invoice headers and PDF exports.
           </div>
 
-          {/* File type usage guide */}
-          <FileTypeGuide t={t} />
         </div>
       </Section>
 
@@ -183,43 +181,6 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
   );
 }
 
-function FileTypeGuide({ t }: { t: any }) {
-  const [open, setOpen] = useState(false);
-  const items: [string, string][] = [
-    ['SVG', 'Websites, apps, responsive design. Scales infinitely, smallest file size.'],
-    ['PNG', 'Social media, presentations, email. Transparent background, universal support.'],
-    ['PDF', 'Print vendors, brand guidelines docs. Vector quality, widely accepted.'],
-    ['AI / EPS', 'Professional print, signage, large format. Editable vector source files.'],
-    ['JPG', 'Quick sharing, internal docs. Smallest size but no transparency.'],
-  ];
-  return (
-    <div style={{ marginTop: 10 }}>
-      <button onClick={() => setOpen(!open)} style={{
-        background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-        fontSize: 11, color: t.text.tertiary, display: 'flex', alignItems: 'center', gap: 4, padding: 0,
-        transition: 'color 150ms',
-      }}
-      onMouseEnter={(e) => e.currentTarget.style.color = t.text.secondary}
-      onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}
-      >
-        <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"
-          style={{ transition: 'transform 150ms', transform: open ? 'rotate(90deg)' : 'rotate(0deg)' }}>
-          <polyline points="6 4 10 8 6 12"/>
-        </svg>
-        Which file for what?
-      </button>
-      {open && (
-        <div style={{ marginTop: 6, background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.md, padding: 12 }}>
-          {items.map(([type, desc]) => (
-            <div key={type} style={{ fontSize: 12, color: t.text.secondary, lineHeight: 1.6 }}>
-              <span style={{ fontWeight: 600, color: t.text.primary }}>{type}</span> — {desc}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function BrandDetails({ t, entityId, readOnly }: { t: any; entityId: string; readOnly: boolean }) {
   const [fields, setFields] = useState({ tagline: '', serviceArea: '', licenseNumber: '', socialInstagram: '', socialFacebook: '' });
