@@ -85,6 +85,7 @@ export default function Sidebar() {
         {navBtn('Clients', '/clients', icons.clients)}
         {navBtn('Invoices', '/invoices', icons.invoices)}
         {navBtn('Financials', '/financials', icons.financials)}
+        {navBtn('Brand Kit', '/agency/brand-kit', icons.brandKit)}
         {navBtn('Design Studio', '/agency/design-studio', icons.designStudio)}
 
         {/* TODO: role-based sidebar — client users will see a different nav set */}
