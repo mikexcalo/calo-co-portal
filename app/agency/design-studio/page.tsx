@@ -85,6 +85,7 @@ function TCard({ t, id, label, desc, status }: { t: any; id: string; label: stri
   const [hovered, setHovered] = useState(false);
   return (
     <motion.div whileHover={{ scale: 1.02 }} transition={spring}
+      onClick={() => console.log('Open template:', id)}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{
         background: hovered ? t.bg.surfaceHover : t.bg.surface,

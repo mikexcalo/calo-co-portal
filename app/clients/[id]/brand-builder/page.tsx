@@ -369,6 +369,11 @@ export default function BrandBuilderPage() {
           )
         ) : (
           <div style={{ flex: 1, padding: 32, maxWidth: 960 }}>
+            {/* Page header */}
+            <div style={{ marginBottom: 20 }}>
+              <h1 style={{ fontSize: 20, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>Design Studio</h1>
+              <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>{clientName} templates</p>
+            </div>
             {/* Print section */}
             <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Print</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
