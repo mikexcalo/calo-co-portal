@@ -309,8 +309,6 @@ export default function Home() {
                     onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                     onClick={() => setExpandedClient(isExp ? null : client.id)}>
-                    {/* Status dot */}
-                    <div style={{ position: 'absolute', top: 10, right: 10, width: 8, height: 8, borderRadius: '50%', background: statusColor }} />
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                       <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, overflow: 'hidden', background: getClientAvatarUrl(client) ? 'transparent' : brandColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700, marginTop: 1 }}>
                         {getClientAvatarUrl(client) ? <img src={getClientAvatarUrl(client)!} alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} /> : (client.company || client.name).charAt(0)}
@@ -323,7 +321,10 @@ export default function Home() {
                           {client.company || client.name}
                         </div>
                         <div style={{ fontSize: 11, color: t.text.tertiary }}>{primary ? `${primary.name}${primary.title ? ' \u00b7 ' + primary.title : ''}` : 'No contact'}</div>
-                        <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 2 }}>Last activity: {lastActivityText}</div>
+                        <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
+                          <div style={{ width: 6, height: 6, borderRadius: '50%', background: statusColor, flexShrink: 0 }} />
+                          Last activity: {lastActivityText}
+                        </div>
                         {clientOutstanding > 0 && <div style={{ fontSize: 11, color: '#f59e0b', marginTop: 1 }}>{currency(clientOutstanding)} outstanding</div>}
                       </div>
                       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#a1a1a5" strokeWidth="1.5"
