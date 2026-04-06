@@ -9,6 +9,7 @@ import ExpensesList from '@/components/financials/ExpensesList';
 import RevenueByClient from '@/components/financials/RevenueByClient';
 import { currency, metricColor } from '@/lib/utils';
 import { useTheme } from '@/lib/theme';
+import useCountUp from '@/lib/useCountUp';
 import { motion } from 'framer-motion';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
@@ -49,6 +50,7 @@ export default function FinancialsPage() {
   const { start, end } = getPeriodDates();
   const filteredExpenses = expenses.filter((e) => e.date >= start && e.date <= end);
   const totalExpenses = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
+  const animExpenses = useCountUp(totalExpenses);
   const periodLabel = period === 'month' ? 'This Month' : period === 'quarter' ? 'This Quarter' : period === 'year' ? 'This Year' : 'All Time';
 
   const handleSaveTaxSettings = async () => {
@@ -108,7 +110,7 @@ export default function FinancialsPage() {
         <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10, marginBottom: 24 }}>
           {[
             { label: 'Gross Revenue', value: currency(0), color: metricColor(0, t.status.success, t.text.secondary) },
-            { label: 'Total Expenses', value: currency(totalExpenses), color: metricColor(totalExpenses, t.status.danger, t.text.secondary) },
+            { label: 'Total Expenses', value: currency(Math.round(animExpenses * 100) / 100), color: metricColor(totalExpenses, t.status.danger, t.text.secondary) },
             { label: 'Net Income', value: currency(0), color: t.text.primary },
             { label: `Tax Est. (${taxRate}%)`, value: currency(0), color: t.text.secondary },
           ].map((m) => (

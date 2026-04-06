@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme';
 import HelmSpinner from '@/components/shared/HelmSpinner';
 import Toast from '@/components/shared/Toast';
+import useCountUp from '@/lib/useCountUp';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } };
@@ -98,6 +99,9 @@ export default function Home() {
   const unpaidInvs = DB.invoices.filter((i) => i.status === 'unpaid' || i.status === 'overdue')
     .sort((a, b) => { const da = a.due ? new Date(a.due).getTime() : Infinity; const db = b.due ? new Date(b.due).getTime() : Infinity; return da - db; });
   const paidMTD = DB.invoices.filter((i) => i.status === 'paid').reduce((s, i) => s + invTotal(i), 0);
+  const animRevenue = useCountUp(paidMTD);
+  const animOutstanding = useCountUp(stats.outstanding);
+  const animCollected = useCountUp(paidMTD);
   const clients = [...DB.clients].sort((a, b) => {
     const ta = parseInt(localStorage.getItem(`client_accessed_${a.id}`) || '0', 10);
     const tb = parseInt(localStorage.getItem(`client_accessed_${b.id}`) || '0', 10);
@@ -210,9 +214,9 @@ export default function Home() {
         {/* Financial tiles — 4 columns */}
         <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
           {[
-            { label: 'Revenue (MTD)', value: currency(paidMTD), color: paidMTD > 0 ? t.status.success : t.text.secondary, href: '/financials' },
-            { label: 'Outstanding', value: currency(stats.outstanding), color: stats.outstanding > 0 ? t.status.warning : t.text.secondary, href: '/financials' },
-            { label: 'Collected', value: currency(paidMTD), color: paidMTD > 0 ? t.text.primary : t.text.secondary, href: '/financials' },
+            { label: 'Revenue (MTD)', value: currency(Math.round(animRevenue * 100) / 100), color: paidMTD > 0 ? t.status.success : t.text.secondary, href: '/financials' },
+            { label: 'Outstanding', value: currency(Math.round(animOutstanding * 100) / 100), color: stats.outstanding > 0 ? t.status.warning : t.text.secondary, href: '/financials' },
+            { label: 'Collected', value: currency(Math.round(animCollected * 100) / 100), color: paidMTD > 0 ? t.text.primary : t.text.secondary, href: '/financials' },
             { label: 'Active Clients', value: String(DB.clients.length), color: t.text.primary, href: '/clients' },
           ].map((m) => (
             <motion.div key={m.label} whileHover={{ y: -2 }} transition={spring}

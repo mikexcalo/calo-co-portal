@@ -32,7 +32,7 @@ export default function Sidebar() {
       <button key={label} onClick={() => router.push(href)} style={{
         display: 'flex', alignItems: 'center', gap: 10, width: '100%',
         padding: '8px 12px', margin: '1px 0', borderRadius: 6, border: 'none',
-        fontSize: 13, color: active ? t.text.primary : t.text.secondary,
+        fontSize: 13, color: active ? t.accent.primary : t.text.secondary,
         fontWeight: active ? 500 : 400,
         background: active ? (theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)') : 'transparent',
         cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
