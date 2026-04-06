@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   initSupabase, initAgency, loadClients, loadInvoices, loadContacts,
   loadAllBrandKits, loadActivityLog, loadExpenses, loadAgencySettings,
-  loadTasksNotes, DB, updateTaskStatus, deleteInvoice,
+  loadTasksNotes, DB, updateTaskStatus, deleteInvoice, saveTaskNote,
 } from '@/lib/database';
 import { agencyStats, currency, invTotal } from '@/lib/utils';
 import CommandBar from '@/components/dashboard/CommandBar';
@@ -51,6 +51,8 @@ export default function Home() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchResult, setSearchResult] = useState<string | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const [noteInput, setNoteInput] = useState('');
+  const [noteSubmitting, setNoteSubmitting] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -100,6 +102,22 @@ export default function Home() {
       setSearchResult(data.answer || data.content || 'No results found.');
     } catch { setSearchResult('Search failed.'); }
     finally { setSearchLoading(false); }
+  };
+
+  const handleAddNote = async () => {
+    const text = noteInput.trim();
+    if (!text || noteSubmitting) return;
+    setNoteSubmitting(true);
+    try {
+      const clientId = DB.clients[0]?.id;
+      if (clientId) {
+        await saveTaskNote(clientId, 'note', text);
+        const tasks = await loadTasksNotes();
+        setAllTasks(tasks);
+      }
+      setNoteInput('');
+    } catch (e) { console.error('Failed to add note:', e); }
+    finally { setNoteSubmitting(false); }
   };
 
   const handleTrash = async (id: string, text: string, itemType: 'task' | 'invoice' | 'note') => {
@@ -334,10 +352,12 @@ export default function Home() {
           <div>
             <div style={sectionLbl}>Tasks & Notes</div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '12px 14px', fontSize: 13, color: t.text.tertiary, cursor: 'text', marginBottom: 12 }}
-              onClick={() => { /* TODO: open note input */ }}>
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M8 2v12M2 8h12"/></svg>
-              Add a note...
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '12px 14px', marginBottom: 12, transition: 'border-color 150ms' }}>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.4"><path d="M8 2v12M2 8h12"/></svg>
+              <input type="text" placeholder="Add a note..." value={noteInput} onChange={(e) => setNoteInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleAddNote(); }}
+                disabled={noteSubmitting}
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: t.text.primary, fontFamily: 'inherit' }} />
             </div>
 
             {(taskItems.length > 0 || invItems.length > 0) && (
