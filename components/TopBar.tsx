@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { DB } from '@/lib/database';
 import { useTheme } from '@/lib/theme';
 
@@ -11,6 +11,10 @@ export default function TopBar() {
   const router = useRouter();
   const [viewMode, setViewMode] = useState<'agency' | 'client'>('agency');
   const [avatar, setAvatar] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchResult, setSearchResult] = useState<string | null>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('viewMode') : null;
@@ -28,6 +32,23 @@ export default function TopBar() {
     window.addEventListener('storage', handler);
     return () => window.removeEventListener('storage', handler);
   }, []);
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => { if (searchRef.current && !searchRef.current.contains(e.target as Node) && searchResult) { setSearchResult(null); setSearchQuery(''); } };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [searchResult]);
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    setSearchLoading(true); setSearchResult(null);
+    try {
+      const resp = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: searchQuery }) });
+      const data = await resp.json();
+      setSearchResult(data.answer || data.content || 'No results found.');
+    } catch { setSearchResult('Search failed.'); }
+    finally { setSearchLoading(false); }
+  };
 
   const handleToggle = (mode: 'agency' | 'client') => {
     setViewMode(mode);
@@ -103,8 +124,40 @@ export default function TopBar() {
         ))}
       </div>
 
-      {/* Right: client toggle + avatar */}
+      {/* Right: search + toggle + avatar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div ref={searchRef} style={{ position: 'relative', width: 200 }}>
+          <input
+            style={{ width: '100%', background: t.bg.surface, border: `0.5px solid ${searchLoading || searchResult ? '#2563eb' : t.border.default}`, borderRadius: 6, padding: '6px 10px 6px 30px', fontSize: 12, color: t.text.primary, outline: 'none', fontFamily: 'inherit', transition: 'border-color 150ms' }}
+            placeholder="Search CALO&CO..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); if (e.key === 'Escape') { setSearchResult(null); setSearchQuery(''); } }}
+          />
+          <svg style={{ position: 'absolute', left: 9, top: 8, pointerEvents: 'none' }} width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#a1a1a5" strokeWidth="1.5">
+            <circle cx="6.5" cy="6.5" r="5"/><line x1="10" y1="10" x2="14.5" y2="14.5"/>
+          </svg>
+          {(searchLoading || searchResult) && (
+            <div style={{ position: 'absolute', top: '100%', right: 0, width: 320, marginTop: 8, background: t.bg.surface, borderRadius: 10, padding: 16, border: `0.5px solid ${t.border.default}`, boxShadow: t.shadow.elevated, zIndex: 10 }}>
+              {searchLoading ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ position: 'relative', width: 8, height: 8 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#2563eb' }} />
+                    <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: '#2563eb', animation: 'beacon-ping 1.8s ease-out infinite' }} />
+                  </div>
+                  <span style={{ fontSize: 12, color: t.text.tertiary }}>Searching...</span>
+                </div>
+              ) : (
+                <div style={{ animation: 'fade-in-up 300ms ease-out', position: 'relative' }}>
+                  <button onClick={() => { setSearchResult(null); setSearchQuery(''); }}
+                    style={{ position: 'absolute', top: -4, right: -4, width: 20, height: 20, borderRadius: '50%', background: t.bg.surfaceHover, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.text.tertiary, fontSize: 14, lineHeight: 1, padding: 0 }}
+                    title="Dismiss">×</button>
+                  <div style={{ fontSize: 13, color: t.text.primary, lineHeight: 1.5, paddingRight: 20 }}>{searchResult}</div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
         {isClientRoute && (
           <div style={{ display: 'inline-flex', borderRadius: 6, padding: 2, gap: 2 }}>
             {(['agency', 'client'] as const).map((m) => (

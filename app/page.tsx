@@ -47,10 +47,6 @@ export default function Home() {
   const [toast, setToast] = useState<{ id: string; text: string; itemType: 'task' | 'invoice' | 'note' } | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [expandedClient, setExpandedClient] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchResult, setSearchResult] = useState<string | null>(null);
-  const searchRef = useRef<HTMLDivElement>(null);
   const [noteInput, setNoteInput] = useState('');
   const noteInputRef = useRef<HTMLInputElement>(null);
   const [noteSubmitting, setNoteSubmitting] = useState(false);
@@ -83,27 +79,6 @@ export default function Home() {
   }, []);
 
   const refreshFeed = useCallback(() => { loadTasksNotes().then(setAllTasks); }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        if (searchResult) { setSearchResult(null); setSearchQuery(''); }
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [searchResult]);
-
-  const handlePlatformSearch = async () => {
-    if (!searchQuery.trim()) return;
-    setSearchLoading(true); setSearchResult(null);
-    try {
-      const resp = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: searchQuery }) });
-      const data = await resp.json();
-      setSearchResult(data.answer || data.content || 'No results found.');
-    } catch { setSearchResult('Search failed.'); }
-    finally { setSearchLoading(false); }
-  };
 
   const handleAddNote = async () => {
     const text = noteInput.trim();
@@ -252,49 +227,10 @@ export default function Home() {
     <div style={{ padding: '24px 24px 40px', maxWidth: 1100 }}>
       <motion.div variants={stagger} initial="hidden" animate="show">
 
-        {/* Greeting + Platform Search */}
-        <motion.div variants={fadeUp} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
-          <div>
-            <h1 style={{ fontSize: 24, fontWeight: 400, color: t.text.primary, margin: '0 0 2px', letterSpacing: '-0.01em' }}>{greeting}</h1>
-            <p style={{ fontSize: 12, color: t.text.tertiary, margin: 0 }}>{dateline}</p>
-          </div>
-          <div ref={searchRef} style={{ position: 'relative', width: 260 }}>
-            <input
-              style={{ width: '100%', background: t.bg.surface, border: `0.5px solid ${searchLoading || searchResult ? '#2563eb' : t.border.default}`, borderRadius: 8, padding: '9px 14px 9px 36px', fontSize: 13, color: t.text.primary, outline: 'none', fontFamily: 'inherit', transition: 'border-color 150ms' }}
-              placeholder="Search CALO&CO..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handlePlatformSearch(); if (e.key === 'Escape') { setSearchResult(null); setSearchQuery(''); } }}
-              onFocus={(e) => e.currentTarget.style.borderColor = '#2563eb'}
-              onBlur={(e) => { if (!searchResult && !searchLoading) e.currentTarget.style.borderColor = t.border.default; }}
-            />
-            <svg style={{ position: 'absolute', left: 12, top: 11, pointerEvents: 'none' }} width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#a1a1a5" strokeWidth="1.5">
-              <circle cx="6.5" cy="6.5" r="5"/><line x1="10" y1="10" x2="14.5" y2="14.5"/>
-            </svg>
-            {(searchLoading || searchResult) && (
-              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 8, background: t.bg.surface, borderRadius: 10, padding: 16, border: `0.5px solid ${t.border.default}`, boxShadow: t.shadow.elevated, zIndex: 10 }}>
-                {searchLoading ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ position: 'relative', width: 8, height: 8 }}>
-                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#2563eb' }} />
-                      <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: '#2563eb', animation: 'beacon-ping 1.8s ease-out infinite' }} />
-                      <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: '#2563eb', animation: 'beacon-ping-outer 1.8s ease-out 0.3s infinite' }} />
-                    </div>
-                    <span style={{ fontSize: 12, color: t.text.tertiary }}>Searching...</span>
-                  </div>
-                ) : (
-                  <div style={{ animation: 'fade-in-up 300ms ease-out', position: 'relative' }}>
-                    <button onClick={() => { setSearchResult(null); setSearchQuery(''); }}
-                      style={{ position: 'absolute', top: -4, right: -4, width: 20, height: 20, borderRadius: '50%', background: t.bg.surfaceHover, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.text.tertiary, fontSize: 14, lineHeight: 1, padding: 0, transition: 'color 150ms' }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = t.text.primary}
-                      onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}
-                      title="Dismiss">×</button>
-                    <div style={{ fontSize: 13, color: t.text.primary, lineHeight: 1.5, paddingRight: 20 }}>{searchResult}</div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+        {/* Greeting */}
+        <motion.div variants={fadeUp} style={{ marginBottom: 24 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 400, color: t.text.primary, margin: '0 0 2px', letterSpacing: '-0.01em' }}>{greeting}</h1>
+          <p style={{ fontSize: 12, color: t.text.tertiary, margin: 0 }}>{dateline}</p>
         </motion.div>
 
         {/* Quick actions */}
