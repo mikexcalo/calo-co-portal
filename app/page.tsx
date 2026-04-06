@@ -52,6 +52,7 @@ export default function Home() {
   const [searchResult, setSearchResult] = useState<string | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const [noteInput, setNoteInput] = useState('');
+  const noteInputRef = useRef<HTMLInputElement>(null);
   const [noteSubmitting, setNoteSubmitting] = useState(false);
 
   useEffect(() => {
@@ -296,6 +297,25 @@ export default function Home() {
           </div>
         </motion.div>
 
+        {/* Quick actions */}
+        <motion.div variants={fadeUp} style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+          {[
+            { label: '+ New Client', onClick: () => router.push('/clients/new') },
+            { label: '+ Create Invoice', onClick: () => { if (DB.clients[0]) router.push(`/clients/${DB.clients[0].id}/invoices/new`); } },
+            { label: '+ Add Note', onClick: () => { noteInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => noteInputRef.current?.focus(), 300); } },
+          ].map((btn) => (
+            <button key={btn.label} onClick={btn.onClick} style={{
+              padding: '6px 14px', fontSize: 12, fontWeight: 500, borderRadius: 6,
+              border: `1px solid ${t.border.default}`, background: t.bg.surface, color: t.text.secondary,
+              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 150ms',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = t.accent.primary; e.currentTarget.style.color = t.accent.text; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = t.border.default; e.currentTarget.style.color = t.text.secondary; }}>
+              {btn.label}
+            </button>
+          ))}
+        </motion.div>
+
         {/* 3-column: Clients | Tasks & Notes | Financials */}
         <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(280px, 1fr) 220px', gap: 24 }}>
 
@@ -383,7 +403,7 @@ export default function Home() {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '12px 14px', marginBottom: 12, transition: 'border-color 150ms' }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.4"><path d="M8 2v12M2 8h12"/></svg>
-              <input type="text" placeholder="Add a note..." value={noteInput} onChange={(e) => setNoteInput(e.target.value)}
+              <input ref={noteInputRef} type="text" placeholder="Add a note..." value={noteInput} onChange={(e) => setNoteInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleAddNote(); }}
                 disabled={noteSubmitting}
                 style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: t.text.primary, fontFamily: 'inherit' }} />
