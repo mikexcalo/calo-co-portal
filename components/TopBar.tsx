@@ -7,7 +7,7 @@ import { useTheme } from '@/lib/theme';
 
 export default function TopBar() {
   const pathname = usePathname();
-  const { t } = useTheme();
+  const { theme, setTheme, t } = useTheme();
   const router = useRouter();
   const [viewMode, setViewMode] = useState<'agency' | 'client'>('agency');
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -120,6 +120,17 @@ export default function TopBar() {
             ))}
           </div>
         )}
+        <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
+          width: 28, height: 28, border: 'none', borderRadius: 6, background: 'transparent',
+          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: '#6a6a6e', transition: 'color 150ms',
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.color = t.text.primary}
+        onMouseLeave={(e) => e.currentTarget.style.color = '#6a6a6e'}>
+          {theme === 'dark'
+            ? <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="8" cy="8" r="3"/><line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/><line x1="3" y1="3" x2="4.4" y2="4.4"/><line x1="11.6" y1="11.6" x2="13" y2="13"/><line x1="3" y1="13" x2="4.4" y2="11.6"/><line x1="11.6" y1="4.4" x2="13" y2="3"/></svg>
+            : <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M13.5 8.5a5.5 5.5 0 1 1-6-6 4.5 4.5 0 0 0 6 6z"/></svg>}
+        </button>
         {avatar ? (
           <img src={avatar} alt="" title="Settings" onClick={() => router.push('/settings?tab=profile')}
             style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer' }} />
