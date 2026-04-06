@@ -316,8 +316,12 @@ export default function LogoSlot({
                     display: 'flex', alignItems: 'center', gap: 3, padding: '3px 5px',
                     background: t.bg.surfaceHover, border: `1px solid ${t.border.default}`, borderRadius: 4,
                   }}>
-                    <span style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: t.text.secondary, background: t.border.default, borderRadius: 3, padding: '1px 4px', flexShrink: 0 }}>{ext}</span>
+                    <span style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: match.file.isPrimary ? t.accent.text : t.text.secondary, background: match.file.isPrimary ? t.accent.subtle : t.border.default, borderRadius: 3, padding: '1px 4px', flexShrink: 0 }}>{ext}</span>
                     <div style={{ flex: 1 }} />
+                    {!readOnly && isRenderable(match.file) && files.filter(f => isRenderable(f)).length > 1 && (
+                      <button onClick={(e) => { e.stopPropagation(); handleSetPrimary(match.origIdx); }} title={match.file.isPrimary ? 'Preview image' : 'Set as preview'}
+                        style={{ background: 'none', border: 'none', color: match.file.isPrimary ? t.accent.text : t.text.tertiary, cursor: 'pointer', fontSize: 9, padding: 0, lineHeight: 1, flexShrink: 0, display: 'flex' }}>★</button>
+                    )}
                     {match.file.data && <a href={match.file.data} download={match.file.name} onClick={(e) => e.stopPropagation()} title="Download" style={{ color: t.text.tertiary, flexShrink: 0, display: 'flex' }}><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>}
                     {!readOnly && <button onClick={(e) => { e.stopPropagation(); handleDelete(match.origIdx); }} title="Delete" style={{ background: 'none', border: 'none', color: t.text.tertiary, cursor: 'pointer', fontSize: 10, padding: 0, lineHeight: 1, flexShrink: 0 }}>×</button>}
                   </div>

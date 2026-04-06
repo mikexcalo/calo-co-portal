@@ -8,6 +8,7 @@ import {
   loadTasksNotes, DB, updateTaskStatus, deleteInvoice, saveTaskNote,
 } from '@/lib/database';
 import { agencyStats, currency, invTotal } from '@/lib/utils';
+import { getClientAvatarUrl } from '@/lib/clientAvatar';
 import CommandBar from '@/components/dashboard/CommandBar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme';
@@ -311,8 +312,8 @@ export default function Home() {
                     {/* Status dot */}
                     <div style={{ position: 'absolute', top: 10, right: 10, width: 8, height: 8, borderRadius: '50%', background: statusColor }} />
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, overflow: 'hidden', background: client.logo ? 'transparent' : brandColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700, marginTop: 1 }}>
-                        {client.logo ? <img src={client.logo} alt="" style={{ width: 36, height: 36, objectFit: 'cover' }} /> : (client.company || client.name).charAt(0)}
+                      <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, overflow: 'hidden', background: getClientAvatarUrl(client) ? 'transparent' : brandColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700, marginTop: 1 }}>
+                        {getClientAvatarUrl(client) ? <img src={getClientAvatarUrl(client)!} alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} /> : (client.company || client.name).charAt(0)}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div onClick={(e) => { e.stopPropagation(); router.push(`/clients/${client.id}`); }}

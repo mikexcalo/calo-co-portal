@@ -7,6 +7,7 @@ import { Client, Contact } from '@/lib/types';
 import { useTheme } from '@/lib/theme';
 import HelmSpinner from '@/components/shared/HelmSpinner';
 import { invTotal } from '@/lib/utils';
+import { getClientAvatarUrl } from '@/lib/clientAvatar';
 import { motion } from 'framer-motion';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.04 } } };
@@ -133,12 +134,12 @@ export default function ClientsPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                     <div style={{
                       width: 36, height: 36, borderRadius: 8, flexShrink: 0, overflow: 'hidden',
-                      background: client.logo ? 'transparent' : brandColor,
+                      background: getClientAvatarUrl(client) ? 'transparent' : brandColor,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       color: '#fff', fontSize: 13, fontWeight: 700,
                     }}>
-                      {client.logo
-                        ? <img src={client.logo} alt="" style={{ width: 36, height: 36, objectFit: 'cover' }} />
+                      {getClientAvatarUrl(client)
+                        ? <img src={getClientAvatarUrl(client)!} alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} />
                         : (client.company || client.name).charAt(0).toUpperCase()
                       }
                     </div>
