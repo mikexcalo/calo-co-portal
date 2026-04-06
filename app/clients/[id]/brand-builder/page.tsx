@@ -209,6 +209,15 @@ export default function BrandBuilderPage() {
         console.warn('[BrandBuilder] Failed to load saved fields:', e);
       }
 
+      // Migrate old defaults
+      if (newFields.headline === 'Free Consultations!' || newFields.headline === 'Free Estimates!') {
+        newFields.headline = 'Free Consultations \u2022 Fully Insured \u2022 Budget-Friendly';
+      }
+      if (newFields.tagline === 'test test test') {
+        newFields.tagline = '';
+        newFields.showTagline = false;
+      }
+
       setFields(newFields);
       setSources(newSources);
       setIsLoading(false);
@@ -302,7 +311,7 @@ export default function BrandBuilderPage() {
                     ? getYardSignTemplate({
                         companyName: fields.companyName || '',
                         phone: fields.phone || '',
-                        headline: (fields.headline === 'Free Consultations!' || fields.headline === 'Free Estimates!') ? 'Free Consultations \u2022 Fully Insured \u2022 Budget-Friendly' : (fields.headline || 'Free Consultations \u2022 Fully Insured \u2022 Budget-Friendly'),
+                        headline: fields.headline || 'Free Consultations \u2022 Fully Insured \u2022 Budget-Friendly',
                         logoUrl: fields.logoUrl || null,
                         qrCodeUrl: fields.qrCodeUrl || fields.website || '',
                         brandColor: fields.primaryColor || '#28502e',
@@ -312,7 +321,7 @@ export default function BrandBuilderPage() {
                         showPhone: fields.showPhone,
                         showCompanyName: fields.showCompanyName,
                         showQrCode: fields.showQrCode,
-                        tagline: fields.tagline === 'test test test' ? '' : (fields.tagline || ''),
+                        tagline: fields.tagline || '',
                         showTagline: fields.showTagline,
                         email: fields.email || '',
                         showEmail: fields.showEmail,

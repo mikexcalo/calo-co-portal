@@ -91,14 +91,22 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
     });
   }
 
-  // Headline
+  // Headline — auto-scale font to fit one line
   if (headline && showHeadline !== false) {
+    const maxFontBase = isLandscape ? W * 0.055 : W * 0.065;
+    // Approximate: each char at weight 800 is ~0.6em wide. Scale down for long headlines.
+    const approxCharsAtMax = (W * 0.85) / (maxFontBase * 0.55);
+    const headlineFontSize = headline.length > approxCharsAtMax
+      ? Math.round(maxFontBase * (approxCharsAtMax / headline.length))
+      : Math.round(maxFontBase);
+    const clampedSize = Math.max(14, Math.min(headlineFontSize, Math.round(maxFontBase)));
+
     objects.push({
       type: 'textbox', text: headline,
       left: W / 2,
       top: Math.round(isLandscape ? topH * 0.36 : topH * 0.32),
       width: W * 0.85, originX: 'center',
-      fontSize: Math.round(isLandscape ? W * 0.055 : W * 0.065),
+      fontSize: clampedSize,
       fontWeight: 800, fill: '#ffffff', textAlign: 'center',
       name: 'headline-text',
     });
