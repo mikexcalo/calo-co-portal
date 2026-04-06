@@ -89,6 +89,12 @@ export default function Home() {
     await updateTaskStatus(toast.id, 'open'); setToast(null); refreshFeed();
   };
 
+  // Data (computed before hooks to satisfy Rules of Hooks — no early returns before hooks)
+  const paidMTD = isLoading ? 0 : DB.invoices.filter((i) => i.status === 'paid').reduce((s, i) => s + invTotal(i), 0);
+  const animRevenue = useCountUp(paidMTD);
+  const animOutstanding = useCountUp(stats.outstanding);
+  const animCollected = useCountUp(paidMTD);
+
   if (isLoading) return <div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelmSpinner /></div>;
 
   // Data
@@ -98,10 +104,6 @@ export default function Home() {
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   const unpaidInvs = DB.invoices.filter((i) => i.status === 'unpaid' || i.status === 'overdue')
     .sort((a, b) => { const da = a.due ? new Date(a.due).getTime() : Infinity; const db = b.due ? new Date(b.due).getTime() : Infinity; return da - db; });
-  const paidMTD = DB.invoices.filter((i) => i.status === 'paid').reduce((s, i) => s + invTotal(i), 0);
-  const animRevenue = useCountUp(paidMTD);
-  const animOutstanding = useCountUp(stats.outstanding);
-  const animCollected = useCountUp(paidMTD);
   const clients = [...DB.clients].sort((a, b) => {
     const ta = parseInt(localStorage.getItem(`client_accessed_${a.id}`) || '0', 10);
     const tb = parseInt(localStorage.getItem(`client_accessed_${b.id}`) || '0', 10);
