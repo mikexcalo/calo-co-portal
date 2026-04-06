@@ -302,34 +302,43 @@ export default function LogoSlot({
 
       {/* File type badge grid — always show all 6 slots */}
       {hasFiles && (
-        <div style={{ marginTop: 6, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, width: '100%' }}>
+        <div style={{ marginTop: 6, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, width: '100%' }}>
           {(() => {
             const allTypes = ['SVG', 'PNG', 'PDF', 'AI', 'EPS', 'JPG'];
             const tooltips: Record<string, string> = { SVG: 'Websites, apps, scales infinitely', PNG: 'Social media, presentations, transparent bg', PDF: 'Print vendors, brand guidelines', AI: 'Professional print, editable source', EPS: 'Large format, signage', JPG: 'Quick sharing, internal docs' };
             const fileMap = new Map<string, { file: LogoFile; origIdx: number }>();
             files.forEach((f, i) => { const ext = getExt(f.name); if (!fileMap.has(ext)) fileMap.set(ext, { file: f, origIdx: i }); });
+            const imageFileCount = files.filter(f => isRenderable(f)).length;
+            const actionBtn: React.CSSProperties = { minWidth: 28, minHeight: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: 0, transition: 'color 150ms' };
             return allTypes.map((ext) => {
               const match = fileMap.get(ext);
               if (match) {
+                const isImg = isRenderable(match.file);
+                const isPri = match.file.isPrimary;
+                const isSupabaseUrl = match.file.data?.startsWith('http');
                 return (
                   <div key={ext} onClick={(e) => e.stopPropagation()} title={tooltips[ext]} style={{
-                    display: 'flex', alignItems: 'center', gap: 3, padding: '3px 5px',
-                    background: t.bg.surfaceHover, border: `1px solid ${t.border.default}`, borderRadius: 4,
+                    display: 'flex', alignItems: 'center', gap: 2, padding: '2px 5px',
+                    background: t.bg.surfaceHover, border: `1px solid ${isPri ? t.accent.primary : t.border.default}`, borderRadius: 4,
                   }}>
-                    <span style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: match.file.isPrimary ? t.accent.text : t.text.secondary, background: match.file.isPrimary ? t.accent.subtle : t.border.default, borderRadius: 3, padding: '1px 4px', flexShrink: 0 }}>{ext}</span>
+                    <span style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: isPri ? t.accent.text : t.text.secondary, background: isPri ? t.accent.subtle : t.border.default, borderRadius: 3, padding: '1px 4px', flexShrink: 0 }}>{ext}</span>
                     <div style={{ flex: 1 }} />
-                    {!readOnly && isRenderable(match.file) && files.filter(f => isRenderable(f)).length > 1 && (
-                      <button onClick={(e) => { e.stopPropagation(); handleSetPrimary(match.origIdx); }} title={match.file.isPrimary ? 'Preview image' : 'Set as preview'}
-                        style={{ background: 'none', border: 'none', color: match.file.isPrimary ? t.accent.text : t.text.tertiary, cursor: 'pointer', fontSize: 9, padding: 0, lineHeight: 1, flexShrink: 0, display: 'flex' }}>★</button>
+                    {!readOnly && isImg && imageFileCount > 1 && (
+                      <button onClick={(e) => { e.stopPropagation(); handleSetPrimary(match.origIdx); }} title={isPri ? 'Preview image' : 'Set as preview'}
+                        style={{ ...actionBtn, color: isPri ? '#f59e0b' : t.text.tertiary, fontSize: 12 }}>★</button>
                     )}
-                    {match.file.data && <a href={match.file.data} download={match.file.name} onClick={(e) => e.stopPropagation()} title="Download" style={{ color: t.text.tertiary, flexShrink: 0, display: 'flex' }}><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>}
-                    {!readOnly && <button onClick={(e) => { e.stopPropagation(); handleDelete(match.origIdx); }} title="Delete" style={{ background: 'none', border: 'none', color: t.text.tertiary, cursor: 'pointer', fontSize: 10, padding: 0, lineHeight: 1, flexShrink: 0 }}>×</button>}
+                    {match.file.data && (
+                      isSupabaseUrl
+                        ? <a href={match.file.data} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} title="Open file" style={{ ...actionBtn, color: t.text.tertiary }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>
+                        : <a href={match.file.data} download={match.file.name} onClick={(e) => e.stopPropagation()} title="Download" style={{ ...actionBtn, color: t.text.tertiary }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>
+                    )}
+                    {!readOnly && <button onClick={(e) => { e.stopPropagation(); handleDelete(match.origIdx); }} title="Delete" style={{ ...actionBtn, color: t.text.tertiary, fontSize: 12 }}>×</button>}
                   </div>
                 );
               }
               return (
                 <div key={ext} title={tooltips[ext]} style={{
-                  display: 'flex', alignItems: 'center', padding: '3px 5px',
+                  display: 'flex', alignItems: 'center', padding: '2px 5px',
                   background: 'transparent', border: '1px solid transparent', borderRadius: 4, opacity: 0.4,
                 }}>
                   <span style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: t.text.tertiary, borderRadius: 3, padding: '1px 4px' }}>{ext}</span>
