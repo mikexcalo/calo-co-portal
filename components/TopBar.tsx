@@ -97,7 +97,7 @@ export default function TopBar() {
                 {seg.label}
               </span>
             ) : (
-              <span style={{ color: i === segments.length - 1 ? t.text.primary : t.text.tertiary, fontWeight: i === segments.length - 1 ? 600 : 400 }}>{seg.label}</span>
+              <span style={{ color: i === segments.length - 1 ? t.text.secondary : t.text.tertiary, fontWeight: i === segments.length - 1 ? 500 : 400 }}>{seg.label}</span>
             )}
           </span>
         ))}

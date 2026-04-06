@@ -139,7 +139,7 @@ export default function Home() {
   const animOutstanding = useCountUp(stats.outstanding);
   const animCollected = useCountUp(paidMTD);
 
-  if (isLoading) return <div style={{ padding: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300 }}><HelmSpinner size={32} /></div>;
+  if (isLoading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, minHeight: 0 }}><HelmSpinner size={32} /></div>;
 
   // Data
   const openTasks = allTasks.filter((tk) => tk.type === 'task' && tk.status === 'open')
@@ -310,33 +310,40 @@ export default function Home() {
                 const isExp = expandedClient === client.id;
                 return (
                   <div key={client.id}
-                    style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: 14, cursor: 'pointer', transition: 'transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease, border-color 150ms' }}
+                    style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '14px 16px', cursor: 'pointer', transition: 'transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease, border-color 150ms' }}
                     onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                     onClick={() => setExpandedClient(isExp ? null : client.id)}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 32, height: 32, borderRadius: 7, flexShrink: 0, overflow: 'hidden', background: client.logo ? 'transparent' : brandColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 10, fontWeight: 700 }}>
-                        {client.logo ? <img src={client.logo} alt="" style={{ width: 32, height: 32, objectFit: 'cover' }} /> : (client.company || client.name).charAt(0)}
+                      <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, overflow: 'hidden', background: client.logo ? 'transparent' : brandColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700 }}>
+                        {client.logo ? <img src={client.logo} alt="" style={{ width: 36, height: 36, objectFit: 'cover' }} /> : (client.company || client.name).charAt(0)}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 14, fontWeight: 500, color: t.text.primary }}>{client.company || client.name}</div>
                         <div style={{ fontSize: 11, color: t.text.tertiary }}>{primary ? `${primary.name}${primary.title ? ' \u00b7 ' + primary.title : ''}` : 'No contact'}</div>
                       </div>
+                      <button onClick={(e) => { e.stopPropagation(); router.push(`/clients/${client.id}`); }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: t.text.tertiary, transition: 'color 150ms', flexShrink: 0 }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = t.text.primary}
+                        onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}
+                        title="View client">
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="6 4 10 8 6 12"/></svg>
+                      </button>
                       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#a1a1a5" strokeWidth="1.5"
                         style={{ flexShrink: 0, transform: `rotate(${isExp ? 180 : 0}deg)`, transition: 'transform 200ms' }}>
                         <path d="M4 6l4 4 4-4"/>
                       </svg>
                     </div>
-                    <div style={{ overflow: 'hidden', maxHeight: isExp ? 60 : 0, opacity: isExp ? 1 : 0, transition: 'max-height 250ms ease, opacity 200ms', marginTop: isExp ? 10 : 0 }}
+                    <div style={{ overflow: 'hidden', maxHeight: isExp ? 64 : 0, opacity: isExp ? 1 : 0, transition: 'max-height 250ms ease, opacity 200ms', marginTop: isExp ? 12 : 0 }}
                       onClick={(e) => e.stopPropagation()}>
-                      <div style={{ display: 'flex', gap: 8, paddingLeft: 42, paddingTop: 2 }}>
+                      <div style={{ display: 'flex', gap: 10, paddingLeft: 46, paddingTop: 2 }}>
                         {[
                           { icon: ic.bk, href: `/clients/${client.id}/brand-kit`, label: 'Brand Kit' },
                           { icon: ic.ds, href: `/clients/${client.id}/brand-builder`, label: 'Design Studio' },
                           { icon: ic.inv, href: `/clients/${client.id}/invoices`, label: 'Invoices' },
                         ].map((btn, i) => (
                           <button key={i} title={btn.label} onClick={() => router.push(btn.href)}
-                            style={{ flex: 1, height: 32, borderRadius: 6, background: t.bg.surfaceHover, border: `0.5px solid ${t.border.default}`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '0 10px', cursor: 'pointer', color: t.text.secondary, transition: 'background 150ms, color 150ms, border-color 150ms', fontSize: 11, fontWeight: 500, fontFamily: 'inherit' }}
+                            style={{ flex: 1, height: 34, borderRadius: 6, background: t.bg.surfaceHover, border: `0.5px solid ${t.border.default}`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '0 10px', cursor: 'pointer', color: t.text.secondary, transition: 'background 150ms, color 150ms, border-color 150ms', fontSize: 11, fontWeight: 500, fontFamily: 'inherit' }}
                             onMouseEnter={(e) => { e.currentTarget.style.background = t.accent.primary; e.currentTarget.style.color = '#fff'; (e.currentTarget.style as any).borderColor = t.accent.primary; }}
                             onMouseLeave={(e) => { e.currentTarget.style.background = t.bg.surfaceHover; e.currentTarget.style.color = t.text.secondary; (e.currentTarget.style as any).borderColor = t.border.default; }}>{btn.icon}{btn.label}</button>
                         ))}

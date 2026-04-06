@@ -54,24 +54,28 @@ export default function Sidebar() {
       display: 'flex', flexDirection: 'column', height: '100vh',
       fontFamily: 'inherit',
     }}>
-      {/* Logo — vertically stacked */}
-      <div onClick={() => router.push('/')} style={{
-        height: 72, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0, cursor: 'pointer',
-      }}>
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6b6b6f" strokeWidth="1.3" strokeLinecap="round">
-          <circle cx="12" cy="12" r="8.5" />
-          <circle cx="12" cy="12" r="3" />
-          <line x1="12" y1="3.5" x2="12" y2="9" />
-          <line x1="12" y1="15" x2="12" y2="20.5" />
-          <line x1="3.5" y1="12" x2="9" y2="12" />
-          <line x1="15" y1="12" x2="20.5" y2="12" />
-          <line x1="5.9" y1="5.9" x2="9.9" y2="9.9" />
-          <line x1="14.1" y1="14.1" x2="18.1" y2="18.1" />
-          <line x1="5.9" y1="18.1" x2="9.9" y2="14.1" />
-          <line x1="14.1" y1="9.9" x2="18.1" y2="5.9" />
-        </svg>
-        <span style={{ fontSize: 16, fontWeight: 400, color: '#6b6b6f', letterSpacing: '0.5px', marginTop: 4 }}>CALO&CO</span>
+      {/* Logo + toggle */}
+      <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 2, position: 'relative', flexShrink: 0 }}>
+        <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
+          position: 'absolute', top: 12, right: 16, width: 28, height: 28, border: 'none', borderRadius: 6, background: 'transparent',
+          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.text.tertiary, transition: 'color 150ms',
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.color = t.text.secondary}
+        onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}>
+          {theme === 'dark' ? icons.sun : icons.moon}
+        </button>
+        <div onClick={() => router.push('/')} style={{ cursor: 'pointer' }}>
+          <div style={{ width: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6b6b6f" strokeWidth="1.3" strokeLinecap="round">
+              <circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="3" />
+              <line x1="12" y1="3.5" x2="12" y2="9" /><line x1="12" y1="15" x2="12" y2="20.5" />
+              <line x1="3.5" y1="12" x2="9" y2="12" /><line x1="15" y1="12" x2="20.5" y2="12" />
+              <line x1="5.9" y1="5.9" x2="9.9" y2="9.9" /><line x1="14.1" y1="14.1" x2="18.1" y2="18.1" />
+              <line x1="5.9" y1="18.1" x2="9.9" y2="14.1" /><line x1="14.1" y1="9.9" x2="18.1" y2="5.9" />
+            </svg>
+          </div>
+          <span style={{ fontSize: 16, fontWeight: 400, color: '#6b6b6f', letterSpacing: '0.5px', paddingLeft: 30 }}>CALO&CO</span>
+        </div>
       </div>
 
       {/* Nav */}
@@ -85,16 +89,7 @@ export default function Sidebar() {
         <div style={{ height: 8 }} />
         {navBtn('Settings', '/settings', icons.settings)}
       </div>
-      <div style={{ padding: '8px 16px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-        <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
-          width: 28, height: 28, border: 'none', borderRadius: 6, background: 'transparent',
-          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: t.text.tertiary, transition: 'color 150ms',
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.color = t.text.secondary}
-        onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}>
-          {theme === 'dark' ? icons.sun : icons.moon}
-        </button>
+      <div style={{ padding: '12px 16px', textAlign: 'center' }}>
         <a href="https://mikecalo.co" target="_blank" rel="noopener noreferrer"
           style={{ fontSize: 9, color: t.text.tertiary, textDecoration: 'none', fontFamily: 'inherit' }}>
           Powered by CALO&CO
