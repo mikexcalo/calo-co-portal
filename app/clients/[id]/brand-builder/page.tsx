@@ -220,6 +220,14 @@ export default function BrandBuilderPage() {
         newFields.showTagline = false;
         migrated = true;
       }
+      // Force-reset stale visibility flags (v2 migration)
+      if (!(newFields as any)._defaultsV2) {
+        newFields.showTagline = false;
+        newFields.showEmail = false;
+        newFields.showWebsite = false;
+        (newFields as any)._defaultsV2 = true;
+        migrated = true;
+      }
       // Persist migrated values back to Supabase
       if (migrated) {
         try {

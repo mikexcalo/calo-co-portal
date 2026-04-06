@@ -48,7 +48,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         selection: true,
         preserveObjectStacking: true,
         enableRetinaScaling: false,
-        devicePixelRatio: 1,
+        devicePixelRatio: window.devicePixelRatio || 2,
       });
 
       fabricRef.current = fc;

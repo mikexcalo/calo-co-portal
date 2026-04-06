@@ -85,15 +85,19 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
     objects.push({
       type: 'image', src: logoUrl,
       left: W / 2,
-      top: Math.round(topH * 0.05),
+      top: Math.round(topH * 0.08),
       originX: 'center',
-      maxWidth: W * 0.9,
+      maxWidth: W * 0.7,
       maxHeight: isLandscape ? topH * 0.22 : topH * 0.25,
       name: 'logo',
     });
   }
 
-  // Headline — single line, auto-scale font to fit
+  // Headline — single line, auto-scale font to fit, clears logo
+  const logoTop = Math.round(topH * 0.08);
+  const logoMaxH = isLandscape ? topH * 0.22 : topH * 0.25;
+  const logoBottom = (logoUrl && showLogo !== false) ? logoTop + logoMaxH + Math.round(topH * 0.03) : Math.round(topH * 0.08);
+
   if (headline && showHeadline !== false) {
     const maxWidth = W * 0.85;
     const baseFontSize = isLandscape ? W * 0.055 : W * 0.065;
@@ -105,7 +109,7 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
     objects.push({
       type: 'text', text: headline,
       left: W / 2,
-      top: Math.round(isLandscape ? topH * 0.36 : topH * 0.32),
+      top: Math.round(logoBottom),
       originX: 'center',
       fontSize: finalFontSize,
       fontWeight: 800, fill: '#ffffff', textAlign: 'center',
@@ -113,26 +117,29 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
     });
   }
 
+  // Track vertical cursor for stacking elements below headline
+  let cursorY = logoBottom + (headline && showHeadline !== false ? Math.round(isLandscape ? W * 0.06 : W * 0.07) : 0);
+
   // Tagline (italic, smaller, below headline)
   if (tagline && showTagline) {
     objects.push({
       type: 'text', text: tagline,
       left: W / 2,
-      top: Math.round(isLandscape ? topH * 0.46 : topH * 0.44),
+      top: cursorY,
       originX: 'center',
       fontSize: Math.round(isLandscape ? W * 0.032 : W * 0.038),
       fontWeight: 400, fontStyle: 'italic', fill: '#ffffff', textAlign: 'center',
       name: 'tagline-text',
     });
+    cursorY += Math.round(isLandscape ? W * 0.045 : W * 0.05);
   }
 
   // Phone
   if (phone && showPhone !== false) {
-    const phoneTopOffset = (tagline && showTagline) ? 0.06 : 0;
     objects.push({
       type: 'textbox', text: formattedPhone,
       left: W / 2,
-      top: Math.round(isLandscape ? topH * (0.52 + phoneTopOffset) : topH * (0.50 + phoneTopOffset)),
+      top: cursorY + Math.round(topH * 0.02),
       width: W * 0.95, originX: 'center',
       fontSize: Math.round(isLandscape ? W * 0.1 : W * 0.13),
       fontWeight: 800, fill: '#ffffff', textAlign: 'center',
