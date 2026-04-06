@@ -129,10 +129,14 @@ export default function ClientHubPage() {
     };
     await saveClient(updated);
     const contactName = `${form.firstName.trim()} ${form.lastName.trim()}`;
+    const contactData = { clientId: client.id, name: contactName, role: form.title, email: form.email, phone: form.contactPhone, isPrimary: true };
     if (primary?.id) {
-      await saveContact({ id: primary.id, clientId: client.id, name: contactName, role: form.title, email: form.email, phone: form.contactPhone, isPrimary: true });
+      await saveContact({ id: primary.id, ...contactData });
+      // Update contact in DB cache
+      const cIdx = (DB.contacts[client.id] || []).findIndex((c) => c.id === primary.id);
+      if (cIdx >= 0) DB.contacts[client.id][cIdx] = { ...DB.contacts[client.id][cIdx], ...contactData };
     } else {
-      const nc = await saveContact({ clientId: client.id, name: contactName, role: form.title, email: form.email, phone: form.contactPhone, isPrimary: true });
+      const nc = await saveContact(contactData);
       if (nc) DB.contacts[client.id] = [nc];
     }
     // Update local DB cache so data persists across navigation
