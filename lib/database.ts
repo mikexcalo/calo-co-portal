@@ -533,10 +533,26 @@ export async function saveBrandKit(bk: BrandKit, clientId?: string | null): Prom
 
     if (bk._id) row.id = bk._id;
 
-    const { data, error } = await supabase
-      .from('brand_kits')
-      .upsert(row, { onConflict: bk._id ? 'id' : 'client_id' })
-      .select();
+    let data: any[] | null = null;
+    let error: any = null;
+
+    if (bk._id) {
+      // Update existing
+      const res = await supabase.from('brand_kits').update(row).eq('id', bk._id).select();
+      data = res.data; error = res.error;
+    } else {
+      // Check if one exists for this client
+      const { data: existing } = await supabase.from('brand_kits').select('id').eq('client_id', clientId || '').maybeSingle();
+      if (existing) {
+        bk._id = existing.id;
+        row.id = existing.id;
+        const res = await supabase.from('brand_kits').update(row).eq('id', existing.id).select();
+        data = res.data; error = res.error;
+      } else {
+        const res = await supabase.from('brand_kits').insert(row).select();
+        data = res.data; error = res.error;
+      }
+    }
 
     if (error) {
       console.error('[saveBrandKit] error:', JSON.stringify(error));
@@ -592,7 +608,7 @@ export async function uploadAsset(
 
     const { data: assetData, error: assetErr } = await supabase
       .from('assets')
-      .upsert({
+      .insert({
         brand_kit_id: brandKitId,
         slot,
         file_name: file.name,
@@ -602,12 +618,12 @@ export async function uploadAsset(
       .select();
 
     if (assetErr) {
-      console.error('[uploadAsset] upsert error:', JSON.stringify(assetErr));
+      console.error('[uploadAsset] insert error:', JSON.stringify(assetErr));
       return null;
     }
 
     if (!assetData || !assetData[0]) {
-      console.error('[uploadAsset] assets upsert returned no data');
+      console.error('[uploadAsset] assets insert returned no data');
       return null;
     }
 
