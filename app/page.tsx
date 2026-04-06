@@ -319,33 +319,31 @@ export default function Home() {
                         {client.logo ? <img src={client.logo} alt="" style={{ width: 36, height: 36, objectFit: 'cover' }} /> : (client.company || client.name).charAt(0)}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 14, fontWeight: 500, color: t.text.primary }}>{client.company || client.name}</div>
+                        <div onClick={(e) => { e.stopPropagation(); router.push(`/clients/${client.id}`); }}
+                          style={{ fontSize: 14, fontWeight: 500, color: t.text.primary, cursor: 'pointer', transition: 'color 150ms' }}
+                          onMouseEnter={(e) => e.currentTarget.style.color = t.accent.text}
+                          onMouseLeave={(e) => e.currentTarget.style.color = t.text.primary}>
+                          {client.company || client.name}
+                        </div>
                         <div style={{ fontSize: 11, color: t.text.tertiary }}>{primary ? `${primary.name}${primary.title ? ' \u00b7 ' + primary.title : ''}` : 'No contact'}</div>
                       </div>
-                      <button onClick={(e) => { e.stopPropagation(); router.push(`/clients/${client.id}`); }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: t.text.tertiary, transition: 'color 150ms', flexShrink: 0 }}
-                        onMouseEnter={(e) => e.currentTarget.style.color = t.text.primary}
-                        onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}
-                        title="View client">
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="6 4 10 8 6 12"/></svg>
-                      </button>
                       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#a1a1a5" strokeWidth="1.5"
                         style={{ flexShrink: 0, transform: `rotate(${isExp ? 180 : 0}deg)`, transition: 'transform 200ms' }}>
                         <path d="M4 6l4 4 4-4"/>
                       </svg>
                     </div>
-                    <div style={{ overflow: 'hidden', maxHeight: isExp ? 64 : 0, opacity: isExp ? 1 : 0, transition: 'max-height 250ms ease, opacity 200ms', marginTop: isExp ? 12 : 0 }}
+                    <div style={{ overflow: 'hidden', maxHeight: isExp ? 120 : 0, opacity: isExp ? 1 : 0, transition: 'max-height 250ms ease, opacity 200ms', marginTop: isExp ? 10 : 0 }}
                       onClick={(e) => e.stopPropagation()}>
-                      <div style={{ display: 'flex', gap: 10, paddingLeft: 46, paddingTop: 2 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingLeft: 46, paddingTop: 4 }}>
                         {[
                           { icon: ic.bk, href: `/clients/${client.id}/brand-kit`, label: 'Brand Kit' },
                           { icon: ic.ds, href: `/clients/${client.id}/brand-builder`, label: 'Design Studio' },
                           { icon: ic.inv, href: `/clients/${client.id}/invoices`, label: 'Invoices' },
                         ].map((btn, i) => (
-                          <button key={i} title={btn.label} onClick={() => router.push(btn.href)}
-                            style={{ flex: 1, height: 34, borderRadius: 6, background: t.bg.surfaceHover, border: `0.5px solid ${t.border.default}`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '0 10px', cursor: 'pointer', color: t.text.secondary, transition: 'background 150ms, color 150ms, border-color 150ms', fontSize: 11, fontWeight: 500, fontFamily: 'inherit' }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = t.accent.primary; e.currentTarget.style.color = '#fff'; (e.currentTarget.style as any).borderColor = t.accent.primary; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = t.bg.surfaceHover; e.currentTarget.style.color = t.text.secondary; (e.currentTarget.style as any).borderColor = t.border.default; }}>{btn.icon}{btn.label}</button>
+                          <button key={i} onClick={() => router.push(btn.href)}
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', background: 'none', border: 'none', cursor: 'pointer', color: t.text.secondary, fontSize: 13, fontWeight: 400, fontFamily: 'inherit', textAlign: 'left', transition: 'color 150ms' }}
+                            onMouseEnter={(e) => e.currentTarget.style.color = t.accent.text}
+                            onMouseLeave={(e) => e.currentTarget.style.color = t.text.secondary}>{btn.icon}{btn.label}</button>
                         ))}
                       </div>
                     </div>

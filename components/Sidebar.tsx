@@ -54,17 +54,9 @@ export default function Sidebar() {
       display: 'flex', flexDirection: 'column', height: '100vh',
       fontFamily: 'inherit',
     }}>
-      {/* Logo + toggle */}
-      <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 2, position: 'relative', flexShrink: 0 }}>
-        <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
-          position: 'absolute', top: 12, right: 16, width: 28, height: 28, border: 'none', borderRadius: 6, background: 'transparent',
-          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.text.tertiary, transition: 'color 150ms',
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.color = t.text.secondary}
-        onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}>
-          {theme === 'dark' ? icons.sun : icons.moon}
-        </button>
-        <div onClick={() => router.push('/')} style={{ cursor: 'pointer' }}>
+      {/* Logo + toggle — horizontal */}
+      <div style={{ height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', flexShrink: 0 }}>
+        <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
           <div style={{ width: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6b6b6f" strokeWidth="1.3" strokeLinecap="round">
               <circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="3" />
@@ -74,8 +66,16 @@ export default function Sidebar() {
               <line x1="5.9" y1="18.1" x2="9.9" y2="14.1" /><line x1="14.1" y1="9.9" x2="18.1" y2="5.9" />
             </svg>
           </div>
-          <span style={{ fontSize: 16, fontWeight: 400, color: '#6b6b6f', letterSpacing: '0.5px', paddingLeft: 30 }}>CALO&CO</span>
+          <span style={{ fontSize: 16, fontWeight: 400, color: '#6b6b6f', letterSpacing: '0.5px' }}>CALO&CO</span>
         </div>
+        <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
+          width: 28, height: 28, border: 'none', borderRadius: 6, background: 'transparent',
+          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.text.tertiary, transition: 'color 150ms',
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.color = t.text.secondary}
+        onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}>
+          {theme === 'dark' ? icons.sun : icons.moon}
+        </button>
       </div>
 
       {/* Nav */}
