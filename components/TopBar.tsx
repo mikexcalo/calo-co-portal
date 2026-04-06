@@ -80,7 +80,7 @@ export default function TopBar() {
       height: 48, flexShrink: 0, background: t.bg.primary,
       borderBottom: `1px solid ${t.border.default}`,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 20px', fontFamily: 'inherit',
+      padding: '0 24px', fontFamily: 'inherit',
     }}>
       {/* Breadcrumb */}
       <div style={{ fontSize: 14, color: t.text.tertiary, display: 'flex', alignItems: 'center', gap: 6 }}>

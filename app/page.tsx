@@ -95,7 +95,7 @@ export default function Home() {
   const animOutstanding = useCountUp(stats.outstanding);
   const animCollected = useCountUp(paidMTD);
 
-  if (isLoading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 96px)' }}><HelmSpinner size={32} /></div>;
+  if (isLoading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, minHeight: 0 }}><HelmSpinner size={32} /></div>;
 
   // Data
   const openTasks = allTasks.filter((tk) => tk.type === 'task' && tk.status === 'open')
@@ -204,7 +204,7 @@ export default function Home() {
   };
 
   return (
-    <div style={{ padding: 32, maxWidth: 960, minHeight: 'calc(100vh - 48px)' }}>
+    <div style={{ padding: 24, maxWidth: 960, minHeight: 'calc(100vh - 48px)' }}>
       <motion.div variants={stagger} initial="hidden" animate="show">
 
         {/* Greeting — full width */}

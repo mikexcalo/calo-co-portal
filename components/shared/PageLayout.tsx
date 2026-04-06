@@ -27,7 +27,7 @@ interface PageLayoutProps {
   disableAnimation?: boolean;
 }
 
-export function PageLayout({ title, subtitle, action, children, maxWidth = '960px', padding = '32px', disableAnimation = false }: PageLayoutProps) {
+export function PageLayout({ title, subtitle, action, children, maxWidth = '960px', padding = '24px', disableAnimation = false }: PageLayoutProps) {
   const { t } = useTheme();
   const Wrapper = disableAnimation ? 'div' : motion.div;
   const wrapperProps = disableAnimation ? {} : { variants: containerVariants, initial: 'hidden', animate: 'show' };
@@ -65,7 +65,7 @@ interface TwoColumnLayoutProps {
   disableAnimation?: boolean;
 }
 
-export function TwoColumnLayout({ title, subtitle, action, left, right, rightWidth = '320px', header, maxWidth = '960px', padding = '32px', gap = '24px', disableAnimation = false }: TwoColumnLayoutProps) {
+export function TwoColumnLayout({ title, subtitle, action, left, right, rightWidth = '320px', header, maxWidth = '960px', padding = '24px', gap = '24px', disableAnimation = false }: TwoColumnLayoutProps) {
   const { t } = useTheme();
   const Wrapper = disableAnimation ? 'div' : motion.div;
   const wrapperProps = disableAnimation ? {} : { variants: containerVariants, initial: 'hidden', animate: 'show' };
