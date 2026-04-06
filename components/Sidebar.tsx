@@ -55,7 +55,7 @@ export default function Sidebar() {
       fontFamily: 'inherit',
     }}>
       {/* Logo + toggle — horizontal */}
-      <div style={{ height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', flexShrink: 0 }}>
+      <div style={{ height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px 0 24px', flexShrink: 0 }}>
         <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
           <div style={{ width: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6b6b6f" strokeWidth="1.3" strokeLinecap="round">
