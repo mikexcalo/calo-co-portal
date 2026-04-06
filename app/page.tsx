@@ -292,7 +292,7 @@ export default function Home() {
                 const isExp = expandedClient === client.id;
                 return (
                   <div key={client.id}
-                    style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, padding: '12px 16px', cursor: 'pointer', transition: 'transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease, border-color 150ms' }}
+                    style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: 14, cursor: 'pointer', transition: 'transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease, border-color 150ms' }}
                     onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                     onClick={() => setExpandedClient(isExp ? null : client.id)}>
@@ -311,16 +311,16 @@ export default function Home() {
                     </div>
                     <div style={{ overflow: 'hidden', maxHeight: isExp ? 60 : 0, opacity: isExp ? 1 : 0, transition: 'max-height 250ms ease, opacity 200ms', marginTop: isExp ? 10 : 0 }}
                       onClick={(e) => e.stopPropagation()}>
-                      <div style={{ display: 'flex', gap: 6, paddingLeft: 42 }}>
+                      <div style={{ display: 'flex', gap: 8, paddingLeft: 42, paddingTop: 2 }}>
                         {[
                           { icon: ic.bk, href: `/clients/${client.id}/brand-kit`, label: 'Brand Kit' },
                           { icon: ic.ds, href: `/clients/${client.id}/brand-builder`, label: 'Design Studio' },
                           { icon: ic.inv, href: `/clients/${client.id}/invoices`, label: 'Invoices' },
                         ].map((btn, i) => (
                           <button key={i} title={btn.label} onClick={() => router.push(btn.href)}
-                            style={{ height: 26, borderRadius: 6, background: t.bg.surfaceHover, border: 'none', display: 'flex', alignItems: 'center', gap: 4, padding: '0 8px', cursor: 'pointer', color: t.text.secondary, transition: 'background 150ms, color 150ms', fontSize: 11, fontWeight: 500, fontFamily: 'inherit' }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = t.accent.primary; e.currentTarget.style.color = '#fff'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = t.bg.surfaceHover; e.currentTarget.style.color = t.text.secondary; }}>{btn.icon}{btn.label}</button>
+                            style={{ flex: 1, height: 32, borderRadius: 6, background: t.bg.surfaceHover, border: `0.5px solid ${t.border.default}`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '0 10px', cursor: 'pointer', color: t.text.secondary, transition: 'background 150ms, color 150ms, border-color 150ms', fontSize: 11, fontWeight: 500, fontFamily: 'inherit' }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = t.accent.primary; e.currentTarget.style.color = '#fff'; (e.currentTarget.style as any).borderColor = t.accent.primary; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = t.bg.surfaceHover; e.currentTarget.style.color = t.text.secondary; (e.currentTarget.style as any).borderColor = t.border.default; }}>{btn.icon}{btn.label}</button>
                         ))}
                       </div>
                     </div>
@@ -334,7 +334,7 @@ export default function Home() {
           <div>
             <div style={sectionLbl}>Tasks & Notes</div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '10px 14px', fontSize: 13, color: t.text.tertiary, cursor: 'text', marginBottom: 12 }}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '12px 14px', fontSize: 13, color: t.text.tertiary, cursor: 'text', marginBottom: 12 }}
               onClick={() => { /* TODO: open note input */ }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M8 2v12M2 8h12"/></svg>
               Add a note...
