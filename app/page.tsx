@@ -308,14 +308,36 @@ export default function Home() {
                 const primary = ct.find((c) => c.isPrimary) || ct[0];
                 const brandColor = (typeof client.brandKit?.colors?.[0] === 'string' ? client.brandKit.colors[0] : null) || t.text.tertiary;
                 const isExp = expandedClient === client.id;
+
+                // Status indicators
+                const clientInvs = DB.invoices.filter((i) => i.clientId === client.id);
+                const clientOutstanding = clientInvs.filter((i) => i.status === 'unpaid' || i.status === 'overdue').reduce((s, i) => s + invTotal(i), 0);
+                const clientTasks = allTasks.filter((tk) => tk.client_id === client.id);
+                const now = Date.now();
+                const sevenDays = 7 * 86400000;
+                const recentActivity = clientTasks.some((tk) => now - new Date(tk.created_at).getTime() < sevenDays)
+                  || clientInvs.some((i) => i.date && now - new Date(i.date).getTime() < sevenDays);
+                const statusColor = clientOutstanding > 0 ? '#f59e0b' : recentActivity ? '#10b981' : '#9ca3af';
+
+                // Last activity
+                const allDates = [
+                  ...clientTasks.map((tk) => new Date(tk.created_at).getTime()),
+                  ...clientInvs.map((i) => i.date ? new Date(i.date).getTime() : 0),
+                ].filter(Boolean);
+                const lastActivityMs = allDates.length > 0 ? Math.max(...allDates) : 0;
+                const daysAgo = lastActivityMs > 0 ? Math.floor((now - lastActivityMs) / 86400000) : -1;
+                const lastActivityText = daysAgo === 0 ? 'Today' : daysAgo === 1 ? '1 day ago' : daysAgo > 0 ? `${daysAgo} days ago` : 'No recent activity';
+
                 return (
                   <div key={client.id}
-                    style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '14px 16px', cursor: 'pointer', transition: 'transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease, border-color 150ms' }}
+                    style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '14px 16px', cursor: 'pointer', transition: 'transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease, border-color 150ms', position: 'relative' }}
                     onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                     onClick={() => setExpandedClient(isExp ? null : client.id)}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, overflow: 'hidden', background: client.logo ? 'transparent' : brandColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700 }}>
+                    {/* Status dot */}
+                    <div style={{ position: 'absolute', top: 10, right: 10, width: 8, height: 8, borderRadius: '50%', background: statusColor }} />
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, overflow: 'hidden', background: client.logo ? 'transparent' : brandColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700, marginTop: 1 }}>
                         {client.logo ? <img src={client.logo} alt="" style={{ width: 36, height: 36, objectFit: 'cover' }} /> : (client.company || client.name).charAt(0)}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -326,9 +348,11 @@ export default function Home() {
                           {client.company || client.name}
                         </div>
                         <div style={{ fontSize: 11, color: t.text.tertiary }}>{primary ? `${primary.name}${primary.title ? ' \u00b7 ' + primary.title : ''}` : 'No contact'}</div>
+                        <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 2 }}>Last activity: {lastActivityText}</div>
+                        {clientOutstanding > 0 && <div style={{ fontSize: 11, color: '#f59e0b', marginTop: 1 }}>{currency(clientOutstanding)} outstanding</div>}
                       </div>
                       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#a1a1a5" strokeWidth="1.5"
-                        style={{ flexShrink: 0, transform: `rotate(${isExp ? 180 : 0}deg)`, transition: 'transform 200ms' }}>
+                        style={{ flexShrink: 0, marginTop: 4, transform: `rotate(${isExp ? 180 : 0}deg)`, transition: 'transform 200ms' }}>
                         <path d="M4 6l4 4 4-4"/>
                       </svg>
                     </div>
