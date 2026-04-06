@@ -91,22 +91,21 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
     });
   }
 
-  // Headline — auto-scale font to fit one line
+  // Headline — single line, auto-scale font to fit
   if (headline && showHeadline !== false) {
-    const maxFontBase = isLandscape ? W * 0.055 : W * 0.065;
-    // Approximate: each char at weight 800 is ~0.6em wide. Scale down for long headlines.
-    const approxCharsAtMax = (W * 0.85) / (maxFontBase * 0.55);
-    const headlineFontSize = headline.length > approxCharsAtMax
-      ? Math.round(maxFontBase * (approxCharsAtMax / headline.length))
-      : Math.round(maxFontBase);
-    const clampedSize = Math.max(14, Math.min(headlineFontSize, Math.round(maxFontBase)));
+    const maxWidth = W * 0.85;
+    const baseFontSize = isLandscape ? W * 0.055 : W * 0.065;
+    const estimatedWidth = headline.length * baseFontSize * 0.55;
+    const finalFontSize = Math.max(14, estimatedWidth > maxWidth
+      ? Math.round(baseFontSize * (maxWidth / estimatedWidth))
+      : Math.round(baseFontSize));
 
     objects.push({
-      type: 'textbox', text: headline,
+      type: 'text', text: headline,
       left: W / 2,
       top: Math.round(isLandscape ? topH * 0.36 : topH * 0.32),
-      width: W * 0.85, originX: 'center',
-      fontSize: clampedSize,
+      originX: 'center',
+      fontSize: finalFontSize,
       fontWeight: 800, fill: '#ffffff', textAlign: 'center',
       name: 'headline-text',
     });
@@ -115,10 +114,10 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
   // Tagline (italic, smaller, below headline)
   if (tagline && showTagline) {
     objects.push({
-      type: 'textbox', text: tagline,
+      type: 'text', text: tagline,
       left: W / 2,
       top: Math.round(isLandscape ? topH * 0.46 : topH * 0.44),
-      width: W * 0.8, originX: 'center',
+      originX: 'center',
       fontSize: Math.round(isLandscape ? W * 0.032 : W * 0.038),
       fontWeight: 400, fontStyle: 'italic', fill: '#ffffff', textAlign: 'center',
       name: 'tagline-text',

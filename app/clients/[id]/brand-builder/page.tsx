@@ -210,12 +210,22 @@ export default function BrandBuilderPage() {
       }
 
       // Migrate old defaults
+      let migrated = false;
       if (newFields.headline === 'Free Consultations!' || newFields.headline === 'Free Estimates!') {
         newFields.headline = 'Free Consultations \u2022 Fully Insured \u2022 Budget-Friendly';
+        migrated = true;
       }
       if (newFields.tagline === 'test test test') {
         newFields.tagline = '';
         newFields.showTagline = false;
+        migrated = true;
+      }
+      // Persist migrated values back to Supabase
+      if (migrated) {
+        try {
+          const supabase = (await import('@/lib/supabase')).default;
+          await supabase.from('clients').update({ brand_builder_fields: newFields }).eq('id', clientId);
+        } catch (e) { console.warn('[BrandBuilder] Migration save error:', e); }
       }
 
       setFields(newFields);

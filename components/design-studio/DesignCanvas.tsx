@@ -295,6 +295,19 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           lockScalingY: obj.lockScaling || false,
           name: obj.name || '',
         });
+      } else if (obj.type === 'text') {
+        fabricObj = new fabric.FabricText(obj.text, {
+          left: obj.left, top: obj.top,
+          originX: obj.originX || 'left',
+          originY: 'top',
+          fontSize: obj.fontSize || 24,
+          fontWeight: obj.fontWeight || 400,
+          fontStyle: obj.fontStyle || 'normal',
+          fontFamily: obj.fontFamily || 'Inter, Helvetica, Arial, sans-serif',
+          fill: obj.fill || '#ffffff',
+          textAlign: obj.textAlign || 'center',
+          name: obj.name || '',
+        });
       } else if (obj.type === 'textbox') {
         fabricObj = new fabric.Textbox(obj.text, {
           left: obj.left, top: obj.top,
