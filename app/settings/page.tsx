@@ -189,30 +189,43 @@ function SettingsContent() {
 
         <AnimatePresence mode="wait">
           <motion.div key={activeTab} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-            <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
+            <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 32 }}>
 
               {/* ═══ PROFILE TAB ═══ */}
               {activeTab === 'profile' && (
-                <div style={{ display: 'flex', gap: 28 }}>
-                  {/* Headshot crop tool */}
-                  <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                <div style={{ maxWidth: 560, margin: '0 auto' }}>
+                  {/* Centered headshot */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
                     {!showEditor ? (
                       <>
                         <div
                           onClick={() => cropFileRef.current?.click()}
-                          style={{ width: 80, height: 80, borderRadius: '50%', overflow: 'hidden',
-                            border: `2px dashed ${t.border.default}`, cursor: 'pointer',
+                          style={{ width: 120, height: 120, borderRadius: '50%', overflow: 'hidden',
+                            border: avatar ? 'none' : `2px dashed ${t.border.default}`, cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            background: avatar ? 'transparent' : t.bg.surfaceHover }}
+                            background: avatar ? 'transparent' : t.bg.surfaceHover, marginBottom: 10 }}
                         >
                           {avatar ? <img src={avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            : <span style={{ fontSize: 20, color: t.text.tertiary }}>+</span>}
+                            : <span style={{ fontSize: 24, color: t.text.tertiary }}>+</span>}
                         </div>
                         {avatar && (
-                          <>
-                            <span onClick={() => { setShowEditor(true); }} style={{ fontSize: 11, color: t.accent.text, cursor: 'pointer' }}>Edit</span>
-                            <span onClick={removeCropAvatar} style={{ fontSize: 11, color: t.text.tertiary, cursor: 'pointer' }}>Remove</span>
-                          </>
+                          <div style={{ display: 'flex', gap: 12, fontSize: 13 }}>
+                            <span onClick={() => {
+                              // Load existing avatar into crop tool
+                              const im = new window.Image();
+                              im.crossOrigin = 'anonymous';
+                              im.onload = () => {
+                                setRawImg(im);
+                                setCropZoom(1);
+                                const sc = CROP_S / Math.min(im.width, im.height);
+                                setCropOx((CROP_S - im.width * sc) / 2);
+                                setCropOy((CROP_S - im.height * sc) / 2);
+                                setShowEditor(true);
+                              };
+                              im.src = avatar;
+                            }} style={{ color: t.accent.text, cursor: 'pointer' }}>Edit</span>
+                            <span onClick={removeCropAvatar} style={{ color: t.text.tertiary, cursor: 'pointer' }}>Remove</span>
+                          </div>
                         )}
                       </>
                     ) : (
@@ -252,11 +265,11 @@ function SettingsContent() {
                     <input ref={cropFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleCropFile} />
                   </div>
 
-                  {/* Profile fields */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, justifyContent: 'center' }}>
-                    <div><label style={lbl}>Name</label><input value={profile.name} onChange={(e) => updateProfile('name', e.target.value)} placeholder="Mike Calo" style={input} onFocus={fi} onBlur={fo} /></div>
-                    <div><label style={lbl}>Title</label><input value={profile.title} onChange={(e) => updateProfile('title', e.target.value)} placeholder="Founder" style={input} onFocus={fi} onBlur={fo} /></div>
-                    <div><label style={lbl}>Email</label><input type="email" value={profile.email} onChange={(e) => updateProfile('email', e.target.value)} placeholder="mike@calo.co" style={input} onFocus={fi} onBlur={fo} /></div>
+                  {/* Profile fields — full width, stacked */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                    <div><label style={{ fontSize: 12, color: t.text.tertiary, marginBottom: 6, display: 'block' }}>Name</label><input value={profile.name} onChange={(e) => updateProfile('name', e.target.value)} placeholder="Mike Calo" style={{ ...input, padding: '10px 14px', fontSize: 14 }} onFocus={fi} onBlur={fo} /></div>
+                    <div><label style={{ fontSize: 12, color: t.text.tertiary, marginBottom: 6, display: 'block' }}>Title</label><input value={profile.title} onChange={(e) => updateProfile('title', e.target.value)} placeholder="Founder" style={{ ...input, padding: '10px 14px', fontSize: 14 }} onFocus={fi} onBlur={fo} /></div>
+                    <div><label style={{ fontSize: 12, color: t.text.tertiary, marginBottom: 6, display: 'block' }}>Email</label><input type="email" value={profile.email} onChange={(e) => updateProfile('email', e.target.value)} placeholder="mike@calo.co" style={{ ...input, padding: '10px 14px', fontSize: 14 }} onFocus={fi} onBlur={fo} /></div>
                   </div>
                 </div>
               )}
