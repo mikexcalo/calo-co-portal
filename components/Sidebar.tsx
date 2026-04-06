@@ -74,7 +74,7 @@ export default function Sidebar() {
               <line x1="14.1" y1="9.9" x2="18.1" y2="5.9" />
             </svg>
           </div>
-          <span style={{ fontSize: 16, fontWeight: 400, color: '#6b6b6f', letterSpacing: '1.5px' }}>CALO&CO</span>
+          <span style={{ fontSize: 16, fontWeight: 400, color: '#6b6b6f', letterSpacing: '0.5px' }}>CALO&CO</span>
         </div>
         <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
           width: 28, height: 28, border: 'none', borderRadius: 6, background: 'transparent',

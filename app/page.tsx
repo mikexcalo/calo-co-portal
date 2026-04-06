@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   initSupabase, initAgency, loadClients, loadInvoices, loadContacts,
@@ -50,6 +50,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchResult, setSearchResult] = useState<string | null>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -79,6 +80,16 @@ export default function Home() {
   }, []);
 
   const refreshFeed = useCallback(() => { loadTasksNotes().then(setAllTasks); }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        if (searchResult) { setSearchResult(null); setSearchQuery(''); }
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [searchResult]);
 
   const handlePlatformSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -110,7 +121,7 @@ export default function Home() {
   const animOutstanding = useCountUp(stats.outstanding);
   const animCollected = useCountUp(paidMTD);
 
-  if (isLoading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, minHeight: 0 }}><HelmSpinner size={32} /></div>;
+  if (isLoading) return <div style={{ padding: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300 }}><HelmSpinner size={32} /></div>;
 
   // Data
   const openTasks = allTasks.filter((tk) => tk.type === 'task' && tk.status === 'open')
@@ -228,20 +239,19 @@ export default function Home() {
             <h1 style={{ fontSize: 24, fontWeight: 400, color: t.text.primary, margin: '0 0 2px', letterSpacing: '-0.01em' }}>{greeting}</h1>
             <p style={{ fontSize: 12, color: t.text.tertiary, margin: 0 }}>{dateline}</p>
           </div>
-          <div style={{ position: 'relative', width: 260 }}>
+          <div ref={searchRef} style={{ position: 'relative', width: 260 }}>
             <input
               style={{ width: '100%', background: t.bg.surface, border: `0.5px solid ${searchLoading || searchResult ? '#2563eb' : t.border.default}`, borderRadius: 8, padding: '9px 14px 9px 36px', fontSize: 13, color: t.text.primary, outline: 'none', fontFamily: 'inherit', transition: 'border-color 150ms' }}
               placeholder="Search CALO&CO..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handlePlatformSearch()}
+              onKeyDown={(e) => { if (e.key === 'Enter') handlePlatformSearch(); if (e.key === 'Escape') { setSearchResult(null); setSearchQuery(''); } }}
               onFocus={(e) => e.currentTarget.style.borderColor = '#2563eb'}
               onBlur={(e) => { if (!searchResult && !searchLoading) e.currentTarget.style.borderColor = t.border.default; }}
             />
             <svg style={{ position: 'absolute', left: 12, top: 11, pointerEvents: 'none' }} width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#a1a1a5" strokeWidth="1.5">
               <circle cx="6.5" cy="6.5" r="5"/><line x1="10" y1="10" x2="14.5" y2="14.5"/>
             </svg>
-            {/* Beacon loading + result */}
             {(searchLoading || searchResult) && (
               <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 8, background: t.bg.surface, borderRadius: 10, padding: 16, border: `0.5px solid ${t.border.default}`, boxShadow: t.shadow.elevated, zIndex: 10 }}>
                 {searchLoading ? (
@@ -254,9 +264,13 @@ export default function Home() {
                     <span style={{ fontSize: 12, color: t.text.tertiary }}>Searching...</span>
                   </div>
                 ) : (
-                  <div style={{ animation: 'fade-in-up 300ms ease-out' }}>
-                    <div style={{ fontSize: 13, color: t.text.primary, lineHeight: 1.5 }}>{searchResult}</div>
-                    <span onClick={() => { setSearchResult(null); setSearchQuery(''); }} style={{ fontSize: 11, color: t.text.tertiary, cursor: 'pointer', marginTop: 8, display: 'inline-block' }}>Dismiss</span>
+                  <div style={{ animation: 'fade-in-up 300ms ease-out', position: 'relative' }}>
+                    <button onClick={() => { setSearchResult(null); setSearchQuery(''); }}
+                      style={{ position: 'absolute', top: -4, right: -4, width: 20, height: 20, borderRadius: '50%', background: t.bg.surfaceHover, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.text.tertiary, fontSize: 14, lineHeight: 1, padding: 0, transition: 'color 150ms' }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = t.text.primary}
+                      onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}
+                      title="Dismiss">×</button>
+                    <div style={{ fontSize: 13, color: t.text.primary, lineHeight: 1.5, paddingRight: 20 }}>{searchResult}</div>
                   </div>
                 )}
               </div>
