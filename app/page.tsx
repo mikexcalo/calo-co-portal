@@ -12,6 +12,7 @@ import CommandBar from '@/components/dashboard/CommandBar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme';
 import HelmSpinner from '@/components/shared/HelmSpinner';
+import Toast from '@/components/shared/Toast';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } };
@@ -78,7 +79,7 @@ export default function Home() {
     if (itemType === 'invoice') await deleteInvoice(id);
     else await updateTaskStatus(id, 'complete');
     setAllTasks((prev) => prev.filter((tk) => tk.id !== id));
-    setToast({ id, text, itemType }); setTimeout(() => setToast(null), 5000);
+    setToast({ id, text, itemType });
   };
 
   const handleUndo = async () => {
@@ -309,13 +310,12 @@ export default function Home() {
       {/* Toast */}
       <AnimatePresence>
         {toast && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.2 }}
-            style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 100, background: t.bg.elevated, border: `1px solid ${t.border.default}`, borderRadius: t.radius.md, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10, boxShadow: t.shadow.elevated, maxWidth: 400 }}>
-            <span style={{ fontSize: 13, color: t.text.primary, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {toast.text.length > 30 ? toast.text.slice(0, 30) + '...' : toast.text} removed
-            </span>
-            {toast.itemType !== 'invoice' && <button onClick={handleUndo} style={{ background: 'none', border: 'none', color: t.accent.text, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>Undo</button>}
-          </motion.div>
+          <Toast
+            message={`${toast.text.length > 30 ? toast.text.slice(0, 30) + '...' : toast.text} removed`}
+            type="success"
+            action={toast.itemType !== 'invoice' ? { label: 'Undo', onClick: handleUndo } : undefined}
+            onDismiss={() => setToast(null)}
+          />
         )}
       </AnimatePresence>
     </div>
