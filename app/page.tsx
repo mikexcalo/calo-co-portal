@@ -223,7 +223,7 @@ export default function Home() {
       <motion.div variants={stagger} initial="hidden" animate="show">
 
         {/* Greeting + Platform Search */}
-        <motion.div variants={fadeUp} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
+        <motion.div variants={fadeUp} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 400, color: t.text.primary, margin: '0 0 2px', letterSpacing: '-0.01em' }}>{greeting}</h1>
             <p style={{ fontSize: 12, color: t.text.tertiary, margin: 0 }}>{dateline}</p>
@@ -265,7 +265,7 @@ export default function Home() {
         </motion.div>
 
         {/* 3-column: Clients | Tasks & Notes | Financials */}
-        <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 200px', gap: 20, marginTop: 20 }}>
+        <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 200px', gap: 24 }}>
 
           {/* Col 1 — Clients (accordion) */}
           <div>
@@ -278,7 +278,9 @@ export default function Home() {
                 const isExp = expandedClient === client.id;
                 return (
                   <div key={client.id}
-                    style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, padding: 14, cursor: 'pointer', transition: 'border-color 150ms' }}
+                    style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, padding: '12px 16px', cursor: 'pointer', transition: 'transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease, border-color 150ms' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                     onClick={() => setExpandedClient(isExp ? null : client.id)}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{ width: 32, height: 32, borderRadius: 7, flexShrink: 0, overflow: 'hidden', background: client.logo ? 'transparent' : brandColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 10, fontWeight: 700 }}>
@@ -316,11 +318,13 @@ export default function Home() {
 
           {/* Col 2 — Tasks & Notes */}
           <div>
-            <div style={{ marginBottom: 12, border: `1.5px solid ${t.accent.primary}`, borderRadius: 14, boxShadow: `0 0 12px ${t.accent.subtle}`, overflow: 'hidden' }}>
-              <CommandBar onItemSaved={refreshFeed} />
-            </div>
+            <div style={sectionLbl}>Tasks & Notes</div>
 
-            <div style={sectionLbl}>On deck</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '10px 14px', fontSize: 13, color: t.text.tertiary, cursor: 'text', marginBottom: 12 }}
+              onClick={() => { /* TODO: open note input */ }}>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M8 2v12M2 8h12"/></svg>
+              Add a note...
+            </div>
 
             {(taskItems.length > 0 || invItems.length > 0) && (
               <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg, overflow: 'hidden', marginBottom: 12 }}>

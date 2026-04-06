@@ -59,9 +59,9 @@ export default function Sidebar() {
         height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 16px', flexShrink: 0,
       }}>
-        <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer' }}>
+        <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', paddingLeft: 0 }}>
           <div style={{ width: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b6b6f" strokeWidth="1.3" strokeLinecap="round">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b6b6f" strokeWidth="1.3" strokeLinecap="round">
               <circle cx="12" cy="12" r="8.5" />
               <circle cx="12" cy="12" r="3" />
               <line x1="12" y1="3.5" x2="12" y2="9" />
@@ -74,7 +74,7 @@ export default function Sidebar() {
               <line x1="14.1" y1="9.9" x2="18.1" y2="5.9" />
             </svg>
           </div>
-          <span style={{ fontSize: 17, fontWeight: 500, color: '#6b6b6f', letterSpacing: '-0.2px' }}>CALO&CO</span>
+          <span style={{ fontSize: 16, fontWeight: 400, color: '#6b6b6f', letterSpacing: '1.5px' }}>CALO&CO</span>
         </div>
         <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
           width: 28, height: 28, border: 'none', borderRadius: 6, background: 'transparent',
