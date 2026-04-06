@@ -31,15 +31,15 @@ export default function Sidebar() {
     return (
       <button key={label} onClick={() => router.push(href)} style={{
         display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-        padding: '8px 12px', margin: '1px 0', borderRadius: 6, border: 'none',
-        fontSize: 13, color: active ? t.accent.primary : t.text.secondary,
+        padding: '8px 16px', margin: '1px 0', borderRadius: 6, border: 'none',
+        fontSize: 14, color: active ? '#2563eb' : '#6b6b6f',
         fontWeight: active ? 500 : 400,
         background: active ? (theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)') : 'transparent',
         cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
         transition: 'all 150ms',
       }}
       onMouseEnter={(e) => { if (!active) { e.currentTarget.style.background = theme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'; e.currentTarget.style.color = t.text.primary; }}}
-      onMouseLeave={(e) => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = t.text.secondary; }}}
+      onMouseLeave={(e) => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6b6b6f'; }}}
       >
         <span style={{ width: 16, height: 16, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</span>
         {label}
@@ -72,7 +72,7 @@ export default function Sidebar() {
             <line x1="5.9" y1="18.1" x2="9.9" y2="14.1" />
             <line x1="14.1" y1="9.9" x2="18.1" y2="5.9" />
           </svg>
-          <span style={{ fontSize: 14, fontWeight: 500, color: t.text.primary }}>CALO&CO</span>
+          <span style={{ fontSize: 16, fontWeight: 400, color: '#8B7355' }}>CALO&CO</span>
         </div>
         <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
           width: 28, height: 28, border: 'none', borderRadius: 6, background: 'transparent',

@@ -35,7 +35,7 @@ export default function ClientsPage() {
     init();
   }, []);
 
-  if (isLoading) return <div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelmSpinner /></div>;
+  if (isLoading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 96px)' }}><HelmSpinner size={32} /></div>;
 
   const sorted = [...clients].sort((a, b) => (a.company || a.name).localeCompare(b.company || b.name));
 

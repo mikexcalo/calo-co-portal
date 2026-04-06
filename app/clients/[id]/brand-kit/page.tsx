@@ -36,7 +36,7 @@ function BrandKitPageContent() {
     load();
   }, [clientId, router]);
 
-  if (loading) return <div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelmSpinner /></div>;
+  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 96px)' }}><HelmSpinner size={32} /></div>;
   if (!client) return <div style={{ padding: 32, fontSize: 13, color: t.status.danger }}>Client not found</div>;
 
   const handleExportPDF = async () => {

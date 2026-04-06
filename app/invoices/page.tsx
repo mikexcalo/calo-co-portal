@@ -51,7 +51,7 @@ export default function AllInvoicesPage() {
     finally { setLoadingId(null); }
   };
 
-  if (isLoading) return <div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelmSpinner /></div>;
+  if (isLoading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 96px)' }}><HelmSpinner size={32} /></div>;
 
   const sorted = [...invoices].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const cols = '40px 80px 1fr 90px 90px 80px 70px 80px 36px';

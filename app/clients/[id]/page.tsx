@@ -93,8 +93,8 @@ export default function ClientHubPage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <HelmSpinner />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 96px)' }}>
+        <HelmSpinner size={32} />
       </div>
     );
   }

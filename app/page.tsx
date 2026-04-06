@@ -95,7 +95,7 @@ export default function Home() {
   const animOutstanding = useCountUp(stats.outstanding);
   const animCollected = useCountUp(paidMTD);
 
-  if (isLoading) return <div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelmSpinner /></div>;
+  if (isLoading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 96px)' }}><HelmSpinner size={32} /></div>;
 
   // Data
   const openTasks = allTasks.filter((tk) => tk.type === 'task' && tk.status === 'open')
@@ -124,7 +124,7 @@ export default function Home() {
     return { id: n.id, type: 'note', text: n.content, client: cl?.company || cl?.name || '', clientId: cl?.id, age: ageDays(n.created_at), created: n.created_at };
   });
 
-  const sectionLbl: React.CSSProperties = { fontSize: 10, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' };
+  const sectionLbl: React.CSSProperties = { fontSize: 11, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' };
 
   const renderItem = (item: ActionItem) => {
     const isTask = item.type === 'task';

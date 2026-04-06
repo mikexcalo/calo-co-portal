@@ -83,7 +83,7 @@ export default function TopBar() {
       padding: '0 20px', fontFamily: 'inherit',
     }}>
       {/* Breadcrumb */}
-      <div style={{ fontSize: 13, color: t.text.tertiary, display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div style={{ fontSize: 14, color: t.text.tertiary, display: 'flex', alignItems: 'center', gap: 6 }}>
         {segments.map((seg, i) => (
           <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             {i > 0 && <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.3" style={{ opacity: 0.4, flexShrink: 0, color: t.text.tertiary }}><polyline points="3 1.5 7 5 3 8.5" /></svg>}
@@ -106,16 +106,14 @@ export default function TopBar() {
       {/* Right: client toggle + avatar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {isClientRoute && (
-          <div style={{ display: 'inline-flex', background: 'rgba(255,255,255,0.04)', borderRadius: 6, padding: 2 }}>
+          <div style={{ display: 'inline-flex', borderRadius: 6, padding: 2, gap: 2 }}>
             {(['agency', 'client'] as const).map((m) => (
               <button key={m} onClick={() => handleToggle(m)} style={{
-                padding: '4px 10px', fontSize: 11, fontWeight: viewMode === m ? 500 : 400,
-                borderRadius: 4,
-                border: viewMode === m ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent',
-                background: viewMode === m ? 'rgba(255,255,255,0.06)' : 'transparent',
-                color: viewMode === m ? '#f5f5f5' : '#5a5a5d',
+                padding: '4px 10px', fontSize: 12, fontWeight: viewMode === m ? 500 : 400,
+                borderRadius: 4, border: 'none',
+                background: viewMode === m ? t.text.primary : 'transparent',
+                color: viewMode === m ? t.bg.primary : '#a1a1a5',
                 cursor: 'pointer', fontFamily: 'inherit',
-                boxShadow: 'none',
               }}>
                 {m === 'agency' ? 'Agency' : 'Client'}
               </button>

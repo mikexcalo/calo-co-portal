@@ -1,7 +1,7 @@
 'use client';
 export default function HelmSpinner({ size = 24 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#8B7355" strokeWidth="1.3" strokeLinecap="round"
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#B8A080" strokeWidth="1.3" strokeLinecap="round"
       style={{ animation: 'helm-spin 2s linear infinite' }}>
       <circle cx="12" cy="12" r="8.5"/>
       <circle cx="12" cy="12" r="3"/>
