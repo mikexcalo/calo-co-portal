@@ -32,16 +32,16 @@ export default function Sidebar() {
       <button key={label} onClick={() => router.push(href)} style={{
         display: 'flex', alignItems: 'center', gap: 10, width: '100%',
         padding: '8px 16px', margin: '1px 0', borderRadius: 6, border: 'none',
-        fontSize: 14, color: active ? '#2563eb' : '#6b6b6f',
+        fontSize: 14, color: active ? '#3d3d40' : '#8a8a8e',
         fontWeight: active ? 500 : 400,
         background: active ? (theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)') : 'transparent',
         cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
         transition: 'all 150ms',
       }}
       onMouseEnter={(e) => { if (!active) { e.currentTarget.style.background = theme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'; e.currentTarget.style.color = t.text.primary; }}}
-      onMouseLeave={(e) => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6b6b6f'; }}}
+      onMouseLeave={(e) => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#8a8a8e'; }}}
       >
-        <span style={{ width: 16, height: 16, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</span>
+        <span style={{ width: 20, height: 16, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: active ? '#2563eb' : 'inherit' }}>{icon}</span>
         {label}
       </button>
     );
@@ -59,20 +59,22 @@ export default function Sidebar() {
         height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 16px', flexShrink: 0,
       }}>
-        <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8B7355" strokeWidth="1.3" strokeLinecap="round">
-            <circle cx="12" cy="12" r="8.5" />
-            <circle cx="12" cy="12" r="3" />
-            <line x1="12" y1="3.5" x2="12" y2="9" />
-            <line x1="12" y1="15" x2="12" y2="20.5" />
-            <line x1="3.5" y1="12" x2="9" y2="12" />
-            <line x1="15" y1="12" x2="20.5" y2="12" />
-            <line x1="5.9" y1="5.9" x2="9.9" y2="9.9" />
-            <line x1="14.1" y1="14.1" x2="18.1" y2="18.1" />
-            <line x1="5.9" y1="18.1" x2="9.9" y2="14.1" />
-            <line x1="14.1" y1="9.9" x2="18.1" y2="5.9" />
-          </svg>
-          <span style={{ fontSize: 16, fontWeight: 400, color: '#8B7355' }}>CALO&CO</span>
+        <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer' }}>
+          <div style={{ width: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b6b6f" strokeWidth="1.3" strokeLinecap="round">
+              <circle cx="12" cy="12" r="8.5" />
+              <circle cx="12" cy="12" r="3" />
+              <line x1="12" y1="3.5" x2="12" y2="9" />
+              <line x1="12" y1="15" x2="12" y2="20.5" />
+              <line x1="3.5" y1="12" x2="9" y2="12" />
+              <line x1="15" y1="12" x2="20.5" y2="12" />
+              <line x1="5.9" y1="5.9" x2="9.9" y2="9.9" />
+              <line x1="14.1" y1="14.1" x2="18.1" y2="18.1" />
+              <line x1="5.9" y1="18.1" x2="9.9" y2="14.1" />
+              <line x1="14.1" y1="9.9" x2="18.1" y2="5.9" />
+            </svg>
+          </div>
+          <span style={{ fontSize: 17, fontWeight: 500, color: '#6b6b6f', letterSpacing: '-0.2px' }}>CALO&CO</span>
         </div>
         <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
           width: 28, height: 28, border: 'none', borderRadius: 6, background: 'transparent',
