@@ -50,6 +50,9 @@ export default function Home() {
   const [noteInput, setNoteInput] = useState('');
   const noteInputRef = useRef<HTMLInputElement>(null);
   const [noteSubmitting, setNoteSubmitting] = useState(false);
+  const [taskInput, setTaskInput] = useState('');
+  const taskInputRef = useRef<HTMLInputElement>(null);
+  const [taskSubmitting, setTaskSubmitting] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -94,6 +97,21 @@ export default function Home() {
       setNoteInput('');
     } catch (e) { console.error('Failed to add note:', e); }
     finally { setNoteSubmitting(false); }
+  };
+
+  const handleAddTask = async () => {
+    const text = taskInput.trim();
+    if (!text || taskSubmitting) return;
+    setTaskSubmitting(true);
+    try {
+      const clientId = DB.clients[0]?.id;
+      if (clientId) {
+        await saveTaskNote(clientId, 'task', text);
+        setAllTasks(await loadTasksNotes());
+      }
+      setTaskInput('');
+    } catch (e) { console.error('Failed to add task:', e); }
+    finally { setTaskSubmitting(false); }
   };
 
   const handleTrash = async (id: string, text: string, itemType: 'task' | 'invoice' | 'note') => {
@@ -333,30 +351,39 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Col 2 — Tasks & Notes */}
+          {/* Col 2 — Notes + On Deck */}
           <div>
-            <div style={sectionLbl}>Tasks & Notes</div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '12px 14px', marginBottom: 12, transition: 'border-color 150ms' }}>
+            {/* Notes section */}
+            <div style={sectionLbl}>Notes</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '10px 14px', marginBottom: 8, transition: 'border-color 150ms' }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.4"><path d="M8 2v12M2 8h12"/></svg>
               <input ref={noteInputRef} type="text" placeholder="Add a note..." value={noteInput} onChange={(e) => setNoteInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleAddNote(); }}
                 disabled={noteSubmitting}
                 style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: t.text.primary, fontFamily: 'inherit' }} />
             </div>
+            {noteItems.length > 0 && <div style={{ marginBottom: 16 }}>{noteItems.map(renderItem)}</div>}
+
+            {/* On Deck section */}
+            <div style={sectionLbl}>On Deck</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '10px 14px', marginBottom: 8, transition: 'border-color 150ms' }}>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.4"><rect x="2" y="2" width="12" height="12" rx="3" /></svg>
+              <input ref={taskInputRef} type="text" placeholder="Add a task..." value={taskInput} onChange={(e) => setTaskInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleAddTask(); }}
+                disabled={taskSubmitting}
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: t.text.primary, fontFamily: 'inherit' }} />
+            </div>
 
             {(taskItems.length > 0 || invItems.length > 0) && (
-              <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg, overflow: 'hidden', marginBottom: 12 }}>
+              <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8, overflow: 'hidden' }}>
                 <AnimatePresence>
                   {[...taskItems, ...invItems].map(renderItem)}
                 </AnimatePresence>
               </div>
             )}
 
-            {noteItems.map(renderItem)}
-
             {taskItems.length === 0 && invItems.length === 0 && noteItems.length === 0 && (
-              <div style={{ padding: 24, textAlign: 'center', fontSize: 13, color: t.text.tertiary, background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg }}>All clear</div>
+              <div style={{ padding: 24, textAlign: 'center', fontSize: 13, color: t.text.tertiary, background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8 }}>All clear</div>
             )}
           </div>
 
