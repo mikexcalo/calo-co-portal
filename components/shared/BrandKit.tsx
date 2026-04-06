@@ -10,6 +10,7 @@ import BrandNotes from '@/components/brand-kit/BrandNotes';
 import BrandKitErrorBoundary from '@/components/brand-kit/BrandKitErrorBoundary';
 import { Section } from '@/components/shared/PageLayout';
 import { useTheme } from '@/lib/theme';
+import HelmSpinner from '@/components/shared/HelmSpinner';
 
 const AGENCY_BRAND_ID = 'agency';
 const AGENCY_LS_KEY = 'calo-agency-brand-details';
@@ -100,7 +101,7 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
     load();
   }, [context, entityId]);
 
-  if (loading) return <div style={{ padding: 16, opacity: 0.5, fontSize: 13, color: t.text.tertiary }}>Loading Brand Kit...</div>;
+  if (loading) return <div style={{ padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelmSpinner /></div>;
   if (error || !brandKit) return <div style={{ padding: 16, fontSize: 13, color: t.status.danger }}>{error || 'Brand Kit not found'}</div>;
 
   const handleLogoChange = async () => { setBrandKit({ ...brandKit }); };

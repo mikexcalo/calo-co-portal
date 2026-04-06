@@ -68,6 +68,16 @@ input:focus, textarea:focus, select:focus {
   transform: scale(0.95);
 }
 
+@keyframes helm-spin { to { transform: rotate(360deg); } }
+
+@keyframes shimmer { 0% { background-position: -200px 0; } 100% { background-position: 200px 0; } }
+.skeleton {
+  background: linear-gradient(90deg, var(--color-bg-secondary, #f0f0f2) 25%, #fff 50%, var(--color-bg-secondary, #f0f0f2) 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
 /* ── Screen display management ── */
 .screen {
   display: none;

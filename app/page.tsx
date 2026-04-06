@@ -11,6 +11,7 @@ import { agencyStats, currency, invTotal } from '@/lib/utils';
 import CommandBar from '@/components/dashboard/CommandBar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme';
+import HelmSpinner from '@/components/shared/HelmSpinner';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } };
@@ -86,7 +87,7 @@ export default function Home() {
     await updateTaskStatus(toast.id, 'open'); setToast(null); refreshFeed();
   };
 
-  if (isLoading) return <div style={{ padding: 32, opacity: 0.5, fontSize: 13, color: t.text.tertiary }}>Loading dashboard...</div>;
+  if (isLoading) return <div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelmSpinner /></div>;
 
   // Data
   const openTasks = allTasks.filter((tk) => tk.type === 'task' && tk.status === 'open')

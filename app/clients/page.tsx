@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { DB, loadClients, loadContacts, loadInvoices } from '@/lib/database';
 import { Client, Contact } from '@/lib/types';
 import { useTheme } from '@/lib/theme';
+import HelmSpinner from '@/components/shared/HelmSpinner';
 import { invTotal } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -34,7 +35,7 @@ export default function ClientsPage() {
     init();
   }, []);
 
-  if (isLoading) return <div style={{ padding: 32, opacity: 0.5, fontSize: 13, color: t.text.tertiary }}>Loading clients...</div>;
+  if (isLoading) return <div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelmSpinner /></div>;
 
   const sorted = [...clients].sort((a, b) => (a.company || a.name).localeCompare(b.company || b.name));
 

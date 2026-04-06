@@ -17,11 +17,12 @@ import dynamic from 'next/dynamic';
 import { getYardSignTemplate } from '@/lib/templates/yard-sign';
 import { getBusinessCardTemplate, getBusinessCardBackTemplate } from '@/lib/templates/business-card';
 import { useTheme } from '@/lib/theme';
+import HelmSpinner from '@/components/shared/HelmSpinner';
 import { motion } from 'framer-motion';
 
 const DesignCanvas = dynamic(
   () => import('@/components/design-studio/DesignCanvas'),
-  { ssr: false, loading: () => <div style={{ padding: 40, textAlign: 'center', opacity: 0.5, fontSize: 13 }}>Loading editor...</div> }
+  { ssr: false, loading: () => <div style={{ padding: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelmSpinner /></div> }
 );
 
 export default function BrandBuilderPage() {
@@ -237,10 +238,8 @@ export default function BrandBuilderPage() {
 
   if (isLoading) {
     return (
-      <div className="page">
-        <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8' }}>
-          Loading Brand Builder...
-        </div>
+      <div style={{ padding: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <HelmSpinner />
       </div>
     );
   }

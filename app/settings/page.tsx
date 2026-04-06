@@ -6,6 +6,7 @@ import { useTheme } from '@/lib/theme';
 import { motion, AnimatePresence } from 'framer-motion';
 import SegmentedControl from '@/components/shared/SegmentedControl';
 import { PageLayout } from '@/components/shared/PageLayout';
+import HelmSpinner from '@/components/shared/HelmSpinner';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } };
@@ -20,7 +21,7 @@ function loadJson<T extends Record<string, string>>(key: string, defaults: T): T
 }
 
 export default function SettingsPage() {
-  return <Suspense fallback={<div style={{ padding: 32, opacity: 0.5, fontSize: 13 }}>Loading...</div>}><SettingsContent /></Suspense>;
+  return <Suspense fallback={<div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelmSpinner /></div>}><SettingsContent /></Suspense>;
 }
 
 function SettingsContent() {

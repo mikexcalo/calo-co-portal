@@ -7,6 +7,7 @@ import { clientStats, invTotal, currency, metricColor } from '@/lib/utils';
 import InvoiceTable from '@/components/invoices/InvoiceTable';
 import { Invoice } from '@/lib/types';
 import { useTheme } from '@/lib/theme';
+import HelmSpinner from '@/components/shared/HelmSpinner';
 import { motion } from 'framer-motion';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
@@ -55,7 +56,7 @@ export default function ClientInvoicesPage() {
     setInvoices([...DB.invoices.filter((i) => i.clientId === clientId)]); setStats(clientStats(DB.invoices, clientId));
   };
 
-  if (isLoading) return <div style={{ padding: 32, opacity: 0.5, fontSize: 13, color: t.text.tertiary }}>Loading invoices...</div>;
+  if (isLoading) return <div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelmSpinner /></div>;
   if (!client) return <div style={{ padding: 32, fontSize: 13, color: t.status.danger }}>Client not found</div>;
 
   return (

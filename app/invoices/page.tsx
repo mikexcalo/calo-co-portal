@@ -7,6 +7,7 @@ import { loadClients, loadInvoices, deleteInvoice, DB } from '@/lib/database';
 import { agencyStats, currency, invTotal, metricColor } from '@/lib/utils';
 import { Invoice } from '@/lib/types';
 import { useTheme } from '@/lib/theme';
+import HelmSpinner from '@/components/shared/HelmSpinner';
 import { motion } from 'framer-motion';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
@@ -50,7 +51,7 @@ export default function AllInvoicesPage() {
     finally { setLoadingId(null); }
   };
 
-  if (isLoading) return <div style={{ padding: 32, opacity: 0.5, fontSize: 13, color: t.text.tertiary }}>Loading invoices...</div>;
+  if (isLoading) return <div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelmSpinner /></div>;
 
   const sorted = [...invoices].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const cols = '40px 80px 1fr 90px 90px 80px 70px 80px 36px';

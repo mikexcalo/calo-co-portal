@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { DB, loadTasksNotes, updateTaskStatus, deleteTaskNote } from '@/lib/database';
+import HelmSpinner from '@/components/shared/HelmSpinner';
 import { currency } from '@/lib/utils';
 
 interface TaskNote {
@@ -101,7 +102,7 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9ca3af', marginBottom: 8 }}>Action Items</div>
 
       {!loaded ? (
-        <div style={{ fontSize: 12, color: '#9ca3af', padding: 4 }}>Loading...</div>
+        <div style={{ padding: 4, display: 'flex', alignItems: 'center' }}><HelmSpinner size={16} /></div>
       ) : !hasItems ? (
         <div style={{ fontSize: 12, color: '#9ca3af', padding: '8px 2px', lineHeight: 1.5 }}>No action items right now.</div>
       ) : (

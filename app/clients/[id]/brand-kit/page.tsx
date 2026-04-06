@@ -7,6 +7,7 @@ import { DB, loadClients, loadAllBrandKits, saveBrandKit } from '@/lib/database'
 import { PageLayout } from '@/components/shared/PageLayout';
 import BrandKit from '@/components/shared/BrandKit';
 import { useTheme } from '@/lib/theme';
+import HelmSpinner from '@/components/shared/HelmSpinner';
 
 export default function BrandKitPage() {
   return <Suspense fallback={<div style={{ padding: 32, opacity: 0.5, fontSize: 13 }}>Loading...</div>}><BrandKitPageContent /></Suspense>;
@@ -35,7 +36,7 @@ function BrandKitPageContent() {
     load();
   }, [clientId, router]);
 
-  if (loading) return <div style={{ padding: 32, opacity: 0.5, fontSize: 13, color: t.text.tertiary }}>Loading Brand Kit...</div>;
+  if (loading) return <div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelmSpinner /></div>;
   if (!client) return <div style={{ padding: 32, fontSize: 13, color: t.status.danger }}>Client not found</div>;
 
   const handleExportPDF = async () => {

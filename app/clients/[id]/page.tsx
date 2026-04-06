@@ -8,6 +8,7 @@ import { clientStats, currency, invTotal, formatPhone } from '@/lib/utils';
 import ClientUpdates from '@/components/client-hub/ClientUpdates';
 import { PageLayout, Section, CardGrid, Card, InfoBar, SectionLabel } from '@/components/shared/PageLayout';
 import { useTheme } from '@/lib/theme';
+import HelmSpinner from '@/components/shared/HelmSpinner';
 
 export default function ClientHubPage() {
   const params = useParams();
@@ -92,8 +93,8 @@ export default function ClientHubPage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: 32, opacity: 0.5, fontSize: 13, color: t.text.tertiary }}>
-        Loading client data...
+      <div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <HelmSpinner />
       </div>
     );
   }
