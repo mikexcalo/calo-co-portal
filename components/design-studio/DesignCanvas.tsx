@@ -136,10 +136,13 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
       fc.renderAll();
       setCanvasReady(true);
 
-      // Save initial state for undo (exclude guide objects)
-      const initialState = JSON.stringify(fc.toJSON());
-      historyRef.current = [initialState];
-      historyIndexRef.current = 0;
+      // Save initial state for undo — delay to ensure all async images are rendered
+      setTimeout(() => {
+        const initialState = JSON.stringify(fc.toJSON());
+        historyRef.current = [initialState];
+        historyIndexRef.current = 0;
+        forceRender((n) => n + 1);
+      }, 300);
 
       // Helper: get bounding box edges regardless of originX/originY
       const getBounds = (o: any) => {
@@ -336,14 +339,14 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
             objectCaching: false, // Preserve full resolution
           });
 
-          // Scale to desired display size using scaleToWidth/scaleToHeight
-          if (obj.maxWidth && img.width) {
-            const targetW = obj.maxWidth;
-            const targetH = obj.maxHeight || obj.maxWidth;
-            const s = Math.min(targetW / img.width, targetH / img.height);
+          // Scale to fit within constraints — never scale UP
+          if (obj.maxWidth && img.width && img.height) {
+            const maxW = obj.maxWidth;
+            const maxH = obj.maxHeight || obj.maxWidth;
+            const s = Math.min(maxW / img.width, maxH / img.height, 1);
             img.scaleX = s;
             img.scaleY = s;
-          } else {
+          } else if (obj.scaleX || obj.scaleY) {
             img.set({ scaleX: obj.scaleX || 1, scaleY: obj.scaleY || 1 });
           }
 
@@ -438,9 +441,9 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
     setColorMode(mode);
 
     const colorMap: Record<string, Record<string, string>> = {
-      brand: { 'brand-bg': brandColor, 'white-strip': '#ffffff', 'headline-text': '#ffffff', 'phone-text': '#ffffff', 'company-text': brandColor },
-      dark: { 'brand-bg': darkColor, 'white-strip': '#ffffff', 'headline-text': '#ffffff', 'phone-text': '#ffffff', 'company-text': darkColor },
-      light: { 'brand-bg': '#ffffff', 'white-strip': brandColor, 'headline-text': brandColor, 'phone-text': brandColor, 'company-text': '#ffffff' },
+      brand: { 'brand-bg': brandColor, 'white-strip': '#ffffff', 'headline-text': '#ffffff', 'phone-text': '#ffffff', 'company-text': brandColor, 'tagline-text': '#ffffff', 'info-text': '#666666' },
+      dark: { 'brand-bg': darkColor, 'white-strip': '#ffffff', 'headline-text': '#ffffff', 'phone-text': '#ffffff', 'company-text': darkColor, 'tagline-text': '#ffffff', 'info-text': '#666666' },
+      light: { 'brand-bg': '#ffffff', 'white-strip': brandColor, 'headline-text': brandColor, 'phone-text': brandColor, 'company-text': '#ffffff', 'tagline-text': brandColor, 'info-text': '#999999' },
     };
     const bcMap: Record<string, Record<string, string>> = {
       brand: { 'card-bg': brandColor, 'company-text': '#ffffff', 'contact-name-text': '#ffffff', 'title-text': 'rgba(255,255,255,0.7)', 'contact-info-text': 'rgba(255,255,255,0.85)', 'tagline-text': 'rgba(255,255,255,0.5)', 'accent-line': 'rgba(255,255,255,0.3)' },
