@@ -46,6 +46,7 @@ export default function Home() {
   const [allTasks, setAllTasks] = useState<any[]>([]);
   const [toast, setToast] = useState<{ id: string; text: string; itemType: 'task' | 'invoice' | 'note' } | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedClient, setExpandedClient] = useState<string | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -213,32 +214,10 @@ export default function Home() {
           <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>{dateline}</p>
         </motion.div>
 
-        {/* Financial tiles — 4 columns */}
-        <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
-          {[
-            { label: 'Revenue (MTD)', value: currency(Math.round(animRevenue * 100) / 100), color: paidMTD > 0 ? t.status.success : t.text.secondary, href: '/financials' },
-            { label: 'Outstanding', value: currency(Math.round(animOutstanding * 100) / 100), color: stats.outstanding > 0 ? t.status.warning : t.text.secondary, href: '/financials' },
-            { label: 'Collected', value: currency(Math.round(animCollected * 100) / 100), color: paidMTD > 0 ? t.text.primary : t.text.secondary, href: '/financials' },
-            { label: 'Active Clients', value: String(DB.clients.length), color: t.text.primary, href: '/clients' },
-          ].map((m) => (
-            <motion.div key={m.label} whileHover={{ y: -2 }} transition={spring}
-              onClick={() => router.push(m.href)}
-              style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg, padding: 16, cursor: 'pointer', transition: 'border-color 200ms, background 200ms' }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = t.border.hover; (e.currentTarget as HTMLElement).style.background = t.bg.surfaceHover; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = t.border.default; (e.currentTarget as HTMLElement).style.background = t.bg.surface; }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>{m.label}</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 28, fontWeight: 500, color: m.color }}>{m.value}</span>
-                <span style={{ fontSize: 12, color: t.text.tertiary }}>→</span>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+        {/* 3-column: Clients | Tasks & Notes | Financials */}
+        <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 200px', gap: 20, marginTop: 20 }}>
 
-        {/* Two-column: Clients (left 55%) | On Deck + Command Bar (right 45%) */}
-        <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '55fr 45fr', gap: 16 }}>
-
-          {/* Left — Clients */}
+          {/* Col 1 — Clients (accordion) */}
           <div>
             <div style={sectionLbl}>Clients</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -246,55 +225,53 @@ export default function Home() {
                 const ct = DB.contacts[client.id] || [];
                 const primary = ct.find((c) => c.isPrimary) || ct[0];
                 const brandColor = (typeof client.brandKit?.colors?.[0] === 'string' ? client.brandKit.colors[0] : null) || t.text.tertiary;
+                const isExp = expandedClient === client.id;
                 return (
-                  <motion.div key={client.id} whileHover={{ y: -2 }} transition={spring}
+                  <div key={client.id}
                     style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, padding: 14, cursor: 'pointer', transition: 'border-color 150ms' }}
-                    onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.borderColor = t.border.hover}
-                    onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.borderColor = t.border.default}
-                    onClick={() => { localStorage.setItem(`client_accessed_${client.id}`, String(Date.now())); router.push(`/clients/${client.id}`); }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                    onClick={() => setExpandedClient(isExp ? null : client.id)}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{ width: 32, height: 32, borderRadius: 7, flexShrink: 0, overflow: 'hidden', background: client.logo ? 'transparent' : brandColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 10, fontWeight: 700 }}>
                         {client.logo ? <img src={client.logo} alt="" style={{ width: 32, height: 32, objectFit: 'cover' }} /> : (client.company || client.name).charAt(0)}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>{client.company || client.name}</div>
+                        <div style={{ fontSize: 14, fontWeight: 500, color: t.text.primary }}>{client.company || client.name}</div>
                         <div style={{ fontSize: 11, color: t.text.tertiary }}>{primary ? `${primary.name}${primary.title ? ' \u00b7 ' + primary.title : ''}` : 'No contact'}</div>
                       </div>
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#a1a1a5" strokeWidth="1.5"
+                        style={{ flexShrink: 0, transform: `rotate(${isExp ? 180 : 0}deg)`, transition: 'transform 200ms' }}>
+                        <path d="M4 6l4 4 4-4"/>
+                      </svg>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', paddingLeft: 42 }}>
-                      <div style={{ display: 'flex', gap: 6 }} onClick={(e) => e.stopPropagation()}>
+                    <div style={{ overflow: 'hidden', maxHeight: isExp ? 60 : 0, opacity: isExp ? 1 : 0, transition: 'max-height 250ms ease, opacity 200ms', marginTop: isExp ? 10 : 0 }}
+                      onClick={(e) => e.stopPropagation()}>
+                      <div style={{ display: 'flex', gap: 6, paddingLeft: 42 }}>
                         {[
                           { icon: ic.bk, href: `/clients/${client.id}/brand-kit`, label: 'Brand Kit' },
                           { icon: ic.ds, href: `/clients/${client.id}/brand-builder`, label: 'Design Studio' },
                           { icon: ic.inv, href: `/clients/${client.id}/invoices`, label: 'Invoices' },
                         ].map((btn, i) => (
-                          <button key={i} title={btn.label} onClick={(e) => { e.stopPropagation(); router.push(btn.href); }}
+                          <button key={i} title={btn.label} onClick={() => router.push(btn.href)}
                             style={{ height: 26, borderRadius: 6, background: t.bg.surfaceHover, border: 'none', display: 'flex', alignItems: 'center', gap: 4, padding: '0 8px', cursor: 'pointer', color: t.text.secondary, transition: 'background 150ms, color 150ms', fontSize: 11, fontWeight: 500, fontFamily: 'inherit' }}
                             onMouseEnter={(e) => { e.currentTarget.style.background = t.accent.primary; e.currentTarget.style.color = '#fff'; }}
                             onMouseLeave={(e) => { e.currentTarget.style.background = t.bg.surfaceHover; e.currentTarget.style.color = t.text.secondary; }}>{btn.icon}{btn.label}</button>
                         ))}
                       </div>
-                      <div style={{ flex: 1 }} />
-                      <button onClick={(e) => { e.stopPropagation(); localStorage.setItem(`client_accessed_${client.id}`, String(Date.now())); router.push(`/clients/${client.id}`); }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: t.text.tertiary, transition: 'color 150ms' }}
-                        onMouseEnter={(e) => e.currentTarget.style.color = t.text.primary} onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}>{ic.chevron}</button>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
           </div>
 
-          {/* Right — Command Bar + On Deck */}
+          {/* Col 2 — Tasks & Notes */}
           <div>
-            {/* Command bar */}
             <div style={{ marginBottom: 16, border: `1.5px solid ${t.accent.primary}`, borderRadius: 14, boxShadow: `0 0 12px ${t.accent.subtle}`, overflow: 'hidden' }}>
               <CommandBar onItemSaved={refreshFeed} />
             </div>
 
             <div style={sectionLbl}>On deck</div>
 
-            {/* Tasks + Invoices in a card */}
             {(taskItems.length > 0 || invItems.length > 0) && (
               <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg, overflow: 'hidden', marginBottom: 12 }}>
                 <AnimatePresence>
@@ -303,12 +280,29 @@ export default function Home() {
               </div>
             )}
 
-            {/* Notes as separate blue-tinted cards */}
             {noteItems.map(renderItem)}
 
             {taskItems.length === 0 && invItems.length === 0 && noteItems.length === 0 && (
-              <div style={{ padding: 32, textAlign: 'center', fontSize: 13, color: t.text.tertiary, background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg }}>All clear</div>
+              <div style={{ padding: 24, textAlign: 'center', fontSize: 13, color: t.text.tertiary, background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg }}>All clear</div>
             )}
+          </div>
+
+          {/* Col 3 — Financials (stacked) */}
+          <div>
+            <div style={sectionLbl}>Financials</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[
+                { label: 'Revenue (MTD)', value: currency(Math.round(animRevenue * 100) / 100), color: paidMTD > 0 ? t.status.success : t.text.secondary },
+                { label: 'Outstanding', value: currency(Math.round(animOutstanding * 100) / 100), color: stats.outstanding > 0 ? t.status.warning : t.text.secondary },
+                { label: 'Collected', value: currency(Math.round(animCollected * 100) / 100), color: paidMTD > 0 ? t.text.primary : t.text.secondary },
+                { label: 'Active Clients', value: String(DB.clients.length), color: t.text.primary },
+              ].map((m) => (
+                <div key={m.label} style={{ background: t.bg.surface, borderRadius: 8, padding: 14, border: `0.5px solid ${t.border.default}` }}>
+                  <div style={{ fontSize: 11, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{m.label}</div>
+                  <div style={{ fontSize: 22, fontWeight: 500, color: m.color, marginTop: 4 }}>{m.value}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </motion.div>
       </motion.div>
