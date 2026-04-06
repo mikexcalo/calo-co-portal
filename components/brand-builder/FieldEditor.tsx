@@ -127,13 +127,22 @@ export default function FieldEditor({ fields, onChange, sources, assetType, clie
         </div>
       )}
 
-      {/* Logo row */}
+      {/* Logo row with visibility toggle */}
       {fields.logoUrl && (
         <div style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
             <span style={{ fontSize: 13, fontWeight: 500, color: '#111113' }}>Logo</span>
+            {isYS && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+                <input type="checkbox" checked={(fields as any).showLogo !== false} onChange={() => update('showLogo' as any, (fields as any).showLogo === false)}
+                  style={{ accentColor: '#2563eb' }} />
+                <span style={{ fontSize: 12, color: (fields as any).showLogo !== false ? '#2563eb' : '#9ca3af' }}>
+                  {(fields as any).showLogo !== false ? 'Shown' : 'Hidden'}
+                </span>
+              </label>
+            )}
           </div>
-          <div style={{ background: '#f9fafb', borderRadius: 8, padding: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ background: '#f9fafb', borderRadius: 8, padding: 12, display: 'flex', alignItems: 'center', gap: 10, opacity: (fields as any).showLogo !== false ? 1 : 0.5 }}>
             <img src={fields.logoUrl} alt="Logo" style={{ width: 36, height: 36, objectFit: 'contain' }} />
             <span style={{ fontSize: 13, color: '#6b7280' }}>Logo uploaded</span>
           </div>

@@ -110,6 +110,7 @@ export interface BrandBuilderFields {
   showQrCode: boolean;
   showTagline: boolean;
   showHeadline: boolean;
+  showLogo: boolean;
   signSize: string;
 }
 
@@ -145,6 +146,7 @@ export const DEFAULT_FIELDS: BrandBuilderFields = {
   showQrCode: true,
   showTagline: false,
   showHeadline: true,
+  showLogo: true,
   signSize: '18x24',
 };
 

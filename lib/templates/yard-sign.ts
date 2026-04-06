@@ -11,6 +11,7 @@ interface YardSignTemplateProps {
   showPhone?: boolean;
   showCompanyName?: boolean;
   showQrCode?: boolean;
+  showLogo?: boolean;
   tagline?: string;
   showTagline?: boolean;
   email?: string;
@@ -33,6 +34,7 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
     companyName, phone, headline, logoUrl, qrCodeUrl, brandColor, size,
     displayWidth = 600,
     showHeadline = true, showPhone = true, showCompanyName = true, showQrCode = true,
+    showLogo = true,
     tagline = '', showTagline = false,
     email = '', showEmail = false,
     website = '', showWebsite = false,
@@ -78,14 +80,14 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
     },
   ];
 
-  // Logo
-  if (logoUrl) {
+  // Logo — 5% top padding, 90% max width (5% each side)
+  if (logoUrl && showLogo !== false) {
     objects.push({
       type: 'image', src: logoUrl,
       left: W / 2,
-      top: Math.round(topH * 0.03),
+      top: Math.round(topH * 0.05),
       originX: 'center',
-      maxWidth: isLandscape ? W * 0.35 : W * 0.4,
+      maxWidth: W * 0.9,
       maxHeight: isLandscape ? topH * 0.22 : topH * 0.25,
       name: 'logo',
     });
@@ -139,31 +141,42 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
   }
 
   // Company name
+  const companyFontSize = Math.round(isLandscape ? W * 0.04 : W * 0.05);
   if (companyName && showCompanyName !== false) {
     objects.push({
       type: 'textbox', text: companyName,
       left: pad,
-      top: topH + Math.round(bottomH * 0.15),
+      top: topH + Math.round(bottomH * 0.12),
       width: W * 0.6,
-      fontSize: Math.round(isLandscape ? W * 0.04 : W * 0.05),
+      fontSize: companyFontSize,
       fontWeight: 900, fill: brandColor, textAlign: 'left',
       name: 'company-text',
     });
   }
 
-  // Email/Website below company name
-  const infoLines: string[] = [];
-  if (email && showEmail) infoLines.push(email);
-  if (website && showWebsite) infoLines.push(website);
-  if (infoLines.length > 0 && showCompanyName !== false) {
+  // Website below company name (smaller, lighter)
+  let infoY = topH + Math.round(bottomH * 0.45);
+  if (website && showWebsite) {
     objects.push({
-      type: 'textbox', text: infoLines.join('  •  '),
+      type: 'text', text: website,
       left: pad,
-      top: topH + Math.round(bottomH * 0.55),
-      width: W * 0.55,
-      fontSize: Math.round(isLandscape ? W * 0.025 : W * 0.03),
-      fontWeight: 400, fill: '#666666', textAlign: 'left',
-      name: 'info-text',
+      top: infoY,
+      fontSize: Math.round(companyFontSize * 0.65),
+      fontWeight: 400, fill: '#888888', textAlign: 'left',
+      name: 'website-text',
+    });
+    infoY += Math.round(companyFontSize * 0.85);
+  }
+
+  // Email below website (even smaller)
+  if (email && showEmail) {
+    objects.push({
+      type: 'text', text: email,
+      left: pad,
+      top: infoY,
+      fontSize: Math.round(companyFontSize * 0.6),
+      fontWeight: 400, fill: '#999999', textAlign: 'left',
+      name: 'email-text',
     });
   }
 

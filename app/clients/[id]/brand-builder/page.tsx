@@ -314,7 +314,7 @@ export default function BrandBuilderPage() {
                 {/* Fabric.js Canvas */}
                 <DesignCanvas
                   key={assetType === 'yard-sign'
-                    ? `ys-${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}-${fields.showTagline}-${fields.showEmail}-${fields.showWebsite}`
+                    ? `ys-${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}-${fields.showTagline}-${fields.showEmail}-${fields.showWebsite}-${fields.showLogo}`
                     : `bc-${cardSide}-${fields.showCompanyName}-${fields.showContactName}-${fields.showPhone}-${fields.showEmail}-${fields.showWebsite}-${fields.showQrCode}-${fields.showTagline}-${fields.showContactTitle}`
                   }
                   template={assetType === 'yard-sign'
@@ -331,6 +331,7 @@ export default function BrandBuilderPage() {
                         showPhone: fields.showPhone,
                         showCompanyName: fields.showCompanyName,
                         showQrCode: fields.showQrCode,
+                        showLogo: fields.showLogo !== false,
                         tagline: fields.tagline || '',
                         showTagline: fields.showTagline,
                         email: fields.email || '',
