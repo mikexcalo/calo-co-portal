@@ -530,10 +530,8 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
     <div onClick={handleClickAway}>
       {/* Toolbar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap', maxWidth: template.width }}>
-        <button onClick={undo} disabled={historyIndexRef.current <= 0}
-          style={{ ...btnStyle, opacity: historyIndexRef.current <= 0 ? 0.4 : 1 }}>↩ Undo</button>
-        <button onClick={redo} disabled={historyIndexRef.current >= historyRef.current.length - 1}
-          style={{ ...btnStyle, opacity: historyIndexRef.current >= historyRef.current.length - 1 ? 0.4 : 1 }}>↪ Redo</button>
+        <button disabled title="Coming soon" style={{ ...btnStyle, opacity: 0.35, cursor: 'default' }}>↩ Undo</button>
+        <button disabled title="Coming soon" style={{ ...btnStyle, opacity: 0.35, cursor: 'default' }}>↪ Redo</button>
         <button onClick={handleAddText} style={btnStyle}>+ Text</button>
         {selectedObject && selectedObject.name !== 'brand-bg' && selectedObject.name !== 'white-strip' && (
           <button onClick={handleDelete} style={{ ...btnStyle, color: '#991b1b' }}>Delete</button>
