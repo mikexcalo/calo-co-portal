@@ -37,6 +37,24 @@ const ic = {
 
 type ActionItem = { id: string; type: 'task' | 'invoice' | 'note'; text: string; client: string; clientId?: string; age: number; created?: string };
 
+function getNoteUrgency(text: string, createdAt: string): 'overdue' | 'due-today' | 'normal' {
+  const lower = text.toLowerCase();
+  const now = new Date();
+  const dayNames = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  const todayIndex = now.getDay();
+  for (let i = 0; i < dayNames.length; i++) {
+    if (lower.includes(dayNames[i])) {
+      if (i === todayIndex) return 'due-today';
+      const created = new Date(createdAt);
+      const daysSinceCreated = Math.floor((now.getTime() - created.getTime()) / 86400000);
+      if (daysSinceCreated >= 7) return 'overdue';
+      const daysUntil = (i - todayIndex + 7) % 7;
+      if (daysUntil > 4) return 'overdue';
+    }
+  }
+  return 'normal';
+}
+
 export default function Home() {
   const router = useRouter();
   const { t } = useTheme();
@@ -161,6 +179,11 @@ export default function Home() {
   const noteItems: ActionItem[] = openNotes.map((n) => {
     const cl = DB.clients.find((c) => c.id === n.client_id);
     return { id: n.id, type: 'note', text: n.content, client: cl?.company || cl?.name || '', clientId: cl?.id, age: ageDays(n.created_at), created: n.created_at };
+  }).sort((a, b) => {
+    const urgencyOrder = { overdue: 0, 'due-today': 1, normal: 2 };
+    const ua = urgencyOrder[getNoteUrgency(a.text, a.created || '')];
+    const ub = urgencyOrder[getNoteUrgency(b.text, b.created || '')];
+    return ua !== ub ? ua - ub : (b.age - a.age);
   });
 
   const sectionLbl: React.CSSProperties = { fontSize: 11, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' };
@@ -173,14 +196,16 @@ export default function Home() {
     const isExpanded = expandedId === item.id;
 
     if (isNote) {
-      // Notes render as distinct blue-tinted cards
+      const urgency = getNoteUrgency(item.text, item.created || '');
+      const noteColor = urgency === 'overdue' ? t.status.danger : urgency === 'due-today' ? t.status.warning : t.accent.primary;
+      const noteBg = urgency === 'overdue' ? 'rgba(239,68,68,0.06)' : urgency === 'due-today' ? 'rgba(245,158,11,0.06)' : t.accent.subtle;
       return (
         <div key={item.id} style={{
-          background: t.accent.subtle, borderLeft: `2px solid ${t.accent.primary}`,
+          background: noteBg, borderLeft: `2px solid ${noteColor}`,
           borderRadius: 8, padding: '10px 14px', marginBottom: 8,
         }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-            <span style={{ color: t.accent.text, flexShrink: 0, marginTop: 1 }}>{ic.pencil}</span>
+            <span style={{ color: noteColor, flexShrink: 0, marginTop: 1 }}>{ic.pencil}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 13, color: t.text.secondary, fontStyle: 'italic' }}>{item.text}</div>
               <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 3 }}>{item.client}</div>
