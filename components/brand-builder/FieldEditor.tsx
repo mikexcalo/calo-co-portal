@@ -144,7 +144,7 @@ export default function FieldEditor({ fields, onChange, sources, assetType, clie
       {isYS ? (
         <>
           {/* Core fields */}
-          <SigField label="Headline" value={fields.headline} showKey="showHeadline" fields={fields} update={update} placeholder="Free Estimates!" />
+          <SigField label="Headline" value={fields.headline} showKey="showHeadline" fields={fields} update={update} placeholder="Free Consultations • Fully Insured • Budget-Friendly" />
           <SigField label="Business phone" value={fields.phone} showKey="showPhone" fields={fields} update={update} fieldKey="phone" type="tel" placeholder="(207) 555-1234" />
           <SigField label="Company name" value={fields.companyName} showKey="showCompanyName" fields={fields} update={update} placeholder="Your Business Name" />
           <SigField label="QR code URL" value={fields.qrCodeUrl} showKey="showQrCode" fields={fields} update={update} fieldKey="qrCodeUrl" placeholder="yourwebsite.com" />

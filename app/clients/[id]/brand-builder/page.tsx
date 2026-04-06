@@ -295,14 +295,14 @@ export default function BrandBuilderPage() {
                 {/* Fabric.js Canvas */}
                 <DesignCanvas
                   key={assetType === 'yard-sign'
-                    ? `ys-${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}`
+                    ? `ys-${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}-${fields.showTagline}-${fields.showEmail}-${fields.showWebsite}`
                     : `bc-${cardSide}-${fields.showCompanyName}-${fields.showContactName}-${fields.showPhone}-${fields.showEmail}-${fields.showWebsite}-${fields.showQrCode}-${fields.showTagline}-${fields.showContactTitle}`
                   }
                   template={assetType === 'yard-sign'
                     ? getYardSignTemplate({
                         companyName: fields.companyName || '',
                         phone: fields.phone || '',
-                        headline: fields.headline || 'Free Estimates!',
+                        headline: (fields.headline === 'Free Consultations!' || fields.headline === 'Free Estimates!') ? 'Free Consultations \u2022 Fully Insured \u2022 Budget-Friendly' : (fields.headline || 'Free Consultations \u2022 Fully Insured \u2022 Budget-Friendly'),
                         logoUrl: fields.logoUrl || null,
                         qrCodeUrl: fields.qrCodeUrl || fields.website || '',
                         brandColor: fields.primaryColor || '#28502e',
@@ -312,6 +312,12 @@ export default function BrandBuilderPage() {
                         showPhone: fields.showPhone,
                         showCompanyName: fields.showCompanyName,
                         showQrCode: fields.showQrCode,
+                        tagline: fields.tagline === 'test test test' ? '' : (fields.tagline || ''),
+                        showTagline: fields.showTagline,
+                        email: fields.email || '',
+                        showEmail: fields.showEmail,
+                        website: fields.website || '',
+                        showWebsite: fields.showWebsite,
                       })
                     : cardSide === 'front'
                       ? getBusinessCardTemplate({
