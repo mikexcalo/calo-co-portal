@@ -142,10 +142,17 @@ export default function BrandBuilderPage() {
           Object.values(bk.logos || {}).some((arr: any) => arr?.length > 0);
         setHasBrandKit(hasAnyBk);
 
-        // Logo — use primary from color slot first, then check others
+        // Logo — prefer SVG (crisp at any size), then primary, then first image
         const logoSlots = ['color', 'light', 'dark', 'icon', 'secondary', 'favicon'] as const;
         for (const slot of logoSlots) {
           const logos = bk.logos?.[slot] || [];
+          // SVG gets absolute priority
+          const svgFile = logos.find((f) => /\.svg$/i.test(f.name || '') && f.data);
+          if (svgFile?.data) {
+            newFields.logoUrl = svgFile.data;
+            newSources.logoUrl = 'Brand Kit';
+            break;
+          }
           const primary = logos.find((f) => f.isPrimary);
           if (primary?.data) {
             newFields.logoUrl = primary.data;
