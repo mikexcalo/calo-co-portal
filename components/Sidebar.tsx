@@ -77,8 +77,6 @@ export default function Sidebar() {
         {navBtn('Invoices', '/invoices', icons.invoices)}
         {navBtn('Financials', '/financials', icons.financials)}
         {navBtn('Studio', '/studio', icons.designStudio)}
-        {navBtn('Brand Kit', '/agency/brand-kit', icons.brandKit)}
-        {navBtn('Design Studio', '/agency/design-studio', icons.designStudio)}
         <div style={{ height: 8 }} />
         {navBtn('Settings', '/settings', icons.settings)}
       </div>
