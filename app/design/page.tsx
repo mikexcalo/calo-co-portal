@@ -282,12 +282,24 @@ function DesignContent() {
           </div>
         ) : (
           <div style={{ textAlign: 'center', opacity: 0.4 }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={t.text.tertiary} strokeWidth="1.3" strokeLinecap="round" style={{ marginBottom: 10 }}>
-              <circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/>
-              <line x1="12" y1="3.5" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="20.5"/>
-              <line x1="3.5" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="20.5" y2="12"/>
-            </svg>
-            <div style={{ fontSize: 13, color: t.text.tertiary }}>Select a template to start</div>
+            {selectedTemplate === 'yard-sign' && selectedClient === 'agency' ? (
+              <>
+                <svg width="28" height="28" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3" style={{ marginBottom: 10 }}>
+                  <circle cx="6" cy="5" r="2.5"/><path d="M1.5 14c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5"/>
+                  <circle cx="11" cy="4.5" r="2"/><path d="M14.5 13c0-2 1.5-3.5-1.5-3.5"/>
+                </svg>
+                <div style={{ fontSize: 13, color: t.text.tertiary }}>Select a client to design yard signs</div>
+              </>
+            ) : (
+              <>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={t.text.tertiary} strokeWidth="1.3" strokeLinecap="round" style={{ marginBottom: 10 }}>
+                  <circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/>
+                  <line x1="12" y1="3.5" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="20.5"/>
+                  <line x1="3.5" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="20.5" y2="12"/>
+                </svg>
+                <div style={{ fontSize: 13, color: t.text.tertiary }}>Select a template to start</div>
+              </>
+            )}
           </div>
         )}
       </div>
