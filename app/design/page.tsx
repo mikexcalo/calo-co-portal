@@ -153,7 +153,7 @@ function DesignContent() {
   if (loading) return null;
 
   const client = clients.find(c => c.id === selectedClient);
-  const clientName = selectedClient === 'agency' ? 'Agency' : (client?.company || 'Client');
+  const clientName = selectedClient === 'agency' ? 'Agency' : (client?.company || client?.name || (loading ? 'Loading\u2026' : 'Client'));
   const bk = client?.brandKit;
   const filteredClients = clients.filter(c => (c.company || c.name || '').toLowerCase().includes(clientSearch.toLowerCase()));
 

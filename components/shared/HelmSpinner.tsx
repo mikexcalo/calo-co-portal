@@ -1,6 +1,9 @@
 'use client';
 
+import { useTheme } from '@/lib/theme';
+
 export default function HelmSpinner() {
+  const { t } = useTheme();
   return (
     <div
       style={{
@@ -17,7 +20,7 @@ export default function HelmSpinner() {
         height="28"
         viewBox="0 0 24 24"
         fill="none"
-        stroke="rgba(255,255,255,0.18)"
+        stroke={t.text.tertiary}
         strokeWidth="1.2"
         strokeLinecap="round"
         style={{ animation: 'helm-spin 2s linear infinite' }}
