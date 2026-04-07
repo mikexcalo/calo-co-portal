@@ -15,7 +15,7 @@ export default function AgencyBrandKitPage() {
       <motion.div variants={stagger} initial="hidden" animate="show">
         <motion.div variants={fadeUp} style={{ marginBottom: 24 }}>
           <h1 style={{ fontSize: 20, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>Brand Kit</h1>
-          <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>CALO&CO brand assets and guidelines</p>
+          <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>Brand assets and guidelines</p>
         </motion.div>
 
         <motion.div variants={fadeUp}>

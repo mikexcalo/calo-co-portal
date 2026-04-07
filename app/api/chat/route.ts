@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
 
     const clientNames = clientList.map((c) => c.company).filter(Boolean);
 
-    const systemPrompt = `You are an AI assistant for CALO&CO, a creative agency run by Mike Calo.
+    const systemPrompt = `You are an AI assistant for Manifest, a creative agency run by Mike Calo.
 
 CURRENT CLIENTS IN THE SYSTEM:
 ${JSON.stringify(clientList, null, 2)}

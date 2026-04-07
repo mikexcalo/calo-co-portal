@@ -129,7 +129,7 @@ export default function TopBar() {
         <div ref={searchRef} style={{ position: 'relative', width: 200 }}>
           <input
             style={{ width: '100%', background: t.bg.surface, border: `0.5px solid ${searchLoading || searchResult ? '#2563eb' : t.border.default}`, borderRadius: 6, padding: '6px 10px 6px 30px', fontSize: 12, color: t.text.primary, outline: 'none', fontFamily: 'inherit', transition: 'border-color 150ms' }}
-            placeholder="Search CALO&CO..."
+            placeholder="Search Manifest..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); if (e.key === 'Escape') { setSearchResult(null); setSearchQuery(''); } }}

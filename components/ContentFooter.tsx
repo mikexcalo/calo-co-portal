@@ -11,7 +11,7 @@ export default function ContentFooter() {
     }}>
       <a href="https://mikecalo.co" target="_blank" rel="noopener noreferrer"
         style={{ fontSize: 9, color: t.text.tertiary, textDecoration: 'none', fontFamily: 'inherit' }}>
-        Powered by CALO&CO
+        Powered by Manifest
       </a>
     </div>
   );

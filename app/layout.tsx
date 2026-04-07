@@ -6,8 +6,8 @@ import TopBar from '@/components/TopBar';
 import { ThemeProvider } from '@/lib/theme';
 
 export const metadata: Metadata = {
-  title: 'CALO&CO Portal',
-  description: 'CALO&CO Agency Management Portal',
+  title: 'Manifest',
+  description: 'Manifest — Agency Management Portal',
   icons: { icon: '/favicon.svg' },
 };
 

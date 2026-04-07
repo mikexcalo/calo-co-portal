@@ -88,7 +88,7 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
           setEntityName(cl.company || cl.name || 'Client');
           setBrandKit(initBk(cl.brandKit));
         } else {
-          setEntityName('CALO&CO');
+          setEntityName('Manifest');
           setBrandKit(initBk(null));
         }
         setLoading(false);
