@@ -32,14 +32,14 @@ export default function Sidebar() {
       <button key={label} onClick={() => router.push(href)} style={{
         display: 'flex', alignItems: 'center', gap: 10, width: '100%',
         padding: '8px 16px', margin: '1px 0', borderRadius: 6, border: 'none',
-        fontSize: 14, color: active ? '#3d3d40' : '#8a8a8e',
+        fontSize: 14, color: active ? t.text.primary : t.text.secondary,
         fontWeight: active ? 500 : 400,
-        background: active ? (theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)') : 'transparent',
+        background: active ? t.accent.subtle : 'transparent',
         cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
         transition: 'all 150ms',
       }}
-      onMouseEnter={(e) => { if (!active) { e.currentTarget.style.background = theme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'; e.currentTarget.style.color = t.text.primary; }}}
-      onMouseLeave={(e) => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#8a8a8e'; }}}
+      onMouseEnter={(e) => { if (!active) { e.currentTarget.style.background = t.bg.surfaceHover; e.currentTarget.style.color = t.text.primary; }}}
+      onMouseLeave={(e) => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = t.text.secondary; }}}
       >
         <span style={{ width: 20, height: 16, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: active ? '#2563eb' : 'inherit' }}>{icon}</span>
         {label}
@@ -55,10 +55,10 @@ export default function Sidebar() {
       fontFamily: 'inherit',
     }}>
       {/* Logo */}
-      <div style={{ height: 60, display: 'flex', alignItems: 'center', padding: '0 16px 0 24px', flexShrink: 0, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ height: 60, display: 'flex', alignItems: 'center', padding: '0 16px 0 24px', flexShrink: 0, borderBottom: `0.5px solid ${t.border.default}` }}>
         <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
           <div style={{ width: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'visible' }}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4a4a4e" strokeWidth="1.5" strokeLinecap="round">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={t.text.tertiary} strokeWidth="1.5" strokeLinecap="round">
               <circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="3" />
               <line x1="12" y1="3.5" x2="12" y2="9" /><line x1="12" y1="15" x2="12" y2="20.5" />
               <line x1="3.5" y1="12" x2="9" y2="12" /><line x1="15" y1="12" x2="20.5" y2="12" />
@@ -66,7 +66,7 @@ export default function Sidebar() {
               <line x1="5.9" y1="18.1" x2="9.9" y2="14.1" /><line x1="14.1" y1="9.9" x2="18.1" y2="5.9" />
             </svg>
           </div>
-          <span style={{ fontSize: 14, fontWeight: 500, color: '#4a4a4e', letterSpacing: '1.2px' }}>MANIFEST</span>
+          <span style={{ fontSize: 14, fontWeight: 500, color: t.text.tertiary, letterSpacing: '1.2px' }}>MANIFEST</span>
         </div>
       </div>
 

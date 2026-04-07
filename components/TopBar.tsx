@@ -136,7 +136,7 @@ export default function TopBar() {
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); if (e.key === 'Escape') { setSearchResult(null); setSearchQuery(''); } }}
           />
-          <svg style={{ position: 'absolute', left: 9, top: 8, pointerEvents: 'none' }} width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#a1a1a5" strokeWidth="1.5">
+          <svg style={{ position: 'absolute', left: 9, top: 8, pointerEvents: 'none' }} width="12" height="12" viewBox="0 0 16 16" fill="none" stroke={t.text.secondary} strokeWidth="1.5">
             <circle cx="6.5" cy="6.5" r="5"/><line x1="10" y1="10" x2="14.5" y2="14.5"/>
           </svg>
           {(searchLoading || searchResult) && (
@@ -167,7 +167,7 @@ export default function TopBar() {
                 padding: '4px 10px', fontSize: 12, fontWeight: viewMode === m ? 500 : 400,
                 borderRadius: 4, border: 'none',
                 background: viewMode === m ? t.text.primary : 'transparent',
-                color: viewMode === m ? t.bg.primary : '#a1a1a5',
+                color: viewMode === m ? t.bg.primary : t.text.secondary,
                 cursor: 'pointer', fontFamily: 'inherit',
               }}>
                 {m === 'agency' ? 'Agency' : 'Client'}
@@ -178,10 +178,10 @@ export default function TopBar() {
         <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
           width: 28, height: 28, border: 'none', borderRadius: 6, background: 'transparent',
           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#6a6a6e', transition: 'color 150ms',
+          color: t.text.tertiary, transition: 'color 150ms',
         }}
         onMouseEnter={(e) => e.currentTarget.style.color = t.text.primary}
-        onMouseLeave={(e) => e.currentTarget.style.color = '#6a6a6e'}>
+        onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}>
           {theme === 'dark'
             ? <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="8" cy="8" r="3"/><line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/><line x1="3" y1="3" x2="4.4" y2="4.4"/><line x1="11.6" y1="11.6" x2="13" y2="13"/><line x1="3" y1="13" x2="4.4" y2="11.6"/><line x1="11.6" y1="4.4" x2="13" y2="3"/></svg>
             : <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M13.5 8.5a5.5 5.5 0 1 1-6-6 4.5 4.5 0 0 0 6 6z"/></svg>}
