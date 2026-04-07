@@ -201,7 +201,7 @@ export default function Home() {
       const urgLabel = urg === 'overdue' ? 'Overdue' : urg === 'due-today' ? 'Due today' : null;
       const ageText = item.age === 0 ? 'Today' : item.age === 1 ? '1 day ago' : `${item.age} days ago`;
       return (
-        <div key={item.id} style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderLeft: `3px solid ${urgColor}`, borderRadius: '0 8px 8px 0', padding: '8px 12px', marginBottom: 6 }}>
+        <div key={item.id} style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderLeft: `3px solid ${urgColor}`, borderRadius: '0 8px 8px 0', padding: '8px 12px', marginBottom: 6 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
               <path d="M1.5 2.5h13c.6 0 1 .4 1 1v7c0 .6-.4 1-1 1H11l-3 3-3-3H1.5c-.6 0-1-.4-1-1v-7c0-.6.4-1 1-1z"/>
@@ -281,23 +281,23 @@ export default function Home() {
         {/* Greeting */}
         <motion.div variants={fadeUp} style={{ marginBottom: 16 }}>
           <h1 style={{ fontSize: 24, fontWeight: 400, color: t.text.primary, margin: '0 0 2px', letterSpacing: '-0.01em' }}>{greeting}</h1>
-          <p style={{ fontSize: 12, color: t.text.tertiary, margin: 0 }}>{dateline}</p>
+          <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>{dateline}</p>
         </motion.div>
 
         {/* Column headers */}
         <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '280px minmax(0, 1fr) 200px', gap: 24, marginBottom: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', height: 24 }}>
-            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: t.text.tertiary }}>Notes & tasks</span>
+            <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.5px', textTransform: 'uppercase' as const, color: t.text.tertiary }}>Notes & tasks</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 24 }}>
-            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: t.text.tertiary }}>Recent clients</span>
+            <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.5px', textTransform: 'uppercase' as const, color: t.text.tertiary }}>Recent clients</span>
             <div style={{ display: 'flex', gap: 6 }}>
-              <button onClick={() => router.push('/clients/new')} style={{ fontSize: 11, color: t.text.tertiary, background: 'none', border: `0.5px solid ${t.border.default}`, borderRadius: 5, padding: '3px 10px', cursor: 'pointer', fontFamily: 'inherit' }}>+ New client</button>
-              <button onClick={() => { if (DB.clients[0]) router.push(`/clients/${DB.clients[0].id}/invoices/new`); }} style={{ fontSize: 11, color: t.text.tertiary, background: 'none', border: `0.5px solid ${t.border.default}`, borderRadius: 5, padding: '3px 10px', cursor: 'pointer', fontFamily: 'inherit' }}>+ Invoice</button>
+              <button onClick={() => router.push('/clients/new')} style={{ fontSize: 12, fontWeight: 500, color: t.text.secondary, background: 'none', border: `0.5px solid ${t.border.default}`, borderRadius: 5, padding: '3px 10px', cursor: 'pointer', fontFamily: 'inherit' }}>+ New client</button>
+              <button onClick={() => { if (DB.clients[0]) router.push(`/clients/${DB.clients[0].id}/invoices/new`); }} style={{ fontSize: 12, fontWeight: 500, color: t.text.secondary, background: 'none', border: `0.5px solid ${t.border.default}`, borderRadius: 5, padding: '3px 10px', cursor: 'pointer', fontFamily: 'inherit' }}>+ Invoice</button>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', height: 24 }}>
-            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: t.text.tertiary }}>Financials</span>
+            <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.5px', textTransform: 'uppercase' as const, color: t.text.tertiary }}>Financials</span>
           </div>
         </motion.div>
 
@@ -317,7 +317,7 @@ export default function Home() {
             </div>
             {noteItems.length > 0 && <div style={{ marginBottom: 0 }}>{noteItems.map(renderItem)}</div>}
 
-            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: t.text.tertiary, borderTop: `0.5px solid ${t.border.default}`, paddingTop: 12, marginTop: 12, marginBottom: 8 }}>On deck</div>
+            <div style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.5px', textTransform: 'uppercase' as const, color: t.text.tertiary, borderTop: `1px solid ${t.border.default}`, paddingTop: 12, marginTop: 12, marginBottom: 8 }}>On deck</div>
 
             <div style={{ position: 'relative', marginBottom: 8 }}>
               <svg style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="13" height="13" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3">
@@ -359,7 +359,7 @@ export default function Home() {
 
                 return (
                   <div key={client.id}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', cursor: 'pointer', background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, transition: 'background 150ms' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', cursor: 'pointer', background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8, transition: 'background 150ms' }}
                     onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.background = t.bg.surfaceHover}
                     onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.background = t.bg.surface}
                     onClick={() => router.push(`/clients/${client.id}`)}>
@@ -392,9 +392,9 @@ export default function Home() {
                 { label: 'Collected', value: currency(Math.round(animCollected * 100) / 100), color: paidMTD > 0 ? t.text.primary : t.text.secondary },
                 { label: 'Active Clients', value: String(DB.clients.length), color: t.text.primary },
               ].map((m) => (
-                <div key={m.label} style={{ background: t.bg.surface, borderRadius: 8, padding: 14, border: `0.5px solid ${t.border.default}` }}>
-                  <div style={{ fontSize: 11, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{m.label}</div>
-                  <div style={{ fontSize: 22, fontWeight: 500, color: m.color, marginTop: 4 }}>{m.value}</div>
+                <div key={m.label} style={{ background: t.bg.surface, borderRadius: t.radius.lg, padding: 16, border: `1px solid ${t.border.default}` }}>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>{m.label}</div>
+                  <div style={{ fontSize: 28, fontWeight: 500, color: m.color }}>{m.value}</div>
                 </div>
               ))}
             </div>

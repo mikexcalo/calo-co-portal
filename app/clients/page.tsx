@@ -75,7 +75,7 @@ export default function ClientsPage() {
             type="text" value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Search clients..."
             style={{
-              width: 300, padding: '10px 14px', fontSize: 14,
+              width: 300, padding: '8px 12px', fontSize: 13,
               background: t.bg.surface, border: `1px solid ${t.border.default}`,
               borderRadius: 8, color: t.text.primary, fontFamily: 'inherit', outline: 'none',
               transition: 'border-color 150ms',
@@ -94,9 +94,9 @@ export default function ClientsPage() {
               padding: '10px 16px', gap: 12,
               borderBottom: `1px solid ${t.border.default}`,
             }}>
-              <span style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Company</span>
-              <span style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Contact</span>
-              <span style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px' }}>Company</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px' }}>Contact</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px' }}>Status</span>
               <span />
             </div>
 
@@ -122,7 +122,7 @@ export default function ClientsPage() {
                   onClick={() => router.push(`/clients/${client.id}`)}
                   style={{
                     display: 'grid', gridTemplateColumns: '2fr 2fr 1fr 24px',
-                    padding: '14px 16px', gap: 12, alignItems: 'center',
+                    padding: '12px 16px', gap: 12, alignItems: 'center',
                     borderBottom: i < filtered.length - 1 ? `1px solid ${t.border.default}` : 'none',
                     cursor: 'pointer', transition: 'background 150ms',
                   }}
@@ -144,7 +144,7 @@ export default function ClientsPage() {
                       }
                     </div>
                     ); })()}
-                    <span style={{ fontSize: 14, fontWeight: 500, color: t.text.primary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: t.text.primary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {client.company || client.name}
                     </span>
                   </div>
@@ -154,16 +154,16 @@ export default function ClientsPage() {
                     {primary ? (
                       <>
                         <div style={{ fontSize: 13, color: t.text.primary }}>{primary.name}</div>
-                        {(primary.title || primary.role) && <div style={{ fontSize: 12, color: t.text.secondary }}>{primary.title || primary.role}</div>}
-                        {(primary.phone || primary.email) && <div style={{ fontSize: 12, color: t.text.tertiary }}>{primary.phone || primary.email}</div>}
+                        {(primary.title || primary.role) && <div style={{ fontSize: 13, color: t.text.secondary }}>{primary.title || primary.role}</div>}
+                        {(primary.phone || primary.email) && <div style={{ fontSize: 13, color: t.text.secondary }}>{primary.phone || primary.email}</div>}
                       </>
                     ) : (
-                      <span style={{ fontSize: 12, color: t.text.tertiary }}>No contact</span>
+                      <span style={{ fontSize: 13, color: t.text.tertiary }}>No contact</span>
                     )}
                   </div>
 
                   {/* Status */}
-                  <div style={{ fontSize: 12, color: statusColor }}>{statusText}</div>
+                  <div style={{ fontSize: 13, color: statusColor }}>{statusText}</div>
 
                   {/* Chevron */}
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5">

@@ -145,7 +145,7 @@ function SettingsContent() {
     <PageLayout title="Settings" subtitle="Manage your agency">
       {/* ═══ PROFILE ═══ */}
       <Section label="Profile">
-        <div style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
+        <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
           <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
             <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
               <div onClick={() => fileRef.current?.click()}
@@ -175,7 +175,7 @@ function SettingsContent() {
 
       {/* ═══ AGENCY ═══ */}
       <Section label="Agency">
-        <div style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
+        <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
           <div style={secHead}>Company</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
             <div><label style={lbl}>Company Name</label><input value={ag.companyName || ''} onChange={(e) => updateAg('companyName', e.target.value)} placeholder="Manifest" style={input} /></div>

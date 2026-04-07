@@ -36,13 +36,15 @@ export default function BrandKitPage() {
   };
 
   return (
-    <div style={{ padding: '32px 28px' }}>
-      <h1 style={{ fontSize: 24, fontWeight: 400, color: t.text.primary, marginBottom: 4 }}>Brand Kit</h1>
-      <p style={{ fontSize: 14, color: t.text.secondary, marginBottom: 28 }}>Manage brand identity for each client</p>
+    <div style={{ padding: 32, maxWidth: 960 }}>
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>Brand Kit</h1>
+        <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>Manage brand identity for each client</p>
+      </div>
 
       {/* Agency card */}
       <div onClick={() => router.push('/agency/brand-kit')}
-        style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', marginBottom: 12, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, cursor: 'pointer', transition: 'border-color 150ms' }}
+        style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', marginBottom: 12, background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, cursor: 'pointer', transition: 'border-color 150ms' }}
         onMouseEnter={(e) => (e.currentTarget.style.borderColor = t.border.hover)}
         onMouseLeave={(e) => (e.currentTarget.style.borderColor = t.border.default)}>
         <div style={{ width: 36, height: 36, borderRadius: 8, background: t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -65,7 +67,7 @@ export default function BrandKitPage() {
           const avatar = getClientAvatarUrl(client);
           return (
             <div key={client.id} onClick={() => router.push(`/clients/${client.id}/brand-kit`)}
-              style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, cursor: 'pointer', transition: 'border-color 150ms' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, cursor: 'pointer', transition: 'border-color 150ms' }}
               onMouseEnter={(e) => (e.currentTarget.style.borderColor = t.border.hover)}
               onMouseLeave={(e) => (e.currentTarget.style.borderColor = t.border.default)}>
               <div style={{ width: 36, height: 36, borderRadius: 8, overflow: 'hidden', background: t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: t.text.secondary, flexShrink: 0 }}>
