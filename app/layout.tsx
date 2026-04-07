@@ -7,8 +7,8 @@ import HelmSpinner from '@/components/shared/HelmSpinner';
 import { ThemeProvider } from '@/lib/theme';
 
 export const metadata: Metadata = {
-  title: 'Manifest',
-  description: 'Manifest — Agency Management Portal',
+  title: 'Helm',
+  description: 'Helm — Agency Management Portal',
   icons: { icon: '/favicon.svg' },
 };
 

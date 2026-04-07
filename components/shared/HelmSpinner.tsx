@@ -23,7 +23,7 @@ export default function HelmSpinner() {
         stroke={t.text.tertiary}
         strokeWidth="1.2"
         strokeLinecap="round"
-        style={{ animation: 'helm-spin 2s linear infinite' }}
+        style={{}}
       >
         <circle cx="12" cy="12" r="8.5" />
         <circle cx="12" cy="12" r="3" />
