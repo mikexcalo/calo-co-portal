@@ -309,7 +309,7 @@ export default function Home() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '10px 14px', marginBottom: 8, transition: 'border-color 150ms' }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.4"><path d="M8 2v12M2 8h12"/></svg>
-              <input ref={noteInputRef} type="text" placeholder="Add a note..." value={noteInput} onChange={(e) => setNoteInput(e.target.value)}
+              <input ref={noteInputRef} type="text" placeholder="Add a note... press ↵ to save" value={noteInput} onChange={(e) => setNoteInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleAddNote(); }}
                 disabled={noteSubmitting}
                 style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: t.text.primary, fontFamily: 'inherit' }} />
@@ -321,7 +321,7 @@ export default function Home() {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '10px 14px', marginBottom: 8, transition: 'border-color 150ms' }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.4"><rect x="2" y="2" width="12" height="12" rx="3" /></svg>
-              <input ref={taskInputRef} type="text" placeholder="Add a task..." value={taskInput} onChange={(e) => setTaskInput(e.target.value)}
+              <input ref={taskInputRef} type="text" placeholder="Add a task... press ↵ to save" value={taskInput} onChange={(e) => setTaskInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleAddTask(); }}
                 disabled={taskSubmitting}
                 style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: t.text.primary, fontFamily: 'inherit' }} />
