@@ -56,7 +56,7 @@ export default function ClientsPage() {
         {/* Header */}
         <motion.div variants={fadeUp} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 20, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>Clients</h1>
+            <h1 style={{ fontSize: 24, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>Clients</h1>
             <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>{clients.length} client{clients.length !== 1 ? 's' : ''}</p>
           </div>
           <button onClick={() => router.push('/clients/new')} style={{

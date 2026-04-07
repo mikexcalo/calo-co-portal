@@ -83,7 +83,7 @@ export default function ClientFinancialsPage() {
     <div style={{ padding: 32, maxWidth: 960 }}>
       <motion.div variants={stagger} initial="hidden" animate="show">
         <motion.div variants={fadeUp} style={{ marginBottom: 20 }}>
-          <h1 style={{ fontSize: 20, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>{client.company || client.name} — Financials</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>{client.company || client.name} — Financials</h1>
           <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>Client revenue and expense tracking</p>
         </motion.div>
 

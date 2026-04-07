@@ -281,7 +281,7 @@ export default function Home() {
 
         {/* Greeting */}
         <motion.div variants={fadeUp} style={{ marginBottom: 16 }}>
-          <p style={{ fontSize: 18, fontWeight: 400, color: t.text.primary, margin: '0 0 2px' }}>{greeting}</p>
+          <h1 style={{ fontSize: 24, fontWeight: 400, color: t.text.primary, margin: '0 0 2px', letterSpacing: '-0.01em' }}>{greeting}</h1>
           <p style={{ fontSize: 12, color: t.text.tertiary, margin: 0 }}>{dateline}</p>
         </motion.div>
 

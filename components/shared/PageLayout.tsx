@@ -39,7 +39,7 @@ export function PageLayout({ title, subtitle, action, children, maxWidth = '960p
       {title && (
         <ItemWrap {...(itemProps as any)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 20, fontWeight: 500, margin: '0 0 2px', color: t.text.primary }}>{title}</h1>
+            <h1 style={{ fontSize: 24, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>{title}</h1>
             {subtitle && <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>{subtitle}</p>}
           </div>
           {action && <div>{action}</div>}
@@ -77,7 +77,7 @@ export function TwoColumnLayout({ title, subtitle, action, left, right, rightWid
       {title && (
         <ItemWrap {...(itemProps as any)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 20, fontWeight: 500, margin: '0 0 2px', color: t.text.primary }}>{title}</h1>
+            <h1 style={{ fontSize: 24, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>{title}</h1>
             {subtitle && <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>{subtitle}</p>}
           </div>
           {action && <div>{action}</div>}

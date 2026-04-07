@@ -64,7 +64,7 @@ export default function ClientInvoicesPage() {
       <motion.div variants={stagger} initial="hidden" animate="show">
         <motion.div variants={fadeUp} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 20, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>Invoices</h1>
+            <h1 style={{ fontSize: 24, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>Invoices</h1>
             <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>{client.company || client.name}</p>
           </div>
           <button onClick={() => router.push(`/clients/${clientId}/invoices/new`)} style={{

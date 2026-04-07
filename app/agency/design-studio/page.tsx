@@ -69,7 +69,7 @@ export default function AgencyDesignStudioPage() {
     <div style={{ padding: 32, maxWidth: 960 }}>
       <motion.div variants={stagger} initial="hidden" animate="show">
         <motion.div variants={fadeUp} style={{ marginBottom: 20 }}>
-          <h1 style={{ fontSize: 20, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>Design Studio</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>Design Studio</h1>
           <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>Create and manage marketing assets</p>
         </motion.div>
 
