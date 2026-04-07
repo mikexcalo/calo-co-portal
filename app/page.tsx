@@ -272,36 +272,65 @@ export default function Home() {
       <motion.div variants={stagger} initial="hidden" animate="show">
 
         {/* Greeting */}
-        <motion.div variants={fadeUp} style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 400, color: t.text.primary, margin: '0 0 2px', letterSpacing: '-0.01em' }}>{greeting}</h1>
+        <motion.div variants={fadeUp} style={{ marginBottom: 16 }}>
+          <p style={{ fontSize: 18, fontWeight: 400, color: t.text.primary, margin: '0 0 2px' }}>{greeting}</p>
           <p style={{ fontSize: 12, color: t.text.tertiary, margin: 0 }}>{dateline}</p>
         </motion.div>
 
-        {/* Quick actions */}
-        <motion.div variants={fadeUp} style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-          {[
-            { label: '+ New Client', onClick: () => router.push('/clients/new') },
-            { label: '+ Create Invoice', onClick: () => { if (DB.clients[0]) router.push(`/clients/${DB.clients[0].id}/invoices/new`); } },
-            { label: '+ Add Note', onClick: () => { noteInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => noteInputRef.current?.focus(), 300); } },
-          ].map((btn) => (
-            <button key={btn.label} onClick={btn.onClick} style={{
-              padding: '6px 14px', fontSize: 12, fontWeight: 500, borderRadius: 6,
-              border: `1px solid ${t.border.default}`, background: t.bg.surface, color: t.text.secondary,
-              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 150ms',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = t.accent.primary; e.currentTarget.style.color = t.accent.text; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = t.border.default; e.currentTarget.style.color = t.text.secondary; }}>
-              {btn.label}
-            </button>
-          ))}
+        {/* Column headers */}
+        <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '280px minmax(0, 1fr) 200px', gap: 24, marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', height: 24 }}>
+            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: t.text.tertiary }}>Notes & tasks</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 24 }}>
+            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: t.text.tertiary }}>Recent clients</span>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => router.push('/clients/new')} style={{ fontSize: 11, color: t.text.tertiary, background: 'none', border: `0.5px solid ${t.border.default}`, borderRadius: 5, padding: '3px 10px', cursor: 'pointer', fontFamily: 'inherit' }}>+ New client</button>
+              <button onClick={() => { if (DB.clients[0]) router.push(`/clients/${DB.clients[0].id}/invoices/new`); }} style={{ fontSize: 11, color: t.text.tertiary, background: 'none', border: `0.5px solid ${t.border.default}`, borderRadius: 5, padding: '3px 10px', cursor: 'pointer', fontFamily: 'inherit' }}>+ Invoice</button>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', height: 24 }}>
+            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: t.text.tertiary }}>Financials</span>
+          </div>
         </motion.div>
 
-        {/* 3-column: Clients | Tasks & Notes | Financials */}
-        <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(280px, 1fr) 220px', gap: 24 }}>
+        {/* 3-column: Notes | Clients | Financials */}
+        <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '280px minmax(0, 1fr) 200px', gap: 24 }}>
 
-          {/* Col 1 — Clients (accordion) */}
+          {/* Col 1 — Notes + On Deck */}
           <div>
-            <div style={sectionLbl}>Clients</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '10px 14px', marginBottom: 8, transition: 'border-color 150ms' }}>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.4"><path d="M8 2v12M2 8h12"/></svg>
+              <input ref={noteInputRef} type="text" placeholder="Add a note..." value={noteInput} onChange={(e) => setNoteInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleAddNote(); }}
+                disabled={noteSubmitting}
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: t.text.primary, fontFamily: 'inherit' }} />
+            </div>
+            {noteItems.length > 0 && <div style={{ marginBottom: 16 }}>{noteItems.map(renderItem)}</div>}
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '10px 14px', marginBottom: 8, transition: 'border-color 150ms' }}>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.4"><rect x="2" y="2" width="12" height="12" rx="3" /></svg>
+              <input ref={taskInputRef} type="text" placeholder="Add a task..." value={taskInput} onChange={(e) => setTaskInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleAddTask(); }}
+                disabled={taskSubmitting}
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: t.text.primary, fontFamily: 'inherit' }} />
+            </div>
+
+            {(taskItems.length > 0 || invItems.length > 0) && (
+              <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8, overflow: 'hidden' }}>
+                <AnimatePresence>
+                  {[...taskItems, ...invItems].map(renderItem)}
+                </AnimatePresence>
+              </div>
+            )}
+
+            {taskItems.length === 0 && invItems.length === 0 && noteItems.length === 0 && (
+              <div style={{ padding: 24, textAlign: 'center', fontSize: 13, color: t.text.tertiary, background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8 }}>All clear</div>
+            )}
+          </div>
+
+          {/* Col 2 — Clients (accordion) */}
+          <div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {clients.map((client) => {
                 const ct = DB.contacts[client.id] || [];
@@ -378,45 +407,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Col 2 — Notes + On Deck */}
-          <div>
-            {/* Notes section */}
-            <div style={sectionLbl}>Notes</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '10px 14px', marginBottom: 8, transition: 'border-color 150ms' }}>
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.4"><path d="M8 2v12M2 8h12"/></svg>
-              <input ref={noteInputRef} type="text" placeholder="Add a note..." value={noteInput} onChange={(e) => setNoteInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleAddNote(); }}
-                disabled={noteSubmitting}
-                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: t.text.primary, fontFamily: 'inherit' }} />
-            </div>
-            {noteItems.length > 0 && <div style={{ marginBottom: 16 }}>{noteItems.map(renderItem)}</div>}
-
-            {/* On Deck section */}
-            <div style={sectionLbl}>On Deck</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '10px 14px', marginBottom: 8, transition: 'border-color 150ms' }}>
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.4"><rect x="2" y="2" width="12" height="12" rx="3" /></svg>
-              <input ref={taskInputRef} type="text" placeholder="Add a task..." value={taskInput} onChange={(e) => setTaskInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleAddTask(); }}
-                disabled={taskSubmitting}
-                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: t.text.primary, fontFamily: 'inherit' }} />
-            </div>
-
-            {(taskItems.length > 0 || invItems.length > 0) && (
-              <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8, overflow: 'hidden' }}>
-                <AnimatePresence>
-                  {[...taskItems, ...invItems].map(renderItem)}
-                </AnimatePresence>
-              </div>
-            )}
-
-            {taskItems.length === 0 && invItems.length === 0 && noteItems.length === 0 && (
-              <div style={{ padding: 24, textAlign: 'center', fontSize: 13, color: t.text.tertiary, background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8 }}>All clear</div>
-            )}
-          </div>
-
           {/* Col 3 — Financials (stacked) */}
           <div>
-            <div style={sectionLbl}>Financials</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {[
                 { label: 'Revenue (MTD)', value: currency(Math.round(animRevenue * 100) / 100), color: paidMTD > 0 ? t.status.success : t.text.secondary },
