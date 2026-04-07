@@ -56,7 +56,7 @@ export default function ClientInvoicesPage() {
     setInvoices([...DB.invoices.filter((i) => i.clientId === clientId)]); setStats(clientStats(DB.invoices, clientId));
   };
 
-  if (isLoading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, minHeight: 0 }}><HelmSpinner size={32} /></div>;
+  if (isLoading) return <div style={{ position: 'fixed', bottom: 24, right: 24, opacity: 0.4, zIndex: 10 }}><HelmSpinner size={20} /></div>;
   if (!client) return <div style={{ padding: 32, fontSize: 13, color: t.status.danger }}>Client not found</div>;
 
   return (

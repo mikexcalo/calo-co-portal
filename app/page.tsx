@@ -152,7 +152,7 @@ export default function Home() {
   const animOutstanding = useCountUp(stats.outstanding);
   const animCollected = useCountUp(paidMTD);
 
-  if (isLoading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, minHeight: 0 }}><HelmSpinner size={32} /></div>;
+  if (isLoading) return <div style={{ position: 'fixed', bottom: 24, right: 24, opacity: 0.4, zIndex: 10 }}><HelmSpinner size={20} /></div>;
 
   // Data
   const openTasks = allTasks.filter((tk) => tk.type === 'task' && tk.status === 'open')

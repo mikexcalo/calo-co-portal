@@ -17,7 +17,7 @@ function loadJson<T extends Record<string, string>>(key: string, defaults: T): T
 }
 
 export default function SettingsPage() {
-  return <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, minHeight: 0 }}><HelmSpinner size={32} /></div>}><SettingsContent /></Suspense>;
+  return <Suspense fallback={<div style={{ position: 'fixed', bottom: 24, right: 24, opacity: 0.4, zIndex: 10 }}><HelmSpinner size={20} /></div>}><SettingsContent /></Suspense>;
 }
 
 function SettingsContent() {
