@@ -272,8 +272,8 @@ export default function BrandBuilderPage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <HelmSpinner />
+      <div style={{ position: 'fixed', bottom: 24, right: 24, opacity: 0.4, zIndex: 10 }}>
+        <HelmSpinner size={20} />
       </div>
     );
   }
