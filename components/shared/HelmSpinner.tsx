@@ -7,18 +7,18 @@ export default function HelmSpinner() {
         position: 'fixed',
         bottom: 24,
         right: 24,
-        opacity: 0.6,
+        opacity: 1,
         zIndex: 10,
         pointerEvents: 'none',
       }}
     >
       <svg
-        width="24"
-        height="24"
+        width="28"
+        height="28"
         viewBox="0 0 24 24"
         fill="none"
-        stroke="#8a8a8e"
-        strokeWidth="1.3"
+        stroke="rgba(255,255,255,0.18)"
+        strokeWidth="1.2"
         strokeLinecap="round"
         style={{ animation: 'helm-spin 2s linear infinite' }}
       >
