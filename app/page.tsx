@@ -201,11 +201,10 @@ export default function Home() {
       const urgLabel = urg === 'overdue' ? 'Overdue' : urg === 'due-today' ? 'Due today' : null;
       const ageText = item.age === 0 ? 'Today' : item.age === 1 ? '1 day ago' : `${item.age} days ago`;
       return (
-        <div key={item.id} style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderLeft: `3px solid ${urgColor}`, borderRadius: '0 8px 8px 0', padding: '10px 12px', marginBottom: 6 }}>
+        <div key={item.id} style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderLeft: `3px solid ${urgColor}`, borderRadius: '0 8px 8px 0', padding: '8px 12px', marginBottom: 6 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={urgColor} strokeWidth="1.3" style={{ flexShrink: 0, marginTop: 1 }}>
-              <path d="M13.3 1.5H2.7c-.7 0-1.2.5-1.2 1.2v9.6c0 .7.5 1.2 1.2 1.2h3l2.3 1.5 2.3-1.5h3c.7 0 1.2-.5 1.2-1.2V2.7c0-.7-.5-1.2-1.2-1.2z"/>
-              <line x1="4.5" y1="5.5" x2="11.5" y2="5.5"/><line x1="4.5" y1="8.5" x2="9" y2="8.5"/>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
+              <path d="M1.5 2.5h13c.6 0 1 .4 1 1v7c0 .6-.4 1-1 1H11l-3 3-3-3H1.5c-.6 0-1-.4-1-1v-7c0-.6.4-1 1-1z"/>
             </svg>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, color: t.text.primary, marginBottom: 5, lineHeight: '1.45' }}>{item.text}</div>
@@ -307,24 +306,27 @@ export default function Home() {
 
           {/* Col 1 — Notes + On Deck */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '10px 14px', marginBottom: 8, transition: 'border-color 150ms' }}>
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.4"><path d="M8 2v12M2 8h12"/></svg>
+            <div style={{ position: 'relative', marginBottom: 8 }}>
+              <svg style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="13" height="13" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3">
+                <path d="M11.5 1.5l3 3L5 14H2v-3z"/>
+              </svg>
               <input ref={noteInputRef} type="text" placeholder="Add a note... press ↵ to save" value={noteInput} onChange={(e) => setNoteInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleAddNote(); }}
                 disabled={noteSubmitting}
-                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: t.text.primary, fontFamily: 'inherit' }} />
+                style={{ width: '100%', background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '8px 12px 8px 32px', fontSize: 13, color: t.text.primary, fontFamily: 'inherit', outline: 'none' }} />
             </div>
             {noteItems.length > 0 && <div style={{ marginBottom: 0 }}>{noteItems.map(renderItem)}</div>}
 
-            <div style={{ height: 0.5, background: t.border.default, margin: '12px 0' }} />
-            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: t.text.tertiary, margin: '12px 0 8px' }}>On deck</div>
+            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: t.text.tertiary, borderTop: `0.5px solid ${t.border.default}`, paddingTop: 12, marginTop: 12, marginBottom: 8 }}>On deck</div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '10px 14px', marginBottom: 8, transition: 'border-color 150ms' }}>
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.4"><rect x="2" y="2" width="12" height="12" rx="3" /></svg>
+            <div style={{ position: 'relative', marginBottom: 8 }}>
+              <svg style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="13" height="13" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3">
+                <rect x="2" y="2" width="12" height="12" rx="3"/>
+              </svg>
               <input ref={taskInputRef} type="text" placeholder="Add a task... press ↵ to save" value={taskInput} onChange={(e) => setTaskInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleAddTask(); }}
                 disabled={taskSubmitting}
-                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: t.text.primary, fontFamily: 'inherit' }} />
+                style={{ width: '100%', background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '8px 12px 8px 32px', fontSize: 13, color: t.text.primary, fontFamily: 'inherit', outline: 'none' }} />
             </div>
 
             {(taskItems.length > 0 || invItems.length > 0) && (
