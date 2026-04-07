@@ -348,10 +348,11 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
               console.warn('Failed to get SVG string:', fetchErr);
             }
 
+            let svgLoaded = false;
             if (svgString && svgString.includes('<svg')) {
               try {
                 const { objects: svgObjs } = await fabric.loadSVGFromString(svgString);
-                if (svgObjs && svgObjs.length > 0) {
+                if (svgObjs && svgObjs.filter(Boolean).length > 0) {
                   const logoGroup = new fabric.Group(svgObjs.filter(Boolean) as any[]);
                   const maxW = obj.maxWidth || tmpl.width * 0.35;
                   const maxH = obj.maxHeight || tmpl.height * 0.18;
@@ -371,16 +372,16 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
                     if (p.stroke && p.stroke !== 'none' && p.stroke !== 'transparent') p.set('stroke', '#ffffff');
                   });
                   fc.add(logoGroup);
+                  svgLoaded = true;
                   console.log('[DesignCanvas] SVG logo loaded as vector, scale:', s.toFixed(3));
                 }
               } catch (parseErr) {
                 console.warn('SVG parse failed, falling back to raster:', parseErr);
-                svgString = ''; // trigger raster fallback
               }
             }
 
-            // Raster fallback if SVG parsing failed
-            if (!svgString || !svgString.includes('<svg')) {
+            // Raster fallback if SVG didn't load
+            if (!svgLoaded) {
               const imgOptions: any = { crossOrigin: 'anonymous' };
               const img = await fabric.FabricImage.fromURL(obj.src, imgOptions);
               if (img && img.width) {
