@@ -80,17 +80,18 @@ export default function TopBar() {
       return [
         { label: 'Clients', href: '/clients' },
         { label: name, href: `/clients/${clientId}` },
-        { label: moduleMap[sub] || sub.slice(1) },
+        { label: moduleMap[sub] || sub.slice(1).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) },
       ];
     }
 
     const routes: Record<string, string> = {
       '/invoices': 'All Invoices', '/financials': 'Financials',
       '/settings': 'Settings', '/clients': 'Clients',
+      '/studio': 'Studio',
       '/agency/brand-kit': 'Agency Brand Kit',
       '/agency/design-studio': 'Agency Design Studio',
     };
-    return [{ label: routes[pathname] || pathname.slice(1) }];
+    return [{ label: routes[pathname] || pathname.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || pathname.slice(1) }];
   };
 
   const segments = buildSegments();
