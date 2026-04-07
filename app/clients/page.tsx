@@ -106,7 +106,6 @@ export default function ClientsPage() {
               const primary = ct.find((c) => c.isPrimary) || ct[0];
               const clientInvs = DB.invoices.filter((inv) => inv.clientId === client.id);
               const unpaid = clientInvs.filter((inv) => inv.status === 'unpaid' || inv.status === 'overdue');
-              const brandColor = (typeof client.brandKit?.colors?.[0] === 'string' ? client.brandKit.colors[0] : null) || t.text.tertiary;
 
               let statusText = 'No invoices';
               let statusColor = t.text.tertiary;
@@ -132,17 +131,19 @@ export default function ClientsPage() {
                 >
                   {/* Company */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                    {(() => { const avatarUrl = getClientAvatarUrl(client); return (
                     <div style={{
                       width: 36, height: 36, borderRadius: 8, flexShrink: 0, overflow: 'hidden',
-                      background: getClientAvatarUrl(client) ? 'transparent' : brandColor,
+                      background: avatarUrl ? 'transparent' : t.bg.surfaceHover,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: '#fff', fontSize: 13, fontWeight: 700,
+                      color: t.text.secondary, fontSize: 13, fontWeight: 700,
                     }}>
-                      {getClientAvatarUrl(client)
-                        ? <img src={getClientAvatarUrl(client)!} alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+                      {avatarUrl
+                        ? <img src={avatarUrl} alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} />
                         : (client.company || client.name).charAt(0).toUpperCase()
                       }
                     </div>
+                    ); })()}
                     <span style={{ fontSize: 14, fontWeight: 500, color: t.text.primary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {client.company || client.name}
                     </span>
