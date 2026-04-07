@@ -65,6 +65,7 @@ export default function StudioPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [bkOpen, setBkOpen] = useState(false);
+  const [recentItems, setRecentItems] = useState<{ clientId: string; clientName: string; templateId: string; templateName: string; timestamp: number }[]>([]);
 
   // Yard sign state
   const [fields, setFields] = useState<BrandBuilderFields>(DEFAULT_FIELDS);
@@ -80,6 +81,8 @@ export default function StudioPage() {
       const savedTemplate = localStorage.getItem(STUDIO_TEMPLATE_KEY);
       if (savedClient) setSelectedClient(savedClient);
       if (savedTemplate) setSelectedTemplate(savedTemplate);
+      // Load recent items
+      try { setRecentItems(JSON.parse(localStorage.getItem('manifest-studio-recent') || '[]')); } catch {}
       setLoading(false);
     };
     init();
@@ -141,6 +144,21 @@ export default function StudioPage() {
   // Persist state
   useEffect(() => { localStorage.setItem(STUDIO_CLIENT_KEY, selectedClient); }, [selectedClient]);
   useEffect(() => { if (selectedTemplate) localStorage.setItem(STUDIO_TEMPLATE_KEY, selectedTemplate); }, [selectedTemplate]);
+
+  // Track recent work
+  useEffect(() => {
+    if (!selectedTemplate || selectedClient === 'agency') return;
+    const cl = DB.clients.find(c => c.id === selectedClient);
+    if (!cl) return;
+    const tmplName = CATEGORIES.flatMap(c => c.templates).find(t => t.id === selectedTemplate)?.name || selectedTemplate;
+    const entry = { clientId: selectedClient, clientName: cl.company || cl.name || '', templateId: selectedTemplate, templateName: tmplName, timestamp: Date.now() };
+    setRecentItems(prev => {
+      const filtered = prev.filter(r => !(r.clientId === entry.clientId && r.templateId === entry.templateId));
+      const next = [entry, ...filtered].slice(0, 5);
+      localStorage.setItem('manifest-studio-recent', JSON.stringify(next));
+      return next;
+    });
+  }, [selectedClient, selectedTemplate]);
 
   const handleFieldsChange = useCallback((newFields: BrandBuilderFields) => {
     setFields(newFields);
@@ -265,6 +283,21 @@ export default function StudioPage() {
                 })}
               </div>
             ))
+          )}
+          {/* Recent Work */}
+          {recentItems.length > 0 && (
+            <div style={{ marginTop: 8, paddingTop: 12, borderTop: `1px solid ${t.border.default}` }}>
+              <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Recent</div>
+              {recentItems.map((r, i) => (
+                <div key={`${r.clientId}-${r.templateId}-${i}`}
+                  onClick={() => { setSelectedClient(r.clientId); setSelectedTemplate(r.templateId); }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 6, cursor: 'pointer', fontSize: 12, color: t.text.secondary, transition: 'background 150ms' }}
+                  onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.background = t.bg.surfaceHover}
+                  onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                  {r.clientName} <span style={{ color: t.text.tertiary }}>·</span> <span style={{ color: t.text.tertiary }}>{r.templateName}</span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
