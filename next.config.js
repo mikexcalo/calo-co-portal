@@ -9,6 +9,20 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/studio',
+        destination: '/design',
+        permanent: true,
+      },
+      {
+        source: '/clients/:id/brand-builder',
+        destination: '/design?client=:id&template=yard-sign',
+        permanent: true,
+      },
+    ];
+  },
 }
 
 module.exports = nextConfig
