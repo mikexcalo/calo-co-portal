@@ -66,7 +66,7 @@ export default function Sidebar() {
               <line x1="5.9" y1="18.1" x2="9.9" y2="14.1" /><line x1="14.1" y1="9.9" x2="18.1" y2="5.9" />
             </svg>
           </div>
-          <span style={{ fontSize: 14, fontWeight: 500, fontStyle: 'italic', color: t.text.tertiary, letterSpacing: '0.5px' }}>Helm</span>
+          <span style={{ fontSize: 14, fontWeight: 500, color: t.text.tertiary, letterSpacing: '1.2px' }}>Helm</span>
         </div>
       </div>
 
