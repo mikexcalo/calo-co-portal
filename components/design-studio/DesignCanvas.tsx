@@ -328,66 +328,59 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         });
       } else if (obj.type === 'image' && obj.src) {
         try {
-          const imgOptions: any = { crossOrigin: 'anonymous' };
-          const img = await fabric.FabricImage.fromURL(obj.src, imgOptions);
-          if (!img || !img.width) continue;
-          img.set({
-            left: obj.left, top: obj.top,
-            originX: obj.originX || 'left',
-            originY: 'top',
-            name: obj.name || '',
-            objectCaching: false, // Preserve full resolution
-          });
+          const isSvg = /\.svg($|\?)/i.test(obj.src) || obj.src.startsWith('data:image/svg');
+          const isLogo = obj.name === 'logo';
 
-          // Scale to fit within constraints — uniform scaling
-          if (obj.maxWidth) {
-            const imgW = img.width || 200;
-            const imgH = img.height || 200;
-            const maxW = obj.maxWidth;
-            const maxH = obj.maxHeight || obj.maxWidth;
-            const s = Math.min(maxW / imgW, maxH / imgH);
-            img.set({ scaleX: s, scaleY: s });
-          } else if (obj.scaleX || obj.scaleY) {
-            img.set({ scaleX: obj.scaleX || 1, scaleY: obj.scaleY || 1 });
-          }
-
-          // Logo: create white version for dark backgrounds
-          if (obj.name === 'logo') {
+          if (isSvg && isLogo) {
+            // ── SVG LOGO: load as vector paths for crisp rendering ──
             try {
-              const el = (img as any)._element || (img as any).getElement?.();
-              if (el) {
-                const tc = document.createElement('canvas');
-                tc.width = el.naturalWidth || el.width;
-                tc.height = el.naturalHeight || el.height;
-                const tctx = tc.getContext('2d');
-                if (tctx) {
-                  tctx.drawImage(el, 0, 0);
-                  const imgData = tctx.getImageData(0, 0, tc.width, tc.height);
-                  for (let i = 0; i < imgData.data.length; i += 4) {
-                    if (imgData.data[i + 3] > 10) {
-                      imgData.data[i] = 255;
-                      imgData.data[i + 1] = 255;
-                      imgData.data[i + 2] = 255;
-                      imgData.data[i + 3] = Math.min(255, imgData.data[i + 3] * 2);
-                    }
-                  }
-                  tctx.putImageData(imgData, 0, 0);
-                  const whiteImg = new Image();
-                  whiteImg.src = tc.toDataURL('image/png');
-                  await new Promise<void>((resolve) => { whiteImg.onload = () => resolve(); setTimeout(resolve, 500); });
-                  (img as any).__originalElement = el;
-                  (img as any).__whiteElement = whiteImg;
-                  // Default to white version (brand mode = dark bg)
-                  (img as any)._element = whiteImg;
-                  (img as any)._originalElement = whiteImg;
-                }
+              const { objects: svgObjs } = await fabric.loadSVGFromURL(obj.src);
+              if (svgObjs && svgObjs.length > 0) {
+                const logoGroup = new fabric.Group(svgObjs.filter(Boolean) as any[]);
+                const maxW = obj.maxWidth || tmpl.width * 0.35;
+                const maxH = obj.maxHeight || tmpl.height * 0.18;
+                const gw = logoGroup.width || 200;
+                const gh = logoGroup.height || 200;
+                const s = Math.min(maxW / gw, maxH / gh);
+                logoGroup.set({
+                  scaleX: s, scaleY: s,
+                  left: obj.left, top: obj.top,
+                  originX: obj.originX || 'left', originY: 'top',
+                  selectable: false, evented: false,
+                  name: 'logo',
+                });
+                fc.add(logoGroup);
               }
-            } catch (e) {
-              console.warn('Logo white version failed:', e);
+            } catch (svgErr) {
+              console.warn('SVG logo load failed, falling back to raster:', svgErr);
+              // Fallback to raster below
+              const imgOptions: any = { crossOrigin: 'anonymous' };
+              const img = await fabric.FabricImage.fromURL(obj.src, imgOptions);
+              if (img && img.width) {
+                const maxW = obj.maxWidth || 200; const maxH = obj.maxHeight || 200;
+                const s = Math.min(maxW / (img.width || 200), maxH / (img.height || 200));
+                img.set({ left: obj.left, top: obj.top, originX: obj.originX || 'left', originY: 'top', scaleX: s, scaleY: s, name: 'logo', selectable: false, evented: false });
+                fc.add(img);
+              }
             }
+          } else {
+            // ── RASTER IMAGE (PNG/JPG or non-logo) ──
+            const imgOptions: any = { crossOrigin: 'anonymous' };
+            const img = await fabric.FabricImage.fromURL(obj.src, imgOptions);
+            if (!img || !img.width) continue;
+            img.set({
+              left: obj.left, top: obj.top,
+              originX: obj.originX || 'left', originY: 'top',
+              name: obj.name || '', objectCaching: false,
+            });
+            if (obj.maxWidth) {
+              const s = Math.min((obj.maxWidth) / (img.width || 200), (obj.maxHeight || obj.maxWidth) / (img.height || 200));
+              img.set({ scaleX: s, scaleY: s });
+            } else if (obj.scaleX || obj.scaleY) {
+              img.set({ scaleX: obj.scaleX || 1, scaleY: obj.scaleY || 1 });
+            }
+            fc.add(img);
           }
-
-          fc.add(img);
         } catch (e) {
           console.error('Failed to load image:', obj.src?.slice(0, 80), e);
         }
