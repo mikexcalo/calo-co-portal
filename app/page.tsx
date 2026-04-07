@@ -196,19 +196,27 @@ export default function Home() {
     const isExpanded = expandedId === item.id;
 
     if (isNote) {
-      const urgency = getNoteUrgency(item.text, item.created || '');
-      const noteColor = urgency === 'overdue' ? t.status.danger : urgency === 'due-today' ? t.status.warning : t.accent.primary;
-      const noteBg = urgency === 'overdue' ? 'rgba(239,68,68,0.06)' : urgency === 'due-today' ? 'rgba(245,158,11,0.06)' : t.accent.subtle;
+      const urg = getNoteUrgency(item.text, item.created || '');
+      const urgColor = urg === 'overdue' ? '#E24B4A' : urg === 'due-today' ? '#f59e0b' : '#2563eb';
+      const urgLabel = urg === 'overdue' ? 'Overdue' : urg === 'due-today' ? 'Due today' : null;
+      const ageText = item.age === 0 ? 'Today' : item.age === 1 ? '1 day ago' : `${item.age} days ago`;
       return (
-        <div key={item.id} style={{
-          background: noteBg, borderLeft: `2px solid ${noteColor}`,
-          borderRadius: 8, padding: '10px 14px', marginBottom: 8,
-        }}>
+        <div key={item.id} style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderLeft: `3px solid ${urgColor}`, borderRadius: '0 8px 8px 0', padding: '10px 12px', marginBottom: 6 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-            <span style={{ color: noteColor, flexShrink: 0, marginTop: 1 }}>{ic.pencil}</span>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={urgColor} strokeWidth="1.3" style={{ flexShrink: 0, marginTop: 1 }}>
+              <path d="M13.3 1.5H2.7c-.7 0-1.2.5-1.2 1.2v9.6c0 .7.5 1.2 1.2 1.2h3l2.3 1.5 2.3-1.5h3c.7 0 1.2-.5 1.2-1.2V2.7c0-.7-.5-1.2-1.2-1.2z"/>
+              <line x1="4.5" y1="5.5" x2="11.5" y2="5.5"/><line x1="4.5" y1="8.5" x2="9" y2="8.5"/>
+            </svg>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, color: t.text.secondary, fontStyle: 'italic' }}>{item.text}</div>
-              <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 3 }}>{item.client}</div>
+              <div style={{ fontSize: 12, color: t.text.primary, marginBottom: 5, lineHeight: '1.45' }}>{item.text}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{ fontSize: 10, color: t.text.tertiary }}>{item.client}</span>
+                <span style={{ fontSize: 8, color: t.text.tertiary }}>·</span>
+                {urgLabel
+                  ? <span style={{ fontSize: 10, color: urgColor, fontWeight: 500 }}>{urgLabel}</span>
+                  : <span style={{ fontSize: 10, color: t.text.tertiary }}>{ageText}</span>
+                }
+              </div>
             </div>
             <button title="Remove" onClick={() => handleTrash(item.id, item.text, 'note')} style={{
               background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: t.text.tertiary, transition: 'color 150ms', flexShrink: 0,
@@ -306,7 +314,10 @@ export default function Home() {
                 disabled={noteSubmitting}
                 style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: t.text.primary, fontFamily: 'inherit' }} />
             </div>
-            {noteItems.length > 0 && <div style={{ marginBottom: 16 }}>{noteItems.map(renderItem)}</div>}
+            {noteItems.length > 0 && <div style={{ marginBottom: 0 }}>{noteItems.map(renderItem)}</div>}
+
+            <div style={{ height: 0.5, background: t.border.default, margin: '12px 0' }} />
+            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: t.text.tertiary, margin: '12px 0 8px' }}>On deck</div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '10px 14px', marginBottom: 8, transition: 'border-color 150ms' }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.4"><rect x="2" y="2" width="12" height="12" rx="3" /></svg>
