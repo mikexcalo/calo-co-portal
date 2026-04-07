@@ -270,13 +270,13 @@ function DesignContent() {
                 companyName: fields.companyName || '', phone: fields.phone || '',
                 headline: fields.headline || 'Free Consultations \u2022 Fully Insured \u2022 Budget-Friendly',
                 logoUrl: fields.logoUrl || null, qrCodeUrl: fields.qrCodeUrl || fields.website || '',
-                brandColor: fields.primaryColor || '#28502e', size: fields.signSize || '18x24', displayWidth: 540,
+                brandColor: fields.primaryColor || '#2563eb', size: fields.signSize || '18x24', displayWidth: 540,
                 showHeadline: fields.showHeadline, showPhone: fields.showPhone, showCompanyName: fields.showCompanyName,
                 showQrCode: fields.showQrCode, showLogo: (fields as any).showLogo !== false,
                 tagline: fields.tagline || '', showTagline: fields.showTagline,
                 email: fields.email || '', showEmail: fields.showEmail, website: fields.website || '', showWebsite: fields.showWebsite,
               })}
-              brandColor={fields.primaryColor || '#28502e'} darkColor={(fields as any).secondaryColor || '#1a1a1a'}
+              brandColor={fields.primaryColor || '#2563eb'} darkColor={(fields as any).secondaryColor || '#1a1a1a'}
               signSize={fields.signSize || '18x24'} savedState={null}
             />
           </div>

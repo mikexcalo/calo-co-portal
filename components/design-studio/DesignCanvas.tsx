@@ -45,7 +45,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         width: template.width,
         height: template.height,
         backgroundColor: '#f4f5f7',
-        selection: true,
+        selection: false,
         preserveObjectStacking: true,
         enableRetinaScaling: false,
         devicePixelRatio: window.devicePixelRatio || 2,
@@ -108,8 +108,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
                 scaleX: (qrPlaceholder.width || 80) / qrImg.width,
                 scaleY: (qrPlaceholder.height || 80) / qrImg.height,
                 name: 'qr-code',
-                selectable: true, evented: true,
-                hasControls: true, hasBorders: true,
+                selectable: false, evented: false, hasControls: false, hasBorders: false,
               });
               fc.remove(qrPlaceholder);
               fc.add(qrImg);
@@ -290,8 +289,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           strokeWidth: obj.strokeWidth ?? 0,
           rx: obj.rx || 0, ry: obj.ry || 0,
           originX: 'left', originY: 'top',
-          selectable: obj.selectable !== false,
-          evented: obj.evented !== false,
+          selectable: false, evented: false, hasControls: false, hasBorders: false,
           lockMovementX: obj.lockMovement || false,
           lockMovementY: obj.lockMovement || false,
           lockScalingX: obj.lockScaling || false,

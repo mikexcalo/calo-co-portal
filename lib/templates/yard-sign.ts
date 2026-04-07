@@ -148,7 +148,7 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
   }
 
   // Company name
-  const companyFontSize = Math.round(isLandscape ? W * 0.04 : W * 0.05);
+  const companyFontSize = Math.min(Math.round(isLandscape ? W * 0.04 : W * 0.05), Math.round(bottomH * 0.25));
   if (companyName && showCompanyName !== false) {
     objects.push({
       type: 'textbox', text: companyName,
