@@ -87,7 +87,8 @@ export default function TopBar() {
     const routes: Record<string, string> = {
       '/invoices': 'All Invoices', '/financials': 'Financials',
       '/settings': 'Settings', '/clients': 'Clients',
-      '/studio': 'Studio',
+      '/design': 'Design', '/studio': 'Design',
+      '/brand-kit': 'Brand Kit',
       '/agency/brand-kit': 'Agency Brand Kit',
       '/agency/design-studio': 'Agency Design Studio',
     };

@@ -2,8 +2,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function StudioRedirect() {
+export default function BrandKitRedirect() {
   const router = useRouter();
-  useEffect(() => { router.replace('/design'); }, [router]);
+  useEffect(() => { router.replace('/agency/brand-kit'); }, [router]);
   return null;
 }
