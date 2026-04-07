@@ -178,7 +178,7 @@ export default function Home() {
   });
   const noteItems: ActionItem[] = openNotes.map((n) => {
     const cl = DB.clients.find((c) => c.id === n.client_id);
-    return { id: n.id, type: 'note', text: n.content, client: cl?.company || cl?.name || '', clientId: cl?.id, age: ageDays(n.created_at), created: n.created_at };
+    return { id: n.id, type: 'note' as const, text: n.content, client: cl?.company || cl?.name || '', clientId: cl?.id, age: ageDays(n.created_at), created: n.created_at };
   }).sort((a, b) => {
     const urgencyOrder = { overdue: 0, 'due-today': 1, normal: 2 };
     const ua = urgencyOrder[getNoteUrgency(a.text, a.created || '')];
