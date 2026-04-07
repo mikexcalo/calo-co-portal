@@ -332,35 +332,58 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           const isLogo = obj.name === 'logo';
 
           if (isSvg && isLogo) {
-            // ── SVG LOGO: load as vector paths for crisp rendering ──
+            // ── SVG LOGO: load as vector paths via loadSVGFromString ──
+            let svgString = '';
             try {
-              const { objects: svgObjs } = await fabric.loadSVGFromURL(obj.src);
-              if (svgObjs && svgObjs.length > 0) {
-                const logoGroup = new fabric.Group(svgObjs.filter(Boolean) as any[]);
-                const maxW = obj.maxWidth || tmpl.width * 0.35;
-                const maxH = obj.maxHeight || tmpl.height * 0.18;
-                const gw = logoGroup.width || 200;
-                const gh = logoGroup.height || 200;
-                const s = Math.min(maxW / gw, maxH / gh);
-                logoGroup.set({
-                  scaleX: s, scaleY: s,
-                  left: obj.left, top: obj.top,
-                  originX: obj.originX || 'left', originY: 'top',
-                  selectable: false, evented: false,
-                  name: 'logo',
-                });
-                fc.add(logoGroup);
+              if (obj.src.startsWith('data:')) {
+                // Decode base64 data URL to raw SVG string
+                const base64 = obj.src.split(',')[1];
+                svgString = atob(base64);
+              } else {
+                // Fetch from Supabase URL
+                const resp = await fetch(obj.src);
+                svgString = await resp.text();
               }
-            } catch (svgErr) {
-              console.warn('SVG logo load failed, falling back to raster:', svgErr);
-              // Fallback to raster below
+            } catch (fetchErr) {
+              console.warn('Failed to get SVG string:', fetchErr);
+            }
+
+            if (svgString && svgString.includes('<svg')) {
+              try {
+                const { objects: svgObjs } = await fabric.loadSVGFromString(svgString);
+                if (svgObjs && svgObjs.length > 0) {
+                  const logoGroup = new fabric.Group(svgObjs.filter(Boolean) as any[]);
+                  const maxW = obj.maxWidth || tmpl.width * 0.35;
+                  const maxH = obj.maxHeight || tmpl.height * 0.18;
+                  const gw = logoGroup.width || 200;
+                  const gh = logoGroup.height || 200;
+                  const s = Math.min(maxW / gw, maxH / gh);
+                  logoGroup.set({
+                    scaleX: s, scaleY: s,
+                    left: obj.left, top: obj.top,
+                    originX: obj.originX || 'left', originY: 'top',
+                    selectable: false, evented: false,
+                    name: 'logo',
+                  });
+                  fc.add(logoGroup);
+                  console.log('[DesignCanvas] SVG logo loaded as vector, scale:', s.toFixed(3));
+                }
+              } catch (parseErr) {
+                console.warn('SVG parse failed, falling back to raster:', parseErr);
+                svgString = ''; // trigger raster fallback
+              }
+            }
+
+            // Raster fallback if SVG parsing failed
+            if (!svgString || !svgString.includes('<svg')) {
               const imgOptions: any = { crossOrigin: 'anonymous' };
               const img = await fabric.FabricImage.fromURL(obj.src, imgOptions);
               if (img && img.width) {
                 const maxW = obj.maxWidth || 200; const maxH = obj.maxHeight || 200;
                 const s = Math.min(maxW / (img.width || 200), maxH / (img.height || 200));
-                img.set({ left: obj.left, top: obj.top, originX: obj.originX || 'left', originY: 'top', scaleX: s, scaleY: s, name: 'logo', selectable: false, evented: false });
+                img.set({ left: obj.left, top: obj.top, originX: obj.originX || 'left', originY: 'top', scaleX: s, scaleY: s, name: 'logo', selectable: false, evented: false, objectCaching: false });
                 fc.add(img);
+                console.log('[DesignCanvas] Logo loaded as raster fallback');
               }
             }
           } else {
