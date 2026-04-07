@@ -46,7 +46,7 @@ function SettingsContent() {
       // Agency: localStorage first, merge with DB values
       const lsAg = loadJson(AGENCY_KEY, { companyName: '', address1: '', address2: '', city: '', stateZip: '', tagline: '', serviceArea: '', licenseNumber: '', taxRate: '', replyEmail: '' });
       setAg({
-        companyName: lsAg.companyName || DB.agency.name || 'CALO&CO',
+        companyName: lsAg.companyName || DB.agency.name || 'Manifest',
         address1: lsAg.address1 || '',
         address2: lsAg.address2 || '',
         city: lsAg.city || DB.agency.location || '',
@@ -178,7 +178,7 @@ function SettingsContent() {
         <div style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
           <div style={secHead}>Company</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-            <div><label style={lbl}>Company Name</label><input value={ag.companyName || ''} onChange={(e) => updateAg('companyName', e.target.value)} placeholder="CALO&CO" style={input} /></div>
+            <div><label style={lbl}>Company Name</label><input value={ag.companyName || ''} onChange={(e) => updateAg('companyName', e.target.value)} placeholder="Manifest" style={input} /></div>
             <div><label style={lbl}>Address Line 1</label><input value={ag.address1 || ''} onChange={(e) => updateAg('address1', e.target.value)} placeholder="123 Main St" style={input} /></div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
@@ -205,7 +205,7 @@ function SettingsContent() {
       {/* Save button */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
         <button onClick={handleSave} disabled={saving} style={{
-          background: t.accent.primary, color: '#fff', border: 'none', borderRadius: 8,
+          background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8,
           padding: '8px 20px', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
           opacity: saving ? 0.7 : 1,
         }}>{saving ? 'Saving...' : 'Save Changes'}</button>
