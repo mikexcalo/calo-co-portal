@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useTheme } from '@/lib/theme';
+import { DB, loadAgencySettings, saveAgencySettings } from '@/lib/database';
 import { PageLayout, Section } from '@/components/shared/PageLayout';
 import HelmSpinner from '@/components/shared/HelmSpinner';
+import Toast from '@/components/shared/Toast';
+import { AnimatePresence } from 'framer-motion';
 
 const PROFILE_KEY = 'calo-settings-profile';
 const AGENCY_KEY = 'calo-agency-settings';
@@ -21,15 +24,55 @@ function SettingsContent() {
   const { t } = useTheme();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [profile, setProfile] = useState({ name: 'Mike Calo', title: 'Founder', email: '' });
+  const [profile, setProfile] = useState({ name: '', title: '', email: '' });
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ag, setAg] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
-    setProfile(loadJson(PROFILE_KEY, { name: 'Mike Calo', title: 'Founder', email: '' }));
-    const stored = localStorage.getItem(AVATAR_KEY);
-    if (stored && stored.startsWith('data:image/')) setAvatar(stored);
-    setAg(loadJson(AGENCY_KEY, {}));
+    const init = async () => {
+      // Load agency data from Supabase via DB cache
+      await loadAgencySettings().catch(() => {});
+
+      // Profile: localStorage first, then DB.agency as fallback
+      const lsProfile = loadJson(PROFILE_KEY, { name: '', title: '', email: '' });
+      setProfile({
+        name: lsProfile.name || DB.agency.founder || 'Mike Calo',
+        title: lsProfile.title || 'Founder',
+        email: lsProfile.email || '',
+      });
+
+      // Agency: localStorage first, merge with DB values
+      const lsAg = loadJson(AGENCY_KEY, { companyName: '', address1: '', address2: '', city: '', stateZip: '', tagline: '', serviceArea: '', licenseNumber: '', taxRate: '', replyEmail: '' });
+      setAg({
+        companyName: lsAg.companyName || DB.agency.name || 'CALO&CO',
+        address1: lsAg.address1 || '',
+        address2: lsAg.address2 || '',
+        city: lsAg.city || DB.agency.location || '',
+        stateZip: lsAg.stateZip || '',
+        tagline: lsAg.tagline || '',
+        serviceArea: lsAg.serviceArea || '',
+        licenseNumber: lsAg.licenseNumber || '',
+        taxRate: lsAg.taxRate || String(DB.agencySettings.taxRate || ''),
+        replyEmail: lsAg.replyEmail || '',
+      });
+
+      // Avatar from localStorage
+      const stored = localStorage.getItem(AVATAR_KEY);
+      if (stored && stored.startsWith('data:image/')) setAvatar(stored);
+
+      // Also check Supabase headshot
+      if (!stored) {
+        try {
+          const supabase = (await import('@/lib/supabase')).default;
+          const { data } = await supabase.from('clients').select('brand_builder_fields').limit(1).single();
+          const avatarUrl = (data?.brand_builder_fields as any)?.avatarUrl;
+          if (avatarUrl && avatarUrl.startsWith('http')) setAvatar(avatarUrl);
+        } catch { /* no headshot found */ }
+      }
+    };
+    init();
   }, []);
 
   const updateProfile = (key: string, value: string) => {
@@ -45,7 +88,6 @@ function SettingsContent() {
     reader.onload = (ev) => {
       const img = new window.Image();
       img.onload = () => {
-        // Auto center-crop to 400x400 circle
         const size = 400;
         const canvas = document.createElement('canvas');
         canvas.width = size; canvas.height = size;
@@ -75,6 +117,25 @@ function SettingsContent() {
     localStorage.setItem(AGENCY_KEY, JSON.stringify(next));
   };
 
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      // Save profile to localStorage
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      // Save agency to localStorage + Supabase
+      localStorage.setItem(AGENCY_KEY, JSON.stringify(ag));
+      await saveAgencySettings(
+        parseFloat(ag.taxRate) || 28,
+        DB.agencySettings.fiscalYearStart || 1,
+        DB.agencySettings.paymentMethods || [],
+        { agencyName: ag.companyName, founderName: profile.name, website: '', city: ag.city }
+      );
+      setToast({ message: 'Settings saved', type: 'success' });
+    } catch {
+      setToast({ message: 'Failed to save', type: 'error' });
+    } finally { setSaving(false); }
+  };
+
   const input: React.CSSProperties = { width: '100%', padding: '8px 10px', fontSize: 13, background: t.bg.primary, border: `1px solid ${t.border.default}`, borderRadius: 8, color: t.text.primary, fontFamily: 'inherit', outline: 'none', transition: 'border-color 150ms' };
   const lbl: React.CSSProperties = { fontSize: 11, color: t.text.secondary, display: 'block', marginBottom: 4 };
   const secHead: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 };
@@ -86,7 +147,6 @@ function SettingsContent() {
       <Section label="Profile">
         <div style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
           <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
-            {/* Headshot */}
             <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
               <div onClick={() => fileRef.current?.click()}
                 style={{ width: 80, height: 80, borderRadius: '50%', overflow: 'hidden', cursor: 'pointer',
@@ -104,7 +164,6 @@ function SettingsContent() {
                 </div>
               )}
             </div>
-            {/* Fields */}
             <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div><label style={lbl}>Name</label><input value={profile.name} onChange={(e) => updateProfile('name', e.target.value)} placeholder="Mike Calo" style={input} /></div>
               <div><label style={lbl}>Title</label><input value={profile.title} onChange={(e) => updateProfile('title', e.target.value)} placeholder="Founder" style={input} /></div>
@@ -127,18 +186,14 @@ function SettingsContent() {
             <div><label style={lbl}>City</label><input value={ag.city || ''} onChange={(e) => updateAg('city', e.target.value)} placeholder="Portland" style={input} /></div>
             <div><label style={lbl}>State / ZIP</label><input value={ag.stateZip || ''} onChange={(e) => updateAg('stateZip', e.target.value)} placeholder="ME 04101" style={input} /></div>
           </div>
-
           <div style={divider} />
-
           <div style={secHead}>Business Info</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
             <div><label style={lbl}>Tagline</label><input value={ag.tagline || ''} onChange={(e) => updateAg('tagline', e.target.value)} placeholder="Your trusted partner" style={input} /></div>
             <div><label style={lbl}>Service Area</label><input value={ag.serviceArea || ''} onChange={(e) => updateAg('serviceArea', e.target.value)} placeholder="Portland Metro" style={input} /></div>
             <div><label style={lbl}>License / Cert #</label><input value={ag.licenseNumber || ''} onChange={(e) => updateAg('licenseNumber', e.target.value)} placeholder="LIC-12345" style={input} /></div>
           </div>
-
           <div style={divider} />
-
           <div style={secHead}>Billing & Communication</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div><label style={lbl}>Tax Rate (%)</label><input type="number" min="0" max="100" step="0.1" value={ag.taxRate || ''} onChange={(e) => updateAg('taxRate', e.target.value)} placeholder="28" style={input} /></div>
@@ -146,6 +201,19 @@ function SettingsContent() {
           </div>
         </div>
       </Section>
+
+      {/* Save button */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+        <button onClick={handleSave} disabled={saving} style={{
+          background: t.accent.primary, color: '#fff', border: 'none', borderRadius: 8,
+          padding: '8px 20px', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+          opacity: saving ? 0.7 : 1,
+        }}>{saving ? 'Saving...' : 'Save Changes'}</button>
+      </div>
+
+      <AnimatePresence>
+        {toast && <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />}
+      </AnimatePresence>
     </PageLayout>
   );
 }
