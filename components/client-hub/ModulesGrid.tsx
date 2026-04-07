@@ -125,7 +125,7 @@ export default function ModulesGrid({
       {/* Brand Builder — visible in both views */}
       <button
         className="module-card"
-        onClick={() => router.push(`/clients/${clientId}/brand-builder`)}
+        onClick={() => router.push(`/design?client=${clientId}`)}
       >
         <div className="mc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#6b7280" strokeWidth="1.3" strokeLinejoin="round"/><path d="M2 17l10 5 10-5" stroke="#6b7280" strokeWidth="1.3" strokeLinejoin="round"/><path d="M2 12l10 5 10-5" stroke="#6b7280" strokeWidth="1.3" strokeLinejoin="round"/></svg></div>
         <div className="mc-name">Brand Builder</div>

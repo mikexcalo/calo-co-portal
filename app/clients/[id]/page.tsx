@@ -286,9 +286,9 @@ export default function ClientHubPage() {
         <div>
           <Section label="Quick links">
             <CardGrid columns={2}>
-              <Card onClick={() => router.push(`/clients/${clientId}/brand-builder`)}>
-                <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke={t.text.secondary} strokeWidth="1.3" style={{ marginBottom: 6 }}><ellipse cx="7.5" cy="8.5" rx="6.5" ry="5.5"/><circle cx="5" cy="7" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="10.5" cy="8" r="1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="10" r="0.8" fill="none" stroke="currentColor" strokeWidth="1"/></svg>
-                <div style={{ fontSize: 15, fontWeight: 600, color: t.text.primary }}>Design Studio</div>
+              <Card onClick={() => router.push(`/design?client=${clientId}`)}>
+                <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke={t.text.secondary} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 6 }}><path d="M10.5 2L14 5.5 5.5 14H2v-3.5z" /><line x1="8.5" y1="4" x2="12" y2="7.5" /></svg>
+                <div style={{ fontSize: 15, fontWeight: 600, color: t.text.primary }}>Design</div>
                 <div style={{ fontSize: 13, color: t.text.tertiary }}>Create print + digital assets</div>
               </Card>
               <Card onClick={() => router.push(`/clients/${clientId}/brand-kit${isClient ? '?viewMode=view' : ''}`)}>
