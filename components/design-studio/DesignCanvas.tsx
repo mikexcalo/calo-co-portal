@@ -332,20 +332,22 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           const isLogo = obj.name === 'logo';
 
           if (isSvg && isLogo) {
-            // ── SVG LOGO: load as vector paths via loadSVGFromString ──
+            // ── SVG LOGO: vector paths via loadSVGFromString ──
             let svgString = '';
             try {
               if (obj.src.startsWith('data:')) {
-                // Decode base64 data URL to raw SVG string
-                const base64 = obj.src.split(',')[1];
-                svgString = atob(base64);
+                const base64Match = obj.src.match(/base64,(.+)/);
+                if (base64Match) {
+                  svgString = atob(base64Match[1]);
+                } else {
+                  svgString = decodeURIComponent(obj.src.split(',')[1] || '');
+                }
               } else {
-                // Fetch from Supabase URL
                 const resp = await fetch(obj.src);
                 svgString = await resp.text();
               }
             } catch (fetchErr) {
-              console.warn('Failed to get SVG string:', fetchErr);
+              console.warn('[DesignCanvas] Failed to get SVG string:', fetchErr);
             }
 
             let svgLoaded = false;
@@ -359,14 +361,17 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
                   const gw = logoGroup.width || 200;
                   const gh = logoGroup.height || 200;
                   const s = Math.min(maxW / gw, maxH / gh);
+                  // Position: convert center-origin to left-origin
+                  let leftPos = obj.left || 0;
+                  if (obj.originX === 'center') leftPos = leftPos - (gw * s) / 2;
                   logoGroup.set({
                     scaleX: s, scaleY: s,
-                    left: obj.left, top: obj.top,
-                    originX: obj.originX || 'left', originY: 'top',
+                    left: leftPos, top: obj.top || 0,
+                    originX: 'left', originY: 'top',
                     selectable: false, evented: false,
                     name: 'logo',
                   });
-                  // Default: white logo on dark background (brand mode)
+                  // White fills for dark background (default brand mode)
                   logoGroup.getObjects().forEach((p: any) => {
                     if (p.fill && p.fill !== 'none' && p.fill !== 'transparent') p.set('fill', '#ffffff');
                     if (p.stroke && p.stroke !== 'none' && p.stroke !== 'transparent') p.set('stroke', '#ffffff');
@@ -376,11 +381,11 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
                   console.log('[DesignCanvas] SVG logo loaded as vector, scale:', s.toFixed(3));
                 }
               } catch (parseErr) {
-                console.warn('SVG parse failed, falling back to raster:', parseErr);
+                console.warn('[DesignCanvas] SVG parse failed:', parseErr);
               }
             }
 
-            // Raster fallback if SVG didn't load
+            // Raster fallback
             if (!svgLoaded) {
               const imgOptions: any = { crossOrigin: 'anonymous' };
               const img = await fabric.FabricImage.fromURL(obj.src, imgOptions);
