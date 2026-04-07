@@ -80,22 +80,22 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
     },
   ];
 
-  // Logo — 5% top padding, 90% max width (5% each side)
+  // Logo — constrained to 35% width, 18% height
   if (logoUrl && showLogo !== false) {
     objects.push({
       type: 'image', src: logoUrl,
       left: W / 2,
-      top: Math.round(topH * 0.08),
+      top: Math.round(topH * 0.05),
       originX: 'center',
-      maxWidth: W * 0.7,
-      maxHeight: isLandscape ? topH * 0.22 : topH * 0.25,
+      maxWidth: W * 0.35,
+      maxHeight: topH * 0.18,
       name: 'logo',
     });
   }
 
   // Headline — single line, auto-scale font to fit, clears logo
-  const logoTop = Math.round(topH * 0.08);
-  const logoMaxH = isLandscape ? topH * 0.22 : topH * 0.25;
+  const logoTop = Math.round(topH * 0.05);
+  const logoMaxH = topH * 0.18;
   const logoBottom = (logoUrl && showLogo !== false) ? logoTop + logoMaxH + Math.round(topH * 0.03) : Math.round(topH * 0.08);
 
   if (headline && showHeadline !== false) {

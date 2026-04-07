@@ -339,13 +339,14 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
             objectCaching: false, // Preserve full resolution
           });
 
-          // Scale to fit within constraints — never scale UP
-          if (obj.maxWidth && img.width && img.height) {
+          // Scale to fit within constraints — uniform scaling
+          if (obj.maxWidth) {
+            const imgW = img.width || 200;
+            const imgH = img.height || 200;
             const maxW = obj.maxWidth;
             const maxH = obj.maxHeight || obj.maxWidth;
-            const s = Math.min(maxW / img.width, maxH / img.height, 1);
-            img.scaleX = s;
-            img.scaleY = s;
+            const s = Math.min(maxW / imgW, maxH / imgH);
+            img.set({ scaleX: s, scaleY: s });
           } else if (obj.scaleX || obj.scaleY) {
             img.set({ scaleX: obj.scaleX || 1, scaleY: obj.scaleY || 1 });
           }
@@ -530,9 +531,6 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
     <div onClick={handleClickAway}>
       {/* Toolbar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap', maxWidth: template.width }}>
-        <button disabled title="Coming soon" style={{ ...btnStyle, opacity: 0.35, cursor: 'default' }}>↩ Undo</button>
-        <button disabled title="Coming soon" style={{ ...btnStyle, opacity: 0.35, cursor: 'default' }}>↪ Redo</button>
-        <button onClick={handleAddText} style={btnStyle}>+ Text</button>
         {selectedObject && selectedObject.name !== 'brand-bg' && selectedObject.name !== 'white-strip' && (
           <button onClick={handleDelete} style={{ ...btnStyle, color: '#991b1b' }}>Delete</button>
         )}
