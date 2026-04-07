@@ -289,11 +289,12 @@ export default function BrandBuilderPage() {
       <div style={{ maxWidth: 980, margin: '0 auto', padding: '12px 24px 0' }}>
       {!hasBrandKit && (
         <div style={{
-          background: 'rgba(37,99,235,0.04)', border: '1px solid rgba(37,99,235,0.12)', borderRadius: 8,
-          padding: '10px 16px', marginBottom: 18, fontSize: 13, color: t.text.secondary,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 8,
+          padding: '10px 16px', marginBottom: 18, fontSize: 13, color: '#ef4444',
+          display: 'flex', alignItems: 'center', gap: 8,
         }}>
-          <span>Complete your Brand Kit to auto-populate templates <span onClick={() => router.push(`/clients/${clientId}/brand-kit`)} style={{ color: t.accent.text, fontWeight: 500, cursor: 'pointer' }}>Go to Brand Kit →</span></span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>Complete your Brand Kit to auto-populate templates <span onClick={() => router.push(`/clients/${clientId}/brand-kit`)} style={{ fontWeight: 500, cursor: 'pointer', textDecoration: 'underline' }}>Go to Brand Kit →</span></span>
         </div>
       )}
       </div>
@@ -413,26 +414,36 @@ export default function BrandBuilderPage() {
               <h1 style={{ fontSize: 20, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>Design Studio</h1>
               <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>{clientName} templates</p>
             </div>
-            {/* Print section */}
-            <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Print</div>
+            {/* Get Noticed */}
+            <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Get Noticed in the Neighborhood</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
-              <TemplateCard id="business-card" label="Business Cards" desc="Front + Back" status="not-started" onClick={() => handleAssetTypeChange('business-card' as AssetType)} />
               <TemplateCard id="yard-sign" label="Yard Signs" desc="5 sizes" status="in-progress" onClick={() => handleAssetTypeChange('yard-sign' as AssetType)} />
-              <TemplateCard id="vehicle-magnet" label="Vehicle Magnets" desc="24 × 12 in" status="not-started" onClick={() => handleAssetTypeChange('vehicle-magnet' as AssetType)} />
-              <TemplateCard id="t-shirt" label="T-Shirts" desc="Front + Back" status="not-started" onClick={() => handleAssetTypeChange('t-shirt' as AssetType)} />
               <TemplateCard id="door-hanger" label="Door Hangers" desc="4.25 × 11 in" status="not-started" onClick={() => handleAssetTypeChange('door-hanger' as AssetType)} />
+              <TemplateCard id="vehicle-magnet" label="Vehicle Magnets" desc="24 × 12 in" status="not-started" onClick={() => handleAssetTypeChange('vehicle-magnet' as AssetType)} />
               <TemplateCard id="flyer" label="Flyers" desc="8.5 × 11 in" status="not-started" onClick={() => handleAssetTypeChange('flyer' as AssetType)} />
-              <TemplateCard id="poster" label="Posters" desc="3 sizes" status="not-started" />
-              <TemplateCard id="one-pager" label="One-Pagers" desc="Sales + case study" status="not-started" />
               <TemplateCard id="direct-mail" label="Direct Mail" desc="Postcards · 6 × 4 in" status="not-started" />
             </div>
 
-            {/* Digital section */}
-            <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Digital</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+            {/* Look Professional */}
+            <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Look Professional Everywhere</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
+              <TemplateCard id="business-card" label="Business Cards" desc="Front + Back" status="not-started" onClick={() => handleAssetTypeChange('business-card' as AssetType)} />
               <TemplateCard id="email-signature" label="Email Signature" desc="Gmail · Outlook" status="not-started" onClick={() => router.push(`/clients/${clientId}/email-signature`)} />
+              <TemplateCard id="one-pager" label="One-Pagers" desc="Sales + case study" status="not-started" />
+            </div>
+
+            {/* Stand Out Online */}
+            <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Stand Out Online</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
               <TemplateCard id="social-graphics" label="Social Graphics" desc="IG · LinkedIn · FB" status="not-started" />
               <TemplateCard id="web-banners" label="Web Banners" desc="Hero · sidebar · leaderboard" status="coming-soon" />
+            </div>
+
+            {/* Gear Up */}
+            <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Gear Up the Crew</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+              <TemplateCard id="t-shirt" label="T-Shirts" desc="Front + Back" status="not-started" onClick={() => handleAssetTypeChange('t-shirt' as AssetType)} />
+              <TemplateCard id="poster" label="Posters" desc="3 sizes" status="not-started" />
             </div>
           </div>
         )}
@@ -459,18 +470,20 @@ function TemplateCard({ id, label, desc, onClick, status = 'not-started' }: {
         cursor: 'pointer', transition: 'border-color 150ms, background 150ms',
         width: '100%', textAlign: 'left' as const, fontFamily: 'inherit',
         display: 'flex', flexDirection: 'column' as const, color: t.text.primary,
+        position: 'relative' as const,
       }}
     >
+      {status !== 'not-started' && (
+        <span style={{ position: 'absolute', top: 8, right: 8, fontSize: 10, padding: '2px 8px', borderRadius: 4,
+          background: status === 'in-progress' ? 'rgba(245,158,11,0.1)' : 'rgba(14,165,233,0.1)',
+          color: status === 'in-progress' ? '#f59e0b' : '#0ea5e9',
+        }}>{status === 'in-progress' ? 'In progress' : 'Coming soon'}</span>
+      )}
       <div style={{ color: hovered ? t.accent.text : t.text.secondary, transition: 'color 150ms', marginBottom: 10 }}>
         <AssetIcon id={id} size={20} />
       </div>
       <div style={{ fontSize: 13, fontWeight: 500 }}>{label}</div>
       <div style={{ fontSize: 12, color: t.text.secondary, marginTop: 2, flex: 1 }}>{desc}</div>
-      <div style={{ marginTop: 8 }}>
-        {status === 'in-progress' && <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: t.radius.sm, background: 'rgba(245,158,11,0.1)', color: '#f59e0b' }}>In progress</span>}
-        {status === 'coming-soon' && <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: t.radius.sm, background: 'rgba(14,165,233,0.1)', color: '#0ea5e9' }}>Coming soon</span>}
-        {status === 'not-started' && <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: t.radius.sm, background: t.bg.primary, color: t.text.secondary }}>Not started</span>}
-      </div>
     </motion.button>
   );
 }
