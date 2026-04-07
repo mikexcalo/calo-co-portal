@@ -36,7 +36,7 @@ export default function ClientsPage() {
     init();
   }, []);
 
-  if (isLoading) return <div style={{ position: 'fixed', bottom: 24, right: 24, opacity: 0.4, zIndex: 10 }}><HelmSpinner size={20} /></div>;
+  if (isLoading) return null;
 
   const sorted = [...clients].sort((a, b) => (a.company || a.name).localeCompare(b.company || b.name));
 

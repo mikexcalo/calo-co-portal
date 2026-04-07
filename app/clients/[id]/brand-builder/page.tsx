@@ -22,7 +22,7 @@ import { motion } from 'framer-motion';
 
 const DesignCanvas = dynamic(
   () => import('@/components/design-studio/DesignCanvas'),
-  { ssr: false, loading: () => <div style={{ padding: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelmSpinner /></div> }
+  { ssr: false, loading: () => null }
 );
 
 export default function BrandBuilderPage() {
@@ -270,13 +270,7 @@ export default function BrandBuilderPage() {
     }, 500);
   }, [clientId]);
 
-  if (isLoading) {
-    return (
-      <div style={{ position: 'fixed', bottom: 24, right: 24, opacity: 0.4, zIndex: 10 }}>
-        <HelmSpinner size={20} />
-      </div>
-    );
-  }
+  if (isLoading) return null;
 
   if (!client) return null;
 

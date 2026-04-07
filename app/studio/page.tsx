@@ -13,7 +13,7 @@ import { BrandBuilderFields, DEFAULT_FIELDS } from '@/components/brand-builder/t
 import FieldEditor from '@/components/brand-builder/FieldEditor';
 import supabase from '@/lib/supabase';
 
-const DesignCanvas = dynamic(() => import('@/components/design-studio/DesignCanvas'), { ssr: false, loading: () => <div style={{ padding: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelmSpinner /></div> });
+const DesignCanvas = dynamic(() => import('@/components/design-studio/DesignCanvas'), { ssr: false, loading: () => null });
 
 const STUDIO_CLIENT_KEY = 'manifest-studio-client';
 const STUDIO_TEMPLATE_KEY = 'manifest-studio-template';
@@ -169,7 +169,7 @@ export default function StudioPage() {
     }, 500);
   }, [selectedClient]);
 
-  if (loading) return <div style={{ position: 'fixed', bottom: 24, right: 24, opacity: 0.4, zIndex: 10 }}><HelmSpinner size={20} /></div>;
+  if (loading) return null;
 
   const client = clients.find(c => c.id === selectedClient);
   const clientName = selectedClient === 'agency' ? 'Agency' : (client?.company || 'Client');

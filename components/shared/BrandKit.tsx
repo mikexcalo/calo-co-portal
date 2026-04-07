@@ -101,7 +101,7 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
     load();
   }, [context, entityId]);
 
-  if (loading) return <div style={{ padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelmSpinner /></div>;
+  if (loading) return null;
   if (error || !brandKit) return <div style={{ padding: 16, fontSize: 13, color: t.status.danger }}>{error || 'Brand Kit not found'}</div>;
 
   const handleLogoChange = async () => { setBrandKit({ ...brandKit }); };

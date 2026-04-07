@@ -3,6 +3,7 @@ import './globals.css';
 import { GeistSans } from 'geist/font/sans';
 import Sidebar from '@/components/Sidebar';
 import TopBar from '@/components/TopBar';
+import HelmSpinner from '@/components/shared/HelmSpinner';
 import { ThemeProvider } from '@/lib/theme';
 
 export const metadata: Metadata = {
@@ -27,6 +28,7 @@ export default function RootLayout({
               <main style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
                 {children}
               </main>
+              <HelmSpinner />
             </div>
           </div>
         </ThemeProvider>

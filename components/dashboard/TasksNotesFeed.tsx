@@ -102,7 +102,7 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9ca3af', marginBottom: 8 }}>Action Items</div>
 
       {!loaded ? (
-        <div style={{ padding: 4, display: 'flex', alignItems: 'center' }}><HelmSpinner size={16} /></div>
+        null
       ) : !hasItems ? (
         <div style={{ fontSize: 12, color: '#9ca3af', padding: '8px 2px', lineHeight: 1.5 }}>No action items right now.</div>
       ) : (
