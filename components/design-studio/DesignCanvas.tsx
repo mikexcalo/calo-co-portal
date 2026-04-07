@@ -365,6 +365,11 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
                     selectable: false, evented: false,
                     name: 'logo',
                   });
+                  // Default: white logo on dark background (brand mode)
+                  logoGroup.getObjects().forEach((p: any) => {
+                    if (p.fill && p.fill !== 'none' && p.fill !== 'transparent') p.set('fill', '#ffffff');
+                    if (p.stroke && p.stroke !== 'none' && p.stroke !== 'transparent') p.set('stroke', '#ffffff');
+                  });
                   fc.add(logoGroup);
                   console.log('[DesignCanvas] SVG logo loaded as vector, scale:', s.toFixed(3));
                 }
@@ -470,8 +475,27 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
     const hasCardBg = fc.getObjects().some((o: any) => o.name === 'card-bg');
     const fills = hasCardBg ? bcMap[mode] : colorMap[mode];
 
+    const isDarkBg = mode !== 'light';
+    const logoFill = isDarkBg ? '#ffffff' : null; // white on dark, restore on light
+
     fc.getObjects().forEach((obj: any) => {
       if (fills[obj.name]) obj.set('fill', fills[obj.name]);
+
+      // SVG logo group — recolor all paths
+      if (obj.name === 'logo' && typeof obj.getObjects === 'function') {
+        obj.getObjects().forEach((p: any) => {
+          if (logoFill) {
+            if (p.fill && p.fill !== 'none' && p.fill !== 'transparent') p.set('fill', logoFill);
+            if (p.stroke && p.stroke !== 'none' && p.stroke !== 'transparent') p.set('stroke', logoFill);
+          } else {
+            // Light mode: use dark fills for visibility
+            if (p.fill && p.fill !== 'none' && p.fill !== 'transparent') p.set('fill', '#1a1a1a');
+            if (p.stroke && p.stroke !== 'none' && p.stroke !== 'transparent') p.set('stroke', '#1a1a1a');
+          }
+        });
+        obj.dirty = true;
+      }
+      // Raster logo — swap elements (legacy path)
       if (obj.name === 'logo' && obj.__originalElement && obj.__whiteElement) {
         if (mode === 'light') {
           obj._element = obj.__originalElement;
