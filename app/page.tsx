@@ -342,14 +342,10 @@ export default function Home() {
 
           {/* Col 2 — Clients (accordion) */}
           <div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {clients.map((client) => {
                 const ct = DB.contacts[client.id] || [];
                 const primary = ct.find((c) => c.isPrimary) || ct[0];
-                const brandColor = (typeof client.brandKit?.colors?.[0] === 'string' ? client.brandKit.colors[0] : null) || t.text.tertiary;
-                const isExp = expandedClient === client.id;
-
-                // Status indicators
                 const clientInvs = DB.invoices.filter((i) => i.clientId === client.id);
                 const clientOutstanding = clientInvs.filter((i) => i.status === 'unpaid' || i.status === 'overdue').reduce((s, i) => s + invTotal(i), 0);
                 const clientTasks = allTasks.filter((tk) => tk.client_id === client.id);
@@ -359,42 +355,23 @@ export default function Home() {
                   || clientInvs.some((i) => i.date && now - new Date(i.date).getTime() < sevenDays);
                 const statusColor = clientOutstanding > 0 ? '#f59e0b' : recentActivity ? '#10b981' : '#9ca3af';
 
-                // Last activity
-                const allDates = [
-                  ...clientTasks.map((tk) => new Date(tk.created_at).getTime()),
-                  ...clientInvs.map((i) => i.date ? new Date(i.date).getTime() : 0),
-                ].filter(Boolean);
-                const lastActivityMs = allDates.length > 0 ? Math.max(...allDates) : 0;
-                const daysAgo = lastActivityMs > 0 ? Math.floor((now - lastActivityMs) / 86400000) : -1;
-                const lastActivityText = daysAgo === 0 ? 'Today' : daysAgo === 1 ? '1 day ago' : daysAgo > 0 ? `${daysAgo} days ago` : 'No recent activity';
-
                 return (
                   <div key={client.id}
-                    style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, padding: '12px 14px', cursor: 'pointer', transition: 'transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease, border-color 150ms' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', cursor: 'pointer', background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, transition: 'background 150ms' }}
+                    onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.background = t.bg.surfaceHover}
+                    onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.background = t.bg.surface}
                     onClick={() => router.push(`/clients/${client.id}`)}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, overflow: 'hidden', background: getClientAvatarUrl(client) ? 'transparent' : '#1a2540', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#5a8abb', fontSize: 11, fontWeight: 700 }}>
-                        {getClientAvatarUrl(client) ? <img src={getClientAvatarUrl(client)!} alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} /> : (client.company || client.name).charAt(0)}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>{client.company || client.name}</div>
-                        <div style={{ fontSize: 11, color: t.text.tertiary }}>{primary ? `${primary.name}${primary.title ? ' \u00b7 ' + primary.title : ''}` : 'No contact'}</div>
-                        <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
-                          <div style={{ width: 6, height: 6, borderRadius: '50%', background: statusColor, flexShrink: 0 }} />
-                          Last activity: {lastActivityText}
-                        </div>
-                        {clientOutstanding > 0 && <div style={{ fontSize: 11, color: '#f59e0b', marginTop: 1 }}>{currency(clientOutstanding)} outstanding</div>}
-                      </div>
-                      <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                        {clientInvs.length > 0 && <span style={{ fontSize: 9, color: t.text.tertiary, background: 'rgba(255,255,255,0.05)', borderRadius: 4, padding: '2px 7px', whiteSpace: 'nowrap' }}>Invoices</span>}
-                        {client.brandKit?.logos && Object.values(client.brandKit.logos).some((v: any) => v?.length > 0) && <span style={{ fontSize: 9, color: t.text.tertiary, background: 'rgba(255,255,255,0.05)', borderRadius: 4, padding: '2px 7px', whiteSpace: 'nowrap' }}>Brand Kit</span>}
-                      </div>
-                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3" style={{ flexShrink: 0 }}>
-                        <polyline points="6 4 10 8 6 12" />
-                      </svg>
+                    <div style={{ width: 28, height: 28, borderRadius: 6, flexShrink: 0, overflow: 'hidden', background: getClientAvatarUrl(client) ? 'transparent' : '#1a2540', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#5a8abb', fontSize: 10, fontWeight: 700 }}>
+                      {getClientAvatarUrl(client) ? <img src={getClientAvatarUrl(client)!} alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : (client.company || client.name).charAt(0)}
                     </div>
+                    <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: t.text.primary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{client.company || client.name}</div>
+                      <div style={{ fontSize: 11, color: t.text.secondary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{primary ? primary.name : 'No contact'}</div>
+                    </div>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: statusColor, flexShrink: 0 }} />
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3" style={{ flexShrink: 0 }}>
+                      <polyline points="6 4 10 8 6 12" />
+                    </svg>
                   </div>
                 );
               })}
