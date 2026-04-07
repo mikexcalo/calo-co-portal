@@ -103,7 +103,7 @@ function DesignContent() {
 
   // Load fields when client/template changes
   useEffect(() => {
-    if (!selectedTemplate || selectedClient === 'agency') return;
+    if (!selectedTemplate || selectedClient === 'agency' || loading || clients.length === 0) return;
     const load = async () => {
       const client = DB.clients.find(c => c.id === selectedClient);
       if (!client) return;
@@ -148,7 +148,7 @@ function DesignContent() {
     }, 500);
   }, [selectedClient]);
 
-  const selectClient = (id: string) => { setSelectedClient(id); setDropdownOpen(false); setClientSearch(''); setSelectedTemplate(null); };
+  const selectClient = (id: string) => { setSelectedClient(id); setDropdownOpen(false); setClientSearch(''); setFields({ ...DEFAULT_FIELDS }); };
 
   if (loading) return null;
 
@@ -265,7 +265,7 @@ function DesignContent() {
         {selectedTemplate === 'yard-sign' && selectedClient !== 'agency' ? (
           <div style={{ padding: 24 }}>
             <DesignCanvas
-              key={`ys-${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}-${fields.showTagline}-${fields.showEmail}-${fields.showWebsite}-${(fields as any).showLogo}`}
+              key={`ys-${selectedClient}-${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}-${fields.showTagline}-${fields.showEmail}-${fields.showWebsite}-${(fields as any).showLogo}`}
               template={getYardSignTemplate({
                 companyName: fields.companyName || '', phone: fields.phone || '',
                 headline: fields.headline || 'Free Consultations \u2022 Fully Insured \u2022 Budget-Friendly',
