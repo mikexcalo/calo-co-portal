@@ -11,7 +11,6 @@ import { currency, metricColor } from '@/lib/utils';
 import { useTheme } from '@/lib/theme';
 import useCountUp from '@/lib/useCountUp';
 import { motion } from 'framer-motion';
-import { GhostButton } from '@/components/shared/Brand';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } };
@@ -78,12 +77,23 @@ export default function FinancialsPage() {
             <h1 style={{ fontSize: 24, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>Financials</h1>
             <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>Agency-wide revenue and expense tracking</p>
           </div>
-          <GhostButton
+          <button
             onClick={handlePrintPL}
-            icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="6" y="1" width="12" height="8"/><rect x="2" y="9" width="20" height="10" rx="2"/><rect x="6" y="15" width="12" height="8"/></svg>}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: 'transparent', color: t.text.secondary,
+              border: `1.5px solid ${t.border.default}`, borderRadius: 8,
+              padding: '8px 16px', fontSize: 13, fontWeight: 500,
+              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 150ms',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = t.bg.surfaceHover; e.currentTarget.style.borderColor = t.border.hover; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = t.border.default; }}
           >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="6" y="1" width="12" height="8"/><rect x="2" y="9" width="20" height="10" rx="2"/><rect x="6" y="15" width="12" height="8"/>
+            </svg>
             Print P&L
-          </GhostButton>
+          </button>
         </motion.div>
 
         {/* Period toggle */}
