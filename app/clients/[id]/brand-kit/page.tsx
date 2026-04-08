@@ -8,6 +8,7 @@ import { PageLayout } from '@/components/shared/PageLayout';
 import BrandKit from '@/components/shared/BrandKit';
 import { useTheme } from '@/lib/theme';
 import HelmSpinner from '@/components/shared/HelmSpinner';
+import BrandVoice from '@/components/BrandVoice';
 
 export default function BrandKitPage() {
   return <Suspense fallback={<div style={{ padding: 32, opacity: 0.5, fontSize: 13 }}>Loading...</div>}><BrandKitPageContent /></Suspense>;
@@ -85,6 +86,7 @@ function BrandKitPageContent() {
       ) : undefined}
     >
       <BrandKit context={{ type: 'client', clientId }} readOnly={readOnly} />
+      <BrandVoice clientId={clientId} />
     </PageLayout>
   );
 }
