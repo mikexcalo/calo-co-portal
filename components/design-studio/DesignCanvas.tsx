@@ -271,10 +271,70 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           // if (onSave) onSave(json);  // disabled: don't save canvas state until rendering is stable
         }
       });
+
+      // ── Keyboard shortcuts ──
+      const handleKeyDown = async (e: KeyboardEvent) => {
+        if (!fc) return;
+        const active = fc.getActiveObject();
+        const isCmd = e.metaKey || e.ctrlKey;
+
+        // Delete / Backspace — remove selected object
+        if ((e.key === 'Delete' || e.key === 'Backspace') && active && active.name !== 'brand-bg' && active.name !== 'white-strip') {
+          e.preventDefault();
+          fc.remove(active);
+          fc.discardActiveObject();
+          fc.renderAll();
+          return;
+        }
+
+        // Cmd+D — duplicate selected object
+        if (isCmd && e.key === 'd' && active) {
+          e.preventDefault();
+          try {
+            const cloned = await active.clone();
+            cloned.set({ left: (cloned.left || 0) + 20, top: (cloned.top || 0) + 20, name: '' });
+            fc.add(cloned);
+            fc.setActiveObject(cloned);
+            fc.renderAll();
+          } catch {}
+          return;
+        }
+
+        // Cmd+Z — undo
+        if (isCmd && e.key === 'z' && !e.shiftKey) {
+          e.preventDefault();
+          if (historyIndexRef.current > 0) {
+            historyIndexRef.current--;
+            isUndoRedoRef.current = true;
+            fc.loadFromJSON(historyRef.current[historyIndexRef.current], () => { fc.renderAll(); isUndoRedoRef.current = false; });
+          }
+          return;
+        }
+
+        // Cmd+Shift+Z — redo
+        if (isCmd && e.key === 'z' && e.shiftKey) {
+          e.preventDefault();
+          if (historyIndexRef.current < historyRef.current.length - 1) {
+            historyIndexRef.current++;
+            isUndoRedoRef.current = true;
+            fc.loadFromJSON(historyRef.current[historyIndexRef.current], () => { fc.renderAll(); isUndoRedoRef.current = false; });
+          }
+          return;
+        }
+      };
+
+      document.addEventListener('keydown', handleKeyDown);
+      // Store ref for cleanup
+      (fc as any).__keyHandler = handleKeyDown;
     };
 
     initCanvas();
-    return () => { if (fc) fc.dispose(); };
+    return () => {
+      if (fc) {
+        if ((fc as any).__keyHandler) document.removeEventListener('keydown', (fc as any).__keyHandler);
+        fc.dispose();
+      }
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
