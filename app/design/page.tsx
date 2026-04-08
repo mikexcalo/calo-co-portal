@@ -138,7 +138,7 @@ function DesignContent() {
       setFields(f);
     };
     load();
-  }, [selectedClient, selectedTemplate]);
+  }, [selectedClient, selectedTemplate, loading, clients.length]);
 
   const handleFieldsChange = useCallback((f: BrandBuilderFields) => {
     setFields(f);
