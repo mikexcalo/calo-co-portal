@@ -87,22 +87,22 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
       left: W / 2,
       top: Math.round(topH * 0.05),
       originX: 'center',
-      maxWidth: W * 0.35,
-      maxHeight: topH * 0.18,
+      maxWidth: W * 0.50,
+      maxHeight: topH * 0.28,
       name: 'logo',
     });
   }
 
   // Headline — single line, auto-scale font to fit, clears logo
   const logoTop = Math.round(topH * 0.05);
-  const logoMaxH = topH * 0.18;
+  const logoMaxH = topH * 0.28;
   const logoBottom = (logoUrl && showLogo !== false) ? logoTop + logoMaxH + Math.round(topH * 0.03) : Math.round(topH * 0.08);
 
   if (headline && showHeadline !== false) {
     const maxWidth = W * 0.85;
     const baseFontSize = isLandscape ? W * 0.055 : W * 0.065;
     const estimatedWidth = headline.length * baseFontSize * 0.55;
-    const finalFontSize = Math.max(14, estimatedWidth > maxWidth
+    const finalFontSize = Math.max(16, estimatedWidth > maxWidth
       ? Math.round(baseFontSize * (maxWidth / estimatedWidth))
       : Math.round(baseFontSize));
 
