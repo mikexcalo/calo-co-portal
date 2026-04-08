@@ -13,6 +13,7 @@ import FieldEditor from '@/components/brand-builder/FieldEditor';
 import supabase from '@/lib/supabase';
 import { Suspense } from 'react';
 import { getClientAvatarUrl } from '@/lib/clientAvatar';
+import { GhostButton } from '@/components/shared/Brand';
 
 const DesignCanvas = dynamic(() => import('@/components/design-studio/DesignCanvas'), { ssr: false, loading: () => null });
 
@@ -164,10 +165,11 @@ function DesignContent() {
         {/* Client Dropdown */}
         <div ref={dropdownRef} style={{ padding: '12px 14px', borderBottom: `0.5px solid ${t.border.default}`, position: 'relative' }}>
           <button onClick={() => setDropdownOpen(!dropdownOpen)} style={{
-            width: '100%', padding: '7px 10px', fontSize: 12, fontWeight: 500,
-            background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 7,
+            width: '100%', padding: '9px 12px', fontSize: 13, fontWeight: 500,
+            background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8,
             color: t.text.primary, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            transition: 'border-color 150ms',
           }}>
             {clientName}
             <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5"><path d="M4 6l4 4 4-4"/></svg>
@@ -200,25 +202,25 @@ function DesignContent() {
         <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 40 }}>
           {TEMPLATES.map(cat => (
             <div key={cat.cat}>
-              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#555', padding: '10px 14px 4px' }}>{cat.cat}</div>
+              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: t.text.tertiary, padding: '12px 14px 4px' }}>{cat.cat}</div>
               {cat.items.map(tmpl => {
                 const active = selectedTemplate === tmpl.id;
                 return (
                   <div key={tmpl.id}
                     onClick={tmpl.live ? () => setSelectedTemplate(tmpl.id) : undefined}
                     style={{
-                      padding: '7px 14px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 8,
+                      padding: '8px 14px', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8,
                       cursor: tmpl.live ? 'pointer' : 'default',
                       opacity: tmpl.live ? 1 : 0.35,
                       background: active ? 'rgba(37,99,235,0.06)' : 'transparent',
-                      color: active ? '#5a9edd' : t.text.primary,
-                      transition: 'background 100ms',
+                      color: active ? '#2563eb' : t.text.secondary,
+                      borderRadius: 6, transition: 'all 150ms',
                     }}
                     onMouseEnter={tmpl.live && !active ? (e) => (e.currentTarget.style.background = t.bg.surfaceHover) : undefined}
                     onMouseLeave={tmpl.live && !active ? (e) => (e.currentTarget.style.background = 'transparent') : undefined}>
-                    <span style={{ flexShrink: 0, color: active ? '#5a9edd' : t.text.secondary }}>{ICONS[tmpl.id]}</span>
+                    <span style={{ flexShrink: 0, color: active ? '#2563eb' : t.text.secondary }}>{ICONS[tmpl.id]}</span>
                     {tmpl.name}
-                    {tmpl.live && <span style={{ fontSize: 8, fontWeight: 600, color: '#10b981', marginLeft: 'auto', textTransform: 'uppercase', letterSpacing: '0.05em' }}>LIVE</span>}
+                    {tmpl.live && <span style={{ fontSize: 8, fontWeight: 600, color: t.status.success, marginLeft: 'auto', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>LIVE</span>}
                   </div>
                 );
               })}
@@ -228,8 +230,9 @@ function DesignContent() {
 
         {/* Edit brand kit link */}
         <div style={{ padding: '10px 14px', borderTop: `0.5px solid ${t.border.default}` }}>
-          <span onClick={() => router.push(selectedClient === 'agency' ? '/agency/brand-kit' : `/clients/${selectedClient}/brand-kit`)}
-            style={{ fontSize: 11, color: t.accent.text, cursor: 'pointer' }}>Edit brand kit →</span>
+          <GhostButton onClick={() => router.push(selectedClient === 'agency' ? '/agency/brand-kit' : `/clients/${selectedClient}/brand-kit`)}>
+            Edit brand kit →
+          </GhostButton>
         </div>
       </div>
 
@@ -281,23 +284,25 @@ function DesignContent() {
             />
           </div>
         ) : (
-          <div style={{ textAlign: 'center', opacity: 0.4 }}>
+          <div style={{ textAlign: 'center' }}>
             {selectedTemplate === 'yard-sign' && selectedClient === 'agency' ? (
               <>
-                <svg width="28" height="28" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3" style={{ marginBottom: 10 }}>
+                <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3" style={{ marginBottom: 12, opacity: 0.5 }}>
                   <circle cx="6" cy="5" r="2.5"/><path d="M1.5 14c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5"/>
                   <circle cx="11" cy="4.5" r="2"/><path d="M14.5 13c0-2 1.5-3.5-1.5-3.5"/>
                 </svg>
-                <div style={{ fontSize: 13, color: t.text.tertiary }}>Select a client to design yard signs</div>
+                <div style={{ fontSize: 14, fontWeight: 400, color: t.text.tertiary, marginBottom: 4 }}>Select a client first</div>
+                <div style={{ fontSize: 12, color: t.text.tertiary, opacity: 0.6 }}>Yard signs are built per-client using their brand kit</div>
               </>
             ) : (
               <>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={t.text.tertiary} strokeWidth="1.3" strokeLinecap="round" style={{ marginBottom: 10 }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={t.text.tertiary} strokeWidth="1.2" strokeLinecap="round" style={{ marginBottom: 12, opacity: 0.5 }}>
                   <circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/>
                   <line x1="12" y1="3.5" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="20.5"/>
                   <line x1="3.5" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="20.5" y2="12"/>
                 </svg>
-                <div style={{ fontSize: 13, color: t.text.tertiary }}>Select a template to start</div>
+                <div style={{ fontSize: 14, fontWeight: 400, color: t.text.tertiary, marginBottom: 4 }}>Select a template to start</div>
+                <div style={{ fontSize: 12, color: t.text.tertiary, opacity: 0.6 }}>Choose a client and template from the left</div>
               </>
             )}
           </div>
