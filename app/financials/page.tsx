@@ -11,6 +11,7 @@ import { currency, metricColor } from '@/lib/utils';
 import { useTheme } from '@/lib/theme';
 import useCountUp from '@/lib/useCountUp';
 import { motion } from 'framer-motion';
+import { GhostButton } from '@/components/shared/Brand';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } };
@@ -77,18 +78,12 @@ export default function FinancialsPage() {
             <h1 style={{ fontSize: 24, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>Financials</h1>
             <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>Agency-wide revenue and expense tracking</p>
           </div>
-          <button onClick={handlePrintPL} style={{
-            background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8,
-            padding: '6px 14px', fontSize: 13, fontWeight: 500, color: t.text.primary,
-            cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6,
-            transition: 'background 150ms',
-          }}
-          onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.background = t.bg.surfaceHover}
-          onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.background = t.bg.surface}
+          <GhostButton
+            onClick={handlePrintPL}
+            icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="6" y="1" width="12" height="8"/><rect x="2" y="9" width="20" height="10" rx="2"/><rect x="6" y="15" width="12" height="8"/></svg>}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="1" width="16" height="22" rx="2"/><line x1="8" y1="7" x2="16" y2="7" strokeLinecap="round"/><line x1="8" y1="11" x2="16" y2="11" strokeLinecap="round"/></svg>
             Print P&L
-          </button>
+          </GhostButton>
         </motion.div>
 
         {/* Period toggle */}
