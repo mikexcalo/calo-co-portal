@@ -53,6 +53,11 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
 
       fabricRef.current = fc;
 
+      // Selection styling
+      fc.selectionColor = 'rgba(37,99,235,0.08)';
+      fc.selectionBorderColor = '#2563eb';
+      fc.selectionLineWidth = 1;
+
       // ── Calculate bleed & safe zone in pixels ──
       const phys = SIGN_PHYSICAL_SIZES[signSize] || SIGN_PHYSICAL_SIZES['18x24'];
       const pxPerInch = template.width / phys.w;
@@ -104,7 +109,8 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
                 scaleX: (qrPlaceholder.width || 80) / qrImg.width,
                 scaleY: (qrPlaceholder.height || 80) / qrImg.height,
                 name: 'qr-code',
-                selectable: false, evented: false, hasControls: false, hasBorders: false,
+                selectable: true, evented: true, hasControls: true, hasBorders: true, lockRotation: true,
+                borderColor: '#2563eb', cornerColor: '#2563eb', cornerSize: 8, cornerStyle: 'circle', transparentCorners: false,
               });
               fc.remove(qrPlaceholder);
               fc.add(qrImg);
@@ -358,7 +364,8 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
                     scaleX: s, scaleY: s,
                     left: leftPos, top: obj.top || 0,
                     originX: 'left', originY: 'top',
-                    selectable: false, evented: false,
+                    selectable: true, evented: true, hasControls: true, hasBorders: true, lockRotation: true,
+                    borderColor: '#2563eb', cornerColor: '#2563eb', cornerSize: 8, cornerStyle: 'circle', transparentCorners: false,
                     name: 'logo',
                   });
                   // White fills for dark background (default brand mode)
@@ -382,7 +389,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
               if (img && img.width) {
                 const maxW = obj.maxWidth || 200; const maxH = obj.maxHeight || 200;
                 const s = Math.min(maxW / (img.width || 200), maxH / (img.height || 200));
-                img.set({ left: obj.left, top: obj.top, originX: obj.originX || 'left', originY: 'top', scaleX: s, scaleY: s, name: 'logo', selectable: false, evented: false, objectCaching: false });
+                img.set({ left: obj.left, top: obj.top, originX: obj.originX || 'left', originY: 'top', scaleX: s, scaleY: s, name: 'logo', selectable: true, evented: true, hasControls: true, hasBorders: true, lockRotation: true, borderColor: '#2563eb', cornerColor: '#2563eb', cornerSize: 8, cornerStyle: 'circle', transparentCorners: false, objectCaching: false });
                 fc.add(img);
                 console.log('[DesignCanvas] Logo loaded as raster fallback');
               }
