@@ -268,7 +268,7 @@ function DesignContent() {
         {selectedTemplate === 'yard-sign' && selectedClient !== 'agency' ? (
           <div style={{ padding: 24 }}>
             <DesignCanvas
-              key={`ys-${selectedClient}-${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}-${fields.showTagline}-${fields.showEmail}-${fields.showWebsite}-${(fields as any).showLogo}`}
+              key={`ys-${selectedClient}-${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}-${fields.showTagline}-${fields.showEmail}-${fields.showWebsite}-${(fields as any).showLogo}-${fields.phone}-${fields.companyName}-${fields.logoUrl?.slice(-20) || ''}-${fields.qrCodeUrl}`}
               template={getYardSignTemplate({
                 companyName: fields.companyName || '', phone: fields.phone || '',
                 headline: fields.headline || 'Free Consultations \u2022 Fully Insured \u2022 Budget-Friendly',
