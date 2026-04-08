@@ -81,7 +81,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
       const safeRect = new fabric.Rect({
         left: safePx, top: safePx,
         width: template.width - safePx * 2, height: template.height - safePx * 2,
-        fill: 'transparent', stroke: '#cccccc', strokeWidth: 1,
+        fill: 'transparent', stroke: 'rgba(200,200,200,0.15)', strokeWidth: 1,
         strokeDashArray: [4, 4],
         selectable: false, evented: false,
         originX: 'left', originY: 'top',
@@ -278,6 +278,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
 
   const loadTemplate = async (fc: any, fabric: any, tmpl: CanvasTemplate) => {
     for (const obj of tmpl.objects) {
+      try {
       let fabricObj: any;
 
       if (obj.type === 'rect') {
@@ -290,14 +291,10 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           rx: obj.rx || 0, ry: obj.ry || 0,
           originX: 'left', originY: 'top',
           selectable: false, evented: false, hasControls: false, hasBorders: false,
-          lockMovementX: obj.lockMovement || false,
-          lockMovementY: obj.lockMovement || false,
-          lockScalingX: obj.lockScaling || false,
-          lockScalingY: obj.lockScaling || false,
           name: obj.name || '',
         });
       } else if (obj.type === 'text') {
-        fabricObj = new fabric.FabricText(obj.text, {
+        fabricObj = new fabric.FabricText(obj.text || '', {
           left: obj.left, top: obj.top,
           originX: obj.originX || 'left',
           originY: 'top',
@@ -310,7 +307,8 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           name: obj.name || '',
         });
       } else if (obj.type === 'textbox') {
-        fabricObj = new fabric.Textbox(obj.text, {
+        const TextboxClass = fabric.Textbox || fabric.FabricText;
+        fabricObj = new TextboxClass(obj.text || '', {
           left: obj.left, top: obj.top,
           width: obj.width,
           originX: obj.originX || 'left',
@@ -420,6 +418,9 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
       }
 
       if (fabricObj) fc.add(fabricObj);
+      } catch (err) {
+        console.warn('[DesignCanvas] Failed to create object:', obj.name, obj.type, err);
+      }
     }
   };
 
