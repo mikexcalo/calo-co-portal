@@ -162,20 +162,18 @@ export function GhostButton({ children, onClick, icon }: { children: ReactNode; 
       onClick={onClick}
       style={{
         display: "inline-flex", alignItems: "center", gap: 6,
-        background: "transparent", color: t.text.secondary,
-        border: `1.5px solid ${t.border.default}`, borderRadius: 8,
-        padding: "8px 16px", fontSize: 13, fontWeight: 500,
+        background: t.bg.surface, color: t.text.primary,
+        border: `1px solid ${t.border.default}`, borderRadius: 8,
+        padding: "6px 14px", fontSize: 13, fontWeight: 500,
         cursor: "pointer", fontFamily: "inherit", transition: "all 150ms",
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.background = t.bg.surfaceHover;
         e.currentTarget.style.borderColor = t.border.hover;
-        e.currentTarget.style.color = t.text.primary;
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = "transparent";
+        e.currentTarget.style.background = t.bg.surface;
         e.currentTarget.style.borderColor = t.border.default;
-        e.currentTarget.style.color = t.text.secondary;
       }}
     >
       {icon}{children}
