@@ -3,10 +3,9 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useTheme } from '@/lib/theme';
 import { DB, loadAgencySettings, saveAgencySettings } from '@/lib/database';
-import { PageLayout, Section } from '@/components/shared/PageLayout';
-import HelmSpinner from '@/components/shared/HelmSpinner';
 import Toast from '@/components/shared/Toast';
 import { AnimatePresence } from 'framer-motion';
+import { PageShell, PageHeader, FormSection, FormRow, FormField, CtaButton } from '@/components/shared/Brand';
 
 const PROFILE_KEY = 'calo-settings-profile';
 const AGENCY_KEY = 'calo-agency-settings';
@@ -136,84 +135,92 @@ function SettingsContent() {
     } finally { setSaving(false); }
   };
 
-  const input: React.CSSProperties = { width: '100%', padding: '8px 10px', fontSize: 13, background: t.bg.primary, border: `1px solid ${t.border.default}`, borderRadius: 8, color: t.text.primary, fontFamily: 'inherit', outline: 'none', transition: 'border-color 150ms' };
-  const lbl: React.CSSProperties = { fontSize: 11, color: t.text.secondary, display: 'block', marginBottom: 4 };
-  const secHead: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 };
-  const divider: React.CSSProperties = { height: 1, background: t.border.default, margin: '16px 0' };
-
   return (
-    <PageLayout title="Settings" subtitle="Manage your agency">
-      {/* ═══ PROFILE ═══ */}
-      <Section label="Profile">
-        <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
-          <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
-            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-              <div onClick={() => fileRef.current?.click()}
-                style={{ width: 80, height: 80, borderRadius: '50%', overflow: 'hidden', cursor: 'pointer',
-                  border: avatar ? 'none' : `2px dashed ${t.border.default}`,
-                  background: avatar ? 'transparent' : t.bg.surfaceHover,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {avatar ? <img src={avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <span style={{ fontSize: 20, color: t.text.tertiary }}>+</span>}
-              </div>
-              <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleUpload} />
-              {avatar && (
-                <div style={{ display: 'flex', gap: 10, fontSize: 11 }}>
-                  <span onClick={() => fileRef.current?.click()} style={{ color: t.accent.text, cursor: 'pointer' }}>Change</span>
-                  <span onClick={removeAvatar} style={{ color: t.text.tertiary, cursor: 'pointer' }}>Remove</span>
-                </div>
+    <PageShell>
+      <PageHeader
+        title="Settings"
+        subtitle="Manage your agency"
+        action={<CtaButton onClick={handleSave}>{saving ? 'Saving...' : 'Save Changes'}</CtaButton>}
+      />
+
+      {/* ── SECTION 1: YOUR PROFILE ── */}
+      <FormSection label="Your Profile">
+        <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+          {/* Avatar */}
+          <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+            <div
+              onClick={() => fileRef.current?.click()}
+              style={{
+                width: 72, height: 72, borderRadius: '50%', overflow: 'hidden', cursor: 'pointer',
+                border: `2px dashed ${t.border.default}`, background: t.bg.surfaceHover,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 150ms',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#2563eb'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = t.border.default; }}
+            >
+              {avatar ? (
+                <img src={avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={t.text.tertiary} strokeWidth="1.5"><path d="M12 5v14M5 12h14"/></svg>
               )}
             </div>
-            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div><label style={lbl}>Name</label><input value={profile.name} onChange={(e) => updateProfile('name', e.target.value)} placeholder="Mike Calo" style={input} /></div>
-              <div><label style={lbl}>Title</label><input value={profile.title} onChange={(e) => updateProfile('title', e.target.value)} placeholder="Founder" style={input} /></div>
-              <div style={{ gridColumn: '1 / -1' }}><label style={lbl}>Email</label><input type="email" value={profile.email} onChange={(e) => updateProfile('email', e.target.value)} placeholder="mike@calo.co" style={input} /></div>
-            </div>
+            <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleUpload} />
+            {avatar && (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <span onClick={() => fileRef.current?.click()} style={{ fontSize: 11, color: '#2563eb', cursor: 'pointer' }}>Change</span>
+                <span onClick={removeAvatar} style={{ fontSize: 11, color: t.text.tertiary, cursor: 'pointer' }}>Remove</span>
+              </div>
+            )}
+          </div>
+
+          {/* Profile fields */}
+          <div style={{ flex: 1 }}>
+            <FormRow>
+              <FormField label="Name" value={profile.name} onChange={(v) => updateProfile('name', v)} placeholder="Mike Calo" />
+              <FormField label="Title" value={profile.title} onChange={(v) => updateProfile('title', v)} placeholder="Founder" />
+            </FormRow>
+            <FormRow>
+              <FormField label="Email" value={profile.email} onChange={(v) => updateProfile('email', v)} placeholder="mike@calo.co" type="email" />
+            </FormRow>
           </div>
         </div>
-      </Section>
+      </FormSection>
 
-      {/* ═══ AGENCY ═══ */}
-      <Section label="Agency">
-        <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
-          <div style={secHead}>Company</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-            <div><label style={lbl}>Company Name</label><input value={ag.companyName || ''} onChange={(e) => updateAg('companyName', e.target.value)} placeholder="Manifest" style={input} /></div>
-            <div><label style={lbl}>Address Line 1</label><input value={ag.address1 || ''} onChange={(e) => updateAg('address1', e.target.value)} placeholder="123 Main St" style={input} /></div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            <div><label style={lbl}>Address Line 2</label><input value={ag.address2 || ''} onChange={(e) => updateAg('address2', e.target.value)} placeholder="Suite 200" style={input} /></div>
-            <div><label style={lbl}>City</label><input value={ag.city || ''} onChange={(e) => updateAg('city', e.target.value)} placeholder="Portland" style={input} /></div>
-            <div><label style={lbl}>State / ZIP</label><input value={ag.stateZip || ''} onChange={(e) => updateAg('stateZip', e.target.value)} placeholder="ME 04101" style={input} /></div>
-          </div>
-          <div style={divider} />
-          <div style={secHead}>Business Info</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            <div><label style={lbl}>Tagline</label><input value={ag.tagline || ''} onChange={(e) => updateAg('tagline', e.target.value)} placeholder="Your trusted partner" style={input} /></div>
-            <div><label style={lbl}>Service Area</label><input value={ag.serviceArea || ''} onChange={(e) => updateAg('serviceArea', e.target.value)} placeholder="Portland Metro" style={input} /></div>
-            <div><label style={lbl}>License / Cert #</label><input value={ag.licenseNumber || ''} onChange={(e) => updateAg('licenseNumber', e.target.value)} placeholder="LIC-12345" style={input} /></div>
-          </div>
-          <div style={divider} />
-          <div style={secHead}>Billing & Communication</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div><label style={lbl}>Tax Rate (%)</label><input type="number" min="0" max="100" step="0.1" value={ag.taxRate || ''} onChange={(e) => updateAg('taxRate', e.target.value)} placeholder="28" style={input} /></div>
-            <div><label style={lbl}>Reply-to Email</label><input type="email" value={ag.replyEmail || ''} onChange={(e) => updateAg('replyEmail', e.target.value)} placeholder="mike@calo.co" style={input} /></div>
-          </div>
-        </div>
-      </Section>
+      {/* ── SECTION 2: AGENCY IDENTITY ── */}
+      <FormSection label="Agency Identity">
+        <FormRow>
+          <FormField label="Company Name" value={ag.companyName || ''} onChange={(v) => updateAg('companyName', v)} placeholder="CALO&CO" />
+          <FormField label="Tagline" value={ag.tagline || ''} onChange={(v) => updateAg('tagline', v)} placeholder="Your trusted partner" />
+        </FormRow>
+        <FormRow>
+          <FormField label="Service Area" value={ag.serviceArea || ''} onChange={(v) => updateAg('serviceArea', v)} placeholder="Portland Metro" />
+          <FormField label="License / Cert #" value={ag.licenseNumber || ''} onChange={(v) => updateAg('licenseNumber', v)} placeholder="LIC-12345" />
+        </FormRow>
+      </FormSection>
 
-      {/* Save button */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-        <button onClick={handleSave} disabled={saving} style={{
-          background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8,
-          padding: '8px 20px', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
-          opacity: saving ? 0.7 : 1,
-        }}>{saving ? 'Saving...' : 'Save Changes'}</button>
-      </div>
+      {/* ── SECTION 3: ADDRESS ── */}
+      <FormSection label="Mailing Address">
+        <FormRow>
+          <FormField label="Address Line 1" value={ag.address1 || ''} onChange={(v) => updateAg('address1', v)} placeholder="123 Main St" />
+          <FormField label="Address Line 2" value={ag.address2 || ''} onChange={(v) => updateAg('address2', v)} placeholder="Suite 200" />
+        </FormRow>
+        <FormRow>
+          <FormField label="City" value={ag.city || ''} onChange={(v) => updateAg('city', v)} placeholder="Portland, Maine" />
+          <FormField label="State / ZIP" value={ag.stateZip || ''} onChange={(v) => updateAg('stateZip', v)} placeholder="ME 04101" />
+        </FormRow>
+      </FormSection>
+
+      {/* ── SECTION 4: BILLING & INVOICING ── */}
+      <FormSection label="Billing & Invoicing">
+        <FormRow>
+          <FormField label="Default Tax Rate (%)" value={ag.taxRate || ''} onChange={(v) => updateAg('taxRate', v)} placeholder="28" type="number" />
+          <FormField label="Reply-to Email" value={ag.replyEmail || ''} onChange={(v) => updateAg('replyEmail', v)} placeholder="mike@calo.co" type="email" />
+        </FormRow>
+      </FormSection>
 
       <AnimatePresence>
         {toast && <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />}
       </AnimatePresence>
-    </PageLayout>
+    </PageShell>
   );
 }
