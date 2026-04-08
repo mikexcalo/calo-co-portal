@@ -60,11 +60,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
       bleedPxRef.current = bleedPx;
       const safePx = Math.round(0.375 * pxPerInch); // 0.125 bleed + 0.25 safe
 
-      if (savedState) {
-        fc.loadFromJSON(savedState, () => { fc.renderAll(); });
-      } else {
-        await loadTemplate(fc, fabric, template);
-      }
+      await loadTemplate(fc, fabric, template);
 
       // ── Bleed zone overlays (translucent pink, non-interactive) ──
       const bleedProps = {
@@ -266,7 +262,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           historyRef.current.push(json);
           historyIndexRef.current = historyRef.current.length - 1;
           forceRender((n) => n + 1);
-          if (onSave) onSave(json);
+          // if (onSave) onSave(json);  // disabled: don't save canvas state until rendering is stable
         }
       });
     };
