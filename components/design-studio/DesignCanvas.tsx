@@ -307,8 +307,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           name: obj.name || '',
         });
       } else if (obj.type === 'textbox') {
-        const TextboxClass = fabric.Textbox || fabric.FabricText;
-        fabricObj = new TextboxClass(obj.text || '', {
+        fabricObj = new fabric.FabricText(obj.text || '', {
           left: obj.left, top: obj.top,
           width: obj.width,
           originX: obj.originX || 'left',
@@ -319,7 +318,6 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           fontFamily: obj.fontFamily || 'Inter, Helvetica, Arial, sans-serif',
           fill: obj.fill || '#ffffff',
           textAlign: obj.textAlign || 'center',
-          editable: true,
           name: obj.name || '',
         });
       } else if (obj.type === 'image' && obj.src) {
