@@ -137,7 +137,7 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
   // Phone
   if (phone && showPhone !== false) {
     objects.push({
-      type: 'textbox', text: formattedPhone,
+      type: 'text', text: formattedPhone,
       left: W / 2,
       top: cursorY + Math.round(topH * 0.02),
       width: W * 0.95, originX: 'center',
@@ -151,7 +151,7 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
   const companyFontSize = Math.min(Math.round(isLandscape ? W * 0.04 : W * 0.05), Math.round(bottomH * 0.25));
   if (companyName && showCompanyName !== false) {
     objects.push({
-      type: 'textbox', text: companyName,
+      type: 'text', text: companyName,
       left: pad,
       top: topH + Math.round(bottomH * 0.12),
       width: W * 0.6,
