@@ -616,8 +616,8 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         }}>Download PDF</button>
         <button onClick={handleExportPNG} style={{
           padding: '8px 20px', fontSize: 14, fontWeight: 500,
-          background: 'transparent', color: '#2563eb', border: '1px solid #2563eb',
-          borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit',
+          background: 'transparent', color: '#666', border: '1px solid #e2e2e5',
+          borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 150ms',
         }}>Download PNG</button>
       </div>
     </div>

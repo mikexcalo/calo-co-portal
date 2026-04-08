@@ -13,7 +13,7 @@ import FieldEditor from '@/components/brand-builder/FieldEditor';
 import supabase from '@/lib/supabase';
 import { Suspense } from 'react';
 import { getClientAvatarUrl } from '@/lib/clientAvatar';
-import { GhostButton } from '@/components/shared/Brand';
+
 
 const DesignCanvas = dynamic(() => import('@/components/design-studio/DesignCanvas'), { ssr: false, loading: () => null });
 
@@ -230,9 +230,19 @@ function DesignContent() {
 
         {/* Edit brand kit link */}
         <div style={{ padding: '10px 14px', borderTop: `0.5px solid ${t.border.default}` }}>
-          <GhostButton onClick={() => router.push(selectedClient === 'agency' ? '/agency/brand-kit' : `/clients/${selectedClient}/brand-kit`)}>
+          <button
+            onClick={() => router.push(selectedClient === 'agency' ? '/agency/brand-kit' : `/clients/${selectedClient}/brand-kit`)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: t.bg.surface, color: t.text.primary,
+              border: `1px solid ${t.border.default}`, borderRadius: 8,
+              padding: '6px 14px', fontSize: 13, fontWeight: 500,
+              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 150ms',
+              width: '100%', justifyContent: 'center',
+            }}
+          >
             Edit brand kit →
-          </GhostButton>
+          </button>
         </div>
       </div>
 
