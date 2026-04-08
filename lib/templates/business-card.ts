@@ -61,7 +61,7 @@ export function getBusinessCardTemplate(props: BusinessCardTemplateProps) {
   // Company name
   if (companyName && showCompanyName !== false) {
     objects.push({
-      type: 'textbox', text: companyName,
+      type: 'text', text: companyName,
       left: pad, top: y, width: W * 0.7,
       fontSize: Math.round(W * 0.025), fontWeight: 600,
       fill: brandColor, textAlign: 'left',
@@ -84,7 +84,7 @@ export function getBusinessCardTemplate(props: BusinessCardTemplateProps) {
   // Contact name
   if (contactName && showContactName !== false) {
     objects.push({
-      type: 'textbox', text: contactName,
+      type: 'text', text: contactName,
       left: pad, top: y, width: W * 0.7,
       fontSize: Math.round(W * 0.034), fontWeight: 700,
       fill: '#111827', textAlign: 'left',
@@ -96,7 +96,7 @@ export function getBusinessCardTemplate(props: BusinessCardTemplateProps) {
   // Title
   if (contactTitle && showContactTitle !== false) {
     objects.push({
-      type: 'textbox', text: contactTitle,
+      type: 'text', text: contactTitle,
       left: pad, top: y, width: W * 0.7,
       fontSize: Math.round(W * 0.023), fontWeight: 400,
       fill: '#6b7280', textAlign: 'left',
@@ -113,7 +113,7 @@ export function getBusinessCardTemplate(props: BusinessCardTemplateProps) {
 
   if (contactParts.length > 0) {
     objects.push({
-      type: 'textbox', text: contactParts.join('  ·  '),
+      type: 'text', text: contactParts.join('  ·  '),
       left: pad, top: H - pad - Math.round(H * 0.12),
       width: W * 0.65,
       fontSize: Math.round(W * 0.021), fontWeight: 400,
@@ -138,7 +138,7 @@ export function getBusinessCardTemplate(props: BusinessCardTemplateProps) {
   // Tagline — very bottom
   if (tagline && showTagline !== false) {
     objects.push({
-      type: 'textbox', text: tagline,
+      type: 'text', text: tagline,
       left: pad, top: H - Math.round(pad * 0.6),
       width: W * 0.6,
       fontSize: Math.round(W * 0.017), fontWeight: 400,
@@ -179,7 +179,7 @@ export function getBusinessCardBackTemplate(props: {
 
   if (companyName) {
     objects.push({
-      type: 'textbox', text: companyName,
+      type: 'text', text: companyName,
       left: W / 2, top: H * 0.62, width: W * 0.7,
       originX: 'center',
       fontSize: Math.round(W * 0.032), fontWeight: 600,

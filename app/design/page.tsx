@@ -8,6 +8,7 @@ import { Client } from '@/lib/types';
 import { extractHex } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 import { getYardSignTemplate } from '@/lib/templates/yard-sign';
+import { getBusinessCardTemplate } from '@/lib/templates/business-card';
 import { BrandBuilderFields, DEFAULT_FIELDS } from '@/components/brand-builder/types';
 import FieldEditor from '@/components/brand-builder/FieldEditor';
 import supabase from '@/lib/supabase';
@@ -26,7 +27,7 @@ const TEMPLATES = [
     { id: 'direct-mail', name: 'Direct Mail', live: false },
   ]},
   { cat: 'Professional', items: [
-    { id: 'business-card', name: 'Business Cards', live: false },
+    { id: 'business-card', name: 'Business Cards', live: true },
     { id: 'email-signature', name: 'Email Signature', live: false },
     { id: 'one-pager', name: 'One-Pagers', live: false },
   ]},
@@ -247,7 +248,7 @@ function DesignContent() {
       </div>
 
       {/* Fields Column — 260px */}
-      {selectedTemplate === 'yard-sign' && selectedClient !== 'agency' ? (
+      {(selectedTemplate === 'yard-sign' || selectedTemplate === 'business-card') && selectedClient !== 'agency' ? (
         <div style={{ width: 260, flexShrink: 0, borderRight: `0.5px solid ${t.border.default}`, overflowY: 'auto', padding: '16px 14px' }}>
           {/* Brand assets card */}
           {bk && (
@@ -275,11 +276,11 @@ function DesignContent() {
 
       {/* Canvas */}
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: t.bg.surfaceHover, overflow: 'auto' }}>
-        {selectedTemplate === 'yard-sign' && selectedClient !== 'agency' ? (
+        {(selectedTemplate === 'yard-sign' || selectedTemplate === 'business-card') && selectedClient !== 'agency' ? (
           <div style={{ padding: 24 }}>
             <DesignCanvas
-              key={`ys-${selectedClient}-${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}-${fields.showTagline}-${fields.showEmail}-${fields.showWebsite}-${(fields as any).showLogo}-${fields.phone}-${fields.companyName}-${fields.logoUrl?.slice(-20) || ''}-${fields.qrCodeUrl}`}
-              template={getYardSignTemplate({
+              key={`${selectedTemplate}-${selectedClient}-${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}-${fields.showTagline}-${fields.showEmail}-${fields.showWebsite}-${(fields as any).showLogo}-${fields.phone}-${fields.companyName}-${fields.logoUrl?.slice(-20) || ''}-${fields.qrCodeUrl}-${fields.contactName}-${fields.email}`}
+              template={selectedTemplate === 'yard-sign' ? getYardSignTemplate({
                 companyName: fields.companyName || '', phone: fields.phone || '',
                 headline: fields.headline || 'Free Consultations \u2022 Fully Insured \u2022 Budget-Friendly',
                 logoUrl: fields.logoUrl || null, qrCodeUrl: fields.qrCodeUrl || fields.website || '',
@@ -288,6 +289,15 @@ function DesignContent() {
                 showQrCode: fields.showQrCode, showLogo: (fields as any).showLogo !== false,
                 tagline: fields.tagline || '', showTagline: fields.showTagline,
                 email: fields.email || '', showEmail: fields.showEmail, website: fields.website || '', showWebsite: fields.showWebsite,
+              }) : getBusinessCardTemplate({
+                companyName: fields.companyName || '', contactName: fields.contactName || '',
+                contactTitle: fields.contactTitle || '', phone: fields.phone || '',
+                email: fields.email || '', website: fields.website || '', tagline: fields.tagline || '',
+                logoUrl: fields.logoUrl || null, qrCodeUrl: fields.qrCodeUrl || fields.website || '',
+                brandColor: fields.primaryColor || '#2563eb',
+                showCompanyName: fields.showCompanyName, showPhone: fields.showPhone,
+                showEmail: fields.showEmail, showWebsite: fields.showWebsite,
+                showTagline: fields.showTagline, showQrCode: fields.showQrCode,
               })}
               brandColor={fields.primaryColor || '#2563eb'} darkColor={(fields as any).secondaryColor || '#1a1a1a'}
               signSize={fields.signSize || '18x24'} savedState={null}
@@ -295,7 +305,7 @@ function DesignContent() {
           </div>
         ) : (
           <div style={{ textAlign: 'center' }}>
-            {selectedTemplate === 'yard-sign' && selectedClient === 'agency' ? (
+            {(selectedTemplate === 'yard-sign' || selectedTemplate === 'business-card') && selectedClient === 'agency' ? (
               <>
                 <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3" style={{ marginBottom: 12, opacity: 0.5 }}>
                   <circle cx="6" cy="5" r="2.5"/><path d="M1.5 14c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5"/>
