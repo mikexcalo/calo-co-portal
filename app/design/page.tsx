@@ -273,7 +273,7 @@ function DesignContent() {
             </div>
           )}
           {/* Field editor */}
-          <FieldEditor fields={fields} onChange={handleFieldsChange} sources={{}} assetType="yard-sign" clientId={selectedClient} hasBrandKit={!!bk} />
+          <FieldEditor fields={fields} onChange={handleFieldsChange} sources={{}} assetType={selectedTemplate || 'yard-sign'} clientId={selectedClient} hasBrandKit={!!bk} />
         </div>
       ) : null}
 
