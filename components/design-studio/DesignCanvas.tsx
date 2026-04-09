@@ -266,9 +266,9 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           const json = JSON.stringify(fc.toJSON());
           historyRef.current = historyRef.current.slice(0, historyIndexRef.current + 1);
           historyRef.current.push(json);
+          if (historyRef.current.length > 20) historyRef.current.shift();
           historyIndexRef.current = historyRef.current.length - 1;
           forceRender((n) => n + 1);
-          // if (onSave) onSave(json);  // disabled: don't save canvas state until rendering is stable
         }
       });
 
@@ -300,8 +300,29 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           return;
         }
 
-        // Cmd+Z — undo: disabled (loadFromJSON strips canvas objects in Fabric v6)
-        // Cmd+Shift+Z — redo: disabled
+        // Cmd+Z — undo
+        if (isCmd && e.key === 'z' && !e.shiftKey) {
+          e.preventDefault();
+          if (historyIndexRef.current > 0) {
+            isUndoRedoRef.current = true;
+            historyIndexRef.current--;
+            const prev = historyRef.current[historyIndexRef.current];
+            fc.loadFromJSON(prev, () => { fc.renderAll(); isUndoRedoRef.current = false; forceRender((n: number) => n + 1); });
+          }
+          return;
+        }
+
+        // Cmd+Shift+Z — redo
+        if (isCmd && e.key === 'z' && e.shiftKey) {
+          e.preventDefault();
+          if (historyIndexRef.current < historyRef.current.length - 1) {
+            isUndoRedoRef.current = true;
+            historyIndexRef.current++;
+            const next = historyRef.current[historyIndexRef.current];
+            fc.loadFromJSON(next, () => { fc.renderAll(); isUndoRedoRef.current = false; forceRender((n: number) => n + 1); });
+          }
+          return;
+        }
       };
 
       document.addEventListener('keydown', handleKeyDown);

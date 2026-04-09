@@ -189,7 +189,7 @@ function DesignContent() {
 
   const client = clients.find(c => c.id === selectedClient);
   const clientName = selectedClient === 'agency' ? 'Agency' : (client?.company || client?.name || 'Client');
-  const bk = client?.brandKit;
+  const bk = selectedClient === 'agency' ? DB.agency?.brandKit : client?.brandKit;
   const filteredClients = clients.filter(c => (c.company || c.name || '').toLowerCase().includes(clientSearch.toLowerCase()));
 
   // ── Client Dropdown (shared between hub and workspace) ──
