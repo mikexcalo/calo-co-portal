@@ -208,6 +208,7 @@ function DesignContent() {
                 const active = selectedTemplate === tmpl.id;
                 return (
                   <div key={tmpl.id}
+                    title={tmpl.live ? undefined : 'Coming soon'}
                     onClick={tmpl.live ? () => setSelectedTemplate(tmpl.id) : undefined}
                     style={{
                       padding: '8px 14px', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8,
@@ -221,7 +222,7 @@ function DesignContent() {
                     onMouseLeave={tmpl.live && !active ? (e) => (e.currentTarget.style.background = 'transparent') : undefined}>
                     <span style={{ flexShrink: 0, color: active ? '#2563eb' : t.text.secondary }}>{ICONS[tmpl.id]}</span>
                     {tmpl.name}
-                    {tmpl.live && <span style={{ fontSize: 8, fontWeight: 600, color: t.status.success, marginLeft: 'auto', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>LIVE</span>}
+                    {tmpl.live ? <span style={{ fontSize: 8, fontWeight: 600, color: t.status.success, marginLeft: 'auto', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>LIVE</span> : <span style={{ fontSize: 8, fontWeight: 600, color: t.text.tertiary, marginLeft: 'auto', textTransform: 'uppercase' as const, letterSpacing: '0.05em', opacity: 0.5 }}>SOON</span>}
                   </div>
                 );
               })}
