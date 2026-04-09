@@ -316,10 +316,9 @@ function DesignContent() {
               </>
             ) : (
               <>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={t.text.tertiary} strokeWidth="1.2" strokeLinecap="round" style={{ marginBottom: 12, opacity: 0.5 }}>
-                  <circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/>
-                  <line x1="12" y1="3.5" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="20.5"/>
-                  <line x1="3.5" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="20.5" y2="12"/>
+                <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 12, opacity: 0.4 }}>
+                  <path d="M10.5 2L14 5.5 5.5 14H2v-3.5z"/>
+                  <line x1="8.5" y1="4" x2="12" y2="7.5"/>
                 </svg>
                 <div style={{ fontSize: 14, fontWeight: 400, color: t.text.tertiary, marginBottom: 4 }}>Select a template to start</div>
                 <div style={{ fontSize: 12, color: t.text.tertiary, opacity: 0.6 }}>Choose a client and template from the left</div>
