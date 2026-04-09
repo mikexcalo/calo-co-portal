@@ -241,6 +241,8 @@ function DesignContent() {
               cursor: 'pointer', fontFamily: 'inherit', transition: 'all 150ms',
               width: '100%', justifyContent: 'center',
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = t.bg.surfaceHover; e.currentTarget.style.borderColor = t.border.hover; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = t.bg.surface; e.currentTarget.style.borderColor = t.border.default; }}
           >
             Edit brand kit →
           </button>
