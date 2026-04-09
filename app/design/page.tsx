@@ -14,7 +14,7 @@ import FieldEditor from '@/components/brand-builder/FieldEditor';
 import supabase from '@/lib/supabase';
 import { Suspense } from 'react';
 import { getClientAvatarUrl } from '@/lib/clientAvatar';
-
+import { PageShell, PageHeader, SectionLabel } from '@/components/shared/Brand';
 
 const DesignCanvas = dynamic(() => import('@/components/design-studio/DesignCanvas'), { ssr: false, loading: () => null });
 
@@ -56,6 +56,21 @@ const ICONS: Record<string, React.ReactNode> = {
   'poster': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="3" y="1" width="18" height="22" rx="2"/><line x1="6" y1="15" x2="18" y2="15"/></svg>,
 };
 
+const TEMPLATE_DESCRIPTIONS: Record<string, string> = {
+  'yard-sign': 'Neighborhood marketing signs with brand colors',
+  'business-card': 'Professional cards with contact info and QR code',
+  'door-hanger': 'Leave-behind neighborhood marketing',
+  'flyer': 'Full-page promotional handouts',
+  'vehicle-magnet': 'Mobile brand visibility',
+  'direct-mail': 'Targeted postal campaigns',
+  'email-signature': 'HTML sig with logo and socials',
+  'one-pager': 'Service overview leave-behinds',
+  'social-graphics': 'Instagram, Facebook, LinkedIn posts',
+  'web-banners': 'Google Display and site headers',
+  't-shirt': 'Branded apparel',
+  'poster': 'Large format prints',
+};
+
 export default function DesignPage() {
   return <Suspense fallback={null}><DesignContent /></Suspense>;
 }
@@ -87,14 +102,12 @@ function DesignContent() {
     init();
   }, []);
 
-  // Close dropdown on click outside
   useEffect(() => {
     const h = (e: MouseEvent) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setDropdownOpen(false); };
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
-  // Update URL when selection changes
   useEffect(() => {
     const params = new URLSearchParams();
     if (selectedClient !== 'agency') params.set('client', selectedClient);
@@ -103,12 +116,10 @@ function DesignContent() {
     router.replace(`/design${query ? '?' + query : ''}`, { scroll: false });
   }, [selectedClient, selectedTemplate, router]);
 
-  // Load fields when client/template changes
   useEffect(() => {
     if (!selectedTemplate || loading) return;
     if (selectedClient !== 'agency' && clients.length === 0) return;
     const load = async () => {
-      // Agency mode — use agency data from DB cache
       if (selectedClient === 'agency') {
         const f = { ...DEFAULT_FIELDS };
         f.companyName = DB.agency.name || 'CALO&CO';
@@ -129,7 +140,6 @@ function DesignContent() {
         setFields(f);
         return;
       }
-
       const client = DB.clients.find(c => c.id === selectedClient);
       if (!client) return;
       const f = { ...DEFAULT_FIELDS };
@@ -178,112 +188,137 @@ function DesignContent() {
   if (loading) return null;
 
   const client = clients.find(c => c.id === selectedClient);
-  const clientName = selectedClient === 'agency' ? 'Agency' : (client?.company || client?.name || (loading ? 'Loading\u2026' : 'Client'));
+  const clientName = selectedClient === 'agency' ? 'Agency' : (client?.company || client?.name || 'Client');
   const bk = client?.brandKit;
   const filteredClients = clients.filter(c => (c.company || c.name || '').toLowerCase().includes(clientSearch.toLowerCase()));
 
-  return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 48px)' }}>
-      {/* Inner Panel — 220px */}
-      <div style={{ width: 220, flexShrink: 0, borderRight: `0.5px solid ${t.border.default}`, display: 'flex', flexDirection: 'column', background: t.bg.primary }}>
-        {/* Client Dropdown */}
-        <div ref={dropdownRef} style={{ padding: '12px 14px', borderBottom: `0.5px solid ${t.border.default}`, position: 'relative' }}>
-          <button onClick={() => setDropdownOpen(!dropdownOpen)} style={{
-            width: '100%', padding: '9px 12px', fontSize: 13, fontWeight: 500,
-            background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8,
-            color: t.text.primary, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            transition: 'border-color 150ms',
-          }}>
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{clientName}</span>
-            <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5" style={{ flexShrink: 0 }}><path d="M4 6l4 4 4-4"/></svg>
-          </button>
-          {dropdownOpen && (
-            <div style={{ position: 'absolute', top: '100%', left: 14, right: 14, marginTop: 4, background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8, boxShadow: t.shadow.elevated, zIndex: 20, maxHeight: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <div style={{ padding: '8px 10px', borderBottom: `0.5px solid ${t.border.default}` }}>
-                <input autoFocus placeholder="Search clients..." value={clientSearch} onChange={e => setClientSearch(e.target.value)}
-                  style={{ width: '100%', background: 'transparent', border: 'none', outline: 'none', fontSize: 12, color: t.text.primary, fontFamily: 'inherit' }} />
+  // ── Client Dropdown (shared between hub and workspace) ──
+  const clientDropdown = (
+    <div ref={dropdownRef} style={{ position: 'relative' }}>
+      <button onClick={() => setDropdownOpen(!dropdownOpen)} style={{
+        padding: '7px 12px', fontSize: 13, fontWeight: 500,
+        background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8,
+        color: t.text.primary, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+        display: 'flex', alignItems: 'center', gap: 8, transition: 'border-color 150ms',
+        minWidth: 140, maxWidth: 220,
+      }}>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{clientName}</span>
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5" style={{ flexShrink: 0 }}><path d="M4 6l4 4 4-4"/></svg>
+      </button>
+      {dropdownOpen && (
+        <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, width: 240, background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8, boxShadow: t.shadow.elevated, zIndex: 20, maxHeight: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ padding: '8px 10px', borderBottom: `0.5px solid ${t.border.default}` }}>
+            <input autoFocus placeholder="Search clients..." value={clientSearch} onChange={e => setClientSearch(e.target.value)}
+              style={{ width: '100%', background: 'transparent', border: 'none', outline: 'none', fontSize: 12, color: t.text.primary, fontFamily: 'inherit' }} />
+          </div>
+          <div onClick={() => selectClient('agency')} style={{ padding: '8px 12px', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, background: selectedClient === 'agency' ? 'rgba(37,99,235,0.06)' : 'transparent', color: selectedClient === 'agency' ? '#2563eb' : t.text.primary }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3.5" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="20.5"/><line x1="3.5" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="20.5" y2="12"/></svg>
+            Agency
+          </div>
+          <div style={{ overflowY: 'auto', flex: 1 }}>
+            {filteredClients.map(c => (
+              <div key={c.id} onClick={() => selectClient(c.id)} style={{ padding: '8px 12px', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, background: selectedClient === c.id ? 'rgba(37,99,235,0.06)' : 'transparent', color: selectedClient === c.id ? '#2563eb' : t.text.primary }}>
+                <div style={{ width: 18, height: 18, borderRadius: 4, overflow: 'hidden', background: getClientAvatarUrl(c) ? 'transparent' : t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.text.secondary, fontSize: 8, fontWeight: 700, flexShrink: 0 }}>
+                  {getClientAvatarUrl(c) ? <img src={getClientAvatarUrl(c)!} alt="" style={{ width: 18, height: 18, objectFit: 'contain' }} /> : (c.company || c.name || '').charAt(0)}
+                </div>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.company || c.name}</span>
               </div>
-              <div onClick={() => selectClient('agency')} style={{ padding: '8px 12px', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, background: selectedClient === 'agency' ? 'rgba(37,99,235,0.06)' : 'transparent', color: selectedClient === 'agency' ? '#5a9edd' : t.text.primary }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3.5" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="20.5"/><line x1="3.5" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="20.5" y2="12"/></svg>
-                Agency
-              </div>
-              <div style={{ overflowY: 'auto', flex: 1 }}>
-                {filteredClients.map(c => (
-                  <div key={c.id} onClick={() => selectClient(c.id)} style={{ padding: '8px 12px', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, background: selectedClient === c.id ? 'rgba(37,99,235,0.06)' : 'transparent', color: selectedClient === c.id ? '#5a9edd' : t.text.primary }}>
-                    <div style={{ width: 18, height: 18, borderRadius: 4, overflow: 'hidden', background: getClientAvatarUrl(c) ? 'transparent' : '#1a2540', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#5a8abb', fontSize: 8, fontWeight: 700, flexShrink: 0 }}>
-                      {getClientAvatarUrl(c) ? <img src={getClientAvatarUrl(c)!} alt="" style={{ width: 18, height: 18, objectFit: 'contain' }} /> : (c.company || c.name || '').charAt(0)}
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // ═══════════════════════════════════════════════
+  // HUB VIEW — no template selected
+  // ═══════════════════════════════════════════════
+  if (!selectedTemplate) {
+    return (
+      <PageShell>
+        <PageHeader
+          title="Design"
+          subtitle="Create branded materials for your clients"
+          action={clientDropdown}
+        />
+
+        {TEMPLATES.map(cat => (
+          <div key={cat.cat} style={{ marginBottom: 24 }}>
+            <SectionLabel>{cat.cat}</SectionLabel>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+              {cat.items.map(tmpl => (
+                <div
+                  key={tmpl.id}
+                  title={tmpl.live ? undefined : 'Coming soon'}
+                  onClick={tmpl.live ? () => setSelectedTemplate(tmpl.id) : undefined}
+                  style={{
+                    background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10,
+                    padding: '14px 12px', cursor: tmpl.live ? 'pointer' : 'default',
+                    opacity: tmpl.live ? 1 : 0.3, display: 'flex', gap: 12, alignItems: 'flex-start',
+                    transition: 'all 150ms',
+                  }}
+                  onMouseEnter={tmpl.live ? (e) => { e.currentTarget.style.borderColor = t.border.hover; e.currentTarget.style.transform = 'translateY(-1px)'; } : undefined}
+                  onMouseLeave={tmpl.live ? (e) => { e.currentTarget.style.borderColor = t.border.default; e.currentTarget.style.transform = 'none'; } : undefined}
+                >
+                  <div style={{ width: 32, height: 32, borderRadius: 6, background: t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.text.secondary, flexShrink: 0 }}>
+                    {ICONS[tmpl.id]}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {tmpl.name}
+                      {tmpl.live && <span style={{ fontSize: 8, fontWeight: 600, color: t.status.success, textTransform: 'uppercase' as const, letterSpacing: '0.04em', padding: '1px 5px', borderRadius: 3 }}>LIVE</span>}
                     </div>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.company || c.name}</span>
+                    <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 2 }}>
+                      {tmpl.live ? TEMPLATE_DESCRIPTIONS[tmpl.id] : 'Coming soon'}
+                    </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
-          )}
-        </div>
+          </div>
+        ))}
+      </PageShell>
+    );
+  }
 
-        {/* Template List */}
-        <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 40 }}>
-          {TEMPLATES.map(cat => (
-            <div key={cat.cat}>
-              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: t.text.tertiary, padding: '12px 14px 4px' }}>{cat.cat}</div>
-              {cat.items.map(tmpl => {
-                const active = selectedTemplate === tmpl.id;
-                return (
-                  <div key={tmpl.id}
-                    title={tmpl.live ? undefined : 'Coming soon'}
-                    onClick={tmpl.live ? () => setSelectedTemplate(tmpl.id) : undefined}
-                    style={{
-                      padding: '8px 14px', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8,
-                      cursor: tmpl.live ? 'pointer' : 'default',
-                      opacity: tmpl.live ? 1 : 0.35,
-                      background: active ? 'rgba(37,99,235,0.06)' : 'transparent',
-                      color: active ? '#2563eb' : t.text.secondary,
-                      borderRadius: 6, transition: 'all 150ms',
-                    }}
-                    onMouseEnter={tmpl.live && !active ? (e) => (e.currentTarget.style.background = t.bg.surfaceHover) : undefined}
-                    onMouseLeave={tmpl.live && !active ? (e) => (e.currentTarget.style.background = 'transparent') : undefined}>
-                    <span style={{ flexShrink: 0, color: active ? '#2563eb' : t.text.secondary }}>{ICONS[tmpl.id]}</span>
-                    {tmpl.name}
-                    {tmpl.live ? <span style={{ fontSize: 8, fontWeight: 600, color: t.status.success, marginLeft: 'auto', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>LIVE</span> : <span style={{ fontSize: 8, fontWeight: 600, color: t.text.tertiary, marginLeft: 'auto', textTransform: 'uppercase' as const, letterSpacing: '0.05em', opacity: 0.5 }}>SOON</span>}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-        </div>
+  // ═══════════════════════════════════════════════
+  // WORKSPACE VIEW — template selected
+  // ═══════════════════════════════════════════════
+  const templateName = TEMPLATES.flatMap(c => c.items).find(t => t.id === selectedTemplate)?.name || selectedTemplate;
 
-        {/* Edit brand kit link */}
-        <div style={{ padding: '10px 14px', borderTop: `0.5px solid ${t.border.default}` }}>
-          <button
-            onClick={() => router.push(selectedClient === 'agency' ? '/agency/brand-kit' : `/clients/${selectedClient}/brand-kit`)}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: t.bg.surface, color: t.text.primary,
-              border: `1px solid ${t.border.default}`, borderRadius: 8,
-              padding: '6px 14px', fontSize: 13, fontWeight: 500,
-              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 150ms',
-              width: '100%', justifyContent: 'center',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = t.bg.surfaceHover; e.currentTarget.style.borderColor = t.border.hover; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = t.bg.surface; e.currentTarget.style.borderColor = t.border.default; }}
-          >
-            Edit brand kit →
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 48px)' }}>
+      {/* Workspace header bar */}
+      <div style={{
+        height: 44, flexShrink: 0, borderBottom: `0.5px solid ${t.border.default}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button onClick={() => setSelectedTemplate(null)} style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px',
+            color: t.text.secondary, fontSize: 13, fontFamily: 'inherit',
+            display: 'flex', alignItems: 'center', gap: 4,
+          }}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M10 3L5 8l5 5"/></svg>
+            Design
           </button>
+          <span style={{ color: t.text.tertiary, fontSize: 13 }}>/</span>
+          <span style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>{templateName}</span>
         </div>
+        {clientDropdown}
       </div>
 
-      {/* Fields Column — 260px */}
-      {(selectedTemplate === 'yard-sign' || selectedTemplate === 'business-card') ? (
+      {/* Workspace body */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        {/* Fields panel */}
         <div style={{ width: 260, flexShrink: 0, borderRight: `0.5px solid ${t.border.default}`, overflowY: 'auto', padding: '16px 14px' }}>
-          {/* Brand assets card */}
           {bk && (
             <div style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, padding: 12, marginBottom: 12 }}>
               <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: t.text.tertiary, marginBottom: 8 }}>Brand assets</div>
               <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
                 {(['color', 'light', 'dark'] as const).map(slot => {
                   const file = bk.logos?.[slot]?.find((f: any) => f.data && /\.(png|svg|jpg)$/i.test(f.name));
-                  return <div key={slot} style={{ width: 32, height: 32, borderRadius: 5, border: `0.5px solid ${t.border.default}`, background: slot === 'dark' ? '#1a1a1a' : '#f8f8f8', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                  return <div key={slot} style={{ width: 32, height: 32, borderRadius: 5, border: `0.5px solid ${t.border.default}`, background: slot === 'dark' ? '#1a1a1a' : t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                     {file?.data ? <img src={file.data} alt="" style={{ maxWidth: 26, maxHeight: 26, objectFit: 'contain' }} /> : <span style={{ fontSize: 7, color: t.text.tertiary }}>—</span>}
                   </div>;
                 })}
@@ -295,14 +330,11 @@ function DesignContent() {
               )}
             </div>
           )}
-          {/* Field editor */}
-          <FieldEditor fields={fields} onChange={handleFieldsChange} sources={{}} assetType={selectedTemplate || 'yard-sign'} clientId={selectedClient} hasBrandKit={!!bk} />
+          <FieldEditor fields={fields} onChange={handleFieldsChange} sources={{}} assetType={(selectedTemplate || 'yard-sign') as any} clientId={selectedClient} hasBrandKit={!!bk} />
         </div>
-      ) : null}
 
-      {/* Canvas */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: t.bg.surfaceHover, overflow: 'auto' }}>
-        {(selectedTemplate === 'yard-sign' || selectedTemplate === 'business-card') ? (
+        {/* Canvas area */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: t.bg.surfaceHover, overflow: 'auto' }}>
           <div style={{ padding: 24 }}>
             <DesignCanvas
               key={`${selectedTemplate}-${selectedClient}-${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}-${fields.showTagline}-${fields.showEmail}-${fields.showWebsite}-${(fields as any).showLogo}-${fields.phone}-${fields.companyName}-${fields.logoUrl?.slice(-20) || ''}-${fields.qrCodeUrl}-${fields.contactName}-${fields.email}`}
@@ -329,16 +361,7 @@ function DesignContent() {
               signSize={fields.signSize || '18x24'} savedState={null}
             />
           </div>
-        ) : (
-          <div style={{ textAlign: 'center' }}>
-            <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 12, opacity: 0.4 }}>
-              <path d="M10.5 2L14 5.5 5.5 14H2v-3.5z"/>
-              <line x1="8.5" y1="4" x2="12" y2="7.5"/>
-            </svg>
-            <div style={{ fontSize: 14, fontWeight: 400, color: t.text.tertiary, marginBottom: 4 }}>Select a template to start</div>
-            <div style={{ fontSize: 12, color: t.text.tertiary, opacity: 0.6 }}>Choose a client and template from the left</div>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
