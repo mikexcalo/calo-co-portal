@@ -105,8 +105,31 @@ function DesignContent() {
 
   // Load fields when client/template changes
   useEffect(() => {
-    if (!selectedTemplate || selectedClient === 'agency' || loading || clients.length === 0) return;
+    if (!selectedTemplate || loading) return;
+    if (selectedClient !== 'agency' && clients.length === 0) return;
     const load = async () => {
+      // Agency mode — use agency data from DB cache
+      if (selectedClient === 'agency') {
+        const f = { ...DEFAULT_FIELDS };
+        f.companyName = DB.agency.name || 'CALO&CO';
+        f.website = DB.agency.url || '';
+        f.contactName = DB.agency.founder || '';
+        if (f.website) f.qrCodeUrl = f.website.startsWith('http') ? f.website : `https://${f.website}`;
+        const agBk = DB.agency.brandKit;
+        if (agBk) {
+          for (const slot of ['color', 'light', 'dark', 'icon'] as const) {
+            const logos = agBk.logos?.[slot] || [];
+            const svg = logos.find((l: any) => /\.svg$/i.test(l.name || '') && l.data);
+            const pri = logos.find((l: any) => l.isPrimary) || logos[0];
+            if (svg?.data) { f.logoUrl = svg.data; break; }
+            if (pri?.data) { f.logoUrl = pri.data; break; }
+          }
+          if (agBk.colors?.length) { const hex = extractHex(agBk.colors[0]); if (hex) f.primaryColor = hex; }
+        }
+        setFields(f);
+        return;
+      }
+
       const client = DB.clients.find(c => c.id === selectedClient);
       if (!client) return;
       const f = { ...DEFAULT_FIELDS };
@@ -251,7 +274,7 @@ function DesignContent() {
       </div>
 
       {/* Fields Column — 260px */}
-      {(selectedTemplate === 'yard-sign' || selectedTemplate === 'business-card') && selectedClient !== 'agency' ? (
+      {(selectedTemplate === 'yard-sign' || selectedTemplate === 'business-card') ? (
         <div style={{ width: 260, flexShrink: 0, borderRight: `0.5px solid ${t.border.default}`, overflowY: 'auto', padding: '16px 14px' }}>
           {/* Brand assets card */}
           {bk && (
@@ -279,7 +302,7 @@ function DesignContent() {
 
       {/* Canvas */}
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: t.bg.surfaceHover, overflow: 'auto' }}>
-        {(selectedTemplate === 'yard-sign' || selectedTemplate === 'business-card') && selectedClient !== 'agency' ? (
+        {(selectedTemplate === 'yard-sign' || selectedTemplate === 'business-card') ? (
           <div style={{ padding: 24 }}>
             <DesignCanvas
               key={`${selectedTemplate}-${selectedClient}-${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}-${fields.showTagline}-${fields.showEmail}-${fields.showWebsite}-${(fields as any).showLogo}-${fields.phone}-${fields.companyName}-${fields.logoUrl?.slice(-20) || ''}-${fields.qrCodeUrl}-${fields.contactName}-${fields.email}`}
@@ -308,25 +331,12 @@ function DesignContent() {
           </div>
         ) : (
           <div style={{ textAlign: 'center' }}>
-            {(selectedTemplate === 'yard-sign' || selectedTemplate === 'business-card') && selectedClient === 'agency' ? (
-              <>
-                <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3" style={{ marginBottom: 12, opacity: 0.5 }}>
-                  <circle cx="6" cy="5" r="2.5"/><path d="M1.5 14c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5"/>
-                  <circle cx="11" cy="4.5" r="2"/><path d="M14.5 13c0-2 1.5-3.5-1.5-3.5"/>
-                </svg>
-                <div style={{ fontSize: 14, fontWeight: 400, color: t.text.tertiary, marginBottom: 4 }}>Select a client first</div>
-                <div style={{ fontSize: 12, color: t.text.tertiary, opacity: 0.6 }}>Yard signs are built per-client using their brand kit</div>
-              </>
-            ) : (
-              <>
-                <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 12, opacity: 0.4 }}>
-                  <path d="M10.5 2L14 5.5 5.5 14H2v-3.5z"/>
-                  <line x1="8.5" y1="4" x2="12" y2="7.5"/>
-                </svg>
-                <div style={{ fontSize: 14, fontWeight: 400, color: t.text.tertiary, marginBottom: 4 }}>Select a template to start</div>
-                <div style={{ fontSize: 12, color: t.text.tertiary, opacity: 0.6 }}>Choose a client and template from the left</div>
-              </>
-            )}
+            <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 12, opacity: 0.4 }}>
+              <path d="M10.5 2L14 5.5 5.5 14H2v-3.5z"/>
+              <line x1="8.5" y1="4" x2="12" y2="7.5"/>
+            </svg>
+            <div style={{ fontSize: 14, fontWeight: 400, color: t.text.tertiary, marginBottom: 4 }}>Select a template to start</div>
+            <div style={{ fontSize: 12, color: t.text.tertiary, opacity: 0.6 }}>Choose a client and template from the left</div>
           </div>
         )}
       </div>
