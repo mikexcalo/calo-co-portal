@@ -279,7 +279,7 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
         const isCmd = e.metaKey || e.ctrlKey;
 
         // Delete / Backspace — remove selected object
-        if ((e.key === 'Delete' || e.key === 'Backspace') && active && active.name !== 'brand-bg' && active.name !== 'white-strip') {
+        if ((e.key === 'Delete' || e.key === 'Backspace') && active && active.selectable && active.name !== 'brand-bg' && active.name !== 'white-strip') {
           e.preventDefault();
           fc.remove(active);
           fc.discardActiveObject();
@@ -300,27 +300,8 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
           return;
         }
 
-        // Cmd+Z — undo
-        if (isCmd && e.key === 'z' && !e.shiftKey) {
-          e.preventDefault();
-          if (historyIndexRef.current > 0) {
-            historyIndexRef.current--;
-            isUndoRedoRef.current = true;
-            fc.loadFromJSON(historyRef.current[historyIndexRef.current], () => { fc.renderAll(); isUndoRedoRef.current = false; });
-          }
-          return;
-        }
-
-        // Cmd+Shift+Z — redo
-        if (isCmd && e.key === 'z' && e.shiftKey) {
-          e.preventDefault();
-          if (historyIndexRef.current < historyRef.current.length - 1) {
-            historyIndexRef.current++;
-            isUndoRedoRef.current = true;
-            fc.loadFromJSON(historyRef.current[historyIndexRef.current], () => { fc.renderAll(); isUndoRedoRef.current = false; });
-          }
-          return;
-        }
+        // Cmd+Z — undo: disabled (loadFromJSON strips canvas objects in Fabric v6)
+        // Cmd+Shift+Z — redo: disabled
       };
 
       document.addEventListener('keydown', handleKeyDown);
