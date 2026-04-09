@@ -96,7 +96,7 @@ export default function AllInvoicesPage() {
             <h1 style={{ fontSize: 24, fontWeight: 400, margin: '0 0 2px', color: t.text.primary }}>Invoices</h1>
             <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>Track and manage client invoices</p>
           </div>
-          <button onClick={() => router.push('/clients')} style={{
+          <button onClick={() => router.push('/invoices/new')} style={{
             background: t.accent.primary, color: '#fff', border: 'none', borderRadius: 8,
             padding: '8px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
             transition: 'background 150ms',
