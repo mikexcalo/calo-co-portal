@@ -172,8 +172,8 @@ function DesignContent() {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             transition: 'border-color 150ms',
           }}>
-            {clientName}
-            <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5"><path d="M4 6l4 4 4-4"/></svg>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{clientName}</span>
+            <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5" style={{ flexShrink: 0 }}><path d="M4 6l4 4 4-4"/></svg>
           </button>
           {dropdownOpen && (
             <div style={{ position: 'absolute', top: '100%', left: 14, right: 14, marginTop: 4, background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8, boxShadow: t.shadow.elevated, zIndex: 20, maxHeight: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -191,7 +191,7 @@ function DesignContent() {
                     <div style={{ width: 18, height: 18, borderRadius: 4, overflow: 'hidden', background: getClientAvatarUrl(c) ? 'transparent' : '#1a2540', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#5a8abb', fontSize: 8, fontWeight: 700, flexShrink: 0 }}>
                       {getClientAvatarUrl(c) ? <img src={getClientAvatarUrl(c)!} alt="" style={{ width: 18, height: 18, objectFit: 'contain' }} /> : (c.company || c.name || '').charAt(0)}
                     </div>
-                    {c.company || c.name}
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.company || c.name}</span>
                   </div>
                 ))}
               </div>
