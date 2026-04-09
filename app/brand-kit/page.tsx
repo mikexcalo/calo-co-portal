@@ -36,10 +36,10 @@ export default function BrandKitPage() {
   };
 
   const getVoiceStatus = (client: any) => {
-    const v = client.brand_builder_fields?.brandVoice;
+    const v = client.brand_voice || client.brand_builder_fields?.brandVoice;
     if (!v) return null;
-    const filled = [v.purpose, v.audience, v.tone?.length, v.emotion?.length, v.character?.length].filter(Boolean).length;
-    return filled;
+    const filled = [v.tone, v.industry, v.targetCustomer, v.elevatorPitch, v.differentiator, v.purpose, v.audience].filter(Boolean).length;
+    return filled || null;
   };
 
   const getCompleteness = (client: any) => {

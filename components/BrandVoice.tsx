@@ -5,73 +5,24 @@ import { useTheme } from "@/lib/theme";
 import { SectionLabel } from "@/components/shared/Brand";
 import supabase from "@/lib/supabase";
 
-const TONE_OPTIONS = ["Warm", "Editorial", "Professional", "Friendly", "Authoritative", "Casual", "Technical", "Playful", "Bold", "Minimal"];
-const EMOTION_OPTIONS = ["Confident", "Inviting", "Trustworthy", "Bold", "Curious", "Calm", "Energetic", "Sophisticated", "Approachable"];
-const CHARACTER_OPTIONS = ["Sophisticated friend", "Knowledgeable guide", "Trusted advisor", "Straight shooter", "Creative partner", "Trusted curator", "Industry insider"];
+const TONE_OPTIONS = ["Professional", "Casual", "Friendly", "Authoritative", "Playful", "Warm", "Editorial", "Technical", "Bold", "Minimal"];
 
 interface BrandVoiceData {
-  purpose: string;
-  audience: string;
-  tone: string[];
-  emotion: string[];
-  character: string[];
-  styleNotes: string;
+  tone: string;
+  industry: string;
+  targetCustomer: string;
+  valueProps: string[];
+  keyPhrases: string[];
+  avoidPhrases: string[];
+  elevatorPitch: string;
+  differentiator: string;
 }
 
-const empty: BrandVoiceData = { purpose: "", audience: "", tone: [], emotion: [], character: [], styleNotes: "" };
-
-function TagPicker({ options, selected, onChange, label }: { options: string[]; selected: string[]; onChange: (v: string[]) => void; label: string }) {
-  const { t } = useTheme();
-  const [custom, setCustom] = useState("");
-
-  const toggle = (tag: string) => {
-    onChange(selected.includes(tag) ? selected.filter((s) => s !== tag) : [...selected, tag]);
-  };
-
-  const addCustom = () => {
-    if (custom.trim() && !selected.includes(custom.trim())) {
-      onChange([...selected, custom.trim()]);
-      setCustom("");
-    }
-  };
-
-  return (
-    <div style={{ marginBottom: 20 }}>
-      <div style={{ fontSize: 12, fontWeight: 500, color: t.text.secondary, marginBottom: 8 }}>{label}</div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-        {options.map((opt) => {
-          const active = selected.includes(opt);
-          return (
-            <button
-              key={opt} onClick={() => toggle(opt)}
-              style={{
-                padding: "5px 12px", fontSize: 12, fontWeight: 500, borderRadius: 6,
-                border: `1px solid ${active ? "#6366f1" : t.border.default}`,
-                background: active ? "rgba(99,102,241,0.08)" : "transparent",
-                color: active ? "#6366f1" : t.text.secondary,
-                cursor: "pointer", fontFamily: "inherit", transition: "all 150ms",
-              }}
-            >
-              {opt}
-            </button>
-          );
-        })}
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          <input
-            value={custom} onChange={(e) => setCustom(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addCustom()}
-            placeholder="+ Add"
-            style={{
-              width: 72, padding: "5px 8px", fontSize: 12, borderRadius: 6,
-              border: `1px dashed ${t.border.default}`, background: "transparent",
-              color: t.text.primary, fontFamily: "inherit", outline: "none",
-            }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
+const empty: BrandVoiceData = {
+  tone: "", industry: "", targetCustomer: "",
+  valueProps: [], keyPhrases: [], avoidPhrases: [],
+  elevatorPitch: "", differentiator: "",
+};
 
 export default function BrandVoice({ clientId }: { clientId: string }) {
   const { t } = useTheme();
@@ -80,48 +31,55 @@ export default function BrandVoice({ clientId }: { clientId: string }) {
   const [saved, setSaved] = useState(false);
   const saveTimer = useRef<any>(null);
 
-  // Load
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await supabase.from("clients").select("brand_builder_fields").eq("id", clientId).single();
-        if (data?.brand_builder_fields?.brandVoice) {
-          setVoice({ ...empty, ...data.brand_builder_fields.brandVoice });
+        const { data } = await supabase.from("clients").select("brand_voice").eq("id", clientId).single();
+        if (data?.brand_voice && typeof data.brand_voice === "object") {
+          setVoice({ ...empty, ...data.brand_voice });
         }
-      } catch (e) {}
+      } catch {}
       setLoaded(true);
     })();
   }, [clientId]);
 
-  // Auto-save with debounce
   const save = useCallback((updated: BrandVoiceData) => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       try {
-        const { data } = await supabase.from("clients").select("brand_builder_fields").eq("id", clientId).single();
-        const existing = data?.brand_builder_fields || {};
-        await supabase.from("clients").update({
-          brand_builder_fields: { ...existing, brandVoice: updated }
-        }).eq("id", clientId);
+        await supabase.from("clients").update({ brand_voice: updated }).eq("id", clientId);
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
-      } catch (e) {}
-    }, 800);
+      } catch (e) { console.error("Failed to save brand voice:", e); }
+    }, 500);
   }, [clientId]);
 
-  const update = (field: keyof BrandVoiceData, value: any) => {
-    const updated = { ...voice, [field]: value };
+  const update = (key: keyof BrandVoiceData, value: any) => {
+    const updated = { ...voice, [key]: value };
     setVoice(updated);
     save(updated);
   };
 
   if (!loaded) return null;
 
-  const textareaStyle: React.CSSProperties = {
+  const inputStyle: React.CSSProperties = {
     width: "100%", padding: "8px 12px", fontSize: 13, borderRadius: 8,
     border: `1px solid ${t.border.default}`, background: t.bg.primary,
-    color: t.text.primary, fontFamily: "inherit", outline: "none", resize: "vertical",
+    color: t.text.primary, fontFamily: "inherit", outline: "none",
     boxSizing: "border-box", transition: "border-color 150ms",
+  };
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: 12, fontWeight: 500, color: t.text.secondary, marginBottom: 4, display: "block",
+  };
+
+  const focusHandler = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    e.currentTarget.style.borderColor = "#2563eb";
+    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.08)";
+  };
+  const blurHandler = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    e.currentTarget.style.borderColor = t.border.default;
+    e.currentTarget.style.boxShadow = "none";
   };
 
   return (
@@ -137,54 +95,94 @@ export default function BrandVoice({ clientId }: { clientId: string }) {
       </div>
 
       <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
-        {/* Purpose */}
+        {/* Tone selector */}
         <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 12, fontWeight: 500, color: t.text.secondary, marginBottom: 4 }}>Purpose</div>
-          <div style={{ fontSize: 11, color: t.text.tertiary, marginBottom: 6 }}>Why does this brand communicate? What&apos;s the goal?</div>
-          <textarea
-            value={voice.purpose} onChange={(e) => update("purpose", e.target.value)}
-            placeholder="Connect with homeowners who need reliable, high-quality flooring installation..."
-            rows={2}
-            style={textareaStyle}
-            onFocus={(e) => { e.currentTarget.style.borderColor = "#2563eb"; }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = t.border.default; }}
-          />
+          <div style={labelStyle}>Tone</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {TONE_OPTIONS.map(tone => (
+              <button
+                key={tone} onClick={() => update("tone", tone)}
+                style={{
+                  padding: "6px 14px", fontSize: 13, borderRadius: 6, cursor: "pointer",
+                  fontFamily: "inherit", textTransform: "capitalize" as const,
+                  border: voice.tone === tone ? "1px solid #2563eb" : `1px solid ${t.border.default}`,
+                  background: voice.tone === tone ? "rgba(37,99,235,0.06)" : "transparent",
+                  color: voice.tone === tone ? "#2563eb" : t.text.secondary,
+                  transition: "all 150ms",
+                }}
+              >
+                {tone}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Audience */}
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 12, fontWeight: 500, color: t.text.secondary, marginBottom: 4 }}>Audience</div>
-          <div style={{ fontSize: 11, color: t.text.tertiary, marginBottom: 6 }}>Who are they talking to?</div>
-          <textarea
-            value={voice.audience} onChange={(e) => update("audience", e.target.value)}
-            placeholder="Homeowners in the Portland metro area looking for professional flooring services..."
-            rows={2}
-            style={textareaStyle}
-            onFocus={(e) => { e.currentTarget.style.borderColor = "#2563eb"; }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = t.border.default; }}
-          />
+        {/* Industry + Target customer */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+          <div>
+            <label style={labelStyle}>Industry</label>
+            <input value={voice.industry} onChange={e => update("industry", e.target.value)}
+              placeholder="e.g. Flooring installation" style={inputStyle} onFocus={focusHandler} onBlur={blurHandler} />
+          </div>
+          <div>
+            <label style={labelStyle}>Target customer</label>
+            <input value={voice.targetCustomer} onChange={e => update("targetCustomer", e.target.value)}
+              placeholder="e.g. Homeowners in Maine" style={inputStyle} onFocus={focusHandler} onBlur={blurHandler} />
+          </div>
         </div>
 
-        {/* Tone */}
-        <TagPicker label="Tone" options={TONE_OPTIONS} selected={voice.tone} onChange={(v) => update("tone", v)} />
-
-        {/* Emotion */}
-        <TagPicker label="Emotion" options={EMOTION_OPTIONS} selected={voice.emotion} onChange={(v) => update("emotion", v)} />
-
-        {/* Character */}
-        <TagPicker label="Character" options={CHARACTER_OPTIONS} selected={voice.character} onChange={(v) => update("character", v)} />
-
-        {/* Style Notes */}
-        <div>
-          <div style={{ fontSize: 12, fontWeight: 500, color: t.text.secondary, marginBottom: 4 }}>Style Notes</div>
-          <div style={{ fontSize: 11, color: t.text.tertiary, marginBottom: 6 }}>Specific do&apos;s and don&apos;ts for this brand&apos;s copy.</div>
+        {/* Elevator pitch */}
+        <div style={{ marginBottom: 20 }}>
+          <label style={labelStyle}>Elevator pitch</label>
           <textarea
-            value={voice.styleNotes} onChange={(e) => update("styleNotes", e.target.value)}
-            placeholder="Always lead with the benefit. Never use exclamation marks. Use 'we' not 'I'..."
+            value={voice.elevatorPitch} onChange={e => update("elevatorPitch", e.target.value)}
+            placeholder="1-2 sentences describing what this company does and why customers choose them"
             rows={3}
-            style={textareaStyle}
-            onFocus={(e) => { e.currentTarget.style.borderColor = "#2563eb"; }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = t.border.default; }}
+            style={{ ...inputStyle, resize: "vertical" as const }}
+            onFocus={focusHandler as any} onBlur={blurHandler as any}
+          />
+        </div>
+
+        {/* Value propositions */}
+        <div style={{ marginBottom: 20 }}>
+          <label style={labelStyle}>Value propositions</label>
+          <input
+            value={(voice.valueProps || []).join(", ")}
+            onChange={e => update("valueProps", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
+            placeholder="Free consultations, Fully insured, 25 years experience"
+            style={inputStyle} onFocus={focusHandler} onBlur={blurHandler}
+          />
+          <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 4 }}>Comma-separated list</div>
+        </div>
+
+        {/* Key phrases + Avoid phrases */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+          <div>
+            <label style={labelStyle}>Key phrases to use</label>
+            <input
+              value={(voice.keyPhrases || []).join(", ")}
+              onChange={e => update("keyPhrases", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
+              placeholder="quality craftsmanship, family-owned"
+              style={inputStyle} onFocus={focusHandler} onBlur={blurHandler}
+            />
+          </div>
+          <div>
+            <label style={labelStyle}>Phrases to avoid</label>
+            <input
+              value={(voice.avoidPhrases || []).join(", ")}
+              onChange={e => update("avoidPhrases", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
+              placeholder="cheap, discount, budget"
+              style={inputStyle} onFocus={focusHandler} onBlur={blurHandler}
+            />
+          </div>
+        </div>
+
+        {/* Differentiator */}
+        <div>
+          <label style={labelStyle}>Competitive differentiator</label>
+          <input value={voice.differentiator} onChange={e => update("differentiator", e.target.value)}
+            placeholder="What makes this company different from competitors?"
+            style={inputStyle} onFocus={focusHandler} onBlur={blurHandler}
           />
         </div>
       </div>
