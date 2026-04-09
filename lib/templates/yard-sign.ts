@@ -141,7 +141,7 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
       left: W / 2,
       top: cursorY + Math.round(topH * 0.02),
       width: W * 0.95, originX: 'center',
-      fontSize: Math.min(Math.round(isLandscape ? W * 0.1 : W * 0.13), 56),
+      fontSize: Math.min(Math.round(isLandscape ? W * 0.1 : W * 0.13), 56, Math.floor(0.95 * W / (formattedPhone.length * 0.62))),
       fontWeight: 800, fill: '#ffffff', textAlign: 'center',
       name: 'phone-text',
     });
