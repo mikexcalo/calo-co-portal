@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/lib/theme';
 import { DB, loadClients, loadContacts, saveInvoice } from '@/lib/database';
@@ -26,6 +26,9 @@ export default function NewInvoicePage() {
   const [lineItems, setLineItems] = useState([{ description: '', qty: 1, price: 0 }]);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
+  const [extracting, setExtracting] = useState(false);
+  const [confidenceFlags, setConfidenceFlags] = useState<Record<string, string>>({});
+  const receiptInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -85,6 +88,54 @@ export default function NewInvoicePage() {
     }
   };
 
+  const handleFileUpload = async (file: File) => {
+    setExtracting(true);
+    setConfidenceFlags({});
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const res = await fetch('/api/extract-receipt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 }),
+      });
+      if (!res.ok) throw new Error('Extraction failed');
+      const data = await res.json();
+      if (data.date) setInvoiceDate(data.date);
+      if (data.lineItems?.length) {
+        setLineItems(data.lineItems.map((item: any) => ({
+          description: item.description || '',
+          qty: item.qty || 1,
+          price: item.rate || item.price || 0,
+        })));
+      }
+      if (data.notes) setNotes(data.notes);
+      if (data.vendor) {
+        const match = clients.find(c =>
+          (c.company || c.name || '').toLowerCase().includes(data.vendor.toLowerCase()) ||
+          data.vendor.toLowerCase().includes((c.company || c.name || '').toLowerCase())
+        );
+        if (match) setSelectedClient(match.id);
+      }
+      if (data.confidence) setConfidenceFlags(data.confidence);
+    } catch (err) {
+      console.error('Extraction error:', err);
+    } finally {
+      setExtracting(false);
+    }
+  };
+
+  const confBorder = (field: string): React.CSSProperties => {
+    const c = confidenceFlags[field];
+    if (c === 'low') return { borderLeft: '3px solid #f59e0b', paddingLeft: 10 };
+    if (c === 'medium') return { borderLeft: '3px solid #fcd34d', paddingLeft: 10 };
+    return {};
+  };
+
   const selectedClientData = clients.find(c => c.id === selectedClient);
   const primaryContact = selectedClient ? (DB.contacts[selectedClient] || []).find((c: any) => c.isPrimary) || (DB.contacts[selectedClient] || [])[0] : null;
 
@@ -109,10 +160,41 @@ export default function NewInvoicePage() {
         }
       />
 
+      {/* Receipt upload zone */}
+      <div
+        onClick={() => receiptInputRef.current?.click()}
+        onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = '#2563eb'; }}
+        onDragLeave={e => { e.currentTarget.style.borderColor = t.border.default; }}
+        onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = t.border.default; const file = e.dataTransfer.files[0]; if (file) handleFileUpload(file); }}
+        style={{ border: `1.5px dashed ${t.border.default}`, borderRadius: 10, padding: '20px 24px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', transition: 'border-color 150ms' }}
+      >
+        {extracting ? (
+          <>
+            <div style={{ width: 20, height: 20, border: `2px solid ${t.border.default}`, borderTopColor: '#2563eb', borderRadius: '50%', animation: 'receipt-spin 0.8s linear infinite' }} />
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>Extracting data...</div>
+              <div style={{ fontSize: 12, color: t.text.tertiary }}>Reading your document</div>
+            </div>
+          </>
+        ) : (
+          <>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={t.text.tertiary} strokeWidth="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>Drop a receipt, screenshot, or invoice</div>
+              <div style={{ fontSize: 12, color: t.text.tertiary }}>Auto-fills the form with AI extraction</div>
+            </div>
+          </>
+        )}
+      </div>
+      <input ref={receiptInputRef} type="file" accept="image/*,.pdf" style={{ display: 'none' }}
+        onChange={e => { const file = e.target.files?.[0]; if (file) handleFileUpload(file); e.target.value = ''; }} />
+      <style>{`@keyframes receipt-spin { to { transform: rotate(360deg); } }`}</style>
+
       {/* TOP ROW: Client + Invoice Details */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
         {/* Client selector */}
         <DataCard>
+          <div style={{ ...confBorder('vendor') }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px', marginBottom: 12 }}>Bill to</div>
           <select
             value={selectedClient}
@@ -132,6 +214,7 @@ export default function NewInvoicePage() {
               {primaryContact?.phone && <div>{primaryContact.phone}</div>}
             </div>
           )}
+          </div>
         </DataCard>
 
         {/* Invoice details */}
@@ -158,6 +241,7 @@ export default function NewInvoicePage() {
       </div>
 
       {/* LINE ITEMS TABLE */}
+      <div style={{ ...confBorder('lineItems') }}>
       <DataCard noPadding>
         <div style={{ padding: '12px 20px', borderBottom: `1px solid ${t.border.default}` }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px' }}>Line items</div>
@@ -211,6 +295,7 @@ export default function NewInvoicePage() {
           </button>
         </div>
       </DataCard>
+      </div>
 
       {/* TOTALS + NOTES */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
