@@ -122,28 +122,51 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
     }
   };
 
-  // Find SVG logo data from any slot
-  const findSvgLogo = (): string | null => {
-    if (!brandKit) return null;
-    for (const slot of ['color', 'light', 'dark', 'icon'] as const) {
-      const files = brandKit.logos?.[slot] || [];
-      for (const f of files) {
-        if (f.data && (/\.svg$/i.test(f.name || '') || (f.data as string).startsWith('data:image/svg'))) return f.data as string;
-      }
-    }
-    return null;
-  };
-
   const handleGenerateVariants = () => {
-    const svgData = findSvgLogo();
-    if (!svgData) return;
-    let svgString = svgData;
-    if (svgString.startsWith('data:image/svg+xml;base64,')) svgString = atob(svgString.split(',')[1]);
-    else if (svgString.startsWith('data:image/svg+xml,')) svgString = decodeURIComponent(svgString.split(',')[1]);
-    const primary = (typeof brandKit!.colors?.[0] === 'string' ? brandKit!.colors[0] : (brandKit!.colors?.[0] as any)?.hex) || '#2563eb';
-    const secondary = (typeof brandKit!.colors?.[1] === 'string' ? brandKit!.colors[1] : (brandKit!.colors?.[1] as any)?.hex) || undefined;
+    if (!brandKit?.logos) { console.error('No logos in brand kit'); return; }
+
+    let svgString: string | null = null;
+    for (const category of ['color', 'light', 'dark', 'icon', 'secondary'] as const) {
+      const logos = brandKit.logos[category];
+      if (!Array.isArray(logos)) continue;
+      for (const logo of logos) {
+        const data = (logo.data || '') as string;
+        if (!data) continue;
+        // Raw SVG string
+        if (data.trim().startsWith('<svg') || data.trim().startsWith('<?xml')) { svgString = data; break; }
+        // Base64 SVG data URL
+        if (data.startsWith('data:image/svg+xml;base64,')) { try { svgString = atob(data.split(',')[1]); break; } catch { continue; } }
+        // URL-encoded SVG data URL
+        if (data.startsWith('data:image/svg+xml,')) { try { svgString = decodeURIComponent(data.split(',')[1]); break; } catch { continue; } }
+        // .svg filename with base64 data (no mime prefix)
+        if ((logo.name || '').toLowerCase().endsWith('.svg') && data.length > 100) {
+          try { const decoded = atob(data); if (decoded.includes('<svg')) { svgString = decoded; break; } } catch { /* skip */ }
+        }
+      }
+      if (svgString) break;
+    }
+
+    if (!svgString) { console.error('No SVG logo found in brand kit'); return; }
+    console.log('Found SVG, length:', svgString.length);
+
+    const primary = (typeof brandKit.colors?.[0] === 'string' ? brandKit.colors[0] : (brandKit.colors?.[0] as any)?.hex) || '#2563eb';
+    const secondary = (typeof brandKit.colors?.[1] === 'string' ? brandKit.colors[1] : (brandKit.colors?.[1] as any)?.hex) || undefined;
     setVariants(generateLogoVariants(svgString, primary, secondary));
   };
+
+  const hasSvgLogo = (() => {
+    if (!brandKit?.logos) return false;
+    for (const category of ['color', 'light', 'dark', 'icon', 'secondary'] as const) {
+      const logos = brandKit.logos[category];
+      if (!Array.isArray(logos)) continue;
+      for (const logo of logos) {
+        const data = (logo.data || '') as string;
+        const name = (logo.name || '').toLowerCase();
+        if (data.trim().startsWith('<svg') || data.startsWith('data:image/svg+xml') || name.endsWith('.svg')) return true;
+      }
+    }
+    return false;
+  })();
 
   const downloadSvg = (v: typeof variants[0]) => {
     const blob = new Blob([v.svgString], { type: 'image/svg+xml' });
@@ -158,8 +181,6 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
       const a = document.createElement('a'); a.href = pngUrl; a.download = `logo-${v.name}.png`; a.click();
     } catch (e) { console.error('PNG export failed:', e); }
   };
-
-  const hasSvgLogo = !!findSvgLogo();
 
   const card: React.CSSProperties = { background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 16, minHeight: 180, display: 'flex', flexDirection: 'column' };
 
