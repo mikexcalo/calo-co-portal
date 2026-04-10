@@ -25,6 +25,7 @@ export default function NewInvoicePage() {
   const [dueDate, setDueDate] = useState(new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]);
   const [lineItems, setLineItems] = useState([{ description: '', qty: 1, price: 0 }]);
   const [notes, setNotes] = useState('');
+  const [tax, setTax] = useState(0);
   const [saving, setSaving] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [confidenceFlags, setConfidenceFlags] = useState<Record<string, string>>({});
@@ -51,7 +52,7 @@ export default function NewInvoicePage() {
   }, []);
 
   const subtotal = lineItems.reduce((sum, item) => sum + item.qty * item.price, 0);
-  const total = subtotal;
+  const total = subtotal + tax;
 
   const addLineItem = () => setLineItems([...lineItems, { description: '', qty: 1, price: 0 }]);
   const updateLineItem = (index: number, field: string, value: any) => {
@@ -74,7 +75,7 @@ export default function NewInvoicePage() {
         date: toDisplayDate(invoiceDate),
         due: toDisplayDate(dueDate),
         items: lineItems.filter(i => i.description.trim()),
-        tax: 0,
+        tax,
         shipping: 0,
         status: status === 'sent' ? 'unpaid' : 'draft',
         notes,
@@ -119,6 +120,7 @@ export default function NewInvoicePage() {
         })));
       }
       if (data.notes) setNotes(data.notes);
+      if (data.tax) setTax(data.tax);
       if (data.vendor) {
         const match = clients.find(c =>
           (c.company || c.name || '').toLowerCase().includes(data.vendor.toLowerCase()) ||
@@ -332,9 +334,13 @@ export default function NewInvoicePage() {
               <span style={{ color: t.text.secondary }}>Subtotal</span>
               <span style={{ color: t.text.primary, fontWeight: 500 }}>${subtotal.toFixed(2)}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
               <span style={{ color: t.text.secondary }}>Tax</span>
-              <span style={{ color: t.text.tertiary }}>$0.00</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <span style={{ color: t.text.tertiary, fontSize: 13 }}>$</span>
+                <input type="number" value={tax} min={0} step={0.01} onChange={e => setTax(parseFloat(e.target.value) || 0)}
+                  style={{ width: 70, textAlign: 'right', padding: '4px 8px', border: `1px solid ${t.border.default}`, borderRadius: 6, background: t.bg.primary, color: t.text.primary, fontSize: 13, fontFamily: 'inherit', outline: 'none' }} />
+              </div>
             </div>
             <div style={{ borderTop: `1px solid ${t.border.default}`, paddingTop: 8, display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: 14, fontWeight: 500, color: t.text.primary }}>Total</span>
