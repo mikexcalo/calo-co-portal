@@ -2,43 +2,31 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { image } = await req.json();
-    if (!image) return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    const body = await req.json();
+    // Support both { files: [...] } (multi) and { image: "..." } (legacy single)
+    const fileList: string[] = body.files || (body.image ? [body.image] : []);
 
-    const match = image.match(/^data:([^;]+);base64,(.+)$/);
-    if (!match) return NextResponse.json({ error: 'Invalid file format' }, { status: 400 });
-
-    const mediaType = match[1];
-    const base64Data = match[2];
-    const isPdf = mediaType === 'application/pdf';
-    const isImage = mediaType.startsWith('image/');
-
-    if (!isPdf && !isImage) {
-      return NextResponse.json({ error: 'Unsupported file type. Upload an image or PDF.' }, { status: 400 });
-    }
+    if (!fileList.length) return NextResponse.json({ error: 'No files provided' }, { status: 400 });
 
     const apiKey = (process.env.CLAUDE_API_KEY || '').trim();
     if (!apiKey) return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
 
-    const fileContent = isPdf
-      ? { type: 'document' as const, source: { type: 'base64' as const, media_type: 'application/pdf' as const, data: base64Data } }
-      : { type: 'image' as const, source: { type: 'base64' as const, media_type: mediaType as 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp', data: base64Data } };
+    const contentBlocks: any[] = [];
+    for (const file of fileList) {
+      const match = file.match(/^data:([^;]+);base64,(.+)$/);
+      if (!match) continue;
+      const mediaType = match[1];
+      const base64Data = match[2];
+      if (mediaType === 'application/pdf') {
+        contentBlocks.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64Data } });
+      } else if (mediaType.startsWith('image/')) {
+        contentBlocks.push({ type: 'image', source: { type: 'base64', media_type: mediaType, data: base64Data } });
+      }
+    }
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2000,
-        messages: [{
-          role: 'user',
-          content: [
-            fileContent,
-            { type: 'text', text: `Extract invoice/receipt data from this document. Return ONLY a JSON object with no markdown formatting, no backticks, no explanation. The JSON must have this exact structure:
+    if (!contentBlocks.length) return NextResponse.json({ error: 'No valid files found' }, { status: 400 });
+
+    contentBlocks.push({ type: 'text', text: `Extract invoice/receipt data from ALL of the provided documents and images. They are all related to the SAME invoice or transaction — combine the information from all sources into a single result. Return ONLY a JSON object with no markdown formatting, no backticks, no explanation. The JSON must have this exact structure:
 
 {
   "vendor": "company name or empty string",
@@ -58,10 +46,12 @@ export async function POST(req: Request) {
   }
 }
 
-If a field cannot be determined, use empty string or 0. The confidence field indicates how certain you are about each extraction. Use "low" if the user should definitely review that field.` },
-          ],
-        }],
-      }),
+If information appears in multiple documents, prefer the most detailed source. Combine line items from all sources — do not duplicate items that appear in multiple documents. Use "low" confidence if the user should review that field.` });
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2000, messages: [{ role: 'user', content: contentBlocks }] }),
     });
 
     if (!response.ok) {
@@ -73,9 +63,7 @@ If a field cannot be determined, use empty string or 0. The confidence field ind
     const data = await response.json();
     const text = data.content?.[0]?.text || '';
     const clean = text.replace(/```json\s*|```\s*/g, '').trim();
-    const extracted = JSON.parse(clean);
-
-    return NextResponse.json(extracted);
+    return NextResponse.json(JSON.parse(clean));
   } catch (error: any) {
     console.error('Receipt extraction error:', error);
     return NextResponse.json({ error: error.message || 'Extraction failed' }, { status: 500 });

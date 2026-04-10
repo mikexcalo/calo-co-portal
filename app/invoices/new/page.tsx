@@ -37,6 +37,7 @@ function NewInvoiceContent() {
   const [extracting, setExtracting] = useState(false);
   const [confidenceFlags, setConfidenceFlags] = useState<Record<string, string>>({});
   const [extractionError, setExtractionError] = useState<string | null>(null);
+  const [queuedFiles, setQueuedFiles] = useState<{ name: string; dataUrl: string }[]>([]);
   const receiptInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -114,28 +115,35 @@ function NewInvoiceContent() {
     }
   };
 
-  const handleFileUpload = async (file: File) => {
-    setExtracting(true);
-    setExtractionError(null);
-    setConfidenceFlags({});
-    try {
-      const base64 = await new Promise<string>((resolve, reject) => {
+  const handleFilesAdded = async (files: File[]) => {
+    const newFiles: { name: string; dataUrl: string }[] = [];
+    for (const file of files) {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
+      newFiles.push({ name: file.name, dataUrl });
+    }
+    setQueuedFiles(prev => [...prev, ...newFiles]);
+  };
+
+  const handleExtract = async () => {
+    if (!queuedFiles.length) return;
+    setExtracting(true);
+    setExtractionError(null);
+    setConfidenceFlags({});
+    try {
       const res = await fetch('/api/extract-receipt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: base64 }),
+        body: JSON.stringify({ files: queuedFiles.map(f => f.dataUrl) }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setExtractionError(data.error || 'Extraction failed. Try a different file.');
-        return;
-      }
+      if (!res.ok) { setExtractionError(data.error || 'Extraction failed.'); return; }
       if (data.date) setInvoiceDate(data.date);
+      if (data.tax) setTax(data.tax);
       if (data.lineItems?.length) {
         setLineItems(data.lineItems.map((item: any) => ({
           description: item.description || '',
@@ -144,7 +152,6 @@ function NewInvoiceContent() {
         })));
       }
       if (data.notes) setNotes(data.notes);
-      if (data.tax) setTax(data.tax);
       if (data.vendor) {
         const match = clients.find(c =>
           (c.company || c.name || '').toLowerCase().includes(data.vendor.toLowerCase()) ||
@@ -153,8 +160,9 @@ function NewInvoiceContent() {
         if (match) setSelectedClient(match.id);
       }
       if (data.confidence) setConfidenceFlags(data.confidence);
+      setQueuedFiles([]);
     } catch (err: any) {
-      setExtractionError('Failed to process file. Try a screenshot instead of a PDF if the issue persists.');
+      setExtractionError('Failed to process files.');
       console.error('Extraction error:', err);
     } finally {
       setExtracting(false);
@@ -194,32 +202,52 @@ function NewInvoiceContent() {
 
       {/* Receipt upload zone */}
       <div
-        onClick={() => receiptInputRef.current?.click()}
+        onClick={() => { if (!queuedFiles.length && !extracting) receiptInputRef.current?.click(); }}
         onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = '#2563eb'; }}
         onDragLeave={e => { e.currentTarget.style.borderColor = t.border.default; }}
-        onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = t.border.default; const file = e.dataTransfer.files[0]; if (file) handleFileUpload(file); }}
-        style={{ border: `1.5px dashed ${t.border.default}`, borderRadius: 10, padding: '20px 24px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', transition: 'border-color 150ms' }}
+        onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = t.border.default; const files = Array.from(e.dataTransfer.files); if (files.length) handleFilesAdded(files); }}
+        style={{ border: `1.5px dashed ${t.border.default}`, borderRadius: 10, padding: '20px 24px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12, cursor: queuedFiles.length ? 'default' : 'pointer', transition: 'border-color 150ms' }}
       >
         {extracting ? (
           <>
             <div style={{ width: 20, height: 20, border: `2px solid ${t.border.default}`, borderTopColor: '#2563eb', borderRadius: '50%', animation: 'receipt-spin 0.8s linear infinite' }} />
             <div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>Extracting data...</div>
-              <div style={{ fontSize: 12, color: t.text.tertiary }}>Reading your document</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>Extracting from {queuedFiles.length} file{queuedFiles.length !== 1 ? 's' : ''}...</div>
+              <div style={{ fontSize: 12, color: t.text.tertiary }}>Combining data from all sources</div>
             </div>
           </>
+        ) : queuedFiles.length > 0 ? (
+          <div style={{ width: '100%' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+              {queuedFiles.map((f, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 6, background: t.bg.surfaceHover, fontSize: 12, color: t.text.secondary }}>
+                  <span>{f.name.length > 25 ? f.name.slice(0, 22) + '...' : f.name}</span>
+                  <button onClick={(e) => { e.stopPropagation(); setQueuedFiles(prev => prev.filter((_, j) => j !== i)); }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.text.tertiary, fontSize: 14, padding: 0, lineHeight: 1 }}>×</button>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={(e) => { e.stopPropagation(); handleExtract(); }}
+                style={{ padding: '6px 16px', fontSize: 13, fontWeight: 500, borderRadius: 6, border: 'none', cursor: 'pointer', background: '#2563eb', color: '#fff', fontFamily: 'inherit' }}>Extract data</button>
+              <button onClick={(e) => { e.stopPropagation(); receiptInputRef.current?.click(); }}
+                style={{ padding: '6px 16px', fontSize: 13, fontWeight: 500, borderRadius: 6, border: `1px solid ${t.border.default}`, cursor: 'pointer', background: 'transparent', color: t.text.secondary, fontFamily: 'inherit' }}>+ Add more</button>
+              <button onClick={(e) => { e.stopPropagation(); setQueuedFiles([]); }}
+                style={{ padding: '6px 16px', fontSize: 13, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'transparent', color: t.text.tertiary, fontFamily: 'inherit' }}>Clear</button>
+            </div>
+          </div>
         ) : (
           <>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={t.text.tertiary} strokeWidth="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>Drop a receipt, screenshot, or invoice</div>
-              <div style={{ fontSize: 12, color: t.text.tertiary }}>Auto-fills the form with AI extraction</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>Drop receipts, screenshots, or invoices</div>
+              <div style={{ fontSize: 12, color: t.text.tertiary }}>Add multiple files — auto-fills the form with AI extraction</div>
             </div>
           </>
         )}
       </div>
-      <input ref={receiptInputRef} type="file" accept="image/*,.pdf" style={{ display: 'none' }}
-        onChange={e => { const file = e.target.files?.[0]; if (file) handleFileUpload(file); e.target.value = ''; }} />
+      <input ref={receiptInputRef} type="file" accept="image/*,.pdf,application/pdf" multiple style={{ display: 'none' }}
+        onChange={e => { const files = Array.from(e.target.files || []); if (files.length) handleFilesAdded(files); e.target.value = ''; }} />
       <style>{`@keyframes receipt-spin { to { transform: rotate(360deg); } }`}</style>
 
       {extractionError && (
