@@ -126,7 +126,20 @@ export default function ColorPalette({ colors, readOnly, onColorsChange }: Color
       {/* Color swatches */}
       <div className="bk-colors">
         {colors.map((hex, idx) => (
-          <div key={idx} className="bk-swatch">
+          <div key={idx} className="bk-swatch" style={{ position: 'relative' }}>
+            {!readOnly && (
+              <button
+                onClick={(e) => { e.stopPropagation(); handleDeleteColor(idx); }}
+                style={{
+                  position: 'absolute', top: -4, right: -4, zIndex: 2,
+                  width: 18, height: 18, borderRadius: '50%',
+                  background: t.bg.surface, border: `0.5px solid ${t.border.default}`,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 10, color: t.text.tertiary, padding: 0, lineHeight: 1,
+                }}
+                title="Delete color"
+              >×</button>
+            )}
             <div
               className="bk-chip"
               style={{
@@ -231,17 +244,45 @@ export default function ColorPalette({ colors, readOnly, onColorsChange }: Color
             accept=".png,.jpg,.jpeg,.gif,.webp,.svg"
             style={{ display: 'none' }}
             onChange={(e) => {
-              handleDropperImageUpload(e);
-              // Auto-extract after image loads
               const file = e.currentTarget.files?.[0];
-              if (file) {
-                const reader = new FileReader();
-                reader.onload = () => {
-                  setDropperImage(reader.result as string);
-                  setTimeout(() => handleExtractDominantColors(), 100);
+              if (!file || !canvasRef.current) return;
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                const dataUrl = event.target?.result as string;
+                setDropperImage(dataUrl);
+                // Extract directly without relying on state
+                const canvas = canvasRef.current!;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+                const img = new Image();
+                img.onload = () => {
+                  canvas.width = img.width;
+                  canvas.height = img.height;
+                  ctx.drawImage(img, 0, 0);
+                  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                  const data = imageData.data;
+                  const colorMap: Record<string, number> = {};
+                  for (let i = 0; i < data.length; i += 4) {
+                    if (data[i + 3] < 128) continue;
+                    const rq = Math.round(data[i] / 51) * 51;
+                    const gq = Math.round(data[i + 1] / 51) * 51;
+                    const bq = Math.round(data[i + 2] / 51) * 51;
+                    const hex = `#${rq.toString(16).padStart(2, '0')}${gq.toString(16).padStart(2, '0')}${bq.toString(16).padStart(2, '0')}`.toUpperCase();
+                    colorMap[hex] = (colorMap[hex] || 0) + 1;
+                  }
+                  const topColors = Object.entries(colorMap)
+                    .sort(([, a], [, b]) => b - a)
+                    .filter(([hex]) => hex !== '#000000' && hex !== '#FFFFFF')
+                    .slice(0, 5)
+                    .map(([hex]) => hex);
+                  const newColors = Array.from(new Set([...colors, ...topColors]));
+                  onColorsChange?.(newColors);
+                  setDropperImage(null);
                 };
-                reader.readAsDataURL(file);
-              }
+                img.src = dataUrl;
+              };
+              reader.readAsDataURL(file);
+              e.target.value = '';
             }}
           />
           <canvas ref={canvasRef} style={{ display: 'none' }} />
