@@ -568,24 +568,43 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
     const fc = fabricRef.current;
     setColorMode(mode);
 
-    const colorMap: Record<string, Record<string, string>> = {
-      brand: { 'brand-bg': brandColor, 'white-strip': '#ffffff', 'headline-text': '#ffffff', 'phone-text': '#ffffff', 'company-text': brandColor, 'tagline-text': '#ffffff', 'info-text': '#666666' },
-      dark: { 'brand-bg': darkColor, 'white-strip': '#ffffff', 'headline-text': '#ffffff', 'phone-text': '#ffffff', 'company-text': darkColor, 'tagline-text': '#ffffff', 'info-text': '#666666' },
-      light: { 'brand-bg': '#ffffff', 'white-strip': brandColor, 'headline-text': brandColor, 'phone-text': brandColor, 'company-text': '#ffffff', 'tagline-text': brandColor, 'info-text': '#999999' },
+    // Yard sign color mappings
+    const yardSignMap: Record<string, Record<string, string>> = {
+      brand: {
+        'brand-bg': brandColor, 'white-strip': '#ffffff',
+        'headline-text': '#ffffff', 'phone-text': '#ffffff', 'tagline-text': '#ffffff',
+        'company-text': brandColor, 'website-text': '#888888', 'email-text': '#999999',
+        'qr-placeholder': '#f3f4f6',
+      },
+      dark: {
+        'brand-bg': '#1a1a1a', 'white-strip': '#111111',
+        'headline-text': '#ffffff', 'phone-text': '#ffffff', 'tagline-text': '#cccccc',
+        'company-text': '#ffffff', 'website-text': '#888888', 'email-text': '#999999',
+        'qr-placeholder': '#222222',
+      },
+      light: {
+        'brand-bg': '#ffffff', 'white-strip': '#f5f5f5',
+        'headline-text': '#111111', 'phone-text': '#111111', 'tagline-text': '#666666',
+        'company-text': brandColor, 'website-text': '#888888', 'email-text': '#999999',
+        'qr-placeholder': '#f3f4f6',
+      },
     };
-    const bcMap: Record<string, Record<string, string>> = {
-      brand: { 'card-bg': brandColor, 'company-text': '#ffffff', 'contact-name-text': '#ffffff', 'title-text': 'rgba(255,255,255,0.7)', 'contact-info-text': 'rgba(255,255,255,0.85)', 'tagline-text': 'rgba(255,255,255,0.5)', 'accent-line': 'rgba(255,255,255,0.3)' },
-      dark: { 'card-bg': '#111827', 'company-text': '#ffffff', 'contact-name-text': '#ffffff', 'title-text': 'rgba(255,255,255,0.7)', 'contact-info-text': 'rgba(255,255,255,0.85)', 'tagline-text': 'rgba(255,255,255,0.5)', 'accent-line': 'rgba(255,255,255,0.3)' },
-      light: { 'card-bg': '#ffffff', 'company-text': brandColor, 'contact-name-text': '#111827', 'title-text': '#6b7280', 'contact-info-text': '#374151', 'tagline-text': '#9ca3af', 'accent-line': brandColor },
+
+    // Business card color mappings
+    const cardMap: Record<string, Record<string, string>> = {
+      brand: { 'card-bg': '#ffffff', 'accent-line': brandColor, 'company-text': brandColor, 'contact-name-text': '#111827', 'title-text': '#6b7280', 'contact-info-text': '#374151', 'tagline-text': '#9ca3af' },
+      dark: { 'card-bg': '#111827', 'accent-line': brandColor, 'company-text': '#ffffff', 'contact-name-text': '#ffffff', 'title-text': 'rgba(255,255,255,0.7)', 'contact-info-text': 'rgba(255,255,255,0.85)', 'tagline-text': 'rgba(255,255,255,0.5)' },
+      light: { 'card-bg': '#ffffff', 'accent-line': brandColor, 'company-text': brandColor, 'contact-name-text': '#111827', 'title-text': '#6b7280', 'contact-info-text': '#374151', 'tagline-text': '#9ca3af' },
     };
+
     const hasCardBg = fc.getObjects().some((o: any) => o.name === 'card-bg');
-    const fills = hasCardBg ? bcMap[mode] : colorMap[mode];
+    const fills = hasCardBg ? cardMap[mode] : yardSignMap[mode];
 
     const isDarkBg = mode !== 'light';
-    const logoFill = isDarkBg ? '#ffffff' : null; // white on dark, restore on light
+    const logoFill = isDarkBg ? '#ffffff' : null;
 
     fc.getObjects().forEach((obj: any) => {
-      if (fills[obj.name]) obj.set('fill', fills[obj.name]);
+      if (obj.name && fills[obj.name]) obj.set('fill', fills[obj.name]);
 
       // SVG logo group — recolor all paths
       if (obj.name === 'logo' && typeof obj.getObjects === 'function') {
@@ -594,22 +613,10 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
             if (p.fill && p.fill !== 'none' && p.fill !== 'transparent') p.set('fill', logoFill);
             if (p.stroke && p.stroke !== 'none' && p.stroke !== 'transparent') p.set('stroke', logoFill);
           } else {
-            // Light mode: use dark fills for visibility
             if (p.fill && p.fill !== 'none' && p.fill !== 'transparent') p.set('fill', '#1a1a1a');
             if (p.stroke && p.stroke !== 'none' && p.stroke !== 'transparent') p.set('stroke', '#1a1a1a');
           }
         });
-        obj.dirty = true;
-      }
-      // Raster logo — swap elements (legacy path)
-      if (obj.name === 'logo' && obj.__originalElement && obj.__whiteElement) {
-        if (mode === 'light') {
-          obj._element = obj.__originalElement;
-          obj._originalElement = obj.__originalElement;
-        } else {
-          obj._element = obj.__whiteElement;
-          obj._originalElement = obj.__whiteElement;
-        }
         obj.dirty = true;
       }
     });
