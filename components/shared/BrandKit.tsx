@@ -122,7 +122,7 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
     }
   };
 
-  const handleGenerateVariants = () => {
+  const handleGenerateVariants = async () => {
     if (!brandKit?.logos) { console.error('No logos in brand kit'); return; }
 
     let svgString: string | null = null;
@@ -141,6 +141,14 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
         // .svg filename with base64 data (no mime prefix)
         if ((logo.name || '').toLowerCase().endsWith('.svg') && data.length > 100) {
           try { const decoded = atob(data); if (decoded.includes('<svg')) { svgString = decoded; break; } } catch { /* skip */ }
+        }
+        // URL to SVG file — fetch it
+        if ((logo.name || '').toLowerCase().endsWith('.svg') && data.startsWith('http')) {
+          try {
+            const resp = await fetch(data);
+            const text = await resp.text();
+            if (text.includes('<svg')) { svgString = text; break; }
+          } catch { continue; }
         }
       }
       if (svgString) break;
@@ -162,7 +170,8 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
       for (const logo of logos) {
         const data = (logo.data || '') as string;
         const name = (logo.name || '').toLowerCase();
-        if (data.trim().startsWith('<svg') || data.startsWith('data:image/svg+xml') || name.endsWith('.svg')) return true;
+        if (name.endsWith('.svg')) return true;
+        if (data.trim().startsWith('<svg') || data.startsWith('data:image/svg+xml')) return true;
       }
     }
     return false;
