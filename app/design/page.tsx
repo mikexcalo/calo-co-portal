@@ -14,7 +14,7 @@ import FieldEditor from '@/components/brand-builder/FieldEditor';
 import supabase from '@/lib/supabase';
 import { Suspense } from 'react';
 import { getClientAvatarUrl } from '@/lib/clientAvatar';
-import { PageShell, PageHeader, SectionLabel } from '@/components/shared/Brand';
+import { PageShell, PageHeader, SectionLabel, DataCard } from '@/components/shared/Brand';
 
 const DesignCanvas = dynamic(() => import('@/components/design-studio/DesignCanvas'), { ssr: false, loading: () => null });
 
@@ -82,7 +82,7 @@ function DesignContent() {
 
   const [loading, setLoading] = useState(true);
   const [clients, setClients] = useState<Client[]>([]);
-  const [selectedClient, setSelectedClient] = useState<string>(searchParams.get('client') || 'agency');
+  const [selectedClient, setSelectedClient] = useState<string | null>(searchParams.get('client') || null);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(searchParams.get('template') || null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [clientSearch, setClientSearch] = useState('');
@@ -110,14 +110,14 @@ function DesignContent() {
 
   useEffect(() => {
     const params = new URLSearchParams();
-    if (selectedClient !== 'agency') params.set('client', selectedClient);
+    if (selectedClient && selectedClient !== 'agency') params.set('client', selectedClient);
     if (selectedTemplate) params.set('template', selectedTemplate);
     const query = params.toString();
     router.replace(`/design${query ? '?' + query : ''}`, { scroll: false });
   }, [selectedClient, selectedTemplate, router]);
 
   useEffect(() => {
-    if (!selectedTemplate || loading) return;
+    if (!selectedTemplate || !selectedClient || loading) return;
     if (selectedClient !== 'agency' && clients.length === 0) return;
     const load = async () => {
       if (selectedClient === 'agency') {
@@ -176,23 +176,41 @@ function DesignContent() {
 
   const handleFieldsChange = useCallback((f: BrandBuilderFields) => {
     setFields(f);
-    if (selectedClient === 'agency') return;
+    if (!selectedClient || selectedClient === 'agency') return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       try { await supabase.from('clients').update({ brand_builder_fields: f }).eq('id', selectedClient); } catch {}
     }, 500);
   }, [selectedClient]);
 
-  const selectClient = (id: string) => { setSelectedClient(id); setDropdownOpen(false); setClientSearch(''); setFields({ ...DEFAULT_FIELDS }); };
+  const selectClient = (id: string) => { setSelectedClient(id); setSelectedTemplate(null); setDropdownOpen(false); setClientSearch(''); setFields({ ...DEFAULT_FIELDS }); };
 
   if (loading) return null;
 
-  const client = clients.find(c => c.id === selectedClient);
-  const clientName = selectedClient === 'agency' ? 'Agency' : (client?.company || client?.name || 'Client');
-  const bk = selectedClient === 'agency' ? DB.agency?.brandKit : client?.brandKit;
+  const client = selectedClient ? clients.find(c => c.id === selectedClient) : null;
+  const clientName = !selectedClient ? '' : selectedClient === 'agency' ? 'Agency' : (client?.company || client?.name || 'Client');
+  const bk = !selectedClient ? null : selectedClient === 'agency' ? DB.agency?.brandKit : client?.brandKit;
   const filteredClients = clients.filter(c => (c.company || c.name || '').toLowerCase().includes(clientSearch.toLowerCase()));
 
-  // ── Client Dropdown (shared between hub and workspace) ──
+  // Brand Kit helpers (for client cards)
+  const getLogoCount = (cbk: any) => {
+    if (!cbk?.logos) return 0;
+    return ['color', 'light', 'dark', 'icon', 'favicon', 'secondary'].reduce((n, slot) => n + ((cbk.logos as any)?.[slot]?.length || 0), 0);
+  };
+  const getColorSwatches = (cbk: any) => {
+    if (!cbk?.colors?.length) return [] as string[];
+    return cbk.colors.slice(0, 5).map((c: any) => typeof c === 'string' ? c : c?.hex || '#ccc');
+  };
+  const getCompleteness = (cl: any) => {
+    const cbk = cl.brandKit;
+    let score = 0;
+    if (getLogoCount(cbk) > 0) score++;
+    if (cbk?.colors?.length > 0) score++;
+    if (cbk?.fonts?.heading || cbk?.fonts?.body) score++;
+    return score;
+  };
+
+  // ── Client Dropdown (for workspace header) ──
   const clientDropdown = (
     <div ref={dropdownRef} style={{ position: 'relative' }}>
       <button onClick={() => setDropdownOpen(!dropdownOpen)} style={{
@@ -231,15 +249,77 @@ function DesignContent() {
   );
 
   // ═══════════════════════════════════════════════
-  // HUB VIEW — no template selected
+  // STEP 1: CLIENT SELECTION HUB (no client selected)
+  // ═══════════════════════════════════════════════
+  if (!selectedClient) {
+    return (
+      <PageShell>
+        <PageHeader title="Design Studio" subtitle="Create branded materials for your clients" />
+
+        <SectionLabel>Your Agency</SectionLabel>
+        <DataCard>
+          <div onClick={() => selectClient('agency')} style={{ display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer', padding: '4px 0' }}>
+            <div style={{ width: 48, height: 48, borderRadius: 10, background: t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={t.text.tertiary} strokeWidth="1.3"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3.5" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="20.5"/><line x1="3.5" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="20.5" y2="12"/></svg>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 15, fontWeight: 500, color: t.text.primary }}>CALO&CO</div>
+              <div style={{ fontSize: 12, color: t.text.tertiary, marginTop: 1 }}>Agency brand assets and templates</div>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5" style={{ flexShrink: 0 }}><path d="M6 4l4 4-4 4"/></svg>
+          </div>
+        </DataCard>
+
+        <div style={{ marginTop: 24 }}>
+          <SectionLabel>Clients</SectionLabel>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {clients.map(cl => {
+              const avatar = getClientAvatarUrl(cl);
+              const cbk = cl.brandKit;
+              const logoCount = getLogoCount(cbk);
+              const swatches = getColorSwatches(cbk);
+              const completeness = getCompleteness(cl);
+              return (
+                <DataCard key={cl.id}>
+                  <div onClick={() => selectClient(cl.id)} style={{ display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer', padding: '4px 0' }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: avatar ? 'transparent' : t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: t.text.secondary }}>
+                      {avatar ? <img src={avatar} alt="" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : (cl.company || cl.name || '').charAt(0)}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 500, color: t.text.primary, marginBottom: 4 }}>{cl.company || cl.name}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 11, color: logoCount > 0 ? t.text.secondary : t.text.tertiary }}>{logoCount > 0 ? `${logoCount} logo${logoCount > 1 ? 's' : ''}` : 'No logos'}</span>
+                        {swatches.length > 0 && (
+                          <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+                            {swatches.map((hex: string, i: number) => <div key={i} style={{ width: 12, height: 12, borderRadius: 3, background: hex, border: `0.5px solid ${t.border.default}` }} />)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 3, flexShrink: 0, marginRight: 8 }}>
+                      {[0, 1, 2].map(i => <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: i < completeness ? t.status.success : t.border.default }} />)}
+                    </div>
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5" style={{ flexShrink: 0 }}><path d="M6 4l4 4-4 4"/></svg>
+                  </div>
+                </DataCard>
+              );
+            })}
+          </div>
+        </div>
+      </PageShell>
+    );
+  }
+
+  // ═══════════════════════════════════════════════
+  // STEP 2: TEMPLATE PICKER (client selected, no template)
   // ═══════════════════════════════════════════════
   if (!selectedTemplate) {
     return (
       <PageShell>
         <PageHeader
-          title="Design"
-          subtitle="Create branded materials for your clients"
-          action={clientDropdown}
+          title={clientName}
+          subtitle="Choose a template to start designing"
+          action={<button onClick={() => setSelectedClient(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: t.text.secondary, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4 }}><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M10 3L5 8l5 5"/></svg>All clients</button>}
         />
 
         {TEMPLATES.map(cat => (
@@ -247,30 +327,19 @@ function DesignContent() {
             <SectionLabel>{cat.cat}</SectionLabel>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
               {cat.items.map(tmpl => (
-                <div
-                  key={tmpl.id}
-                  title={tmpl.live ? undefined : 'Coming soon'}
+                <div key={tmpl.id} title={tmpl.live ? undefined : 'Coming soon'}
                   onClick={tmpl.live ? () => setSelectedTemplate(tmpl.id) : undefined}
-                  style={{
-                    background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10,
-                    padding: '14px 12px', cursor: tmpl.live ? 'pointer' : 'default',
-                    opacity: tmpl.live ? 1 : 0.3, display: 'flex', gap: 12, alignItems: 'flex-start',
-                    transition: 'all 150ms',
-                  }}
+                  style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, padding: '14px 12px', cursor: tmpl.live ? 'pointer' : 'default', opacity: tmpl.live ? 1 : 0.3, display: 'flex', gap: 12, alignItems: 'flex-start', transition: 'all 150ms' }}
                   onMouseEnter={tmpl.live ? (e) => { e.currentTarget.style.borderColor = t.border.hover; e.currentTarget.style.transform = 'translateY(-1px)'; } : undefined}
                   onMouseLeave={tmpl.live ? (e) => { e.currentTarget.style.borderColor = t.border.default; e.currentTarget.style.transform = 'none'; } : undefined}
                 >
-                  <div style={{ width: 32, height: 32, borderRadius: 6, background: t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.text.secondary, flexShrink: 0 }}>
-                    {ICONS[tmpl.id]}
-                  </div>
+                  <div style={{ width: 32, height: 32, borderRadius: 6, background: t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.text.secondary, flexShrink: 0 }}>{ICONS[tmpl.id]}</div>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary, display: 'flex', alignItems: 'center', gap: 6 }}>
                       {tmpl.name}
                       {tmpl.live && <span style={{ fontSize: 8, fontWeight: 600, color: t.status.success, textTransform: 'uppercase' as const, letterSpacing: '0.04em', padding: '1px 5px', borderRadius: 3 }}>LIVE</span>}
                     </div>
-                    <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 2 }}>
-                      {tmpl.live ? TEMPLATE_DESCRIPTIONS[tmpl.id] : 'Coming soon'}
-                    </div>
+                    <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 2 }}>{tmpl.live ? TEMPLATE_DESCRIPTIONS[tmpl.id] : 'Coming soon'}</div>
                   </div>
                 </div>
               ))}
@@ -301,7 +370,7 @@ function DesignContent() {
             display: 'flex', alignItems: 'center', gap: 4,
           }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M10 3L5 8l5 5"/></svg>
-            Design
+            {clientName}
           </button>
           <span style={{ color: t.text.tertiary, fontSize: 13 }}>/</span>
           <span style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>{templateName}</span>
