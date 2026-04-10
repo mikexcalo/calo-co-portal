@@ -134,6 +134,17 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
       fc.add(guideH);
       fc.add(guideV);
 
+      // Lock text objects: movable but not resizable (prevents glyph distortion)
+      fc.getObjects().forEach((obj: any) => {
+        if (obj.type === 'text' || obj.type === 'i-text' || obj.type === 'textbox') {
+          obj.set({ lockScalingX: true, lockScalingY: true, hasControls: false, hasBorders: true, lockRotation: true });
+        }
+        // Images: allow proportional resize only
+        if (obj.type === 'image' || obj.type === 'group') {
+          obj.set({ lockUniScaling: true });
+        }
+      });
+
       fc.renderAll();
       setCanvasReady(true);
 
@@ -307,7 +318,21 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
             isUndoRedoRef.current = true;
             historyIndexRef.current--;
             const prev = historyRef.current[historyIndexRef.current];
-            fc.loadFromJSON(prev, () => { fc.renderAll(); isUndoRedoRef.current = false; forceRender((n: number) => n + 1); });
+            const stateObj = typeof prev === 'string' ? JSON.parse(prev) : prev;
+            fc.loadFromJSON(stateObj, () => {
+              // Re-apply text locking after state restore
+              fc.getObjects().forEach((obj: any) => {
+                if (obj.type === 'text' || obj.type === 'i-text' || obj.type === 'textbox') {
+                  obj.set({ lockScalingX: true, lockScalingY: true, hasControls: false, hasBorders: true, lockRotation: true });
+                }
+                if (obj.type === 'image' || obj.type === 'group') {
+                  obj.set({ lockUniScaling: true });
+                }
+              });
+              fc.renderAll();
+              isUndoRedoRef.current = false;
+              forceRender((n: number) => n + 1);
+            });
           }
           return;
         }
@@ -319,7 +344,20 @@ export default function DesignCanvas({ template, onSave, savedState, brandColor 
             isUndoRedoRef.current = true;
             historyIndexRef.current++;
             const next = historyRef.current[historyIndexRef.current];
-            fc.loadFromJSON(next, () => { fc.renderAll(); isUndoRedoRef.current = false; forceRender((n: number) => n + 1); });
+            const stateObj = typeof next === 'string' ? JSON.parse(next) : next;
+            fc.loadFromJSON(stateObj, () => {
+              fc.getObjects().forEach((obj: any) => {
+                if (obj.type === 'text' || obj.type === 'i-text' || obj.type === 'textbox') {
+                  obj.set({ lockScalingX: true, lockScalingY: true, hasControls: false, hasBorders: true, lockRotation: true });
+                }
+                if (obj.type === 'image' || obj.type === 'group') {
+                  obj.set({ lockUniScaling: true });
+                }
+              });
+              fc.renderAll();
+              isUndoRedoRef.current = false;
+              forceRender((n: number) => n + 1);
+            });
           }
           return;
         }

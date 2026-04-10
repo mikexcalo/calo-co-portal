@@ -292,6 +292,7 @@ function DesignContent() {
       <div style={{
         height: 44, flexShrink: 0, borderBottom: `0.5px solid ${t.border.default}`,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px',
+        position: 'relative', zIndex: 10, overflow: 'visible',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button onClick={() => setSelectedTemplate(null)} style={{
