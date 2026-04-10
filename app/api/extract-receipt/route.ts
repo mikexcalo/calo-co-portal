@@ -3,15 +3,26 @@ import { NextResponse } from 'next/server';
 export async function POST(req: Request) {
   try {
     const { image } = await req.json();
-    if (!image) return NextResponse.json({ error: 'No image provided' }, { status: 400 });
+    if (!image) return NextResponse.json({ error: 'No file provided' }, { status: 400 });
 
-    const match = image.match(/^data:(image\/\w+);base64,(.+)$/);
-    if (!match) return NextResponse.json({ error: 'Invalid image format' }, { status: 400 });
+    const match = image.match(/^data:([^;]+);base64,(.+)$/);
+    if (!match) return NextResponse.json({ error: 'Invalid file format' }, { status: 400 });
 
     const mediaType = match[1];
     const base64Data = match[2];
+    const isPdf = mediaType === 'application/pdf';
+    const isImage = mediaType.startsWith('image/');
+
+    if (!isPdf && !isImage) {
+      return NextResponse.json({ error: 'Unsupported file type. Upload an image or PDF.' }, { status: 400 });
+    }
+
     const apiKey = (process.env.CLAUDE_API_KEY || '').trim();
     if (!apiKey) return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
+
+    const fileContent = isPdf
+      ? { type: 'document' as const, source: { type: 'base64' as const, media_type: 'application/pdf' as const, data: base64Data } }
+      : { type: 'image' as const, source: { type: 'base64' as const, media_type: mediaType as 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp', data: base64Data } };
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -26,8 +37,8 @@ export async function POST(req: Request) {
         messages: [{
           role: 'user',
           content: [
-            { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64Data } },
-            { type: 'text', text: `Extract invoice/receipt data from this image. Return ONLY a JSON object with no markdown formatting, no backticks, no explanation. The JSON must have this exact structure:
+            fileContent,
+            { type: 'text', text: `Extract invoice/receipt data from this document. Return ONLY a JSON object with no markdown formatting, no backticks, no explanation. The JSON must have this exact structure:
 
 {
   "vendor": "company name or empty string",
@@ -38,7 +49,7 @@ export async function POST(req: Request) {
   "subtotal": 0.00,
   "tax": 0.00,
   "total": 0.00,
-  "notes": "any additional info like payment terms, PO numbers",
+  "notes": "any additional info like payment terms, PO numbers, account numbers",
   "confidence": {
     "vendor": "high",
     "date": "high",
@@ -56,7 +67,7 @@ If a field cannot be determined, use empty string or 0. The confidence field ind
     if (!response.ok) {
       const errBody = await response.text();
       console.error('[extract-receipt] API error:', response.status, errBody);
-      return NextResponse.json({ error: 'Extraction failed' }, { status: 500 });
+      return NextResponse.json({ error: 'AI extraction failed. Check API key and try again.' }, { status: 500 });
     }
 
     const data = await response.json();
@@ -67,6 +78,6 @@ If a field cannot be determined, use empty string or 0. The confidence field ind
     return NextResponse.json(extracted);
   } catch (error: any) {
     console.error('Receipt extraction error:', error);
-    return NextResponse.json({ error: 'Extraction failed', details: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Extraction failed' }, { status: 500 });
   }
 }

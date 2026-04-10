@@ -28,6 +28,7 @@ export default function NewInvoicePage() {
   const [saving, setSaving] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [confidenceFlags, setConfidenceFlags] = useState<Record<string, string>>({});
+  const [extractionError, setExtractionError] = useState<string | null>(null);
   const receiptInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -90,6 +91,7 @@ export default function NewInvoicePage() {
 
   const handleFileUpload = async (file: File) => {
     setExtracting(true);
+    setExtractionError(null);
     setConfidenceFlags({});
     try {
       const base64 = await new Promise<string>((resolve, reject) => {
@@ -103,8 +105,11 @@ export default function NewInvoicePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: base64 }),
       });
-      if (!res.ok) throw new Error('Extraction failed');
       const data = await res.json();
+      if (!res.ok) {
+        setExtractionError(data.error || 'Extraction failed. Try a different file.');
+        return;
+      }
       if (data.date) setInvoiceDate(data.date);
       if (data.lineItems?.length) {
         setLineItems(data.lineItems.map((item: any) => ({
@@ -122,7 +127,8 @@ export default function NewInvoicePage() {
         if (match) setSelectedClient(match.id);
       }
       if (data.confidence) setConfidenceFlags(data.confidence);
-    } catch (err) {
+    } catch (err: any) {
+      setExtractionError('Failed to process file. Try a screenshot instead of a PDF if the issue persists.');
       console.error('Extraction error:', err);
     } finally {
       setExtracting(false);
@@ -189,6 +195,14 @@ export default function NewInvoicePage() {
       <input ref={receiptInputRef} type="file" accept="image/*,.pdf" style={{ display: 'none' }}
         onChange={e => { const file = e.target.files?.[0]; if (file) handleFileUpload(file); e.target.value = ''; }} />
       <style>{`@keyframes receipt-spin { to { transform: rotate(360deg); } }`}</style>
+
+      {extractionError && (
+        <div style={{ padding: '10px 14px', marginBottom: 16, borderRadius: 8, background: 'rgba(248,113,113,0.06)', border: '1px solid rgba(248,113,113,0.2)', fontSize: 13, color: t.status.danger, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span>⚠</span>
+          {extractionError}
+          <button onClick={() => setExtractionError(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 14, fontFamily: 'inherit' }}>×</button>
+        </div>
+      )}
 
       {/* TOP ROW: Client + Invoice Details */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
