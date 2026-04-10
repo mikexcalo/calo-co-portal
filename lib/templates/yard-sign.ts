@@ -154,7 +154,7 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
       type: 'text', text: companyName,
       left: pad,
       top: topH + Math.round(bottomH * 0.12),
-      width: W * 0.6,
+      width: (showWebsite || showEmail) ? W * 0.55 : W * 0.6,
       fontSize: companyFontSize,
       fontWeight: 900, fill: brandColor, textAlign: 'left',
       name: 'company-text',
@@ -168,11 +168,11 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
       type: 'text', text: website,
       left: pad,
       top: infoY,
-      fontSize: Math.round(companyFontSize * 0.65),
+      fontSize: Math.round(companyFontSize * 0.5),
       fontWeight: 400, fill: '#888888', textAlign: 'left',
       name: 'website-text',
     });
-    infoY += Math.round(companyFontSize * 0.85);
+    infoY += Math.round(companyFontSize * 0.65);
   }
 
   // Email below website (even smaller)
@@ -181,7 +181,7 @@ export function getYardSignTemplate(props: YardSignTemplateProps) {
       type: 'text', text: email,
       left: pad,
       top: infoY,
-      fontSize: Math.round(companyFontSize * 0.6),
+      fontSize: Math.round(companyFontSize * 0.45),
       fontWeight: 400, fill: '#999999', textAlign: 'left',
       name: 'email-text',
     });
