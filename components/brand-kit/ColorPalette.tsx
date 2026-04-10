@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useTheme } from '@/lib/theme';
 
 interface ColorPaletteProps {
@@ -15,8 +15,27 @@ export default function ColorPalette({ colors, readOnly, onColorsChange }: Color
   const [editName, setEditName] = useState('');
   const [editHex, setEditHex] = useState('');
   const [dropperImage, setDropperImage] = useState<string | null>(null);
+  const [eyedropperImage, setEyedropperImage] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const eyedropperCanvasRef = useRef<HTMLCanvasElement>(null);
   const dropperInputRef = useRef<HTMLInputElement>(null);
+
+  // Draw eyedropper image onto canvas when loaded
+  useEffect(() => {
+    if (eyedropperImage && eyedropperCanvasRef.current) {
+      const img = new Image();
+      img.onload = () => {
+        const cvs = eyedropperCanvasRef.current!;
+        const maxW = 400;
+        const scale = Math.min(maxW / img.width, 1);
+        cvs.width = Math.floor(img.width * scale);
+        cvs.height = Math.floor(img.height * scale);
+        const ctx = cvs.getContext('2d');
+        if (ctx) ctx.drawImage(img, 0, 0, cvs.width, cvs.height);
+      };
+      img.src = eyedropperImage;
+    }
+  }, [eyedropperImage]);
 
   const colorNames: Record<string, string> = {};
   colors.forEach((hex, idx) => {
@@ -245,47 +264,83 @@ export default function ColorPalette({ colors, readOnly, onColorsChange }: Color
             style={{ display: 'none' }}
             onChange={(e) => {
               const file = e.currentTarget.files?.[0];
-              if (!file || !canvasRef.current) return;
-              const reader = new FileReader();
-              reader.onload = (event) => {
-                const dataUrl = event.target?.result as string;
-                setDropperImage(dataUrl);
-                // Extract directly without relying on state
-                const canvas = canvasRef.current!;
+              if (!file) return;
+              const objUrl = URL.createObjectURL(file);
+              const img = new Image();
+              img.onload = () => {
+                // Scale down for performance
+                const maxDim = 100;
+                const scale = Math.min(maxDim / img.width, maxDim / img.height, 1);
+                const w = Math.floor(img.width * scale);
+                const h = Math.floor(img.height * scale);
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
                 const ctx = canvas.getContext('2d');
                 if (!ctx) return;
-                const img = new Image();
-                img.onload = () => {
-                  canvas.width = img.width;
-                  canvas.height = img.height;
-                  ctx.drawImage(img, 0, 0);
-                  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                  const data = imageData.data;
-                  const colorMap: Record<string, number> = {};
-                  for (let i = 0; i < data.length; i += 4) {
-                    if (data[i + 3] < 128) continue;
-                    const rq = Math.round(data[i] / 51) * 51;
-                    const gq = Math.round(data[i + 1] / 51) * 51;
-                    const bq = Math.round(data[i + 2] / 51) * 51;
-                    const hex = `#${rq.toString(16).padStart(2, '0')}${gq.toString(16).padStart(2, '0')}${bq.toString(16).padStart(2, '0')}`.toUpperCase();
-                    colorMap[hex] = (colorMap[hex] || 0) + 1;
-                  }
-                  const topColors = Object.entries(colorMap)
-                    .sort(([, a], [, b]) => b - a)
-                    .filter(([hex]) => hex !== '#000000' && hex !== '#FFFFFF')
-                    .slice(0, 5)
-                    .map(([hex]) => hex);
-                  const newColors = Array.from(new Set([...colors, ...topColors]));
-                  onColorsChange?.(newColors);
-                  setDropperImage(null);
-                };
-                img.src = dataUrl;
+                ctx.drawImage(img, 0, 0, w, h);
+                const data = ctx.getImageData(0, 0, w, h).data;
+
+                // Build frequency map with fine quantization (nearest 8)
+                const buckets: Record<string, { count: number; r: number; g: number; b: number }> = {};
+                for (let i = 0; i < data.length; i += 4) {
+                  const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+                  if (a < 128) continue;
+                  if (r > 240 && g > 240 && b > 240) continue;
+                  if (r < 15 && g < 15 && b < 15) continue;
+                  const key = `${Math.round(r / 8) * 8},${Math.round(g / 8) * 8},${Math.round(b / 8) * 8}`;
+                  if (!buckets[key]) buckets[key] = { count: 0, r: 0, g: 0, b: 0 };
+                  buckets[key].count++;
+                  buckets[key].r += r; buckets[key].g += g; buckets[key].b += b;
+                }
+
+                // Sort by frequency, average actual RGB, deduplicate within distance 40
+                const sorted = Object.values(buckets).sort((a, b) => b.count - a.count).slice(0, 20);
+                const candidates = sorted.map(b => ({ r: Math.round(b.r / b.count), g: Math.round(b.g / b.count), b: Math.round(b.b / b.count) }));
+                const unique: typeof candidates = [];
+                for (const c of candidates) {
+                  if (!unique.some(u => Math.sqrt((c.r - u.r) ** 2 + (c.g - u.g) ** 2 + (c.b - u.b) ** 2) < 40)) unique.push(c);
+                  if (unique.length >= 5) break;
+                }
+                const hexColors = unique.map(c => '#' + [c.r, c.g, c.b].map(v => v.toString(16).padStart(2, '0')).join(''));
+                const newColors = Array.from(new Set([...colors, ...hexColors]));
+                onColorsChange?.(newColors);
+
+                // Show eyedropper preview for manual picking
+                setEyedropperImage(objUrl);
               };
-              reader.readAsDataURL(file);
+              img.src = objUrl;
               e.target.value = '';
             }}
           />
           <canvas ref={canvasRef} style={{ display: 'none' }} />
+
+          {/* Eyedropper preview — click to pick exact colors */}
+          {eyedropperImage && (
+            <div style={{ marginTop: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: t.text.secondary }}>Click to pick a color</span>
+                <button onClick={() => setEyedropperImage(null)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: t.text.tertiary, fontFamily: 'inherit' }}>Done</button>
+              </div>
+              <canvas
+                ref={eyedropperCanvasRef}
+                style={{ width: '100%', maxHeight: 200, borderRadius: 8, cursor: 'crosshair', border: `0.5px solid ${t.border.default}` }}
+                onClick={(e) => {
+                  const cvs = eyedropperCanvasRef.current;
+                  if (!cvs) return;
+                  const ctx = cvs.getContext('2d');
+                  if (!ctx) return;
+                  const rect = cvs.getBoundingClientRect();
+                  const x = Math.floor((e.clientX - rect.left) * (cvs.width / rect.width));
+                  const y = Math.floor((e.clientY - rect.top) * (cvs.height / rect.height));
+                  const pixel = ctx.getImageData(x, y, 1, 1).data;
+                  const hex = '#' + [pixel[0], pixel[1], pixel[2]].map(v => v.toString(16).padStart(2, '0')).join('');
+                  const newColors = [...colors, hex];
+                  onColorsChange?.(newColors);
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
