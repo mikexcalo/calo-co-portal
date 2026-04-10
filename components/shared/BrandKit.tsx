@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { BrandKit as BrandKitType } from '@/lib/types';
 import { DB, loadClients, loadAllBrandKits, saveBrandKit } from '@/lib/database';
+import { generateLogoVariants, svgToPng } from '@/lib/logo-variants';
 import LogoSlot from '@/components/brand-kit/LogoSlot';
 import ColorPalette from '@/components/brand-kit/ColorPalette';
 import Typography from '@/components/brand-kit/Typography';
@@ -75,6 +76,7 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
   const [secondaryOpen, setSecondaryOpen] = useState(false);
   const [topOrder, setTopOrder] = useState<SlotKey[]>(DEFAULT_TOP_ORDER);
   const [swapSource, setSwapSource] = useState<number | null>(null);
+  const [variants, setVariants] = useState<ReturnType<typeof generateLogoVariants>>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -119,6 +121,45 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
       setSwapSource(null);
     }
   };
+
+  // Find SVG logo data from any slot
+  const findSvgLogo = (): string | null => {
+    if (!brandKit) return null;
+    for (const slot of ['color', 'light', 'dark', 'icon'] as const) {
+      const files = brandKit.logos?.[slot] || [];
+      for (const f of files) {
+        if (f.data && (/\.svg$/i.test(f.name || '') || (f.data as string).startsWith('data:image/svg'))) return f.data as string;
+      }
+    }
+    return null;
+  };
+
+  const handleGenerateVariants = () => {
+    const svgData = findSvgLogo();
+    if (!svgData) return;
+    let svgString = svgData;
+    if (svgString.startsWith('data:image/svg+xml;base64,')) svgString = atob(svgString.split(',')[1]);
+    else if (svgString.startsWith('data:image/svg+xml,')) svgString = decodeURIComponent(svgString.split(',')[1]);
+    const primary = (typeof brandKit!.colors?.[0] === 'string' ? brandKit!.colors[0] : (brandKit!.colors?.[0] as any)?.hex) || '#2563eb';
+    const secondary = (typeof brandKit!.colors?.[1] === 'string' ? brandKit!.colors[1] : (brandKit!.colors?.[1] as any)?.hex) || undefined;
+    setVariants(generateLogoVariants(svgString, primary, secondary));
+  };
+
+  const downloadSvg = (v: typeof variants[0]) => {
+    const blob = new Blob([v.svgString], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `logo-${v.name}.svg`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadPng = async (v: typeof variants[0]) => {
+    try {
+      const pngUrl = await svgToPng(v.svgString, 1200);
+      const a = document.createElement('a'); a.href = pngUrl; a.download = `logo-${v.name}.png`; a.click();
+    } catch (e) { console.error('PNG export failed:', e); }
+  };
+
+  const hasSvgLogo = !!findSvgLogo();
 
   const card: React.CSSProperties = { background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 16, minHeight: 180, display: 'flex', flexDirection: 'column' };
 
@@ -172,6 +213,49 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
           </div>
         </div>
       </Section>
+
+      {/* Logo Variant Generator */}
+      {!readOnly && hasSvgLogo && (
+        <div style={{ marginBottom: 16 }}>
+          <button
+            onClick={handleGenerateVariants}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: t.bg.surface, color: t.text.primary,
+              border: `1px solid ${t.border.default}`, borderRadius: 8,
+              padding: '8px 16px', fontSize: 13, fontWeight: 500,
+              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 150ms',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = t.bg.surfaceHover; e.currentTarget.style.borderColor = t.border.hover; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = t.bg.surface; e.currentTarget.style.borderColor = t.border.default; }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/></svg>
+            Generate variants
+          </button>
+        </div>
+      )}
+
+      {variants.length > 0 && (
+        <Section label="Logo Variants">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+            {variants.map(v => (
+              <div key={v.name} style={{ border: `0.5px solid ${t.border.default}`, borderRadius: 10, overflow: 'hidden' }}>
+                <div style={{ padding: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 100, background: v.bgColor }}>
+                  <div style={{ maxWidth: 140, maxHeight: 80 }} ref={el => { if (el) { const svg = el.querySelector('svg'); if (svg) { svg.style.maxWidth = '100%'; svg.style.height = 'auto'; svg.style.display = 'block'; } } }} dangerouslySetInnerHTML={{ __html: v.svgString }} />
+                </div>
+                <div style={{ padding: '10px 12px', background: t.bg.surface, borderTop: `0.5px solid ${t.border.default}` }}>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: t.text.primary, marginBottom: 2 }}>{v.label}</div>
+                  <div style={{ fontSize: 11, color: t.text.tertiary, marginBottom: 8 }}>{v.description}</div>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button onClick={() => downloadSvg(v)} style={{ fontSize: 11, fontWeight: 500, padding: '4px 10px', borderRadius: 4, border: `0.5px solid ${t.border.default}`, background: t.bg.surface, color: t.text.secondary, cursor: 'pointer', fontFamily: 'inherit' }}>SVG</button>
+                    <button onClick={() => downloadPng(v)} style={{ fontSize: 11, fontWeight: 500, padding: '4px 10px', borderRadius: 4, border: `0.5px solid ${t.border.default}`, background: t.bg.surface, color: t.text.secondary, cursor: 'pointer', fontFamily: 'inherit' }}>PNG</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
 
       {/* Colors | Typography */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
