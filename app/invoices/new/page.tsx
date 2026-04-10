@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTheme } from '@/lib/theme';
 import { DB, loadClients, loadContacts, saveInvoice } from '@/lib/database';
 import { Invoice } from '@/lib/types';
@@ -14,8 +14,14 @@ function toDisplayDate(iso: string): string {
 }
 
 export default function NewInvoicePage() {
+  return <Suspense fallback={null}><NewInvoiceContent /></Suspense>;
+}
+
+function NewInvoiceContent() {
   const { t } = useTheme();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
 
   const [clients, setClients] = useState<any[]>([]);
   const [selectedClient, setSelectedClient] = useState('');
@@ -26,6 +32,7 @@ export default function NewInvoicePage() {
   const [lineItems, setLineItems] = useState([{ description: '', qty: 1, price: 0 }]);
   const [notes, setNotes] = useState('');
   const [tax, setTax] = useState(0);
+  const [editUuid, setEditUuid] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [confidenceFlags, setConfidenceFlags] = useState<Record<string, string>>({});
@@ -46,10 +53,27 @@ export default function NewInvoicePage() {
         const n = parseInt(id.replace('INV-', ''), 10);
         return n > max ? n : max;
       }, 0);
-      setInvoiceNumber(`INV-${String(maxNum + 1).padStart(4, '0')}`);
+      if (!editId) setInvoiceNumber(`INV-${String(maxNum + 1).padStart(4, '0')}`);
+
+      // Load existing invoice for edit mode
+      if (editId) {
+        const inv = DB.invoices.find(i => i._uuid === editId || i.id === editId);
+        if (inv) {
+          setEditUuid(inv._uuid || null);
+          setSelectedClient(inv.clientId || '');
+          setInvoiceNumber(inv.id || '');
+          setProject(inv.project || '');
+          setNotes(inv.notes || '');
+          setTax(inv.tax || 0);
+          if (inv.items?.length) setLineItems(inv.items.map(i => ({ description: i.description, qty: i.qty, price: i.price })));
+          // Parse display dates back to ISO
+          try { if (inv.date) setInvoiceDate(new Date(inv.date).toISOString().split('T')[0]); } catch {}
+          try { if (inv.due) setDueDate(new Date(inv.due).toISOString().split('T')[0]); } catch {}
+        }
+      }
     };
     init();
-  }, []);
+  }, [editId]);
 
   const subtotal = lineItems.reduce((sum, item) => sum + item.qty * item.price, 0);
   const total = subtotal + tax;
@@ -65,11 +89,11 @@ export default function NewInvoicePage() {
   };
 
   const handleSave = async (status: 'draft' | 'sent') => {
-    if (!selectedClient) return;
     setSaving(true);
     try {
       const inv: Invoice = {
         id: invoiceNumber,
+        _uuid: editUuid || undefined,
         clientId: selectedClient,
         project,
         date: toDisplayDate(invoiceDate),
@@ -81,7 +105,7 @@ export default function NewInvoicePage() {
         notes,
       };
       await saveInvoice(inv);
-      DB.invoices.push(inv);
+      if (!editUuid) DB.invoices.push(inv);
       router.push('/invoices');
     } catch (e) {
       console.error('Failed to save invoice:', e);
@@ -158,7 +182,7 @@ export default function NewInvoicePage() {
   return (
     <PageShell>
       <PageHeader
-        title="New Invoice"
+        title={editId ? 'Edit Invoice' : 'New Invoice'}
         action={
           <div style={{ display: 'flex', gap: 8 }}>
             <GhostButton onClick={() => router.push('/invoices')}>Cancel</GhostButton>

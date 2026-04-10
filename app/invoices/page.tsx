@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ConfirmModal from '@/components/shared/ConfirmModal';
-import { loadClients, loadInvoices, deleteInvoice, DB } from '@/lib/database';
+import { loadClients, loadInvoices, deleteInvoice, saveInvoice, DB } from '@/lib/database';
 import { agencyStats, currency, invTotal, metricColor } from '@/lib/utils';
 import { Invoice } from '@/lib/types';
 import { useTheme } from '@/lib/theme';
@@ -51,10 +51,18 @@ export default function AllInvoicesPage() {
     finally { setLoadingId(null); }
   };
 
+  const handleStatusChange = async (inv: Invoice, newStatus: string) => {
+    inv.status = newStatus as any;
+    if (newStatus === 'paid') inv.paidDate = new Date().toISOString().split('T')[0];
+    await saveInvoice(inv);
+    setInvoices([...DB.invoices]);
+    setStats(agencyStats(DB.invoices, DB.clients));
+  };
+
   if (isLoading) return null;
 
   const sorted = [...invoices].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  const cols = '40px 80px 1fr 90px 90px 80px 70px 80px 36px';
+  const cols = '40px 80px 1fr 1fr 90px 90px 80px 70px 80px 36px';
   const th: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px' };
 
   const statusBadge = (status: string) => {
@@ -132,7 +140,7 @@ export default function AllInvoicesPage() {
         <motion.div variants={fadeUp}>
           <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, overflow: 'hidden' }}>
             <div style={{ display: 'grid', gridTemplateColumns: cols, padding: '10px 16px', borderBottom: `1px solid ${t.border.default}`, alignItems: 'center' }}>
-              <span /><span style={th}>Invoice #</span><span style={th}>Project</span><span style={th}>Date</span><span style={th}>Due</span>
+              <span /><span style={th}>Invoice #</span><span style={th}>Client</span><span style={th}>Project</span><span style={th}>Date</span><span style={th}>Due</span>
               <span style={{ ...th, textAlign: 'right' }}>Amount</span><span style={{ ...th, textAlign: 'center' }}>Status</span><span style={{ ...th, textAlign: 'right' }}>Paid on</span><span />
             </div>
 
@@ -149,6 +157,7 @@ export default function AllInvoicesPage() {
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.text.tertiary} strokeWidth="2" style={{ transition: 'transform 150ms', transform: isExpanded ? 'rotate(180deg)' : 'none' }}><polyline points="6 9 12 15 18 9"/></svg>
                     <span style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>{inv.id}</span>
+                    <span style={{ fontSize: 13, color: t.text.secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(() => { const cl = DB.clients.find(c => c.id === inv.clientId); return cl?.company || cl?.name || '—'; })()}</span>
                     <span style={{ fontSize: 13, color: t.text.secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.project || '—'}</span>
                     <span style={{ fontSize: 13, color: t.text.secondary }}>{inv.date}</span>
                     <span style={{ fontSize: 13, color: t.text.secondary }}>{inv.due}</span>
@@ -181,7 +190,19 @@ export default function AllInvoicesPage() {
                             </div>
                           )}
                         </div>
-                        <div>{inv.notes && (<><p style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px', margin: '0 0 8px' }}>Notes</p><p style={{ fontSize: 12, color: t.text.secondary, lineHeight: 1.4, margin: 0 }}>{inv.notes}</p></>)}</div>
+                        <div>
+                          {inv.notes && (<><p style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px', margin: '0 0 8px' }}>Notes</p><p style={{ fontSize: 12, color: t.text.secondary, lineHeight: 1.4, margin: 0 }}>{inv.notes}</p></>)}
+                          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                            <button onClick={(e) => { e.stopPropagation(); router.push(`/invoices/new?edit=${inv._uuid || inv.id}`); }}
+                              style={{ padding: '5px 12px', fontSize: 12, fontWeight: 500, borderRadius: 6, border: `1px solid ${t.border.default}`, background: t.bg.surface, color: t.text.primary, cursor: 'pointer', fontFamily: 'inherit' }}>Edit</button>
+                            {(inv.status === 'draft' || inv.status === 'unpaid') && (
+                              <button onClick={(e) => { e.stopPropagation(); handleStatusChange(inv, inv.status === 'draft' ? 'unpaid' : 'paid'); }}
+                                style={{ padding: '5px 12px', fontSize: 12, fontWeight: 500, borderRadius: 6, border: `1px solid ${t.border.default}`, background: t.bg.surface, color: t.status.success, cursor: 'pointer', fontFamily: 'inherit' }}>
+                                {inv.status === 'draft' ? 'Mark Sent' : 'Mark Paid'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
