@@ -134,11 +134,11 @@ export function clientStats(
         reimbursed += total;
       } else {
         billed += total;
-        if (inv.status === 'paid') {
-          paid += total;
-        } else {
-          outstanding += total;
-        }
+      }
+      if (inv.status === 'paid') {
+        paid += total;
+      } else {
+        outstanding += total;
       }
     });
 
@@ -165,11 +165,11 @@ export function agencyStats(
       reimbursed += total;
     } else {
       billed += total;
-      if (inv.status === 'paid') {
-        paid += total;
-      } else {
-        outstanding += total;
-      }
+    }
+    if (inv.status === 'paid') {
+      paid += total;
+    } else {
+      outstanding += total;
     }
   });
 
