@@ -26,7 +26,18 @@ export async function POST(req: Request) {
 
     if (!contentBlocks.length) return NextResponse.json({ error: 'No valid files found' }, { status: 400 });
 
-    contentBlocks.push({ type: 'text', text: `Extract invoice/receipt data from ALL of the provided documents and images. They are all related to the SAME invoice or transaction — combine the information from all sources into a single result. Return ONLY a JSON object with no markdown formatting, no backticks, no explanation. The JSON must have this exact structure:
+    contentBlocks.push({ type: 'text', text: `Extract invoice/receipt data from EACH of the provided documents and combine them into a single invoice record. The documents are SEPARATE receipts that the user wants to bill together (e.g., multiple vendor receipts being passed through to a client as one reimbursement invoice).
+
+RULES:
+- Include EVERY line item from EVERY document. Do not merge, dedupe, or consolidate line items across documents, even if descriptions look similar — they are separate purchases.
+- Sum the tax amounts from all documents into the "tax" field.
+- Sum the subtotals from all documents into the "subtotal" field.
+- Sum the totals from all documents into the "total" field.
+- For "date", use the EARLIEST date across all documents.
+- For "vendor", use the vendor name that appears in all documents (if consistent) or the first document's vendor.
+- In "notes", list every source document's invoice number, date, order number, and total so the user can cross-reference.
+
+Return ONLY a JSON object with no markdown formatting, no backticks, no explanation. The JSON must have this exact structure:
 
 {
   "vendor": "company name or empty string",
@@ -37,7 +48,7 @@ export async function POST(req: Request) {
   "subtotal": 0.00,
   "tax": 0.00,
   "total": 0.00,
-  "notes": "any additional info like payment terms, PO numbers, account numbers",
+  "notes": "invoice numbers, dates, order numbers, totals from each source document",
   "confidence": {
     "vendor": "high",
     "date": "high",
@@ -46,12 +57,12 @@ export async function POST(req: Request) {
   }
 }
 
-If information appears in multiple documents, prefer the most detailed source. Combine line items from all sources — do not duplicate items that appear in multiple documents. Use "low" confidence if the user should review that field.` });
+Use "low" confidence if the user should review that field.` });
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2000, messages: [{ role: 'user', content: contentBlocks }] }),
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 4000, messages: [{ role: 'user', content: contentBlocks }] }),
     });
 
     if (!response.ok) {
