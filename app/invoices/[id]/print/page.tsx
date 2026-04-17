@@ -50,13 +50,6 @@ export default function InvoicePrintPage() {
     })();
   }, [id]);
 
-  useEffect(() => {
-    if (ready && invoice) {
-      const t = setTimeout(() => window.print(), 600);
-      return () => clearTimeout(t);
-    }
-  }, [ready, invoice]);
-
   if (!ready) return null;
   if (!invoice) {
     return <div style={{ padding: 40, fontFamily: 'system-ui' }}>Invoice not found.</div>;
@@ -222,7 +215,7 @@ export default function InvoicePrintPage() {
               background: '#0ea5e9', color: 'white', border: 'none',
               borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit',
             }}
-          >Print / Save as PDF</button>
+          >Download Invoice</button>
           <button
             onClick={() => window.history.back()}
             style={{
