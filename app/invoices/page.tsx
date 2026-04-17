@@ -76,7 +76,7 @@ export default function AllInvoicesPage() {
   );
 
   const sorted = [...invoices].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  const cols = '40px 160px 1fr 1fr 90px 90px 80px 70px 80px 36px';
+  const cols = '40px 160px 1fr 1fr 90px 90px 80px 70px 80px';
   const th: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px' };
 
   const statusBadge = (status: string) => {
@@ -159,7 +159,7 @@ export default function AllInvoicesPage() {
           <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, overflow: 'hidden' }}>
             <div style={{ display: 'grid', gridTemplateColumns: cols, padding: '10px 16px', borderBottom: `1px solid ${t.border.default}`, alignItems: 'center' }}>
               <span /><span style={th}>Invoice #</span><span style={th}>Client</span><span style={th}>Project</span><span style={th}>Date</span><span style={th}>Due</span>
-              <span style={{ ...th, textAlign: 'right' }}>Amount</span><span style={{ ...th, textAlign: 'center' }}>Status</span><span style={{ ...th, textAlign: 'right' }}>Paid on</span><span />
+              <span style={{ ...th, textAlign: 'right' }}>Amount</span><span style={{ ...th, textAlign: 'center' }}>Status</span><span style={{ ...th, textAlign: 'right' }}>Paid on</span>
             </div>
 
             {sorted.map((inv) => {
@@ -182,22 +182,15 @@ export default function AllInvoicesPage() {
                     <span style={{ fontSize: 13, fontWeight: 500, color: t.text.primary, textAlign: 'right' }}>{currency(invTotal(inv))}</span>
                     <span style={{ textAlign: 'center' }}>{statusBadge(inv.status)}</span>
                     <span style={{ fontSize: 13, color: t.text.secondary, textAlign: 'right' }}>{inv.paidDate || '—'}</span>
-                    <span style={{ textAlign: 'center' }}>
-                      <button onClick={(e) => { e.stopPropagation(); setDeleteTarget(inv.id); }} disabled={loadingId === inv.id}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: t.text.tertiary, transition: 'color 150ms' }}
-                        onMouseEnter={(e) => e.currentTarget.style.color = t.status.danger}
-                        onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}
-                      ><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
-                    </span>
                   </div>
                   {isExpanded && (
                     <div style={{ padding: '16px 16px 16px 56px', background: t.bg.surfaceHover, borderBottom: `1px solid ${t.border.default}` }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 16 }}>
                         <div>
                           <p style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px', margin: '0 0 8px' }}>Line items</p>
                           {inv.items?.length ? inv.items.map((item, idx) => (
                             <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: `0.5px solid ${t.border.default}`, fontSize: 12 }}>
-                              <span style={{ color: t.text.primary }}>{item.description || '—'}</span>
+                              <span style={{ color: t.text.primary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: 12, flex: 1, minWidth: 0 }} title={item.description || ''}>{item.description || '—'}</span>
                               <span style={{ color: t.text.secondary, whiteSpace: 'nowrap' }}>{item.qty > 1 ? `${item.qty} × ${currency(item.price)} = ${currency(item.qty * item.price)}` : currency(item.price)}</span>
                             </div>
                           )) : <p style={{ fontSize: 12, color: t.text.tertiary }}>No line items</p>}
@@ -212,30 +205,33 @@ export default function AllInvoicesPage() {
                         </div>
                         <div>
                           {inv.notes && (<><p style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px', margin: '0 0 8px' }}>Notes</p><p style={{ fontSize: 12, color: t.text.secondary, lineHeight: 1.4, margin: 0 }}>{inv.notes}</p></>)}
-                          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                            <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>} label="Edit" onClick={(e) => { e.stopPropagation(); router.push(`/invoices/new?edit=${inv._uuid || inv.id}`); }} />
-                            <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>} label="Preview" onClick={(e) => { e.stopPropagation(); window.open(`/invoices/${inv.id}/print`, '_blank'); }} />
-                            <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>} label="Download" onClick={async (e) => {
-                              e.stopPropagation();
-                              const iframe = document.createElement('iframe');
-                              iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:816px;height:1056px;border:none';
-                              document.body.appendChild(iframe);
-                              iframe.src = `/invoices/${inv.id}/print?silent=1`;
-                              iframe.onload = async () => {
-                                try {
-                                  await new Promise(r => setTimeout(r, 800));
-                                  const el = iframe.contentDocument?.querySelector('.ip-invoice-content');
-                                  if (!el) { document.body.removeChild(iframe); return; }
-                                  const html2pdf = (await import('html2pdf.js' as any)).default;
-                                  await html2pdf().set({ margin: [0.4, 0.4, 0.6, 0.4], filename: `${inv.id}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } }).from(el as HTMLElement).save();
-                                } catch (err) { console.error('[Download] PDF failed:', err); }
-                                finally { document.body.removeChild(iframe); }
-                              };
-                            }} />
-                            {(inv.status === 'draft' || inv.status === 'unpaid') && (
-                              <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 12 9 17 20 6"/></svg>} label={inv.status === 'draft' ? 'Mark Sent' : 'Mark Paid'} color={t.status.success} onClick={(e) => { e.stopPropagation(); handleStatusChange(inv, inv.status === 'draft' ? 'unpaid' : 'paid'); }} />
-                            )}
-                          </div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: `1px solid ${t.border.default}` }}>
+                        <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>} label="Edit" onClick={(e) => { e.stopPropagation(); router.push(`/invoices/new?edit=${inv._uuid || inv.id}`); }} />
+                        <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>} label="Preview" onClick={(e) => { e.stopPropagation(); window.open(`/invoices/${inv.id}/print`, '_blank'); }} />
+                        <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>} label="Download" onClick={async (e) => {
+                          e.stopPropagation();
+                          const iframe = document.createElement('iframe');
+                          iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:816px;height:1056px;border:none';
+                          document.body.appendChild(iframe);
+                          iframe.src = `/invoices/${inv.id}/print?silent=1`;
+                          iframe.onload = async () => {
+                            try {
+                              await new Promise(r => setTimeout(r, 800));
+                              const el = iframe.contentDocument?.querySelector('.ip-invoice-content');
+                              if (!el) { document.body.removeChild(iframe); return; }
+                              const html2pdf = (await import('html2pdf.js' as any)).default;
+                              await html2pdf().set({ margin: [0.4, 0.4, 0.6, 0.4], filename: `${inv.id}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } }).from(el as HTMLElement).save();
+                            } catch (err) { console.error('[Download] PDF failed:', err); }
+                            finally { document.body.removeChild(iframe); }
+                          };
+                        }} />
+                        {(inv.status === 'draft' || inv.status === 'unpaid') && (
+                          <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 12 9 17 20 6"/></svg>} label={inv.status === 'draft' ? 'Mark Sent' : 'Mark Paid'} color={t.status.success} onClick={(e) => { e.stopPropagation(); handleStatusChange(inv, inv.status === 'draft' ? 'unpaid' : 'paid'); }} />
+                        )}
+                        <div style={{ marginLeft: 'auto' }}>
+                          <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>} label="Delete" color={t.status.danger} onClick={(e) => { e.stopPropagation(); setDeleteTarget(inv.id); }} />
                         </div>
                       </div>
                     </div>
