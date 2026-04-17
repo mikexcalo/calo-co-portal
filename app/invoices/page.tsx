@@ -61,6 +61,18 @@ export default function AllInvoicesPage() {
 
   if (isLoading) return null;
 
+  const ActionBtn = ({ icon, label, onClick, color }: { icon: React.ReactNode; label: string; onClick: (e: React.MouseEvent) => void; color?: string }) => (
+    <button onClick={onClick} style={{
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      padding: '6px 12px', fontSize: 12, fontWeight: 500, borderRadius: 6,
+      border: `1px solid ${t.border.default}`, background: t.bg.surface,
+      color: color || t.text.primary, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 150ms',
+    }}
+    onMouseEnter={(e) => { e.currentTarget.style.background = t.bg.surfaceHover; e.currentTarget.style.borderColor = t.border.hover; }}
+    onMouseLeave={(e) => { e.currentTarget.style.background = t.bg.surface; e.currentTarget.style.borderColor = t.border.default; }}
+    >{icon}{label}</button>
+  );
+
   const sorted = [...invoices].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const cols = '40px 80px 1fr 1fr 90px 90px 80px 70px 80px 36px';
   const th: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px' };
@@ -193,15 +205,11 @@ export default function AllInvoicesPage() {
                         <div>
                           {inv.notes && (<><p style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px', margin: '0 0 8px' }}>Notes</p><p style={{ fontSize: 12, color: t.text.secondary, lineHeight: 1.4, margin: 0 }}>{inv.notes}</p></>)}
                           <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                            <button onClick={(e) => { e.stopPropagation(); router.push(`/invoices/new?edit=${inv._uuid || inv.id}`); }}
-                              style={{ padding: '5px 12px', fontSize: 12, fontWeight: 500, borderRadius: 6, border: `1px solid ${t.border.default}`, background: t.bg.surface, color: t.text.primary, cursor: 'pointer', fontFamily: 'inherit' }}>Edit</button>
-                            <button onClick={(e) => { e.stopPropagation(); window.open(`/invoices/${inv._uuid || inv.id}/print`, '_blank'); }}
-                              style={{ padding: '5px 12px', fontSize: 12, fontWeight: 500, borderRadius: 6, border: `1px solid ${t.border.default}`, background: t.bg.surface, color: t.text.primary, cursor: 'pointer', fontFamily: 'inherit' }}>Preview</button>
+                            <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>} label="Edit" onClick={(e) => { e.stopPropagation(); router.push(`/invoices/new?edit=${inv._uuid || inv.id}`); }} />
+                            <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>} label="Preview" onClick={(e) => { e.stopPropagation(); window.open(`/invoices/${inv.id}/print`, '_blank'); }} />
+                            <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>} label="Download" onClick={(e) => { e.stopPropagation(); window.open(`/invoices/${inv.id}/print`, '_blank'); }} />
                             {(inv.status === 'draft' || inv.status === 'unpaid') && (
-                              <button onClick={(e) => { e.stopPropagation(); handleStatusChange(inv, inv.status === 'draft' ? 'unpaid' : 'paid'); }}
-                                style={{ padding: '5px 12px', fontSize: 12, fontWeight: 500, borderRadius: 6, border: `1px solid ${t.border.default}`, background: t.bg.surface, color: t.status.success, cursor: 'pointer', fontFamily: 'inherit' }}>
-                                {inv.status === 'draft' ? 'Mark Sent' : 'Mark Paid'}
-                              </button>
+                              <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 12 9 17 20 6"/></svg>} label={inv.status === 'draft' ? 'Mark Sent' : 'Mark Paid'} color={t.status.success} onClick={(e) => { e.stopPropagation(); handleStatusChange(inv, inv.status === 'draft' ? 'unpaid' : 'paid'); }} />
                             )}
                           </div>
                         </div>

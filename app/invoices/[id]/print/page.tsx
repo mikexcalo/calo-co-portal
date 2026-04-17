@@ -79,7 +79,7 @@ export default function InvoicePrintPage() {
   return (
     <>
       <style>{`
-        @page { size: letter; margin: 0.5in; }
+        @page { size: letter; margin: 0.4in; }
         @media print {
           body { background: white !important; }
           body.printing-invoice > div > div:first-child,
@@ -108,7 +108,7 @@ export default function InvoicePrintPage() {
         <div style={{ maxWidth: 720, margin: '0 auto', fontSize: 11, lineHeight: 1.5 }}>
 
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 40 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
             <div>
               <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.5, marginBottom: 8 }}>
                 {agency.companyName || 'CALO&CO'}
@@ -136,7 +136,7 @@ export default function InvoicePrintPage() {
           </div>
 
           {/* Bill To + Project */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 32 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 20 }}>
             <div>
               <div style={{ fontSize: 10, letterSpacing: 1.5, color: '#888', marginBottom: 8 }}>BILL TO</div>
               <div style={{ fontWeight: 600 }}>{contact?.name || client?.name || '—'}</div>
@@ -175,7 +175,7 @@ export default function InvoicePrintPage() {
           </table>
 
           {/* Totals */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 36 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 24 }}>
             <div style={{ width: 240, fontSize: 11 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
                 <span style={{ color: '#555' }}>Subtotal</span><span>{money(subtotal)}</span>
@@ -212,9 +212,9 @@ export default function InvoicePrintPage() {
 
           {/* Notes */}
           {invoice.notes && (
-            <div style={{ marginBottom: 28 }}>
-              <div style={{ fontSize: 10, letterSpacing: 1.5, color: '#888', marginBottom: 8 }}>NOTES</div>
-              <div style={{ color: '#444', whiteSpace: 'pre-line' }}>{invoice.notes}</div>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 10, letterSpacing: 1.5, color: '#888', marginBottom: 6 }}>NOTES</div>
+              <div style={{ color: '#444', whiteSpace: 'pre-line', fontSize: 10, lineHeight: 1.4 }}>{invoice.notes}</div>
             </div>
           )}
 
