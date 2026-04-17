@@ -32,6 +32,7 @@ function NewInvoiceContent() {
   const [lineItems, setLineItems] = useState([{ description: '', qty: 1, price: 0 }]);
   const [notes, setNotes] = useState('');
   const [tax, setTax] = useState(0);
+  const [invoiceType, setInvoiceType] = useState<'service' | 'reimbursement'>('service');
   const [editUuid, setEditUuid] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [extracting, setExtracting] = useState(false);
@@ -65,6 +66,7 @@ function NewInvoiceContent() {
           setProject(inv.project || '');
           setNotes(inv.notes || '');
           setTax(inv.tax || 0);
+          setInvoiceType((inv as any).type || 'service');
           if (inv.items?.length) setLineItems(inv.items.map(i => ({ description: i.description, qty: i.qty, price: i.price })));
           // Parse display dates back to ISO
           try { if (inv.date) setInvoiceDate(new Date(inv.date).toISOString().split('T')[0]); } catch {}
@@ -120,6 +122,7 @@ function NewInvoiceContent() {
         shipping: 0,
         status: status === 'sent' ? 'unpaid' : 'draft',
         notes,
+        type: invoiceType,
       };
       await saveInvoice(inv);
       if (!editUuid) DB.invoices.push(inv);
@@ -325,6 +328,24 @@ function NewInvoiceContent() {
             <div>
               <label style={{ fontSize: 12, fontWeight: 500, color: t.text.secondary, marginBottom: 4, display: 'block' }}>Due date</label>
               <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} style={inputStyle} />
+            </div>
+          </div>
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${t.border.default}` }}>
+            <div style={{ fontSize: 11, fontWeight: 500, color: t.text.secondary, marginBottom: 6 }}>Invoice type</div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {[
+                { value: 'service' as const, label: 'Service revenue', hint: 'Work you performed' },
+                { value: 'reimbursement' as const, label: 'Reimbursement', hint: 'Passthrough vendor cost' },
+              ].map((opt) => {
+                const selected = invoiceType === opt.value;
+                return (
+                  <button key={opt.value} type="button" onClick={() => setInvoiceType(opt.value)}
+                    style={{ flex: 1, padding: '8px 12px', borderRadius: 6, border: `1px solid ${selected ? '#2563eb' : t.border.default}`, background: selected ? 'rgba(37,99,235,0.04)' : t.bg.surface, color: t.text.primary, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, textAlign: 'left' as const, transition: 'all 150ms' }}>
+                    <div style={{ fontWeight: 500, marginBottom: 2 }}>{opt.label}</div>
+                    <div style={{ fontSize: 10, color: t.text.tertiary }}>{opt.hint}</div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </DataCard>

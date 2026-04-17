@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { DB, loadExpenses, saveAgencySettings } from '@/lib/database';
+import { DB, loadExpenses, loadClients, loadInvoices, saveAgencySettings } from '@/lib/database';
 import { Expense } from '@/lib/types';
 import ProfitLoss from '@/components/financials/ProfitLoss';
 import ExpensesList from '@/components/financials/ExpensesList';
 import RevenueByClient from '@/components/financials/RevenueByClient';
-import { currency, metricColor } from '@/lib/utils';
+import { currency, metricColor, invTotal } from '@/lib/utils';
 import { useTheme } from '@/lib/theme';
 import useCountUp from '@/lib/useCountUp';
 import { motion } from 'framer-motion';
@@ -32,6 +32,10 @@ export default function FinancialsPage() {
 
   useEffect(() => {
     const init = async () => {
+      if (DB.clientsState !== 'loaded') await loadClients().catch(() => {});
+      for (const c of DB.clients) {
+        if (!DB.invoices.some(i => i.clientId === c.id)) await loadInvoices(c.id).catch(() => {});
+      }
       await loadExpenses().catch(() => {});
       setExpenses([...DB.expenses]);
     };
@@ -54,6 +58,13 @@ export default function FinancialsPage() {
   const animExpenses = useCountUp(totalExpenses);
   const periodLabel = period === 'month' ? 'This Month' : period === 'quarter' ? 'This Quarter' : period === 'year' ? 'This Year' : 'All Time';
 
+  // Revenue from invoices (split by type)
+  const paidInvoices = DB.invoices.filter(i => i.status === 'paid');
+  const serviceRevenue = paidInvoices.filter(i => ((i as any).type || 'service') === 'service').reduce((s, i) => s + invTotal(i), 0);
+  const reimbursements = paidInvoices.filter(i => (i as any).type === 'reimbursement').reduce((s, i) => s + invTotal(i), 0);
+  const grossRevenue = serviceRevenue + reimbursements;
+  const netIncome = grossRevenue - totalExpenses;
+
   const handleSaveTaxSettings = async () => {
     setLoading(true);
     await saveAgencySettings(taxRate, fiscalYearStart);
@@ -64,7 +75,7 @@ export default function FinancialsPage() {
   const handlePrintPL = () => {
     const now = new Date();
     const dateStr = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>P&L</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui;padding:48px 40px;color:#111}table{width:100%;border-collapse:collapse;margin-bottom:20px}th{font-size:9px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#bbb;padding:6px 0;border-bottom:1px solid #e8e8e8;text-align:left}td{padding:7px 0;font-size:13px;border-bottom:1px solid #f7f7f7}.r{text-align:right}@media print{body{padding:0}@page{margin:0.5in}}</style></head><body><h1 style="font-size:22px;border-bottom:2px solid #111;padding-bottom:18px;margin-bottom:28px">${DB.agency.name} — P&L · ${periodLabel}</h1><p style="font-size:10px;color:#bbb;margin-bottom:24px">Prepared ${dateStr}</p><table><tr><th>Revenue</th><th class="r"></th></tr><tr><td>Total Revenue</td><td class="r">$0.00</td></tr></table><table><tr><th>Expenses</th><th class="r"></th></tr><tr><td>Total Expenses</td><td class="r">−${currency(totalExpenses)}</td></tr></table></body></html>`;
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>P&L</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui;padding:48px 40px;color:#111}table{width:100%;border-collapse:collapse;margin-bottom:20px}th{font-size:9px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#bbb;padding:6px 0;border-bottom:1px solid #e8e8e8;text-align:left}td{padding:7px 0;font-size:13px;border-bottom:1px solid #f7f7f7}.r{text-align:right}.m{font-size:10px;color:#999;font-style:italic}@media print{body{padding:0}@page{margin:0.5in}}</style></head><body><h1 style="font-size:22px;border-bottom:2px solid #111;padding-bottom:18px;margin-bottom:28px">${DB.agency.name} — P&L · ${periodLabel}</h1><p style="font-size:10px;color:#bbb;margin-bottom:24px">Prepared ${dateStr}</p><table><tr><th>Revenue</th><th class="r"></th></tr><tr><td>Service Revenue</td><td class="r">${currency(serviceRevenue)}</td></tr><tr><td>Client Reimbursements<br/><span class="m">Passed through to vendors · no margin</span></td><td class="r">${currency(reimbursements)}</td></tr></table><table><tr><th>Expenses</th><th class="r"></th></tr><tr><td>Total Expenses</td><td class="r">−${currency(totalExpenses)}</td></tr></table><table><tr><th>Summary</th><th class="r"></th></tr><tr><td style="font-weight:600">Net Income</td><td class="r" style="font-weight:600">${currency(netIncome)}</td></tr></table></body></html>`;
     window.open(URL.createObjectURL(new Blob([html], { type: 'text/html' })), '_blank');
   };
 
@@ -104,10 +115,10 @@ export default function FinancialsPage() {
         {/* Metric tiles */}
         <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10, marginBottom: 24 }}>
           {[
-            { label: 'Gross Revenue', value: currency(0), color: metricColor(0, t.status.success, t.text.secondary) },
+            { label: 'Service Revenue', value: currency(serviceRevenue), color: metricColor(serviceRevenue, t.status.success, t.text.secondary) },
             { label: 'Total Expenses', value: currency(Math.round(animExpenses * 100) / 100), color: metricColor(totalExpenses, t.status.danger, t.text.secondary) },
-            { label: 'Net Income', value: currency(0), color: t.text.primary },
-            { label: `Tax Est. (${taxRate}%)`, value: currency(0), color: t.text.secondary },
+            { label: 'Net Income', value: currency(netIncome), color: netIncome >= 0 ? t.text.primary : t.status.danger },
+            { label: `Tax Est. (${taxRate}%)`, value: currency(netIncome > 0 ? netIncome * taxRate / 100 : 0), color: t.text.secondary },
           ].map((m) => (
             <motion.div key={m.label} whileHover={{ y: -1 }} transition={spring} style={{
               background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: t.radius.lg,
