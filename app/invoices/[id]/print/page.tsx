@@ -141,9 +141,8 @@ export default function InvoicePrintPage() {
               <div style={{ color: '#555' }}>{agency.city || 'Portland, Maine'}</div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 10, letterSpacing: 2, color: '#888', marginBottom: 4 }}>INVOICE</div>
-              <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 14 }}>#{invoice.id}</div>
-              <div style={{ fontSize: 10, display: 'grid', gridTemplateColumns: 'auto auto', gap: '2px 14px', textAlign: 'left' }}>
+              <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: -0.3, marginBottom: 16, color: '#111' }}>#{invoice.id}</div>
+              <div style={{ fontSize: 11, display: 'grid', gridTemplateColumns: 'auto auto', gap: '4px 14px', textAlign: 'left' }}>
                 <span style={{ color: '#888' }}>Date</span><span>{invoice.date || '—'}</span>
                 <span style={{ color: '#888' }}>Due</span><span>{invoice.due || '—'}</span>
               </div>
@@ -190,7 +189,7 @@ export default function InvoicePrintPage() {
           </table>
 
           {/* Totals */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
             <div style={{ width: 240, fontSize: 11 }}>
               {(invoice as any).type !== 'reimbursement' && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
@@ -207,8 +206,8 @@ export default function InvoicePrintPage() {
                   <span style={{ color: '#555' }}>Shipping</span><span>{money(shipping)}</span>
                 </div>
               )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0 4px', borderTop: '1px solid #ddd', marginTop: 4, fontWeight: 600, fontSize: 13 }}>
-                <span>Total Due</span><span>{money(total)}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0 0', borderTop: '1px solid #ddd', marginTop: 6, fontWeight: 600 }}>
+                <span style={{ fontSize: 14 }}>Total Due</span><span style={{ fontSize: 16 }}>{money(total)}</span>
               </div>
             </div>
           </div>
@@ -237,11 +236,6 @@ export default function InvoicePrintPage() {
             </div>
           )}
 
-          {/* Footer */}
-          <div style={{ borderTop: '1px solid #ddd', paddingTop: 12, marginTop: 40, display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#888' }}>
-            <span>{(agency.companyName || 'CALO&CO')} · mikecalo.co</span>
-            <span>Invoice #{invoice.id}</span>
-          </div>
         </div>
 
         {/* Onscreen-only controls */}
