@@ -209,7 +209,23 @@ export default function AllInvoicesPage() {
                           <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                             <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>} label="Edit" onClick={(e) => { e.stopPropagation(); router.push(`/invoices/new?edit=${inv._uuid || inv.id}`); }} />
                             <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>} label="Preview" onClick={(e) => { e.stopPropagation(); window.open(`/invoices/${inv.id}/print`, '_blank'); }} />
-                            <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>} label="Download" onClick={(e) => { e.stopPropagation(); window.open(`/invoices/${inv.id}/print?download=1`, '_blank'); }} />
+                            <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>} label="Download" onClick={async (e) => {
+                              e.stopPropagation();
+                              const iframe = document.createElement('iframe');
+                              iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:816px;height:1056px;border:none';
+                              document.body.appendChild(iframe);
+                              iframe.src = `/invoices/${inv.id}/print?silent=1`;
+                              iframe.onload = async () => {
+                                try {
+                                  await new Promise(r => setTimeout(r, 800));
+                                  const el = iframe.contentDocument?.querySelector('.ip-invoice-content');
+                                  if (!el) { document.body.removeChild(iframe); return; }
+                                  const html2pdf = (await import('html2pdf.js' as any)).default;
+                                  await html2pdf().set({ margin: [0.4, 0.4, 0.6, 0.4], filename: `${inv.id}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } }).from(el as HTMLElement).save();
+                                } catch (err) { console.error('[Download] PDF failed:', err); }
+                                finally { document.body.removeChild(iframe); }
+                              };
+                            }} />
                             {(inv.status === 'draft' || inv.status === 'unpaid') && (
                               <ActionBtn icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 12 9 17 20 6"/></svg>} label={inv.status === 'draft' ? 'Mark Sent' : 'Mark Paid'} color={t.status.success} onClick={(e) => { e.stopPropagation(); handleStatusChange(inv, inv.status === 'draft' ? 'unpaid' : 'paid'); }} />
                             )}

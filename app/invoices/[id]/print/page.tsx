@@ -71,11 +71,12 @@ export default function InvoicePrintPage() {
     }).from(element).save();
   };
 
-  // Auto-download if ?download=1 in URL
+  // Auto-download if ?download=1 in URL (skip in iframe/silent mode)
   useEffect(() => {
     if (!ready || !invoice) return;
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('download') === '1') {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('silent') === '1') return;
+    if (params.get('download') === '1') {
       setTimeout(() => {
         downloadPDF().then(() => { setTimeout(() => window.close(), 1000); });
       }, 400);
