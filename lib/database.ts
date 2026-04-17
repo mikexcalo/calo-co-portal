@@ -144,6 +144,7 @@ export async function loadClients(): Promise<void> {
       phone: c.phone || '',
       address: c.address || '',
       website: c.website || '',
+      code: c.code || '',
       city: '',
       logo: null,
       activeModules: c.active_modules || ['invoices'],
@@ -190,6 +191,7 @@ export async function saveClient(client: Client): Promise<any> {
       address:
         [client.address, client.city].filter(Boolean).join(', ') || null,
       website: client.website || null,
+      code: (client as any).code || null,
     };
 
     // Persist signature data if present
@@ -315,13 +317,13 @@ export async function loadInvoices(clientId: string): Promise<void> {
         status: row.status || 'draft',
         tax: row.tax || 0,
         shipping: row.shipping || 0,
-        type: row.type || 'invoice',
+        type: row.type || 'service',
         notes: row.notes || '',
         attachmentUrl: row.attachment_url || null,
         netCost: row.internal_margin || 0,
         items: itemsArr,
         projectDesc: row.project_description || '',
-        isReimbursement: false,
+        isReimbursement: row.type === 'reimbursement',
         paidDate: row.paid_at || null,
         internalNotes: '',
         vendorOrder: '—',
@@ -359,6 +361,7 @@ export async function saveInvoice(inv: Invoice): Promise<any> {
       tax: inv.tax || 0,
       shipping: inv.shipping || 0,
       total,
+      type: (inv as any).type || 'service',
       notes: inv.notes || null,
       paid_at: inv.paidDate ? new Date(inv.paidDate).toISOString() : null,
     };

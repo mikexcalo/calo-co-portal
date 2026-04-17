@@ -6,6 +6,7 @@ import { useTheme } from '@/lib/theme';
 import { DB, loadClients, loadContacts, saveInvoice } from '@/lib/database';
 import { Invoice } from '@/lib/types';
 import { PageShell, PageHeader, DataCard, GhostButton, CtaButton } from '@/components/shared/Brand';
+import { formatPhone } from '@/lib/utils';
 
 function toDisplayDate(iso: string): string {
   if (!iso) return '';
@@ -77,7 +78,8 @@ function NewInvoiceContent() {
     if (editId || !selectedClient) return;
     const client = DB.clients.find((c: any) => c.id === selectedClient);
     if (!client) return;
-    const clientCode = (client as any).code || client.company?.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 4) || 'CLT';
+    const clientCode = (client as any).code || client.company?.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 4);
+    if (!clientCode) return;
     const prefix = `INV-${clientCode}-`;
     const maxSeq = DB.invoices
       .filter((i: any) => i.clientId === selectedClient && typeof i.id === 'string' && i.id.startsWith(prefix))
@@ -88,7 +90,7 @@ function NewInvoiceContent() {
   }, [selectedClient, editId]);
 
   const subtotal = lineItems.reduce((sum, item) => sum + item.qty * item.price, 0);
-  const total = subtotal + tax;
+  const total = subtotal + (invoiceType === 'reimbursement' ? 0 : tax);
 
   const addLineItem = () => setLineItems([...lineItems, { description: '', qty: 1, price: 0 }]);
   const updateLineItem = (index: number, field: string, value: any) => {
@@ -278,7 +280,7 @@ function NewInvoiceContent() {
       )}
 
       {/* TOP ROW: Client + Invoice Details */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24, alignItems: 'start' }}>
         {/* Client selector */}
         <DataCard>
           <div style={{ ...confBorder('vendor') }}>
@@ -298,7 +300,7 @@ function NewInvoiceContent() {
               <div style={{ fontWeight: 500, color: t.text.primary }}>{selectedClientData.company || selectedClientData.name}</div>
               {primaryContact && <div>{primaryContact.name}</div>}
               {primaryContact?.email && <div>{primaryContact.email}</div>}
-              {primaryContact?.phone && <div>{primaryContact.phone}</div>}
+              {primaryContact?.phone && <div>{formatPhone(primaryContact.phone)}</div>}
             </div>
           )}
           </div>
@@ -423,14 +425,16 @@ function NewInvoiceContent() {
               <span style={{ color: t.text.secondary }}>Subtotal</span>
               <span style={{ color: t.text.primary, fontWeight: 500 }}>${subtotal.toFixed(2)}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
-              <span style={{ color: t.text.secondary }}>Tax</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <span style={{ color: t.text.tertiary, fontSize: 13 }}>$</span>
-                <input type="number" value={tax} min={0} step={0.01} onChange={e => setTax(parseFloat(e.target.value) || 0)}
-                  style={{ width: 70, textAlign: 'right', padding: '4px 8px', border: `1px solid ${t.border.default}`, borderRadius: 6, background: t.bg.primary, color: t.text.primary, fontSize: 13, fontFamily: 'inherit', outline: 'none' }} />
+            {invoiceType !== 'reimbursement' && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
+                <span style={{ color: t.text.secondary }}>Tax</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <span style={{ color: t.text.tertiary, fontSize: 13 }}>$</span>
+                  <input type="number" value={tax} min={0} step={0.01} onChange={e => setTax(parseFloat(e.target.value) || 0)}
+                    style={{ width: 70, textAlign: 'right', padding: '4px 8px', border: `1px solid ${t.border.default}`, borderRadius: 6, background: t.bg.primary, color: t.text.primary, fontSize: 13, fontFamily: 'inherit', outline: 'none' }} />
+                </div>
               </div>
-            </div>
+            )}
             <div style={{ borderTop: `1px solid ${t.border.default}`, paddingTop: 8, display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: 14, fontWeight: 500, color: t.text.primary }}>Total</span>
               <span style={{ fontSize: 18, fontWeight: 500, color: t.text.primary }}>${total.toFixed(2)}</span>
