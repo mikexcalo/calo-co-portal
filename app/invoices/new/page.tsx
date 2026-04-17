@@ -77,10 +77,8 @@ function NewInvoiceContent() {
     if (editId || !selectedClient) return;
     const client = DB.clients.find((c: any) => c.id === selectedClient);
     if (!client) return;
-    let agencyCode = 'CC';
-    try { const s = JSON.parse(localStorage.getItem('calo-agency-settings') || '{}'); if (s.agencyCode) agencyCode = s.agencyCode; } catch {}
     const clientCode = (client as any).code || client.company?.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 4) || 'CLT';
-    const prefix = `INV-${agencyCode}-${clientCode}-`;
+    const prefix = `INV-${clientCode}-`;
     const maxSeq = DB.invoices
       .filter((i: any) => i.clientId === selectedClient && typeof i.id === 'string' && i.id.startsWith(prefix))
       .map((i: any) => parseInt(i.id.slice(prefix.length), 10))
