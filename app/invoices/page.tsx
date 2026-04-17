@@ -74,7 +74,7 @@ export default function AllInvoicesPage() {
   );
 
   const sorted = [...invoices].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  const cols = '40px 80px 1fr 1fr 90px 90px 80px 70px 80px 36px';
+  const cols = '40px 160px 1fr 1fr 90px 90px 80px 70px 80px 36px';
   const th: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px' };
 
   const statusBadge = (status: string) => {
@@ -168,7 +168,7 @@ export default function AllInvoicesPage() {
                   onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.background = 'transparent'}
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.text.tertiary} strokeWidth="2" style={{ transition: 'transform 150ms', transform: isExpanded ? 'rotate(180deg)' : 'none' }}><polyline points="6 9 12 15 18 9"/></svg>
-                    <span style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>{inv.id}</span>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: t.text.primary, whiteSpace: 'nowrap' }}>{inv.id}</span>
                     <span style={{ fontSize: 13, color: t.text.secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(() => { const cl = DB.clients.find(c => c.id === inv.clientId); return cl?.company || cl?.name || '—'; })()}</span>
                     <span style={{ fontSize: 13, color: t.text.secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.project || '—'}</span>
                     <span style={{ fontSize: 13, color: t.text.secondary }}>{inv.date}</span>

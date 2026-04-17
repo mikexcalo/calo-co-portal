@@ -49,12 +49,7 @@ function NewInvoiceContent() {
       }
       setClients(DB.clients);
 
-      // Legacy fallback invoice number (overridden by client-scoped generator below)
-      if (!editId && !selectedClient) {
-        const existing = DB.invoices.map(i => i.id).filter(id => /^INV-\d+$/.test(id));
-        const maxNum = existing.reduce((max, id) => { const n = parseInt(id.replace('INV-', ''), 10); return n > max ? n : max; }, 0);
-        setInvoiceNumber(`INV-${String(maxNum + 1).padStart(4, '0')}`);
-      }
+      // Invoice # stays empty until client is selected (client-scoped generator below)
 
       // Load existing invoice for edit mode
       if (editId) {

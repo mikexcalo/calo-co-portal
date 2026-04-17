@@ -63,7 +63,7 @@ export default function InvoicePrintPage() {
     const element = document.querySelector('.ip-invoice-content');
     if (!element || !invoice) return;
     await html2pdf().set({
-      margin: [0.4, 0.4, 0.4, 0.4],
+      margin: [0.4, 0.4, 0.6, 0.4],
       filename: `${invoice.id}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
@@ -163,8 +163,8 @@ export default function InvoicePrintPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 20 }}>
             <div>
               <div style={{ fontSize: 10, letterSpacing: 1.5, color: '#888', marginBottom: 8 }}>BILL TO</div>
-              <div style={{ fontWeight: 600 }}>{contact?.name || client?.name || '—'}</div>
-              <div>{client?.company || ''}</div>
+              {client?.company && <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 2 }}>{client.company}</div>}
+              {contact?.name && <div>{contact.name}</div>}
               {client?.address && <div style={{ color: '#555', whiteSpace: 'pre-line' }}>{client.address}</div>}
               {contact?.phone && <div style={{ color: '#555' }}>{contact.phone}</div>}
               {contact?.email && <div style={{ color: '#555' }}>{contact.email}</div>}
@@ -201,12 +201,16 @@ export default function InvoicePrintPage() {
           {/* Totals */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 24 }}>
             <div style={{ width: 240, fontSize: 11 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
-                <span style={{ color: '#555' }}>Subtotal</span><span>{money(subtotal)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
-                <span style={{ color: '#555' }}>Tax</span><span>{money(tax)}</span>
-              </div>
+              {(invoice as any).type !== 'reimbursement' && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
+                  <span style={{ color: '#555' }}>Subtotal</span><span>{money(subtotal)}</span>
+                </div>
+              )}
+              {(invoice as any).type !== 'reimbursement' && tax > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
+                  <span style={{ color: '#555' }}>Tax</span><span>{money(tax)}</span>
+                </div>
+              )}
               {shipping > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
                   <span style={{ color: '#555' }}>Shipping</span><span>{money(shipping)}</span>
