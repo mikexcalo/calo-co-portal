@@ -195,10 +195,10 @@ export default function AllInvoicesPage() {
                               <span style={{ color: t.text.secondary, whiteSpace: 'nowrap' }}>{item.qty} × {currency(item.price)} = {currency(item.qty * item.price)}</span>
                             </div>
                           )) : <p style={{ fontSize: 12, color: t.text.tertiary }}>No line items</p>}
-                          {(inv.tax > 0 || inv.shipping > 0) && (
+                          {((inv as any).type !== 'reimbursement' && inv.tax > 0 || inv.shipping > 0) && (
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 11, color: t.text.tertiary }}>
-                              <span>{inv.tax > 0 ? `Tax: ${currency(inv.tax)}` : ''}{inv.tax > 0 && inv.shipping > 0 ? ' · ' : ''}{inv.shipping > 0 ? `Shipping: ${currency(inv.shipping)}` : ''}</span>
-                              <span style={{ fontWeight: 500, color: t.text.primary }}>Total: {currency(invTotal(inv))}</span>
+                              <span>{(inv as any).type !== 'reimbursement' && inv.tax > 0 ? `Tax: ${currency(inv.tax)}` : ''}{(inv as any).type !== 'reimbursement' && inv.tax > 0 && inv.shipping > 0 ? ' · ' : ''}{inv.shipping > 0 ? `Shipping: ${currency(inv.shipping)}` : ''}</span>
+                              <span style={{ fontWeight: 500, color: t.text.primary }}>Total: {currency((inv as any).type === 'reimbursement' ? invTotal(inv) - (inv.tax || 0) : invTotal(inv))}</span>
                             </div>
                           )}
                         </div>
