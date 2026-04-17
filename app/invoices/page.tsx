@@ -61,6 +61,8 @@ export default function AllInvoicesPage() {
 
   if (isLoading) return null;
 
+  const shortDate = (d: string) => { if (!d) return '—'; const dt = new Date(d); return isNaN(dt.getTime()) ? d : `${dt.getMonth() + 1}/${dt.getDate()}/${String(dt.getFullYear()).slice(2)}`; };
+
   const ActionBtn = ({ icon, label, onClick, color }: { icon: React.ReactNode; label: string; onClick: (e: React.MouseEvent) => void; color?: string }) => (
     <button onClick={onClick} style={{
       display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -171,8 +173,8 @@ export default function AllInvoicesPage() {
                     <span style={{ fontSize: 13, fontWeight: 500, color: t.text.primary, whiteSpace: 'nowrap' }}>{inv.id}</span>
                     <span style={{ fontSize: 13, color: t.text.secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(() => { const cl = DB.clients.find(c => c.id === inv.clientId); return cl?.company || cl?.name || '—'; })()}</span>
                     <span style={{ fontSize: 13, color: t.text.secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.project || '—'}</span>
-                    <span style={{ fontSize: 13, color: t.text.secondary }}>{inv.date}</span>
-                    <span style={{ fontSize: 13, color: t.text.secondary }}>{inv.due}</span>
+                    <span style={{ fontSize: 13, color: t.text.secondary }}>{shortDate(inv.date)}</span>
+                    <span style={{ fontSize: 13, color: t.text.secondary }}>{shortDate(inv.due)}</span>
                     <span style={{ fontSize: 13, fontWeight: 500, color: t.text.primary, textAlign: 'right' }}>{currency(invTotal(inv))}</span>
                     <span style={{ textAlign: 'center' }}>{statusBadge(inv.status)}</span>
                     <span style={{ fontSize: 13, color: t.text.secondary, textAlign: 'right' }}>{inv.paidDate || '—'}</span>

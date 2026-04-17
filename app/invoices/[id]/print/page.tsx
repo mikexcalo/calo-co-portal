@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { DB, loadClients, loadInvoices, loadContacts, loadAgencySettings } from '@/lib/database';
+import { formatPhone } from '@/lib/utils';
 
 function money(n: number) {
   return `$${(n || 0).toFixed(2)}`;
@@ -145,7 +146,6 @@ export default function InvoicePrintPage() {
               <div style={{ fontSize: 10, display: 'grid', gridTemplateColumns: 'auto auto', gap: '2px 14px', textAlign: 'left' }}>
                 <span style={{ color: '#888' }}>Date</span><span>{invoice.date || '—'}</span>
                 <span style={{ color: '#888' }}>Due</span><span>{invoice.due || '—'}</span>
-                <span style={{ color: '#888' }}>Terms</span><span>Due within 14 days</span>
               </div>
             </div>
           </div>
@@ -157,7 +157,7 @@ export default function InvoicePrintPage() {
               {client?.company && <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 2 }}>{client.company}</div>}
               {contact?.name && <div>{contact.name}</div>}
               {client?.address && <div style={{ color: '#555', whiteSpace: 'pre-line' }}>{client.address}</div>}
-              {contact?.phone && <div style={{ color: '#555' }}>{contact.phone}</div>}
+              {contact?.phone && <div style={{ color: '#555' }}>{formatPhone(contact.phone)}</div>}
               {contact?.email && <div style={{ color: '#555' }}>{contact.email}</div>}
             </div>
             <div>

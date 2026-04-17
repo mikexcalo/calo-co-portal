@@ -29,7 +29,7 @@ function NewInvoiceContent() {
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [project, setProject] = useState('');
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
-  const [dueDate, setDueDate] = useState(new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]);
+  const [dueDate, setDueDate] = useState(new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]);
   const [lineItems, setLineItems] = useState([{ description: '', qty: 1, price: 0 }]);
   const [notes, setNotes] = useState('');
   const [tax, setTax] = useState(0);
@@ -88,6 +88,15 @@ function NewInvoiceContent() {
       .reduce((max: number, n: number) => (n > max ? n : max), 0);
     setInvoiceNumber(`${prefix}${String(maxSeq + 1).padStart(2, '0')}`);
   }, [selectedClient, editId]);
+
+  // Auto-update due date when issue date changes (non-edit mode)
+  useEffect(() => {
+    if (editId || !invoiceDate) return;
+    const issued = new Date(invoiceDate + 'T00:00:00');
+    const newDue = new Date(issued.getTime() + 14 * 86400000);
+    setDueDate(newDue.toISOString().split('T')[0]);
+  }, [invoiceDate, editId]);
+
 
   const subtotal = lineItems.reduce((sum, item) => sum + item.qty * item.price, 0);
   const total = subtotal + (invoiceType === 'reimbursement' ? 0 : tax);
@@ -156,7 +165,7 @@ function NewInvoiceContent() {
       });
       const data = await res.json();
       if (!res.ok) { setExtractionError(data.error || 'Extraction failed.'); return; }
-      if (data.date) setInvoiceDate(data.date);
+      // Don't overwrite issue date from receipt — keep today's date. Receipt dates are in notes.
       if (data.tax) setTax(data.tax);
       if (data.lineItems?.length) {
         setLineItems(data.lineItems.map((item: any) => ({
