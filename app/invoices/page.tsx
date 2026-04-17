@@ -192,15 +192,17 @@ export default function AllInvoicesPage() {
                           {inv.items?.length ? inv.items.map((item, idx) => (
                             <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: `0.5px solid ${t.border.default}`, fontSize: 12 }}>
                               <span style={{ color: t.text.primary }}>{item.description || '—'}</span>
-                              <span style={{ color: t.text.secondary, whiteSpace: 'nowrap' }}>{item.qty} × {currency(item.price)} = {currency(item.qty * item.price)}</span>
+                              <span style={{ color: t.text.secondary, whiteSpace: 'nowrap' }}>{item.qty > 1 ? `${item.qty} × ${currency(item.price)} = ${currency(item.qty * item.price)}` : currency(item.price)}</span>
                             </div>
                           )) : <p style={{ fontSize: 12, color: t.text.tertiary }}>No line items</p>}
-                          {((inv as any).type !== 'reimbursement' && inv.tax > 0 || inv.shipping > 0) && (
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 11, color: t.text.tertiary }}>
-                              <span>{(inv as any).type !== 'reimbursement' && inv.tax > 0 ? `Tax: ${currency(inv.tax)}` : ''}{(inv as any).type !== 'reimbursement' && inv.tax > 0 && inv.shipping > 0 ? ' · ' : ''}{inv.shipping > 0 ? `Shipping: ${currency(inv.shipping)}` : ''}</span>
-                              <span style={{ fontWeight: 500, color: t.text.primary }}>Total: {currency((inv as any).type === 'reimbursement' ? invTotal(inv) - (inv.tax || 0) : invTotal(inv))}</span>
-                            </div>
-                          )}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0 4px', marginTop: 4, borderTop: `1px solid ${t.border.default}`, fontSize: 11, color: t.text.tertiary }}>
+                            <span>
+                              {(inv as any).type !== 'reimbursement' && inv.tax > 0 ? `Tax: ${currency(inv.tax)}` : ''}
+                              {(inv as any).type !== 'reimbursement' && inv.tax > 0 && inv.shipping > 0 ? ' · ' : ''}
+                              {inv.shipping > 0 ? `Shipping: ${currency(inv.shipping)}` : ''}
+                            </span>
+                            <span style={{ fontWeight: 600, color: t.text.primary, fontSize: 13 }}>Total: {currency((inv as any).type === 'reimbursement' ? invTotal(inv) - (inv.tax || 0) : invTotal(inv))}</span>
+                          </div>
                         </div>
                         <div>
                           {inv.notes && (<><p style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.3px', margin: '0 0 8px' }}>Notes</p><p style={{ fontSize: 12, color: t.text.secondary, lineHeight: 1.4, margin: 0 }}>{inv.notes}</p></>)}
