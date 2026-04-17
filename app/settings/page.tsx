@@ -26,6 +26,7 @@ function SettingsContent() {
   const [profile, setProfile] = useState({ name: '', title: '', email: '' });
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ag, setAg] = useState<Record<string, string>>({});
+  const [paymentMethods, setPaymentMethods] = useState({ venmo: '', paypal: '', zelle: '' });
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -55,6 +56,14 @@ function SettingsContent() {
         licenseNumber: lsAg.licenseNumber || '',
         taxRate: lsAg.taxRate || String(DB.agencySettings.taxRate || ''),
         replyEmail: lsAg.replyEmail || '',
+      });
+
+      // Payment methods from Supabase
+      const existingPM = DB.agencySettings.paymentMethods || [];
+      setPaymentMethods({
+        venmo: existingPM.find((m: any) => m.type === 'Venmo')?.handle || '',
+        paypal: existingPM.find((m: any) => m.type === 'PayPal')?.handle || '',
+        zelle: existingPM.find((m: any) => m.type === 'Zelle')?.handle || '',
       });
 
       // Avatar from localStorage
@@ -123,10 +132,15 @@ function SettingsContent() {
       localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
       // Save agency to localStorage + Supabase
       localStorage.setItem(AGENCY_KEY, JSON.stringify(ag));
+      const pmArray = [
+        paymentMethods.venmo && { type: 'Venmo', handle: paymentMethods.venmo },
+        paymentMethods.paypal && { type: 'PayPal', handle: paymentMethods.paypal },
+        paymentMethods.zelle && { type: 'Zelle', handle: paymentMethods.zelle },
+      ].filter(Boolean);
       await saveAgencySettings(
         parseFloat(ag.taxRate) || 28,
         DB.agencySettings.fiscalYearStart || 1,
-        DB.agencySettings.paymentMethods || [],
+        pmArray,
         { agencyName: ag.companyName, founderName: profile.name, website: '', city: ag.city }
       );
       setToast({ message: 'Settings saved', type: 'success' });
@@ -215,6 +229,17 @@ function SettingsContent() {
         <FormRow>
           <FormField label="Default Tax Rate (%)" value={ag.taxRate || ''} onChange={(v) => updateAg('taxRate', v)} placeholder="28" type="number" />
           <FormField label="Reply-to Email" value={ag.replyEmail || ''} onChange={(v) => updateAg('replyEmail', v)} placeholder="mike@calo.co" type="email" />
+        </FormRow>
+      </FormSection>
+
+      {/* ── SECTION 5: PAYMENT METHODS ── */}
+      <FormSection label="Payment Methods">
+        <FormRow>
+          <FormField label="Venmo" value={paymentMethods.venmo} onChange={(v) => setPaymentMethods({ ...paymentMethods, venmo: v })} placeholder="@mike-calo" />
+          <FormField label="PayPal" value={paymentMethods.paypal} onChange={(v) => setPaymentMethods({ ...paymentMethods, paypal: v })} placeholder="@mikexcalo" />
+        </FormRow>
+        <FormRow>
+          <FormField label="Zelle" value={paymentMethods.zelle} onChange={(v) => setPaymentMethods({ ...paymentMethods, zelle: v })} placeholder="mike@calo.co" />
         </FormRow>
       </FormSection>
 
