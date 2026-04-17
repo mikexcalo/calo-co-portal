@@ -110,16 +110,16 @@ export function TableCell({ children, flex, align, primary }: { children: ReactN
   );
 }
 
-export function CtaButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
+export function CtaButton({ children, onClick, icon }: { children: ReactNode; onClick: () => void; icon?: ReactNode }) {
   const { t } = useTheme();
   return (
     <button
       onClick={onClick}
-      style={{ background: t.accent.primary, color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit", transition: "background 150ms" }}
+      style={{ display: "inline-flex", alignItems: "center", gap: 6, background: t.accent.primary, color: "#fff", border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit", transition: "background 150ms" }}
       onMouseEnter={(e) => { e.currentTarget.style.background = t.accent.primaryHover; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = t.accent.primary; }}
     >
-      {children}
+      {icon}{children}
     </button>
   );
 }

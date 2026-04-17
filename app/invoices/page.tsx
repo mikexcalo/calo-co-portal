@@ -119,13 +119,17 @@ export default function AllInvoicesPage() {
             <p style={{ fontSize: 13, color: t.text.tertiary, margin: 0 }}>Track and manage client invoices</p>
           </div>
           <button onClick={() => router.push('/invoices/new')} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
             background: t.accent.primary, color: '#fff', border: 'none', borderRadius: 8,
-            padding: '8px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+            padding: '6px 14px', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
             transition: 'background 150ms',
           }}
           onMouseEnter={(e) => e.currentTarget.style.background = t.accent.primaryHover}
           onMouseLeave={(e) => e.currentTarget.style.background = t.accent.primary}
-          >+ New Invoice</button>
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Invoice
+          </button>
         </motion.div>
 
         {error && <div style={{ padding: '12px 16px', background: `rgba(255,61,61,0.08)`, border: `1px solid rgba(255,61,61,0.2)`, borderRadius: 8, color: t.status.danger, fontSize: 13, marginBottom: 24 }}>{error}</div>}
