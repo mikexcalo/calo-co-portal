@@ -26,7 +26,7 @@ export default function ClientHubPage() {
   const [submitted, setSubmitted] = useState(false);
   const [contactsOpen, setContactsOpen] = useState(false);
   const [form, setForm] = useState({
-    company: '', firstName: '', lastName: '', title: '',
+    company: '', code: '', firstName: '', lastName: '', title: '',
     email: '', contactPhone: '', businessPhone: '', address: '', website: '',
   });
 
@@ -80,6 +80,7 @@ export default function ClientHubPage() {
     const parts = (p?.name || '').split(/\s+/);
     setForm({
       company: client.company || client.name || '',
+      code: (client as any).code || '',
       firstName: parts[0] || '',
       lastName: parts.slice(1).join(' ') || '',
       title: p?.title || p?.role || '',
@@ -116,10 +117,14 @@ export default function ClientHubPage() {
     setSubmitted(true);
     if (!valid.company || !valid.firstName || !valid.lastName || !valid.email) return;
     setSaving(true);
+    const derivedCode = form.code || (() => {
+      const initials = form.company.split(/\s+/).map((w: string) => w[0]).filter(Boolean).join('').toUpperCase();
+      return (initials.length >= 2 && initials.length <= 5) ? initials : form.company.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 4);
+    })();
     const updated = {
       ...client, company: form.company, name: form.company,
       email: form.email, phone: form.businessPhone,
-      website: form.website, address: form.address,
+      website: form.website, address: form.address, code: derivedCode,
     };
     await saveClient(updated);
     const contactName = `${form.firstName.trim()} ${form.lastName.trim()}`;
@@ -195,7 +200,7 @@ export default function ClientHubPage() {
         <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: '20px 24px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <label style={editLbl}>Company Name {req}<input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} style={submitted && !valid.company ? errorInputStyle : inputStyle} /></label>
-            <div />
+            <label style={editLbl}>Client Code<input value={form.code || ''} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().slice(0, 5) })} placeholder="MMTH" style={inputStyle} /></label>
             <label style={editLbl}>First Name {req}<input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} style={submitted && !valid.firstName ? errorInputStyle : inputStyle} /></label>
             <label style={editLbl}>Last Name {req}<input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} style={submitted && !valid.lastName ? errorInputStyle : inputStyle} /></label>
             <label style={editLbl}>Title<input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Owner" style={inputStyle} /></label>

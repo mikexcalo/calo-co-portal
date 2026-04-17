@@ -48,13 +48,12 @@ function NewInvoiceContent() {
       }
       setClients(DB.clients);
 
-      // Auto-generate next invoice number
-      const existing = DB.invoices.map(i => i.id).filter(id => /^INV-\d+$/.test(id));
-      const maxNum = existing.reduce((max, id) => {
-        const n = parseInt(id.replace('INV-', ''), 10);
-        return n > max ? n : max;
-      }, 0);
-      if (!editId) setInvoiceNumber(`INV-${String(maxNum + 1).padStart(4, '0')}`);
+      // Legacy fallback invoice number (overridden by client-scoped generator below)
+      if (!editId && !selectedClient) {
+        const existing = DB.invoices.map(i => i.id).filter(id => /^INV-\d+$/.test(id));
+        const maxNum = existing.reduce((max, id) => { const n = parseInt(id.replace('INV-', ''), 10); return n > max ? n : max; }, 0);
+        setInvoiceNumber(`INV-${String(maxNum + 1).padStart(4, '0')}`);
+      }
 
       // Load existing invoice for edit mode
       if (editId) {
@@ -75,6 +74,23 @@ function NewInvoiceContent() {
     };
     init();
   }, [editId]);
+
+  // Per-client invoice numbering: AgencyCode-ClientCode-Seq
+  useEffect(() => {
+    if (editId || !selectedClient) return;
+    const client = DB.clients.find((c: any) => c.id === selectedClient);
+    if (!client) return;
+    let agencyCode = 'CC';
+    try { const s = JSON.parse(localStorage.getItem('calo-agency-settings') || '{}'); if (s.agencyCode) agencyCode = s.agencyCode; } catch {}
+    const clientCode = (client as any).code || client.company?.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 4) || 'CLT';
+    const prefix = `${agencyCode}-${clientCode}-`;
+    const maxSeq = DB.invoices
+      .filter((i: any) => i.clientId === selectedClient && typeof i.id === 'string' && i.id.startsWith(prefix))
+      .map((i: any) => parseInt(i.id.slice(prefix.length), 10))
+      .filter((n: number) => !isNaN(n))
+      .reduce((max: number, n: number) => (n > max ? n : max), 0);
+    setInvoiceNumber(`${prefix}${String(maxSeq + 1).padStart(2, '0')}`);
+  }, [selectedClient, editId]);
 
   const subtotal = lineItems.reduce((sum, item) => sum + item.qty * item.price, 0);
   const total = subtotal + tax;

@@ -44,7 +44,7 @@ function SettingsContent() {
       });
 
       // Agency: localStorage first, merge with DB values
-      const lsAg = loadJson(AGENCY_KEY, { companyName: '', address1: '', address2: '', city: '', stateZip: '', tagline: '', serviceArea: '', licenseNumber: '', taxRate: '', replyEmail: '' });
+      const lsAg = loadJson(AGENCY_KEY, { companyName: '', address1: '', address2: '', city: '', stateZip: '', tagline: '', serviceArea: '', licenseNumber: '', taxRate: '', replyEmail: '', agencyCode: '' });
       setAg({
         companyName: lsAg.companyName || DB.agency.name || 'Manifest',
         address1: lsAg.address1 || '',
@@ -56,6 +56,7 @@ function SettingsContent() {
         licenseNumber: lsAg.licenseNumber || '',
         taxRate: lsAg.taxRate || String(DB.agencySettings.taxRate || ''),
         replyEmail: lsAg.replyEmail || '',
+        agencyCode: lsAg.agencyCode || 'CC',
       });
 
       // Payment methods from localStorage first, then Supabase
@@ -208,6 +209,10 @@ function SettingsContent() {
         <FormRow>
           <FormField label="Company Name" value={ag.companyName || ''} onChange={(v) => updateAg('companyName', v)} placeholder="CALO&CO" />
           <FormField label="Tagline" value={ag.tagline || ''} onChange={(v) => updateAg('tagline', v)} placeholder="Your trusted partner" />
+        </FormRow>
+        <FormRow>
+          <FormField label="Agency Code" value={ag.agencyCode || ''} onChange={(v) => updateAg('agencyCode', v.toUpperCase().slice(0, 4))} placeholder="CC" />
+          <div />
         </FormRow>
         <FormRow>
           <FormField label="Service Area" value={ag.serviceArea || ''} onChange={(v) => updateAg('serviceArea', v)} placeholder="Portland Metro" />
