@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    // Support both { files: [...] } (multi) and { image: "..." } (legacy single)
     const fileList: string[] = body.files || (body.image ? [body.image] : []);
 
     if (!fileList.length) return NextResponse.json({ error: 'No files provided' }, { status: 400 });
@@ -11,70 +10,112 @@ export async function POST(req: Request) {
     const apiKey = (process.env.CLAUDE_API_KEY || '').trim();
     if (!apiKey) return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
 
-    const contentBlocks: any[] = [];
-    for (const file of fileList) {
+    // Process each file as its own extraction
+    const extractSingle = async (file: string) => {
       const match = file.match(/^data:([^;]+);base64,(.+)$/);
-      if (!match) continue;
+      if (!match) return null;
       const mediaType = match[1];
       const base64Data = match[2];
+
+      let fileBlock: any = null;
       if (mediaType === 'application/pdf') {
-        contentBlocks.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64Data } });
+        fileBlock = { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64Data } };
       } else if (mediaType.startsWith('image/')) {
-        contentBlocks.push({ type: 'image', source: { type: 'base64', media_type: mediaType, data: base64Data } });
+        fileBlock = { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64Data } };
       }
-    }
+      if (!fileBlock) return null;
 
-    if (!contentBlocks.length) return NextResponse.json({ error: 'No valid files found' }, { status: 400 });
+      const promptBlock = {
+        type: 'text',
+        text: `Extract invoice/receipt data from this single document. Return ONLY a JSON object with no markdown, no backticks, no explanation.
 
-    contentBlocks.push({ type: 'text', text: `Extract invoice/receipt data from EACH of the provided documents and combine them into a single invoice record. The documents are SEPARATE receipts that the user wants to bill together (e.g., multiple vendor receipts being passed through to a client as one reimbursement invoice).
-
-RULES:
-- Include EVERY line item from EVERY document. Do not merge, dedupe, or consolidate line items across documents, even if descriptions look similar — they are separate purchases.
-- Sum the tax amounts from all documents into the "tax" field.
-- Sum the subtotals from all documents into the "subtotal" field.
-- Sum the totals from all documents into the "total" field.
-- For "date", use the EARLIEST date across all documents.
-- For "vendor", use the vendor name that appears in all documents (if consistent) or the first document's vendor.
-- In "notes", list every source document's invoice number, date, order number, and total so the user can cross-reference.
-
-Return ONLY a JSON object with no markdown formatting, no backticks, no explanation. The JSON must have this exact structure:
-
+Structure:
 {
   "vendor": "company name or empty string",
+  "invoiceNumber": "invoice number or empty string",
+  "orderNumber": "order number or empty string",
   "date": "YYYY-MM-DD or empty string",
   "lineItems": [
-    { "description": "item description", "qty": 1, "rate": 0.00 }
+    { "description": "item description exactly as written", "qty": 1, "rate": 0.00 }
   ],
   "subtotal": 0.00,
   "tax": 0.00,
-  "total": 0.00,
-  "notes": "invoice numbers, dates, order numbers, totals from each source document",
-  "confidence": {
-    "vendor": "high",
-    "date": "high",
-    "lineItems": "high",
-    "total": "high"
-  }
+  "total": 0.00
 }
 
-Use "low" confidence if the user should review that field.` });
+Rules:
+- Include EVERY line item exactly as it appears, including service fees, processing fees, etc.
+- Use the exact description text from the document.
+- Numbers must be numeric, not strings.
+- If a field is missing, use empty string or 0.`
+      };
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 4000, messages: [{ role: 'user', content: contentBlocks }] }),
-    });
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 2000,
+          messages: [{ role: 'user', content: [fileBlock, promptBlock] }]
+        }),
+      });
 
-    if (!response.ok) {
-      const errBody = await response.text();
-      console.error('[extract-receipt] API error:', response.status, errBody);
-      return NextResponse.json({ error: 'AI extraction failed. Check API key and try again.' }, { status: 500 });
+      if (!response.ok) {
+        const errBody = await response.text();
+        console.error('[extract-receipt] per-file API error:', response.status, errBody);
+        return null;
+      }
+
+      const data = await response.json();
+      const text = data.content?.[0]?.text || '';
+      const clean = text.replace(/```json\s*|```\s*/g, '').trim();
+      try {
+        return JSON.parse(clean);
+      } catch (e) {
+        console.error('[extract-receipt] parse error for one file:', clean);
+        return null;
+      }
+    };
+
+    // Run all extractions in parallel
+    const results = await Promise.all(fileList.map(extractSingle));
+    const valid = results.filter((r): r is any => r !== null);
+
+    if (!valid.length) {
+      return NextResponse.json({ error: 'Could not extract data from any of the uploaded files.' }, { status: 500 });
     }
 
-    const data = await response.json();
-    const text = data.content?.[0]?.text || '';
-    const clean = text.replace(/```json\s*|```\s*/g, '').trim();
-    return NextResponse.json(JSON.parse(clean));
+    // Merge: concatenate line items, sum subtotal/tax/total, earliest date, first vendor
+    const merged = {
+      vendor: valid.find((r: any) => r.vendor)?.vendor || '',
+      date: valid
+        .map((r: any) => r.date)
+        .filter(Boolean)
+        .sort()[0] || '',
+      lineItems: valid.flatMap((r: any) => Array.isArray(r.lineItems) ? r.lineItems : []),
+      subtotal: Number(valid.reduce((s: number, r: any) => s + (Number(r.subtotal) || 0), 0).toFixed(2)),
+      tax: Number(valid.reduce((s: number, r: any) => s + (Number(r.tax) || 0), 0).toFixed(2)),
+      total: Number(valid.reduce((s: number, r: any) => s + (Number(r.total) || 0), 0).toFixed(2)),
+      notes: valid
+        .map((r: any) => {
+          const parts: string[] = [];
+          if (r.invoiceNumber) parts.push(`Invoice ${r.invoiceNumber}`);
+          if (r.date) parts.push(`dated ${r.date}`);
+          if (r.orderNumber) parts.push(`Order ${r.orderNumber}`);
+          if (r.total) parts.push(`total $${Number(r.total).toFixed(2)}`);
+          return parts.join(', ');
+        })
+        .filter(Boolean)
+        .join('; '),
+      confidence: {
+        vendor: 'high',
+        date: 'high',
+        lineItems: valid.length === fileList.length ? 'high' : 'low',
+        total: valid.length === fileList.length ? 'high' : 'low'
+      }
+    };
+
+    return NextResponse.json(merged);
   } catch (error: any) {
     console.error('Receipt extraction error:', error);
     return NextResponse.json({ error: error.message || 'Extraction failed' }, { status: 500 });
