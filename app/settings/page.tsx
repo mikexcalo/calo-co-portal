@@ -58,12 +58,14 @@ function SettingsContent() {
         replyEmail: lsAg.replyEmail || '',
       });
 
-      // Payment methods from Supabase
-      const existingPM = DB.agencySettings.paymentMethods || [];
+      // Payment methods from localStorage first, then Supabase
+      let pmSource: any[] = [];
+      try { const stored = localStorage.getItem('calo-payment-methods'); if (stored) pmSource = JSON.parse(stored); } catch {}
+      if (!pmSource.length) pmSource = DB.agencySettings.paymentMethods || [];
       setPaymentMethods({
-        venmo: existingPM.find((m: any) => m.type === 'Venmo')?.handle || '',
-        paypal: existingPM.find((m: any) => m.type === 'PayPal')?.handle || '',
-        zelle: existingPM.find((m: any) => m.type === 'Zelle')?.handle || '',
+        venmo: pmSource.find((m: any) => m.type === 'Venmo')?.handle || '',
+        paypal: pmSource.find((m: any) => m.type === 'PayPal')?.handle || '',
+        zelle: pmSource.find((m: any) => m.type === 'Zelle')?.handle || '',
       });
 
       // Avatar from localStorage
@@ -137,6 +139,7 @@ function SettingsContent() {
         paymentMethods.paypal && { type: 'PayPal', handle: paymentMethods.paypal },
         paymentMethods.zelle && { type: 'Zelle', handle: paymentMethods.zelle },
       ].filter(Boolean);
+      localStorage.setItem('calo-payment-methods', JSON.stringify(pmArray));
       await saveAgencySettings(
         parseFloat(ag.taxRate) || 28,
         DB.agencySettings.fiscalYearStart || 1,

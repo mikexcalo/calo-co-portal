@@ -45,10 +45,18 @@ export default function InvoicePrintPage() {
       try { profile = JSON.parse(localStorage.getItem('calo-settings-profile') || '{}'); } catch {}
       try { agencySettings = JSON.parse(localStorage.getItem('calo-agency-settings') || '{}'); } catch {}
       setAgency({ ...profile, ...agencySettings });
-      setPaymentMethods(DB.agencySettings?.paymentMethods || []);
+      let pm: any[] = [];
+      try { const stored = localStorage.getItem('calo-payment-methods'); if (stored) pm = JSON.parse(stored); } catch {}
+      if (!pm.length) pm = DB.agencySettings?.paymentMethods || [];
+      setPaymentMethods(pm);
       setReady(true);
     })();
   }, [id]);
+
+  useEffect(() => {
+    document.body.classList.add('printing-invoice');
+    return () => { document.body.classList.remove('printing-invoice'); };
+  }, []);
 
   if (!ready) return null;
   if (!invoice) {
@@ -74,6 +82,17 @@ export default function InvoicePrintPage() {
         @page { size: letter; margin: 0.5in; }
         @media print {
           body { background: white !important; }
+          body.printing-invoice > div > div:first-child,
+          body.printing-invoice > div > div:last-child > div:first-child {
+            display: none !important;
+          }
+          body.printing-invoice > div,
+          body.printing-invoice > div > div:last-child,
+          body.printing-invoice > div > div:last-child > main {
+            display: block !important;
+            height: auto !important;
+            overflow: visible !important;
+          }
           .ip-overlay { position: static !important; padding: 0 !important; overflow: visible !important; }
           .ip-no-print { display: none !important; }
         }
