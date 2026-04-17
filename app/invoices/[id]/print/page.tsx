@@ -94,11 +94,6 @@ export default function InvoicePrintPage() {
   const tax = invoice.tax || 0;
   const shipping = invoice.shipping || 0;
   const total = subtotal + tax + shipping;
-  const statusLabel =
-    invoice.status === 'paid' ? 'PAID' :
-    invoice.status === 'draft' ? 'DRAFT' : 'UNPAID';
-  const statusBg = statusLabel === 'PAID' ? '#d1fae5' : statusLabel === 'UNPAID' ? '#fee2e2' : '#e5e7eb';
-  const statusFg = statusLabel === 'PAID' ? '#065f46' : statusLabel === 'UNPAID' ? '#991b1b' : '#374151';
 
   return (
     <>
@@ -151,11 +146,6 @@ export default function InvoicePrintPage() {
                 <span style={{ color: '#888' }}>Due</span><span>{invoice.due || '—'}</span>
                 <span style={{ color: '#888' }}>Terms</span><span>Due within 14 days</span>
               </div>
-              <div style={{
-                display: 'inline-block', marginTop: 14, padding: '3px 10px',
-                fontSize: 10, fontWeight: 600, letterSpacing: 1,
-                background: statusBg, color: statusFg, borderRadius: 3,
-              }}>{statusLabel}</div>
             </div>
           </div>
 
