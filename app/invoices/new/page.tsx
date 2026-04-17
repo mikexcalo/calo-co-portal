@@ -195,7 +195,7 @@ function NewInvoiceContent() {
           <div style={{ display: 'flex', gap: 8 }}>
             <GhostButton onClick={() => router.push('/invoices')}>Cancel</GhostButton>
             <GhostButton onClick={() => handleSave('draft')}>{saving ? 'Saving...' : 'Save Draft'}</GhostButton>
-            <CtaButton onClick={() => handleSave('sent')}>{saving ? 'Saving...' : 'Send Invoice'}</CtaButton>
+            <CtaButton onClick={() => handleSave('sent')}>{saving ? 'Saving...' : 'Mark as Sent'}</CtaButton>
           </div>
         }
       />

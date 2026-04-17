@@ -195,6 +195,8 @@ export default function AllInvoicesPage() {
                           <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                             <button onClick={(e) => { e.stopPropagation(); router.push(`/invoices/new?edit=${inv._uuid || inv.id}`); }}
                               style={{ padding: '5px 12px', fontSize: 12, fontWeight: 500, borderRadius: 6, border: `1px solid ${t.border.default}`, background: t.bg.surface, color: t.text.primary, cursor: 'pointer', fontFamily: 'inherit' }}>Edit</button>
+                            <button onClick={(e) => { e.stopPropagation(); window.open(`/invoices/${inv._uuid || inv.id}/print`, '_blank'); }}
+                              style={{ padding: '5px 12px', fontSize: 12, fontWeight: 500, borderRadius: 6, border: `1px solid ${t.border.default}`, background: t.bg.surface, color: t.text.primary, cursor: 'pointer', fontFamily: 'inherit' }}>Download PDF</button>
                             {(inv.status === 'draft' || inv.status === 'unpaid') && (
                               <button onClick={(e) => { e.stopPropagation(); handleStatusChange(inv, inv.status === 'draft' ? 'unpaid' : 'paid'); }}
                                 style={{ padding: '5px 12px', fontSize: 12, fontWeight: 500, borderRadius: 6, border: `1px solid ${t.border.default}`, background: t.bg.surface, color: t.status.success, cursor: 'pointer', fontFamily: 'inherit' }}>
