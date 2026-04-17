@@ -215,7 +215,7 @@ function NewInvoiceContent() {
               <GhostButton onClick={() => window.open(`/invoices/${invoiceNumber}/print`, '_blank')}>Preview Invoice</GhostButton>
             )}
             {editId && (
-              <GhostButton onClick={() => window.open(`/invoices/${invoiceNumber}/print`, '_blank')}>Download Invoice</GhostButton>
+              <GhostButton onClick={() => window.open(`/invoices/${invoiceNumber}/print?download=1`, '_blank')}>Download Invoice</GhostButton>
             )}
             <CtaButton onClick={() => handleSave('sent')}>{saving ? 'Saving...' : 'Mark as Sent'}</CtaButton>
           </div>

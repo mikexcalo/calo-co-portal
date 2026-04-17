@@ -58,6 +58,30 @@ export default function InvoicePrintPage() {
     return () => { document.body.classList.remove('printing-invoice'); };
   }, []);
 
+  const downloadPDF = async () => {
+    const html2pdf = (await import('html2pdf.js' as any)).default;
+    const element = document.querySelector('.ip-invoice-content');
+    if (!element || !invoice) return;
+    await html2pdf().set({
+      margin: [0.4, 0.4, 0.4, 0.4],
+      filename: `${invoice.id}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+    }).from(element).save();
+  };
+
+  // Auto-download if ?download=1 in URL
+  useEffect(() => {
+    if (!ready || !invoice) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('download') === '1') {
+      setTimeout(() => {
+        downloadPDF().then(() => { setTimeout(() => window.close(), 1000); });
+      }, 400);
+    }
+  }, [ready, invoice]);
+
   if (!ready) return null;
   if (!invoice) {
     return <div style={{ padding: 40, fontFamily: 'system-ui' }}>Invoice not found.</div>;
@@ -105,7 +129,7 @@ export default function InvoicePrintPage() {
           fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
         }}
       >
-        <div style={{ maxWidth: 720, margin: '0 auto', fontSize: 11, lineHeight: 1.5 }}>
+        <div className="ip-invoice-content" style={{ maxWidth: 720, margin: '0 auto', fontSize: 11, lineHeight: 1.5 }}>
 
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
@@ -228,7 +252,7 @@ export default function InvoicePrintPage() {
         {/* Onscreen-only controls */}
         <div className="ip-no-print" style={{ position: 'fixed', top: 20, right: 20, display: 'flex', gap: 8 }}>
           <button
-            onClick={() => window.print()}
+            onClick={downloadPDF}
             style={{
               padding: '8px 16px', fontSize: 13, fontWeight: 500,
               background: '#0ea5e9', color: 'white', border: 'none',
