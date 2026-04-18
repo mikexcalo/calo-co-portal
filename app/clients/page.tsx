@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import { DB, loadClients, loadContacts, loadInvoices } from '@/lib/database';
 import { Client, Contact } from '@/lib/types';
 import { useTheme } from '@/lib/theme';
-import { invTotal, currency } from '@/lib/utils';
+import { invTotal, currency, formatPhone } from '@/lib/utils';
 import { getClientAvatarUrl } from '@/lib/clientAvatar';
 import { PageShell, PageHeader, StatRow, DataCard, TableHeader, TableRow, TableCell, CtaButton } from '@/components/shared/Brand';
+import { StatusPill } from '@/components/shared/StatusPill';
 
 export default function ClientsPage() {
   const router = useRouter();
@@ -45,17 +46,20 @@ export default function ClientsPage() {
       })
     : sorted;
 
-  // CRM stats
-  const activeCount = clients.filter((c) => (c as any).status === 'active' || !(c as any).status).length;
-  const pausedCount = clients.filter((c) => (c as any).status === 'paused').length;
-  const totalOutstanding = clients.reduce((sum, c) => {
+  // Health stats
+  const activeCount = clients.filter((c) => (c as any).engagementStatus === 'active' || !(c as any).engagementStatus).length;
+  const pausedCount = clients.filter((c) => (c as any).engagementStatus === 'paused').length;
+  const needsAttentionCount = clients.filter((c) => {
     const ci = DB.invoices.filter((i) => i.clientId === c.id);
-    return sum + ci.filter((i) => i.status !== 'paid').reduce((s, i) => s + invTotal(i), 0);
-  }, 0);
-  const totalRevenue = clients.reduce((sum, c) => {
-    const ci = DB.invoices.filter((i) => i.clientId === c.id);
-    return sum + ci.filter((i) => i.status === 'paid').reduce((s, i) => s + invTotal(i), 0);
-  }, 0);
+    const hasOverdue = ci.some(i => i.status === 'overdue');
+    const hasOldDraft = ci.some(i => {
+      if (i.status !== 'draft') return false;
+      const created = (i as any).created_at || (i as any).date;
+      if (!created) return false;
+      return (Date.now() - new Date(created).getTime()) > 14 * 86400000;
+    });
+    return hasOverdue || hasOldDraft;
+  }).length;
 
   return (
     <PageShell>
@@ -66,14 +70,14 @@ export default function ClientsPage() {
       />
 
       <StatRow stats={[
+        { label: 'Total clients', value: String(clients.length) },
         { label: 'Active', value: String(activeCount) },
-        { label: 'Paused', value: String(pausedCount), color: pausedCount > 0 ? t.status.warning : undefined },
-        { label: 'Outstanding', value: currency(totalOutstanding), color: totalOutstanding > 0 ? t.status.warning : undefined },
-        { label: 'Total revenue', value: currency(totalRevenue), color: totalRevenue > 0 ? t.status.success : undefined },
+        { label: 'Paused', value: String(pausedCount), color: pausedCount > 0 ? '#F59E0B' : undefined },
+        { label: 'Needs attention', value: String(needsAttentionCount), color: needsAttentionCount > 0 ? '#DC2626' : undefined },
       ]} />
 
       {/* Search bar */}
-      <div style={{ marginBottom: 16, position: 'relative', maxWidth: 360 }}>
+      <div style={{ marginBottom: 24, position: 'relative', maxWidth: 360 }}>
         <svg style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5">
           <circle cx="6.5" cy="6.5" r="5"/><line x1="10" y1="10" x2="14.5" y2="14.5"/>
         </svg>
@@ -81,7 +85,7 @@ export default function ClientsPage() {
           value={search} onChange={(e) => setSearch(e.target.value)}
           placeholder="Search clients..."
           style={{ width: '100%', background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8, padding: '9px 12px 9px 36px', fontSize: 13, color: t.text.primary, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' as const, transition: 'border-color 150ms' }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = '#2563eb'; }}
+          onFocus={(e) => { e.currentTarget.style.borderColor = t.accent.primary; }}
           onBlur={(e) => { e.currentTarget.style.borderColor = t.border.default; }}
         />
       </div>
@@ -95,7 +99,6 @@ export default function ClientsPage() {
           { label: 'Phone', flex: 1.2 },
           { label: 'Status', flex: 0.8 },
           { label: 'Outstanding', flex: 1, align: 'right' },
-          { label: 'Revenue', flex: 1, align: 'right' },
           { label: '', flex: 0.3 },
         ]} />
 
@@ -104,66 +107,40 @@ export default function ClientsPage() {
           const ct = contacts[client.id] || [];
           const primary = ct.find((c) => c.isPrimary) || ct[0];
           const clientInvs = DB.invoices.filter((i) => i.clientId === client.id);
-          const outstanding = clientInvs.filter((i) => i.status !== 'paid').reduce((s, i) => s + invTotal(i), 0);
-          const revenue = clientInvs.filter((i) => i.status === 'paid').reduce((s, i) => s + invTotal(i), 0);
-          const status = (client as any).status || 'active';
+          const outstanding = clientInvs.filter((i) => i.status !== 'paid' && i.status !== 'draft').reduce((s, i) => s + invTotal(i), 0);
+          const engStatus = ((client as any).engagementStatus || 'active') as 'active' | 'paused' | 'archived';
 
           return (
             <TableRow key={client.id} onClick={() => router.push(`/clients/${client.id}`)}>
-              {/* Avatar */}
               <div style={{ flex: 0.3, display: 'flex', alignItems: 'center' }}>
                 <div style={{ width: 32, height: 32, borderRadius: 8, overflow: 'hidden', background: avatar ? 'transparent' : t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: t.text.secondary, flexShrink: 0 }}>
-                  {avatar
-                    ? <img src={avatar} alt="" style={{ width: 32, height: 32, objectFit: 'contain' }} />
-                    : (client.company || client.name || '').charAt(0)
-                  }
+                  {avatar ? <img src={avatar} alt="" style={{ width: 32, height: 32, objectFit: 'contain' }} /> : (client.company || client.name || '').charAt(0)}
                 </div>
               </div>
 
-              {/* Company */}
               <TableCell flex={2} primary>{client.company || client.name}</TableCell>
 
-              {/* Contact */}
               <TableCell flex={1.5}>
                 {primary ? (
-                  <>
-                    {primary.name || '—'}
-                    {(primary.title || primary.role) && <span style={{ color: t.text.tertiary, marginLeft: 4 }}>· {primary.title || primary.role}</span>}
-                  </>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{primary.name || '—'}</div>
+                    {(primary.title || primary.role) && <div style={{ fontSize: 11, color: t.text.tertiary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={primary.title || primary.role}>{primary.title || primary.role}</div>}
+                  </div>
                 ) : '—'}
               </TableCell>
 
-              {/* Phone */}
-              <TableCell flex={1.2}>{primary?.phone || '—'}</TableCell>
+              <TableCell flex={1.2}>{formatPhone(primary?.phone)}</TableCell>
 
-              {/* Status */}
               <div style={{ flex: 0.8 }}>
-                <span style={{
-                  fontSize: 10, fontWeight: 500, padding: '2px 8px', borderRadius: 4,
-                  display: 'inline-flex', alignItems: 'center', gap: 4,
-                  background: status === 'active' ? 'rgba(0,201,160,0.08)' : status === 'paused' ? 'rgba(245,158,11,0.08)' : t.bg.surfaceHover,
-                  color: status === 'active' ? '#054D3D' : status === 'paused' ? '#b45309' : t.text.secondary,
-                }}>
-                  <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor' }} />
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                </span>
+                <StatusPill status={engStatus} />
               </div>
 
-              {/* Outstanding */}
               <TableCell flex={1} align="right">
-                <span style={{ color: outstanding > 0 ? t.status.warning : t.text.secondary }}>
+                <span style={{ color: outstanding > 0 ? '#DC2626' : t.text.secondary, fontWeight: outstanding > 0 ? 500 : 400 }}>
                   {currency(outstanding)}
                 </span>
               </TableCell>
 
-              {/* Revenue */}
-              <TableCell flex={1} align="right">
-                <span style={{ color: revenue > 0 ? t.status.success : t.text.secondary }}>
-                  {currency(revenue)}
-                </span>
-              </TableCell>
-
-              {/* Chevron */}
               <div style={{ flex: 0.3, display: 'flex', justifyContent: 'flex-end' }}>
                 <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5"><path d="M6 4l4 4-4 4"/></svg>
               </div>
