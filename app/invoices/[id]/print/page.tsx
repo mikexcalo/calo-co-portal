@@ -243,19 +243,30 @@ export default function InvoicePrintPage() {
           <button
             onClick={downloadPDF}
             style={{
-              padding: '8px 16px', fontSize: 13, fontWeight: 500,
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '6px 14px', fontSize: 13, fontWeight: 500,
               background: '#0ea5e9', color: 'white', border: 'none',
-              borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit',
+              borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
+              transition: 'background 150ms',
             }}
-          >Download Invoice</button>
+            onMouseEnter={(e) => e.currentTarget.style.background = '#38bdf8'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#0ea5e9'}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download
+          </button>
           <button
-            onClick={() => window.history.back()}
+            onClick={() => { if (window.opener) { window.close(); return; } if (window.history.length > 1) { window.history.back(); } else { window.location.href = '/invoices'; } }}
             style={{
-              padding: '8px 16px', fontSize: 13, fontWeight: 500,
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '6px 14px', fontSize: 13, fontWeight: 500,
               background: 'white', color: '#555', border: '1px solid #ddd',
-              borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit',
+              borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
             }}
-          >Back</button>
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back
+          </button>
         </div>
       </div>
     </>

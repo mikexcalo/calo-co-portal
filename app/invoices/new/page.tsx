@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTheme } from '@/lib/theme';
-import { DB, loadClients, loadContacts, saveInvoice } from '@/lib/database';
+import { DB, loadClients, loadContacts, loadInvoices, saveInvoice } from '@/lib/database';
 import { Invoice } from '@/lib/types';
 import { PageShell, PageHeader, DataCard, GhostButton, CtaButton } from '@/components/shared/Brand';
 import { formatPhone } from '@/lib/utils';
@@ -47,6 +47,7 @@ function NewInvoiceContent() {
       if (DB.clientsState !== 'loaded') await loadClients();
       for (const c of DB.clients) {
         if (!DB.contacts[c.id]) await loadContacts(c.id).catch(() => {});
+        if (!DB.invoices.some(i => i.clientId === c.id)) await loadInvoices(c.id).catch(() => {});
       }
       setClients(DB.clients);
 
