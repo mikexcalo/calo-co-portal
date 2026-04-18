@@ -362,6 +362,7 @@ export async function saveInvoice(inv: Invoice): Promise<any> {
       shipping: inv.shipping || 0,
       total,
       type: (inv as any).type || 'service',
+      source_quote_id: (inv as any).sourceQuoteId || null,
       notes: inv.notes || null,
       paid_at: inv.paidDate ? new Date(inv.paidDate).toISOString() : null,
     };

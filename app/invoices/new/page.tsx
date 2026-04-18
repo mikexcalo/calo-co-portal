@@ -23,9 +23,11 @@ function NewInvoiceContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
+  const fromQuoteId = searchParams.get('from_quote');
 
   const [clients, setClients] = useState<any[]>([]);
   const [selectedClient, setSelectedClient] = useState('');
+  const [sourceQuoteId, setSourceQuoteId] = useState<string | null>(null);
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [project, setProject] = useState('');
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
@@ -70,9 +72,25 @@ function NewInvoiceContent() {
           try { if (inv.due) setDueDate(new Date(inv.due).toISOString().split('T')[0]); } catch {}
         }
       }
+
+      // Pre-fill from quote (Q3: convert accepted quote to invoice)
+      if (fromQuoteId && !editId) {
+        try {
+          const supabase = (await import('@/lib/supabase')).default;
+          const { data: q } = await supabase.from('quotes').select('*').eq('id', fromQuoteId).single();
+          if (q) {
+            setSelectedClient(q.client_id || '');
+            setNotes(q.notes || '');
+            setTax(q.tax || 0);
+            if (Array.isArray(q.line_items) && q.line_items.length) setLineItems(q.line_items);
+            setSourceQuoteId(q.id);
+            if (q.project_name) setProject(q.project_name);
+          }
+        } catch {}
+      }
     };
     init();
-  }, [editId]);
+  }, [editId, fromQuoteId]);
 
   // Per-client invoice numbering: AgencyCode-ClientCode-Seq
   useEffect(() => {
@@ -128,7 +146,8 @@ function NewInvoiceContent() {
         status: status === 'sent' ? 'unpaid' : 'draft',
         notes,
         type: invoiceType,
-      };
+      } as any;
+      if (sourceQuoteId) (inv as any).sourceQuoteId = sourceQuoteId;
       await saveInvoice(inv);
       if (!editUuid) DB.invoices.push(inv);
       router.push('/invoices');
