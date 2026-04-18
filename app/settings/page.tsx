@@ -23,6 +23,7 @@ function SettingsContent() {
   const { t } = useTheme();
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const [activeTab, setActiveTab] = useState<'account' | 'business'>('account');
   const [profile, setProfile] = useState({ name: '', title: '', email: '' });
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ag, setAg] = useState<Record<string, string>>({});
@@ -161,6 +162,20 @@ function SettingsContent() {
         action={<CtaButton onClick={handleSave}>{saving ? 'Saving...' : 'Save Changes'}</CtaButton>}
       />
 
+      {/* Tab control */}
+      <div style={{ display: 'inline-flex', background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 7, padding: 3, gap: 2, marginBottom: 24 }}>
+        {(['account', 'business'] as const).map(tab => (
+          <button key={tab} onClick={() => setActiveTab(tab)} style={{
+            padding: '6px 14px', fontSize: 13, fontWeight: activeTab === tab ? 500 : 400,
+            color: activeTab === tab ? t.text.primary : t.text.secondary,
+            background: activeTab === tab ? t.bg.primary : 'transparent',
+            border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit',
+            boxShadow: activeTab === tab ? '0 1px 2px rgba(0,0,0,0.04)' : 'none', transition: 'all 150ms',
+          }}>{tab === 'account' ? 'Account' : 'Business'}</button>
+        ))}
+      </div>
+
+      {activeTab === 'account' && <>
       {/* ── SECTION 1: YOUR PROFILE ── */}
       <FormSection label="Your Profile">
         <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
@@ -203,7 +218,9 @@ function SettingsContent() {
           </div>
         </div>
       </FormSection>
+      </>}
 
+      {activeTab === 'business' && <>
       {/* ── SECTION 2: AGENCY IDENTITY ── */}
       <FormSection label="Agency Identity">
         <FormRow>
@@ -250,6 +267,7 @@ function SettingsContent() {
           <FormField label="Zelle" value={paymentMethods.zelle} onChange={(v) => setPaymentMethods({ ...paymentMethods, zelle: v })} placeholder="mike@calo.co" />
         </FormRow>
       </FormSection>
+      </>}
 
       <AnimatePresence>
         {toast && <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />}
