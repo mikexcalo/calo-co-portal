@@ -282,6 +282,32 @@ export default function Home() {
         }
       />
 
+      {/* Alert band */}
+      {(() => {
+        const draftInvs = DB.invoices.filter(inv => inv.status === 'draft');
+        if (!draftInvs.length) return null;
+        const first = draftInvs[0];
+        const firstCl = DB.clients.find(c => c.id === first.clientId);
+        const heading = draftInvs.length === 1 ? '1 invoice ready to send' : `${draftInvs.length} invoices ready to send`;
+        const detail = draftInvs.length === 1
+          ? `${first.id} · ${firstCl?.company || firstCl?.name || 'Client'} · ${currency(invTotal(first))}`
+          : `${first.id} and ${draftInvs.length - 1} more`;
+        return (
+          <div style={{ marginBottom: 16 }}>
+            <div onClick={() => router.push('/invoices')}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', background: 'rgba(0,106,255,0.06)', borderLeft: `3px solid ${t.accent.primary}`, borderRadius: 6, cursor: 'pointer', transition: 'background 120ms' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,106,255,0.10)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,106,255,0.06)'; }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0, flex: 1 }}>
+                <div style={{ color: t.accent.primary, fontSize: 13, fontWeight: 600, flexShrink: 0 }}>{heading}</div>
+                <div style={{ color: t.text.secondary, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{detail}</div>
+              </div>
+              <span style={{ color: t.accent.primary, fontSize: 18, lineHeight: 1, flexShrink: 0 }}>→</span>
+            </div>
+          </div>
+        );
+      })()}
+
       <StatRow stats={[
         { label: 'Revenue (MTD)', value: currency(Math.round(animRevenue * 100) / 100), color: paidMTD > 0 ? t.status.success : undefined },
         { label: 'Drafts', value: currency((stats as any).drafts || 0) },
@@ -289,35 +315,11 @@ export default function Home() {
         { label: 'Collected', value: currency(Math.round(animCollected * 100) / 100), color: paidMTD > 0 ? t.status.success : undefined },
       ]} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         {/* LEFT COLUMN: Notes & Tasks */}
         <div>
           <SectionLabel>Notes & Tasks</SectionLabel>
           <DataCard>
-            {/* Draft invoice alert */}
-            {(() => {
-              const draftInvs = DB.invoices.filter(inv => inv.status === 'draft');
-              if (!draftInvs.length) return null;
-              const first = draftInvs[0];
-              const firstCl = DB.clients.find(c => c.id === first.clientId);
-              const label = draftInvs.length === 1
-                ? `${first.id} · ${firstCl?.company || firstCl?.name || 'Client'} · ${currency(invTotal(first))}`
-                : `${draftInvs.length} drafts ready to send · ${currency((stats as any).drafts || 0)}`;
-              const heading = draftInvs.length === 1 ? '1 invoice ready to send' : 'Invoices ready to send';
-              return (
-                <div onClick={() => router.push('/invoices')}
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', marginBottom: 12, background: 'rgba(0,106,255,0.06)', borderLeft: `2px solid ${t.accent.primary}`, borderRadius: '0 8px 8px 0', cursor: 'pointer', transition: 'background 150ms' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,106,255,0.10)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,106,255,0.06)'; }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 500, color: t.accent.primary, marginBottom: 2 }}>{heading}</div>
-                    <div style={{ fontSize: 11, color: t.text.secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</div>
-                  </div>
-                  <span style={{ fontSize: 14, color: t.accent.primary, flexShrink: 0 }}>→</span>
-                </div>
-              );
-            })()}
-
             {/* Note input */}
             <div style={{ position: 'relative', marginBottom: 12 }}>
               <svg style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="13" height="13" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3">
@@ -420,7 +422,6 @@ export default function Home() {
                     }
                   </div>
                   <TableCell primary flex={2}>{client.company || client.name}</TableCell>
-                  <TableCell flex={1.5}>{primary ? primary.name : 'No contact'}</TableCell>
                   <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 10, background: engStatus === 'active' ? 'rgba(16,185,129,0.1)' : t.bg.surfaceHover, color: engStatus === 'active' ? t.status.success : t.text.tertiary, fontWeight: 500 }}>{engStatus === 'active' ? 'Active' : engStatus === 'paused' ? 'Paused' : 'Archived'}</span>
                     <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5"><path d="M6 4l4 4-4 4"/></svg>
