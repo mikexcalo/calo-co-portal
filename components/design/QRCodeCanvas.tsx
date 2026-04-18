@@ -1,88 +1,103 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useTheme } from '@/lib/theme';
 import QRCode from 'qrcode';
 import { exportQRAsPNG, exportQRAsSVG } from '@/lib/qr-export';
+import { getClientAvatarUrl } from '@/lib/clientAvatar';
 
-interface QRCodeCanvasProps {
-  destination: string;
-  caption: string;
-  useClientLogo: boolean;
-  useClientColor: boolean;
-  errorCorrection: 'M' | 'Q' | 'H';
-  clientLogo?: string;
-  clientColor?: string;
-  clientName?: string;
+interface QRCodeWorkspaceProps {
+  client?: any;
+  fields?: any;
 }
 
-export default function QRCodeCanvas(props: QRCodeCanvasProps) {
+export default function QRCodeWorkspace({ client, fields }: QRCodeWorkspaceProps) {
   const { t } = useTheme();
+  const [url, setUrl] = useState('');
   const [qrDataUrl, setQrDataUrl] = useState('');
 
-  const qrColor = props.useClientColor && props.clientColor ? props.clientColor : '#000000';
-
+  // Auto-populate from client data
   useEffect(() => {
-    if (!props.destination) { setQrDataUrl(''); return; }
-    QRCode.toDataURL(props.destination, {
-      errorCorrectionLevel: props.errorCorrection,
-      margin: 2, width: 800,
-      color: { dark: qrColor, light: '#FFFFFF' },
-    }).then(setQrDataUrl).catch(() => setQrDataUrl(''));
-  }, [props.destination, props.errorCorrection, qrColor]);
+    if (!client) return;
+    setUrl(client.website || '');
+  }, [client?.id]);
 
-  const contrastWarning = useMemo(() => {
-    if (!props.useClientColor || !props.clientColor) return null;
-    const hex = props.clientColor.replace('#', '');
-    if (hex.length !== 6) return null;
-    const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16);
-    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6 ? 'Low contrast — QR may not scan reliably' : null;
-  }, [props.useClientColor, props.clientColor]);
+  // Also pick up qrCodeUrl from fields if available
+  useEffect(() => {
+    if (fields?.qrCodeUrl) setUrl(fields.qrCodeUrl);
+    else if (fields?.website) setUrl(fields.website);
+  }, [fields?.qrCodeUrl, fields?.website]);
 
-  const slug = (props.clientName || 'qr').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  const exportOpts = { destination: props.destination, errorCorrection: props.errorCorrection, color: qrColor, filename: `qrcode-${slug}` };
+  // Generate QR with debounce
+  useEffect(() => {
+    if (!url) { setQrDataUrl(''); return; }
+    const timer = setTimeout(() => {
+      QRCode.toDataURL(url, {
+        errorCorrectionLevel: 'H',
+        margin: 2, width: 800,
+        color: { dark: '#000000', light: '#FFFFFF' },
+      }).then(setQrDataUrl).catch(() => setQrDataUrl(''));
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [url]);
+
+  const clientName = client?.company || client?.name || 'agency';
+  const exportName = `qrcode-${clientName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`;
+  const logoUrl = fields?.logoUrl || getClientAvatarUrl(client) || null;
 
   return (
-    <div>
-      {/* Preview */}
-      <div style={{ background: '#fff', padding: 40, maxWidth: 480, borderRadius: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-        {props.clientLogo && (
-          <img src={props.clientLogo} alt="" style={{ maxWidth: 180, maxHeight: 60, objectFit: 'contain' }} />
-        )}
-        <div style={{ position: 'relative', width: '100%', maxWidth: 360, aspectRatio: '1/1' }}>
-          {qrDataUrl ? (
-            <img src={qrDataUrl} alt="QR code" style={{ width: '100%', height: '100%' }} />
-          ) : (
-            <div style={{ width: '100%', height: '100%', background: '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: 13, borderRadius: 8 }}>Enter a destination URL</div>
-          )}
-          {props.useClientLogo && props.clientLogo && qrDataUrl && (
-            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '20%', aspectRatio: '1/1', background: '#fff', borderRadius: 6, padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 2px #fff' }}>
-              <img src={props.clientLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-            </div>
-          )}
-        </div>
-        {props.caption && <div style={{ fontSize: 16, color: '#111', fontWeight: 500, textAlign: 'center', maxWidth: 320 }}>{props.caption}</div>}
-        {contrastWarning && <div style={{ fontSize: 11, color: '#DC2626', fontWeight: 500 }}>⚠ {contrastWarning}</div>}
+    <div style={{ padding: '32px 48px', maxWidth: 720, margin: '0 auto', width: '100%' }}>
+      {/* URL input */}
+      <div style={{ marginBottom: 32 }}>
+        <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: t.text.secondary, marginBottom: 8, textTransform: 'uppercase' as const, letterSpacing: '0.5px' }}>Destination URL</label>
+        <input type="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://..." autoFocus
+          style={{ width: '100%', height: 48, padding: '0 16px', fontSize: 15, fontFamily: 'inherit', background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, color: t.text.primary, outline: 'none', boxSizing: 'border-box' as const, transition: 'border-color 150ms' }}
+          onFocus={e => e.currentTarget.style.borderColor = t.accent.primary}
+          onBlur={e => e.currentTarget.style.borderColor = t.border.default} />
       </div>
 
-      {/* Export buttons */}
-      {props.destination && (
-        <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
-          {([512, 1024, 2048] as const).map(size => (
-            <button key={size} onClick={() => exportQRAsPNG({ ...exportOpts, size })}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', fontSize: 13, fontWeight: 500, background: t.bg.surface, color: t.text.primary, border: `1px solid ${t.border.default}`, borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 150ms' }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = t.bg.surfaceHover; }} onMouseLeave={(e) => { e.currentTarget.style.background = t.bg.surface; }}>
-              PNG · {size}px
-            </button>
-          ))}
-          <button onClick={() => exportQRAsSVG(exportOpts)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', fontSize: 13, fontWeight: 500, background: t.bg.surface, color: t.text.primary, border: `1px solid ${t.border.default}`, borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 150ms' }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = t.bg.surfaceHover; }} onMouseLeave={(e) => { e.currentTarget.style.background = t.bg.surface; }}>
-            SVG · Scalable
-          </button>
+      {/* QR preview */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+        <div style={{ background: '#fff', padding: 32, borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.06)', width: '100%', maxWidth: 420, aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+          {qrDataUrl ? (
+            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+              <img src={qrDataUrl} alt="QR code" style={{ width: '100%', height: '100%', display: 'block' }} />
+              {logoUrl && (
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '22%', aspectRatio: '1/1', background: '#fff', borderRadius: 8, padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 3px #fff' }}>
+                  <img src={logoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ color: '#9b9b9f', fontSize: 13, textAlign: 'center', padding: 32 }}>Enter a URL to generate a QR code</div>
+          )}
         </div>
-      )}
-      <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 8 }}>Logo overlay shows in preview only. Exports are bare QR for maximum scan reliability.</div>
+      </div>
+
+      {/* Trackable toggle (decorative) */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24, justifyContent: 'center', opacity: 0.6, cursor: 'not-allowed' }} title="Trackable QR codes with scan analytics — coming soon">
+        <input type="checkbox" checked={false} disabled style={{ cursor: 'not-allowed' }} />
+        <span style={{ fontSize: 13, color: t.text.secondary }}>Make this trackable</span>
+        <span style={{ fontSize: 10, fontWeight: 500, background: t.accent.subtle, color: t.accent.text, padding: '2px 8px', borderRadius: 4, textTransform: 'uppercase' as const, letterSpacing: '0.5px' }}>Coming soon</span>
+      </div>
+
+      {/* Download buttons */}
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
+        {([512, 1024, 2048] as const).map(size => (
+          <button key={size} disabled={!url} onClick={() => exportQRAsPNG({ destination: url, errorCorrection: 'H', color: '#000000', size, filename: exportName })}
+            style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 6, padding: '8px 14px', fontSize: 13, color: t.text.primary, cursor: url ? 'pointer' : 'not-allowed', fontFamily: 'inherit', opacity: url ? 1 : 0.5, transition: 'all 150ms' }}>
+            PNG · {size}px
+          </button>
+        ))}
+        <button disabled={!url} onClick={() => exportQRAsSVG({ destination: url, errorCorrection: 'H', color: '#000000', filename: exportName })}
+          style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 6, padding: '8px 14px', fontSize: 13, color: t.text.primary, cursor: url ? 'pointer' : 'not-allowed', fontFamily: 'inherit', opacity: url ? 1 : 0.5 }}>
+          SVG · scalable
+        </button>
+      </div>
+
+      <div style={{ fontSize: 12, color: t.text.tertiary, textAlign: 'center', maxWidth: 420, margin: '0 auto' }}>
+        Logo overlay shows in preview only. Exports are bare QR for maximum scan reliability.
+      </div>
     </div>
   );
 }

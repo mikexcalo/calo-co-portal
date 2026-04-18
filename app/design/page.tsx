@@ -384,6 +384,11 @@ function DesignContent() {
 
       {/* Workspace body */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        {selectedTemplate === 'qr-code' ? (
+          <div style={{ flex: 1, overflowY: 'auto', background: t.bg.surfaceHover }}>
+            <QRCodeCanvas client={client} fields={fields} />
+          </div>
+        ) : <>
         {/* Fields panel */}
         <div style={{ width: 260, flexShrink: 0, borderRight: `0.5px solid ${t.border.default}`, overflowY: 'auto', padding: '16px 14px' }}>
           {bk && (
@@ -410,19 +415,6 @@ function DesignContent() {
         {/* Canvas area */}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: t.bg.surfaceHover, overflow: 'auto' }}>
           <div style={{ padding: 24 }}>
-            {selectedTemplate === 'qr-code' ? (
-              <QRCodeCanvas
-                key={`qr-${selectedClient}-${fields.qrCodeUrl}-${fields.primaryColor}-${fields.logoUrl?.slice(-20) || ''}`}
-                destination={fields.qrCodeUrl || fields.website || ''}
-                caption={fields.tagline || 'Scan to visit'}
-                useClientLogo={!!(fields.logoUrl)}
-                useClientColor={!!(fields.primaryColor && fields.primaryColor !== '#2563eb')}
-                errorCorrection="H"
-                clientLogo={fields.logoUrl || undefined}
-                clientColor={fields.primaryColor || undefined}
-                clientName={fields.companyName || clientName}
-              />
-            ) : (
             <DesignCanvas
               key={`${selectedTemplate}-${selectedClient}-${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}-${fields.showTagline}-${fields.showEmail}-${fields.showWebsite}-${(fields as any).showLogo}-${fields.phone}-${fields.companyName}-${fields.logoUrl?.slice(-20) || ''}-${fields.qrCodeUrl}-${fields.contactName}-${fields.email}`}
               template={selectedTemplate === 'yard-sign' ? getYardSignTemplate({
@@ -447,9 +439,9 @@ function DesignContent() {
               brandColor={fields.primaryColor || '#2563eb'} darkColor={(fields as any).secondaryColor || '#1a1a1a'}
               signSize={fields.signSize || '18x24'} savedState={null}
             />
-            )}
           </div>
         </div>
+        </>}
       </div>
     </div>
   );
