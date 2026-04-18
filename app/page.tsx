@@ -284,7 +284,7 @@ export default function Home() {
 
       <StatRow stats={[
         { label: 'Revenue (MTD)', value: currency(Math.round(animRevenue * 100) / 100), color: paidMTD > 0 ? t.status.success : undefined },
-        { label: 'Drafts', value: currency((stats as any).drafts || 0), color: (stats as any).drafts > 0 ? t.accent.primary : undefined },
+        { label: 'Drafts', value: currency((stats as any).drafts || 0) },
         { label: 'Outstanding', value: currency(Math.round(animOutstanding * 100) / 100), color: stats.outstanding > 0 ? t.status.warning : undefined },
         { label: 'Collected', value: currency(Math.round(animCollected * 100) / 100), color: paidMTD > 0 ? t.status.success : undefined },
       ]} />
@@ -294,6 +294,30 @@ export default function Home() {
         <div>
           <SectionLabel>Notes & Tasks</SectionLabel>
           <DataCard>
+            {/* Draft invoice alert */}
+            {(() => {
+              const draftInvs = DB.invoices.filter(inv => inv.status === 'draft');
+              if (!draftInvs.length) return null;
+              const first = draftInvs[0];
+              const firstCl = DB.clients.find(c => c.id === first.clientId);
+              const label = draftInvs.length === 1
+                ? `${first.id} · ${firstCl?.company || firstCl?.name || 'Client'} · ${currency(invTotal(first))}`
+                : `${draftInvs.length} drafts ready to send · ${currency((stats as any).drafts || 0)}`;
+              const heading = draftInvs.length === 1 ? '1 invoice ready to send' : 'Invoices ready to send';
+              return (
+                <div onClick={() => router.push('/invoices')}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', marginBottom: 12, background: 'rgba(0,106,255,0.06)', borderLeft: `2px solid ${t.accent.primary}`, borderRadius: '0 8px 8px 0', cursor: 'pointer', transition: 'background 150ms' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,106,255,0.10)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,106,255,0.06)'; }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 500, color: t.accent.primary, marginBottom: 2 }}>{heading}</div>
+                    <div style={{ fontSize: 11, color: t.text.secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</div>
+                  </div>
+                  <span style={{ fontSize: 14, color: t.accent.primary, flexShrink: 0 }}>→</span>
+                </div>
+              );
+            })()}
+
             {/* Note input */}
             <div style={{ position: 'relative', marginBottom: 12 }}>
               <svg style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="13" height="13" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.3">
