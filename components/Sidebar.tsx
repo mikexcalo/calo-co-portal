@@ -74,12 +74,15 @@ export default function Sidebar() {
       {/* Nav */}
       <div style={{ flex: 1, padding: '12px 8px 8px', display: 'flex', flexDirection: 'column', gap: 0, overflowY: 'auto' }}>
         {navBtn('Dashboard', '/', icons.dashboard)}
+        <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '1px', padding: '12px 16px 4px', userSelect: 'none' as const }}>Customers</div>
         {navBtn('Clients', '/clients', icons.clients)}
+        <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '1px', padding: '12px 16px 4px', userSelect: 'none' as const }}>Billing</div>
         {navBtn('Quotes', '/quotes', icons.quotes)}
         {navBtn('Invoices', '/invoices', icons.invoices)}
         {navBtn('Financials', '/financials', icons.financials)}
-        {navBtn('Design Studio', '/design', icons.designStudio)}
+        <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '1px', padding: '12px 16px 4px', userSelect: 'none' as const }}>Brand</div>
         {navBtn('Brand Kit', '/brand-kit', icons.brandKit)}
+        {navBtn('Design Studio', '/design', icons.designStudio)}
         <div style={{ height: 8 }} />
         {navBtn('Settings', '/settings', icons.settings)}
       </div>
