@@ -88,7 +88,7 @@ export default function AllInvoicesPage() {
       </span>
     );
     if (status === 'paid') return (
-      <span style={{ ...base, background: 'rgba(16,185,129,0.08)', color: '#047857' }}>
+      <span style={{ ...base, background: 'rgba(0,201,160,0.08)', color: '#054D3D' }}>
         <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 12 9 17 20 6"/></svg>
         Paid
       </span>

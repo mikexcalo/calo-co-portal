@@ -218,7 +218,7 @@ export default function ColorPalette({ colors, readOnly, onColorsChange }: Color
             <button
               className="btn btn-sm"
               onClick={handleSaveColor}
-              style={{ background: '#16a34a', color: '#fff', border: 'none', borderRadius: '4px' }}
+              style={{ background: '#00C9A0', color: '#fff', border: 'none', borderRadius: '4px' }}
             >
               Save
             </button>

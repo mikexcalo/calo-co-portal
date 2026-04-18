@@ -19,7 +19,7 @@ export default function Toast({ message, type, action, onDismiss }: ToastProps) 
   useEffect(() => { const timer = setTimeout(onDismiss, 4000); return () => clearTimeout(timer); }, [onDismiss]);
 
   const icon = type === 'success'
-    ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round"><polyline points="4 12 9 17 20 6"/></svg>
+    ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00C9A0" strokeWidth="2" strokeLinecap="round"><polyline points="4 12 9 17 20 6"/></svg>
     : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5"/><circle cx="12" cy="16" r="0.5" fill="#f87171"/></svg>;
 
   return (

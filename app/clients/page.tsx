@@ -141,8 +141,8 @@ export default function ClientsPage() {
                 <span style={{
                   fontSize: 10, fontWeight: 500, padding: '2px 8px', borderRadius: 4,
                   display: 'inline-flex', alignItems: 'center', gap: 4,
-                  background: status === 'active' ? 'rgba(16,185,129,0.08)' : status === 'paused' ? 'rgba(245,158,11,0.08)' : t.bg.surfaceHover,
-                  color: status === 'active' ? '#047857' : status === 'paused' ? '#b45309' : t.text.secondary,
+                  background: status === 'active' ? 'rgba(0,201,160,0.08)' : status === 'paused' ? 'rgba(245,158,11,0.08)' : t.bg.surfaceHover,
+                  color: status === 'active' ? '#054D3D' : status === 'paused' ? '#b45309' : t.text.secondary,
                 }}>
                   <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor' }} />
                   {status.charAt(0).toUpperCase() + status.slice(1)}

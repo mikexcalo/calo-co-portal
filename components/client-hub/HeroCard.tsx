@@ -195,7 +195,7 @@ export default function HeroCard({ client, contacts, isClient, onClientUpdate }:
             {client.phone && <div style={detailStyle}><span style={labelStyle}>Phone:</span> {client.phone}</div>}
           </div>
           {missing.length === 0 ? (
-            <div style={{ fontSize: 11, color: '#22c55e', marginTop: 6 }}>Profile complete</div>
+            <div style={{ fontSize: 11, color: '#00C9A0', marginTop: 6 }}>Profile complete</div>
           ) : (
             <div style={{ fontSize: 11, color: '#f59e0b', marginTop: 6 }}>Missing: {missing.join(', ')}</div>
           )}

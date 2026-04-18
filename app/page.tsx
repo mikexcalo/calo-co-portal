@@ -397,7 +397,7 @@ export default function Home() {
                   </div>
                   <TableCell primary flex={2}>{client.company || client.name}</TableCell>
                   <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 10, background: engStatus === 'active' ? 'rgba(16,185,129,0.1)' : t.bg.surfaceHover, color: engStatus === 'active' ? t.status.success : t.text.tertiary, fontWeight: 500 }}>{engStatus === 'active' ? 'Active' : engStatus === 'paused' ? 'Paused' : 'Archived'}</span>
+                    <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 10, background: engStatus === 'active' ? 'rgba(0,201,160,0.1)' : t.bg.surfaceHover, color: engStatus === 'active' ? t.status.success : t.text.tertiary, fontWeight: 500 }}>{engStatus === 'active' ? 'Active' : engStatus === 'paused' ? 'Paused' : 'Archived'}</span>
                     <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5"><path d="M6 4l4 4-4 4"/></svg>
                   </div>
                 </TableRow>

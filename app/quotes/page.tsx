@@ -74,7 +74,7 @@ export default function QuotesPage() {
     const colors: Record<string, { bg: string; fg: string }> = {
       draft: { bg: t.bg.surfaceHover, fg: t.text.secondary },
       sent: { bg: 'rgba(245,158,11,0.08)', fg: '#b45309' },
-      accepted: { bg: 'rgba(16,185,129,0.08)', fg: '#047857' },
+      accepted: { bg: 'rgba(0,201,160,0.08)', fg: '#054D3D' },
       declined: { bg: 'rgba(239,68,68,0.08)', fg: '#dc2626' },
       expired: { bg: t.bg.surfaceHover, fg: t.text.tertiary },
     };
