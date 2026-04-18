@@ -16,14 +16,16 @@ function getStatusLine(client: any) {
   const hasVoice = !!(client.brand_voice || client.brand_builder_fields?.brandVoice);
   const tagline = client.brand_builder_fields?.tagline || "";
   const complete = [hasLogos, hasColors, hasVoice, !!tagline].filter(Boolean).length;
-  if (complete === 4 && tagline) return tagline;
+  if (complete === 4) return tagline || "Complete";
   if (complete === 0) return "Needs everything";
   const missing: string[] = [];
   if (!hasLogos) missing.push("logos");
   if (!hasColors) missing.push("colors");
-  if (!hasVoice) missing.push("voice profile");
+  if (!hasVoice) missing.push("voice");
   if (!tagline) missing.push("tagline");
-  return `Needs ${missing[0]}`;
+  if (missing.length === 1) return `Needs ${missing[0]}`;
+  if (missing.length === 2) return `Needs ${missing[0]} and ${missing[1]}`;
+  return `Needs ${missing.length} items`;
 }
 
 function getSwatches(bk: any): string[] {
@@ -109,12 +111,18 @@ export default function BrandKitPage() {
               <div style={{ width: 48, height: 48, borderRadius: 10, overflow: "hidden", background: avatar ? "transparent" : t.bg.surfaceHover, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16, fontSize: 16, fontWeight: 700, color: t.text.secondary }}>
                 {avatar ? <img src={avatar} alt="" style={{ width: 48, height: 48, objectFit: "contain" }} /> : (client.company || client.name || "").charAt(0)}
               </div>
-              <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+              <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
                 {[0, 1, 2, 3].map(i => swatches[i] ? (
-                  <div key={i} onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(swatches[i]); }}
-                    style={{ width: 28, height: 28, background: swatches[i], borderRadius: 5, cursor: "pointer", border: "0.5px solid rgba(0,0,0,0.1)" }} title={`Copy ${swatches[i]}`} />
+                  <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                    <div onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(swatches[i]); }}
+                      style={{ width: 28, height: 28, background: swatches[i], borderRadius: 5, cursor: "pointer", border: "0.5px solid rgba(0,0,0,0.1)" }} title={`Copy ${swatches[i]}`} />
+                    <div style={{ fontSize: 9, color: t.text.tertiary, fontFamily: "monospace", letterSpacing: "-0.2px" }}>{swatches[i].toUpperCase()}</div>
+                  </div>
                 ) : (
-                  <div key={i} style={{ width: 28, height: 28, borderRadius: 5, border: `1px dashed ${t.border.default}` }} />
+                  <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 5, border: `1px dashed ${t.border.default}` }} />
+                    <div style={{ fontSize: 9, color: "transparent" }}>······</div>
+                  </div>
                 ))}
               </div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
