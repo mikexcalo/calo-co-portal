@@ -5,6 +5,7 @@ import { useTheme } from '@/lib/theme';
 
 const icons: Record<string, React.ReactNode> = {
   dashboard: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="1.5" y="1.5" width="5" height="5" rx="1"/><rect x="9.5" y="1.5" width="5" height="5" rx="1"/><rect x="1.5" y="9.5" width="5" height="5" rx="1"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/></svg>,
+  quotes: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="2" y="1" width="12" height="14" rx="1.5"/><path d="M5 5h6M5 8h4" strokeLinecap="round"/><polyline points="6 11 7.5 12.5 10 10" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   invoices: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="2" y="1" width="12" height="14" rx="1.5"/><line x1="5" y1="5" x2="11" y2="5" strokeLinecap="round"/><line x1="5" y1="8" x2="11" y2="8" strokeLinecap="round"/><line x1="5" y1="11" x2="8" y2="11" strokeLinecap="round"/></svg>,
   financials: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="2" y="1" width="12" height="14" rx="1.5"/><line x1="5" y1="11" x2="5" y2="7" strokeLinecap="round"/><line x1="8" y1="11" x2="8" y2="5" strokeLinecap="round"/><line x1="11" y1="11" x2="11" y2="8" strokeLinecap="round"/></svg>,
   brandKit: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="3"/><circle cx="8" cy="8" r="0.8"/></svg>,
@@ -74,6 +75,7 @@ export default function Sidebar() {
       <div style={{ flex: 1, padding: '12px 8px 8px', display: 'flex', flexDirection: 'column', gap: 0, overflowY: 'auto' }}>
         {navBtn('Dashboard', '/', icons.dashboard)}
         {navBtn('Clients', '/clients', icons.clients)}
+        {navBtn('Quotes', '/quotes', icons.quotes)}
         {navBtn('Invoices', '/invoices', icons.invoices)}
         {navBtn('Financials', '/financials', icons.financials)}
         {navBtn('Design Studio', '/design', icons.designStudio)}
