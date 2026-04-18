@@ -135,9 +135,10 @@ export default function AllInvoicesPage() {
         {error && <div style={{ padding: '12px 16px', background: `rgba(255,61,61,0.08)`, border: `1px solid rgba(255,61,61,0.2)`, borderRadius: 8, color: t.status.danger, fontSize: 13, marginBottom: 24 }}>{error}</div>}
 
         {/* Metric tiles */}
-        <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 24 }}>
+        <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 24 }}>
           {[
             { label: 'Total billed', value: currency(stats.billed), color: t.text.primary },
+            { label: 'Drafts', value: currency((stats as any).drafts || 0), color: (stats as any).drafts > 0 ? t.accent.primary : t.text.tertiary },
             { label: 'Outstanding', value: currency(stats.outstanding), color: metricColor(stats.outstanding, t.status.warning, t.text.secondary) },
             { label: 'Collected', value: currency(stats.paid), color: metricColor(stats.paid, t.status.success, t.text.secondary) },
           ].map((m) => (

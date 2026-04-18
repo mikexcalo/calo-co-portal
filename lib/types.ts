@@ -225,6 +225,7 @@ export interface ClientStats {
   billed: number;
   paid: number;
   outstanding: number;
+  drafts: number;
   reimbursed: number;
   count: number;
 }
@@ -236,6 +237,7 @@ export interface AgencyStats {
   billed: number;
   paid: number;
   outstanding: number;
+  drafts: number;
   reimbursed: number;
   clients: number;
   invoices: number;

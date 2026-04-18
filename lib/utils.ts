@@ -124,6 +124,7 @@ export function clientStats(
   let billed = 0;
   let paid = 0;
   let outstanding = 0;
+  let drafts = 0;
   let reimbursed = 0;
 
   invoices
@@ -137,6 +138,8 @@ export function clientStats(
       }
       if (inv.status === 'paid') {
         paid += total;
+      } else if (inv.status === 'draft') {
+        drafts += total;
       } else {
         outstanding += total;
       }
@@ -144,7 +147,7 @@ export function clientStats(
 
   const count = invoices.filter((i) => i.clientId === clientId).length;
 
-  return { billed, paid, outstanding, reimbursed, count };
+  return { billed, paid, outstanding, drafts, reimbursed, count };
 }
 
 /**
@@ -157,6 +160,7 @@ export function agencyStats(
   let billed = 0;
   let paid = 0;
   let outstanding = 0;
+  let drafts = 0;
   let reimbursed = 0;
 
   invoices.forEach((inv) => {
@@ -168,6 +172,8 @@ export function agencyStats(
     }
     if (inv.status === 'paid') {
       paid += total;
+    } else if (inv.status === 'draft') {
+      drafts += total;
     } else {
       outstanding += total;
     }
@@ -177,6 +183,7 @@ export function agencyStats(
     billed,
     paid,
     outstanding,
+    drafts,
     reimbursed,
     clients: clients.length,
     invoices: invoices.length,

@@ -284,9 +284,9 @@ export default function Home() {
 
       <StatRow stats={[
         { label: 'Revenue (MTD)', value: currency(Math.round(animRevenue * 100) / 100), color: paidMTD > 0 ? t.status.success : undefined },
+        { label: 'Drafts', value: currency((stats as any).drafts || 0), color: (stats as any).drafts > 0 ? t.accent.primary : undefined },
         { label: 'Outstanding', value: currency(Math.round(animOutstanding * 100) / 100), color: stats.outstanding > 0 ? t.status.warning : undefined },
         { label: 'Collected', value: currency(Math.round(animCollected * 100) / 100), color: paidMTD > 0 ? t.status.success : undefined },
-        { label: 'Active clients', value: String(DB.clients.length) },
       ]} />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 16 }}>
@@ -384,7 +384,7 @@ export default function Home() {
               const sevenDays = 7 * 86400000;
               const recentActivity = clientTasks.some((tk) => now - new Date(tk.created_at).getTime() < sevenDays)
                 || clientInvs.some((i) => i.date && now - new Date(i.date).getTime() < sevenDays);
-              const statusColor = clientOutstanding > 0 ? '#f59e0b' : recentActivity ? '#10b981' : '#9ca3af';
+              const engStatus = (client as any).engagementStatus || 'active';
               const avatarUrl = getClientAvatarUrl(client);
 
               return (
@@ -398,7 +398,7 @@ export default function Home() {
                   <TableCell primary flex={2}>{client.company || client.name}</TableCell>
                   <TableCell flex={1.5}>{primary ? primary.name : 'No contact'}</TableCell>
                   <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: statusColor }} />
+                    <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 10, background: engStatus === 'active' ? 'rgba(16,185,129,0.1)' : t.bg.surfaceHover, color: engStatus === 'active' ? t.status.success : t.text.tertiary, fontWeight: 500 }}>{engStatus === 'active' ? 'Active' : engStatus === 'paused' ? 'Paused' : 'Archived'}</span>
                     <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5"><path d="M6 4l4 4-4 4"/></svg>
                   </div>
                 </TableRow>
