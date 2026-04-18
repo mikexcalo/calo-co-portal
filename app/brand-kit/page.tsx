@@ -116,7 +116,7 @@ export default function BrandKitPage() {
                   <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
                     <div onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(swatches[i]); }}
                       style={{ width: 28, height: 28, background: swatches[i], borderRadius: 5, cursor: "pointer", border: "0.5px solid rgba(0,0,0,0.1)" }} title={`Copy ${swatches[i]}`} />
-                    <div style={{ fontSize: 9, color: t.text.tertiary, fontFamily: "monospace", letterSpacing: "-0.2px" }}>{swatches[i].toUpperCase()}</div>
+                    <div style={{ fontSize: 10, color: t.text.secondary, fontFamily: "monospace", letterSpacing: "-0.2px", fontWeight: 500 }}>{swatches[i].toUpperCase()}</div>
                   </div>
                 ) : (
                   <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
