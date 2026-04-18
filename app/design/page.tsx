@@ -15,6 +15,7 @@ import supabase from '@/lib/supabase';
 import { Suspense } from 'react';
 import { getClientAvatarUrl } from '@/lib/clientAvatar';
 import { PageShell, PageHeader, SectionLabel, DataCard } from '@/components/shared/Brand';
+import QRCodeCanvas from '@/components/design/QRCodeCanvas';
 
 const DesignCanvas = dynamic(() => import('@/components/design-studio/DesignCanvas'), { ssr: false, loading: () => null });
 
@@ -32,6 +33,7 @@ const TEMPLATES = [
     { id: 'one-pager', name: 'One-Pagers', live: false },
   ]},
   { cat: 'Online', items: [
+    { id: 'qr-code', name: 'QR Code', live: true },
     { id: 'social-graphics', name: 'Social Graphics', live: false },
     { id: 'web-banners', name: 'Web Banners', live: false },
   ]},
@@ -50,6 +52,7 @@ const ICONS: Record<string, React.ReactNode> = {
   'direct-mail': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 6l10 7 10-7"/></svg>,
   'email-signature': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 6l10 7 10-7"/></svg>,
   'one-pager': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="4" y="1" width="16" height="22" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/></svg>,
+  'qr-code': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/></svg>,
   'social-graphics': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/></svg>,
   'web-banners': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="1" y="5" width="22" height="14" rx="2"/><line x1="1" y1="9" x2="23" y2="9"/></svg>,
   't-shirt': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M8 2l-2 0-4 4v3h4v13h12V9h4V6l-4-4h-2c0 0-1 2-4 2s-4-2-4-2z"/></svg>,
@@ -65,6 +68,7 @@ const TEMPLATE_DESCRIPTIONS: Record<string, string> = {
   'direct-mail': 'Targeted postal campaigns',
   'email-signature': 'HTML sig with logo and socials',
   'one-pager': 'Service overview leave-behinds',
+  'qr-code': 'Branded QR code for reviews, socials, or links',
   'social-graphics': 'Instagram, Facebook, LinkedIn posts',
   'web-banners': 'Google Display and site headers',
   't-shirt': 'Branded apparel',
@@ -406,6 +410,19 @@ function DesignContent() {
         {/* Canvas area */}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: t.bg.surfaceHover, overflow: 'auto' }}>
           <div style={{ padding: 24 }}>
+            {selectedTemplate === 'qr-code' ? (
+              <QRCodeCanvas
+                key={`qr-${selectedClient}-${fields.qrCodeUrl}-${fields.primaryColor}-${fields.logoUrl?.slice(-20) || ''}`}
+                destination={fields.qrCodeUrl || fields.website || ''}
+                caption={fields.tagline || 'Scan to visit'}
+                useClientLogo={!!(fields.logoUrl)}
+                useClientColor={!!(fields.primaryColor && fields.primaryColor !== '#2563eb')}
+                errorCorrection="H"
+                clientLogo={fields.logoUrl || undefined}
+                clientColor={fields.primaryColor || undefined}
+                clientName={fields.companyName || clientName}
+              />
+            ) : (
             <DesignCanvas
               key={`${selectedTemplate}-${selectedClient}-${fields.signSize}-${fields.showHeadline}-${fields.showPhone}-${fields.showCompanyName}-${fields.showQrCode}-${fields.showTagline}-${fields.showEmail}-${fields.showWebsite}-${(fields as any).showLogo}-${fields.phone}-${fields.companyName}-${fields.logoUrl?.slice(-20) || ''}-${fields.qrCodeUrl}-${fields.contactName}-${fields.email}`}
               template={selectedTemplate === 'yard-sign' ? getYardSignTemplate({
@@ -430,6 +447,7 @@ function DesignContent() {
               brandColor={fields.primaryColor || '#2563eb'} darkColor={(fields as any).secondaryColor || '#1a1a1a'}
               signSize={fields.signSize || '18x24'} savedState={null}
             />
+            )}
           </div>
         </div>
       </div>
