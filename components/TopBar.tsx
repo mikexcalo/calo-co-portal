@@ -9,7 +9,6 @@ export default function TopBar() {
   const pathname = usePathname();
   const { theme, setTheme, t } = useTheme();
   const router = useRouter();
-  const [viewMode, setViewMode] = useState<'agency' | 'client'>('agency');
   const [avatar, setAvatar] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
@@ -17,9 +16,6 @@ export default function TopBar() {
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('viewMode') : null;
-    if (stored === 'client') setViewMode('client');
-
     // Read avatar immediately
     const av = localStorage.getItem('calo-agency-avatar');
     if (av && av.startsWith('data:image/')) setAvatar(av);
@@ -50,11 +46,6 @@ export default function TopBar() {
     finally { setSearchLoading(false); }
   };
 
-  const handleToggle = (mode: 'agency' | 'client') => {
-    setViewMode(mode);
-    localStorage.setItem('viewMode', mode);
-    window.dispatchEvent(new CustomEvent('viewModeChange', { detail: mode }));
-  };
 
   // Build breadcrumb segments: { label, href? }
   const buildSegments = (): { label: string; href?: string }[] => {
@@ -97,8 +88,6 @@ export default function TopBar() {
   };
 
   const segments = buildSegments();
-  const isClientRoute = pathname.match(/^\/clients\/([^/]+)/) && !pathname.includes('/new');
-
   return (
     <div style={{
       height: 56, flexShrink: 0, background: t.bg.primary,
@@ -141,21 +130,6 @@ export default function TopBar() {
             </div>
           )}
         </div>
-        {isClientRoute && (
-          <div style={{ display: 'inline-flex', borderRadius: 6, padding: 2, gap: 2 }}>
-            {(['agency', 'client'] as const).map((m) => (
-              <button key={m} onClick={() => handleToggle(m)} style={{
-                padding: '4px 10px', fontSize: 12, fontWeight: viewMode === m ? 500 : 400,
-                borderRadius: 4, border: 'none',
-                background: viewMode === m ? t.text.primary : 'transparent',
-                color: viewMode === m ? t.bg.primary : t.text.secondary,
-                cursor: 'pointer', fontFamily: 'inherit',
-              }}>
-                {m === 'agency' ? 'Agency' : 'Client'}
-              </button>
-            ))}
-          </div>
-        )}
         <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
           width: 32, height: 32, border: 'none', borderRadius: 6, background: 'transparent',
           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',

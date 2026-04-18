@@ -218,13 +218,13 @@ function DesignContent() {
   const clientDropdown = (
     <div ref={dropdownRef} style={{ position: 'relative' }}>
       <button onClick={() => setDropdownOpen(!dropdownOpen)} style={{
-        padding: '7px 12px', fontSize: 13, fontWeight: 500,
-        background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8,
+        padding: '7px 14px', fontSize: 13, fontWeight: 500,
+        background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8,
         color: t.text.primary, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
         display: 'flex', alignItems: 'center', gap: 8, transition: 'border-color 150ms',
-        minWidth: 140, maxWidth: 220,
       }}>
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{clientName}</span>
+        <span style={{ color: t.text.tertiary }}>Working on:</span>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{clientName}</span>
         <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5" style={{ flexShrink: 0 }}><path d="M4 6l4 4 4-4"/></svg>
       </button>
       {dropdownOpen && (
@@ -363,22 +363,19 @@ function DesignContent() {
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 48px)' }}>
       {/* Workspace header bar */}
       <div style={{
-        height: 44, flexShrink: 0, borderBottom: `0.5px solid ${t.border.default}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px',
+        height: 48, flexShrink: 0, borderBottom: `0.5px solid ${t.border.default}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px',
         position: 'relative', zIndex: 10, overflow: 'visible',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button onClick={() => setSelectedTemplate(null)} style={{
-            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px',
-            color: t.text.secondary, fontSize: 13, fontFamily: 'inherit',
-            display: 'flex', alignItems: 'center', gap: 4,
-          }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
+          <button onClick={() => setSelectedTemplate(null)} style={{ background: 'transparent', border: 'none', color: t.text.secondary, cursor: 'pointer', fontSize: 14, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4 }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M10 3L5 8l5 5"/></svg>
-            {clientName}
+            Design Studio
           </button>
-          <span style={{ color: t.text.tertiary, fontSize: 13 }}>/</span>
-          <span style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>{templateName}</span>
+          <span style={{ color: t.text.tertiary }}>/</span>
+          <span style={{ color: t.text.primary, fontWeight: 500 }}>{templateName}</span>
         </div>
+        {/* Working on chip */}
         {clientDropdown}
       </div>
 
