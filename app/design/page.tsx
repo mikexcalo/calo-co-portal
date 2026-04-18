@@ -393,7 +393,7 @@ function DesignContent() {
               )}
             </div>
           )}
-          <FieldEditor fields={fields} onChange={handleFieldsChange} sources={{}} assetType={(selectedTemplate || 'yard-sign') as any} clientId={selectedClient} hasBrandKit={!!bk} />
+          <FieldEditor fields={fields} onChange={handleFieldsChange} sources={{}} assetType={(selectedTemplate || 'yard-sign') as any} clientId={selectedClient || undefined} hasBrandKit={!!bk} />
         </div>
 
         {/* Canvas area */}
