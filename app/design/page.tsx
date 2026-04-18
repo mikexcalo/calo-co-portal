@@ -253,103 +253,90 @@ function DesignContent() {
   );
 
   // ═══════════════════════════════════════════════
-  // STEP 1: CLIENT SELECTION HUB (no client selected)
+  // HUB VIEW — no template selected
   // ═══════════════════════════════════════════════
-  if (!selectedClient) {
+  const allItems = TEMPLATES.flatMap(c => c.items);
+  const liveItems = allItems.filter(tmpl => tmpl.live);
+  const comingSoonItems = allItems.filter(tmpl => !tmpl.live);
+  const hubContext = selectedClient || 'agency';
+
+  const setHubContext = (ctx: string) => {
+    if (ctx === 'agency') { setSelectedClient('agency'); }
+    else { setSelectedClient(ctx); }
+  };
+
+  const buildTemplateUrl = (tmplId: string) => {
+    const p = new URLSearchParams();
+    p.set('template', tmplId);
+    if (hubContext !== 'agency') p.set('client', hubContext);
+    return `/design?${p.toString()}`;
+  };
+
+  if (!selectedTemplate) {
     return (
       <PageShell>
-        <PageHeader title="Design Studio" subtitle="Create branded materials for your clients" />
+        <PageHeader title="What are we making today?" subtitle="Pick a template below. We'll use your brand automatically." />
 
-        <SectionLabel>Your Agency</SectionLabel>
-        <DataCard>
-          <div onClick={() => selectClient('agency')} style={{ display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer', padding: '4px 0' }}>
-            <div style={{ width: 48, height: 48, borderRadius: 10, background: t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={t.text.tertiary} strokeWidth="1.3"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3.5" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="20.5"/><line x1="3.5" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="20.5" y2="12"/></svg>
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 500, color: t.text.primary }}>CALO&CO</div>
-              <div style={{ fontSize: 12, color: t.text.tertiary, marginTop: 1 }}>Agency brand assets and templates</div>
-            </div>
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5" style={{ flexShrink: 0 }}><path d="M6 4l4 4-4 4"/></svg>
-          </div>
-        </DataCard>
-
-        <div style={{ marginTop: 24 }}>
-          <SectionLabel>Clients</SectionLabel>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {clients.map(cl => {
-              const avatar = getClientAvatarUrl(cl);
-              const cbk = cl.brandKit;
-              const logoCount = getLogoCount(cbk);
-              const swatches = getColorSwatches(cbk);
-              const completeness = getCompleteness(cl);
+        {/* Client strip */}
+        <div style={{ marginBottom: 40 }}>
+          <div style={{ fontSize: 11, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.8px', marginBottom: 16 }}>Making for</div>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            {[{ id: 'agency', name: 'CALO&CO', sub: 'Your agency', avatar: null, initial: 'C' }, ...clients.map(cl => ({ id: cl.id, name: cl.company || cl.name, sub: '', avatar: getClientAvatarUrl(cl), initial: (cl.company || cl.name || '').charAt(0) }))].map(chip => {
+              const active = hubContext === chip.id;
               return (
-                <DataCard key={cl.id}>
-                  <div onClick={() => selectClient(cl.id)} style={{ display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer', padding: '4px 0' }}>
-                    <div style={{ width: 48, height: 48, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: avatar ? 'transparent' : t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: t.text.secondary }}>
-                      {avatar ? <img src={avatar} alt="" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : (cl.company || cl.name || '').charAt(0)}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 500, color: t.text.primary, marginBottom: 4 }}>{cl.company || cl.name}</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 11, color: logoCount > 0 ? t.text.secondary : t.text.tertiary }}>{logoCount > 0 ? `${logoCount} logo${logoCount > 1 ? 's' : ''}` : 'No logos'}</span>
-                        {swatches.length > 0 && (
-                          <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-                            {swatches.map((hex: string, i: number) => <div key={i} style={{ width: 12, height: 12, borderRadius: 3, background: hex, border: `0.5px solid ${t.border.default}` }} />)}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 3, flexShrink: 0, marginRight: 8 }}>
-                      {[0, 1, 2].map(i => <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: i < completeness ? t.status.success : t.border.default }} />)}
-                    </div>
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5" style={{ flexShrink: 0 }}><path d="M6 4l4 4-4 4"/></svg>
+                <button key={chip.id} onClick={() => setHubContext(chip.id)} style={{
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+                  background: active ? t.accent.subtle : t.bg.surface,
+                  border: active ? `1px solid ${t.accent.primary}` : `0.5px solid ${t.border.default}`,
+                  borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 150ms', minWidth: 140, textAlign: 'left' as const,
+                }}
+                onMouseEnter={e => { if (!active) e.currentTarget.style.borderColor = t.border.hover; }}
+                onMouseLeave={e => { if (!active) e.currentTarget.style.borderColor = active ? t.accent.primary : t.border.default; }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: chip.avatar ? 'transparent' : t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                    {chip.avatar ? <img src={chip.avatar} alt="" style={{ width: 32, height: 32, objectFit: 'contain' }} /> : <span style={{ fontSize: 13, fontWeight: 600, color: t.text.secondary }}>{chip.initial}</span>}
                   </div>
-                </DataCard>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{chip.name}</div>
+                    {chip.sub && <div style={{ fontSize: 11, color: t.text.tertiary }}>{chip.sub}</div>}
+                  </div>
+                </button>
               );
             })}
           </div>
         </div>
-      </PageShell>
-    );
-  }
 
-  // ═══════════════════════════════════════════════
-  // STEP 2: TEMPLATE PICKER (client selected, no template)
-  // ═══════════════════════════════════════════════
-  if (!selectedTemplate) {
-    return (
-      <PageShell>
-        <PageHeader
-          title={clientName}
-          subtitle="Choose a template to start designing"
-          action={<button onClick={() => setSelectedClient(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: t.text.secondary, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4 }}><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M10 3L5 8l5 5"/></svg>All clients</button>}
-        />
-
-        {TEMPLATES.map(cat => (
-          <div key={cat.cat} style={{ marginBottom: 24 }}>
-            <SectionLabel>{cat.cat}</SectionLabel>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-              {cat.items.map(tmpl => (
-                <div key={tmpl.id} title={tmpl.live ? undefined : 'Coming soon'}
-                  onClick={tmpl.live ? () => setSelectedTemplate(tmpl.id) : undefined}
-                  style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, padding: '14px 12px', cursor: tmpl.live ? 'pointer' : 'default', opacity: tmpl.live ? 1 : 0.3, display: 'flex', gap: 12, alignItems: 'flex-start', transition: 'all 150ms' }}
-                  onMouseEnter={tmpl.live ? (e) => { e.currentTarget.style.borderColor = t.border.hover; e.currentTarget.style.transform = 'translateY(-1px)'; } : undefined}
-                  onMouseLeave={tmpl.live ? (e) => { e.currentTarget.style.borderColor = t.border.default; e.currentTarget.style.transform = 'none'; } : undefined}
-                >
-                  <div style={{ width: 32, height: 32, borderRadius: 6, background: t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.text.secondary, flexShrink: 0 }}>{ICONS[tmpl.id]}</div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary, display: 'flex', alignItems: 'center', gap: 6 }}>
-                      {tmpl.name}
-                      {tmpl.live && <span style={{ fontSize: 8, fontWeight: 600, color: t.status.success, textTransform: 'uppercase' as const, letterSpacing: '0.04em', padding: '1px 5px', borderRadius: 3 }}>LIVE</span>}
-                    </div>
-                    <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 2 }}>{tmpl.live ? TEMPLATE_DESCRIPTIONS[tmpl.id] : 'Coming soon'}</div>
-                  </div>
+        {/* Live templates */}
+        <div style={{ marginBottom: 40 }}>
+          <div style={{ fontSize: 11, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.8px', marginBottom: 16 }}>Templates</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+            {liveItems.map(tmpl => (
+              <div key={tmpl.id} onClick={() => router.push(buildTemplateUrl(tmpl.id))}
+                style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, padding: '14px 12px', cursor: 'pointer', display: 'flex', gap: 12, alignItems: 'flex-start', transition: 'all 150ms' }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = t.border.hover; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = t.border.default; e.currentTarget.style.transform = 'none'; }}>
+                <div style={{ width: 32, height: 32, borderRadius: 6, background: t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.text.secondary, flexShrink: 0 }}>{ICONS[tmpl.id]}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>{tmpl.name}</div>
+                  <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 2 }}>{TEMPLATE_DESCRIPTIONS[tmpl.id]}</div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+
+        {/* Coming soon */}
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.8px', marginBottom: 16 }}>Coming soon</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, opacity: 0.55 }}>
+            {comingSoonItems.map(tmpl => (
+              <div key={tmpl.id} title={`${tmpl.name} — coming soon`}
+                style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, padding: 12, display: 'flex', alignItems: 'center', gap: 10, cursor: 'not-allowed' }}>
+                <div style={{ width: 28, height: 28, borderRadius: 6, background: t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: t.text.secondary }}>{ICONS[tmpl.id]}</div>
+                <div style={{ fontSize: 12, fontWeight: 500, color: t.text.secondary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tmpl.name}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </PageShell>
     );
   }
