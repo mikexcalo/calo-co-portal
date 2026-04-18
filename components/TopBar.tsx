@@ -101,43 +101,23 @@ export default function TopBar() {
 
   return (
     <div style={{
-      height: 48, flexShrink: 0, background: t.bg.primary,
+      height: 56, flexShrink: 0, background: t.bg.primary,
       borderBottom: `1px solid ${t.border.default}`,
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 24px', fontFamily: 'inherit',
+      display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+      padding: '0 16px', fontFamily: 'inherit',
     }}>
-      {/* Breadcrumb */}
-      <div style={{ fontSize: 14, color: t.text.tertiary, display: 'flex', alignItems: 'center', gap: 6 }}>
-        {segments.map((seg, i) => (
-          <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {i > 0 && <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.3" style={{ opacity: 0.4, flexShrink: 0, color: t.text.tertiary }}><polyline points="3 1.5 7 5 3 8.5" /></svg>}
-            {seg.href ? (
-              <span
-                style={{ cursor: 'pointer', color: t.text.tertiary, fontWeight: 400 }}
-                onClick={() => router.push(seg.href!)}
-                onMouseEnter={(e) => (e.currentTarget.style.color = t.text.primary)}
-                onMouseLeave={(e) => (e.currentTarget.style.color = t.text.tertiary)}
-              >
-                {seg.label}
-              </span>
-            ) : (
-              <span style={{ color: i === segments.length - 1 ? t.text.secondary : t.text.tertiary, fontWeight: i === segments.length - 1 ? 500 : 400 }}>{seg.label}</span>
-            )}
-          </span>
-        ))}
-      </div>
 
       {/* Right: search + toggle + avatar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div ref={searchRef} style={{ position: 'relative', width: 200 }}>
+        <div ref={searchRef} style={{ position: 'relative', width: 240 }}>
           <input
-            style={{ width: '100%', background: t.bg.surface, border: `0.5px solid ${searchLoading || searchResult ? '#2563eb' : t.border.default}`, borderRadius: 6, padding: '6px 10px 6px 30px', fontSize: 12, color: t.text.primary, outline: 'none', fontFamily: 'inherit', transition: 'border-color 150ms' }}
+            style={{ width: '100%', height: 36, background: t.bg.surface, border: `0.5px solid ${searchLoading || searchResult ? t.accent.primary : t.border.default}`, borderRadius: 8, padding: '0 10px 0 32px', fontSize: 13, color: t.text.primary, outline: 'none', fontFamily: 'inherit', transition: 'border-color 150ms', boxSizing: 'border-box' as const }}
             placeholder="Search Helm..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); if (e.key === 'Escape') { setSearchResult(null); setSearchQuery(''); } }}
           />
-          <svg style={{ position: 'absolute', left: 9, top: 8, pointerEvents: 'none' }} width="12" height="12" viewBox="0 0 16 16" fill="none" stroke={t.text.secondary} strokeWidth="1.5">
+          <svg style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="13" height="13" viewBox="0 0 16 16" fill="none" stroke={t.text.secondary} strokeWidth="1.5">
             <circle cx="6.5" cy="6.5" r="5"/><line x1="10" y1="10" x2="14.5" y2="14.5"/>
           </svg>
           {(searchLoading || searchResult) && (
@@ -177,7 +157,7 @@ export default function TopBar() {
           </div>
         )}
         <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
-          width: 28, height: 28, border: 'none', borderRadius: 6, background: 'transparent',
+          width: 32, height: 32, border: 'none', borderRadius: 6, background: 'transparent',
           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
           color: t.text.tertiary, transition: 'color 150ms',
         }}
@@ -189,10 +169,10 @@ export default function TopBar() {
         </button>
         {avatar ? (
           <img src={avatar} alt="" title="Settings" onClick={() => router.push('/settings?tab=profile')}
-            style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer' }} />
+            style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer' }} />
         ) : (
           <div title="Settings" onClick={() => router.push('/settings?tab=profile')}
-            style={{ width: 30, height: 30, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>MC</div>
+            style={{ width: 32, height: 32, borderRadius: '50%', background: t.accent.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>MC</div>
         )}
       </div>
     </div>

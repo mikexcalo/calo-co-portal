@@ -56,7 +56,7 @@ export default function Sidebar() {
       fontFamily: 'inherit',
     }}>
       {/* Logo */}
-      <div style={{ height: 60, display: 'flex', alignItems: 'center', padding: '0 16px 0 24px', flexShrink: 0, borderBottom: `0.5px solid ${t.border.default}` }}>
+      <div style={{ height: 56, display: 'flex', alignItems: 'center', padding: '0 16px 0 24px', flexShrink: 0, borderBottom: `1px solid ${t.border.default}` }}>
         <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
           <div style={{ width: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'visible' }}>
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={t.text.tertiary} strokeWidth="1.5" strokeLinecap="round">
@@ -67,7 +67,7 @@ export default function Sidebar() {
               <line x1="5.9" y1="18.1" x2="9.9" y2="14.1" /><line x1="14.1" y1="9.9" x2="18.1" y2="5.9" />
             </svg>
           </div>
-          <span style={{ fontSize: 14, fontWeight: 500, color: t.text.tertiary, letterSpacing: '1.2px' }}>Helm</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: t.text.primary, letterSpacing: '1.5px', textTransform: 'uppercase' as const }}>Helm</span>
         </div>
       </div>
 
