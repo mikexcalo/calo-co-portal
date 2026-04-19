@@ -11,9 +11,17 @@ interface CommandResponse {
   content?: string; message?: string;
 }
 
-interface CommandBarProps { onItemSaved?: () => void; }
+interface CommandBarProps {
+  onItemSaved?: () => void;
+  placeholder?: string;
+  variant?: 'ask' | 'jot';
+}
 
-export default function CommandBar({ onItemSaved }: CommandBarProps) {
+export default function CommandBar({
+  onItemSaved,
+  placeholder = 'Ask a question or jot a note...',
+  variant = 'ask',
+}: CommandBarProps) {
   const router = useRouter();
   const { t } = useTheme();
   const [input, setInput] = useState('');
@@ -78,16 +86,24 @@ export default function CommandBar({ onItemSaved }: CommandBarProps) {
         onMouseEnter={() => setBarHovered(true)} onMouseLeave={() => setBarHovered(false)}
       >
         <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: barHovered ? t.accent.primary : t.text.secondary, display: 'flex', pointerEvents: 'none', transition: 'color 150ms' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-          </svg>
+          {variant === 'jot' ? (
+            <svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4">
+              <path d="M10 3l5 5-9 9H1v-5l9-9z" />
+            </svg>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+          )}
         </div>
         <input type="text" value={input} onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
-          placeholder="Ask a question or jot a note..." disabled={loading}
+          placeholder={placeholder} disabled={loading}
           style={{
             width: '100%', padding: '12px 14px 12px 36px', fontSize: 14,
-            border: `1.5px solid ${t.accent.primary}`, borderRadius: t.radius.md,
+            border: variant === 'jot'
+              ? `0.5px solid ${t.border.default}`
+              : `1.5px solid ${t.accent.primary}`, borderRadius: t.radius.md,
             fontFamily: 'inherit', color: t.text.primary, background: t.bg.surface, outline: 'none',
             boxShadow: barHovered ? `0 0 20px rgba(14,165,233,0.15)` : 'none',
             transition: 'box-shadow 200ms, background 150ms',
