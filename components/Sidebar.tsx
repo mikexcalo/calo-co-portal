@@ -31,8 +31,8 @@ export default function Sidebar() {
   }, [pathname]);
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
-    if (href === '/clients') return pathname === '/clients';
-    return pathname.startsWith(href);
+    if (href === '/clients') return pathname === '/clients' || pathname.startsWith('/clients/');
+    return pathname === href || pathname.startsWith(href + '/') || pathname.startsWith(href + '?');
   };
 
   const navBtn = (label: string, href: string, icon: React.ReactNode) => {

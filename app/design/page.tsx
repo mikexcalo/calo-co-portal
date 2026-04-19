@@ -44,15 +44,15 @@ const TEMPLATES = [
 ];
 
 const ICONS: Record<string, React.ReactNode> = {
-  'yard-sign': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="4" y="2" width="16" height="12" rx="2"/><line x1="9" y1="14" x2="9" y2="22"/><line x1="15" y1="14" x2="15" y2="22"/></svg>,
-  'business-card': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="6" y1="12" x2="14" y2="12"/></svg>,
+  'yard-sign': <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"><rect x="4" y="2" width="16" height="12" rx="1.5"/><line x1="9" y1="14" x2="9" y2="22"/><line x1="15" y1="14" x2="15" y2="22"/><line x1="7" y1="6" x2="17" y2="6" strokeWidth="0.8" opacity="0.5"/><line x1="7" y1="9" x2="14" y2="9" strokeWidth="0.8" opacity="0.35"/></svg>,
+  'business-card': <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="6" y1="10" x2="12" y2="10" strokeWidth="0.9" opacity="0.6"/><line x1="6" y1="13" x2="14" y2="13" strokeWidth="0.8" opacity="0.4"/><line x1="6" y1="15.5" x2="11" y2="15.5" strokeWidth="0.8" opacity="0.4"/><rect x="17" y="12" width="4" height="4" rx="0.5" strokeWidth="0.9" opacity="0.6"/></svg>,
   'door-hanger': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="6" y="1" width="12" height="22" rx="2"/><circle cx="12" cy="5" r="2.5"/></svg>,
   'vehicle-magnet': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="1" y="6" width="16" height="10" rx="2"/><path d="M17 8l4 4v4h-4"/></svg>,
   'flyer': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="4" y="1" width="16" height="22" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/></svg>,
   'direct-mail': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 6l10 7 10-7"/></svg>,
   'email-signature': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 6l10 7 10-7"/></svg>,
   'one-pager': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="4" y="1" width="16" height="22" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/></svg>,
-  'qr-code': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/></svg>,
+  'qr-code': <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><rect x="3" y="3" width="7" height="7" rx="0.5"/><rect x="14" y="3" width="7" height="7" rx="0.5"/><rect x="3" y="14" width="7" height="7" rx="0.5"/><rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/><rect x="14" y="14" width="2" height="2" fill="currentColor" stroke="none"/><rect x="17" y="14" width="2" height="2" fill="currentColor" stroke="none"/><rect x="14" y="17" width="2" height="2" fill="currentColor" stroke="none"/><rect x="17" y="17" width="2" height="2" fill="currentColor" stroke="none"/><rect x="19" y="19" width="2" height="2" fill="currentColor" stroke="none"/></svg>,
   'social-graphics': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/></svg>,
   'web-banners': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="1" y="5" width="22" height="14" rx="2"/><line x1="1" y1="9" x2="23" y2="9"/></svg>,
   't-shirt': <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M8 2l-2 0-4 4v3h4v13h12V9h4V6l-4-4h-2c0 0-1 2-4 2s-4-2-4-2z"/></svg>,
@@ -305,11 +305,11 @@ function DesignContent() {
         {/* Template cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
           {liveItems.map(tmpl => (
-            <div key={tmpl.id} onClick={() => router.push(buildTemplateUrl(tmpl.id))}
-              style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, padding: 14, cursor: 'pointer', transition: 'border-color 150ms' }}
-              onMouseEnter={(e) => e.currentTarget.style.borderColor = t.border.hover}
-              onMouseLeave={(e) => e.currentTarget.style.borderColor = t.border.default}>
-              <div style={{ background: t.bg.surfaceHover, borderRadius: 6, height: 88, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, color: t.text.tertiary }}>
+            <div key={tmpl.id} onClick={() => { setSelectedTemplate(tmpl.id); router.push(buildTemplateUrl(tmpl.id)); }}
+              style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, padding: 14, cursor: 'pointer', transition: 'border-color 150ms, background 150ms' }}
+              onMouseEnter={(ev) => { ev.currentTarget.style.borderColor = t.border.hover; ev.currentTarget.style.background = t.bg.surfaceHover; }}
+              onMouseLeave={(ev) => { ev.currentTarget.style.borderColor = t.border.default; ev.currentTarget.style.background = t.bg.surface; }}>
+              <div style={{ background: t.bg.surfaceHover, borderRadius: 6, height: 96, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, color: t.text.secondary }}>
                 {ICONS[tmpl.id]}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 1 }}>
@@ -324,7 +324,7 @@ function DesignContent() {
         {/* Coming soon — single line */}
         <div style={{ fontSize: 12, color: t.text.tertiary, paddingTop: 4, lineHeight: 1.5 }}>
           More coming — {comingSoonItems.slice(0, 4).map((tmpl, i, arr) => <span key={tmpl.id}>{tmpl.name}{i < arr.length - 1 ? ', ' : ''}</span>)}
-          {comingSoonItems.length > 4 && <span style={{ color: t.accent.text, fontWeight: 500 }}> +{comingSoonItems.length - 4} more</span>}
+          {comingSoonItems.length > 4 && <span style={{ color: t.text.secondary }}> and {comingSoonItems.length - 4} more</span>}
         </div>
       </PageShell>
     );
