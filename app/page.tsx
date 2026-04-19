@@ -283,30 +283,58 @@ export default function Home() {
         }
       />
 
-      {/* Alert band */}
+      {/* Alert band — awaiting payment > drafts */}
       {(() => {
         const draftInvs = DB.invoices.filter(inv => inv.status === 'draft');
-        if (!draftInvs.length) return null;
-        const first = draftInvs[0];
-        const firstCl = DB.clients.find(c => c.id === first.clientId);
-        const heading = draftInvs.length === 1 ? '1 invoice ready to send' : `${draftInvs.length} invoices ready to send`;
-        const detail = draftInvs.length === 1
-          ? `${first.id} · ${firstCl?.company || firstCl?.name || 'Client'} · ${currency(invTotal(first))}`
-          : `${first.id} and ${draftInvs.length - 1} more`;
-        return (
-          <div style={{ marginBottom: 16 }}>
-            <div onClick={() => router.push('/invoices')}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', background: 'rgba(0,106,255,0.06)', borderLeft: `3px solid ${t.accent.primary}`, borderRadius: 6, cursor: 'pointer', transition: 'background 120ms' }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,106,255,0.10)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,106,255,0.06)'; }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0, flex: 1 }}>
-                <div style={{ color: t.accent.primary, fontSize: 13, fontWeight: 600, flexShrink: 0 }}>{heading}</div>
-                <div style={{ color: t.text.secondary, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{detail}</div>
+        const awaitingInvs = DB.invoices.filter(inv => inv.status === 'unpaid' || inv.status === 'overdue');
+
+        if (awaitingInvs.length > 0) {
+          const first = awaitingInvs[0];
+          const cl = DB.clients.find(c => c.id === first.clientId);
+          const count = awaitingInvs.length === 1 ? '1 invoice awaiting payment' : `${awaitingInvs.length} invoices awaiting payment`;
+          const detail = awaitingInvs.length === 1
+            ? `${first.id} · ${cl?.company || cl?.name || 'Client'} · ${currency(invTotal(first))}`
+            : `${first.id} and ${awaitingInvs.length - 1} more`;
+          return (
+            <div style={{ marginBottom: 16 }}>
+              <div onClick={() => router.push('/invoices')}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', background: 'rgba(245,158,11,0.08)', borderLeft: `3px solid ${t.status.warning}`, borderRadius: 6, cursor: 'pointer', transition: 'background 120ms' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(245,158,11,0.12)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(245,158,11,0.08)'; }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0, flex: 1 }}>
+                  <div style={{ color: t.status.warning, fontSize: 13, fontWeight: 600, flexShrink: 0 }}>{count}</div>
+                  <div style={{ color: t.text.secondary, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{detail}</div>
+                </div>
+                <span style={{ color: t.status.warning, fontSize: 18, lineHeight: 1, flexShrink: 0 }}>→</span>
               </div>
-              <span style={{ color: t.accent.primary, fontSize: 18, lineHeight: 1, flexShrink: 0 }}>→</span>
             </div>
-          </div>
-        );
+          );
+        }
+
+        if (draftInvs.length > 0) {
+          const first = draftInvs[0];
+          const firstCl = DB.clients.find(c => c.id === first.clientId);
+          const heading = draftInvs.length === 1 ? '1 invoice ready to send' : `${draftInvs.length} invoices ready to send`;
+          const detail = draftInvs.length === 1
+            ? `${first.id} · ${firstCl?.company || firstCl?.name || 'Client'} · ${currency(invTotal(first))}`
+            : `${first.id} and ${draftInvs.length - 1} more`;
+          return (
+            <div style={{ marginBottom: 16 }}>
+              <div onClick={() => router.push('/invoices')}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', background: 'rgba(0,106,255,0.06)', borderLeft: `3px solid ${t.accent.primary}`, borderRadius: 6, cursor: 'pointer', transition: 'background 120ms' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,106,255,0.10)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,106,255,0.06)'; }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0, flex: 1 }}>
+                  <div style={{ color: t.accent.primary, fontSize: 13, fontWeight: 600, flexShrink: 0 }}>{heading}</div>
+                  <div style={{ color: t.text.secondary, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{detail}</div>
+                </div>
+                <span style={{ color: t.accent.primary, fontSize: 18, lineHeight: 1, flexShrink: 0 }}>→</span>
+              </div>
+            </div>
+          );
+        }
+
+        return null;
       })()}
 
       <StatRow stats={[
@@ -316,16 +344,17 @@ export default function Home() {
         { label: 'Collected', value: currency(Math.round(animCollected * 100) / 100), color: paidMTD > 0 ? t.status.success : undefined },
       ]} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        {/* LEFT COLUMN: Command Center */}
-        <div>
-          <SectionLabel>Command Center</SectionLabel>
-          <DataCard>
-            {/* Hero input — AI-powered ask/note/task routing */}
-            <CommandBar onItemSaved={refreshFeed} />
+      <div style={{ marginBottom: 16 }}>
+        <CommandBar onItemSaved={refreshFeed} />
+      </div>
 
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        {/* LEFT COLUMN: Notes */}
+        <div>
+          <SectionLabel>Notes</SectionLabel>
+          <DataCard>
             {/* NOTES zone */}
-            <div style={{ fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.3px', marginTop: 20, marginBottom: 8 }}>Notes</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.3px', marginBottom: 8 }}>Recent</div>
             {noteItems.length > 0 ? noteItems.slice(0, 3).map((item) => {
               const urg = getNoteUrgency(item.text, item.created || '');
               const urgColor = urg === 'overdue' ? '#E24B4A' : urg === 'due-today' ? '#f59e0b' : t.accent.primary;
@@ -348,26 +377,6 @@ export default function Home() {
               );
             }) : <div style={{ fontSize: 13, color: t.text.tertiary, padding: '8px 0' }}>No notes yet. Type above to capture one.</div>}
 
-            {/* ON DECK zone */}
-            <div style={{ fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.3px', borderTop: `0.5px solid ${t.border.default}`, paddingTop: 16, marginTop: 16, marginBottom: 8 }}>On Deck</div>
-            <div style={{ position: 'relative', marginBottom: 8 }}>
-              <svg style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="12" height="12" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.4">
-                <rect x="2" y="2" width="12" height="12" rx="2"/>
-              </svg>
-              <input ref={taskInputRef} value={taskInput} onChange={(e) => setTaskInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleAddTask(); }} disabled={taskSubmitting}
-                placeholder="Add a task..."
-                style={{ width: '100%', background: t.bg.primary, border: `1px solid ${t.border.default}`, borderRadius: 8, padding: '8px 12px 8px 32px', fontSize: 13, color: t.text.primary, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' as const }} />
-            </div>
-            {[...taskItems, ...invItems].length > 0 ? (
-              <div style={{ border: `1px solid ${t.border.default}`, borderRadius: 8, overflow: 'hidden' }}>
-                <AnimatePresence>
-                  {[...taskItems, ...invItems].slice(0, 5).map(renderItem)}
-                </AnimatePresence>
-              </div>
-            ) : taskItems.length === 0 && noteItems.length === 0 ? (
-              <div style={{ fontSize: 13, color: t.text.tertiary, padding: '8px 0' }}>No tasks on deck. Add one above.</div>
-            ) : null}
           </DataCard>
         </div>
 
