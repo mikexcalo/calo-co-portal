@@ -337,13 +337,6 @@ export default function Home() {
         return null;
       })()}
 
-      <StatRow stats={[
-        { label: 'Revenue (MTD)', value: currency(Math.round(animRevenue * 100) / 100), color: paidMTD > 0 ? t.status.success : undefined },
-        { label: 'Drafts', value: currency((stats as any).drafts || 0) },
-        { label: 'Outstanding', value: currency(Math.round(animOutstanding * 100) / 100), color: stats.outstanding > 0 ? t.status.warning : undefined },
-        { label: 'Collected', value: currency(Math.round(animCollected * 100) / 100), color: paidMTD > 0 ? t.status.success : undefined },
-      ]} />
-
       <div style={{ marginBottom: 16 }}>
         <CommandBar onItemSaved={refreshFeed} />
       </div>
@@ -352,36 +345,64 @@ export default function Home() {
         {/* LEFT COLUMN: Notes */}
         <div>
           <SectionLabel>Notes</SectionLabel>
-          <DataCard>
-            {/* NOTES zone */}
-            <div style={{ fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.3px', marginBottom: 8 }}>Recent</div>
-            {noteItems.length > 0 ? noteItems.slice(0, 3).map((item) => {
-              const urg = getNoteUrgency(item.text, item.created || '');
-              const urgColor = urg === 'overdue' ? '#E24B4A' : urg === 'due-today' ? '#f59e0b' : t.accent.primary;
-              const urgLabel = urg === 'overdue' ? 'Overdue' : urg === 'due-today' ? 'Due today' : null;
-              const ageText = item.age === 0 ? 'Today' : item.age === 1 ? '1 day ago' : `${item.age} days ago`;
-              return (
-                <div key={item.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', borderTop: `0.5px solid ${t.border.default}` }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, color: t.text.primary, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any, overflow: 'hidden' }}>{item.text}</div>
-                    <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 2 }}>
-                      {item.client}
-                      {urgLabel ? <span style={{ color: urgColor, marginLeft: 6, fontWeight: 500 }}>{urgLabel}</span> : <span style={{ marginLeft: 6 }}>{ageText}</span>}
+          <div style={{ background: t.bg.surfaceHover, border: `0.5px solid ${t.border.default}`, borderRadius: 12, padding: 14 }}>
+            {noteItems.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {noteItems.slice(0, 3).map((item) => {
+                  const urg = getNoteUrgency(item.text, item.created || '');
+                  const urgColor = urg === 'overdue' ? '#E24B4A' : urg === 'due-today' ? '#f59e0b' : t.accent.primary;
+                  const urgLabel = urg === 'overdue' ? 'Overdue' : urg === 'due-today' ? 'Due today' : null;
+                  const ageText = item.age === 0 ? 'Today' : item.age === 1 ? '1 day ago' : `${item.age} days ago`;
+                  const iconColor = urg === 'normal' ? t.text.tertiary : urgColor;
+                  return (
+                    <div key={item.id} style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderLeft: `3px solid ${urgColor}`, borderRadius: 8, padding: '10px 12px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                      <div style={{ color: iconColor, flexShrink: 0, marginTop: 1, display: 'flex' }}>{ic.pencil}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, color: t.text.primary, lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any, overflow: 'hidden', marginBottom: 4 }}>{item.text}</div>
+                        <div style={{ fontSize: 11, color: t.text.tertiary, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span>{item.client}</span><span>·</span>
+                          {urgLabel ? <span style={{ color: urgColor, fontWeight: 500 }}>{urgLabel}</span> : <span>{ageText}</span>}
+                        </div>
+                      </div>
+                      <button title="Remove" onClick={() => handleTrash(item.id, item.text, 'note')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: t.text.tertiary, transition: 'color 150ms', flexShrink: 0, display: 'flex' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = t.status.danger} onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}>
+                        {ic.trash}
+                      </button>
                     </div>
-                  </div>
-                  <button onClick={() => handleTrash(item.id, item.text, 'note')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.text.tertiary, padding: 2, flexShrink: 0 }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = t.status.danger} onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                  </button>
-                </div>
-              );
-            }) : <div style={{ fontSize: 13, color: t.text.tertiary, padding: '8px 0' }}>No notes yet. Type above to capture one.</div>}
-
-          </DataCard>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ fontSize: 13, color: t.text.tertiary, padding: '8px 4px' }}>No notes yet. Type above to capture one.</div>
+            )}
+          </div>
         </div>
 
-        {/* RIGHT COLUMN: Recent Clients */}
+        {/* RIGHT COLUMN: Finances + Recent Clients */}
         <div>
+          <SectionLabel>Finances</SectionLabel>
+          <DataCard>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, rowGap: 14 }}>
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.3px', marginBottom: 4 }}>MTD</div>
+                <div style={{ fontSize: 18, fontWeight: 500, color: paidMTD > 0 ? t.status.success : t.text.primary }}>{currency(Math.round(animRevenue * 100) / 100)}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.3px', marginBottom: 4 }}>Outstanding</div>
+                <div style={{ fontSize: 18, fontWeight: 500, color: stats.outstanding > 0 ? t.status.warning : t.text.primary }}>{currency(Math.round(animOutstanding * 100) / 100)}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.3px', marginBottom: 4 }}>Collected</div>
+                <div style={{ fontSize: 18, fontWeight: 500, color: paidMTD > 0 ? t.status.success : t.text.primary }}>{currency(Math.round(animCollected * 100) / 100)}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.3px', marginBottom: 4 }}>Drafts</div>
+                <div style={{ fontSize: 18, fontWeight: 500, color: t.text.secondary }}>{currency((stats as any).drafts || 0)}</div>
+              </div>
+            </div>
+          </DataCard>
+
+          <div style={{ marginTop: 16 }} />
           <SectionLabel>Recent Clients</SectionLabel>
           <DataCard noPadding>
             {clients.slice(0, 5).map((client) => {
