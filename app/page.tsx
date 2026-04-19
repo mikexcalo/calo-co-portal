@@ -337,7 +337,7 @@ export default function Home() {
         return null;
       })()}
 
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16, maxWidth: 520 }}>
         <CommandBar onItemSaved={refreshFeed} />
       </div>
 
@@ -378,31 +378,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Finances + Recent Clients */}
+        {/* RIGHT COLUMN: Recent Clients + Finances */}
         <div>
-          <SectionLabel>Finances</SectionLabel>
-          <DataCard>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, rowGap: 14 }}>
-              <div>
-                <div style={{ fontSize: 10, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.3px', marginBottom: 4 }}>MTD</div>
-                <div style={{ fontSize: 18, fontWeight: 500, color: paidMTD > 0 ? t.status.success : t.text.primary }}>{currency(Math.round(animRevenue * 100) / 100)}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: 10, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.3px', marginBottom: 4 }}>Outstanding</div>
-                <div style={{ fontSize: 18, fontWeight: 500, color: stats.outstanding > 0 ? t.status.warning : t.text.primary }}>{currency(Math.round(animOutstanding * 100) / 100)}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: 10, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.3px', marginBottom: 4 }}>Collected</div>
-                <div style={{ fontSize: 18, fontWeight: 500, color: paidMTD > 0 ? t.status.success : t.text.primary }}>{currency(Math.round(animCollected * 100) / 100)}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: 10, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.3px', marginBottom: 4 }}>Drafts</div>
-                <div style={{ fontSize: 18, fontWeight: 500, color: t.text.secondary }}>{currency((stats as any).drafts || 0)}</div>
-              </div>
-            </div>
-          </DataCard>
-
-          <div style={{ marginTop: 16 }} />
           <SectionLabel>Recent Clients</SectionLabel>
           <DataCard noPadding>
             {clients.slice(0, 5).map((client) => {
@@ -438,6 +415,30 @@ export default function Home() {
               <span onClick={() => router.push('/clients')} style={{ fontSize: 12, color: t.accent.text, cursor: 'pointer' }}>View all clients →</span>
             </div>
           </DataCard>
+
+          <div style={{ marginTop: 16 }}>
+            <SectionLabel>Finances</SectionLabel>
+            <div style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 12, padding: '10px 14px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 9, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.4px', marginBottom: 3 }}>MTD</div>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: paidMTD > 0 ? t.status.success : t.text.primary }}>{currency(Math.round(animRevenue * 100) / 100)}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 9, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.4px', marginBottom: 3 }}>Outstanding</div>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: stats.outstanding > 0 ? t.status.warning : t.text.primary }}>{currency(Math.round(animOutstanding * 100) / 100)}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 9, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.4px', marginBottom: 3 }}>Collected</div>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: paidMTD > 0 ? t.status.success : t.text.primary }}>{currency(Math.round(animCollected * 100) / 100)}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 9, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.4px', marginBottom: 3 }}>Drafts</div>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: t.text.secondary }}>{currency((stats as any).drafts || 0)}</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
