@@ -259,83 +259,71 @@ function DesignContent() {
   const liveItems = allItems.filter(tmpl => tmpl.live);
   const comingSoonItems = allItems.filter(tmpl => !tmpl.live);
   const hubContext = selectedClient || 'agency';
+  const setHubContext = (ctx: string) => { if (ctx === 'agency') setSelectedClient('agency'); else setSelectedClient(ctx); };
+  const buildTemplateUrl = (tmplId: string) => { const p = new URLSearchParams(); p.set('template', tmplId); if (hubContext !== 'agency') p.set('client', hubContext); return `/design?${p.toString()}`; };
 
-  const setHubContext = (ctx: string) => {
-    if (ctx === 'agency') { setSelectedClient('agency'); }
-    else { setSelectedClient(ctx); }
-  };
-
-  const buildTemplateUrl = (tmplId: string) => {
-    const p = new URLSearchParams();
-    p.set('template', tmplId);
-    if (hubContext !== 'agency') p.set('client', hubContext);
-    return `/design?${p.toString()}`;
-  };
+  const [ctxOpen, setCtxOpen] = useState(false);
+  const ctxRef = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!ctxOpen) return;
+    const close = (e: MouseEvent) => { if (ctxRef.current && !ctxRef.current.contains(e.target as Node)) setCtxOpen(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [ctxOpen]);
+  const ctxLabel = hubContext === 'agency' ? 'CALO&CO' : (clients.find(c => c.id === hubContext)?.company || clients.find(c => c.id === hubContext)?.name || 'Client');
 
   if (!selectedTemplate) {
     return (
       <PageShell>
-        <PageHeader title="What are we making today?" subtitle="Pick a template below. We'll use your brand automatically." />
-
-        {/* Client strip */}
-        <div style={{ marginBottom: 40 }}>
-          <div style={{ fontSize: 11, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.8px', marginBottom: 16 }}>Making for</div>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            {[{ id: 'agency', name: 'CALO&CO', sub: 'Your agency', avatar: null, initial: 'C' }, ...clients.map(cl => ({ id: cl.id, name: cl.company || cl.name, sub: '', avatar: getClientAvatarUrl(cl), initial: (cl.company || cl.name || '').charAt(0) }))].map(chip => {
-              const active = hubContext === chip.id;
-              return (
-                <button key={chip.id} onClick={() => setHubContext(chip.id)} style={{
-                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
-                  background: active ? t.accent.subtle : t.bg.surface,
-                  border: active ? `1px solid ${t.accent.primary}` : `0.5px solid ${t.border.default}`,
-                  borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 150ms', minWidth: 140, textAlign: 'left' as const,
-                }}
-                onMouseEnter={e => { if (!active) e.currentTarget.style.borderColor = t.border.hover; }}
-                onMouseLeave={e => { if (!active) e.currentTarget.style.borderColor = active ? t.accent.primary : t.border.default; }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: chip.avatar ? 'transparent' : t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-                    {chip.avatar ? <img src={chip.avatar} alt="" style={{ width: 32, height: 32, objectFit: 'contain' }} /> : <span style={{ fontSize: 13, fontWeight: 600, color: t.text.secondary }}>{chip.initial}</span>}
-                  </div>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{chip.name}</div>
-                    {chip.sub && <div style={{ fontSize: 11, color: t.text.tertiary }}>{chip.sub}</div>}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Live templates */}
-        <div style={{ marginBottom: 40 }}>
-          <div style={{ fontSize: 11, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.8px', marginBottom: 16 }}>Templates</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-            {liveItems.map(tmpl => (
-              <div key={tmpl.id} onClick={() => router.push(buildTemplateUrl(tmpl.id))}
-                style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, padding: '14px 12px', cursor: 'pointer', display: 'flex', gap: 12, alignItems: 'flex-start', transition: 'all 150ms' }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = t.border.hover; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = t.border.default; e.currentTarget.style.transform = 'none'; }}>
-                <div style={{ width: 32, height: 32, borderRadius: 6, background: t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.text.secondary, flexShrink: 0 }}>{ICONS[tmpl.id]}</div>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>{tmpl.name}</div>
-                  <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 2 }}>{TEMPLATE_DESCRIPTIONS[tmpl.id]}</div>
+        {/* Header with inline context dropdown */}
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 500, margin: '0 0 2px', color: t.text.primary }}>Design Studio</h1>
+          <div style={{ fontSize: 13, color: t.text.tertiary, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+            <span>Branded templates for</span>
+            <span ref={ctxRef} style={{ position: 'relative', display: 'inline-flex' }}>
+              <button onClick={() => setCtxOpen(v => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 5, padding: '1px 7px', cursor: 'pointer', color: t.text.primary, fontWeight: 500, fontFamily: 'inherit', fontSize: 13 }}>
+                {ctxLabel}<span style={{ fontSize: 9, color: t.text.tertiary }}>▾</span>
+              </button>
+              {ctxOpen && (
+                <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, minWidth: 240, background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 8, boxShadow: t.shadow.elevated, zIndex: 20, overflow: 'hidden' }}>
+                  <button onClick={() => { setHubContext('agency'); setCtxOpen(false); }} style={{ width: '100%', padding: '10px 14px', background: hubContext === 'agency' ? t.accent.subtle : 'transparent', border: 'none', color: t.text.primary, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, textAlign: 'left' as const, display: 'block' }}>
+                    <div style={{ fontWeight: 500 }}>CALO&CO</div><div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 2 }}>Your agency</div>
+                  </button>
+                  {clients.length > 0 && <div style={{ borderTop: `0.5px solid ${t.border.default}` }} />}
+                  {clients.map(c => (
+                    <button key={c.id} onClick={() => { setHubContext(c.id); setCtxOpen(false); }} style={{ width: '100%', padding: '10px 14px', background: hubContext === c.id ? t.accent.subtle : 'transparent', border: 'none', color: t.text.primary, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, textAlign: 'left' as const, display: 'block' }}>
+                      <div style={{ fontWeight: 500 }}>{c.company || c.name}</div>
+                    </button>
+                  ))}
                 </div>
-              </div>
-            ))}
+              )}
+            </span>
           </div>
         </div>
 
-        {/* Coming soon */}
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.8px', marginBottom: 16 }}>Coming soon</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, opacity: 0.55 }}>
-            {comingSoonItems.map(tmpl => (
-              <div key={tmpl.id} title={`${tmpl.name} — coming soon`}
-                style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, padding: 12, display: 'flex', alignItems: 'center', gap: 10, cursor: 'not-allowed' }}>
-                <div style={{ width: 28, height: 28, borderRadius: 6, background: t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: t.text.secondary }}>{ICONS[tmpl.id]}</div>
-                <div style={{ fontSize: 12, fontWeight: 500, color: t.text.secondary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tmpl.name}</div>
+        {/* Template cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
+          {liveItems.map(tmpl => (
+            <div key={tmpl.id} onClick={() => router.push(buildTemplateUrl(tmpl.id))}
+              style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, padding: 14, cursor: 'pointer', transition: 'border-color 150ms' }}
+              onMouseEnter={(e) => e.currentTarget.style.borderColor = t.border.hover}
+              onMouseLeave={(e) => e.currentTarget.style.borderColor = t.border.default}>
+              <div style={{ background: t.bg.surfaceHover, borderRadius: 6, height: 88, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, color: t.text.tertiary }}>
+                {ICONS[tmpl.id]}
               </div>
-            ))}
-          </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>{tmpl.name}</div>
+                <span style={{ fontSize: 9, fontWeight: 500, color: '#0F6E56', background: '#E1F5EE', padding: '1.5px 5px', borderRadius: 3, letterSpacing: '0.3px' }}>LIVE</span>
+              </div>
+              <div style={{ fontSize: 11, color: t.text.tertiary }}>{TEMPLATE_DESCRIPTIONS[tmpl.id]}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Coming soon — single line */}
+        <div style={{ fontSize: 12, color: t.text.tertiary, paddingTop: 4, lineHeight: 1.5 }}>
+          More coming — {comingSoonItems.slice(0, 4).map((tmpl, i, arr) => <span key={tmpl.id}>{tmpl.name}{i < arr.length - 1 ? ', ' : ''}</span>)}
+          {comingSoonItems.length > 4 && <span style={{ color: t.accent.text, fontWeight: 500 }}> +{comingSoonItems.length - 4} more</span>}
         </div>
       </PageShell>
     );
