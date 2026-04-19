@@ -264,9 +264,6 @@ function DesignContent() {
   // ═══════════════════════════════════════════════
   // HUB VIEW — no template selected
   // ═══════════════════════════════════════════════
-  const allItems = TEMPLATES.flatMap(c => c.items);
-  const liveItems = allItems.filter(tmpl => tmpl.live);
-  const comingSoonItems = allItems.filter(tmpl => !tmpl.live);
   const hubContext = selectedClient || 'agency';
   const setHubContext = (ctx: string) => { if (ctx === 'agency') setSelectedClient('agency'); else setSelectedClient(ctx); };
   const buildTemplateUrl = (tmplId: string) => { const p = new URLSearchParams(); p.set('template', tmplId); if (hubContext !== 'agency') p.set('client', hubContext); return `/design?${p.toString()}`; };
@@ -302,30 +299,46 @@ function DesignContent() {
           </div>
         </div>
 
-        {/* Template cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
-          {liveItems.map(tmpl => (
-            <div key={tmpl.id} onClick={() => { setSelectedTemplate(tmpl.id); router.push(buildTemplateUrl(tmpl.id)); }}
-              style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, padding: 14, cursor: 'pointer', transition: 'border-color 150ms, background 150ms' }}
-              onMouseEnter={(ev) => { ev.currentTarget.style.borderColor = t.border.hover; ev.currentTarget.style.background = t.bg.surfaceHover; }}
-              onMouseLeave={(ev) => { ev.currentTarget.style.borderColor = t.border.default; ev.currentTarget.style.background = t.bg.surface; }}>
-              <div style={{ background: t.bg.surfaceHover, borderRadius: 6, height: 96, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, color: t.text.secondary }}>
-                {ICONS[tmpl.id]}
+        {/* Category-grouped template grid */}
+        {TEMPLATES.map(category => {
+          const liveCount = category.items.filter(it => it.live).length;
+          return (
+            <div key={category.cat} style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: t.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: '0.5px', marginBottom: 10 }}>
+                {category.cat} <span style={{ opacity: 0.6 }}>· {liveCount} of {category.items.length}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>{tmpl.name}</div>
-                <span style={{ fontSize: 9, fontWeight: 500, color: '#0F6E56', background: '#E1F5EE', padding: '1.5px 5px', borderRadius: 3, letterSpacing: '0.3px' }}>LIVE</span>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                {category.items.map(it => {
+                  if (it.live) {
+                    return (
+                      <div key={it.id} onClick={() => { setSelectedTemplate(it.id); router.push(buildTemplateUrl(it.id)); }}
+                        style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 10, padding: 14, cursor: 'pointer', transition: 'border-color 150ms, background 150ms' }}
+                        onMouseEnter={(ev) => { ev.currentTarget.style.borderColor = t.border.hover; ev.currentTarget.style.background = t.bg.surfaceHover; }}
+                        onMouseLeave={(ev) => { ev.currentTarget.style.borderColor = t.border.default; ev.currentTarget.style.background = t.bg.surface; }}>
+                        <div style={{ background: t.bg.surfaceHover, borderRadius: 6, height: 96, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, color: t.text.secondary }}>{ICONS[it.id]}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 1 }}>
+                          <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>{it.name}</div>
+                          <span style={{ fontSize: 9, fontWeight: 500, color: '#0F6E56', background: '#E1F5EE', padding: '1.5px 5px', borderRadius: 3, letterSpacing: '0.3px' }}>LIVE</span>
+                        </div>
+                        <div style={{ fontSize: 11, color: t.text.tertiary }}>{TEMPLATE_DESCRIPTIONS[it.id]}</div>
+                      </div>
+                    );
+                  }
+                  const isArchived = it.id === 'email-signature';
+                  return (
+                    <div key={it.id} style={{ background: t.bg.surface, border: `0.5px dashed ${t.border.default}`, borderRadius: 10, padding: 14, opacity: isArchived ? 1 : 0.55, cursor: 'default' }}>
+                      <div style={{ background: t.bg.surfaceHover, borderRadius: 6, height: 96, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, color: isArchived ? t.text.secondary : t.text.tertiary }}>{ICONS[it.id]}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: isArchived ? t.text.primary : t.text.secondary }}>{it.name}</div>
+                        {isArchived && <span style={{ fontSize: 9, fontWeight: 500, color: '#854F0B', background: '#FAEEDA', padding: '1.5px 5px', borderRadius: 3, letterSpacing: '0.3px' }}>ARCHIVED</span>}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              <div style={{ fontSize: 11, color: t.text.tertiary }}>{TEMPLATE_DESCRIPTIONS[tmpl.id]}</div>
             </div>
-          ))}
-        </div>
-
-        {/* Coming soon — single line */}
-        <div style={{ fontSize: 12, color: t.text.tertiary, paddingTop: 4, lineHeight: 1.5 }}>
-          More coming — {comingSoonItems.slice(0, 4).map((tmpl, i, arr) => <span key={tmpl.id}>{tmpl.name}{i < arr.length - 1 ? ', ' : ''}</span>)}
-          {comingSoonItems.length > 4 && <span style={{ color: t.text.secondary }}> and {comingSoonItems.length - 4} more</span>}
-        </div>
+          );
+        })}
       </PageShell>
     );
   }
