@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
+import { useRef, useEffect } from 'react';
 import { useTheme } from '@/lib/theme';
 
 const icons: Record<string, React.ReactNode> = {
@@ -21,6 +22,13 @@ export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const { theme, setTheme, t } = useTheme();
+  const helmIconRef = useRef<SVGSVGElement>(null);
+  const helmRotationRef = useRef(0);
+  useEffect(() => {
+    if (!helmIconRef.current) return;
+    helmRotationRef.current += 180;
+    helmIconRef.current.style.transform = `rotate(${helmRotationRef.current}deg)`;
+  }, [pathname]);
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
     if (href === '/clients') return pathname === '/clients';
@@ -58,8 +66,8 @@ export default function Sidebar() {
       {/* Logo */}
       <div style={{ height: 56, display: 'flex', alignItems: 'center', padding: '0 16px 0 24px', flexShrink: 0, borderBottom: `1px solid ${t.border.default}` }}>
         <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-          <div style={{ width: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'visible' }}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={t.text.tertiary} strokeWidth="1.5" strokeLinecap="round">
+          <div style={{ width: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg ref={helmIconRef} width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={t.text.tertiary} strokeWidth="1.5" strokeLinecap="round" style={{ transition: 'transform 450ms cubic-bezier(0.4, 0, 0.2, 1)', transformOrigin: 'center' }}>
               <circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="3" />
               <line x1="12" y1="3.5" x2="12" y2="9" /><line x1="12" y1="15" x2="12" y2="20.5" />
               <line x1="3.5" y1="12" x2="9" y2="12" /><line x1="15" y1="12" x2="20.5" y2="12" />
@@ -67,7 +75,7 @@ export default function Sidebar() {
               <line x1="5.9" y1="18.1" x2="9.9" y2="14.1" /><line x1="14.1" y1="9.9" x2="18.1" y2="5.9" />
             </svg>
           </div>
-          <span style={{ fontSize: 14, fontWeight: 600, color: t.text.primary, letterSpacing: '1.5px', textTransform: 'uppercase' as const }}>Helm</span>
+          <span style={{ fontSize: 17, fontWeight: 600, color: t.text.primary, letterSpacing: '-0.3px' }}>Helm</span>
         </div>
       </div>
 
