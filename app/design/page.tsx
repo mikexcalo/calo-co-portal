@@ -189,6 +189,15 @@ function DesignContent() {
 
   const selectClient = (id: string) => { setSelectedClient(id); setSelectedTemplate(null); setDropdownOpen(false); setClientSearch(''); setFields({ ...DEFAULT_FIELDS }); };
 
+  const [ctxOpen, setCtxOpen] = useState(false);
+  const ctxRef = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!ctxOpen) return;
+    const close = (e: MouseEvent) => { if (ctxRef.current && !ctxRef.current.contains(e.target as Node)) setCtxOpen(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [ctxOpen]);
+
   if (loading) return null;
 
   const client = selectedClient ? clients.find(c => c.id === selectedClient) : null;
@@ -262,14 +271,6 @@ function DesignContent() {
   const setHubContext = (ctx: string) => { if (ctx === 'agency') setSelectedClient('agency'); else setSelectedClient(ctx); };
   const buildTemplateUrl = (tmplId: string) => { const p = new URLSearchParams(); p.set('template', tmplId); if (hubContext !== 'agency') p.set('client', hubContext); return `/design?${p.toString()}`; };
 
-  const [ctxOpen, setCtxOpen] = useState(false);
-  const ctxRef = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
-    if (!ctxOpen) return;
-    const close = (e: MouseEvent) => { if (ctxRef.current && !ctxRef.current.contains(e.target as Node)) setCtxOpen(false); };
-    document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
-  }, [ctxOpen]);
   const ctxLabel = hubContext === 'agency' ? 'CALO&CO' : (clients.find(c => c.id === hubContext)?.company || clients.find(c => c.id === hubContext)?.name || 'Client');
 
   if (!selectedTemplate) {
