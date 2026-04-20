@@ -5,8 +5,6 @@ import { useTheme } from "@/lib/theme";
 import { SectionLabel } from "@/components/shared/Brand";
 import supabase from "@/lib/supabase";
 
-const TONE_OPTIONS = ["Professional", "Casual", "Friendly", "Authoritative", "Warm", "Technical", "Bold"];
-
 interface ToneEntry { name: string; priority: number; }
 
 interface BrandVoiceData {
@@ -88,18 +86,23 @@ export default function AgencyBrandVoice() {
     save(updated);
   };
 
-  const toggleTone = (toneName: string) => {
-    const existing = tones.find(t => t.name.toLowerCase() === toneName.toLowerCase());
-    let updated: ToneEntry[];
-    if (existing) {
-      updated = tones.filter(t => t.name.toLowerCase() !== toneName.toLowerCase())
-        .sort((a, b) => a.priority - b.priority)
-        .map((t, i) => ({ ...t, priority: i + 1 }));
-    } else if (tones.length < 3) {
-      updated = [...tones, { name: toneName.toLowerCase(), priority: tones.length + 1 }];
-    } else {
-      return;
-    }
+  const [toneInput, setToneInput] = useState("");
+
+  const addTone = (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed || tones.length >= 3) return;
+    if (tones.find(t => t.name.toLowerCase() === trimmed.toLowerCase())) return;
+    const updated = [...tones, { name: trimmed, priority: tones.length + 1 }];
+    setTones(updated);
+    const v = { ...voice, tones: updated };
+    setVoice(v);
+    save(v);
+  };
+
+  const removeTone = (name: string) => {
+    const updated = tones.filter(t => t.name.toLowerCase() !== name.toLowerCase())
+      .sort((a, b) => a.priority - b.priority)
+      .map((t, i) => ({ ...t, priority: i + 1 }));
     setTones(updated);
     const v = { ...voice, tones: updated };
     setVoice(v);
@@ -211,27 +214,35 @@ export default function AgencyBrandVoice() {
           </div>
         )}
 
-        {/* ── Multi-Tone Selector ── */}
+        {/* ── Tone Chips ── */}
         <div style={{ marginBottom: 20 }}>
           <div style={labelStyle}>Tone</div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {TONE_OPTIONS.map(tone => {
-              const selected = tones.find(tn => tn.name.toLowerCase() === tone.toLowerCase());
-              return (
-                <button key={tone} onClick={() => toggleTone(tone)} style={{
-                  padding: "6px 14px", fontSize: 13, borderRadius: 6, cursor: "pointer", fontFamily: "inherit", position: "relative" as const,
-                  border: selected ? "1.5px solid #2563eb" : `1px solid ${t.border.default}`,
-                  background: selected ? "rgba(37,99,235,0.04)" : "transparent",
-                  color: selected ? "#2563eb" : t.text.secondary, transition: "all 150ms",
-                }}>
-                  {tone}
-                  {selected && <span style={{ position: "absolute", top: -6, right: -6, width: 16, height: 16, borderRadius: "50%", background: "#2563eb", color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{selected.priority}</span>}
-                </button>
-              );
-            })}
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+            {[...tones].sort((a, b) => a.priority - b.priority).map(tone => (
+              <span key={tone.name} style={{
+                padding: "6px 14px", fontSize: 13, borderRadius: 6, fontFamily: "inherit", position: "relative" as const,
+                border: "1.5px solid #2563eb", background: "rgba(37,99,235,0.04)", color: "#2563eb",
+                display: "inline-flex", alignItems: "center", gap: 6,
+              }}>
+                {tone.name}
+                <span style={{ position: "absolute", top: -6, right: -6, width: 16, height: 16, borderRadius: "50%", background: "#2563eb", color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{tone.priority}</span>
+                <button onClick={() => removeTone(tone.name)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "#2563eb", fontSize: 14, lineHeight: 1, fontFamily: "inherit", display: "flex", alignItems: "center" }}>&times;</button>
+              </span>
+            ))}
+            {tones.length < 3 && (
+              <input
+                value={toneInput}
+                onChange={e => setToneInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTone(toneInput); setToneInput(""); } }}
+                placeholder="Add a tone..."
+                style={{ ...inputStyle, width: 160 }}
+                onFocus={focusH}
+                onBlur={blurH}
+              />
+            )}
           </div>
           <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 6 }}>
-            {tones.length === 0 ? "Select up to 3 tones in priority order" : tones.length === 1 ? "Click another tone to add a secondary" : tones.length === 2 ? "Click one more for an accent tone (optional)" : "3 tones selected — click to remove"}
+            {tones.length === 0 ? "Type a tone and hit Enter (e.g. Confident, Playful)" : tones.length === 1 ? "Add up to 2 more tones in priority order" : tones.length === 2 ? "Add 1 more for an accent tone (optional)" : "3 tones set — click \u00d7 to remove"}
           </div>
         </div>
 
