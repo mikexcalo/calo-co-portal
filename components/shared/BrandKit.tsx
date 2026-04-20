@@ -77,6 +77,7 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
   const [topOrder, setTopOrder] = useState<SlotKey[]>(DEFAULT_TOP_ORDER);
   const [swapSource, setSwapSource] = useState<number | null>(null);
   const [variants, setVariants] = useState<ReturnType<typeof generateLogoVariants>>([]);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -107,9 +108,10 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
   if (error || !brandKit) return <div style={{ padding: 16, fontSize: 13, color: t.status.danger }}>{error || 'Brand Kit not found'}</div>;
 
   const handleLogoChange = async () => { setBrandKit({ ...brandKit }); };
-  const handleColorChange = (colors: string[]) => { brandKit.colors = colors; setBrandKit({ ...brandKit }); saveBrandKit(brandKit, entityId); };
-  const handleFontChange = (type: 'heading' | 'body' | 'accent', value: string) => { brandKit.fonts[type] = value; setBrandKit({ ...brandKit }); saveBrandKit(brandKit, entityId); };
-  const handleNotesChange = (notes: string) => { brandKit.notes = notes; setBrandKit({ ...brandKit }); saveBrandKit(brandKit, entityId); };
+  const flashSaved = () => { setSaved(true); setTimeout(() => setSaved(false), 2000); };
+  const handleColorChange = (colors: string[]) => { brandKit.colors = colors; setBrandKit({ ...brandKit }); saveBrandKit(brandKit, entityId).then(flashSaved); };
+  const handleFontChange = (type: 'heading' | 'body' | 'accent', value: string) => { brandKit.fonts[type] = value; setBrandKit({ ...brandKit }); saveBrandKit(brandKit, entityId).then(flashSaved); };
+  const handleNotesChange = (notes: string) => { brandKit.notes = notes; setBrandKit({ ...brandKit }); saveBrandKit(brandKit, entityId).then(flashSaved); };
 
   const handleSwap = (idx: number) => {
     if (swapSource === null) {
@@ -195,6 +197,13 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
 
   return (
     <BrandKitErrorBoundary clientId={entityId} clientName={entityName}>
+      {saved && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          <span style={{ fontSize: 11, color: t.status.success, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="4 12 9 17 20 6"/></svg>Saved
+          </span>
+        </div>
+      )}
       {readOnly && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: t.status.success, background: t.accent.subtle, border: `1px solid ${t.border.default}`, borderRadius: 8, padding: '8px 12px', marginBottom: 16 }}>
           Read-only view
