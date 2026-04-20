@@ -21,12 +21,12 @@ export default function AgencyBrandKitPage() {
         </motion.div>
 
         <motion.div variants={fadeUp}>
-          <HelmBrandPalette />
-          <BrandKit context={{ type: 'agency' }} />
+          <AgencyBrandVoice />
         </motion.div>
 
         <motion.div variants={fadeUp} style={{ marginTop: 24 }}>
-          <AgencyBrandVoice />
+          <HelmBrandPalette />
+          <BrandKit context={{ type: 'agency' }} />
         </motion.div>
       </motion.div>
     </div>
