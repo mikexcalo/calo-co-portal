@@ -163,57 +163,6 @@ export default function AgencyBrandVoice() {
 
       <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
 
-        {/* ── AI Source Analysis ── */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <span style={labelStyle}>Analyze a source</span>
-            <div style={{ display: "flex", gap: 4 }}>
-              {(["transcript", "website", "copy", "other"] as const).map(st => (
-                <button key={st} onClick={() => setSourceType(st)} style={{
-                  padding: "3px 10px", fontSize: 11, borderRadius: 4, cursor: "pointer", fontFamily: "inherit", textTransform: "capitalize" as const,
-                  border: sourceType === st ? "1px solid #2563eb" : `1px solid ${t.border.default}`,
-                  background: sourceType === st ? "rgba(37,99,235,0.04)" : "transparent",
-                  color: sourceType === st ? "#2563eb" : t.text.tertiary,
-                }}>{st}</button>
-              ))}
-            </div>
-          </div>
-          <textarea value={sourceText} onChange={e => setSourceText(e.target.value)}
-            placeholder={sourceType === "transcript" ? "Paste a call transcript, meeting notes, or sales conversation..." : sourceType === "website" ? "Paste website copy or about page text..." : sourceType === "copy" ? "Paste existing marketing copy, emails, or social posts..." : "Paste any content that represents this brand's voice..."}
-            rows={4} style={{ ...inputStyle, resize: "vertical" as const }} onFocus={focusH as any} onBlur={blurH as any} />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-            <span style={{ fontSize: 11, color: t.text.tertiary }}>{sourceText.length < 50 ? `${50 - sourceText.length} more characters needed` : `${sourceText.length} characters`}</span>
-            <button onClick={handleAnalyze} disabled={analyzing || sourceText.length < 50} style={{
-              padding: "6px 16px", fontSize: 13, fontWeight: 500, borderRadius: 6, border: "none", fontFamily: "inherit", transition: "all 150ms",
-              cursor: analyzing || sourceText.length < 50 ? "default" : "pointer",
-              background: analyzing || sourceText.length < 50 ? t.bg.surfaceHover : "#2563eb",
-              color: analyzing || sourceText.length < 50 ? t.text.tertiary : "#fff",
-            }}>{analyzing ? "Analyzing..." : "Analyze voice"}</button>
-          </div>
-        </div>
-
-        {/* ── AI Suggestions ── */}
-        {suggestions && (
-          <div style={{ background: t.bg.surfaceHover, border: `0.5px solid ${t.border.default}`, borderRadius: 10, padding: 16, marginBottom: 24 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: t.text.primary }}>Suggestions from {sourceType}</span>
-              <span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase" as const, padding: "2px 8px", borderRadius: 4, background: suggestions.confidence === "high" ? "rgba(16,185,129,0.1)" : "rgba(245,158,11,0.1)", color: suggestions.confidence === "high" ? t.status.success : t.status.warning }}>{suggestions.confidence} confidence</span>
-            </div>
-            {suggestions.reasoning && <div style={{ fontSize: 12, color: t.text.tertiary, marginBottom: 12, fontStyle: "italic" }}>{suggestions.reasoning}</div>}
-            {suggestions.tones && <SuggestionRow t={t} label="Tones" value={suggestions.tones.map((tn: any) => `${tn.priority}. ${tn.name}`).join(", ")} onAccept={() => { setTones(suggestions.tones); update("tones", suggestions.tones); }} />}
-            {suggestions.industry && <SuggestionRow t={t} label="Industry" value={suggestions.industry} onAccept={() => update("industry", suggestions.industry)} />}
-            {suggestions.targetCustomer && <SuggestionRow t={t} label="Target customer" value={suggestions.targetCustomer} onAccept={() => update("targetCustomer", suggestions.targetCustomer)} />}
-            {suggestions.elevatorPitch && <SuggestionRow t={t} label="Elevator pitch" value={suggestions.elevatorPitch} onAccept={() => update("elevatorPitch", suggestions.elevatorPitch)} />}
-            {suggestions.valueProps?.length > 0 && <SuggestionRow t={t} label="Value props" value={suggestions.valueProps.join(", ")} onAccept={() => update("valueProps", suggestions.valueProps)} />}
-            {suggestions.keyPhrases?.length > 0 && <SuggestionRow t={t} label="Key phrases" value={suggestions.keyPhrases.join(", ")} onAccept={() => update("keyPhrases", suggestions.keyPhrases)} />}
-            {suggestions.differentiator && <SuggestionRow t={t} label="Differentiator" value={suggestions.differentiator} onAccept={() => update("differentiator", suggestions.differentiator)} />}
-            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <button onClick={acceptAll} style={{ padding: "6px 16px", fontSize: 13, fontWeight: 500, borderRadius: 6, border: "none", cursor: "pointer", background: "#2563eb", color: "#fff", fontFamily: "inherit" }}>Accept all</button>
-              <button onClick={() => setSuggestions(null)} style={{ padding: "6px 16px", fontSize: 13, fontWeight: 500, borderRadius: 6, border: `1px solid ${t.border.default}`, cursor: "pointer", background: "transparent", color: t.text.secondary, fontFamily: "inherit" }}>Dismiss</button>
-            </div>
-          </div>
-        )}
-
         {/* ── Tone Chips ── */}
         <div style={{ marginBottom: 20 }}>
           <div style={labelStyle}>Tone</div>
@@ -246,25 +195,39 @@ export default function AgencyBrandVoice() {
           </div>
         </div>
 
-        {/* ── Manual Fields ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
-          <div><label style={labelStyle}>Industry</label><input value={voice.industry} onChange={e => update("industry", e.target.value)} placeholder="e.g. Flooring installation" style={inputStyle} onFocus={focusH} onBlur={blurH} /></div>
-          <div><label style={labelStyle}>Target customer</label><input value={voice.targetCustomer} onChange={e => update("targetCustomer", e.target.value)} placeholder="e.g. Homeowners in Maine" style={inputStyle} onFocus={focusH} onBlur={blurH} /></div>
-        </div>
+        {/* ── Identity ── */}
+        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: t.text.tertiary, marginTop: 8, marginBottom: 12 }}>Identity</div>
+
         <div style={{ marginBottom: 20 }}>
           <label style={labelStyle}>Elevator pitch</label>
-          <textarea value={voice.elevatorPitch} onChange={e => update("elevatorPitch", e.target.value)} placeholder="1-2 sentences describing what this company does and why customers choose them" rows={3} style={{ ...inputStyle, resize: "vertical" as const }} onFocus={focusH as any} onBlur={blurH as any} />
+          <textarea value={voice.elevatorPitch} onChange={e => update("elevatorPitch", e.target.value)} placeholder="One sentence: who you serve and what changes" rows={3} style={{ ...inputStyle, resize: "vertical" as const }} onFocus={focusH as any} onBlur={blurH as any} />
         </div>
+
         <div style={{ marginBottom: 20 }}>
           <label style={labelStyle}>Value propositions</label>
-          <input value={(voice.valueProps || []).join(", ")} onChange={e => update("valueProps", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="Free consultations, Fully insured, 25 years experience" style={inputStyle} onFocus={focusH} onBlur={blurH} />
-          <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 4 }}>Comma-separated list</div>
+          <input value={(voice.valueProps || []).join(", ")} onChange={e => update("valueProps", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="Words you'd hear on a sales call" style={inputStyle} onFocus={focusH} onBlur={blurH} />
+          <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 4 }}>Comma-separated</div>
         </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <label style={labelStyle}>Competitive differentiator</label>
+          <input value={voice.differentiator} onChange={e => update("differentiator", e.target.value)} placeholder="What others can't say about themselves" style={inputStyle} onFocus={focusH} onBlur={blurH} />
+        </div>
+
+        {/* ── Audience ── */}
+        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: t.text.tertiary, marginTop: 24, marginBottom: 12 }}>Audience</div>
+
+        <div style={{ marginBottom: 20 }}>
+          <label style={labelStyle}>Target customer</label>
+          <input value={voice.targetCustomer} onChange={e => update("targetCustomer", e.target.value)} placeholder="Who buys this" style={inputStyle} onFocus={focusH} onBlur={blurH} />
+        </div>
+
+        {/* ── Voice mechanics ── */}
+        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: t.text.tertiary, marginTop: 24, marginBottom: 12 }}>Voice mechanics</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
-          <div><label style={labelStyle}>Key phrases to use</label><input value={(voice.keyPhrases || []).join(", ")} onChange={e => update("keyPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="quality craftsmanship, family-owned" style={inputStyle} onFocus={focusH} onBlur={blurH} /></div>
-          <div><label style={labelStyle}>Phrases to avoid</label><input value={(voice.avoidPhrases || []).join(", ")} onChange={e => update("avoidPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="cheap, discount, budget" style={inputStyle} onFocus={focusH} onBlur={blurH} /></div>
+          <div><label style={labelStyle}>Key phrases to use</label><input value={(voice.keyPhrases || []).join(", ")} onChange={e => update("keyPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="Vocabulary you reach for" style={inputStyle} onFocus={focusH} onBlur={blurH} /></div>
+          <div><label style={labelStyle}>Phrases to avoid</label><input value={(voice.avoidPhrases || []).join(", ")} onChange={e => update("avoidPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="Words that drift off-brand" style={inputStyle} onFocus={focusH} onBlur={blurH} /></div>
         </div>
-        <div><label style={labelStyle}>Competitive differentiator</label><input value={voice.differentiator} onChange={e => update("differentiator", e.target.value)} placeholder="What makes this company different from competitors?" style={inputStyle} onFocus={focusH} onBlur={blurH} /></div>
       </div>
     </div>
   );
