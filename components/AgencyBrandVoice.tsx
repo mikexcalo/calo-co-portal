@@ -87,6 +87,11 @@ export default function AgencyBrandVoice() {
   };
 
   const [toneInput, setToneInput] = useState("");
+  const [translateInput, setTranslateInput] = useState("");
+  const [translateOutput, setTranslateOutput] = useState("");
+  const [translating, setTranslating] = useState(false);
+  const [translateError, setTranslateError] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const addTone = (name: string) => {
     const trimmed = name.trim();
@@ -140,6 +145,39 @@ export default function AgencyBrandVoice() {
     save(merged);
     setSuggestions(null);
     setSourceText("");
+  };
+
+  const handleTranslate = async () => {
+    if (!translateInput.trim() || translating) return;
+    setTranslating(true);
+    setTranslateError("");
+    setTranslateOutput("");
+    try {
+      const res = await fetch("/api/transform-voice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: translateInput, voice: { ...voice, tones } }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setTranslateError(data.error || "Translation failed");
+      } else {
+        setTranslateOutput(data.rewritten || "");
+      }
+    } catch (err) {
+      setTranslateError("Network error");
+    } finally {
+      setTranslating(false);
+    }
+  };
+
+  const handleCopy = async () => {
+    if (!translateOutput) return;
+    try {
+      await navigator.clipboard.writeText(translateOutput);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {}
   };
 
   if (!loaded) return null;
@@ -228,6 +266,29 @@ export default function AgencyBrandVoice() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
           <div><label style={labelStyle}>Key phrases to use</label><input value={(voice.keyPhrases || []).join(", ")} onChange={e => update("keyPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="Vocabulary you reach for" style={inputStyle} onFocus={focusH} onBlur={blurH} /></div>
           <div><label style={labelStyle}>Phrases to avoid</label><input value={(voice.avoidPhrases || []).join(", ")} onChange={e => update("avoidPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="Words that drift off-brand" style={inputStyle} onFocus={focusH} onBlur={blurH} /></div>
+        </div>
+
+        {/* ── Translator ── */}
+        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: t.text.tertiary, marginTop: 32, marginBottom: 4 }}>Translator</div>
+        <div style={{ fontSize: 12, color: t.text.tertiary, marginBottom: 16 }}>Rewrite any text in your brand voice.</div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 12 }}>
+          <div>
+            <label style={labelStyle}>Input</label>
+            <textarea value={translateInput} onChange={e => setTranslateInput(e.target.value)} placeholder="Paste any text — an email draft, a tagline, a paragraph..." rows={6} style={{ ...inputStyle, resize: "vertical" as const, minHeight: 140 }} onFocus={focusH as any} onBlur={blurH as any} />
+          </div>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+              <label style={labelStyle}>In your voice</label>
+              {translateOutput && <button onClick={handleCopy} style={{ fontSize: 11, color: copied ? t.status.success : t.text.tertiary, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}>{copied ? "Copied" : "Copy"}</button>}
+            </div>
+            <textarea value={translateOutput} readOnly placeholder={translating ? "Translating..." : "Translation appears here..."} rows={6} style={{ ...inputStyle, resize: "vertical" as const, minHeight: 140, background: t.bg.surface, color: translateOutput ? t.text.primary : t.text.tertiary }} />
+          </div>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button onClick={handleTranslate} disabled={!translateInput.trim() || translating} style={{ padding: "8px 18px", fontSize: 13, fontWeight: 500, borderRadius: 6, border: "none", fontFamily: "inherit", cursor: (!translateInput.trim() || translating) ? "default" : "pointer", background: (!translateInput.trim() || translating) ? t.bg.surfaceHover : "#2563eb", color: (!translateInput.trim() || translating) ? t.text.tertiary : "#fff", transition: "all 150ms" }}>{translating ? "Translating..." : "Translate"}</button>
+          {translateError && <span style={{ fontSize: 12, color: "#dc2626" }}>{translateError}</span>}
         </div>
       </div>
     </div>
