@@ -198,94 +198,124 @@ export default function AgencyBrandVoice() {
         <SectionLabel>Brand Voice</SectionLabel>
         {saved && <span style={{ fontSize: 11, color: t.status.success, fontWeight: 500, display: "flex", alignItems: "center", gap: 4 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="4 12 9 17 20 6"/></svg>Saved</span>}
       </div>
-      <div style={{ fontSize: 12, color: t.text.tertiary, marginBottom: 12 }}>Powers tone across Quote PDFs, Email signatures, and AI-generated content.</div>
+      <div style={{ fontSize: 12, color: t.text.tertiary, marginBottom: 16 }}>Powers tone across Quote PDFs, Email signatures, and AI-generated content.</div>
 
-      <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 5fr) minmax(0, 7fr)", gap: 32, alignItems: "start" }} className="bv-grid">
+        {/* LEFT COLUMN — Config */}
+        <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
 
-        {/* ── Identity ── */}
-        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: t.text.tertiary, marginTop: 8, marginBottom: 12 }}>Identity</div>
+          {/* Identity */}
+          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: t.text.tertiary, marginBottom: 12 }}>Identity</div>
 
-        <div style={{ marginBottom: 20 }}>
-          <label style={labelStyle}>Elevator pitch</label>
-          <textarea value={voice.elevatorPitch} onChange={e => update("elevatorPitch", e.target.value)} placeholder="One sentence: who you serve and what changes" rows={3} style={{ ...inputStyle, resize: "vertical" as const }} onFocus={focusH as any} onBlur={blurH as any} />
-        </div>
-
-        <div style={{ marginBottom: 20 }}>
-          <label style={labelStyle}>Value propositions</label>
-          <input value={(voice.valueProps || []).join(", ")} onChange={e => update("valueProps", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="Words you'd hear on a sales call" style={inputStyle} onFocus={focusH} onBlur={blurH} />
-          <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 4 }}>Comma-separated</div>
-        </div>
-
-        <div style={{ marginBottom: 20 }}>
-          <label style={labelStyle}>Competitive differentiator</label>
-          <input value={voice.differentiator} onChange={e => update("differentiator", e.target.value)} placeholder="What others can't say about themselves" style={inputStyle} onFocus={focusH} onBlur={blurH} />
-        </div>
-
-        {/* ── Audience ── */}
-        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: t.text.tertiary, marginTop: 24, marginBottom: 12 }}>Audience</div>
-
-        <div style={{ marginBottom: 20 }}>
-          <label style={labelStyle}>Target customer</label>
-          <input value={voice.targetCustomer} onChange={e => update("targetCustomer", e.target.value)} placeholder="The person writing the check" style={inputStyle} onFocus={focusH} onBlur={blurH} />
-        </div>
-
-        {/* ── Voice mechanics ── */}
-        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: t.text.tertiary, marginTop: 24, marginBottom: 12 }}>Voice mechanics</div>
-
-        <div style={{ marginBottom: 20 }}>
-          <label style={labelStyle}>Tone</label>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-            {[...tones].sort((a, b) => a.priority - b.priority).map(tone => (
-              <span key={tone.name} style={{
-                padding: "6px 14px", fontSize: 13, borderRadius: 6, fontFamily: "inherit", position: "relative" as const,
-                border: "1.5px solid #2563eb", background: "rgba(37,99,235,0.04)", color: "#2563eb",
-                display: "inline-flex", alignItems: "center", gap: 6,
-              }}>
-                {tone.name}
-                <span style={{ position: "absolute", top: -6, right: -6, width: 16, height: 16, borderRadius: "50%", background: "#2563eb", color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{tone.priority}</span>
-                <button onClick={() => removeTone(tone.name)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "#2563eb", fontSize: 14, lineHeight: 1, fontFamily: "inherit", display: "flex", alignItems: "center" }}>&times;</button>
-              </span>
-            ))}
-            <input
-              value={toneInput}
-              onChange={e => setToneInput(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTone(toneInput); setToneInput(""); } }}
-              placeholder="Add a tone..."
-              style={{ ...inputStyle, width: 160 }}
-              onFocus={focusH}
-              onBlur={blurH}
-            />
+          <div style={{ marginBottom: 20 }}>
+            <label style={labelStyle}>Elevator pitch</label>
+            <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: -2, marginBottom: 6 }}>Used to frame what you do in quotes and cold outreach.</div>
+            <textarea value={voice.elevatorPitch} onChange={e => update("elevatorPitch", e.target.value)} placeholder="One sentence: who you serve and what changes" rows={3} style={{ ...inputStyle, resize: "vertical" as const }} onFocus={focusH as any} onBlur={blurH as any} />
           </div>
-          <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 6 }}>{tones.length === 0 ? "Type a tone and hit Enter — priority = order added" : `${tones.length} tone${tones.length === 1 ? "" : "s"} set — click \u00d7 to remove`}</div>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
-          <div><label style={labelStyle}>Key phrases to use</label><input value={(voice.keyPhrases || []).join(", ")} onChange={e => update("keyPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="Vocabulary you reach for" style={inputStyle} onFocus={focusH} onBlur={blurH} /></div>
-          <div><label style={labelStyle}>Phrases to avoid</label><input value={(voice.avoidPhrases || []).join(", ")} onChange={e => update("avoidPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="Words that drift off-brand" style={inputStyle} onFocus={focusH} onBlur={blurH} /></div>
+
+          <div style={{ marginBottom: 20 }}>
+            <label style={labelStyle}>Value propositions</label>
+            <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: -2, marginBottom: 6 }}>The 3–5 things you always come back to on sales calls.</div>
+            <input value={(voice.valueProps || []).join(", ")} onChange={e => update("valueProps", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="Words you'd hear on a sales call" style={inputStyle} onFocus={focusH} onBlur={blurH} />
+            <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 4 }}>Comma-separated</div>
+          </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <label style={labelStyle}>Competitive differentiator</label>
+            <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: -2, marginBottom: 6 }}>What you say that competitors can't say back.</div>
+            <input value={voice.differentiator} onChange={e => update("differentiator", e.target.value)} placeholder="What others can't say about themselves" style={inputStyle} onFocus={focusH} onBlur={blurH} />
+          </div>
+
+          {/* Audience */}
+          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: t.text.tertiary, marginTop: 24, marginBottom: 12 }}>Audience</div>
+
+          <div style={{ marginBottom: 20 }}>
+            <label style={labelStyle}>Target customer</label>
+            <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: -2, marginBottom: 6 }}>The person making the buying decision — not just the end user.</div>
+            <input value={voice.targetCustomer} onChange={e => update("targetCustomer", e.target.value)} placeholder="The person writing the check" style={inputStyle} onFocus={focusH} onBlur={blurH} />
+          </div>
+
+          {/* Voice mechanics */}
+          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: t.text.tertiary, marginTop: 24, marginBottom: 12 }}>Voice mechanics</div>
+
+          <div style={{ marginBottom: 20 }}>
+            <label style={labelStyle}>Tone</label>
+            <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: -2, marginBottom: 6 }}>Words that describe HOW you sound. Priority = dominance.</div>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+              {[...tones].sort((a, b) => a.priority - b.priority).map(tone => (
+                <span key={tone.name} style={{
+                  padding: "6px 14px", fontSize: 13, borderRadius: 6, fontFamily: "inherit", position: "relative" as const,
+                  border: "1.5px solid #2563eb", background: "rgba(37,99,235,0.04)", color: "#2563eb",
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                }}>
+                  {tone.name}
+                  <span style={{ position: "absolute", top: -6, right: -6, width: 16, height: 16, borderRadius: "50%", background: "#2563eb", color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{tone.priority}</span>
+                  <button onClick={() => removeTone(tone.name)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "#2563eb", fontSize: 14, lineHeight: 1, fontFamily: "inherit", display: "flex", alignItems: "center" }}>&times;</button>
+                </span>
+              ))}
+              <input
+                value={toneInput}
+                onChange={e => setToneInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTone(toneInput); setToneInput(""); } }}
+                placeholder="Add a tone..."
+                style={{ ...inputStyle, width: 160 }}
+                onFocus={focusH}
+                onBlur={blurH}
+              />
+            </div>
+            <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 6 }}>{tones.length === 0 ? "Type a tone and hit Enter — priority = order added" : `${tones.length} tone${tones.length === 1 ? "" : "s"} set — click \u00d7 to remove`}</div>
+          </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <label style={labelStyle}>Key phrases to use</label>
+            <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: -2, marginBottom: 6 }}>Vocabulary the AI should reach for when generating copy in your voice.</div>
+            <input value={(voice.keyPhrases || []).join(", ")} onChange={e => update("keyPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="e.g. spine, scale, ship" style={inputStyle} onFocus={focusH} onBlur={blurH} />
+            <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 4 }}>Comma-separated</div>
+          </div>
+
+          <div style={{ marginBottom: 0 }}>
+            <label style={labelStyle}>Phrases to avoid</label>
+            <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: -2, marginBottom: 6 }}>Words or phrases that feel off-brand — the AI will steer around them.</div>
+            <input value={(voice.avoidPhrases || []).join(", ")} onChange={e => update("avoidPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="e.g. synergy, leverage, cutting-edge" style={inputStyle} onFocus={focusH} onBlur={blurH} />
+            <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 4 }}>Comma-separated</div>
+          </div>
+
         </div>
 
-        {/* ── Translator ── */}
-        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: t.text.tertiary, marginTop: 32, marginBottom: 4 }}>Translator</div>
-        <div style={{ fontSize: 12, color: t.text.tertiary, marginBottom: 16 }}>Rewrite any text in your brand voice.</div>
+        {/* RIGHT COLUMN — Translator */}
+        <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 24, position: "sticky" as const, top: 24 }}>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 12 }}>
-          <div>
+          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: "#2563eb", marginBottom: 4 }}>Translator</div>
+          <div style={{ fontSize: 12, color: t.text.tertiary, marginBottom: 16 }}>Paste any text. Get it back in your voice.</div>
+
+          <div style={{ marginBottom: 12 }}>
             <label style={labelStyle}>Input</label>
-            <textarea value={translateInput} onChange={e => setTranslateInput(e.target.value)} placeholder="Paste any text — an email draft, a tagline, a paragraph..." rows={6} style={{ ...inputStyle, resize: "vertical" as const, minHeight: 140 }} onFocus={focusH as any} onBlur={blurH as any} />
+            <textarea value={translateInput} onChange={e => setTranslateInput(e.target.value)} placeholder="Paste an email draft, a tagline, a paragraph..." rows={8} style={{ ...inputStyle, resize: "vertical" as const, minHeight: 180 }} onFocus={focusH as any} onBlur={blurH as any} />
           </div>
-          <div>
+
+          <div style={{ marginBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
               <label style={labelStyle}>In your voice</label>
               {translateOutput && <button onClick={handleCopy} style={{ fontSize: 11, color: copied ? t.status.success : t.text.tertiary, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}>{copied ? "Copied" : "Copy"}</button>}
             </div>
-            <textarea value={translateOutput} readOnly placeholder={translating ? "Translating..." : "Translation appears here..."} rows={6} style={{ ...inputStyle, resize: "vertical" as const, minHeight: 140, background: t.bg.surface, color: translateOutput ? t.text.primary : t.text.tertiary }} />
+            <textarea value={translateOutput} readOnly placeholder={translating ? "Translating..." : "Translation appears here..."} rows={8} style={{ ...inputStyle, resize: "vertical" as const, minHeight: 180, background: t.bg.surfaceHover || t.bg.surface, color: translateOutput ? t.text.primary : t.text.tertiary }} />
           </div>
-        </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <button onClick={handleTranslate} disabled={!translateInput.trim() || translating} style={{ padding: "8px 18px", fontSize: 13, fontWeight: 500, borderRadius: 6, border: "none", fontFamily: "inherit", cursor: (!translateInput.trim() || translating) ? "default" : "pointer", background: (!translateInput.trim() || translating) ? t.bg.surfaceHover : "#2563eb", color: (!translateInput.trim() || translating) ? t.text.tertiary : "#fff", transition: "all 150ms" }}>{translating ? "Translating..." : "Translate"}</button>
-          {translateError && <span style={{ fontSize: 12, color: "#dc2626" }}>{translateError}</span>}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button onClick={handleTranslate} disabled={!translateInput.trim() || translating} style={{ padding: "10px 20px", fontSize: 13, fontWeight: 500, borderRadius: 6, border: "none", fontFamily: "inherit", cursor: (!translateInput.trim() || translating) ? "default" : "pointer", background: (!translateInput.trim() || translating) ? t.bg.surfaceHover : "#2563eb", color: (!translateInput.trim() || translating) ? t.text.tertiary : "#fff", transition: "all 150ms" }}>{translating ? "Translating..." : "Translate"}</button>
+            {translateError && <span style={{ fontSize: 12, color: "#dc2626" }}>{translateError}</span>}
+          </div>
+
         </div>
       </div>
+
+      {/* Responsive stack for narrow screens */}
+      <style>{`
+        @media (max-width: 1200px) {
+          .bv-grid { grid-template-columns: 1fr !important; }
+          .bv-grid > div:nth-child(2) { position: static !important; }
+        }
+      `}</style>
     </div>
   );
 }
