@@ -133,15 +133,6 @@ export default function AgencyBrandVoice() {
 
   if (!loaded) return null;
 
-  const FieldLabel = ({ children, hint }: { children: React.ReactNode; hint?: string }) => (
-    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-      <label style={labelStyle}>{children}</label>
-      {hint && (
-        <span title={hint} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 14, height: 14, borderRadius: "50%", border: `1px solid ${t.border.default}`, color: t.text.tertiary, fontSize: 9, fontWeight: 600, cursor: "help", fontFamily: "inherit" }}>i</span>
-      )}
-    </div>
-  );
-
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "8px 12px", fontSize: 13, borderRadius: 8,
     border: `1px solid ${t.border.default}`, background: t.bg.primary,
@@ -164,40 +155,39 @@ export default function AgencyBrandVoice() {
       </div>
 
       {activeTab === "voice" && (
-        <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
+        <div>
 
           {/* Identity */}
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: t.text.tertiary, marginBottom: 12 }}>Identity</div>
+          <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", color: t.text.primary, marginBottom: 12 }}>Identity</div>
 
           <div style={{ marginBottom: 20 }}>
-            <FieldLabel hint="Used to frame what you do in quotes and cold outreach.">Elevator pitch</FieldLabel>
+            <label style={labelStyle}>Elevator pitch</label>
             <textarea value={voice.elevatorPitch} onChange={e => update("elevatorPitch", e.target.value)} placeholder="One sentence: who you serve and what changes" rows={3} style={{ ...inputStyle, resize: "vertical" as const }} onFocus={focusH as any} onBlur={blurH as any} />
           </div>
 
           <div style={{ marginBottom: 20 }}>
-            <FieldLabel hint="The 3–5 things you always come back to on sales calls.">Value propositions</FieldLabel>
-            <input value={(voice.valueProps || []).join(", ")} onChange={e => update("valueProps", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="Words you'd hear on a sales call" style={inputStyle} onFocus={focusH} onBlur={blurH} />
-            <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 4 }}>Comma-separated</div>
+            <label style={labelStyle}>Value propositions</label>
+            <input value={(voice.valueProps || []).join(", ")} onChange={e => update("valueProps", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="Fast, strategic, no-BS" style={inputStyle} onFocus={focusH} onBlur={blurH} />
           </div>
 
           <div style={{ marginBottom: 20 }}>
-            <FieldLabel hint="What you say that competitors can't say back.">Competitive differentiator</FieldLabel>
+            <label style={labelStyle}>Competitive differentiator</label>
             <input value={voice.differentiator} onChange={e => update("differentiator", e.target.value)} placeholder="What others can't say about themselves" style={inputStyle} onFocus={focusH} onBlur={blurH} />
           </div>
 
           {/* Audience */}
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: t.text.tertiary, marginTop: 24, marginBottom: 12 }}>Audience</div>
+          <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", color: t.text.primary, marginTop: 24, marginBottom: 12 }}>Audience</div>
 
           <div style={{ marginBottom: 20 }}>
-            <FieldLabel hint="The person making the buying decision — not just the end user.">Target customer</FieldLabel>
+            <label style={labelStyle}>Target customer</label>
             <input value={voice.targetCustomer} onChange={e => update("targetCustomer", e.target.value)} placeholder="The person writing the check" style={inputStyle} onFocus={focusH} onBlur={blurH} />
           </div>
 
           {/* Voice mechanics */}
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: t.text.tertiary, marginTop: 24, marginBottom: 12 }}>Voice mechanics</div>
+          <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", color: t.text.primary, marginTop: 24, marginBottom: 12 }}>Voice mechanics</div>
 
           <div style={{ marginBottom: 20 }}>
-            <FieldLabel hint="Words that describe HOW you sound. Priority = dominance.">Tone</FieldLabel>
+            <label style={labelStyle}>Tone</label>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
               {[...tones].sort((a, b) => a.priority - b.priority).map(tone => (
                 <span key={tone.name} style={{
@@ -224,22 +214,20 @@ export default function AgencyBrandVoice() {
           </div>
 
           <div style={{ marginBottom: 20 }}>
-            <FieldLabel hint="Vocabulary the AI should reach for when generating copy in your voice.">Key phrases to use</FieldLabel>
-            <input value={(voice.keyPhrases || []).join(", ")} onChange={e => update("keyPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="e.g. spine, scale, ship" style={inputStyle} onFocus={focusH} onBlur={blurH} />
-            <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 4 }}>Comma-separated</div>
+            <label style={labelStyle}>Key phrases to use</label>
+            <input value={(voice.keyPhrases || []).join(", ")} onChange={e => update("keyPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="spine, scale, ship" style={inputStyle} onFocus={focusH} onBlur={blurH} />
           </div>
 
           <div>
-            <FieldLabel hint="Words or phrases that feel off-brand — the AI will steer around them.">Phrases to avoid</FieldLabel>
-            <input value={(voice.avoidPhrases || []).join(", ")} onChange={e => update("avoidPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="e.g. synergy, leverage, cutting-edge" style={inputStyle} onFocus={focusH} onBlur={blurH} />
-            <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 4 }}>Comma-separated</div>
+            <label style={labelStyle}>Phrases to avoid</label>
+            <input value={(voice.avoidPhrases || []).join(", ")} onChange={e => update("avoidPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="synergy, leverage, cutting-edge" style={inputStyle} onFocus={focusH} onBlur={blurH} />
           </div>
 
         </div>
       )}
 
       {activeTab === "translator" && (
-        <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
+        <div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 16 }}>
             <div>
