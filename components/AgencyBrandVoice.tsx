@@ -145,18 +145,13 @@ export default function AgencyBrandVoice() {
 
   return (
     <div style={{ marginTop: 32 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-        <SectionLabel>Brand Voice</SectionLabel>
-        {saved && <span style={{ fontSize: 11, color: t.status.success, fontWeight: 500, display: "flex", alignItems: "center", gap: 4 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="4 12 9 17 20 6"/></svg>Saved</span>}
-      </div>
-      <div style={{ fontSize: 12, color: t.text.tertiary, marginBottom: 16 }}>{activeTab === "voice" ? "Define how your brand sounds — identity, audience, and vocabulary." : "Paste any text and see it rewritten in your brand voice."}</div>
-
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <SegmentedControl
           tabs={[{ key: "voice", label: "Voice" }, { key: "translator", label: "Translator" }]}
           activeTab={activeTab}
           onChange={(key) => setActiveTab(key as "voice" | "translator")}
         />
+        {saved && <span style={{ fontSize: 11, color: t.status.success, fontWeight: 500, display: "flex", alignItems: "center", gap: 4 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="4 12 9 17 20 6"/></svg>Saved</span>}
       </div>
 
       {activeTab === "voice" && (
