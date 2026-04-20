@@ -95,7 +95,7 @@ export default function AgencyBrandVoice() {
 
   const addTone = (name: string) => {
     const trimmed = name.trim();
-    if (!trimmed || tones.length >= 3) return;
+    if (!trimmed) return;
     if (tones.find(t => t.name.toLowerCase() === trimmed.toLowerCase())) return;
     const updated = [...tones, { name: trimmed, priority: tones.length + 1 }];
     setTones(updated);
@@ -202,38 +202,6 @@ export default function AgencyBrandVoice() {
 
       <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
 
-        {/* ── Tone ── */}
-        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: t.text.tertiary, marginBottom: 12 }}>Tone</div>
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-            {[...tones].sort((a, b) => a.priority - b.priority).map(tone => (
-              <span key={tone.name} style={{
-                padding: "6px 14px", fontSize: 13, borderRadius: 6, fontFamily: "inherit", position: "relative" as const,
-                border: "1.5px solid #2563eb", background: "rgba(37,99,235,0.04)", color: "#2563eb",
-                display: "inline-flex", alignItems: "center", gap: 6,
-              }}>
-                {tone.name}
-                <span style={{ position: "absolute", top: -6, right: -6, width: 16, height: 16, borderRadius: "50%", background: "#2563eb", color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{tone.priority}</span>
-                <button onClick={() => removeTone(tone.name)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "#2563eb", fontSize: 14, lineHeight: 1, fontFamily: "inherit", display: "flex", alignItems: "center" }}>&times;</button>
-              </span>
-            ))}
-            {tones.length < 3 && (
-              <input
-                value={toneInput}
-                onChange={e => setToneInput(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTone(toneInput); setToneInput(""); } }}
-                placeholder="Add a tone..."
-                style={{ ...inputStyle, width: 160 }}
-                onFocus={focusH}
-                onBlur={blurH}
-              />
-            )}
-          </div>
-          <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 6 }}>
-            {tones.length === 0 ? "Type a tone and hit Enter (e.g. Confident, Playful)" : tones.length === 1 ? "Add up to 2 more tones in priority order" : tones.length === 2 ? "Add 1 more for an accent tone (optional)" : "3 tones set — click \u00d7 to remove"}
-          </div>
-        </div>
-
         {/* ── Identity ── */}
         <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: t.text.tertiary, marginTop: 8, marginBottom: 12 }}>Identity</div>
 
@@ -263,6 +231,33 @@ export default function AgencyBrandVoice() {
 
         {/* ── Voice mechanics ── */}
         <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: t.text.tertiary, marginTop: 24, marginBottom: 12 }}>Voice mechanics</div>
+
+        <div style={{ marginBottom: 20 }}>
+          <label style={labelStyle}>Tone</label>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+            {[...tones].sort((a, b) => a.priority - b.priority).map(tone => (
+              <span key={tone.name} style={{
+                padding: "6px 14px", fontSize: 13, borderRadius: 6, fontFamily: "inherit", position: "relative" as const,
+                border: "1.5px solid #2563eb", background: "rgba(37,99,235,0.04)", color: "#2563eb",
+                display: "inline-flex", alignItems: "center", gap: 6,
+              }}>
+                {tone.name}
+                <span style={{ position: "absolute", top: -6, right: -6, width: 16, height: 16, borderRadius: "50%", background: "#2563eb", color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{tone.priority}</span>
+                <button onClick={() => removeTone(tone.name)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "#2563eb", fontSize: 14, lineHeight: 1, fontFamily: "inherit", display: "flex", alignItems: "center" }}>&times;</button>
+              </span>
+            ))}
+            <input
+              value={toneInput}
+              onChange={e => setToneInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTone(toneInput); setToneInput(""); } }}
+              placeholder="Add a tone..."
+              style={{ ...inputStyle, width: 160 }}
+              onFocus={focusH}
+              onBlur={blurH}
+            />
+          </div>
+          <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 6 }}>{tones.length === 0 ? "Type a tone and hit Enter — priority = order added" : `${tones.length} tone${tones.length === 1 ? "" : "s"} set — click \u00d7 to remove`}</div>
+        </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
           <div><label style={labelStyle}>Key phrases to use</label><input value={(voice.keyPhrases || []).join(", ")} onChange={e => update("keyPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="Vocabulary you reach for" style={inputStyle} onFocus={focusH} onBlur={blurH} /></div>
           <div><label style={labelStyle}>Phrases to avoid</label><input value={(voice.avoidPhrases || []).join(", ")} onChange={e => update("avoidPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="Words that drift off-brand" style={inputStyle} onFocus={focusH} onBlur={blurH} /></div>
