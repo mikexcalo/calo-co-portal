@@ -55,7 +55,7 @@ function getNoteUrgency(text: string, createdAt: string): 'overdue' | 'due-today
 
 export default function Home() {
   const router = useRouter();
-  const { t } = useTheme();
+  const { t, theme: themeName } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [greeting, setGreeting] = useState('Good morning');
   const [dateline, setDateline] = useState('');
@@ -151,6 +151,8 @@ export default function Home() {
   const animCollected = useCountUp(paidMTD);
 
   if (isLoading) return null;
+
+  const awaitingInvs = DB.invoices.filter((i) => i.status === 'unpaid' || i.status === 'overdue');
 
   // Data
   const openTasks = allTasks.filter((tk) => tk.type === 'task' && tk.status === 'open')
@@ -272,16 +274,84 @@ export default function Home() {
 
   return (
     <PageShell>
-      <PageHeader
-        title={greeting}
-        subtitle={dateline}
-        action={
-          <div style={{ display: 'flex', gap: 8 }}>
-            <GhostButton onClick={() => router.push('/clients/new')}>+ New client</GhostButton>
-            <GhostButton onClick={() => { if (DB.clients[0]) router.push(`/clients/${DB.clients[0].id}/invoices/new`); }}>+ Invoice</GhostButton>
-          </div>
-        }
-      />
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        style={{
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'space-between',
+          marginBottom: 24,
+        }}
+      >
+        <div>
+          <h1 style={{
+            fontSize: 34,
+            fontWeight: 400,
+            margin: '0 0 4px',
+            color: t.text.primary,
+            letterSpacing: '-0.5px',
+            lineHeight: 1.1,
+          }}>
+            {greeting}
+          </h1>
+          <p style={{ fontSize: 13, color: t.text.secondary, margin: 0 }}>
+            {DB.clients.length} {DB.clients.length === 1 ? 'client' : 'clients'} on deck
+            {awaitingInvs.length > 0 && (
+              <>
+                {' \u00b7 '}
+                <span style={{ color: '#8B6F47' }}>
+                  {awaitingInvs.length === 1 ? '1 invoice' : `${awaitingInvs.length} invoices`} awaiting payment
+                </span>
+              </>
+            )}
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => router.push('/clients/new')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: t.bg.surface,
+              color: t.text.primary,
+              border: `0.5px solid ${t.border.default}`,
+              borderRadius: 8,
+              padding: '7px 14px',
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'background 150ms',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = t.bg.surfaceHover; }}
+            onMouseLeave={e => { e.currentTarget.style.background = t.bg.surface; }}
+          >
+            + New client
+          </button>
+          <button
+            onClick={() => { if (DB.clients[0]) router.push(`/clients/${DB.clients[0].id}/invoices/new`); }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: t.text.primary,
+              color: t.text.inverse,
+              border: `0.5px solid ${t.text.primary}`,
+              borderRadius: 8,
+              padding: '7px 14px',
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            + Invoice
+          </button>
+        </div>
+      </motion.div>
 
       {/* Alert band — awaiting payment > drafts */}
       {(() => {
@@ -298,14 +368,14 @@ export default function Home() {
           return (
             <div style={{ marginBottom: 16 }}>
               <div onClick={() => router.push('/invoices')}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', background: 'rgba(245,158,11,0.08)', borderLeft: `3px solid ${t.status.warning}`, borderRadius: 6, cursor: 'pointer', transition: 'background 120ms' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(245,158,11,0.12)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(245,158,11,0.08)'; }}>
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', background: 'rgba(139,111,71,0.07)', borderLeft: '3px solid #8B6F47', borderRadius: 6, cursor: 'pointer', transition: 'background 120ms' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(139,111,71,0.11)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(139,111,71,0.07)'; }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0, flex: 1 }}>
-                  <div style={{ color: t.status.warning, fontSize: 13, fontWeight: 600, flexShrink: 0 }}>{count}</div>
+                  <div style={{ color: '#8B6F47', fontSize: 13, fontWeight: 600, flexShrink: 0 }}>{count}</div>
                   <div style={{ color: t.text.secondary, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{detail}</div>
                 </div>
-                <span style={{ color: t.status.warning, fontSize: 18, lineHeight: 1, flexShrink: 0 }}>→</span>
+                <span style={{ color: '#8B6F47', fontSize: 18, lineHeight: 1, flexShrink: 0 }}>→</span>
               </div>
             </div>
           );
@@ -394,37 +464,62 @@ export default function Home() {
             />
           </div>
           <SectionLabel>Notes</SectionLabel>
-          <div style={{ background: t.bg.surfaceHover, border: `0.5px solid ${t.border.default}`, borderRadius: 12, padding: 14 }}>
-            {noteItems.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {noteItems.slice(0, 3).map((item) => {
-                  const urg = getNoteUrgency(item.text, item.created || '');
-                  const urgColor = urg === 'overdue' ? '#E24B4A' : urg === 'due-today' ? '#f59e0b' : t.accent.primary;
-                  const urgLabel = urg === 'overdue' ? 'Overdue' : urg === 'due-today' ? 'Due today' : null;
-                  const ageText = item.age === 0 ? 'Today' : item.age === 1 ? '1 day ago' : `${item.age} days ago`;
-                  const iconColor = urg === 'normal' ? t.text.tertiary : urgColor;
-                  return (
-                    <div key={item.id} style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderLeft: `3px solid ${urgColor}`, borderRadius: 8, padding: '10px 12px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                      <div style={{ color: iconColor, flexShrink: 0, marginTop: 1, display: 'flex' }}>{ic.pencil}</div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, color: t.text.primary, lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any, overflow: 'hidden', marginBottom: 4 }}>{item.text}</div>
-                        <div style={{ fontSize: 11, color: t.text.tertiary, display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span>{item.client}</span><span>·</span>
-                          {urgLabel ? <span style={{ color: urgColor, fontWeight: 500 }}>{urgLabel}</span> : <span>{ageText}</span>}
-                        </div>
+          {noteItems.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {noteItems.slice(0, 3).map((item) => {
+                const urg = getNoteUrgency(item.text, item.created || '');
+                const urgColor = urg === 'overdue' ? '#E24B4A' : urg === 'due-today' ? '#f59e0b' : t.accent.primary;
+                const urgLabel = urg === 'overdue' ? 'Overdue' : urg === 'due-today' ? 'Due today' : null;
+                const ageText = item.age === 0 ? 'Today' : item.age === 1 ? '1 day ago' : `${item.age} days ago`;
+                const iconColor = urg === 'overdue' ? '#E24B4A' : urg === 'due-today' ? '#f59e0b' : 'rgba(139,111,71,0.55)';
+                const isLight = themeName === 'light';
+                const cardBg = isLight ? '#fffdf7' : t.bg.surface;
+                const cardBorder = isLight ? '0.5px solid rgba(139,111,71,0.18)' : `0.5px solid ${t.border.default}`;
+                return (
+                  <div key={item.id} style={{
+                    background: cardBg,
+                    border: cardBorder,
+                    borderLeft: `3px solid ${urgColor}`,
+                    borderRadius: 10,
+                    padding: '14px 16px',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 12,
+                    boxShadow: '0 2px 8px rgba(139,111,71,0.08), 0 1px 2px rgba(0,0,0,0.03)',
+                    transition: 'transform 150ms, box-shadow 150ms',
+                    cursor: 'default',
+                  }}>
+                    <div style={{ color: iconColor, flexShrink: 0, marginTop: 1, display: 'flex' }}>{ic.pencil}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontSize: 13.5,
+                        color: t.text.primary,
+                        lineHeight: 1.5,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical' as any,
+                        overflow: 'hidden',
+                        marginBottom: 8,
+                      }}>{item.text}</div>
+                      <div style={{ fontSize: 11, color: t.text.secondary, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>{item.client}</span>
+                        <span style={{ color: '#c9b896' }}>&middot;</span>
+                        {urgLabel ? <span style={{ color: urgColor, fontWeight: 500 }}>{urgLabel}</span> : <span>{ageText}</span>}
                       </div>
-                      <button title="Remove" onClick={() => handleTrash(item.id, item.text, 'note')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: t.text.tertiary, transition: 'color 150ms', flexShrink: 0, display: 'flex' }}
-                        onMouseEnter={(e) => e.currentTarget.style.color = t.status.danger} onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}>
-                        {ic.trash}
-                      </button>
                     </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div style={{ fontSize: 13, color: t.text.tertiary, padding: '8px 4px' }}>No notes yet. Type above to capture one.</div>
-            )}
-          </div>
+                    <button title="Remove" onClick={() => handleTrash(item.id, item.text, 'note')} style={{
+                      background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#c9b896', transition: 'color 150ms', flexShrink: 0, display: 'flex',
+                    }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = t.status.danger} onMouseLeave={(e) => e.currentTarget.style.color = '#c9b896'}>
+                      {ic.trash}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ fontSize: 13, color: t.text.tertiary, padding: '12px 4px' }}>No notes yet. Type above to capture one.</div>
+          )}
         </div>
       </div>
 
