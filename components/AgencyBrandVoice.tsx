@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useTheme } from "@/lib/theme";
 import { SectionLabel } from "@/components/shared/Brand";
+import SegmentedControl from "@/components/shared/SegmentedControl";
 import supabase from "@/lib/supabase";
 
 interface ToneEntry { name: string; priority: number; }
@@ -25,18 +26,6 @@ const empty: BrandVoiceData = {
   elevatorPitch: "", differentiator: "",
 };
 
-function SuggestionRow({ label, value, onAccept, t }: { label: string; value: string; onAccept: () => void; t: any }) {
-  return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "8px 0", borderBottom: `0.5px solid ${t.border.default}`, gap: 12 }}>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 11, fontWeight: 500, color: t.text.tertiary, marginBottom: 2 }}>{label}</div>
-        <div style={{ fontSize: 13, color: t.text.primary }}>{value}</div>
-      </div>
-      <button onClick={onAccept} style={{ padding: "3px 10px", fontSize: 11, fontWeight: 500, borderRadius: 4, border: `0.5px solid ${t.border.default}`, background: t.bg.surface, color: t.text.secondary, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>Accept</button>
-    </div>
-  );
-}
-
 export default function AgencyBrandVoice() {
   const { t } = useTheme();
   const [voice, setVoice] = useState<BrandVoiceData>(empty);
@@ -44,12 +33,6 @@ export default function AgencyBrandVoice() {
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
   const saveTimer = useRef<any>(null);
-
-  // AI analysis state
-  const [sourceText, setSourceText] = useState("");
-  const [sourceType, setSourceType] = useState<"transcript" | "website" | "copy" | "other">("transcript");
-  const [analyzing, setAnalyzing] = useState(false);
-  const [suggestions, setSuggestions] = useState<Record<string, any> | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -92,6 +75,7 @@ export default function AgencyBrandVoice() {
   const [translating, setTranslating] = useState(false);
   const [translateError, setTranslateError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState<"voice" | "translator">("voice");
 
   const addTone = (name: string) => {
     const trimmed = name.trim();
@@ -112,39 +96,6 @@ export default function AgencyBrandVoice() {
     const v = { ...voice, tones: updated };
     setVoice(v);
     save(v);
-  };
-
-  const handleAnalyze = async () => {
-    if (!sourceText.trim() || sourceText.length < 50) return;
-    setAnalyzing(true);
-    try {
-      const res = await fetch("/api/analyze-voice", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: sourceText, sourceType }),
-      });
-      if (!res.ok) throw new Error("Analysis failed");
-      setSuggestions(await res.json());
-    } catch (err) { console.error(err); }
-    finally { setAnalyzing(false); }
-  };
-
-  const acceptAll = () => {
-    if (!suggestions) return;
-    const updates: Record<string, any> = {};
-    if (suggestions.tones) { setTones(suggestions.tones); updates.tones = suggestions.tones; }
-    if (suggestions.industry) updates.industry = suggestions.industry;
-    if (suggestions.targetCustomer) updates.targetCustomer = suggestions.targetCustomer;
-    if (suggestions.elevatorPitch) updates.elevatorPitch = suggestions.elevatorPitch;
-    if (suggestions.valueProps) updates.valueProps = suggestions.valueProps;
-    if (suggestions.keyPhrases) updates.keyPhrases = suggestions.keyPhrases;
-    if (suggestions.avoidPhrases) updates.avoidPhrases = suggestions.avoidPhrases;
-    if (suggestions.differentiator) updates.differentiator = suggestions.differentiator;
-    const merged = { ...voice, ...updates };
-    setVoice(merged);
-    save(merged);
-    setSuggestions(null);
-    setSourceText("");
   };
 
   const handleTranslate = async () => {
@@ -198,10 +149,17 @@ export default function AgencyBrandVoice() {
         <SectionLabel>Brand Voice</SectionLabel>
         {saved && <span style={{ fontSize: 11, color: t.status.success, fontWeight: 500, display: "flex", alignItems: "center", gap: 4 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="4 12 9 17 20 6"/></svg>Saved</span>}
       </div>
-      <div style={{ fontSize: 12, color: t.text.tertiary, marginBottom: 16 }}>Powers tone across Quote PDFs, Email signatures, and AI-generated content.</div>
+      <div style={{ fontSize: 12, color: t.text.tertiary, marginBottom: 16 }}>{activeTab === "voice" ? "Define how your brand sounds — identity, audience, and vocabulary." : "Paste any text and see it rewritten in your brand voice."}</div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 5fr) minmax(0, 7fr)", gap: 32, alignItems: "start" }} className="bv-grid">
-        {/* LEFT COLUMN — Config */}
+      <div style={{ marginBottom: 20 }}>
+        <SegmentedControl
+          tabs={[{ key: "voice", label: "Voice" }, { key: "translator", label: "Translator" }]}
+          activeTab={activeTab}
+          onChange={(key) => setActiveTab(key as "voice" | "translator")}
+        />
+      </div>
+
+      {activeTab === "voice" && (
         <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
 
           {/* Identity */}
@@ -273,7 +231,7 @@ export default function AgencyBrandVoice() {
             <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 4 }}>Comma-separated</div>
           </div>
 
-          <div style={{ marginBottom: 0 }}>
+          <div>
             <label style={labelStyle}>Phrases to avoid</label>
             <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: -2, marginBottom: 6 }}>Words or phrases that feel off-brand — the AI will steer around them.</div>
             <input value={(voice.avoidPhrases || []).join(", ")} onChange={e => update("avoidPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="e.g. synergy, leverage, cutting-edge" style={inputStyle} onFocus={focusH} onBlur={blurH} />
@@ -281,24 +239,23 @@ export default function AgencyBrandVoice() {
           </div>
 
         </div>
+      )}
 
-        {/* RIGHT COLUMN — Translator */}
-        <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 24, position: "sticky" as const, top: 24 }}>
+      {activeTab === "translator" && (
+        <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 12, padding: 24 }}>
 
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: "#2563eb", marginBottom: 4 }}>Translator</div>
-          <div style={{ fontSize: 12, color: t.text.tertiary, marginBottom: 16 }}>Paste any text. Get it back in your voice.</div>
-
-          <div style={{ marginBottom: 12 }}>
-            <label style={labelStyle}>Input</label>
-            <textarea value={translateInput} onChange={e => setTranslateInput(e.target.value)} placeholder="Paste an email draft, a tagline, a paragraph..." rows={8} style={{ ...inputStyle, resize: "vertical" as const, minHeight: 180 }} onFocus={focusH as any} onBlur={blurH as any} />
-          </div>
-
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-              <label style={labelStyle}>In your voice</label>
-              {translateOutput && <button onClick={handleCopy} style={{ fontSize: 11, color: copied ? t.status.success : t.text.tertiary, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}>{copied ? "Copied" : "Copy"}</button>}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 16 }}>
+            <div>
+              <label style={labelStyle}>Input</label>
+              <textarea value={translateInput} onChange={e => setTranslateInput(e.target.value)} placeholder="Paste an email draft, a tagline, a paragraph..." rows={12} style={{ ...inputStyle, resize: "vertical" as const, minHeight: 280 }} onFocus={focusH as any} onBlur={blurH as any} />
             </div>
-            <textarea value={translateOutput} readOnly placeholder={translating ? "Translating..." : "Translation appears here..."} rows={8} style={{ ...inputStyle, resize: "vertical" as const, minHeight: 180, background: t.bg.surfaceHover || t.bg.surface, color: translateOutput ? t.text.primary : t.text.tertiary }} />
+            <div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                <label style={labelStyle}>In your voice</label>
+                {translateOutput && <button onClick={handleCopy} style={{ fontSize: 11, color: copied ? t.status.success : t.text.tertiary, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}>{copied ? "Copied" : "Copy"}</button>}
+              </div>
+              <textarea value={translateOutput} readOnly placeholder={translating ? "Translating..." : "Translation appears here..."} rows={12} style={{ ...inputStyle, resize: "vertical" as const, minHeight: 280, background: t.bg.surfaceHover || t.bg.surface, color: translateOutput ? t.text.primary : t.text.tertiary }} />
+            </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -307,15 +264,7 @@ export default function AgencyBrandVoice() {
           </div>
 
         </div>
-      </div>
-
-      {/* Responsive stack for narrow screens */}
-      <style>{`
-        @media (max-width: 1200px) {
-          .bv-grid { grid-template-columns: 1fr !important; }
-          .bv-grid > div:nth-child(2) { position: static !important; }
-        }
-      `}</style>
+      )}
     </div>
   );
 }
