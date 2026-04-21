@@ -5,7 +5,7 @@ import { useTheme } from "@/lib/theme";
 import { motion } from "framer-motion";
 import BrandKit from "@/components/shared/BrandKit";
 import HelmBrandPalette from "@/components/brand/HelmBrandPalette";
-import AgencyBrandVoice from "@/components/AgencyBrandVoice";
+import AgencyBrandIdentity from "@/components/AgencyBrandIdentity";
 import SegmentedControl from "@/components/shared/SegmentedControl";
 import BrandKitLayout from "@/components/BrandKitLayout";
 
@@ -14,7 +14,7 @@ const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transit
 
 export default function BrandKitPage() {
   const { t } = useTheme();
-  const [activeTab, setActiveTab] = useState<"verbal" | "visual">("verbal");
+  const [activeTab, setActiveTab] = useState<"identity" | "visual" | "messaging">("identity");
 
   return (
     <BrandKitLayout selectedKitId="agency">
@@ -71,16 +71,17 @@ export default function BrandKitPage() {
             </div>
           </motion.div>
 
-          {/* Verbal / Visual tabs */}
+          {/* Identity / Visual / Messaging tabs */}
           <motion.div variants={fadeUp} style={{ marginBottom: 20 }}>
             <SegmentedControl
               tabs={[
                 {
-                  key: "verbal",
-                  label: "Verbal",
+                  key: "identity",
+                  label: "Identity",
                   icon: (
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M2.5 3.5h11a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H6l-3 2.5v-2.5H2.5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z"/>
+                      <circle cx="8" cy="5.5" r="2.5"/>
+                      <path d="M3 13.5c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5"/>
                     </svg>
                   ),
                 },
@@ -95,15 +96,26 @@ export default function BrandKitPage() {
                     </svg>
                   ),
                 },
+                {
+                  key: "messaging",
+                  label: "Messaging",
+                  icon: (
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M2.5 3.5h11a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H6l-3 2.5v-2.5H2.5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z"/>
+                      <line x1="5" y1="6.5" x2="11" y2="6.5"/>
+                      <line x1="5" y1="9" x2="9" y2="9"/>
+                    </svg>
+                  ),
+                },
               ]}
               activeTab={activeTab}
-              onChange={(key) => setActiveTab(key as "verbal" | "visual")}
+              onChange={(key) => setActiveTab(key as "identity" | "visual" | "messaging")}
             />
           </motion.div>
 
-          {activeTab === "verbal" && (
+          {activeTab === "identity" && (
             <motion.div variants={fadeUp}>
-              <AgencyBrandVoice />
+              <AgencyBrandIdentity />
             </motion.div>
           )}
 
@@ -111,6 +123,17 @@ export default function BrandKitPage() {
             <motion.div variants={fadeUp}>
               <HelmBrandPalette />
               <BrandKit context={{ type: "agency" }} />
+            </motion.div>
+          )}
+
+          {activeTab === "messaging" && (
+            <motion.div variants={fadeUp}>
+              <div style={{ padding: "48px 0", textAlign: "center" }}>
+                <div style={{ fontSize: 14, color: t.text.secondary, marginBottom: 8 }}>Messaging library coming soon</div>
+                <div style={{ fontSize: 12, color: t.text.tertiary, maxWidth: 400, margin: "0 auto", lineHeight: 1.5 }}>
+                  Reusable copy chunks — taglines, boilerplate, social bios — that feed your quotes, invoices, and Rewriter.
+                </div>
+              </div>
             </motion.div>
           )}
         </motion.div>

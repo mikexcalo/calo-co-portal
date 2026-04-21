@@ -5,7 +5,7 @@ import { useTheme } from '@/lib/theme';
 import { motion } from 'framer-motion';
 import BrandKit from '@/components/shared/BrandKit';
 import HelmBrandPalette from '@/components/brand/HelmBrandPalette';
-import AgencyBrandVoice from '@/components/AgencyBrandVoice';
+import AgencyBrandIdentity from '@/components/AgencyBrandIdentity';
 import SegmentedControl from '@/components/shared/SegmentedControl';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
@@ -54,7 +54,7 @@ export default function AgencyBrandKitPage() {
 
         {activeTab === 'verbal' && (
           <motion.div variants={fadeUp}>
-            <AgencyBrandVoice />
+            <AgencyBrandIdentity />
           </motion.div>
         )}
 
