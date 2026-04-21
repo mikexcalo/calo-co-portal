@@ -9,12 +9,22 @@ import { PageShell, PageHeader } from "@/components/shared/Brand";
 
 const HELM_PALETTE = ["#006AFF", "#00C9A0", "#0EA8C1", "#DC2626", "#111113"];
 
-function hasLogos(c: any) { return c.brandKit?.logos && ["color", "light", "dark", "icon"].some((k: string) => c.brandKit.logos[k]?.length > 0); }
-function hasColors(c: any) { return (c.brandKit?.colors?.length || 0) >= 2; }
-function hasVoice(c: any) { return !!(c.brand_voice || c.brand_builder_fields?.brandVoice); }
-function hasTagline(c: any) { return !!c.brand_builder_fields?.tagline; }
-function getMissingCount(c: any) { return [hasLogos(c), hasColors(c), hasVoice(c), hasTagline(c)].filter(v => !v).length; }
-function countLogos(c: any) { const bk = c.brandKit; if (!bk?.logos) return 0; return ["color", "light", "dark", "icon"].reduce((s: number, k: string) => s + (bk.logos[k]?.length || 0), 0); }
+function countVariants(c: any): number {
+  const logos = c.brandKit?.logos;
+  if (!logos) return 0;
+  return ["color", "light", "dark", "icon"].filter((k: string) => logos[k]?.length > 0).length;
+}
+
+function computeMissing(c: any): string[] {
+  const missing: string[] = [];
+  const bv = c.brand_voice;
+  if (!bv?.elevatorPitch && !(bv?.tones?.length > 0)) missing.push("Voice");
+  const variants = countVariants(c);
+  if (variants < 4) missing.push(variants === 0 ? "Logos" : `Logo variants (${variants}/4)`);
+  if ((c.brandKit?.colors?.length || 0) < 2) missing.push("Colors");
+  if (!c.brandKit?.fonts?.heading) missing.push("Typography");
+  return missing;
+}
 
 function getSwatches(bk: any): string[] {
   if (!bk?.colors?.length) return [];
@@ -24,10 +34,9 @@ function getSwatches(bk: any): string[] {
 function getClientSubtitle(c: any) {
   const tagline = c.brand_builder_fields?.tagline;
   if (tagline) return tagline;
-  const lc = countLogos(c);
-  if (lc > 0) return `${lc} logo${lc === 1 ? "" : "s"} uploaded`;
-  if (getMissingCount(c) === 4) return "Nothing set up yet";
-  return "No tagline yet";
+  const v = countVariants(c);
+  if (v > 0) return `${v} of 4 variants`;
+  return "Not started";
 }
 
 export default function BrandKitPage() {
@@ -52,13 +61,10 @@ export default function BrandKitPage() {
   const isDark = theme === "dark";
 
   const getStatusInfo = (c: any) => {
-    const missing = getMissingCount(c);
-    if (missing === 0) {
-      const tagline = c.brand_builder_fields?.tagline;
-      return { label: tagline || "Complete", bg: "transparent", color: t.text.secondary };
-    }
-    if (missing === 4) return { label: "Needs everything", bg: isDark ? "rgba(242,92,92,0.12)" : "#FCEBEB", color: isDark ? "#F09595" : "#A32D2D" };
-    return { label: `Needs ${missing} item${missing === 1 ? "" : "s"}`, bg: isDark ? "rgba(239,159,39,0.12)" : "#FAEEDA", color: isDark ? "#EF9F27" : "#854F0B" };
+    const missing = computeMissing(c);
+    if (missing.length === 0) return { label: "Complete", bg: isDark ? "rgba(0,201,160,0.12)" : "rgba(0,201,160,0.08)", color: isDark ? "#00C9A0" : "#047857" };
+    if (missing.length >= 4) return { label: "Not started", bg: isDark ? "rgba(242,92,92,0.12)" : "#FCEBEB", color: isDark ? "#F09595" : "#A32D2D" };
+    return { label: `Missing: ${missing.join(", ")}`, bg: isDark ? "rgba(239,159,39,0.12)" : "#FAEEDA", color: isDark ? "#EF9F27" : "#854F0B" };
   };
 
   const th: React.CSSProperties = { fontSize: 10, fontWeight: 500, color: t.text.tertiary, textTransform: "uppercase", letterSpacing: "0.5px" };
@@ -68,13 +74,13 @@ export default function BrandKitPage() {
       <PageHeader title="Brand Kit" subtitle="Your agency identity and your clients' brands." />
 
       {/* Agency strip */}
+      <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", color: t.text.primary, marginBottom: 12, marginTop: 8 }}>Your agency</div>
       <div style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 12, padding: "14px 20px", marginBottom: 24, display: "flex", alignItems: "center", gap: 20 }}>
         <div style={{ width: 44, height: 44, borderRadius: 10, background: t.bg.surfaceHover, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={t.text.tertiary} strokeWidth="1.3"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3.5" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="20.5"/><line x1="3.5" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="20.5" y2="12"/></svg>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 500, color: t.text.primary }}>CALO&CO</div>
-          <div style={{ fontSize: 12, color: t.text.tertiary }}>Your agency</div>
         </div>
         <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
           {agencyColors.map((hex: string) => (
@@ -91,9 +97,9 @@ export default function BrandKitPage() {
       </div>
 
       {/* Clients table */}
-      <div style={{ fontSize: 11, fontWeight: 500, color: t.text.tertiary, textTransform: "uppercase" as const, letterSpacing: "0.8px", marginBottom: 10 }}>Clients</div>
+      <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", color: t.text.primary, marginBottom: 12, marginTop: 24 }}>Clients</div>
       <div style={{ background: t.bg.surface, border: `0.5px solid ${t.border.default}`, borderRadius: 12, overflow: "hidden" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1.4fr) 160px 40px", padding: "10px 20px", borderBottom: `0.5px solid ${t.border.default}` }}>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1.4fr) minmax(160px, auto) 40px", padding: "10px 20px", borderBottom: `0.5px solid ${t.border.default}` }}>
           <div style={th}>Client</div><div style={th}>Colors</div><div style={th}>Status</div><div />
         </div>
         {clients.map((client, idx) => {
@@ -103,7 +109,7 @@ export default function BrandKitPage() {
           const isLast = idx === clients.length - 1;
           return (
             <div key={client.id} onClick={() => router.push(`/clients/${client.id}/brand-kit`)}
-              style={{ display: "grid", gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1.4fr) 160px 40px", padding: "14px 20px", borderBottom: isLast ? "none" : `0.5px solid ${t.border.default}`, alignItems: "center", cursor: "pointer", transition: "background 150ms" }}
+              style={{ display: "grid", gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1.4fr) minmax(160px, auto) 40px", padding: "14px 20px", borderBottom: isLast ? "none" : `0.5px solid ${t.border.default}`, alignItems: "center", cursor: "pointer", transition: "background 150ms" }}
               onMouseEnter={e => e.currentTarget.style.background = t.bg.surfaceHover}
               onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
