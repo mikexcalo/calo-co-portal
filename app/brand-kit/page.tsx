@@ -6,6 +6,7 @@ import { useTheme } from "@/lib/theme";
 import { DB, loadClients, loadAllBrandKits } from "@/lib/database";
 import { getClientAvatarUrl } from "@/lib/clientAvatar";
 import { PageShell, PageHeader } from "@/components/shared/Brand";
+import BrandKitLayout from "@/components/BrandKitLayout";
 
 const HELM_PALETTE = ["#006AFF", "#00C9A0", "#0EA8C1", "#DC2626", "#111113"];
 
@@ -70,6 +71,7 @@ export default function BrandKitPage() {
   const th: React.CSSProperties = { fontSize: 10, fontWeight: 500, color: t.text.tertiary, textTransform: "uppercase", letterSpacing: "0.5px" };
 
   return (
+    <BrandKitLayout selectedKitId="agency">
     <PageShell>
       <PageHeader title="Brand Kit" subtitle="Your agency identity and your clients' brands." />
 
@@ -141,5 +143,6 @@ export default function BrandKitPage() {
         )}
       </div>
     </PageShell>
+    </BrandKitLayout>
   );
 }
