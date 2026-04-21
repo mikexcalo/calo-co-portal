@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 interface SegmentedControlProps {
-  tabs: { key: string; label: string }[];
+  tabs: { key: string; label: string; icon?: React.ReactNode }[];
   activeTab: string;
   onChange: (key: string) => void;
 }
@@ -76,7 +76,7 @@ export default function SegmentedControl({ tabs, activeTab, onChange }: Segmente
           onMouseEnter={(e) => { if (activeTab !== tab.key) e.currentTarget.style.color = tk.textPrimary; }}
           onMouseLeave={(e) => { if (activeTab !== tab.key) e.currentTarget.style.color = tk.textSecondary; }}
         >
-          {tab.label}
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>{tab.icon}<span>{tab.label}</span></span>
         </button>
       ))}
     </div>

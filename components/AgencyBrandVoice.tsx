@@ -175,7 +175,30 @@ export default function AgencyBrandVoice() {
     <div style={{ marginTop: 32 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <SegmentedControl
-          tabs={[{ key: "voice", label: "Voice" }, { key: "rewriter", label: "Rewriter" }]}
+          tabs={[
+            {
+              key: "voice",
+              label: "Voice",
+              icon: (
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="6" y="2" width="4" height="8" rx="2"/>
+                  <path d="M3.5 7.5a4.5 4.5 0 0 0 9 0"/>
+                  <line x1="8" y1="12" x2="8" y2="14.5"/>
+                  <line x1="5.5" y1="14.5" x2="10.5" y2="14.5"/>
+                </svg>
+              ),
+            },
+            {
+              key: "rewriter",
+              label: "Rewriter",
+              icon: (
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M8 2l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z"/>
+                  <path d="M13 9l0.5 1.5L15 11l-1.5 0.5L13 13l-0.5-1.5L11 11l1.5-0.5L13 9z"/>
+                </svg>
+              ),
+            },
+          ]}
           activeTab={activeTab}
           onChange={(key) => setActiveTab(key as "voice" | "rewriter")}
         />
