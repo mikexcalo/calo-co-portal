@@ -55,11 +55,13 @@ export default function BrandKitPage() {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: t.text.tertiary }}>
                 <span style={{ display: "inline-flex", gap: 3 }}>
-                  <span style={{ width: 12, height: 12, borderRadius: 3, background: "#006AFF" }}/>
-                  <span style={{ width: 12, height: 12, borderRadius: 3, background: "#00C9A0" }}/>
-                  <span style={{ width: 12, height: 12, borderRadius: 3, background: "#0EA8C1" }}/>
-                  <span style={{ width: 12, height: 12, borderRadius: 3, background: "#DC2626" }}/>
-                  <span style={{ width: 12, height: 12, borderRadius: 3, background: "#111113" }}/>
+                  <span title="Square Blue #006AFF" style={{ width: 12, height: 12, borderRadius: 3, background: "#006AFF" }}/>
+                  <span title="Helm Teal #00C9A0" style={{ width: 12, height: 12, borderRadius: 3, background: "#00C9A0" }}/>
+                  <span title="Deep Water #0EA8C1" style={{ width: 12, height: 12, borderRadius: 3, background: "#0EA8C1" }}/>
+                  <span title="Overdue Red #DC2626" style={{ width: 12, height: 12, borderRadius: 3, background: "#DC2626" }}/>
+                  <span title="Bronze #8B6F47" style={{ width: 12, height: 12, borderRadius: 3, background: "#8B6F47" }}/>
+                  <span title="Charcoal #1A1A1A" style={{ width: 12, height: 12, borderRadius: 3, background: "#1A1A1A" }}/>
+                  <span title="Ivory #F5F5F5" style={{ width: 12, height: 12, borderRadius: 3, background: "#F5F5F5", border: `0.5px solid ${t.border.default}` }}/>
                 </span>
                 <span>&middot;</span>
                 <span>4 of 4 logo variants</span>
