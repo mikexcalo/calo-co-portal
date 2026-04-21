@@ -70,6 +70,8 @@ export default function AgencyBrandVoice() {
   };
 
   const [toneInput, setToneInput] = useState("");
+  const [keyPhraseInput, setKeyPhraseInput] = useState("");
+  const [avoidPhraseInput, setAvoidPhraseInput] = useState("");
   const [translateInput, setTranslateInput] = useState("");
   const [translateOutput, setTranslateOutput] = useState("");
   const [translating, setTranslating] = useState(false);
@@ -96,6 +98,32 @@ export default function AgencyBrandVoice() {
     const v = { ...voice, tones: updated };
     setVoice(v);
     save(v);
+  };
+
+  const addKeyPhrase = (phrase: string) => {
+    const trimmed = phrase.trim();
+    if (!trimmed) return;
+    const current = voice.keyPhrases || [];
+    if (current.find(p => p.toLowerCase() === trimmed.toLowerCase())) return;
+    update("keyPhrases", [...current, trimmed]);
+  };
+
+  const removeKeyPhrase = (phrase: string) => {
+    const current = voice.keyPhrases || [];
+    update("keyPhrases", current.filter(p => p !== phrase));
+  };
+
+  const addAvoidPhrase = (phrase: string) => {
+    const trimmed = phrase.trim();
+    if (!trimmed) return;
+    const current = voice.avoidPhrases || [];
+    if (current.find(p => p.toLowerCase() === trimmed.toLowerCase())) return;
+    update("avoidPhrases", [...current, trimmed]);
+  };
+
+  const removeAvoidPhrase = (phrase: string) => {
+    const current = voice.avoidPhrases || [];
+    update("avoidPhrases", current.filter(p => p !== phrase));
   };
 
   const handleTranslate = async () => {
@@ -215,12 +243,53 @@ export default function AgencyBrandVoice() {
 
           <div style={{ marginBottom: 20 }}>
             <label style={labelStyle}>Key phrases to use</label>
-            <input value={(voice.keyPhrases || []).join(", ")} onChange={e => update("keyPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="spine, scale, ship" style={inputStyle} onFocus={focusH} onBlur={blurH} />
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+              {(voice.keyPhrases || []).map(phrase => (
+                <span key={phrase} style={{
+                  padding: "6px 14px", fontSize: 13, borderRadius: 6, fontFamily: "inherit",
+                  border: `1px solid ${t.border.default}`, background: t.bg.surface, color: t.text.primary,
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                }}>
+                  {phrase}
+                  <button onClick={() => removeKeyPhrase(phrase)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: t.text.tertiary, fontSize: 14, lineHeight: 1, fontFamily: "inherit", display: "flex", alignItems: "center" }}>&times;</button>
+                </span>
+              ))}
+              <input
+                value={keyPhraseInput}
+                onChange={e => setKeyPhraseInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addKeyPhrase(keyPhraseInput); setKeyPhraseInput(""); } }}
+                placeholder="Add phrase..."
+                style={{ ...inputStyle, width: 180 }}
+                onFocus={focusH}
+                onBlur={blurH}
+              />
+            </div>
           </div>
 
           <div>
             <label style={labelStyle}>Phrases to avoid</label>
-            <input value={(voice.avoidPhrases || []).join(", ")} onChange={e => update("avoidPhrases", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} placeholder="synergy, leverage, cutting-edge" style={inputStyle} onFocus={focusH} onBlur={blurH} />
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+              {(voice.avoidPhrases || []).map(phrase => (
+                <span key={phrase} style={{
+                  padding: "6px 14px", fontSize: 13, borderRadius: 6, fontFamily: "inherit",
+                  border: "1px solid rgba(220,38,38,0.3)", background: "rgba(220,38,38,0.04)", color: "#dc2626",
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  textDecoration: "line-through", textDecorationColor: "rgba(220,38,38,0.4)",
+                }}>
+                  {phrase}
+                  <button onClick={() => removeAvoidPhrase(phrase)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "#dc2626", fontSize: 14, lineHeight: 1, fontFamily: "inherit", display: "flex", alignItems: "center", textDecoration: "none" }}>&times;</button>
+                </span>
+              ))}
+              <input
+                value={avoidPhraseInput}
+                onChange={e => setAvoidPhraseInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addAvoidPhrase(avoidPhraseInput); setAvoidPhraseInput(""); } }}
+                placeholder="Add phrase..."
+                style={{ ...inputStyle, width: 180 }}
+                onFocus={focusH}
+                onBlur={blurH}
+              />
+            </div>
           </div>
 
         </div>
