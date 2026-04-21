@@ -32,14 +32,22 @@ function BrandKitPageContent() {
       if (DB.clientsState !== 'loaded') await loadClients();
       if (!DB.clients.some((c) => c.brandKit?._id)) await loadAllBrandKits();
       const cl = DB.clients.find((c) => c.id === clientId);
-      if (cl) setClient(cl); else router.push('/');
+      if (cl) setClient(cl);
       setLoading(false);
     };
     load();
   }, [clientId, router]);
 
-  if (loading) return null;
-  if (!client) return <div style={{ padding: 32, fontSize: 13, color: t.status.danger }}>Client not found</div>;
+  if (loading) return (
+    <BrandKitLayout selectedKitId={clientId}>
+      <div style={{ padding: 32, fontSize: 13, color: t.text.tertiary }}>Loading brand kit...</div>
+    </BrandKitLayout>
+  );
+  if (!client) return (
+    <BrandKitLayout selectedKitId={clientId}>
+      <div style={{ padding: 32, fontSize: 13, color: t.status.danger }}>Client not found</div>
+    </BrandKitLayout>
+  );
 
   const handleExportPDF = async () => {
     const bk = client.brandKit;
