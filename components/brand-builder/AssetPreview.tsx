@@ -118,6 +118,7 @@ export default function AssetPreview({ assetType, fields, clientId, onFieldsChan
           side={activeSide}
           frontRef={frontRef}
           backRef={backRef}
+          bgColor={activeSide === 'back' ? (fields.primaryColor || '#2563eb') : (fields.backgroundColor || '#ffffff')}
         />
         <ColorRow fields={fields} clientId={clientId} onFieldsChange={onFieldsChange} />
       </div>
