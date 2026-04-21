@@ -247,10 +247,6 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
               ))}
             </div>
           )}
-          <div style={{ marginTop: 8, fontSize: 11, color: t.text.tertiary, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: t.status.success, flexShrink: 0 }} />
-            Full Color PNG/SVG is used in invoice headers and PDF exports.
-          </div>
         </div>
       </Section>
 

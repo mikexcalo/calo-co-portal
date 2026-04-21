@@ -150,17 +150,16 @@ export default function AgencyBrandIdentity() {
         <input value={voice.differentiator} onChange={e => update("differentiator", e.target.value)} placeholder="What others can't say about themselves" style={inputStyle} onFocus={focusH} onBlur={blurH} />
       </div>
 
-      <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0, color: t.text.primary, marginTop: 24, marginBottom: 12 }}>Audience</div>
+      <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0, color: t.text.primary, marginTop: 32, marginBottom: 12 }}>Audience</div>
 
       <div style={{ marginBottom: 20 }}>
         <label style={labelStyle}>Target customer</label>
         <input value={voice.targetCustomer} onChange={e => update("targetCustomer", e.target.value)} placeholder="The person writing the check" style={inputStyle} onFocus={focusH} onBlur={blurH} />
       </div>
 
-      <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0, color: t.text.primary, marginTop: 24, marginBottom: 12 }}>Tone</div>
+      <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0, color: t.text.primary, marginTop: 32, marginBottom: 12 }}>Tone</div>
 
       <div style={{ marginBottom: 20 }}>
-        <label style={labelStyle}>Tone</label>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
           {[...tones].sort((a, b) => a.priority - b.priority).map(tone => (
             <span key={tone.name} style={{
