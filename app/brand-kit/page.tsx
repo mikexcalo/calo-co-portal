@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "@/lib/theme";
+import { DB, loadClients, loadAllBrandKits } from "@/lib/database";
 import { motion } from "framer-motion";
 import BrandKit from "@/components/shared/BrandKit";
 import AgencyBrandIdentity from "@/components/AgencyBrandIdentity";
@@ -15,6 +16,28 @@ export default function BrandKitPage() {
   const { t } = useTheme();
   const [activeTab, setActiveTab] = useState<"identity" | "visual" | "messaging">("identity");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [ribbonData, setRibbonData] = useState<{ name: string; colors: string[]; logoVariants: number; font: string } | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        if (DB.clientsState !== "loaded") await loadClients();
+        if (!DB.clients.some((c: any) => c.brandKit?._id)) await loadAllBrandKits();
+        const bk = DB.agency.brandKit;
+        const colors = (bk?.colors || []).slice(0, 7).map((c: any) => typeof c === "string" ? c : c?.hex || "#ccc");
+        const logoKeys = ["color", "light", "dark", "icon"];
+        const logoVariants = logoKeys.filter(k => (bk?.logos as any)?.[k]?.length > 0).length;
+        const font = bk?.fonts?.heading || "";
+        setRibbonData({ name: DB.agency.name || "CALO&CO", colors, logoVariants, font });
+      } catch (e) { console.error("[brand-kit ribbon] load error:", e); }
+    })();
+  }, []);
+
+  const HELM_FALLBACK_COLORS = ["#006AFF", "#00C9A0", "#0EA8C1", "#DC2626", "#8B6F47", "#1A1A1A", "#F5F5F5"];
+  const ribbonColors = ribbonData?.colors?.length ? ribbonData.colors : HELM_FALLBACK_COLORS;
+  const ribbonLogoCount = ribbonData?.logoVariants ?? 0;
+  const ribbonFont = ribbonData?.font || "Not set";
+  const ribbonName = ribbonData?.name || "CALO&CO";
 
   return (
     <BrandKitLayout selectedKitId="agency">
@@ -52,7 +75,7 @@ export default function BrandKitPage() {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
                 <div style={{ fontSize: 22, fontWeight: 500, color: t.text.primary, marginBottom: 4, letterSpacing: "-0.2px", lineHeight: 1.2 }}>
-                  CALO&CO
+                  {ribbonName}
                 </div>
                 {saveStatus !== "idle" && (
                   <span style={{ fontSize: 11, fontWeight: 500, display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
@@ -63,19 +86,17 @@ export default function BrandKitPage() {
                 )}
               </div>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, color: t.text.tertiary }}>
-                <span style={{ display: "inline-flex", gap: 3, alignItems: "center" }}>
-                  <span title="Square Blue #006AFF" style={{ width: 12, height: 12, borderRadius: 3, background: "#006AFF" }}/>
-                  <span title="Helm Teal #00C9A0" style={{ width: 12, height: 12, borderRadius: 3, background: "#00C9A0" }}/>
-                  <span title="Deep Water #0EA8C1" style={{ width: 12, height: 12, borderRadius: 3, background: "#0EA8C1" }}/>
-                  <span title="Overdue Red #DC2626" style={{ width: 12, height: 12, borderRadius: 3, background: "#DC2626" }}/>
-                  <span title="Bronze #8B6F47" style={{ width: 12, height: 12, borderRadius: 3, background: "#8B6F47" }}/>
-                  <span title="Charcoal #1A1A1A" style={{ width: 12, height: 12, borderRadius: 3, background: "#1A1A1A" }}/>
-                  <span title="Ivory #F5F5F5" style={{ width: 12, height: 12, borderRadius: 3, background: "#F5F5F5", border: `0.5px solid ${t.border.default}` }}/>
-                </span>
+                {ribbonColors.length > 0 && (
+                  <span style={{ display: "inline-flex", gap: 3, alignItems: "center" }}>
+                    {ribbonColors.map((hex, i) => (
+                      <span key={i} title={hex} style={{ width: 12, height: 12, borderRadius: 3, background: hex, border: hex.toUpperCase() === "#F5F5F5" || hex.toUpperCase() === "#FFFFFF" ? `0.5px solid ${t.border.default}` : "none" }}/>
+                    ))}
+                  </span>
+                )}
                 <span style={{ color: t.text.tertiary, fontSize: 12 }}>&middot;</span>
-                <span>4 of 4 logo variants</span>
+                <span>{ribbonLogoCount === 0 ? "No logos uploaded" : `${ribbonLogoCount} of 4 logo variants`}</span>
                 <span style={{ color: t.text.tertiary, fontSize: 12 }}>&middot;</span>
-                <span>Geist Sans</span>
+                <span>{ribbonFont}</span>
               </div>
               <div style={{ fontSize: 12, color: t.text.tertiary, marginTop: 8, lineHeight: 1.5, maxWidth: 600 }}>
                 Identity feeds Quote PDFs, email signatures, and the Rewriter. Visual powers logos and design templates. Messaging stores reusable copy.

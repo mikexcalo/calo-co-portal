@@ -1,8 +1,9 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/lib/theme';
+import { DB, loadClients, loadAllBrandKits } from '@/lib/database';
 
 type KitStatus = 'complete' | 'in_progress' | 'empty';
 
@@ -18,22 +19,50 @@ interface BrandKitLayoutProps {
   children: ReactNode;
 }
 
+function computeKitStatus(bk: any, voice?: any): KitStatus {
+  const logoKeys = ['color', 'light', 'dark', 'icon'];
+  const logoCount = logoKeys.filter(k => bk?.logos?.[k]?.length > 0).length;
+  const hasVoice = !!(voice?.elevatorPitch || voice?.tones?.length);
+  const hasColors = (bk?.colors?.length || 0) > 0;
+  const hasTypography = !!bk?.fonts?.heading;
+  const filled = [hasVoice, logoCount > 0, hasColors, hasTypography].filter(Boolean).length;
+  if (filled === 0) return 'empty';
+  if (hasVoice && logoCount === 4 && hasColors && hasTypography) return 'complete';
+  return 'in_progress';
+}
+
 export default function BrandKitLayout({ selectedKitId, children }: BrandKitLayoutProps) {
   const { t } = useTheme();
   const router = useRouter();
+  const [loaded, setLoaded] = useState(false);
+  const [agencyKit, setAgencyKit] = useState<KitItem>({ id: 'agency', name: 'CALO&CO', status: 'empty', href: '/brand-kit' });
+  const [clients, setClients] = useState<KitItem[]>([]);
 
-  // HARDCODED for AT-11a. Wires to real data in AT-11b.
-  const agencyKit: KitItem = {
-    id: 'agency',
-    name: 'CALO&CO',
-    status: 'complete',
-    href: '/brand-kit',
-  };
-  const clients: KitItem[] = [
-    { id: 'mammoth', name: 'Mammoth Construction', status: 'in_progress', href: '/clients/mammoth/brand-kit' },
-    { id: 'lg', name: 'LG Flooring Installation Co.', status: 'in_progress', href: '/clients/lg/brand-kit' },
-    { id: 'stevie', name: "Stevie's Poem Store", status: 'empty', href: '/clients/stevie/brand-kit' },
-  ];
+  useEffect(() => {
+    (async () => {
+      try {
+        if (DB.clientsState !== 'loaded') await loadClients();
+        if (!DB.clients.some((c: any) => c.brandKit?._id)) await loadAllBrandKits();
+
+        setAgencyKit({
+          id: 'agency',
+          name: DB.agency.name || 'CALO&CO',
+          status: computeKitStatus(DB.agency.brandKit),
+          href: '/brand-kit',
+        });
+
+        setClients(DB.clients.map((c: any) => ({
+          id: c.id,
+          name: c.company || c.name || 'Client',
+          status: computeKitStatus(c.brandKit, c.brand_voice),
+          href: `/clients/${c.id}/brand-kit`,
+        })));
+      } catch (e) {
+        console.error('[BrandKitLayout] load error:', e);
+      }
+      setLoaded(true);
+    })();
+  }, []);
 
   const StatusDot = ({ status }: { status: KitStatus }) => {
     if (status === 'complete') {
@@ -80,6 +109,13 @@ export default function BrandKitLayout({ selectedKitId, children }: BrandKitLayo
     );
   };
 
+  const SkeletonRow = () => (
+    <div style={{ padding: '7px 16px', margin: '2px 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: t.border.default, flexShrink: 0 }} />
+      <span style={{ height: 12, borderRadius: 4, background: t.border.default, flex: 1, maxWidth: 120 }} />
+    </div>
+  );
+
   return (
     <div style={{ display: 'flex', minHeight: 'calc(100vh - 56px)', background: t.bg.primary }}>
       <aside style={{
@@ -99,9 +135,15 @@ export default function BrandKitLayout({ selectedKitId, children }: BrandKitLayo
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 16px', marginTop: 16 }}>
             <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.8px', textTransform: 'uppercase', color: t.text.tertiary }}>Clients</span>
-            <span style={{ fontSize: 10, color: t.text.tertiary }}>{clients.length}</span>
+            {loaded && <span style={{ fontSize: 10, color: t.text.tertiary }}>{clients.length}</span>}
           </div>
-          {clients.map(c => <KitRow key={c.id} kit={c} />)}
+          {!loaded ? (
+            <>{[1, 2, 3].map(i => <SkeletonRow key={i} />)}</>
+          ) : clients.length === 0 ? (
+            <div style={{ padding: '8px 24px', fontSize: 12, color: t.text.tertiary }}>No clients yet</div>
+          ) : (
+            clients.map(c => <KitRow key={c.id} kit={c} />)
+          )}
 
           <div style={{ padding: '12px 16px 4px' }}>
             <button
