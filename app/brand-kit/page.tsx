@@ -50,7 +50,7 @@ export default function BrandKitPage() {
               </svg>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 20, fontWeight: 500, color: t.text.primary, marginBottom: 4, letterSpacing: "-0.2px" }}>
+              <div style={{ fontSize: 22, fontWeight: 500, color: t.text.primary, marginBottom: 4, letterSpacing: "-0.2px", lineHeight: 1.2 }}>
                 CALO&CO
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: t.text.tertiary }}>

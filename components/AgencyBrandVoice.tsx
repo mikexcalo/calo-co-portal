@@ -172,7 +172,7 @@ export default function AgencyBrandVoice() {
   const blurH = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => { e.currentTarget.style.borderColor = t.border.default; e.currentTarget.style.boxShadow = "none"; };
 
   return (
-    <div style={{ marginTop: 32 }}>
+    <div style={{ marginTop: 12 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <SegmentedControl
           tabs={[
@@ -201,6 +201,7 @@ export default function AgencyBrandVoice() {
           ]}
           activeTab={activeTab}
           onChange={(key) => setActiveTab(key as "voice" | "rewriter")}
+          size="sm"
         />
         {saved && <span style={{ fontSize: 11, color: t.status.success, fontWeight: 500, display: "flex", alignItems: "center", gap: 4 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="4 12 9 17 20 6"/></svg>Saved</span>}
       </div>

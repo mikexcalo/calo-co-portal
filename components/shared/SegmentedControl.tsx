@@ -7,6 +7,7 @@ interface SegmentedControlProps {
   tabs: { key: string; label: string; icon?: React.ReactNode }[];
   activeTab: string;
   onChange: (key: string) => void;
+  size?: 'default' | 'sm';
 }
 
 function getTokens() {
@@ -16,7 +17,8 @@ function getTokens() {
     : { bgPrimary: '#f7f7f8', bgSurface: '#ffffff', border: 'rgba(0,0,0,0.08)', textPrimary: '#111113', textSecondary: '#6b6b6f', shadow: '0 1px 2px rgba(0,0,0,0.06)' };
 }
 
-export default function SegmentedControl({ tabs, activeTab, onChange }: SegmentedControlProps) {
+export default function SegmentedControl({ tabs, activeTab, onChange, size = 'default' }: SegmentedControlProps) {
+  const isSmall = size === 'sm';
   const [tk, setTk] = useState(getTokens);
   const containerRef = useRef<HTMLDivElement>(null);
   const [pillStyle, setPillStyle] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
@@ -44,7 +46,7 @@ export default function SegmentedControl({ tabs, activeTab, onChange }: Segmente
   return (
     <div ref={containerRef} style={{
       display: 'inline-flex', position: 'relative',
-      background: tk.bgPrimary, borderRadius: 8, padding: 4,
+      background: tk.bgPrimary, borderRadius: isSmall ? 6 : 8, padding: isSmall ? 3 : 4,
       border: `1px solid ${tk.border}`,
     }}>
       {/* Animated pill */}
@@ -52,7 +54,7 @@ export default function SegmentedControl({ tabs, activeTab, onChange }: Segmente
         layout
         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         style={{
-          position: 'absolute', top: 4, height: 'calc(100% - 8px)',
+          position: 'absolute', top: isSmall ? 3 : 4, height: isSmall ? 'calc(100% - 6px)' : 'calc(100% - 8px)',
           background: tk.bgSurface, borderRadius: 6,
           boxShadow: tk.shadow,
           left: pillStyle.left, width: pillStyle.width,
@@ -67,9 +69,9 @@ export default function SegmentedControl({ tabs, activeTab, onChange }: Segmente
           onClick={() => onChange(tab.key)}
           style={{
             position: 'relative', zIndex: 1,
-            padding: '6px 16px', borderRadius: 6, border: 'none',
+            padding: isSmall ? '5px 12px' : '6px 16px', borderRadius: isSmall ? 5 : 6, border: 'none',
             background: 'transparent', cursor: 'pointer',
-            fontSize: 13, fontWeight: 500, fontFamily: 'inherit',
+            fontSize: isSmall ? 12 : 13, fontWeight: 500, fontFamily: 'inherit',
             color: activeTab === tab.key ? tk.textPrimary : tk.textSecondary,
             transition: 'color 150ms',
           }}

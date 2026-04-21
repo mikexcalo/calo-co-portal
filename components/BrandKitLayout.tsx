@@ -91,10 +91,6 @@ export default function BrandKitLayout({ selectedKitId, children }: BrandKitLayo
         display: 'flex',
         flexDirection: 'column',
       }}>
-        <div style={{ padding: '0 16px 12px', borderBottom: `0.5px solid ${t.border.default}`, marginBottom: 8 }}>
-          <div style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>Brand Kit</div>
-        </div>
-
         <div style={{ flex: 1, overflowY: 'auto' }}>
           <div style={{ padding: '4px 16px', fontSize: 10, fontWeight: 500, letterSpacing: '0.8px', textTransform: 'uppercase', color: t.text.tertiary, marginTop: 8 }}>
             Your agency
