@@ -157,7 +157,7 @@ export default function AgencyBrandIdentity() {
         <input value={voice.targetCustomer} onChange={e => update("targetCustomer", e.target.value)} placeholder="The person writing the check" style={inputStyle} onFocus={focusH} onBlur={blurH} />
       </div>
 
-      <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0, color: t.text.primary, marginTop: 24, marginBottom: 12 }}>Tone & language</div>
+      <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0, color: t.text.primary, marginTop: 24, marginBottom: 12 }}>Tone</div>
 
       <div style={{ marginBottom: 20 }}>
         <label style={labelStyle}>Tone</label>
@@ -184,6 +184,8 @@ export default function AgencyBrandIdentity() {
           />
         </div>
       </div>
+
+      <div style={{ fontSize: 13, fontWeight: 600, color: t.text.primary, marginTop: 32, marginBottom: 12, letterSpacing: 0 }}>Language</div>
 
       <div style={{ marginBottom: 20 }}>
         <label style={labelStyle}>Key phrases to use</label>
