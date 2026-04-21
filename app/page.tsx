@@ -17,6 +17,7 @@ import Toast from '@/components/shared/Toast';
 import useCountUp from '@/lib/useCountUp';
 import { PageShell, PageHeader, StatRow, DataCard, SectionLabel, TableRow, TableCell, GhostButton } from '@/components/shared/Brand';
 import { StatusPill } from '@/components/shared/StatusPill';
+import TaskNoteCard from '@/components/shared/TaskNoteCard';
 
 function ageDays(iso: string): number {
   return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
@@ -454,71 +455,39 @@ export default function Home() {
           </DataCard>
         </div>
 
-        {/* RIGHT COLUMN: Jot + Notes */}
+        {/* RIGHT COLUMN: Tasks & Notes */}
         <div>
-          <div style={{ marginBottom: 16 }}>
-            <CommandBar
-              onItemSaved={refreshFeed}
-              variant="jot"
-              placeholder="Jot a note about a client..."
+          <div style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase' as const, letterSpacing: '0.5px', margin: '0 0 8px' }}>Tasks & Notes</div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            <input
+              type="text"
+              value={noteInput}
+              onChange={(e) => setNoteInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleAddNote(); }}
+              placeholder="Add a note..."
+              style={{ flex: 1, padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, fontFamily: 'inherit', color: '#1a1f2e', outline: 'none' }}
             />
+            <button onClick={handleAddNote} disabled={noteSubmitting || !noteInput.trim()} style={{
+              height: 36, fontSize: 12, padding: '0 14px', background: '#006AFF', color: '#fff',
+              border: 'none', borderRadius: 8, fontWeight: 500, cursor: noteSubmitting || !noteInput.trim() ? 'default' : 'pointer',
+              fontFamily: 'inherit', opacity: noteSubmitting || !noteInput.trim() ? 0.5 : 1,
+            }}>Add</button>
           </div>
-          <SectionLabel>Notes</SectionLabel>
-          {noteItems.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {noteItems.slice(0, 3).map((item) => {
-                const urg = getNoteUrgency(item.text, item.created || '');
-                const urgColor = urg === 'overdue' ? '#E24B4A' : urg === 'due-today' ? '#f59e0b' : t.accent.primary;
-                const urgLabel = urg === 'overdue' ? 'Overdue' : urg === 'due-today' ? 'Due today' : null;
-                const ageText = item.age === 0 ? 'Today' : item.age === 1 ? '1 day ago' : `${item.age} days ago`;
-                const iconColor = urg === 'overdue' ? '#E24B4A' : urg === 'due-today' ? '#f59e0b' : 'rgba(139,111,71,0.55)';
-                const isLight = themeName === 'light';
-                const cardBg = isLight ? '#fffdf7' : t.bg.surface;
-                const cardBorder = isLight ? '0.5px solid rgba(139,111,71,0.18)' : `0.5px solid ${t.border.default}`;
-                return (
-                  <div key={item.id} style={{
-                    background: cardBg,
-                    border: cardBorder,
-                    borderLeft: `3px solid ${urgColor}`,
-                    borderRadius: 10,
-                    padding: '14px 16px',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 12,
-                    boxShadow: '0 2px 8px rgba(139,111,71,0.08), 0 1px 2px rgba(0,0,0,0.03)',
-                    transition: 'transform 150ms, box-shadow 150ms',
-                    cursor: 'default',
-                  }}>
-                    <div style={{ color: iconColor, flexShrink: 0, marginTop: 1, display: 'flex' }}>{ic.pencil}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{
-                        fontSize: 13.5,
-                        color: t.text.primary,
-                        lineHeight: 1.5,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical' as any,
-                        overflow: 'hidden',
-                        marginBottom: 8,
-                      }}>{item.text}</div>
-                      <div style={{ fontSize: 11, color: t.text.secondary, display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span>{item.client}</span>
-                        <span style={{ color: '#c9b896' }}>&middot;</span>
-                        {urgLabel ? <span style={{ color: urgColor, fontWeight: 500 }}>{urgLabel}</span> : <span>{ageText}</span>}
-                      </div>
-                    </div>
-                    <button title="Remove" onClick={() => handleTrash(item.id, item.text, 'note')} style={{
-                      background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#c9b896', transition: 'color 150ms', flexShrink: 0, display: 'flex',
-                    }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = t.status.danger} onMouseLeave={(e) => e.currentTarget.style.color = '#c9b896'}>
-                      {ic.trash}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+          {openNotes.length > 0 ? (
+            openNotes.slice(0, 5).map((note) => {
+              const cl = DB.clients.find((c) => c.id === note.client_id);
+              return (
+                <TaskNoteCard
+                  key={note.id}
+                  item={note}
+                  clientName={cl?.company || cl?.name || ''}
+                  showClient={true}
+                  onDelete={() => handleTrash(note.id, note.content, 'note')}
+                />
+              );
+            })
           ) : (
-            <div style={{ fontSize: 13, color: t.text.tertiary, padding: '12px 4px' }}>No notes yet. Type above to capture one.</div>
+            <div style={{ fontSize: 13, color: '#9ca3af', padding: '12px 4px' }}>No notes yet. Type above to capture one.</div>
           )}
         </div>
       </div>
