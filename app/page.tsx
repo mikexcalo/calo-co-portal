@@ -456,38 +456,39 @@ export default function Home() {
         </div>
 
         {/* RIGHT COLUMN: Tasks & Notes */}
-        <div>
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px' }}>
           <div style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase' as const, letterSpacing: '0.5px', margin: '0 0 8px' }}>Tasks & Notes</div>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: openNotes.length > 0 ? 12 : 0 }}>
             <input
               type="text"
               value={noteInput}
               onChange={(e) => setNoteInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleAddNote(); }}
               placeholder="Add a note..."
-              style={{ flex: 1, padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, fontFamily: 'inherit', color: '#1a1f2e', outline: 'none' }}
+              style={{ flex: 1, padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', color: '#1a1f2e', outline: 'none' }}
             />
-            <button onClick={handleAddNote} disabled={noteSubmitting || !noteInput.trim()} style={{
+            <button onClick={handleAddNote} style={{
               height: 36, fontSize: 12, padding: '0 14px', background: '#006AFF', color: '#fff',
-              border: 'none', borderRadius: 8, fontWeight: 500, cursor: noteSubmitting || !noteInput.trim() ? 'default' : 'pointer',
-              fontFamily: 'inherit', opacity: noteSubmitting || !noteInput.trim() ? 0.5 : 1,
+              border: 'none', borderRadius: 8, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
             }}>Add</button>
           </div>
           {openNotes.length > 0 ? (
-            openNotes.slice(0, 5).map((note) => {
-              const cl = DB.clients.find((c) => c.id === note.client_id);
-              return (
-                <TaskNoteCard
-                  key={note.id}
-                  item={note}
-                  clientName={cl?.company || cl?.name || ''}
-                  showClient={true}
-                  onDelete={() => handleTrash(note.id, note.content, 'note')}
-                />
-              );
-            })
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {openNotes.slice(0, 5).map((note) => {
+                const cl = DB.clients.find((c) => c.id === note.client_id);
+                return (
+                  <TaskNoteCard
+                    key={note.id}
+                    item={note}
+                    clientName={cl?.company || cl?.name || ''}
+                    showClient={true}
+                    onDelete={() => handleTrash(note.id, note.content, 'note')}
+                  />
+                );
+              })}
+            </div>
           ) : (
-            <div style={{ fontSize: 13, color: '#9ca3af', padding: '12px 4px' }}>No notes yet. Type above to capture one.</div>
+            <div style={{ fontSize: 12, color: '#94a3b8', padding: '4px 0' }}>No tasks or notes yet</div>
           )}
         </div>
       </div>
