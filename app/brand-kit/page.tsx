@@ -14,6 +14,7 @@ const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transit
 export default function BrandKitPage() {
   const { t } = useTheme();
   const [activeTab, setActiveTab] = useState<"identity" | "visual" | "messaging">("identity");
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   return (
     <BrandKitLayout selectedKitId="agency">
@@ -49,8 +50,17 @@ export default function BrandKitPage() {
               </svg>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 22, fontWeight: 500, color: t.text.primary, marginBottom: 4, letterSpacing: "-0.2px", lineHeight: 1.2 }}>
-                CALO&CO
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+                <div style={{ fontSize: 22, fontWeight: 500, color: t.text.primary, marginBottom: 4, letterSpacing: "-0.2px", lineHeight: 1.2 }}>
+                  CALO&CO
+                </div>
+                {saveStatus !== "idle" && (
+                  <span style={{ fontSize: 11, fontWeight: 500, display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                    {saveStatus === "saving" && <span style={{ color: t.text.tertiary }}>Saving&hellip;</span>}
+                    {saveStatus === "saved" && <><span style={{ color: "#00C9A0" }}>&#9679;</span><span style={{ color: t.text.tertiary }}>Saved</span></>}
+                    {saveStatus === "error" && <span style={{ color: "#DC2626" }}>Save failed</span>}
+                  </span>
+                )}
               </div>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, color: t.text.tertiary }}>
                 <span style={{ display: "inline-flex", gap: 3, alignItems: "center" }}>
@@ -117,7 +127,7 @@ export default function BrandKitPage() {
 
           {activeTab === "identity" && (
             <motion.div variants={fadeUp}>
-              <AgencyBrandIdentity />
+              <AgencyBrandIdentity onSaveStatus={setSaveStatus} />
             </motion.div>
           )}
 

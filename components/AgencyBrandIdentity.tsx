@@ -24,7 +24,7 @@ const empty: BrandVoiceData = {
   elevatorPitch: "", differentiator: "",
 };
 
-export default function AgencyBrandIdentity() {
+export default function AgencyBrandIdentity({ onSaveStatus }: { onSaveStatus?: (status: "saving" | "saved" | "idle" | "error") => void }) {
   const { t } = useTheme();
   const [voice, setVoice] = useState<BrandVoiceData>(empty);
   const [tones, setTones] = useState<ToneEntry[]>([]);
@@ -51,14 +51,20 @@ export default function AgencyBrandIdentity() {
 
   const save = useCallback((updated: BrandVoiceData) => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
+    onSaveStatus?.("saving");
     saveTimer.current = setTimeout(async () => {
       try {
         await supabase.from("agency_settings").update({ brand_voice: updated }).eq("id", 1);
         setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
-      } catch (e) { console.error("Failed to save brand voice:", e); }
+        onSaveStatus?.("saved");
+        setTimeout(() => { setSaved(false); onSaveStatus?.("idle"); }, 2000);
+      } catch (e) {
+        console.error("Failed to save brand voice:", e);
+        onSaveStatus?.("error");
+        setTimeout(() => onSaveStatus?.("idle"), 3000);
+      }
     }, 500);
-  }, []);
+  }, [onSaveStatus]);
 
   const update = (key: string, value: any) => {
     const updated = { ...voice, [key]: value };
@@ -129,10 +135,6 @@ export default function AgencyBrandIdentity() {
 
   return (
     <div style={{ marginTop: 12 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", marginBottom: 16 }}>
-        {saved && <span style={{ fontSize: 11, color: t.status.success, fontWeight: 500, display: "flex", alignItems: "center", gap: 4 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="4 12 9 17 20 6"/></svg>Saved</span>}
-      </div>
-
       <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0, color: t.text.primary, marginBottom: 12 }}>Identity</div>
 
       <div style={{ marginBottom: 20 }}>
