@@ -210,8 +210,9 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
         </div>
       )}
 
-      {/* Logo Suite — top */}
-      <Section label="Logo Suite">
+      {/* Logos */}
+      <Section label="Logos">
+        <div style={{ fontSize: 12, color: t.text.tertiary, marginBottom: 16, lineHeight: 1.5 }}>Used in invoice headers, quote PDFs, email signatures, and Design Studio templates.</div>
         <div style={card}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
             {topOrder.map((slot, idx) => (
@@ -298,8 +299,8 @@ export default function BrandKit({ context, readOnly = false }: BrandKitProps) {
 
       {/* Colors | Typography */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <Section label="Colors"><div style={card}><ColorPalette colors={brandKit.colors || []} readOnly={readOnly} onColorsChange={handleColorChange} /></div></Section>
-        <Section label="Typography"><div style={card}><Typography fonts={brandKit.fonts} readOnly={readOnly} onFontChange={handleFontChange} /></div></Section>
+        <Section label="Colors"><div style={{ fontSize: 12, color: t.text.tertiary, marginBottom: 16, lineHeight: 1.5 }}>Used across quote PDFs, invoice accents, and design templates.</div><div style={card}><ColorPalette colors={brandKit.colors || []} readOnly={readOnly} onColorsChange={handleColorChange} /></div></Section>
+        <Section label="Typography"><div style={{ fontSize: 12, color: t.text.tertiary, marginBottom: 16, lineHeight: 1.5 }}>Applied to all exported PDFs and design assets.</div><div style={card}><Typography fonts={brandKit.fonts} readOnly={readOnly} onFontChange={handleFontChange} /></div></Section>
       </div>
 
       {/* Business Info + Notes — full width (client context only) */}

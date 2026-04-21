@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useTheme } from '@/lib/theme';
 import { motion } from 'framer-motion';
 import BrandKit from '@/components/shared/BrandKit';
-import HelmBrandPalette from '@/components/brand/HelmBrandPalette';
 import AgencyBrandIdentity from '@/components/AgencyBrandIdentity';
 import SegmentedControl from '@/components/shared/SegmentedControl';
 
@@ -60,7 +59,6 @@ export default function AgencyBrandKitPage() {
 
         {activeTab === 'visual' && (
           <motion.div variants={fadeUp}>
-            <HelmBrandPalette />
             <BrandKit context={{ type: 'agency' }} />
           </motion.div>
         )}

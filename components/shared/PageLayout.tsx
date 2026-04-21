@@ -104,7 +104,7 @@ export function Section({ label, children, style }: SectionProps) {
   return (
     <motion.div variants={itemVariants} style={{ marginBottom: 24, ...style }}>
       {label && (
-        <div style={{ fontSize: 11, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: t.text.primary, letterSpacing: 0, marginBottom: 12 }}>
           {label}
         </div>
       )}
