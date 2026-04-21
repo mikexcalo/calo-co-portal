@@ -72,12 +72,12 @@ export default function AgencyBrandVoice() {
   const [toneInput, setToneInput] = useState("");
   const [keyPhraseInput, setKeyPhraseInput] = useState("");
   const [avoidPhraseInput, setAvoidPhraseInput] = useState("");
-  const [translateInput, setTranslateInput] = useState("");
-  const [translateOutput, setTranslateOutput] = useState("");
-  const [translating, setTranslating] = useState(false);
-  const [translateError, setTranslateError] = useState("");
+  const [rewriteInput, setRewriteInput] = useState("");
+  const [rewriteOutput, setRewriteOutput] = useState("");
+  const [rewriting, setRewriting] = useState(false);
+  const [rewriteError, setRewriteError] = useState("");
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<"voice" | "translator">("voice");
+  const [activeTab, setActiveTab] = useState<"voice" | "rewriter">("voice");
 
   const addTone = (name: string) => {
     const trimmed = name.trim();
@@ -126,34 +126,34 @@ export default function AgencyBrandVoice() {
     update("avoidPhrases", current.filter(p => p !== phrase));
   };
 
-  const handleTranslate = async () => {
-    if (!translateInput.trim() || translating) return;
-    setTranslating(true);
-    setTranslateError("");
-    setTranslateOutput("");
+  const handleRewrite = async () => {
+    if (!rewriteInput.trim() || rewriting) return;
+    setRewriting(true);
+    setRewriteError("");
+    setRewriteOutput("");
     try {
-      const res = await fetch("/api/transform-voice", {
+      const res = await fetch("/api/rewrite-voice", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: translateInput, voice: { ...voice, tones } }),
+        body: JSON.stringify({ text: rewriteInput, voice: { ...voice, tones } }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setTranslateError(data.error || "Translation failed");
+        setRewriteError(data.error || "Translation failed");
       } else {
-        setTranslateOutput(data.rewritten || "");
+        setRewriteOutput(data.rewritten || "");
       }
     } catch (err) {
-      setTranslateError("Network error");
+      setRewriteError("Network error");
     } finally {
-      setTranslating(false);
+      setRewriting(false);
     }
   };
 
   const handleCopy = async () => {
-    if (!translateOutput) return;
+    if (!rewriteOutput) return;
     try {
-      await navigator.clipboard.writeText(translateOutput);
+      await navigator.clipboard.writeText(rewriteOutput);
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {}
@@ -175,9 +175,9 @@ export default function AgencyBrandVoice() {
     <div style={{ marginTop: 32 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <SegmentedControl
-          tabs={[{ key: "voice", label: "Voice" }, { key: "translator", label: "Translator" }]}
+          tabs={[{ key: "voice", label: "Voice" }, { key: "rewriter", label: "Rewriter" }]}
           activeTab={activeTab}
-          onChange={(key) => setActiveTab(key as "voice" | "translator")}
+          onChange={(key) => setActiveTab(key as "voice" | "rewriter")}
         />
         {saved && <span style={{ fontSize: 11, color: t.status.success, fontWeight: 500, display: "flex", alignItems: "center", gap: 4 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="4 12 9 17 20 6"/></svg>Saved</span>}
       </div>
@@ -295,26 +295,26 @@ export default function AgencyBrandVoice() {
         </div>
       )}
 
-      {activeTab === "translator" && (
+      {activeTab === "rewriter" && (
         <div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 16 }}>
             <div>
               <label style={labelStyle}>Input</label>
-              <textarea value={translateInput} onChange={e => setTranslateInput(e.target.value)} placeholder="Paste an email draft, a tagline, a paragraph..." rows={12} style={{ ...inputStyle, resize: "vertical" as const, minHeight: 280 }} onFocus={focusH as any} onBlur={blurH as any} />
+              <textarea value={rewriteInput} onChange={e => setRewriteInput(e.target.value)} placeholder="Paste an email draft, a tagline, a paragraph..." rows={12} style={{ ...inputStyle, resize: "vertical" as const, minHeight: 280 }} onFocus={focusH as any} onBlur={blurH as any} />
             </div>
             <div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
                 <label style={labelStyle}>In your voice</label>
-                {translateOutput && <button onClick={handleCopy} style={{ fontSize: 11, color: copied ? t.status.success : t.text.tertiary, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}>{copied ? "Copied" : "Copy"}</button>}
+                {rewriteOutput && <button onClick={handleCopy} style={{ fontSize: 11, color: copied ? t.status.success : t.text.tertiary, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}>{copied ? "Copied" : "Copy"}</button>}
               </div>
-              <textarea value={translateOutput} readOnly placeholder={translating ? "Translating..." : "Translation appears here..."} rows={12} style={{ ...inputStyle, resize: "vertical" as const, minHeight: 280, background: t.bg.surfaceHover || t.bg.surface, color: translateOutput ? t.text.primary : t.text.tertiary }} />
+              <textarea value={rewriteOutput} readOnly placeholder={rewriting ? "Rewriting..." : "Rewritten text appears here..."} rows={12} style={{ ...inputStyle, resize: "vertical" as const, minHeight: 280, background: t.bg.surfaceHover || t.bg.surface, color: rewriteOutput ? t.text.primary : t.text.tertiary }} />
             </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button onClick={handleTranslate} disabled={!translateInput.trim() || translating} style={{ padding: "10px 20px", fontSize: 13, fontWeight: 500, borderRadius: 6, border: "none", fontFamily: "inherit", cursor: (!translateInput.trim() || translating) ? "default" : "pointer", background: (!translateInput.trim() || translating) ? t.bg.surfaceHover : "#2563eb", color: (!translateInput.trim() || translating) ? t.text.tertiary : "#fff", transition: "all 150ms" }}>{translating ? "Translating..." : "Translate"}</button>
-            {translateError && <span style={{ fontSize: 12, color: "#dc2626" }}>{translateError}</span>}
+            <button onClick={handleRewrite} disabled={!rewriteInput.trim() || rewriting} style={{ padding: "10px 20px", fontSize: 13, fontWeight: 500, borderRadius: 6, border: "none", fontFamily: "inherit", cursor: (!rewriteInput.trim() || rewriting) ? "default" : "pointer", background: (!rewriteInput.trim() || rewriting) ? t.bg.surfaceHover : "#2563eb", color: (!rewriteInput.trim() || rewriting) ? t.text.tertiary : "#fff", transition: "all 150ms" }}>{rewriting ? "Rewriting..." : "Rewrite in voice"}</button>
+            {rewriteError && <span style={{ fontSize: 12, color: "#dc2626" }}>{rewriteError}</span>}
           </div>
 
         </div>

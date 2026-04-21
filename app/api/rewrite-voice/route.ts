@@ -47,7 +47,7 @@ Rewrite the user's text in this voice. Preserve the original meaning, structure,
 
     if (!response.ok) {
       const errBody = await response.text();
-      console.error('[transform-voice] API error:', response.status, errBody);
+      console.error('[rewrite-voice] API error:', response.status, errBody);
       return NextResponse.json({ error: 'Translation failed' }, { status: 500 });
     }
 
@@ -56,7 +56,7 @@ Rewrite the user's text in this voice. Preserve the original meaning, structure,
 
     return NextResponse.json({ rewritten });
   } catch (err) {
-    console.error('[transform-voice] error:', err);
+    console.error('[rewrite-voice] error:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
