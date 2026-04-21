@@ -133,11 +133,7 @@ export default function AgencyBrandIdentity() {
         {saved && <span style={{ fontSize: 11, color: t.status.success, fontWeight: 500, display: "flex", alignItems: "center", gap: 4 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="4 12 9 17 20 6"/></svg>Saved</span>}
       </div>
 
-      <div style={{ fontSize: 13, color: t.text.secondary, marginBottom: 24, lineHeight: 1.5 }}>
-        Who your brand is, who it serves, and how it sounds. Used across Quote PDFs, email signatures, and the Rewriter.
-      </div>
-
-      <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", color: t.text.primary, marginBottom: 12 }}>Identity</div>
+      <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0, color: t.text.primary, marginBottom: 12 }}>Identity</div>
 
       <div style={{ marginBottom: 20 }}>
         <label style={labelStyle}>Elevator pitch</label>
@@ -154,14 +150,14 @@ export default function AgencyBrandIdentity() {
         <input value={voice.differentiator} onChange={e => update("differentiator", e.target.value)} placeholder="What others can't say about themselves" style={inputStyle} onFocus={focusH} onBlur={blurH} />
       </div>
 
-      <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", color: t.text.primary, marginTop: 24, marginBottom: 12 }}>Audience</div>
+      <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0, color: t.text.primary, marginTop: 24, marginBottom: 12 }}>Audience</div>
 
       <div style={{ marginBottom: 20 }}>
         <label style={labelStyle}>Target customer</label>
         <input value={voice.targetCustomer} onChange={e => update("targetCustomer", e.target.value)} placeholder="The person writing the check" style={inputStyle} onFocus={focusH} onBlur={blurH} />
       </div>
 
-      <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", color: t.text.primary, marginTop: 24, marginBottom: 12 }}>Voice mechanics</div>
+      <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0, color: t.text.primary, marginTop: 24, marginBottom: 12 }}>Tone & language</div>
 
       <div style={{ marginBottom: 20 }}>
         <label style={labelStyle}>Tone</label>
@@ -187,7 +183,6 @@ export default function AgencyBrandIdentity() {
             onBlur={blurH}
           />
         </div>
-        <div style={{ fontSize: 11, color: t.text.tertiary, marginTop: 6 }}>{tones.length === 0 ? "Type a tone and hit Enter — priority = order added" : `${tones.length} tone${tones.length === 1 ? "" : "s"} set — click \u00d7 to remove`}</div>
       </div>
 
       <div style={{ marginBottom: 20 }}>
@@ -207,7 +202,7 @@ export default function AgencyBrandIdentity() {
             value={keyPhraseInput}
             onChange={e => setKeyPhraseInput(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addKeyPhrase(keyPhraseInput); setKeyPhraseInput(""); } }}
-            placeholder="Add phrase..."
+            placeholder="e.g. spine, ship, scale"
             style={{ ...inputStyle, width: 180 }}
             onFocus={focusH}
             onBlur={blurH}
@@ -233,7 +228,7 @@ export default function AgencyBrandIdentity() {
             value={avoidPhraseInput}
             onChange={e => setAvoidPhraseInput(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addAvoidPhrase(avoidPhraseInput); setAvoidPhraseInput(""); } }}
-            placeholder="Add phrase..."
+            placeholder="e.g. synergy, leverage, cutting-edge"
             style={{ ...inputStyle, width: 180 }}
             onFocus={focusH}
             onBlur={blurH}

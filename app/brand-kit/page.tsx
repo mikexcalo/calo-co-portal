@@ -53,8 +53,8 @@ export default function BrandKitPage() {
               <div style={{ fontSize: 22, fontWeight: 500, color: t.text.primary, marginBottom: 4, letterSpacing: "-0.2px", lineHeight: 1.2 }}>
                 CALO&CO
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: t.text.tertiary }}>
-                <span style={{ display: "inline-flex", gap: 3 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, color: t.text.tertiary }}>
+                <span style={{ display: "inline-flex", gap: 3, alignItems: "center" }}>
                   <span title="Square Blue #006AFF" style={{ width: 12, height: 12, borderRadius: 3, background: "#006AFF" }}/>
                   <span title="Helm Teal #00C9A0" style={{ width: 12, height: 12, borderRadius: 3, background: "#00C9A0" }}/>
                   <span title="Deep Water #0EA8C1" style={{ width: 12, height: 12, borderRadius: 3, background: "#0EA8C1" }}/>
@@ -63,10 +63,13 @@ export default function BrandKitPage() {
                   <span title="Charcoal #1A1A1A" style={{ width: 12, height: 12, borderRadius: 3, background: "#1A1A1A" }}/>
                   <span title="Ivory #F5F5F5" style={{ width: 12, height: 12, borderRadius: 3, background: "#F5F5F5", border: `0.5px solid ${t.border.default}` }}/>
                 </span>
-                <span>&middot;</span>
+                <span style={{ color: t.text.tertiary, fontSize: 12 }}>&middot;</span>
                 <span>4 of 4 logo variants</span>
-                <span>&middot;</span>
+                <span style={{ color: t.text.tertiary, fontSize: 12 }}>&middot;</span>
                 <span>Geist Sans</span>
+              </div>
+              <div style={{ fontSize: 12, color: t.text.tertiary, marginTop: 8, lineHeight: 1.5, maxWidth: 600 }}>
+                Identity feeds Quote PDFs, email signatures, and the Rewriter. Visual powers logos and design templates. Messaging stores reusable copy.
               </div>
             </div>
           </motion.div>
