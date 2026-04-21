@@ -31,7 +31,8 @@ export default function Sidebar() {
   }, [pathname]);
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
-    if (href === '/clients') return pathname === '/clients' || pathname.startsWith('/clients/');
+    if (href === '/brand-kit') return pathname === '/brand-kit' || pathname.startsWith('/brand-kit/') || /^\/clients\/[^/]+\/brand-kit/.test(pathname);
+    if (href === '/clients') return (pathname === '/clients' || pathname.startsWith('/clients/')) && !/\/brand-kit/.test(pathname);
     return pathname === href || pathname.startsWith(href + '/') || pathname.startsWith(href + '?');
   };
 
