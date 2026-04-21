@@ -9,6 +9,7 @@ import BrandKit from '@/components/shared/BrandKit';
 import { useTheme } from '@/lib/theme';
 import HelmSpinner from '@/components/shared/HelmSpinner';
 import BrandVoice from '@/components/BrandVoice';
+import BrandKitLayout from '@/components/BrandKitLayout';
 
 export default function BrandKitPage() {
   return <Suspense fallback={<div style={{ padding: 32, opacity: 0.5, fontSize: 13 }}>Loading...</div>}><BrandKitPageContent /></Suspense>;
@@ -67,6 +68,7 @@ function BrandKitPageContent() {
   };
 
   return (
+    <BrandKitLayout selectedKitId={clientId}>
     <PageLayout
       title="Brand Kit"
       subtitle={client.company || client.name}
@@ -88,5 +90,6 @@ function BrandKitPageContent() {
       <BrandKit context={{ type: 'client', clientId }} readOnly={readOnly} />
       <BrandVoice clientId={clientId} />
     </PageLayout>
+    </BrandKitLayout>
   );
 }
