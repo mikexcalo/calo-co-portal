@@ -112,7 +112,7 @@ export default function ClientsPage() {
 
           return (
             <TableRow key={client.id} onClick={() => router.push(`/clients/${client.id}`)}>
-              <div style={{ flex: 0.3, display: 'flex', alignItems: 'center' }}>
+              <div style={{ flex: 0.3, display: 'flex', alignItems: 'center', marginRight: 8 }}>
                 <div style={{ width: 32, height: 32, borderRadius: 8, overflow: 'hidden', background: avatar ? 'transparent' : t.bg.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: t.text.secondary, flexShrink: 0 }}>
                   {avatar ? <img src={avatar} alt="" style={{ width: 32, height: 32, objectFit: 'contain' }} /> : (client.company || client.name || '').charAt(0)}
                 </div>
