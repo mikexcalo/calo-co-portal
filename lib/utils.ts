@@ -5,6 +5,20 @@
 import { Invoice, InvoiceItem, Client, ClientStats, AgencyStats } from './types';
 
 /**
+ * Format a client's structured address into a display string
+ */
+export function formatClientAddress(client: Client): string {
+  const cityStateZip = [
+    client.city,
+    client.state && client.postal_code
+      ? `${client.state} ${client.postal_code}`
+      : client.state || client.postal_code,
+  ].filter(Boolean).join(', ');
+  return [client.address_line_1, client.address_line_2, cityStateZip]
+    .filter(Boolean).join('\n');
+}
+
+/**
  * Extract hex color from various color formats
  */
 export function extractHex(color: any): string | null {

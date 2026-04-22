@@ -190,8 +190,12 @@ export interface Client {
   email: string;
   phone: string;
   address: string;
+  address_line_1: string;
+  address_line_2: string;
+  city: string;
+  state: string;
+  postal_code: string;
   website: string;
-  city?: string;
   logo?: string | null; // Data URL or image URL
   activeModules: string[];
   hasBrandKit: boolean;

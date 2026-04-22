@@ -149,7 +149,7 @@ function DesignContent() {
       const f = { ...DEFAULT_FIELDS };
       f.companyName = client.company || client.name || '';
       f.website = client.website || '';
-      f.address = client.address || '';
+      f.address = client.address_line_1 ? [client.address_line_1, client.city, client.state, client.postal_code].filter(Boolean).join(', ') : (client.address || '');
       if (!DB.contacts[selectedClient]) await loadContacts(selectedClient);
       const contacts = DB.contacts[selectedClient] || [];
       const primary = contacts.find(c => c.isPrimary) || contacts[0];

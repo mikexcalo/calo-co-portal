@@ -201,7 +201,8 @@ export default function NewInvoicePage() {
     pdf.setFont('helvetica', 'normal');
     pdf.text(cName, 50, y); y += 12;
     if (primary?.name) { pdf.text(primary.name, 50, y); y += 12; }
-    if (client?.address) { pdf.text(client.address, 50, y); y += 12; }
+    const addr = client?.address_line_1 ? [client.address_line_1, client.address_line_2, [client.city, client.state].filter(Boolean).join(', '), client.postal_code].filter(Boolean).join(', ') : client?.address;
+    if (addr) { pdf.text(addr, 50, y); y += 12; }
     if (client?.phone) { pdf.text(client.phone, 50, y); y += 12; }
     y += 10;
 
@@ -326,7 +327,7 @@ export default function NewInvoicePage() {
             </div>
             {billToOpen && (
               <div style={{ padding: '0 12px 8px', fontSize: 12, color: '#64748b' }}>
-                {client?.address && <div>{client.address}</div>}
+                {(client?.address_line_1 || client?.address) && <div style={{ whiteSpace: 'pre-line' }}>{client.address_line_1 ? [client.address_line_1, client.address_line_2, [client.city, client.state && client.postal_code ? `${client.state} ${client.postal_code}` : client.state || client.postal_code].filter(Boolean).join(', ')].filter(Boolean).join('\n') : client.address}</div>}
                 {client?.phone && <div>{client.phone}</div>}
                 {(primary?.email || client?.email) && <div>{primary?.email || client?.email}</div>}
               </div>

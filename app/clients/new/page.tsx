@@ -22,7 +22,8 @@ export default function NewClientPage() {
   const [form, setForm] = useState({
     company: '', firstName: '', lastName: '', title: '',
     email: '', contactPhone: '', businessPhone: '',
-    address: '', website: '', notes: '',
+    address_line_1: '', address_line_2: '', city: '', state: '', postal_code: '',
+    website: '', notes: '',
   });
 
   const update = (key: string, value: string) => setForm((p) => ({ ...p, [key]: value }));
@@ -45,7 +46,9 @@ export default function NewClientPage() {
       const newClient: Client = {
         id: '', name: form.company, company: form.company,
         email: form.email, phone: form.contactPhone || form.businessPhone,
-        website: form.website, address: form.address, city: '',
+        website: form.website, address: '',
+        address_line_1: form.address_line_1, address_line_2: form.address_line_2,
+        city: form.city, state: form.state, postal_code: form.postal_code,
         logo: null, activeModules: ['invoices'],
         hasBrandKit: false, hasEmailSig: false,
         engagementStatus: 'active', nextStep: '',
@@ -133,13 +136,24 @@ export default function NewClientPage() {
           </label>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          <label style={labelStyle}>Address
-            <input value={form.address} onChange={(e) => update('address', e.target.value)} style={inputStyle} />
-          </label>
-          <label style={labelStyle}>Website
-            <input value={form.website} placeholder="example.com" onChange={(e) => update('website', e.target.value)} style={inputStyle} />
-          </label>
+        <label style={labelStyle}>Website
+          <input value={form.website} placeholder="example.com" onChange={(e) => update('website', e.target.value)} style={inputStyle} />
+        </label>
+
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#64748b', marginBottom: 8 }}>Address</div>
+          <div style={{ display: 'grid', gap: 10 }}>
+            <label style={labelStyle}>Street address<input value={form.address_line_1} onChange={(e) => update('address_line_1', e.target.value)} style={inputStyle} /></label>
+            <label style={labelStyle}>Apt / Suite / Unit<input value={form.address_line_2} onChange={(e) => update('address_line_2', e.target.value)} style={inputStyle} /></label>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 10 }}>
+              <label style={labelStyle}>City<input value={form.city} onChange={(e) => update('city', e.target.value)} style={inputStyle} /></label>
+              <label style={labelStyle}>State<select value={form.state} onChange={(e) => update('state', e.target.value)} style={{ ...inputStyle, appearance: 'none' as const }}>
+                <option value="">—</option>
+                {["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"].map(s => <option key={s} value={s}>{s}</option>)}
+              </select></label>
+              <label style={labelStyle}>Zip<input value={form.postal_code} onChange={(e) => update('postal_code', e.target.value)} style={inputStyle} /></label>
+            </div>
+          </div>
         </div>
 
         <label style={labelStyle}>Notes

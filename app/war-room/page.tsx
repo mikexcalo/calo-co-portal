@@ -75,7 +75,7 @@ export default function WarRoomPage() {
     // Check for incomplete profile
     if (!client.email || !client.phone) count++;
     if (!client.website) count++;
-    if (!client.address) count++;
+    if (!client.address_line_1 && !client.address) count++;
 
     // Check for overdue invoices
     const { overdue } = getInvoiceSignals(client);

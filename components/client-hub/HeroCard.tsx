@@ -37,7 +37,11 @@ export default function HeroCard({ client, contacts, isClient, onClientUpdate }:
     email: primary?.email || client.email || '',
     contactPhone: primary?.phone || '',
     businessPhone: client.phone || '',
-    address: client.address || '',
+    address_line_1: client.address_line_1 || '',
+    address_line_2: client.address_line_2 || '',
+    city: client.city || '',
+    state: client.state || '',
+    postal_code: client.postal_code || '',
     website: client.website || '',
     notes: '',
   });
@@ -71,7 +75,9 @@ export default function HeroCard({ client, contacts, isClient, onClientUpdate }:
     const updated = {
       ...client, company: form.company, name: form.company,
       email: form.email, phone: form.businessPhone,
-      website: form.website, address: form.address,
+      website: form.website,
+      address_line_1: form.address_line_1, address_line_2: form.address_line_2,
+      city: form.city, state: form.state, postal_code: form.postal_code,
     };
     await saveClient(updated);
 
@@ -157,8 +163,14 @@ export default function HeroCard({ client, contacts, isClient, onClientUpdate }:
           <label style={lbl}>Business Phone
             <input type="tel" value={form.businessPhone} onChange={(e) => setForm({ ...form, businessPhone: e.target.value })} style={inputStyle} />
           </label>
-          <label style={lbl}>Address
-            <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} style={inputStyle} />
+          <label style={lbl}>Street address
+            <input value={form.address_line_1} onChange={(e) => setForm({ ...form, address_line_1: e.target.value })} style={inputStyle} />
+          </label>
+          <label style={lbl}>City
+            <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} style={inputStyle} />
+          </label>
+          <label style={lbl}>State
+            <input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value.toUpperCase().slice(0, 2) })} placeholder="ME" style={inputStyle} />
           </label>
           <label style={lbl}>Website
             <input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} style={inputStyle} />
@@ -189,7 +201,7 @@ export default function HeroCard({ client, contacts, isClient, onClientUpdate }:
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="client-hd-name">{client.company || client.name}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 20px', marginTop: 6 }}>
-            {client.address && <div style={detailStyle}><span style={labelStyle}>Address:</span> {client.address}</div>}
+            {(client.address_line_1 || client.address) && <div style={detailStyle}><span style={labelStyle}>Address:</span> {client.address_line_1 ? [client.address_line_1, client.city, client.state].filter(Boolean).join(', ') : client.address}</div>}
             {client.website && <div style={detailStyle}><span style={labelStyle}>Website:</span> {client.website}</div>}
             {client.email && <div style={detailStyle}><span style={labelStyle}>Email:</span> {client.email}</div>}
             {client.phone && <div style={detailStyle}><span style={labelStyle}>Phone:</span> {client.phone}</div>}

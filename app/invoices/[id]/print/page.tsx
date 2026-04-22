@@ -155,7 +155,7 @@ export default function InvoicePrintPage() {
               <div style={{ fontSize: 10, letterSpacing: 1.5, color: '#888', marginBottom: 8 }}>BILL TO</div>
               {client?.company && <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 2 }}>{client.company}</div>}
               {contact?.name && <div>{contact.name}</div>}
-              {client?.address && <div style={{ color: '#555', whiteSpace: 'pre-line' }}>{client.address}</div>}
+              {(client?.address_line_1 || client?.address) && <div style={{ color: '#555', whiteSpace: 'pre-line' }}>{client.address_line_1 ? [client.address_line_1, client.address_line_2, [client.city, client.state && client.postal_code ? `${client.state} ${client.postal_code}` : client.state || client.postal_code].filter(Boolean).join(', ')].filter(Boolean).join('\n') : client.address}</div>}
               {contact?.phone && <div style={{ color: '#555' }}>{formatPhone(contact.phone)}</div>}
               {contact?.email && <div style={{ color: '#555' }}>{contact.email}</div>}
             </div>

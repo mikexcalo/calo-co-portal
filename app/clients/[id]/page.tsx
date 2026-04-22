@@ -27,7 +27,9 @@ export default function ClientHubPage() {
   const [contactsOpen, setContactsOpen] = useState(false);
   const [form, setForm] = useState({
     company: '', code: '', firstName: '', lastName: '', title: '',
-    email: '', contactPhone: '', businessPhone: '', address: '', website: '',
+    email: '', contactPhone: '', businessPhone: '',
+    address_line_1: '', address_line_2: '', city: '', state: '', postal_code: '',
+    website: '',
   });
 
   // Listen for view mode changes from the nav toggle
@@ -87,7 +89,11 @@ export default function ClientHubPage() {
       email: p?.email || client.email || '',
       contactPhone: p?.phone || '',
       businessPhone: client.phone || '',
-      address: client.address || '',
+      address_line_1: client.address_line_1 || '',
+      address_line_2: client.address_line_2 || '',
+      city: client.city || '',
+      state: client.state || '',
+      postal_code: client.postal_code || '',
       website: client.website || '',
     });
   }, [client, contacts]);
@@ -124,7 +130,10 @@ export default function ClientHubPage() {
     const updated = {
       ...client, company: form.company, name: form.company,
       email: form.email, phone: form.businessPhone,
-      website: form.website, address: form.address, code: derivedCode,
+      website: form.website,
+      address_line_1: form.address_line_1, address_line_2: form.address_line_2,
+      city: form.city, state: form.state, postal_code: form.postal_code,
+      code: derivedCode,
     };
     await saveClient(updated);
     const contactName = `${form.firstName.trim()} ${form.lastName.trim()}`;
@@ -207,8 +216,24 @@ export default function ClientHubPage() {
             <label style={editLbl}>Email {req}<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} style={submitted && !valid.email ? errorInputStyle : inputStyle} /></label>
             <label style={editLbl}>Contact Phone<input type="tel" value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} onBlur={() => setForm((f) => ({ ...f, contactPhone: formatPhone(f.contactPhone) }))} style={inputStyle} /></label>
             <label style={editLbl}>Business Phone<input type="tel" value={form.businessPhone} onChange={(e) => setForm({ ...form, businessPhone: e.target.value })} onBlur={() => setForm((f) => ({ ...f, businessPhone: formatPhone(f.businessPhone) }))} style={inputStyle} /></label>
-            <label style={editLbl}>Address<input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} style={inputStyle} /></label>
-            <label style={editLbl}>Website<input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} style={inputStyle} /></label>
+            <label style={editLbl}>Website<input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} placeholder="example.com" style={inputStyle} /></label>
+          </div>
+          <div style={{ marginTop: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: t.text.secondary, marginBottom: 8 }}>Address</div>
+            <div style={{ display: 'grid', gap: 8 }}>
+              <label style={editLbl}>Street address<input value={form.address_line_1} onChange={(e) => setForm({ ...form, address_line_1: e.target.value })} style={inputStyle} /></label>
+              <label style={editLbl}>Apt / Suite / Unit<input value={form.address_line_2} onChange={(e) => setForm({ ...form, address_line_2: e.target.value })} style={inputStyle} /></label>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 8 }}>
+                <label style={editLbl}>City<input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} style={inputStyle} /></label>
+                <label style={editLbl}>State<select value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} style={{ ...inputStyle, appearance: 'none' as const, backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27%3E%3Cpath d=%27M3 5l3 3 3-3%27 fill=%27none%27 stroke=%27%236b7280%27 stroke-width=%271.5%27/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center', paddingRight: 28 }}>
+                  <option value="">—</option>
+                  {["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"].map(s => <option key={s} value={s}>{s}</option>)}
+                </select></label>
+                <label style={editLbl}>Zip<input value={form.postal_code} onChange={(e) => setForm({ ...form, postal_code: e.target.value })} style={inputStyle} /></label>
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'none' }}>
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
             <button onClick={handleSave} disabled={saving} style={{ height: 32, fontSize: 13, fontWeight: 500, padding: '0 16px', background: t.accent.primary, color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }}>
