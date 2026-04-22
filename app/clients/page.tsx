@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DB, loadClients, loadContacts, loadInvoices } from '@/lib/database';
+import { DB, loadClients, loadContacts, loadInvoices, loadAllBrandKits } from '@/lib/database';
 import { Client, Contact } from '@/lib/types';
 import { useTheme } from '@/lib/theme';
 import { invTotal, currency, formatPhone } from '@/lib/utils';
@@ -21,6 +21,7 @@ export default function ClientsPage() {
   useEffect(() => {
     const init = async () => {
       if (DB.clientsState !== 'loaded') await loadClients();
+      if (!DB.clients.some((c) => c.brandKit?._id)) await loadAllBrandKits();
       for (const c of DB.clients) {
         if (!DB.contacts[c.id]) await loadContacts(c.id);
         const hasInv = DB.invoices.some((i) => i.clientId === c.id);
