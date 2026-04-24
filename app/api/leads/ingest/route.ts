@@ -196,6 +196,7 @@ export async function POST(req: NextRequest) {
   }
 
   const basePayload: Record<string, unknown> = {
+    agency_id: site.agency_id,
     client_id: site.client_id,
     site_id: site.id,
     form_id,
@@ -246,6 +247,7 @@ export async function POST(req: NextRequest) {
 
   // 13. Emit event
   await emitIngestEvent({
+    agencyId: site.agency_id,
     clientId: site.client_id,
     siteId: site.id,
     type: table === 'leads' ? 'lead.received' : 'quote_request.received',

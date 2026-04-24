@@ -55,7 +55,8 @@ export function getClientIp(req: NextRequest): string | null {
 
 export type SiteRow = {
   id: string
-  client_id: string
+  agency_id: string | null
+  client_id: string | null
   name: string
   allowed_origins: string[]
   api_key_hash: string
@@ -71,7 +72,7 @@ export async function lookupSiteByKey(token: string): Promise<SiteRow | null> {
   const { data, error } = await supabaseAdmin()
     .from('sites')
     .select(
-      'id, client_id, name, allowed_origins, api_key_hash, status, rate_limit_per_minute, rate_limit_per_day, form_configs'
+      'id, agency_id, client_id, name, allowed_origins, api_key_hash, status, rate_limit_per_minute, rate_limit_per_day, form_configs'
     )
     .eq('api_key_prefix', prefix)
     .maybeSingle()
@@ -147,6 +148,7 @@ export async function logIngest(opts: {
           : null
     await supabaseAdmin().from('ingest_log').insert({
       site_id: opts.site?.id ?? null,
+      agency_id: opts.site?.agency_id ?? null,
       client_id: opts.site?.client_id ?? null,
       api_key_prefix: opts.apiKeyPrefix,
       form_id: opts.formId,
@@ -169,13 +171,15 @@ export async function logIngest(opts: {
 // ============================================================================
 
 export async function emitIngestEvent(opts: {
-  clientId: string
+  agencyId: string | null
+  clientId: string | null
   siteId: string
   type: 'lead.received' | 'quote_request.received'
   payload: Record<string, unknown>
 }) {
   try {
     await supabaseAdmin().from('ingest_events').insert({
+      agency_id: opts.agencyId,
       client_id: opts.clientId,
       site_id: opts.siteId,
       type: opts.type,
