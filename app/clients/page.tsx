@@ -17,6 +17,7 @@ export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [contacts, setContacts] = useState<Record<string, Contact[]>>({});
   const [search, setSearch] = useState('');
+  const [stageFilter, setStageFilter] = useState<'all' | 'lead' | 'active' | 'paused' | 'churned'>('all');
 
   useEffect(() => {
     const init = async () => {
@@ -38,18 +39,22 @@ export default function ClientsPage() {
 
   const sorted = [...clients].sort((a, b) => (a.company || a.name).localeCompare(b.company || b.name));
 
+  const stageFiltered = stageFilter === 'all' ? sorted : sorted.filter((c) => c.lifecycleStage === stageFilter);
+
   const filtered = search.trim()
-    ? sorted.filter((c) => {
+    ? stageFiltered.filter((c) => {
         const q = search.toLowerCase();
         const ct = contacts[c.id] || [];
         const primary = ct.find((x) => x.isPrimary) || ct[0];
         return (c.company || c.name || '').toLowerCase().includes(q) || (primary?.name || '').toLowerCase().includes(q);
       })
-    : sorted;
+    : stageFiltered;
 
   // Health stats
-  const activeCount = clients.filter((c) => (c as any).engagementStatus === 'active' || !(c as any).engagementStatus).length;
-  const pausedCount = clients.filter((c) => (c as any).engagementStatus === 'paused').length;
+  const leadCount = clients.filter((c) => c.lifecycleStage === 'lead').length;
+  const activeCount = clients.filter((c) => c.lifecycleStage === 'active').length;
+  const pausedCount = clients.filter((c) => c.lifecycleStage === 'paused').length;
+  const churnedCount = clients.filter((c) => c.lifecycleStage === 'churned').length;
   const needsAttentionCount = clients.filter((c) => {
     const ci = DB.invoices.filter((i) => i.clientId === c.id);
     const hasOverdue = ci.some(i => i.status === 'overdue');
@@ -76,6 +81,35 @@ export default function ClientsPage() {
         { label: 'Paused', value: String(pausedCount), color: pausedCount > 0 ? '#F59E0B' : undefined },
         { label: 'Needs attention', value: String(needsAttentionCount), color: needsAttentionCount > 0 ? '#DC2626' : undefined },
       ]} />
+
+      {/* Stage filter chips */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+        {([
+          { key: 'all', label: 'All', count: clients.length },
+          { key: 'lead', label: 'Lead', count: leadCount },
+          { key: 'active', label: 'Active', count: activeCount },
+          { key: 'paused', label: 'Paused', count: pausedCount },
+          { key: 'churned', label: 'Churned', count: churnedCount },
+        ] as const).map((chip) => {
+          const isActive = stageFilter === chip.key;
+          return (
+            <button
+              key={chip.key}
+              onClick={() => setStageFilter(chip.key)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+                padding: '6px 12px', borderRadius: 12, fontSize: 12, fontWeight: 500,
+                fontFamily: 'inherit', cursor: 'pointer', transition: 'all 150ms',
+                border: isActive ? 'none' : `1px solid ${t.border.default}`,
+                background: isActive ? t.text.primary : 'transparent',
+                color: isActive ? t.bg.surface : t.text.secondary,
+              }}
+            >
+              {chip.label} ({chip.count})
+            </button>
+          );
+        })}
+      </div>
 
       {/* Search bar */}
       <div style={{ marginBottom: 24, position: 'relative', maxWidth: 360 }}>
@@ -109,7 +143,7 @@ export default function ClientsPage() {
           const primary = ct.find((c) => c.isPrimary) || ct[0];
           const clientInvs = DB.invoices.filter((i) => i.clientId === client.id);
           const outstanding = clientInvs.filter((i) => i.status !== 'paid' && i.status !== 'draft').reduce((s, i) => s + invTotal(i), 0);
-          const engStatus = ((client as any).engagementStatus || 'active') as 'active' | 'paused' | 'archived';
+          const stage = client.lifecycleStage || 'active';
 
           return (
             <TableRow key={client.id} onClick={() => router.push(`/clients/${client.id}`)}>
@@ -133,7 +167,7 @@ export default function ClientsPage() {
               <TableCell flex={1.2}>{formatPhone(primary?.phone)}</TableCell>
 
               <div style={{ flex: 0.8 }}>
-                <StatusPill status={engStatus} />
+                <StatusPill status={stage} />
               </div>
 
               <TableCell flex={1} align="right">

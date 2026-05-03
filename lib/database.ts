@@ -13,6 +13,10 @@ import {
   BrandKit,
   Agency,
   AgencySettings,
+  Note,
+  Task,
+  Event,
+  CrmContact,
   DBCache,
 } from './types';
 import { displayToIso, isoToDisplay } from './utils';
@@ -155,6 +159,7 @@ export async function loadClients(): Promise<void> {
       hasBrandKit: (c.active_modules || []).includes('brand_kit'),
       hasEmailSig: true,
       engagementStatus: c.engagement_status || 'active',
+      lifecycleStage: c.lifecycle_stage || 'active',
       nextStep: c.next_step || '',
       emailSignatureHtml: c.email_signature_html || '',
       signatureFields: c.signature_fields || {},
@@ -1212,5 +1217,269 @@ export async function saveAgencySettings(
     }
   } catch (e) {
     console.warn('[saveAgencySettings] exception (table may not exist):', e);
+  }
+}
+
+// ============================================================================
+// Notes
+// ============================================================================
+
+function mapNote(row: any): Note {
+  return {
+    id: row.id,
+    createdAt: row.created_at,
+    clientId: row.client_id ?? null,
+    contactId: row.contact_id ?? null,
+    content: row.content,
+    kind: row.kind,
+    sourceKind: row.source_kind ?? null,
+  };
+}
+
+export async function loadClientNotes(clientId: string): Promise<Note[]> {
+  const { data, error } = await supabase
+    .from('notes')
+    .select('*')
+    .eq('client_id', clientId)
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.error('[loadClientNotes] error:', error);
+    return [];
+  }
+  return (data || []).map(mapNote);
+}
+
+export async function createClientNote(clientId: string, content: string): Promise<Note> {
+  const { data, error } = await supabase
+    .from('notes')
+    .insert({ client_id: clientId, content, kind: 'note', source_kind: 'manual' })
+    .select('*')
+    .single();
+  if (error || !data) {
+    console.error('[createClientNote] error:', error);
+    throw new Error(error?.message || 'Failed to create note');
+  }
+  return mapNote(data);
+}
+
+// ============================================================================
+// CRM Contacts
+// ============================================================================
+
+function mapCrmContact(row: any): CrmContact {
+  return {
+    id: row.id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    name: row.name,
+    email: row.email ?? null,
+    phone: row.phone ?? null,
+    avatarUrl: row.avatar_url ?? null,
+    kind: row.kind,
+    tags: row.tags ?? [],
+    clientId: row.client_id ?? null,
+    role: row.role ?? null,
+    isPrimaryContact: row.is_primary_contact ?? false,
+    isBillingContact: row.is_billing_contact ?? false,
+    context: row.context ?? null,
+    metAtDate: row.met_at_date ?? null,
+    metAtLocation: row.met_at_location ?? null,
+    links: row.links ?? [],
+  };
+}
+
+export async function loadClientContacts(clientId: string): Promise<CrmContact[]> {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select('*')
+    .eq('client_id', clientId)
+    .order('is_primary_contact', { ascending: false })
+    .order('created_at', { ascending: true });
+  if (error) {
+    console.error('[loadClientContacts] error:', error);
+    return [];
+  }
+  return (data || []).map(mapCrmContact);
+}
+
+export async function createClientContact(
+  clientId: string,
+  data: { name: string; role?: string; email?: string; phone?: string; isPrimaryContact?: boolean; isBillingContact?: boolean }
+): Promise<CrmContact> {
+  const { data: row, error } = await supabase
+    .from('contacts')
+    .insert({
+      client_id: clientId,
+      name: data.name,
+      role: data.role || null,
+      email: data.email || null,
+      phone: data.phone || null,
+      is_primary_contact: data.isPrimaryContact ?? false,
+      is_billing_contact: data.isBillingContact ?? false,
+      kind: 'client_contact',
+    })
+    .select('*')
+    .single();
+  if (error || !row) {
+    console.error('[createClientContact] error:', error);
+    throw new Error(error?.message || 'Failed to create contact');
+  }
+  return mapCrmContact(row);
+}
+
+// ============================================================================
+// Tasks
+// ============================================================================
+
+function mapTask(row: any): Task {
+  return {
+    id: row.id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    clientId: row.client_id ?? null,
+    contactId: row.contact_id ?? null,
+    eventId: row.event_id ?? null,
+    title: row.title,
+    dueDate: row.due_date ?? null,
+    leadDays: row.lead_days ?? null,
+    completedAt: row.completed_at ?? null,
+    sourceNoteId: row.source_note_id ?? null,
+  };
+}
+
+export async function loadClientTasks(clientId: string): Promise<Task[]> {
+  // Load open tasks first (by due_date asc), then completed (by completed_at desc)
+  const [openRes, doneRes] = await Promise.all([
+    supabase
+      .from('tasks')
+      .select('*')
+      .eq('client_id', clientId)
+      .is('completed_at', null)
+      .order('due_date', { ascending: true, nullsFirst: false }),
+    supabase
+      .from('tasks')
+      .select('*')
+      .eq('client_id', clientId)
+      .not('completed_at', 'is', null)
+      .order('completed_at', { ascending: false }),
+  ]);
+  if (openRes.error) console.error('[loadClientTasks] open error:', openRes.error);
+  if (doneRes.error) console.error('[loadClientTasks] done error:', doneRes.error);
+  const open = (openRes.data || []).map(mapTask);
+  const done = (doneRes.data || []).map(mapTask);
+  return [...open, ...done];
+}
+
+export async function createClientTask(
+  clientId: string,
+  data: { title: string; dueDate?: string | null; eventId?: string | null; leadDays?: number | null }
+): Promise<Task> {
+  const { data: row, error } = await supabase
+    .from('tasks')
+    .insert({
+      client_id: clientId,
+      title: data.title,
+      due_date: data.dueDate || null,
+      event_id: data.eventId || null,
+      lead_days: data.leadDays ?? null,
+    })
+    .select('*')
+    .single();
+  if (error || !row) {
+    console.error('[createClientTask] error:', error);
+    throw new Error(error?.message || 'Failed to create task');
+  }
+  return mapTask(row);
+}
+
+export async function setTaskCompleted(taskId: string, completed: boolean): Promise<Task> {
+  const { data: row, error } = await supabase
+    .from('tasks')
+    .update({ completed_at: completed ? new Date().toISOString() : null })
+    .eq('id', taskId)
+    .select('*')
+    .single();
+  if (error || !row) {
+    console.error('[setTaskCompleted] error:', error);
+    throw new Error(error?.message || 'Failed to update task');
+  }
+  return mapTask(row);
+}
+
+export async function deleteTask(taskId: string): Promise<void> {
+  const { error } = await supabase.from('tasks').delete().eq('id', taskId);
+  if (error) {
+    console.error('[deleteTask] error:', error);
+    throw new Error(error?.message || 'Failed to delete task');
+  }
+}
+
+export async function deleteNote(noteId: string): Promise<void> {
+  const { error } = await supabase.from('notes').delete().eq('id', noteId);
+  if (error) {
+    console.error('[deleteNote] error:', error);
+    throw new Error(error?.message || 'Failed to delete note');
+  }
+}
+
+// ============================================================================
+// Events
+// ============================================================================
+
+function mapEvent(row: any): Event {
+  return {
+    id: row.id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    clientId: row.client_id ?? null,
+    contactId: row.contact_id ?? null,
+    title: row.title,
+    eventDate: row.event_date,
+    location: row.location ?? null,
+    description: row.description ?? null,
+    sourceNoteId: row.source_note_id ?? null,
+  };
+}
+
+export async function loadClientEvents(clientId: string): Promise<Event[]> {
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('client_id', clientId)
+    .order('event_date', { ascending: true });
+  if (error) {
+    console.error('[loadClientEvents] error:', error);
+    return [];
+  }
+  return (data || []).map(mapEvent);
+}
+
+export async function createClientEvent(
+  clientId: string,
+  data: { title: string; eventDate: string; location?: string; description?: string }
+): Promise<Event> {
+  const { data: row, error } = await supabase
+    .from('events')
+    .insert({
+      client_id: clientId,
+      title: data.title,
+      event_date: data.eventDate,
+      location: data.location || null,
+      description: data.description || null,
+    })
+    .select('*')
+    .single();
+  if (error || !row) {
+    console.error('[createClientEvent] error:', error);
+    throw new Error(error?.message || 'Failed to create event');
+  }
+  return mapEvent(row);
+}
+
+export async function deleteEvent(eventId: string): Promise<void> {
+  const { error } = await supabase.from('events').delete().eq('id', eventId);
+  if (error) {
+    console.error('[deleteEvent] error:', error);
+    throw new Error(error?.message || 'Failed to delete event');
   }
 }

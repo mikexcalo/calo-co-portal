@@ -201,11 +201,81 @@ export interface Client {
   hasBrandKit: boolean;
   hasEmailSig: boolean;
   engagementStatus: 'active' | 'paused' | 'closed';
+  lifecycleStage: 'lead' | 'active' | 'paused' | 'churned';
   nextStep: string;
   emailSignatureHtml: string;
   signatureFields: SignatureFields;
   brandKit: BrandKit;
 }
+
+/**
+ * CRM contact (from contacts table — richer than legacy Contact interface)
+ */
+export type CrmContact = {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  avatarUrl: string | null;
+  kind: 'client_contact' | 'prospect' | 'vendor' | 'network' | 'other';
+  tags: string[];
+  clientId: string | null;
+  role: string | null;
+  isPrimaryContact: boolean;
+  isBillingContact: boolean;
+  context: string | null;
+  metAtDate: string | null;
+  metAtLocation: string | null;
+  links: Array<{ label: string; url: string }>;
+};
+
+/**
+ * Event attached to a client or contact
+ */
+export type Event = {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  clientId: string | null;
+  contactId: string | null;
+  title: string;
+  eventDate: string;
+  location: string | null;
+  description: string | null;
+  sourceNoteId: string | null;
+};
+
+/**
+ * Task attached to a client or contact
+ */
+export type Task = {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  clientId: string | null;
+  contactId: string | null;
+  eventId: string | null;
+  title: string;
+  dueDate: string | null;
+  leadDays: number | null;
+  completedAt: string | null;
+  sourceNoteId: string | null;
+};
+
+/**
+ * Note attached to a client or contact
+ */
+export type Note = {
+  id: string;
+  createdAt: string;
+  clientId: string | null;
+  contactId: string | null;
+  content: string;
+  kind: 'note' | 'call' | 'meeting' | 'email' | 'transcript' | 'other';
+  sourceKind: 'manual' | 'transcript' | 'image' | 'voice' | 'link' | 'other' | null;
+};
 
 /**
  * In-memory database cache

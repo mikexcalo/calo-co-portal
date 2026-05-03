@@ -2,13 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Client, Contact, Invoice } from '@/lib/types';
-import { DB, loadClients, loadContacts, loadInvoices, loadAllBrandKits, saveClient, saveContact } from '@/lib/database';
+import { Client, Contact, Invoice, Note, Task, Event as CrmEvent, CrmContact } from '@/lib/types';
+import { DB, loadClients, loadContacts, loadInvoices, loadAllBrandKits, saveClient, saveContact, loadClientNotes, createClientNote, deleteNote, loadClientContacts, createClientContact, loadClientTasks, createClientTask, setTaskCompleted, deleteTask, loadClientEvents, createClientEvent, deleteEvent } from '@/lib/database';
 import { clientStats, currency, invTotal, formatPhone } from '@/lib/utils';
-import ClientUpdates from '@/components/client-hub/ClientUpdates';
 import { PageLayout, Section, CardGrid, Card, InfoBar, SectionLabel } from '@/components/shared/PageLayout';
 import { useTheme } from '@/lib/theme';
 import HelmSpinner from '@/components/shared/HelmSpinner';
+import { Composer } from '@/components/shared/Composer';
+import { ActivityTimeline } from '@/components/shared/ActivityTimeline';
+import { ContactsList } from '@/components/shared/ContactsList';
+import { AddContactInline } from '@/components/shared/AddContactInline';
+import { TasksList } from '@/components/shared/TasksList';
+import { AddTaskInline } from '@/components/shared/AddTaskInline';
+import { EventsList } from '@/components/shared/EventsList';
+import { AddEventInline } from '@/components/shared/AddEventInline';
 
 export default function ClientHubPage() {
   const params = useParams();
@@ -18,6 +25,17 @@ export default function ClientHubPage() {
   const [client, setClient] = useState<Client | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [noteSaving, setNoteSaving] = useState(false);
+  const [crmContacts, setCrmContacts] = useState<CrmContact[]>([]);
+  const [addingContact, setAddingContact] = useState(false);
+  const [savingContact, setSavingContact] = useState(false);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [addingTask, setAddingTask] = useState(false);
+  const [savingTask, setSavingTask] = useState(false);
+  const [events, setEvents] = useState<CrmEvent[]>([]);
+  const [addingEvent, setAddingEvent] = useState(false);
+  const [savingEvent, setSavingEvent] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isClient, setIsClient] = useState(false);
   const { t } = useTheme();
@@ -59,6 +77,17 @@ export default function ClientHubPage() {
       // Brand kits: skip if any client already has brand kit data loaded
       const hasBk = DB.clients.some((c) => c.brandKit?._id);
       if (!hasBk) await loadAllBrandKits();
+
+      const [loadedNotes, loadedCrmContacts, loadedTasks, loadedEvents] = await Promise.all([
+        loadClientNotes(clientId),
+        loadClientContacts(clientId),
+        loadClientTasks(clientId),
+        loadClientEvents(clientId),
+      ]);
+      setNotes(loadedNotes);
+      setCrmContacts(loadedCrmContacts);
+      setTasks(loadedTasks);
+      setEvents(loadedEvents);
 
       const foundClient = DB.clients.find((c) => c.id === clientId);
       if (foundClient) {
@@ -310,10 +339,168 @@ export default function ClientHubPage() {
       {/* Two-column: Tasks + Quick links */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24 }}>
         <div>
-          <ClientUpdates clientId={clientId} isClient={isClient} />
+          {/* Events section */}
+          <div style={{ marginBottom: 20 }}>
+            <EventsList
+              events={events}
+              taskCountsByEventId={tasks.reduce<Record<string, number>>((acc, tk) => {
+                if (tk.eventId) acc[tk.eventId] = (acc[tk.eventId] || 0) + 1;
+                return acc;
+              }, {})}
+              onAddClick={() => setAddingEvent(true)}
+              onDelete={async (eventId) => {
+                const prevEvents = events;
+                setEvents((ev) => ev.filter((e) => e.id !== eventId));
+                try {
+                  await deleteEvent(eventId);
+                  // Re-fetch tasks since anchored tasks lost their event_id (FK ON DELETE SET NULL)
+                  const refreshed = await loadClientTasks(clientId);
+                  setTasks(refreshed);
+                } catch (e) {
+                  console.error('Failed to delete event:', e);
+                  alert('Failed to delete event.');
+                  setEvents(prevEvents);
+                }
+              }}
+            />
+            {addingEvent && (
+              <AddEventInline
+                saving={savingEvent}
+                onCancel={() => setAddingEvent(false)}
+                onSave={async (data) => {
+                  setSavingEvent(true);
+                  try {
+                    const event = await createClientEvent(clientId, data);
+                    setEvents((prev) => [...prev, event].sort((a, b) => a.eventDate.localeCompare(b.eventDate)));
+                    setAddingEvent(false);
+                  } catch (e) {
+                    console.error('Failed to create event:', e);
+                    alert('Failed to create event. Please try again.');
+                  }
+                  setSavingEvent(false);
+                }}
+              />
+            )}
+          </div>
+
+          {/* Tasks section */}
+          <div style={{ marginBottom: 20 }}>
+            <TasksList
+              tasks={tasks}
+              events={events}
+              onAddClick={() => setAddingTask(true)}
+              onToggleComplete={async (taskId, completed) => {
+                setTasks((prev) => prev.map((tk) =>
+                  tk.id === taskId ? { ...tk, completedAt: completed ? new Date().toISOString() : null } : tk
+                ));
+                try {
+                  await setTaskCompleted(taskId, completed);
+                } catch (e) {
+                  console.error('Failed to toggle task:', e);
+                  setTasks((prev) => prev.map((tk) =>
+                    tk.id === taskId ? { ...tk, completedAt: completed ? null : new Date().toISOString() } : tk
+                  ));
+                }
+              }}
+              onDelete={async (taskId) => {
+                const prev = tasks;
+                setTasks((tk) => tk.filter((x) => x.id !== taskId));
+                try {
+                  await deleteTask(taskId);
+                } catch (e) {
+                  console.error('Failed to delete task:', e);
+                  alert('Failed to delete task.');
+                  setTasks(prev);
+                }
+              }}
+            />
+            {addingTask && (
+              <AddTaskInline
+                events={events}
+                saving={savingTask}
+                onCancel={() => setAddingTask(false)}
+                onSave={async (data) => {
+                  setSavingTask(true);
+                  try {
+                    const task = await createClientTask(clientId, data);
+                    setTasks((prev) => [task, ...prev]);
+                    setAddingTask(false);
+                  } catch (e) {
+                    console.error('Failed to create task:', e);
+                    alert('Failed to create task. Please try again.');
+                  }
+                  setSavingTask(false);
+                }}
+              />
+            )}
+          </div>
+
+          {/* Activity section */}
+          <Section label="Activity">
+            <Composer
+              saving={noteSaving}
+              onSave={async (content) => {
+                setNoteSaving(true);
+                try {
+                  const note = await createClientNote(clientId, content);
+                  setNotes((prev) => [note, ...prev]);
+                } catch (e) {
+                  console.error('Failed to save note:', e);
+                  alert('Failed to save note. Please try again.');
+                }
+                setNoteSaving(false);
+              }}
+            />
+            <div style={{ marginTop: 16 }}>
+              <ActivityTimeline
+                notes={notes}
+                onDelete={async (noteId) => {
+                  try {
+                    await deleteNote(noteId);
+                    setNotes((prev) => prev.filter((n) => n.id !== noteId));
+                  } catch (e) {
+                    console.error('Failed to delete note:', e);
+                    alert('Failed to delete note.');
+                  }
+                }}
+              />
+            </div>
+          </Section>
         </div>
 
         <div>
+          <div style={{ marginBottom: 20 }}>
+            <ContactsList
+              contacts={crmContacts}
+              onAddClick={() => setAddingContact(true)}
+            />
+            {addingContact && (
+              <AddContactInline
+                saving={savingContact}
+                onCancel={() => setAddingContact(false)}
+                onSave={async (data) => {
+                  setSavingContact(true);
+                  try {
+                    const contact = await createClientContact(clientId, data);
+                    setCrmContacts((prev) => {
+                      const updated = [...prev, contact];
+                      updated.sort((a, b) => {
+                        if (a.isPrimaryContact !== b.isPrimaryContact) return a.isPrimaryContact ? -1 : 1;
+                        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+                      });
+                      return updated;
+                    });
+                    setAddingContact(false);
+                  } catch (e) {
+                    console.error('Failed to create contact:', e);
+                    alert('Failed to create contact. Please try again.');
+                  }
+                  setSavingContact(false);
+                }}
+              />
+            )}
+          </div>
+
           <Section label="Quick links">
             <CardGrid columns={2}>
               <Card onClick={() => router.push(`/design?client=${clientId}`)}>

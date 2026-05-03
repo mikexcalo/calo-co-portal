@@ -51,7 +51,7 @@ export default function NewClientPage() {
         city: form.city, state: form.state, postal_code: form.postal_code,
         logo: null, activeModules: ['invoices'],
         hasBrandKit: false, hasEmailSig: false,
-        engagementStatus: 'active', nextStep: '',
+        engagementStatus: 'active', lifecycleStage: 'active', nextStep: '',
         emailSignatureHtml: '', signatureFields: {},
         brandKit: {
           _id: null,
