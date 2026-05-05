@@ -1,12 +1,157 @@
-import { PageShell, PageHeader } from "@/components/shared/Brand";
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { DB, loadClients } from '@/lib/database';
+import supabase from '@/lib/supabase';
+import { useTheme } from '@/lib/theme';
+import { formatPhone } from '@/lib/utils';
+import { PageShell, PageHeader, DataCard, TableHeader, TableRow, TableCell } from '@/components/shared/Brand';
+
+interface ContactRow {
+  id: string;
+  name: string;
+  role: string | null;
+  email: string | null;
+  phone: string | null;
+  clientId: string | null;
+  isPrimaryContact: boolean;
+}
+
+const avatarBgs = ['#e8d5b7', '#c4d4c8', '#d4c4d8', '#c4cdd8', '#d8c4c4'];
+const avatarFgs = ['#6b4a1a', '#2d4a3a', '#4a2d4a', '#2d3a4a', '#4a2d2d'];
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return (parts[0]?.[0] || '?').toUpperCase();
+}
+
+function avatarColor(name: string): { bg: string; fg: string } {
+  const idx = (name.charCodeAt(0) || 0) % 5;
+  return { bg: avatarBgs[idx], fg: avatarFgs[idx] };
+}
 
 export default function ContactsPage() {
+  const router = useRouter();
+  const { t } = useTheme();
+  const [isLoading, setIsLoading] = useState(true);
+  const [contacts, setContacts] = useState<ContactRow[]>([]);
+  const [clientNames, setClientNames] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const init = async () => {
+      if (DB.clientsState !== 'loaded') await loadClients();
+
+      const nameMap: Record<string, string> = {};
+      for (const c of DB.clients) {
+        nameMap[c.id] = c.company || c.name;
+      }
+      setClientNames(nameMap);
+
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('id, name, role, email, phone, client_id, is_primary_contact')
+        .order('name', { ascending: true });
+
+      if (error) {
+        console.error('[ContactsPage] load error:', error);
+      }
+
+      setContacts(
+        (data || []).map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          role: c.role ?? null,
+          email: c.email ?? null,
+          phone: c.phone ?? null,
+          clientId: c.client_id ?? null,
+          isPrimaryContact: c.is_primary_contact ?? false,
+        }))
+      );
+      setIsLoading(false);
+    };
+    init();
+  }, []);
+
+  if (isLoading) return null;
+
   return (
     <PageShell>
-      <PageHeader title="Contacts" />
-      <div className="px-10 py-8 text-sm text-neutral-500">
-        Contacts module coming soon.
-      </div>
+      <PageHeader
+        title="Contacts"
+        subtitle={`${contacts.length} contact${contacts.length !== 1 ? 's' : ''}`}
+      />
+
+      <DataCard noPadding>
+        <TableHeader columns={[
+          { label: '', flex: 0.3 },
+          { label: 'Name', flex: 2 },
+          { label: 'Client', flex: 1.5 },
+          { label: 'Email', flex: 1.5 },
+          { label: 'Phone', flex: 1.2 },
+          { label: '', flex: 0.3 },
+        ]} />
+
+        {contacts.map((contact) => {
+          const { bg, fg } = avatarColor(contact.name);
+          const parentName = contact.clientId ? clientNames[contact.clientId] : null;
+
+          return (
+            <TableRow key={contact.id} onClick={contact.clientId ? () => router.push(`/clients/${contact.clientId}`) : undefined}>
+              <div style={{ flex: 0.3, display: 'flex', alignItems: 'center', marginRight: 8 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: 16, overflow: 'hidden',
+                  background: bg, color: fg,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 11, fontWeight: 700, flexShrink: 0,
+                }}>
+                  {getInitials(contact.name)}
+                </div>
+              </div>
+
+              <TableCell flex={2} primary>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{contact.name}</div>
+                  {contact.role && (
+                    <div style={{ fontSize: 11, color: t.text.tertiary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {contact.role}
+                    </div>
+                  )}
+                </div>
+              </TableCell>
+
+              <TableCell flex={1.5}>
+                {parentName ? (
+                  <span style={{ color: t.text.secondary }}>{parentName}</span>
+                ) : (
+                  <span style={{ color: t.text.tertiary }}>—</span>
+                )}
+              </TableCell>
+
+              <TableCell flex={1.5}>
+                <span style={{ color: contact.email ? t.text.secondary : t.text.tertiary }}>
+                  {contact.email || '—'}
+                </span>
+              </TableCell>
+
+              <TableCell flex={1.2}>{formatPhone(contact.phone)}</TableCell>
+
+              <div style={{ flex: 0.3, display: 'flex', justifyContent: 'flex-end' }}>
+                {contact.clientId && (
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5"><path d="M6 4l4 4-4 4"/></svg>
+                )}
+              </div>
+            </TableRow>
+          );
+        })}
+
+        {contacts.length === 0 && (
+          <div style={{ padding: 40, textAlign: 'center', color: t.text.tertiary, fontSize: 13 }}>
+            No contacts yet
+          </div>
+        )}
+      </DataCard>
     </PageShell>
   );
 }
