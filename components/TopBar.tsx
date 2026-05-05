@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { DB } from '@/lib/database';
 import { useTheme } from '@/lib/theme';
+import { AlertsBell } from '@/components/shared/AlertsBell';
 
 export default function TopBar() {
   const pathname = usePathname();
@@ -130,6 +131,7 @@ export default function TopBar() {
             </div>
           )}
         </div>
+        <AlertsBell />
         <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
           width: 32, height: 32, border: 'none', borderRadius: 6, background: 'transparent',
           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
