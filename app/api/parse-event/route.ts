@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
-    console.log("KEY_DEBUG:", process.env.ANTHROPIC_API_KEY?.length || 0, process.env.ANTHROPIC_API_KEY?.slice(0,7) || "EMPTY");
     const { text } = await request.json();
 
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
