@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DB, loadClients } from '@/lib/database';
+import { DB, loadClients, createClientContact } from '@/lib/database';
 import supabase from '@/lib/supabase';
 import { useTheme } from '@/lib/theme';
 import { formatPhone } from '@/lib/utils';
-import { PageShell, PageHeader, DataCard, TableHeader, TableRow, TableCell } from '@/components/shared/Brand';
+import { PageShell, PageHeader, DataCard, TableHeader, TableRow, TableCell, CtaButton } from '@/components/shared/Brand';
+import { AddContactWithClientPicker } from '@/components/shared/AddContactWithClientPicker';
 
 interface ContactRow {
   id: string;
@@ -38,6 +39,8 @@ export default function ContactsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [contacts, setContacts] = useState<ContactRow[]>([]);
   const [clientNames, setClientNames] = useState<Record<string, string>>({});
+  const [addingContact, setAddingContact] = useState(false);
+  const [savingContact, setSavingContact] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -81,7 +84,36 @@ export default function ContactsPage() {
       <PageHeader
         title="Contacts"
         subtitle={`${contacts.length} contact${contacts.length !== 1 ? 's' : ''}`}
+        action={<CtaButton onClick={() => setAddingContact(true)}>+ Add Contact</CtaButton>}
       />
+
+      {addingContact && (
+        <AddContactWithClientPicker
+          clients={DB.clients.map((c) => ({ id: c.id, name: c.company || c.name })).sort((a, b) => a.name.localeCompare(b.name))}
+          saving={savingContact}
+          onCancel={() => setAddingContact(false)}
+          onSave={async (clientId, data) => {
+            setSavingContact(true);
+            try {
+              const created = await createClientContact(clientId, data);
+              setContacts((prev) => [...prev, {
+                id: created.id,
+                name: created.name,
+                role: created.role,
+                email: created.email,
+                phone: created.phone,
+                clientId: created.clientId,
+                isPrimaryContact: created.isPrimaryContact,
+              }].sort((a, b) => a.name.localeCompare(b.name)));
+              setAddingContact(false);
+            } catch (e) {
+              console.error('Failed to create contact:', e);
+              alert('Failed to create contact. Please try again.');
+            }
+            setSavingContact(false);
+          }}
+        />
+      )}
 
       <DataCard noPadding>
         <TableHeader columns={[
