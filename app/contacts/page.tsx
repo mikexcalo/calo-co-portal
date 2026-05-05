@@ -135,7 +135,7 @@ export default function ContactsPage() {
                 </span>
               </TableCell>
 
-              <TableCell flex={1.2}>{formatPhone(contact.phone)}</TableCell>
+              <TableCell flex={1.2}>{formatPhone(contact.phone || '')}</TableCell>
 
               <div style={{ flex: 0.3, display: 'flex', justifyContent: 'flex-end' }}>
                 {contact.clientId && (
