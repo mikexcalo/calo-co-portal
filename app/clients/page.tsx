@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DB, loadClients, loadContacts, loadInvoices, loadAllBrandKits } from '@/lib/database';
+import { DB, loadClients, loadContacts, loadInvoices, loadAllBrandKits, saveClient } from '@/lib/database';
 import { Client, Contact } from '@/lib/types';
 import { useTheme } from '@/lib/theme';
 import { invTotal, currency, formatPhone } from '@/lib/utils';
 import { getClientAvatarUrl } from '@/lib/clientAvatar';
 import { PageShell, PageHeader, StatRow, DataCard, TableHeader, TableRow, TableCell, CtaButton } from '@/components/shared/Brand';
 import { StatusPill } from '@/components/shared/StatusPill';
+import { AddClientInline } from '@/components/shared/AddClientInline';
 
 export default function ClientsPage() {
   const router = useRouter();
@@ -18,6 +19,8 @@ export default function ClientsPage() {
   const [contacts, setContacts] = useState<Record<string, Contact[]>>({});
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState<'all' | 'lead' | 'active' | 'paused' | 'churned'>('all');
+  const [addingClient, setAddingClient] = useState(false);
+  const [savingClient, setSavingClient] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -72,8 +75,48 @@ export default function ClientsPage() {
       <PageHeader
         title="Clients"
         subtitle={`${clients.length} client${clients.length !== 1 ? 's' : ''}`}
-        action={<CtaButton onClick={() => router.push('/clients/new')}>+ Add Client</CtaButton>}
+        action={<CtaButton onClick={() => setAddingClient(true)}>+ Add Client</CtaButton>}
       />
+
+      {addingClient && (
+        <AddClientInline
+          saving={savingClient}
+          onCancel={() => setAddingClient(false)}
+          onSave={async (data) => {
+            setSavingClient(true);
+            try {
+              const newClient: Client = {
+                id: '', name: data.name, company: data.name,
+                email: '', phone: '', website: data.website || '',
+                address: '', address_line_1: '', address_line_2: '',
+                city: '', state: '', postal_code: '',
+                logo: null, activeModules: ['invoices'],
+                hasBrandKit: false, hasEmailSig: false,
+                engagementStatus: 'active',
+                lifecycleStage: data.lifecycleStage as Client['lifecycleStage'],
+                nextStep: '', emailSignatureHtml: '',
+                signatureFields: {},
+                brandKit: {
+                  _id: null,
+                  logos: { light: [], dark: [], color: [], icon: [], secondary: [], favicon: [] },
+                  colors: [], fonts: { heading: '', body: '', accent: '' }, notes: '',
+                },
+              };
+              const result = await saveClient(newClient);
+              if (result?.id) {
+                newClient.id = result.id;
+                DB.clients.push(newClient);
+                setClients([...DB.clients]);
+              }
+              setAddingClient(false);
+            } catch (e) {
+              console.error('Failed to create client:', e);
+              alert('Failed to create client. Please try again.');
+            }
+            setSavingClient(false);
+          }}
+        />
+      )}
 
       <StatRow stats={[
         { label: 'Total clients', value: String(clients.length) },
