@@ -16,6 +16,8 @@ import { TasksList } from '@/components/shared/TasksList';
 import { AddTaskInline } from '@/components/shared/AddTaskInline';
 import { EventsList } from '@/components/shared/EventsList';
 import { AddEventInline } from '@/components/shared/AddEventInline';
+import { TranscriptParser } from '@/components/shared/TranscriptParser';
+import type { TranscriptEvent } from '@/lib/api';
 
 export default function ClientHubPage() {
   const params = useParams();
@@ -339,6 +341,59 @@ export default function ClientHubPage() {
       {/* Two-column: Tasks + Quick links */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24 }}>
         <div>
+          {/* Transcript parser */}
+          <TranscriptParser
+            existingEvents={events}
+            onAddItems={async (newEvents: TranscriptEvent[], taskData) => {
+              // 1. Create events first
+              const createdEvents: CrmEvent[] = [];
+              for (const ev of newEvents) {
+                if (!ev.eventDate) continue;
+                try {
+                  const created = await createClientEvent(clientId, {
+                    title: ev.title,
+                    eventDate: ev.eventDate,
+                    location: ev.location || undefined,
+                    description: ev.description || undefined,
+                  });
+                  createdEvents.push(created);
+                } catch (e) {
+                  console.error('Failed to create event from transcript:', e);
+                }
+              }
+              // Update events state
+              setEvents((prev) => [...prev, ...createdEvents].sort((a, b) => a.eventDate.localeCompare(b.eventDate)));
+
+              // 2. Build title->id map from both existing and newly created events
+              const titleToId: Record<string, string> = {};
+              for (const ev of [...events, ...createdEvents]) {
+                titleToId[ev.title.toLowerCase()] = ev.id;
+              }
+
+              // 3. Create tasks, resolving anchorEventTitle to eventId
+              for (const tk of taskData) {
+                const anchor = (tk as any).anchorEventTitle;
+                let eventId: string | null = null;
+                let leadDays: number | null = tk.leadDays;
+                if (anchor && typeof anchor === 'string') {
+                  eventId = titleToId[anchor.toLowerCase()] || null;
+                  if (!eventId) leadDays = null; // can't anchor without a matching event
+                }
+                try {
+                  const created = await createClientTask(clientId, {
+                    title: tk.title,
+                    dueDate: tk.dueDate,
+                    eventId,
+                    leadDays: eventId ? leadDays : null,
+                  });
+                  setTasks((prev) => [created, ...prev]);
+                } catch (e) {
+                  console.error('Failed to create task from transcript:', e);
+                }
+              }
+            }}
+          />
+
           {/* Events section */}
           <div style={{ marginBottom: 20 }}>
             <EventsList
