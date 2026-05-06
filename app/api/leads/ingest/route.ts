@@ -27,6 +27,9 @@ export async function OPTIONS() {
 
 // POST — lead ingest
 export async function POST(req: NextRequest) {
+  console.log('Available env keys with RESEND:', Object.keys(process.env).filter(k => k.toUpperCase().includes('RESEND')))
+  console.log('RESEND raw value start:', process.env.RESEND_API_KEY?.substring(0, 4) ?? 'UNDEFINED')
+
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
