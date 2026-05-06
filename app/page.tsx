@@ -18,6 +18,7 @@ import useCountUp from '@/lib/useCountUp';
 import { PageShell, PageHeader, StatRow, DataCard, SectionLabel, TableRow, TableCell, GhostButton } from '@/components/shared/Brand';
 import { StatusPill } from '@/components/shared/StatusPill';
 import TaskNoteCard from '@/components/shared/TaskNoteCard';
+import { AlertsCard } from '@/components/shared/AlertsCard';
 
 function ageDays(iso: string): number {
   return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
@@ -407,6 +408,8 @@ export default function Home() {
 
         return null;
       })()}
+
+      <AlertsCard />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'start' }}>
         {/* LEFT COLUMN: Ask + Recent Clients */}
