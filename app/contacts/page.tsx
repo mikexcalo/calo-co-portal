@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DB, loadClients, createClientContact } from '@/lib/database';
+import { DB, loadClients, createContact } from '@/lib/database';
 import supabase from '@/lib/supabase';
 import { useTheme } from '@/lib/theme';
 import { formatPhone } from '@/lib/utils';
 import { PageShell, PageHeader, DataCard, TableHeader, TableRow, TableCell, CtaButton } from '@/components/shared/Brand';
 import { AddContactWithClientPicker } from '@/components/shared/AddContactWithClientPicker';
+import { StatusPill } from '@/components/shared/StatusPill';
 
 interface ContactRow {
   id: string;
@@ -16,6 +17,7 @@ interface ContactRow {
   email: string | null;
   phone: string | null;
   clientId: string | null;
+  kind: string;
   isPrimaryContact: boolean;
 }
 
@@ -54,7 +56,7 @@ export default function ContactsPage() {
 
       const { data, error } = await supabase
         .from('contacts')
-        .select('id, name, role, email, phone, client_id, is_primary_contact')
+        .select('id, name, role, email, phone, client_id, kind, is_primary_contact')
         .order('name', { ascending: true });
 
       if (error) {
@@ -69,6 +71,7 @@ export default function ContactsPage() {
           email: c.email ?? null,
           phone: c.phone ?? null,
           clientId: c.client_id ?? null,
+          kind: c.kind ?? 'lead',
           isPrimaryContact: c.is_primary_contact ?? false,
         }))
       );
@@ -95,7 +98,7 @@ export default function ContactsPage() {
           onSave={async (clientId, data) => {
             setSavingContact(true);
             try {
-              const created = await createClientContact(clientId, data);
+              const created = await createContact({ ...data, clientId });
               setContacts((prev) => [...prev, {
                 id: created.id,
                 name: created.name,
@@ -103,6 +106,7 @@ export default function ContactsPage() {
                 email: created.email,
                 phone: created.phone,
                 clientId: created.clientId,
+                kind: created.kind,
                 isPrimaryContact: created.isPrimaryContact,
               }].sort((a, b) => a.name.localeCompare(b.name)));
               setAddingContact(false);
@@ -119,6 +123,7 @@ export default function ContactsPage() {
         <TableHeader columns={[
           { label: '', flex: 0.3 },
           { label: 'Name', flex: 2 },
+          { label: 'Kind', flex: 0.8 },
           { label: 'Client', flex: 1.5 },
           { label: 'Email', flex: 1.5 },
           { label: 'Phone', flex: 1.2 },
@@ -152,6 +157,10 @@ export default function ContactsPage() {
                   )}
                 </div>
               </TableCell>
+
+              <div style={{ flex: 0.8 }}>
+                <StatusPill status={contact.kind as any} label={contact.kind === 'client_contact' ? 'Client' : undefined} />
+              </div>
 
               <TableCell flex={1.5}>
                 {parentName ? (

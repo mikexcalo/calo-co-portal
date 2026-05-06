@@ -1327,6 +1327,31 @@ export async function createClientContact(
   return mapCrmContact(row);
 }
 
+export async function createContact(
+  data: { name: string; role?: string; email?: string; phone?: string; clientId?: string | null; kind?: string; isPrimaryContact?: boolean; isBillingContact?: boolean }
+): Promise<CrmContact> {
+  const kind = data.clientId ? 'client_contact' : (data.kind || 'lead');
+  const { data: row, error } = await supabase
+    .from('contacts')
+    .insert({
+      client_id: data.clientId || null,
+      name: data.name,
+      role: data.role || null,
+      email: data.email || null,
+      phone: data.phone || null,
+      is_primary_contact: data.isPrimaryContact ?? false,
+      is_billing_contact: data.isBillingContact ?? false,
+      kind,
+    })
+    .select('*')
+    .single();
+  if (error || !row) {
+    console.error('[createContact] error:', error);
+    throw new Error(error?.message || 'Failed to create contact');
+  }
+  return mapCrmContact(row);
+}
+
 // ============================================================================
 // Tasks
 // ============================================================================

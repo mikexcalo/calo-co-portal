@@ -8,14 +8,15 @@ type ClientOption = { id: string; name: string };
 
 type AddContactWithClientPickerProps = {
   clients: ClientOption[];
-  onSave: (clientId: string, data: { name: string; role?: string; email?: string; phone?: string; isPrimaryContact: boolean; isBillingContact: boolean }) => Promise<void>;
+  onSave: (clientId: string | null, data: { name: string; role?: string; email?: string; phone?: string; isPrimaryContact: boolean; isBillingContact: boolean }) => Promise<void>;
   onCancel: () => void;
   saving?: boolean;
 };
 
 export function AddContactWithClientPicker({ clients, onSave, onCancel, saving = false }: AddContactWithClientPickerProps) {
   const { t } = useTheme();
-  const [selectedClientId, setSelectedClientId] = useState('');
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [picked, setPicked] = useState(false);
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '8px 10px', fontSize: 13,
@@ -29,7 +30,7 @@ export function AddContactWithClientPicker({ clients, onSave, onCancel, saving =
     paddingRight: 24,
   };
 
-  if (!selectedClientId) {
+  if (!picked) {
     return (
       <div style={{
         background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8,
@@ -39,33 +40,49 @@ export function AddContactWithClientPicker({ clients, onSave, onCancel, saving =
           New contact
         </div>
         <label style={{ fontSize: 11, fontWeight: 500, color: t.text.secondary, display: 'block', marginBottom: 8 }}>
-          Client <span style={{ color: '#DC2626' }}>*</span>
+          Client (optional)
           <select
-            value={selectedClientId}
-            onChange={(e) => setSelectedClientId(e.target.value)}
+            value={selectedClientId ?? ''}
+            onChange={(e) => setSelectedClientId(e.target.value || null)}
             style={{ ...inputStyle, marginTop: 3 }}
             autoFocus
           >
-            <option value="">Select a client...</option>
+            <option value="">No client (standalone contact)</option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
         </label>
-        <button
-          onClick={onCancel}
-          style={{
-            height: 30, padding: '0 14px', fontSize: 12, fontWeight: 500,
-            background: 'transparent', color: t.text.secondary,
-            border: `1px solid ${t.border.default}`, borderRadius: 6,
-            cursor: 'pointer', fontFamily: 'inherit',
-          }}
-        >
-          Cancel
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => setPicked(true)}
+            style={{
+              height: 30, padding: '0 14px', fontSize: 12, fontWeight: 500,
+              background: t.accent.primary, color: '#fff',
+              border: 'none', borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            Next
+          </button>
+          <button
+            onClick={onCancel}
+            style={{
+              height: 30, padding: '0 14px', fontSize: 12, fontWeight: 500,
+              background: 'transparent', color: t.text.secondary,
+              border: `1px solid ${t.border.default}`, borderRadius: 6,
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     );
   }
+
+  const clientName = selectedClientId
+    ? clients.find((c) => c.id === selectedClientId)?.name
+    : null;
 
   return (
     <div style={{ marginBottom: 20 }}>
@@ -75,9 +92,14 @@ export function AddContactWithClientPicker({ clients, onSave, onCancel, saving =
         padding: '8px 16px', fontSize: 11, color: t.text.tertiary,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <span>Adding to: <strong style={{ color: t.text.secondary }}>{clients.find((c) => c.id === selectedClientId)?.name}</strong></span>
+        <span>
+          {clientName
+            ? <>Adding to: <strong style={{ color: t.text.secondary }}>{clientName}</strong></>
+            : <span style={{ color: t.text.tertiary }}>Standalone contact (no client)</span>
+          }
+        </span>
         <button
-          onClick={() => setSelectedClientId('')}
+          onClick={() => setPicked(false)}
           style={{ fontSize: 11, color: t.text.tertiary, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}
         >
           Change

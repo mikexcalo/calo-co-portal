@@ -2,7 +2,7 @@
 
 import { useTheme } from '@/lib/theme';
 
-type StatusPillStatus = 'active' | 'paused' | 'archived' | 'paid' | 'overdue' | 'draft' | 'sent' | 'accepted' | 'declined' | 'lead' | 'churned';
+type StatusPillStatus = 'active' | 'paused' | 'archived' | 'paid' | 'overdue' | 'draft' | 'sent' | 'accepted' | 'declined' | 'lead' | 'churned' | 'prospect' | 'client_contact' | 'vendor' | 'talent' | 'friend';
 
 interface StatusPillProps {
   status: StatusPillStatus;
@@ -21,6 +21,11 @@ const colorMap: Record<StatusPillStatus, { dot: string; bg: string; text: string
   overdue:  { dot: '#DC2626', bg: '#FEE2E2', text: '#7F1D1D' },
   declined: { dot: '#DC2626', bg: '#FEE2E2', text: '#7F1D1D' },
   churned:  { dot: '#DC2626', bg: '#FEE2E2', text: '#7F1D1D' },
+  prospect: { dot: '#8B5CF6', bg: '#F3EEFF', text: '#4C1D95' },
+  client_contact: { dot: '#00C9A0', bg: '#E6FAF5', text: '#054D3D' },
+  vendor:   { dot: '#F59E0B', bg: '#FEF3C7', text: '#78350F' },
+  talent:   { dot: '#EC4899', bg: '#FDF2F8', text: '#831843' },
+  friend:   { dot: '#06B6D4', bg: '#ECFEFF', text: '#164E63' },
 };
 
 export function StatusPill({ status, label }: StatusPillProps) {
