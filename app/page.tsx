@@ -19,6 +19,9 @@ import { PageShell, PageHeader, StatRow, DataCard, SectionLabel, TableRow, Table
 import { StatusPill } from '@/components/shared/StatusPill';
 import TaskNoteCard from '@/components/shared/TaskNoteCard';
 import { AlertsCard } from '@/components/shared/AlertsCard';
+import { ThisWeekCard } from '@/components/shared/ThisWeekCard';
+import { RecentActivityCard } from '@/components/shared/RecentActivityCard';
+import { FinancialsSnapshotCard } from '@/components/shared/FinancialsSnapshotCard';
 
 function ageDays(iso: string): number {
   return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
@@ -412,9 +415,11 @@ export default function Home() {
       <AlertsCard />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'start' }}>
-        {/* LEFT COLUMN: Ask + Recent Clients */}
+        {/* LEFT COLUMN */}
         <div>
-          <div style={{ marginBottom: 16 }}>
+          <ThisWeekCard />
+          <RecentActivityCard />
+          <div style={{ marginBottom: 16, marginTop: 16 }}>
             <CommandBar
               onItemSaved={refreshFeed}
               variant="ask"
@@ -458,8 +463,10 @@ export default function Home() {
           </DataCard>
         </div>
 
-        {/* RIGHT COLUMN: Tasks & Notes */}
-        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px' }}>
+        {/* RIGHT COLUMN */}
+        <div>
+          <FinancialsSnapshotCard />
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px', marginTop: 16 }}>
           <div style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase' as const, letterSpacing: '0.5px', margin: '0 0 8px' }}>Tasks & Notes</div>
           <div style={{ display: 'flex', gap: 8, marginBottom: openNotes.length > 0 ? 12 : 0 }}>
             <input
@@ -493,6 +500,7 @@ export default function Home() {
           ) : (
             <div style={{ fontSize: 12, color: '#94a3b8', padding: '4px 0' }}>No tasks or notes yet</div>
           )}
+        </div>
         </div>
       </div>
 
