@@ -130,8 +130,9 @@ export async function POST(req: NextRequest) {
       console.warn('RESEND_API_KEY not set — skipping email notification')
     }
 
+    const resendKeys = Object.keys(process.env).filter(k => k.toUpperCase().includes('RESEND'))
     return NextResponse.json(
-      { success: true, contact_id: contact.id },
+      { success: true, contact_id: contact.id, _debug: { resend_keys: resendKeys, resend_present: !!process.env.RESEND_API_KEY, resend_start: process.env.RESEND_API_KEY?.substring(0, 4) ?? 'UNDEFINED' } },
       { status: 200, headers: corsHeaders }
     )
   } catch (err: any) {
