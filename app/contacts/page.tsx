@@ -169,7 +169,7 @@ export default function ContactsPage() {
           const parentName = contact.clientId ? clientNames[contact.clientId] : null;
 
           return (
-            <TableRow key={contact.id} onClick={contact.clientId ? () => router.push(`/clients/${contact.clientId}`) : undefined}>
+            <TableRow key={contact.id} onClick={() => router.push(`/contacts/${contact.id}`)}>
               <div style={{ flex: 0.3, display: 'flex', alignItems: 'center', marginRight: 8 }}>
                 <div style={{
                   width: 32, height: 32, borderRadius: 16, overflow: 'hidden',
@@ -213,9 +213,7 @@ export default function ContactsPage() {
               <TableCell flex={1.2}>{formatPhone(contact.phone || '')}</TableCell>
 
               <div style={{ flex: 0.3, display: 'flex', justifyContent: 'flex-end' }}>
-                {contact.clientId && (
-                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5"><path d="M6 4l4 4-4 4"/></svg>
-                )}
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5"><path d="M6 4l4 4-4 4"/></svg>
               </div>
             </TableRow>
           );

@@ -1508,3 +1508,86 @@ export async function deleteEvent(eventId: string): Promise<void> {
     throw new Error(error?.message || 'Failed to delete event');
   }
 }
+
+// ============================================================================
+// Contact-scoped queries (mirrors client-scoped ones)
+// ============================================================================
+
+export async function loadContactById(contactId: string): Promise<CrmContact | null> {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select('*')
+    .eq('id', contactId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return mapCrmContact(data);
+}
+
+export async function loadContactNotes(contactId: string): Promise<Note[]> {
+  const { data, error } = await supabase
+    .from('notes')
+    .select('*')
+    .eq('contact_id', contactId)
+    .order('created_at', { ascending: false });
+  if (error) { console.error('[loadContactNotes] error:', error); return []; }
+  return (data || []).map(mapNote);
+}
+
+export async function createContactNote(contactId: string, content: string): Promise<Note> {
+  const { data, error } = await supabase
+    .from('notes')
+    .insert({ contact_id: contactId, content, kind: 'note', source_kind: 'manual' })
+    .select('*')
+    .single();
+  if (error || !data) throw new Error(error?.message || 'Failed to create note');
+  return mapNote(data);
+}
+
+export async function loadContactTasks(contactId: string): Promise<Task[]> {
+  const [openRes, doneRes] = await Promise.all([
+    supabase.from('tasks').select('*').eq('contact_id', contactId).is('completed_at', null).order('due_date', { ascending: true, nullsFirst: false }),
+    supabase.from('tasks').select('*').eq('contact_id', contactId).not('completed_at', 'is', null).order('completed_at', { ascending: false }),
+  ]);
+  return [...(openRes.data || []).map(mapTask), ...(doneRes.data || []).map(mapTask)];
+}
+
+export async function createContactTask(contactId: string, data: { title: string; dueDate?: string | null; eventId?: string | null; leadDays?: number | null }): Promise<Task> {
+  const { data: row, error } = await supabase
+    .from('tasks')
+    .insert({ contact_id: contactId, title: data.title, due_date: data.dueDate || null, event_id: data.eventId || null, lead_days: data.leadDays ?? null })
+    .select('*')
+    .single();
+  if (error || !row) throw new Error(error?.message || 'Failed to create task');
+  return mapTask(row);
+}
+
+export async function loadContactEvents(contactId: string): Promise<Event[]> {
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('contact_id', contactId)
+    .order('event_date', { ascending: true });
+  if (error) { console.error('[loadContactEvents] error:', error); return []; }
+  return (data || []).map(mapEvent);
+}
+
+export async function createContactEvent(contactId: string, data: { title: string; eventDate: string; location?: string; description?: string }): Promise<Event> {
+  const { data: row, error } = await supabase
+    .from('events')
+    .insert({ contact_id: contactId, title: data.title, event_date: data.eventDate, location: data.location || null, description: data.description || null })
+    .select('*')
+    .single();
+  if (error || !row) throw new Error(error?.message || 'Failed to create event');
+  return mapEvent(row);
+}
+
+export async function updateContactKindAndClient(contactId: string, clientId: string, kind: string): Promise<CrmContact> {
+  const { data, error } = await supabase
+    .from('contacts')
+    .update({ client_id: clientId, kind })
+    .eq('id', contactId)
+    .select('*')
+    .single();
+  if (error || !data) throw new Error(error?.message || 'Failed to update contact');
+  return mapCrmContact(data);
+}
