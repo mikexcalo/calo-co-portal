@@ -5,9 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { Client, Contact, Invoice, Note, Task, Event as CrmEvent, CrmContact } from '@/lib/types';
 import { DB, loadClients, loadContacts, loadInvoices, loadAllBrandKits, saveClient, saveContact, loadClientNotes, createClientNote, deleteNote, loadClientContacts, createClientContact, loadClientTasks, createClientTask, setTaskCompleted, deleteTask, loadClientEvents, createClientEvent, deleteEvent } from '@/lib/database';
 import { clientStats, currency, invTotal, formatPhone } from '@/lib/utils';
-import { PageLayout, Section, CardGrid, Card, InfoBar, SectionLabel } from '@/components/shared/PageLayout';
+import { PageLayout, Section, CardGrid, Card, InfoBar } from '@/components/shared/PageLayout';
 import { useTheme } from '@/lib/theme';
-import HelmSpinner from '@/components/shared/HelmSpinner';
 import { Composer } from '@/components/shared/Composer';
 import { ActivityTimeline } from '@/components/shared/ActivityTimeline';
 import { ContactsList } from '@/components/shared/ContactsList';
@@ -44,7 +43,6 @@ export default function ClientHubPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [contactsOpen, setContactsOpen] = useState(false);
   const [form, setForm] = useState({
     company: '', code: '', firstName: '', lastName: '', title: '',
     email: '', contactPhone: '', businessPhone: '',
@@ -214,17 +212,10 @@ export default function ClientHubPage() {
   if (hasBkFonts) bkBits.push('Fonts');
   const bkMeta = bkBits.length > 0 ? bkBits.join(' · ') : 'Not started';
 
-  const sigFields = client.signatureFields || {};
-  const sigContacts = DB.contacts[clientId] || [];
-  const sigPrimary = sigContacts.find((c) => c.isPrimary) || sigContacts[0];
-  const sigHasData = !!client.emailSignatureHtml || !!sigFields.name || !!sigFields.email || !!sigFields.company || !!(sigFields as any).logoSrc || (sigPrimary && (sigPrimary.name || sigPrimary.email));
-  const sigMeta = sigHasData ? (sigFields.name || sigPrimary?.name || 'Configured') : 'Not started';
-
   const invCount = invoices.length;
   const invMeta = invCount === 0 ? 'No invoices' : `${invCount} inv · ${currency(stats.outstanding)} due`;
 
   const finScopeRev = invoices.filter((i) => !i.isReimbursement).reduce((s, i) => s + invTotal(i), 0);
-  const finScopeExp = (DB.expenses || []).filter((e) => e.clientId === clientId).reduce((s, e) => s + e.amount, 0);
   const finMeta = finScopeRev > 0 ? `${currency(finScopeRev)} rev` : 'Revenue · P&L';
 
   // --- Shared styles ---
@@ -279,7 +270,7 @@ export default function ClientHubPage() {
 
   return (
     <PageLayout>
-      {/* Client info bar with contacts dropdown */}
+      {/* Client info bar */}
       <InfoBar>
         {client.logo ? (
           <img src={client.logo} alt="" style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
@@ -294,39 +285,6 @@ export default function ClientHubPage() {
             <span style={{ fontSize: 13, color: t.status.success }}>Profile complete</span>
           ) : (
             <span style={{ fontSize: 13, color: t.status.warning }}>Missing: {missing.join(', ')}</span>
-          )}
-        </div>
-        <div style={{ position: 'relative' }}>
-          <button onClick={() => setContactsOpen(!contactsOpen)} style={{
-            background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8,
-            padding: '6px 14px', fontSize: 13, fontWeight: 500, color: t.text.secondary,
-            cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4,
-          }}>
-            Contacts
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-              style={{ transform: contactsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }}>
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
-          </button>
-          {contactsOpen && (
-            <>
-              <div style={{ position: 'fixed', inset: 0, zIndex: 10 }} onClick={() => setContactsOpen(false)} />
-              <div style={{
-                position: 'absolute', top: '100%', right: 0, marginTop: 6, zIndex: 11,
-                background: t.bg.elevated, border: `1px solid ${t.border.default}`, borderRadius: 12,
-                boxShadow: t.shadow.elevated, maxWidth: 320, minWidth: 260, padding: 12,
-              }}>
-                {contacts.map((c, i) => (
-                  <div key={c.id || c.name} style={{ padding: '8px 0', borderBottom: i < contacts.length - 1 ? `0.5px solid ${t.border.default}` : 'none' }}>
-                    <div style={{ fontSize: 14, fontWeight: 500, color: t.text.primary }}>{c.name}</div>
-                    {(c.title || c.role) && <div style={{ fontSize: 12, color: t.text.tertiary }}>{c.title || c.role}</div>}
-                    {c.email && <div style={{ fontSize: 12, color: t.text.secondary, marginTop: 2 }}>{c.email}</div>}
-                    {c.phone && <div style={{ fontSize: 12, color: t.text.secondary }}>{c.phone}</div>}
-                  </div>
-                ))}
-                {contacts.length === 0 && <div style={{ fontSize: 13, color: t.text.tertiary, padding: 4 }}>No contacts</div>}
-              </div>
-            </>
           )}
         </div>
         {!isClient && (
