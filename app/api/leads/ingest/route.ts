@@ -94,12 +94,14 @@ export async function POST(req: NextRequest) {
 
     // 3. Send email notification via Resend
     const resendKey = process.env.RESEND_API_KEY
+    console.log('RESEND_API_KEY present:', !!resendKey, 'length:', resendKey?.length ?? 0)
     if (resendKey) {
       try {
         const resend = new Resend(resendKey)
         const helmUrl = `https://calo-co-portal-tf7x.vercel.app/contacts/${contact.id}`
 
-        await resend.emails.send({
+        console.log('Attempting Resend send...')
+        const emailResult = await resend.emails.send({
           from: 'CALO&CO Helm <onboarding@resend.dev>',
           to: 'mikexcalo@gmail.com',
           replyTo: email.trim(),
@@ -117,9 +119,9 @@ export async function POST(req: NextRequest) {
 </div>
           `.trim(),
         })
+        console.log('Resend response:', JSON.stringify(emailResult))
       } catch (emailErr) {
-        console.error('Resend email failed:', emailErr)
-        // Don't fail — contact is the source of truth, email is convenience
+        console.error('Resend email exception:', emailErr)
       }
     } else {
       console.warn('RESEND_API_KEY not set — skipping email notification')
