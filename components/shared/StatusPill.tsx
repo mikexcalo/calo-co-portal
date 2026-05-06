@@ -9,7 +9,7 @@ interface StatusPillProps {
   label?: string;
 }
 
-const colorMap: Record<StatusPillStatus, { dot: string; bg: string; text: string }> = {
+export const colorMap: Record<StatusPillStatus, { dot: string; bg: string; text: string }> = {
   active:   { dot: '#00C9A0', bg: '#E6FAF5', text: '#054D3D' },
   paid:     { dot: '#00C9A0', bg: '#E6FAF5', text: '#054D3D' },
   accepted: { dot: '#00C9A0', bg: '#E6FAF5', text: '#054D3D' },
@@ -28,9 +28,13 @@ const colorMap: Record<StatusPillStatus, { dot: string; bg: string; text: string
   friend:   { dot: '#06B6D4', bg: '#ECFEFF', text: '#164E63' },
 };
 
+const prettyLabels: Partial<Record<StatusPillStatus, string>> = {
+  client_contact: 'Client contact',
+};
+
 export function StatusPill({ status, label }: StatusPillProps) {
   const colors = colorMap[status] || colorMap.draft;
-  const displayLabel = label ?? (status.charAt(0).toUpperCase() + status.slice(1));
+  const displayLabel = label ?? prettyLabels[status] ?? (status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, ' '));
 
   return (
     <span style={{

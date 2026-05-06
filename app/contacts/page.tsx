@@ -8,7 +8,7 @@ import { useTheme } from '@/lib/theme';
 import { formatPhone } from '@/lib/utils';
 import { PageShell, PageHeader, DataCard, TableHeader, TableRow, TableCell, CtaButton } from '@/components/shared/Brand';
 import { AddContactWithClientPicker } from '@/components/shared/AddContactWithClientPicker';
-import { StatusPill } from '@/components/shared/StatusPill';
+import { StatusPill, colorMap } from '@/components/shared/StatusPill';
 
 interface ContactRow {
   id: string;
@@ -43,6 +43,7 @@ export default function ContactsPage() {
   const [clientNames, setClientNames] = useState<Record<string, string>>({});
   const [addingContact, setAddingContact] = useState(false);
   const [savingContact, setSavingContact] = useState(false);
+  const [kindFilter, setKindFilter] = useState<string>('all');
 
   useEffect(() => {
     const init = async () => {
@@ -119,18 +120,51 @@ export default function ContactsPage() {
         />
       )}
 
+      {/* Kind filter chips */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+        {([
+          { key: 'all', label: 'All' },
+          { key: 'lead', label: 'Lead' },
+          { key: 'prospect', label: 'Prospect' },
+          { key: 'client_contact', label: 'Client contact' },
+          { key: 'vendor', label: 'Vendor' },
+          { key: 'talent', label: 'Talent' },
+          { key: 'friend', label: 'Friend' },
+        ] as const).map((chip) => {
+          const count = chip.key === 'all' ? contacts.length : contacts.filter((c) => c.kind === chip.key).length;
+          const isActive = kindFilter === chip.key;
+          const chipColors = chip.key !== 'all' ? (colorMap as any)[chip.key] : null;
+          return (
+            <button
+              key={chip.key}
+              onClick={() => setKindFilter(isActive && chip.key !== 'all' ? 'all' : chip.key)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+                padding: '6px 12px', borderRadius: 12, fontSize: 12, fontWeight: 500,
+                fontFamily: 'inherit', cursor: 'pointer', transition: 'all 150ms',
+                border: isActive ? 'none' : `1px solid ${t.border.default}`,
+                background: isActive ? (chipColors?.bg || t.text.primary) : 'transparent',
+                color: isActive ? (chipColors?.text || t.bg.surface) : t.text.secondary,
+              }}
+            >
+              {chip.label} ({count})
+            </button>
+          );
+        })}
+      </div>
+
       <DataCard noPadding>
         <TableHeader columns={[
           { label: '', flex: 0.3 },
           { label: 'Name', flex: 2 },
-          { label: 'Kind', flex: 0.8 },
+          { label: 'Type', flex: 0.8 },
           { label: 'Client', flex: 1.5 },
           { label: 'Email', flex: 1.5 },
           { label: 'Phone', flex: 1.2 },
           { label: '', flex: 0.3 },
         ]} />
 
-        {contacts.map((contact) => {
+        {(kindFilter === 'all' ? contacts : contacts.filter((c) => c.kind === kindFilter)).map((contact) => {
           const { bg, fg } = avatarColor(contact.name);
           const parentName = contact.clientId ? clientNames[contact.clientId] : null;
 
@@ -159,7 +193,7 @@ export default function ContactsPage() {
               </TableCell>
 
               <div style={{ flex: 0.8 }}>
-                <StatusPill status={contact.kind as any} label={contact.kind === 'client_contact' ? 'Client' : undefined} />
+                <StatusPill status={contact.kind as any} />
               </div>
 
               <TableCell flex={1.5}>
@@ -187,9 +221,9 @@ export default function ContactsPage() {
           );
         })}
 
-        {contacts.length === 0 && (
+        {(kindFilter === 'all' ? contacts : contacts.filter((c) => c.kind === kindFilter)).length === 0 && (
           <div style={{ padding: 40, textAlign: 'center', color: t.text.tertiary, fontSize: 13 }}>
-            No contacts yet
+            {kindFilter !== 'all' ? 'No contacts match this filter' : 'No contacts yet'}
           </div>
         )}
       </DataCard>
