@@ -46,6 +46,20 @@ export default function ContactsPage() {
   const [addingContact, setAddingContact] = useState(false);
   const [savingContact, setSavingContact] = useState(false);
   const [kindFilter, setKindFilter] = useState<string>('all');
+  const [dropNotesOpen, setDropNotesOpen] = useState(false);
+
+  // Auto-open forms from URL params (Cmd+K)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get('action');
+    if (action === 'add-contact') {
+      setAddingContact(true);
+      window.history.replaceState({}, '', '/contacts');
+    } else if (action === 'drop-notes') {
+      setDropNotesOpen(true);
+      window.history.replaceState({}, '', '/contacts');
+    }
+  }, []);
 
   useEffect(() => {
     const init = async () => {
@@ -93,6 +107,7 @@ export default function ContactsPage() {
         action={
           <div style={{ display: 'flex', gap: 8 }}>
             <DropNotesPanel
+              initialOpen={dropNotesOpen}
               onAdd={async (parsed: ParsedContact[]) => {
                 for (const p of parsed) {
                   try {

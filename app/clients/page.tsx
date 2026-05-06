@@ -22,6 +22,15 @@ export default function ClientsPage() {
   const [addingClient, setAddingClient] = useState(false);
   const [savingClient, setSavingClient] = useState(false);
 
+  // Auto-open add form from URL param (Cmd+K)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('action') === 'add') {
+      setAddingClient(true);
+      window.history.replaceState({}, '', '/clients');
+    }
+  }, []);
+
   useEffect(() => {
     const init = async () => {
       if (DB.clientsState !== 'loaded') await loadClients();

@@ -25,11 +25,12 @@ function getInitials(name: string): string {
 
 type DropNotesPanelProps = {
   onAdd: (contacts: ParsedContact[]) => Promise<void>;
+  initialOpen?: boolean;
 };
 
-export function DropNotesPanel({ onAdd }: DropNotesPanelProps) {
+export function DropNotesPanel({ onAdd, initialOpen = false }: DropNotesPanelProps) {
   const { t } = useTheme();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initialOpen);
   const [text, setText] = useState('');
   const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);

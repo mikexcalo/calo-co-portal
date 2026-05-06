@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { DB } from '@/lib/database';
 import { useTheme } from '@/lib/theme';
+import { QuickAdd } from '@/components/shared/QuickAdd';
 
 export default function TopBar() {
   const pathname = usePathname();
@@ -96,11 +97,13 @@ export default function TopBar() {
       padding: '0 16px', fontFamily: 'inherit',
     }}>
 
+      <QuickAdd />
+
       {/* Right: search + toggle + avatar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div ref={searchRef} style={{ position: 'relative', width: 240 }}>
           <input
-            style={{ width: '100%', height: 36, background: t.bg.surface, border: `0.5px solid ${searchLoading || searchResult ? t.accent.primary : t.border.default}`, borderRadius: 8, padding: '0 10px 0 32px', fontSize: 13, color: t.text.primary, outline: 'none', fontFamily: 'inherit', transition: 'border-color 150ms', boxSizing: 'border-box' as const }}
+            style={{ width: '100%', height: 36, background: t.bg.surface, border: `0.5px solid ${searchLoading || searchResult ? t.accent.primary : t.border.default}`, borderRadius: 8, padding: '0 46px 0 32px', fontSize: 13, color: t.text.primary, outline: 'none', fontFamily: 'inherit', transition: 'border-color 150ms', boxSizing: 'border-box' as const }}
             placeholder="Search Helm..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -109,6 +112,9 @@ export default function TopBar() {
           <svg style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="13" height="13" viewBox="0 0 16 16" fill="none" stroke={t.text.secondary} strokeWidth="1.5">
             <circle cx="6.5" cy="6.5" r="5"/><line x1="10" y1="10" x2="14.5" y2="14.5"/>
           </svg>
+          <span style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: 10, fontWeight: 500, color: t.text.tertiary, background: t.bg.surfaceHover, borderRadius: 4, padding: '1px 5px', letterSpacing: '0.3px' }}>
+            ⌘K
+          </span>
           {(searchLoading || searchResult) && (
             <div style={{ position: 'absolute', top: '100%', right: 0, width: 320, marginTop: 8, background: t.bg.surface, borderRadius: 10, padding: 16, border: `0.5px solid ${t.border.default}`, boxShadow: t.shadow.elevated, zIndex: 10 }}>
               {searchLoading ? (
