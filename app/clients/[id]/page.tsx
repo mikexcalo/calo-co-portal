@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Client, Contact, Invoice, Note, Task, Event as CrmEvent, CrmContact } from '@/lib/types';
+import { Client, Contact, Note, Task, Event as CrmEvent, CrmContact } from '@/lib/types';
 import { DB, loadClients, loadContacts, loadInvoices, loadAllBrandKits, saveClient, saveContact, loadClientNotes, createClientNote, deleteNote, loadClientContacts, createClientContact, loadClientTasks, createClientTask, setTaskCompleted, deleteTask, loadClientEvents, createClientEvent, deleteEvent } from '@/lib/database';
-import { clientStats, currency, invTotal } from '@/lib/utils';
-import { PageLayout, Section, CardGrid, Card, InfoBar } from '@/components/shared/PageLayout';
+import { PageLayout, Section, InfoBar } from '@/components/shared/PageLayout';
 import { useTheme } from '@/lib/theme';
 import { Composer } from '@/components/shared/Composer';
 import { ActivityTimeline } from '@/components/shared/ActivityTimeline';
@@ -26,7 +25,6 @@ export default function ClientHubPage() {
 
   const [client, setClient] = useState<Client | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [noteSaving, setNoteSaving] = useState(false);
   const [crmContacts, setCrmContacts] = useState<CrmContact[]>([]);
@@ -87,7 +85,6 @@ export default function ClientHubPage() {
       if (foundClient) {
         setClient(foundClient);
         setContacts(DB.contacts[clientId] || []);
-        setInvoices(DB.invoices.filter((i) => i.clientId === clientId));
       } else {
         router.push('/');
       }
@@ -109,7 +106,6 @@ export default function ClientHubPage() {
   }
 
   const primary = contacts.find((c) => c.isPrimary) || contacts[0];
-  const stats = clientStats(invoices, clientId);
   const nameParts = (primary?.name || '').split(/\s+/);
 
   // --- Profile completeness ---
@@ -123,25 +119,6 @@ export default function ClientHubPage() {
   const hasLogos = bk && Object.values(bk.logos || {}).some((a: any) => a?.length > 0);
   if (!hasLogos) missing.push('Brand Kit logos');
   if (!bk?.colors?.length) missing.push('Brand colors');
-
-  // --- Module metadata ---
-  const logoSlots = client.brandKit?.logos || {};
-  const logoCount = (['color', 'light', 'dark', 'icon', 'secondary', 'favicon'] as const).filter(
-    (slot) => (logoSlots[slot] || []).length > 0
-  ).length;
-  const bkColors = client.brandKit?.colors?.length || 0;
-  const hasBkFonts = !!(client.brandKit?.fonts?.heading || client.brandKit?.fonts?.body || client.brandKit?.fonts?.accent);
-  let bkBits: string[] = [];
-  if (logoCount > 0) bkBits.push(`${logoCount} logos`);
-  if (bkColors > 0) bkBits.push(`${bkColors} colors`);
-  if (hasBkFonts) bkBits.push('Fonts');
-  const bkMeta = bkBits.length > 0 ? bkBits.join(' · ') : 'Not started';
-
-  const invCount = invoices.length;
-  const invMeta = invCount === 0 ? 'No invoices' : `${invCount} inv · ${currency(stats.outstanding)} due`;
-
-  const finScopeRev = invoices.filter((i) => !i.isReimbursement).reduce((s, i) => s + invTotal(i), 0);
-  const finMeta = finScopeRev > 0 ? `${currency(finScopeRev)} rev` : 'Revenue · P&L';
 
   return (
     <PageLayout>
@@ -429,32 +406,35 @@ export default function ClientHubPage() {
             )}
           </div>
 
-          <Section label="Quick links">
-            <CardGrid columns={2}>
-              <Card onClick={() => router.push(`/design?client=${clientId}`)}>
-                <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke={t.text.secondary} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 6 }}><path d="M10.5 2L14 5.5 5.5 14H2v-3.5z" /><line x1="8.5" y1="4" x2="12" y2="7.5" /></svg>
-                <div style={{ fontSize: 15, fontWeight: 600, color: t.text.primary }}>Design</div>
-                <div style={{ fontSize: 13, color: t.text.tertiary }}>Create print + digital assets</div>
-              </Card>
-              <Card onClick={() => router.push(`/clients/${clientId}/brand-kit${isClient ? '?viewMode=view' : ''}`)}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={t.text.secondary} strokeWidth="1.3" style={{ marginBottom: 6 }}><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.2"/></svg>
-                <div style={{ fontSize: 15, fontWeight: 600, color: t.text.primary }}>Brand Kit</div>
-                <div style={{ fontSize: 13, color: t.text.tertiary }}>{bkMeta}</div>
-              </Card>
-              <Card onClick={() => router.push(`/clients/${clientId}/invoices`)}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={t.text.secondary} strokeWidth="1.3" style={{ marginBottom: 6 }}><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 11h8M8 15h4" strokeLinecap="round"/></svg>
-                <div style={{ fontSize: 15, fontWeight: 600, color: t.text.primary }}>Invoices</div>
-                <div style={{ fontSize: 13, color: t.text.tertiary }}>{invMeta}</div>
-              </Card>
-              {!isClient && (
-                <Card onClick={() => router.push(`/clients/${clientId}/financials`)}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={t.text.secondary} strokeWidth="1.3" style={{ marginBottom: 6 }}><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="17" x2="7" y2="12" strokeLinecap="round"/><line x1="12" y1="17" x2="12" y2="8" strokeLinecap="round"/><line x1="17" y1="17" x2="17" y2="13" strokeLinecap="round"/></svg>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: t.text.primary }}>Financials</div>
-                  <div style={{ fontSize: 13, color: t.text.tertiary }}>{finMeta}</div>
-                </Card>
-              )}
-            </CardGrid>
-          </Section>
+          <div style={{ background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8, padding: '12px 16px' }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: t.text.tertiary, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
+              Quick links
+            </div>
+            {[
+              { label: 'Brand Kit', href: `/clients/${clientId}/brand-kit${isClient ? '?viewMode=view' : ''}` },
+              { label: 'Email Signature', href: `/clients/${clientId}/email-signature` },
+              { label: 'Invoices', href: `/clients/${clientId}/invoices` },
+              ...(!isClient ? [{ label: 'Financials', href: `/clients/${clientId}/financials` }] : []),
+              { label: 'Design Studio', href: `/design?client=${clientId}` },
+            ].map((link, i) => (
+              <button
+                key={link.label}
+                onClick={() => router.push(link.href)}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '9px 0', border: 'none', background: 'transparent',
+                  borderTop: i > 0 ? `0.5px solid ${t.border.default}` : 'none',
+                  cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+                  fontSize: 13, color: t.text.secondary, transition: 'color 100ms',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = t.text.primary; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = t.text.secondary; }}
+              >
+                {link.label}
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 4l4 4-4 4"/></svg>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </PageLayout>
