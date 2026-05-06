@@ -10,6 +10,7 @@ import {
   loadContactEvents, createContactEvent, deleteEvent,
   updateContactKindAndClient,
 } from '@/lib/database';
+import supabase from '@/lib/supabase';
 import { PageLayout, Section, InfoBar } from '@/components/shared/PageLayout';
 import { useTheme } from '@/lib/theme';
 import { Composer } from '@/components/shared/Composer';
@@ -67,6 +68,8 @@ export default function ContactDetailPage() {
       setTasks(tk);
       setEvents(ev);
       setIsLoading(false);
+      // Mark as read
+      supabase.from('contacts').update({ unread: false }).eq('id', contactId).then(() => {});
     };
     init();
   }, [contactId, router]);

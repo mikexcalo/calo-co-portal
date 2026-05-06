@@ -21,6 +21,7 @@ interface ContactRow {
   clientId: string | null;
   kind: string;
   isPrimaryContact: boolean;
+  unread: boolean;
 }
 
 const avatarBgs = ['#e8d5b7', '#c4d4c8', '#d4c4d8', '#c4cdd8', '#d8c4c4'];
@@ -73,7 +74,7 @@ export default function ContactsPage() {
 
       const { data, error } = await supabase
         .from('contacts')
-        .select('id, name, role, email, phone, client_id, kind, is_primary_contact')
+        .select('id, name, role, email, phone, client_id, kind, is_primary_contact, unread')
         .order('name', { ascending: true });
 
       if (error) {
@@ -90,6 +91,7 @@ export default function ContactsPage() {
           clientId: c.client_id ?? null,
           kind: c.kind ?? 'lead',
           isPrimaryContact: c.is_primary_contact ?? false,
+          unread: c.unread ?? false,
         }))
       );
       setIsLoading(false);
@@ -118,6 +120,7 @@ export default function ContactsPage() {
                     setContacts((prev) => [...prev, {
                       id: created.id, name: created.name, role: created.role, email: created.email,
                       phone: created.phone, clientId: created.clientId, kind: created.kind, isPrimaryContact: created.isPrimaryContact,
+                      unread: false,
                     }]);
                   } catch (e) { console.error('Failed to create contact:', e); }
                 }
@@ -147,6 +150,7 @@ export default function ContactsPage() {
                 clientId: created.clientId,
                 kind: created.kind,
                 isPrimaryContact: created.isPrimaryContact,
+                unread: false,
               }].sort((a, b) => a.name.localeCompare(b.name)));
               setAddingContact(false);
             } catch (e) {
@@ -208,7 +212,10 @@ export default function ContactsPage() {
 
           return (
             <TableRow key={contact.id} onClick={() => router.push(`/contacts/${contact.id}`)}>
-              <div style={{ flex: 0.3, display: 'flex', alignItems: 'center', marginRight: 8 }}>
+              <div style={{ flex: 0.3, display: 'flex', alignItems: 'center', marginRight: 8, position: 'relative' }}>
+                {contact.unread && (
+                  <div style={{ position: 'absolute', left: -2, top: '50%', transform: 'translateY(-50%)', width: 7, height: 7, borderRadius: '50%', background: '#3B82F6' }} />
+                )}
                 <div style={{
                   width: 32, height: 32, borderRadius: 16, overflow: 'hidden',
                   background: bg, color: fg,
@@ -221,7 +228,7 @@ export default function ContactsPage() {
 
               <TableCell flex={2} primary>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{contact.name}</div>
+                  <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: contact.unread ? 600 : undefined }}>{contact.name}</div>
                   {contact.role && (
                     <div style={{ fontSize: 11, color: t.text.tertiary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {contact.role}

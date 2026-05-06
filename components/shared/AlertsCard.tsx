@@ -7,7 +7,7 @@ import supabase from '@/lib/supabase';
 
 interface AlertItem {
   id: string;
-  type: 'task' | 'event';
+  type: 'task' | 'event' | 'lead';
   title: string;
   parentId: string | null;
   parentType: 'client' | 'contact' | null;
@@ -30,6 +30,18 @@ function formatOverdue(dateStr: string): string {
   return `${diff} days overdue`;
 }
 
+function formatRecent(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return 'Yesterday';
+  return `${days}d ago`;
+}
+
 function formatUpcoming(dateStr: string): string {
   const diff = daysUntil(dateStr);
   if (diff === 0) return 'Today';
@@ -46,6 +58,7 @@ export function AlertsCard() {
   const router = useRouter();
   const [overdue, setOverdue] = useState<AlertItem[]>([]);
   const [upcoming, setUpcoming] = useState<AlertItem[]>([]);
+  const [unreadLeads, setUnreadLeads] = useState<AlertItem[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -95,6 +108,30 @@ export function AlertsCard() {
         color: '#6d28d9',
       }));
 
+      // Unread leads
+      const { data: leads } = await supabase
+        .from('contacts')
+        .select('id, name, source, created_at')
+        .eq('kind', 'lead')
+        .eq('unread', true)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      const leadItems: AlertItem[] = (leads || []).map((l: any) => {
+        const sourceLabel = l.source === 'calo-co-site-contact-form' ? 'CALO&CO site' : l.source || 'Unknown';
+        return {
+          id: l.id,
+          type: 'lead' as const,
+          title: `New lead — ${l.name}`,
+          parentId: l.id,
+          parentType: 'contact' as const,
+          parentName: sourceLabel,
+          dateLabel: formatRecent(l.created_at),
+          color: '#3B82F6',
+        };
+      });
+
+      setUnreadLeads(leadItems);
       setOverdue(overdueItems);
       setUpcoming(upcomingItems);
       setLoaded(true);
@@ -104,7 +141,7 @@ export function AlertsCard() {
 
   if (!loaded) return null;
 
-  const total = overdue.length + upcoming.length;
+  const total = unreadLeads.length + overdue.length + upcoming.length;
   if (total === 0) return null;
 
   const handleClick = (item: AlertItem) => {
@@ -117,8 +154,40 @@ export function AlertsCard() {
       background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8,
       marginBottom: 16, overflow: 'hidden',
     }}>
+      {unreadLeads.length > 0 && (
+        <>
+          <div style={{ padding: '10px 16px 6px', fontSize: 10, fontWeight: 600, color: '#3B82F6', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            New leads ({unreadLeads.length})
+          </div>
+          {unreadLeads.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => handleClick(item)}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                padding: '8px 16px', border: 'none', background: 'transparent',
+                cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', transition: 'background 100ms',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = t.bg.surfaceHover; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            >
+              <div style={{ width: 6, height: 6, borderRadius: 3, background: item.color, flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, color: t.text.primary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {item.title}
+                </div>
+                <div style={{ fontSize: 11, color: t.text.tertiary }}>
+                  {item.parentName ? `${item.parentName} \u00B7 ` : ''}{item.dateLabel}
+                </div>
+              </div>
+            </button>
+          ))}
+        </>
+      )}
+
       {overdue.length > 0 && (
         <>
+          {unreadLeads.length > 0 && <div style={{ height: 1, background: t.border.default, margin: '4px 16px' }} />}
           <div style={{ padding: '10px 16px 6px', fontSize: 10, fontWeight: 600, color: '#DC2626', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Overdue tasks ({overdue.length})
           </div>
@@ -151,7 +220,7 @@ export function AlertsCard() {
 
       {upcoming.length > 0 && (
         <>
-          {overdue.length > 0 && <div style={{ height: 1, background: t.border.default, margin: '4px 16px' }} />}
+          {(unreadLeads.length > 0 || overdue.length > 0) && <div style={{ height: 1, background: t.border.default, margin: '4px 16px' }} />}
           <div style={{ padding: '10px 16px 6px', fontSize: 10, fontWeight: 600, color: '#6d28d9', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Upcoming this week ({upcoming.length})
           </div>
