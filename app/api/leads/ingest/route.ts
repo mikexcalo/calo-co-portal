@@ -27,9 +27,6 @@ export async function OPTIONS() {
 
 // POST — lead ingest
 export async function POST(req: NextRequest) {
-  console.log('Available env keys with RESEND:', Object.keys(process.env).filter(k => k.toUpperCase().includes('RESEND')))
-  console.log('RESEND raw value start:', process.env.RESEND_API_KEY?.substring(0, 4) ?? 'UNDEFINED')
-
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -97,14 +94,12 @@ export async function POST(req: NextRequest) {
 
     // 3. Send email notification via Resend
     const resendKey = process.env.RESEND_API_KEY
-    console.log('RESEND_API_KEY present:', !!resendKey, 'length:', resendKey?.length ?? 0)
     if (resendKey) {
       try {
         const resend = new Resend(resendKey)
         const helmUrl = `https://calo-co-portal-tf7x.vercel.app/contacts/${contact.id}`
 
-        console.log('Attempting Resend send...')
-        const emailResult = await resend.emails.send({
+        await resend.emails.send({
           from: 'CALO&CO Helm <onboarding@resend.dev>',
           to: 'mikexcalo@gmail.com',
           replyTo: email.trim(),
@@ -122,7 +117,6 @@ export async function POST(req: NextRequest) {
 </div>
           `.trim(),
         })
-        console.log('Resend response:', JSON.stringify(emailResult))
       } catch (emailErr) {
         console.error('Resend email exception:', emailErr)
       }
@@ -130,9 +124,8 @@ export async function POST(req: NextRequest) {
       console.warn('RESEND_API_KEY not set — skipping email notification')
     }
 
-    const resendKeys = Object.keys(process.env).filter(k => k.toUpperCase().includes('RESEND'))
     return NextResponse.json(
-      { success: true, contact_id: contact.id, _debug: { resend_keys: resendKeys, resend_present: !!process.env.RESEND_API_KEY, resend_start: process.env.RESEND_API_KEY?.substring(0, 4) ?? 'UNDEFINED' } },
+      { success: true, contact_id: contact.id },
       { status: 200, headers: corsHeaders }
     )
   } catch (err: any) {
