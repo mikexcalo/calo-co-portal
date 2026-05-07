@@ -30,6 +30,13 @@ function formatOverdue(dateStr: string): string {
   return `${diff} days overdue`;
 }
 
+function getSourceLabel(source: string): string {
+  const labels: Record<string, string> = {
+    'calo-co-site-contact-form': 'CALO&CO site',
+  };
+  return labels[source] ?? source;
+}
+
 function formatRecent(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
@@ -118,7 +125,7 @@ export function AlertsCard() {
         .limit(10);
 
       const leadItems: AlertItem[] = (leads || []).map((l: any) => {
-        const sourceLabel = l.source === 'calo-co-site-contact-form' ? 'CALO&CO site' : l.source || 'Unknown';
+        const sourceLabel = getSourceLabel(l.source || 'Unknown');
         return {
           id: l.id,
           type: 'lead' as const,

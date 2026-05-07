@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
           subject: 'New CALO&CO lead!',
           html: `
 <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 15px; line-height: 1.6; color: #111;">
-  <p>New lead via ${source || 'unknown source'}.</p>
+  <p>New lead via the CALO&CO contact form.</p>
   <p><strong>Name:</strong> ${name.trim()}<br/>
   <strong>Email:</strong> ${email.trim()}<br/>
   <strong>Company:</strong> ${company?.trim() || '—'}</p>
