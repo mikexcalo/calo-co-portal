@@ -104,7 +104,7 @@ export default function TopBar() {
         <div ref={searchRef} style={{ position: 'relative', width: 240 }}>
           <input
             style={{ width: '100%', height: 36, background: t.bg.surface, border: `0.5px solid ${searchLoading || searchResult ? t.accent.primary : t.border.default}`, borderRadius: 8, padding: '0 46px 0 32px', fontSize: 13, color: t.text.primary, outline: 'none', fontFamily: 'inherit', transition: 'border-color 150ms', boxSizing: 'border-box' as const }}
-            placeholder="Search Helm..."
+            placeholder="Search Nautilus..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); if (e.key === 'Escape') { setSearchResult(null); setSearchQuery(''); } }}

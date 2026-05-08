@@ -12,7 +12,7 @@ import { getClientAvatarUrl } from '@/lib/clientAvatar';
 import CommandBar from '@/components/dashboard/CommandBar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme';
-import HelmSpinner from '@/components/shared/HelmSpinner';
+import NautilusSpinner from '@/components/shared/NautilusSpinner';
 import Toast from '@/components/shared/Toast';
 import useCountUp from '@/lib/useCountUp';
 import { PageShell, PageHeader, StatRow, DataCard, SectionLabel, TableRow, TableCell, GhostButton } from '@/components/shared/Brand';
@@ -423,7 +423,7 @@ export default function Home() {
             <CommandBar
               onItemSaved={refreshFeed}
               variant="ask"
-              placeholder="Ask Helm anything..."
+              placeholder="Ask Nautilus anything..."
             />
           </div>
           <SectionLabel>Recent Clients</SectionLabel>

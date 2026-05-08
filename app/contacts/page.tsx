@@ -366,7 +366,7 @@ export default function ContactsPage() {
           setBulkDeleting(false);
         }}
         title={`Delete ${selected.size} contact${selected.size !== 1 ? 's' : ''}?`}
-        body={`This will permanently remove ${selected.size} contact${selected.size !== 1 ? 's' : ''} from Helm. This can't be undone.`}
+        body={`This will permanently remove ${selected.size} contact${selected.size !== 1 ? 's' : ''} from Nautilus. This can't be undone.`}
       />
     </PageShell>
   );

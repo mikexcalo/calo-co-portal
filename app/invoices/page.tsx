@@ -7,7 +7,7 @@ import { loadClients, loadInvoices, deleteInvoice, saveInvoice, DB } from '@/lib
 import { agencyStats, currency, invTotal, metricColor } from '@/lib/utils';
 import { Invoice } from '@/lib/types';
 import { useTheme } from '@/lib/theme';
-import HelmSpinner from '@/components/shared/HelmSpinner';
+import NautilusSpinner from '@/components/shared/NautilusSpinner';
 import { motion } from 'framer-motion';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };

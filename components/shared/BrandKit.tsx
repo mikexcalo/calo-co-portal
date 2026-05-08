@@ -11,7 +11,7 @@ import BrandNotes from '@/components/brand-kit/BrandNotes';
 import BrandKitErrorBoundary from '@/components/brand-kit/BrandKitErrorBoundary';
 import { Section } from '@/components/shared/PageLayout';
 import { useTheme } from '@/lib/theme';
-import HelmSpinner from '@/components/shared/HelmSpinner';
+import NautilusSpinner from '@/components/shared/NautilusSpinner';
 
 const AGENCY_BRAND_ID = 'agency';
 const AGENCY_LS_KEY = 'calo-agency-brand-details';

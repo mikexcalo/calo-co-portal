@@ -7,8 +7,8 @@ import TopBar from '@/components/TopBar';
 import { ThemeProvider } from '@/lib/theme';
 
 export const metadata: Metadata = {
-  title: 'Helm',
-  description: 'Helm — Agency Management Portal',
+  title: 'Nautilus',
+  description: 'Nautilus — Agency Management Portal',
   icons: { icon: '/favicon.svg' },
 };
 

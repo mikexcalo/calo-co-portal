@@ -77,7 +77,7 @@ export default function Sidebar() {
               <line x1="5.9" y1="18.1" x2="9.9" y2="14.1" /><line x1="14.1" y1="9.9" x2="18.1" y2="5.9" />
             </svg>
           </div>
-          <span style={{ fontSize: 17, fontWeight: 600, color: t.text.primary, letterSpacing: '-0.3px' }}>Helm</span>
+          <span style={{ fontSize: 17, fontWeight: 600, color: t.text.primary, letterSpacing: '-0.3px' }}>Nautilus</span>
         </div>
       </div>
 

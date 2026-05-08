@@ -7,7 +7,7 @@ import { DB, loadClients, loadAllBrandKits, saveBrandKit } from '@/lib/database'
 import { PageLayout } from '@/components/shared/PageLayout';
 import BrandKit from '@/components/shared/BrandKit';
 import { useTheme } from '@/lib/theme';
-import HelmSpinner from '@/components/shared/HelmSpinner';
+import NautilusSpinner from '@/components/shared/NautilusSpinner';
 import BrandVoice from '@/components/BrandVoice';
 import BrandKitLayout from '@/components/BrandKitLayout';
 

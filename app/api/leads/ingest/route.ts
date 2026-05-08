@@ -97,10 +97,11 @@ export async function POST(req: NextRequest) {
     if (resendKey) {
       try {
         const resend = new Resend(resendKey)
-        const helmUrl = `https://calo-co-portal-tf7x.vercel.app/contacts/${contact.id}`
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://calo-co-portal-tf7x.vercel.app'
+        const contactUrl = `${appUrl}/contacts/${contact.id}`
 
         await resend.emails.send({
-          from: 'CALO&CO Helm <onboarding@resend.dev>',
+          from: 'CALO&CO Nautilus <onboarding@resend.dev>',
           to: 'mikexcalo@gmail.com',
           replyTo: email.trim(),
           subject: 'New CALO&CO lead!',
@@ -113,7 +114,7 @@ export async function POST(req: NextRequest) {
   <p><strong>What they're looking for:</strong><br/>
   ${message.trim()}</p>
   <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
-  <p><a href="${helmUrl}" style="color: #2563eb;">View in Helm →</a></p>
+  <p><a href="${contactUrl}" style="color: #2563eb;">View in Nautilus →</a></p>
 </div>
           `.trim(),
         })

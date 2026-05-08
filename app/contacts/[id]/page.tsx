@@ -214,7 +214,7 @@ export default function ContactDetailPage() {
           }
         }}
         title={`Delete ${contact.name}?`}
-        body="This will permanently remove this contact from Helm. This can't be undone."
+        body="This will permanently remove this contact from Nautilus. This can't be undone."
       />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24 }}>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { DB, loadTasksNotes, updateTaskStatus, deleteTaskNote } from '@/lib/database';
-import HelmSpinner from '@/components/shared/HelmSpinner';
+import NautilusSpinner from '@/components/shared/NautilusSpinner';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { currency } from '@/lib/utils';
 
