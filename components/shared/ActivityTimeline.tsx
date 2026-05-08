@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTheme } from '@/lib/theme';
 import type { Note } from '@/lib/types';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 type ActivityTimelineProps = {
   notes: Note[];
@@ -42,6 +43,7 @@ const kindLabel: Record<string, string> = {
 export function ActivityTimeline({ notes, onDelete }: ActivityTimelineProps) {
   const { t } = useTheme();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   if (notes.length === 0) {
     return (
@@ -85,7 +87,7 @@ export function ActivityTimeline({ notes, onDelete }: ActivityTimelineProps) {
               {onDelete && (
                 <button
                   onClick={() => {
-                    if (confirm('Delete this note?')) onDelete(note.id);
+                    setDeleteId(note.id);
                   }}
                   style={{
                     background: 'none', border: 'none', padding: 0, cursor: 'pointer',
@@ -110,6 +112,15 @@ export function ActivityTimeline({ notes, onDelete }: ActivityTimelineProps) {
           </div>
         </div>
       ))}
+      {onDelete && (
+        <ConfirmDialog
+          isOpen={!!deleteId}
+          onClose={() => setDeleteId(null)}
+          onConfirm={() => { if (deleteId) { onDelete(deleteId); setDeleteId(null); } }}
+          title="Delete this note?"
+          body="This will permanently remove this note. This can't be undone."
+        />
+      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Invoice, InvoiceItem } from '@/lib/types';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { currency, invTotal, statusPillClass, getStatusLabel } from '@/lib/utils';
 import styles from './InvoiceTable.module.css';
 
@@ -38,13 +39,15 @@ export default function InvoiceTable({
     }
   };
 
+  const [deleteInvId, setDeleteInvId] = useState<string | null>(null);
   const handleDelete = async (invoiceId: string) => {
-    if (!onDelete || !confirm('Delete this invoice?')) return;
+    if (!onDelete) return;
     try {
       setLoadingId(invoiceId);
       await onDelete(invoiceId);
     } finally {
       setLoadingId(null);
+      setDeleteInvId(null);
     }
   };
 
@@ -98,7 +101,7 @@ export default function InvoiceTable({
                   <td className={styles.actionCol}>
                     <button
                       className={styles.deleteIconBtn}
-                      onClick={() => handleDelete(inv.id)}
+                      onClick={() => setDeleteInvId(inv.id)}
                       disabled={loadingId === inv.id}
                       title="Delete invoice"
                     >
@@ -185,6 +188,13 @@ export default function InvoiceTable({
       {sortedInvoices.length === 0 && (
         <div className={styles.empty}>No invoices yet</div>
       )}
+      <ConfirmDialog
+        isOpen={!!deleteInvId}
+        onClose={() => setDeleteInvId(null)}
+        onConfirm={() => { if (deleteInvId) handleDelete(deleteInvId); }}
+        title="Delete this invoice?"
+        body="This will permanently remove this invoice. This can't be undone."
+      />
     </div>
   );
 }

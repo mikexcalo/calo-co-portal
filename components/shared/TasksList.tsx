@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTheme } from '@/lib/theme';
 import type { Task, Event } from '@/lib/types';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 type TasksListProps = {
   tasks: Task[];
@@ -61,6 +62,7 @@ const TrashIcon = ({ color }: { color: string }) => (
 export function TasksList({ tasks, events, onAddClick, onToggleComplete, onDelete }: TasksListProps) {
   const { t } = useTheme();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const openCount = tasks.filter((tk) => !tk.completedAt).length;
 
   return (
@@ -175,9 +177,7 @@ export function TasksList({ tasks, events, onAddClick, onToggleComplete, onDelet
 
               {/* Trash */}
               <button
-                onClick={() => {
-                  if (confirm('Delete this task?')) onDelete(task.id);
-                }}
+                onClick={() => setDeleteId(task.id)}
                 style={{
                   width: 20, height: 20, flexShrink: 0, cursor: 'pointer',
                   background: 'none', border: 'none', padding: 0,
@@ -191,6 +191,13 @@ export function TasksList({ tasks, events, onAddClick, onToggleComplete, onDelet
           );
         })
       )}
+      <ConfirmDialog
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={() => { if (deleteId) { onDelete(deleteId); setDeleteId(null); } }}
+        title="Delete this task?"
+        body="This will permanently remove this task. This can't be undone."
+      />
     </div>
   );
 }

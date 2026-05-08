@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { DB, loadTasksNotes, updateTaskStatus, deleteTaskNote } from '@/lib/database';
 import HelmSpinner from '@/components/shared/HelmSpinner';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { currency } from '@/lib/utils';
 
 interface TaskNote {
@@ -50,6 +51,7 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
   const [items, setItems] = useState<TaskNote[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [delHover, setDelHover] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [fadingId, setFadingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -131,7 +133,7 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
                   </div>
                 </div>
                 <div
-                  onClick={() => { if (confirm('Delete this task?')) handleDelete(task.id); }}
+                  onClick={() => setConfirmDeleteId(task.id)}
                   onMouseEnter={() => setDelHover(task.id)}
                   onMouseLeave={() => setDelHover(null)}
                   style={{ cursor: 'pointer', opacity: delHover === task.id ? 1 : 0.25, transition: 'opacity 0.12s', flexShrink: 0, marginTop: 2 }}
@@ -191,6 +193,13 @@ export default function TasksNotesFeed({ refreshKey }: TasksNotesFeedProps) {
           })}
         </div>
       )}
+      <ConfirmDialog
+        isOpen={!!confirmDeleteId}
+        onClose={() => setConfirmDeleteId(null)}
+        onConfirm={() => { if (confirmDeleteId) { handleDelete(confirmDeleteId); setConfirmDeleteId(null); } }}
+        title="Delete this task?"
+        body="This will permanently remove this task. This can't be undone."
+      />
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { PageShell, PageHeader, DataCard, TableHeader, TableRow, TableCell, CtaB
 import { AddContactWithClientPicker } from '@/components/shared/AddContactWithClientPicker';
 import { StatusPill, colorMap } from '@/components/shared/StatusPill';
 import { DropNotesPanel } from '@/components/shared/DropNotesPanel';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import type { ParsedContact } from '@/lib/api';
 
 interface ContactRow {
@@ -48,6 +49,9 @@ export default function ContactsPage() {
   const [savingContact, setSavingContact] = useState(false);
   const [kindFilter, setKindFilter] = useState<string>('all');
   const [dropNotesOpen, setDropNotesOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   // Auto-open forms from URL params (Cmd+K)
   useEffect(() => {
@@ -162,6 +166,35 @@ export default function ContactsPage() {
         />
       )}
 
+      {/* Bulk action bar */}
+      {selected.size > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          background: t.bg.surface, border: `1px solid ${t.border.default}`, borderRadius: 8,
+          padding: '8px 16px', marginBottom: 12,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 13, fontWeight: 500, color: t.text.primary }}>{selected.size} selected</span>
+            <button
+              onClick={() => setSelected(new Set())}
+              style={{ fontSize: 12, color: t.text.tertiary, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}
+            >
+              Clear selection
+            </button>
+          </div>
+          <button
+            onClick={() => setShowBulkDelete(true)}
+            style={{
+              height: 30, padding: '0 14px', fontSize: 12, fontWeight: 500,
+              background: '#DC2626', color: '#fff', border: 'none', borderRadius: 6,
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            Delete
+          </button>
+        </div>
+      )}
+
       {/* Kind filter chips */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
         {([
@@ -196,22 +229,61 @@ export default function ContactsPage() {
       </div>
 
       <DataCard noPadding>
-        <TableHeader columns={[
-          { label: '', flex: 0.3 },
-          { label: 'Name', flex: 2 },
-          { label: 'Type', flex: 0.8 },
-          { label: 'Client', flex: 1.5 },
-          { label: 'Email', flex: 1.5 },
-          { label: 'Phone', flex: 1.2 },
-          { label: '', flex: 0.3 },
-        ]} />
-
-        {(kindFilter === 'all' ? contacts : contacts.filter((c) => c.kind === kindFilter)).map((contact) => {
-          const { bg, fg } = avatarColor(contact.name);
-          const parentName = contact.clientId ? clientNames[contact.clientId] : null;
-
+        {(() => {
+          const visibleContacts = kindFilter === 'all' ? contacts : contacts.filter((c) => c.kind === kindFilter);
+          const allVisibleSelected = visibleContacts.length > 0 && visibleContacts.every((c) => selected.has(c.id));
           return (
-            <TableRow key={contact.id} onClick={() => router.push(`/contacts/${contact.id}`)}>
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', borderBottom: `1px solid ${t.border.default}` }}>
+                <div style={{ flex: 0.2, display: 'flex', alignItems: 'center' }}>
+                  <input
+                    type="checkbox"
+                    checked={allVisibleSelected}
+                    onChange={() => {
+                      if (allVisibleSelected) {
+                        setSelected(new Set());
+                      } else {
+                        setSelected(new Set(visibleContacts.map((c) => c.id)));
+                      }
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  />
+                </div>
+                <TableHeader columns={[
+                  { label: '', flex: 0.3 },
+                  { label: 'Name', flex: 2 },
+                  { label: 'Type', flex: 0.8 },
+                  { label: 'Client', flex: 1.5 },
+                  { label: 'Email', flex: 1.5 },
+                  { label: 'Phone', flex: 1.2 },
+                  { label: '', flex: 0.3 },
+                ]} />
+              </div>
+
+              {visibleContacts.map((contact) => {
+                const { bg, fg } = avatarColor(contact.name);
+                const parentName = contact.clientId ? clientNames[contact.clientId] : null;
+                const isSelected = selected.has(contact.id);
+
+                return (
+                  <div key={contact.id} style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{ flex: 0.2, display: 'flex', alignItems: 'center', paddingLeft: 16 }}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          setSelected((prev) => {
+                            const next = new Set(prev);
+                            if (isSelected) next.delete(contact.id); else next.add(contact.id);
+                            return next;
+                          });
+                        }}
+                        style={{ cursor: 'pointer' }}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <TableRow onClick={() => router.push(`/contacts/${contact.id}`)}>
               <div style={{ flex: 0.3, display: 'flex', alignItems: 'center', marginRight: 8, position: 'relative' }}>
                 {contact.unread && (
                   <div style={{ position: 'absolute', left: -2, top: '50%', transform: 'translateY(-50%)', width: 7, height: 7, borderRadius: '50%', background: '#3B82F6' }} />
@@ -261,15 +333,41 @@ export default function ContactsPage() {
                 <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke={t.text.tertiary} strokeWidth="1.5"><path d="M6 4l4 4-4 4"/></svg>
               </div>
             </TableRow>
-          );
-        })}
+                    </div>
+                  </div>
+                );
+              })}
 
-        {(kindFilter === 'all' ? contacts : contacts.filter((c) => c.kind === kindFilter)).length === 0 && (
-          <div style={{ padding: 40, textAlign: 'center', color: t.text.tertiary, fontSize: 13 }}>
-            {kindFilter !== 'all' ? 'No contacts match this filter' : 'No contacts yet'}
-          </div>
-        )}
+              {visibleContacts.length === 0 && (
+                <div style={{ padding: 40, textAlign: 'center', color: t.text.tertiary, fontSize: 13 }}>
+                  {kindFilter !== 'all' ? 'No contacts match this filter' : 'No contacts yet'}
+                </div>
+              )}
+            </>
+          );
+        })()}
       </DataCard>
+
+      <ConfirmDialog
+        isOpen={showBulkDelete}
+        onClose={() => setShowBulkDelete(false)}
+        loading={bulkDeleting}
+        onConfirm={async () => {
+          setBulkDeleting(true);
+          try {
+            const ids = Array.from(selected);
+            await supabase.from('contacts').delete().in('id', ids);
+            setContacts((prev) => prev.filter((c) => !selected.has(c.id)));
+            setSelected(new Set());
+            setShowBulkDelete(false);
+          } catch (e) {
+            console.error('Bulk delete failed:', e);
+          }
+          setBulkDeleting(false);
+        }}
+        title={`Delete ${selected.size} contact${selected.size !== 1 ? 's' : ''}?`}
+        body={`This will permanently remove ${selected.size} contact${selected.size !== 1 ? 's' : ''} from Helm. This can't be undone.`}
+      />
     </PageShell>
   );
 }

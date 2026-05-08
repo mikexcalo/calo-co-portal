@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTheme } from '@/lib/theme';
 import type { Event } from '@/lib/types';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 type EventsListProps = {
   events: Event[];
@@ -30,6 +31,7 @@ const TrashIcon = ({ color }: { color: string }) => (
 export function EventsList({ events, taskCountsByEventId, onAddClick, onDelete }: EventsListProps) {
   const { t } = useTheme();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   return (
     <div style={{
@@ -130,7 +132,7 @@ export function EventsList({ events, taskCountsByEventId, onAddClick, onDelete }
               {/* Trash */}
               <button
                 onClick={() => {
-                  if (confirm('Delete this event? Tasks anchored to it will keep their titles but lose their event anchor.')) onDelete(event.id);
+                  setDeleteId(event.id);
                 }}
                 style={{
                   width: 20, height: 20, flexShrink: 0, cursor: 'pointer',
@@ -145,6 +147,13 @@ export function EventsList({ events, taskCountsByEventId, onAddClick, onDelete }
           );
         })
       )}
+      <ConfirmDialog
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={() => { if (deleteId) { onDelete(deleteId); setDeleteId(null); } }}
+        title="Delete this event?"
+        body="Tasks anchored to this event will keep their titles but lose their event anchor. This can't be undone."
+      />
     </div>
   );
 }

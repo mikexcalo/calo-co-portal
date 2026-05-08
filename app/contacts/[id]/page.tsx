@@ -21,6 +21,7 @@ import { EventsList } from '@/components/shared/EventsList';
 import { AddEventInline } from '@/components/shared/AddEventInline';
 import { StatusPill } from '@/components/shared/StatusPill';
 import { PromoteContactModal } from '@/components/shared/PromoteContactModal';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import type { TranscriptEvent } from '@/lib/api';
 import { TranscriptParser } from '@/components/shared/TranscriptParser';
 
@@ -51,6 +52,9 @@ export default function ContactDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showPromote, setShowPromote] = useState(false);
   const [promoting, setPromoting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -157,7 +161,61 @@ export default function ContactDetailPage() {
             Promote to client
           </button>
         )}
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            style={{
+              width: 32, height: 32, borderRadius: 6, border: `1px solid ${t.border.default}`,
+              background: t.bg.surface, cursor: 'pointer', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', fontSize: 18, color: t.text.secondary,
+              fontFamily: 'inherit', lineHeight: 1,
+            }}
+          >
+            ⋯
+          </button>
+          {menuOpen && (
+            <>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 10 }} onClick={() => setMenuOpen(false)} />
+              <div style={{
+                position: 'absolute', top: '100%', right: 0, marginTop: 4, zIndex: 11,
+                background: t.bg.elevated, border: `1px solid ${t.border.default}`, borderRadius: 8,
+                boxShadow: t.shadow.elevated, minWidth: 160, padding: 4, overflow: 'hidden',
+              }}>
+                <button
+                  onClick={() => { setMenuOpen(false); setShowDeleteConfirm(true); }}
+                  style={{
+                    width: '100%', padding: '8px 12px', border: 'none', background: 'transparent',
+                    fontSize: 13, color: '#DC2626', fontWeight: 500, textAlign: 'left',
+                    cursor: 'pointer', fontFamily: 'inherit', borderRadius: 4,
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = t.bg.surfaceHover; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  Delete contact
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </InfoBar>
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        loading={deleting}
+        onConfirm={async () => {
+          setDeleting(true);
+          try {
+            await supabase.from('contacts').delete().eq('id', contactId);
+            router.push('/contacts');
+          } catch (e) {
+            console.error('Delete contact failed:', e);
+            setDeleting(false);
+          }
+        }}
+        title={`Delete ${contact.name}?`}
+        body="This will permanently remove this contact from Helm. This can't be undone."
+      />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24 }}>
         <div>

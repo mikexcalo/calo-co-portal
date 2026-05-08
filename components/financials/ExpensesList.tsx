@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Expense } from '@/lib/types';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { currency } from '@/lib/utils';
 import { saveExpense, deleteExpenseById, DB } from '@/lib/database';
 
@@ -56,13 +57,13 @@ export default function ExpensesList({ expenses }: ExpensesListProps) {
     setLoading(false);
   };
 
-  const handleDeleteExpense = async (expId: string | undefined) => {
-    if (!expId || !confirm('Delete this expense?')) return;
-
+  const [deleteExpId, setDeleteExpId] = useState<string | null>(null);
+  const handleDeleteExpense = async (expId: string) => {
     setLoading(true);
     await deleteExpenseById(expId);
     DB.expenses = DB.expenses.filter((e) => e.id !== expId);
     setLoading(false);
+    setDeleteExpId(null);
   };
 
   const handleAddExpense = async () => {
@@ -211,7 +212,7 @@ export default function ExpensesList({ expenses }: ExpensesListProps) {
                   Cancel
                 </button>
                 <button
-                  onClick={() => handleDeleteExpense(exp.id)}
+                  onClick={() => { if (exp.id) setDeleteExpId(exp.id); }}
                   disabled={loading}
                   className="btn btn-danger btn-sm text-xs ml-auto"
                 >
@@ -312,6 +313,13 @@ export default function ExpensesList({ expenses }: ExpensesListProps) {
           + Add Expense
         </button>
       )}
+      <ConfirmDialog
+        isOpen={!!deleteExpId}
+        onClose={() => setDeleteExpId(null)}
+        onConfirm={() => { if (deleteExpId) handleDeleteExpense(deleteExpId); }}
+        title="Delete this expense?"
+        body="This will permanently remove this expense. This can't be undone."
+      />
     </div>
   );
 }
