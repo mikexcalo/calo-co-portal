@@ -99,6 +99,7 @@ export default function Home() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         userName = user.user_metadata?.full_name
+          || user.user_metadata?.name
           || user.email?.split('@')[0]
           || '';
       }

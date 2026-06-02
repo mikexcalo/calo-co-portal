@@ -6,9 +6,9 @@ import TopBar from '@/components/TopBar';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isLogin = pathname === '/login';
+  const isBarePage = pathname === '/login' || pathname === '/welcome';
 
-  if (isLogin) {
+  if (isBarePage) {
     return <>{children}</>;
   }
 
