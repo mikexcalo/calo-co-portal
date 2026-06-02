@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { createSupabaseBrowser } from '@/lib/supabase-browser';
 import {
   initSupabase, initAgency, loadClients, loadInvoices, loadContacts,
   loadAllBrandKits, loadActivityLog, loadExpenses, loadAgencySettings,
@@ -93,14 +94,25 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    const supabase = createSupabaseBrowser();
+    let userName = '';
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        userName = user.user_metadata?.full_name
+          || user.email?.split('@')[0]
+          || '';
+      }
+      tick();
+    });
     const tick = () => {
       const now = new Date();
       const h = now.getHours();
-      setGreeting(`Good ${h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening'}, Mike`);
+      const name = userName || 'there';
+      setGreeting(`Good ${h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening'}, ${name}`);
       setDateline(now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
         + ' \u00b7 ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
     };
-    tick(); const iv = setInterval(tick, 60000); return () => clearInterval(iv);
+    const iv = setInterval(tick, 60000); return () => clearInterval(iv);
   }, []);
 
   const refreshFeed = useCallback(() => { loadTasksNotes().then(setAllTasks); }, []);
