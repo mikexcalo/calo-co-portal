@@ -1,4 +1,4 @@
--- Step 2 of 2: Enable RLS on clients, contacts, notes, tasks.
+-- Step 2 of 2: Enable RLS on clients, contacts, notes, tasks. (v2 — WITH CHECK added)
 -- Admin sees all. Client sees only their own client_id rows.
 -- No client writes yet — SELECT only for client role.
 
@@ -36,7 +36,8 @@ ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
 
 -- Admin: full access
 CREATE POLICY "admin_all_clients" ON public.clients
-  FOR ALL USING (public.user_role() = 'admin');
+  FOR ALL USING (public.user_role() = 'admin')
+  WITH CHECK (public.user_role() = 'admin');
 
 -- Client: read own row only (clients.id = their client_id)
 CREATE POLICY "client_read_own" ON public.clients
@@ -52,7 +53,8 @@ ALTER TABLE public.contacts ENABLE ROW LEVEL SECURITY;
 
 -- Admin: full access
 CREATE POLICY "admin_all_contacts" ON public.contacts
-  FOR ALL USING (public.user_role() = 'admin');
+  FOR ALL USING (public.user_role() = 'admin')
+  WITH CHECK (public.user_role() = 'admin');
 
 -- Client: read contacts belonging to their client
 CREATE POLICY "client_read_own_contacts" ON public.contacts
@@ -68,7 +70,8 @@ ALTER TABLE public.notes ENABLE ROW LEVEL SECURITY;
 
 -- Admin: full access
 CREATE POLICY "admin_all_notes" ON public.notes
-  FOR ALL USING (public.user_role() = 'admin');
+  FOR ALL USING (public.user_role() = 'admin')
+  WITH CHECK (public.user_role() = 'admin');
 
 -- Client: read notes belonging to their client
 CREATE POLICY "client_read_own_notes" ON public.notes
@@ -84,7 +87,8 @@ ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
 
 -- Admin: full access
 CREATE POLICY "admin_all_tasks" ON public.tasks
-  FOR ALL USING (public.user_role() = 'admin');
+  FOR ALL USING (public.user_role() = 'admin')
+  WITH CHECK (public.user_role() = 'admin');
 
 -- Client: read tasks belonging to their client
 CREATE POLICY "client_read_own_tasks" ON public.tasks
