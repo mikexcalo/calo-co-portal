@@ -2,10 +2,15 @@
  * Supabase client initialization
  * Uses environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
  *
+ * Uses createBrowserClient from @supabase/ssr so the client automatically
+ * picks up the logged-in user's session cookies. This is required for RLS
+ * policies to see auth.uid().
+ *
  * Lazily initialized to avoid throwing during Next.js static generation (build time).
  */
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 let _client: SupabaseClient | null = null;
 
@@ -21,7 +26,7 @@ function getSupabase(): SupabaseClient {
     );
   }
 
-  _client = createClient(supabaseUrl, supabaseAnonKey);
+  _client = createBrowserClient(supabaseUrl, supabaseAnonKey);
   return _client;
 }
 
