@@ -100,9 +100,16 @@ export async function POST(req: NextRequest) {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://calo-co-portal-tf7x.vercel.app'
         const contactUrl = `${appUrl}/contacts/${contact.id}`
 
+          // Route lead notifications by source; fall back to the existing default recipient.
+          const DEFAULT_LEAD_RECIPIENT = 'mikexcalo@gmail.com'
+          const LEAD_RECIPIENTS: Record<string, string> = {
+            'stevies-poem-store-contact-form': 'stevie@steviespoemstore.com',
+          }
+          const leadRecipient = LEAD_RECIPIENTS[source || ''] ?? DEFAULT_LEAD_RECIPIENT
+
         await resend.emails.send({
           from: 'CALO&CO Nautilus <onboarding@resend.dev>',
-          to: 'mikexcalo@gmail.com',
+          to: leadRecipient,
           replyTo: email.trim(),
           subject: 'New CALO&CO lead!',
           html: `
