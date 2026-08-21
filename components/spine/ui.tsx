@@ -24,6 +24,22 @@ export const C = {
   red: '#ef4444',
 } as const;
 
+/**
+ * Breakpoint hook. Used to collapse layouts rather than to hide things —
+ * a contractor in a driveway needs the same capabilities as at a desk.
+ */
+export function useIsPhone(): boolean {
+  const [phone, setPhone] = React.useState(false);
+  React.useEffect(() => {
+    const mq = window.matchMedia('(max-width: 720px)');
+    const update = () => setPhone(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+  return phone;
+}
+
 export function Page({
   title,
   subtitle,
@@ -35,24 +51,37 @@ export function Page({
   action?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  const phone = useIsPhone();
   return (
-    <div style={{ padding: '28px 32px', maxWidth: 1100, width: '100%' }}>
+    <div
+      style={{
+        padding: phone ? '18px 16px 90px' : '28px 32px',
+        maxWidth: 1100,
+        width: '100%',
+        boxSizing: 'border-box',
+      }}
+    >
       <div
         style={{
           display: 'flex',
-          alignItems: 'flex-start',
+          alignItems: phone ? 'stretch' : 'flex-start',
+          flexDirection: phone ? 'column' : 'row',
           justifyContent: 'space-between',
-          gap: 16,
-          marginBottom: 24,
+          gap: phone ? 12 : 16,
+          marginBottom: phone ? 18 : 24,
         }}
       >
         <div>
-          <h1 style={{ fontSize: 21, fontWeight: 500, margin: 0, color: C.text }}>{title}</h1>
+          <h1 style={{ fontSize: phone ? 19 : 21, fontWeight: 500, margin: 0, color: C.text }}>
+            {title}
+          </h1>
           {subtitle && (
             <p style={{ fontSize: 13, color: C.faint, margin: '6px 0 0' }}>{subtitle}</p>
           )}
         </div>
-        {action}
+        {action && (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{action}</div>
+        )}
       </div>
       {children}
     </div>
@@ -233,6 +262,11 @@ export function Empty({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * On a phone the header row is dropped and each row becomes a stacked block —
+ * a five-column grid squeezed to 360px is unreadable, and horizontal scroll
+ * inside a table is worse.
+ */
 export function Row({
   cols,
   children,
@@ -244,15 +278,20 @@ export function Row({
   header?: boolean;
   onClick?: () => void;
 }) {
+  const phone = useIsPhone();
+
+  if (phone && header) return null;
+
   return (
     <div
       onClick={onClick}
       style={{
-        display: 'grid',
-        gridTemplateColumns: cols,
-        gap: 12,
+        display: phone ? 'flex' : 'grid',
+        flexWrap: phone ? 'wrap' : undefined,
+        gridTemplateColumns: phone ? undefined : cols,
+        gap: phone ? 8 : 12,
         alignItems: 'center',
-        padding: header ? '9px 14px' : '12px 14px',
+        padding: header ? '9px 14px' : phone ? '14px' : '12px 14px',
         borderBottom: `1px solid ${C.border}`,
         fontSize: header ? 10 : 13,
         textTransform: header ? 'uppercase' : 'none',
@@ -280,6 +319,46 @@ export function Table({ children }: { children: React.ReactNode }) {
     >
       {children}
     </div>
+  );
+}
+
+/**
+ * Big tap target for the primary field action — photographing a receipt.
+ * Fixed to the bottom of the screen on a phone, where a thumb actually is.
+ */
+export function MobileAction({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
+  const phone = useIsPhone();
+  if (!phone) return null;
+
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        position: 'fixed',
+        left: 16,
+        right: 16,
+        bottom: 16,
+        zIndex: 30,
+        padding: '15px',
+        borderRadius: 11,
+        border: 'none',
+        background: C.blue,
+        color: '#fff',
+        fontSize: 15,
+        fontWeight: 600,
+        fontFamily: 'inherit',
+        boxShadow: '0 6px 20px rgba(0,0,0,.45)',
+        cursor: 'pointer',
+      }}
+    >
+      {label}
+    </button>
   );
 }
 

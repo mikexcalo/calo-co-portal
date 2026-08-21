@@ -2,6 +2,8 @@
 
 import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from '@/lib/theme';
+import { useOrg } from '@/lib/spine/org';
+import { OrgSwitcher } from '@/components/spine/OrgSwitcher';
 
 const icons: Record<string, React.ReactNode> = {
   dashboard: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3.5" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="20.5"/><line x1="3.5" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="20.5" y2="12"/><line x1="5.9" y1="5.9" x2="9.9" y2="9.9"/><line x1="14.1" y1="14.1" x2="18.1" y2="18.1"/><line x1="5.9" y1="18.1" x2="9.9" y2="14.1"/><line x1="14.1" y1="9.9" x2="18.1" y2="5.9"/></svg>,
@@ -22,6 +24,7 @@ export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const { theme, setTheme, t } = useTheme();
+  const { vocab } = useOrg();
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
     if (href === '/brand-kit') return pathname === '/brand-kit' || pathname.startsWith('/brand-kit/') || /^\/clients\/[^/]+\/brand-kit/.test(pathname);
@@ -62,15 +65,23 @@ export default function Sidebar() {
         <span onClick={() => router.push('/')} style={{ fontSize: 17, fontWeight: 600, color: t.text.primary, letterSpacing: '-0.3px', cursor: 'pointer' }}>Nautilus</span>
       </div>
 
+      {/* Which business am I looking at */}
+      <div style={{ padding: '10px 12px 4px' }}>
+        <OrgSwitcher />
+      </div>
+
       {/* Nav */}
       <div style={{ flex: 1, padding: '12px 8px 8px', display: 'flex', flexDirection: 'column', gap: 0, overflowY: 'auto' }}>
         {navBtn('Dashboard', '/', icons.dashboard)}
 
-        {/* The spine. Jobs -> Documents -> Billing is the whole loop. */}
+        {/* The spine. Jobs -> Documents -> Billing is the whole loop.
+            Labels follow the active business: Jobs for a contractor,
+            Engagements for the agency. */}
         <div style={{ height: 12 }} />
-        {navBtn('Jobs', '/jobs', icons.yardSign)}
+        {navBtn(vocab.jobPlural, '/jobs', icons.yardSign)}
         {navBtn('Documents', '/documents', icons.quotes)}
         {navBtn('Billing', '/billing', icons.invoices)}
+        {navBtn('Business', '/business', icons.financials)}
 
         {/* Legacy modules — being sunset. See docs/spine.md. */}
         <div style={{ height: 18 }} />

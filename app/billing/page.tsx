@@ -43,6 +43,7 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const [inv, j] = await Promise.all([listInvoices(), listJobs()]);
@@ -91,6 +92,35 @@ export default function BillingPage() {
     }
   };
 
+  /**
+   * Hand the invoice to Stripe. Falls back gracefully with a clear message
+   * when Stripe isn't configured yet — marking paid by hand still works.
+   */
+  const sendViaStripe = async (inv: JobInvoice) => {
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetch('/api/invoices/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invoiceId: inv.id }),
+      });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error || 'Could not send');
+
+      setNotice(
+        `${inv.number} sent. The customer can pay online, and it will mark itself paid.`
+      );
+      if (payload.hostedUrl) window.open(payload.hostedUrl, '_blank', 'noopener');
+      await load();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const live = invoices.filter((i) => i.status !== 'void');
   const outstanding = live.reduce((s, i) => s + (i.total - i.amount_paid), 0);
   const collected = live.reduce((s, i) => s + i.amount_paid, 0);
@@ -101,6 +131,11 @@ export default function BillingPage() {
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+        </Card>
+      )}
+      {notice && (
+        <Card style={{ borderColor: `${C.green}55`, marginBottom: 16 }}>
+          <div style={{ color: C.green, fontSize: 13 }}>{notice}</div>
         </Card>
       )}
 
@@ -207,19 +242,26 @@ export default function BillingPage() {
                           Open job
                         </Button>
                         {inv.status === 'draft' && (
-                          <Button
-                            disabled={busy}
-                            onClick={() =>
-                              act(async () => {
-                                await updateInvoice(inv.id, {
-                                  status: 'sent',
-                                  sent_at: new Date().toISOString(),
-                                });
-                              })
-                            }
-                          >
-                            Mark sent
-                          </Button>
+                          <>
+                            {/* The real path: Stripe emails it and collects payment. */}
+                            <Button disabled={busy} onClick={() => sendViaStripe(inv)}>
+                              Send for payment
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              disabled={busy}
+                              onClick={() =>
+                                act(async () => {
+                                  await updateInvoice(inv.id, {
+                                    status: 'sent',
+                                    sent_at: new Date().toISOString(),
+                                  });
+                                })
+                              }
+                            >
+                              Mark sent by hand
+                            </Button>
+                          </>
                         )}
                         {['sent', 'partial', 'overdue'].includes(inv.status) && (
                           <Button

@@ -12,13 +12,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   createCost,
-  createDocument,
+  deleteDocument,
   getCurrentOrg,
+  getDocumentUrl,
   getExtractionSpend,
   listDocuments,
   listJobs,
   updateDocument,
+  uploadDocument,
 } from '@/lib/spine/db';
+import { useOrg } from '@/lib/spine/org';
 import { DOC_STATUS_LABEL } from '@/lib/spine/types';
 import type {
   CostKind,
@@ -32,12 +35,14 @@ import {
   C,
   Card,
   Empty,
+  MobileAction,
   Page,
   Pill,
   SectionLabel,
   inputStyle,
   money,
   shortDate,
+  useIsPhone,
 } from '@/components/spine/ui';
 
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -52,6 +57,7 @@ export default function DocumentsPage() {
   const [error, setError] = useState<string | null>(null);
   const [working, setWorking] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     const [org, d, j, s] = await Promise.all([
@@ -98,14 +104,9 @@ export default function DocumentsPage() {
 
       let doc: DocumentRecord;
       try {
-        // The document row exists before extraction runs, so nothing is lost
-        // if reading it fails.
-        doc = await createDocument(orgId, {
-          storage_path: `pending/${file.name}`,
-          file_name: file.name,
-          mime_type: file.type,
-          size_bytes: file.size,
-        });
+        // Store the real file FIRST. The photo is the record that matters for
+        // taxes and disputes — extraction is just a convenience on top of it.
+        doc = await uploadDocument(orgId, file);
         setDocs((prev) => [doc, ...prev]);
       } catch (e) {
         setError(`${file.name}: ${(e as Error).message}`);
@@ -178,6 +179,27 @@ export default function DocumentsPage() {
     }
   };
 
+  /** Signed link — the bucket is private, so there's no permanent URL. */
+  const viewDoc = async (doc: DocumentRecord) => {
+    setError(null);
+    const url = await getDocumentUrl(doc.storage_path);
+    if (!url) {
+      setError('That file was uploaded before file storage existed, so the original is gone.');
+      return;
+    }
+    window.open(url, '_blank', 'noopener');
+  };
+
+  const removeDoc = async (doc: DocumentRecord) => {
+    setError(null);
+    try {
+      await deleteDocument(doc);
+      await load();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  };
+
   const inbox = docs.filter((d) => d.status !== 'filed');
   const filed = docs.filter((d) => d.status === 'filed');
 
@@ -197,6 +219,18 @@ export default function DocumentsPage() {
         onChange={(e) => handleFiles(e.target.files)}
         style={{ display: 'none' }}
       />
+
+      {/* Phone: opens the camera directly. The whole point is photographing a
+          receipt in the truck before it goes through the wash. */}
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={(e) => handleFiles(e.target.files)}
+        style={{ display: 'none' }}
+      />
+      <MobileAction label="📷  Photograph a receipt" onClick={() => cameraRef.current?.click()} />
 
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
@@ -240,6 +274,8 @@ export default function DocumentsPage() {
               jobs={jobs}
               busy={working.includes(doc.id)}
               onFile={(jobId) => fileToJob(doc, jobId)}
+              onView={() => viewDoc(doc)}
+              onDelete={() => removeDoc(doc)}
             />
           ))}
         </div>
@@ -279,11 +315,15 @@ function DocCard({
   jobs,
   busy,
   onFile,
+  onView,
+  onDelete,
 }: {
   doc: DocumentRecord;
   jobs: JobWithCustomer[];
   busy: boolean;
   onFile: (jobId: string) => void;
+  onView: () => void;
+  onDelete: () => void;
 }) {
   const [jobId, setJobId] = useState('');
   const ex = doc.extracted;
@@ -333,13 +373,14 @@ function DocCard({
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          <Button variant="ghost" onClick={onView}>View</Button>
           <select
             value={jobId}
             onChange={(e) => setJobId(e.target.value)}
-            style={{ ...inputStyle, width: 190, padding: '7px 10px' }}
+            style={{ ...inputStyle, width: 180, padding: '7px 10px' }}
           >
-            <option value="">File to job…</option>
+            <option value="">File to…</option>
             {jobs.map((j) => (
               <option key={j.id} value={j.id}>{j.name}</option>
             ))}
@@ -350,6 +391,7 @@ function DocCard({
           >
             File
           </Button>
+          <Button variant="danger" onClick={onDelete} disabled={busy}>Delete</Button>
         </div>
       </div>
     </Card>

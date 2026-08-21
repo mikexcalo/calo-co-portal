@@ -362,6 +362,26 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         </Table>
       </div>
 
+      {/* Estimates */}
+      <div style={{ marginBottom: 26 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <SectionLabel>Estimate</SectionLabel>
+          <Button variant="ghost" onClick={() => router.push(`/jobs/${jobId}/estimate`)}>
+            New estimate
+          </Button>
+        </div>
+        <Card>
+          {(ledger?.estimate_total ?? 0) > 0 ? (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 13, color: C.dim }}>Accepted estimate</span>
+              <span style={{ fontSize: 18 }}>{money(ledger?.estimate_total ?? 0)}</span>
+            </div>
+          ) : (
+            <Empty>No accepted estimate yet.</Empty>
+          )}
+        </Card>
+      </div>
+
       {/* Invoices */}
       <div style={{ marginBottom: 26 }}>
         <SectionLabel>Invoices</SectionLabel>

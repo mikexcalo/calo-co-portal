@@ -46,8 +46,9 @@ function unwrap<T>(res: { data: T | null; error: { message: string } | null }): 
 // ---------------------------------------------------------------------------
 
 /**
- * The caller's org. Everything else is scoped to this, and RLS enforces it
- * server-side regardless of what the client asks for.
+ * The org you're currently looking at. Reads active_org_id, which the
+ * database only honours when a matching membership exists — so this can
+ * never return an org you don't belong to.
  */
 export async function getCurrentOrg(): Promise<Org | null> {
   const { data: auth } = await supabase.auth.getUser();
@@ -55,17 +56,24 @@ export async function getCurrentOrg(): Promise<Org | null> {
 
   const profile = await supabase
     .from('profiles')
-    .select('org_id')
+    .select('active_org_id')
     .eq('id', auth.user.id)
     .maybeSingle();
 
   if (profile.error) throw new Error(profile.error.message);
-  const orgId = profile.data?.org_id;
+  const orgId = profile.data?.active_org_id;
   if (!orgId) return null;
 
   const org = await supabase.from('orgs').select('*').eq('id', orgId).maybeSingle();
   if (org.error) throw new Error(org.error.message);
   return org.data as Org | null;
+}
+
+/** Update the org's own settings — rates, markup, tax. */
+export async function updateOrg(id: string, patch: Partial<Org>): Promise<Org> {
+  return unwrap(
+    await supabase.from('orgs').update(patch).eq('id', id).select().single()
+  ) as Org;
 }
 
 // ---------------------------------------------------------------------------
@@ -239,6 +247,49 @@ export async function createEstimate(
   return estimate;
 }
 
+export async function updateEstimate(
+  id: string,
+  patch: Partial<Estimate>
+): Promise<Estimate> {
+  return unwrap(
+    await supabase.from('estimates').update(patch).eq('id', id).select().single()
+  ) as Estimate;
+}
+
+/**
+ * Accepting an estimate moves the job forward. For fixed-price this locks the
+ * number that will be billed; for T&M it stays a forecast and actuals decide
+ * the invoice.
+ */
+export async function acceptEstimate(estimate: Estimate): Promise<void> {
+  const res = await Promise.all([
+    supabase
+      .from('estimates')
+      .update({ status: 'accepted', decided_at: new Date().toISOString() })
+      .eq('id', estimate.id),
+    supabase.from('jobs').update({ status: 'won' }).eq('id', estimate.job_id),
+  ]);
+  const failed = res.find((r) => r.error);
+  if (failed?.error) throw new Error(failed.error.message);
+}
+
+export async function declineEstimate(estimate: Estimate): Promise<void> {
+  const res = await Promise.all([
+    supabase
+      .from('estimates')
+      .update({ status: 'declined', decided_at: new Date().toISOString() })
+      .eq('id', estimate.id),
+    supabase.from('jobs').update({ status: 'lost' }).eq('id', estimate.job_id),
+  ]);
+  const failed = res.find((r) => r.error);
+  if (failed?.error) throw new Error(failed.error.message);
+}
+
+export async function deleteEstimate(id: string): Promise<void> {
+  const res = await supabase.from('estimates').delete().eq('id', id);
+  if (res.error) throw new Error(res.error.message);
+}
+
 // ---------------------------------------------------------------------------
 // Time entries — labor actuals
 // ---------------------------------------------------------------------------
@@ -359,6 +410,68 @@ export async function updateDocument(
   return unwrap(
     await supabase.from('documents').update(patch).eq('id', id).select().single()
   ) as DocumentRecord;
+}
+
+const BUCKET = 'documents';
+
+/**
+ * Upload the real file, then create its row.
+ *
+ * Path is `{org_id}/{uuid}.{ext}` — storage policies read that first segment
+ * to wall files by business, exactly like the table policies do.
+ *
+ * The file is kept, not just the numbers read off it: a contractor needs the
+ * actual receipt for taxes and for when a customer disputes a charge.
+ */
+export async function uploadDocument(
+  orgId: string,
+  file: File
+): Promise<DocumentRecord> {
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'bin';
+  const path = `${orgId}/${crypto.randomUUID()}.${ext}`;
+
+  const up = await supabase.storage.from(BUCKET).upload(path, file, {
+    contentType: file.type,
+    upsert: false,
+  });
+  if (up.error) throw new Error(`Upload failed: ${up.error.message}`);
+
+  try {
+    return await createDocument(orgId, {
+      storage_path: path,
+      file_name: file.name,
+      mime_type: file.type,
+      size_bytes: file.size,
+    });
+  } catch (e) {
+    // Don't leave an orphaned file behind if the row fails to insert.
+    await supabase.storage.from(BUCKET).remove([path]).catch(() => {});
+    throw e;
+  }
+}
+
+/**
+ * Short-lived link to view a stored document. The bucket is private, so
+ * there's no permanent public URL by design.
+ */
+export async function getDocumentUrl(
+  storagePath: string,
+  expiresInSeconds = 3600
+): Promise<string | null> {
+  if (!storagePath || storagePath.startsWith('pending/')) return null;
+  const res = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(storagePath, expiresInSeconds);
+  if (res.error) return null;
+  return res.data?.signedUrl ?? null;
+}
+
+export async function deleteDocument(doc: DocumentRecord): Promise<void> {
+  if (doc.storage_path && !doc.storage_path.startsWith('pending/')) {
+    await supabase.storage.from(BUCKET).remove([doc.storage_path]).catch(() => {});
+  }
+  const res = await supabase.from('documents').delete().eq('id', doc.id);
+  if (res.error) throw new Error(res.error.message);
 }
 
 /**
