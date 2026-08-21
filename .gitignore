@@ -24,6 +24,11 @@ yarn-error.log*
 
 # local env files
 .env*.local
+# every env file — these are the natural place a secret gets pasted later
+.env
+.env.
+.env.prod
+!.env.example
 
 # vercel
 .vercel

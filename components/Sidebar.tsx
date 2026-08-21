@@ -65,13 +65,26 @@ export default function Sidebar() {
       {/* Nav */}
       <div style={{ flex: 1, padding: '12px 8px 8px', display: 'flex', flexDirection: 'column', gap: 0, overflowY: 'auto' }}>
         {navBtn('Dashboard', '/', icons.dashboard)}
+
+        {/* The spine. Jobs -> Documents -> Billing is the whole loop. */}
+        <div style={{ height: 12 }} />
+        {navBtn('Jobs', '/jobs', icons.yardSign)}
+        {navBtn('Documents', '/documents', icons.quotes)}
+        {navBtn('Billing', '/billing', icons.invoices)}
+
+        {/* Legacy modules — being sunset. See docs/spine.md. */}
+        <div style={{ height: 18 }} />
+        <div style={{
+          fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em',
+          color: t.text.tertiary, fontWeight: 600, padding: '0 16px 6px',
+        }}>
+          Legacy
+        </div>
         {navBtn('Clients', '/clients', icons.clients)}
         {navBtn('Contacts', '/contacts', icons.contacts)}
-        <div style={{ height: 12 }} />
         {navBtn('Quotes', '/quotes', icons.quotes)}
         {navBtn('Invoices', '/invoices', icons.invoices)}
         {navBtn('Financials', '/financials', icons.financials)}
-        <div style={{ height: 12 }} />
         {navBtn('Brand Kit', '/brand-kit', icons.brandKit)}
         {navBtn('Design Studio', '/design', icons.designStudio)}
       </div>
