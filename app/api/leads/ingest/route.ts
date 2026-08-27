@@ -93,8 +93,14 @@ export async function POST(req: NextRequest) {
     if (!name?.trim()) {
       return NextResponse.json({ error: 'name is required' }, { status: 400, headers: cors });
     }
-    if (!email?.trim()) {
-      return NextResponse.json({ error: 'email is required' }, { status: 400, headers: cors });
+    // Email OR phone. A caller on the phone won't give an email, and refusing
+    // the lead over it would lose the actual business. The gap gets flagged so
+    // it's chased on the callback rather than silently forgotten.
+    if (!email?.trim() && !phone?.trim()) {
+      return NextResponse.json(
+        { error: 'an email or a phone number is required' },
+        { status: 400, headers: cors }
+      );
     }
     if (!message?.trim()) {
       return NextResponse.json({ error: 'message is required' }, { status: 400, headers: cors });
@@ -121,13 +127,29 @@ export async function POST(req: NextRequest) {
 
     // Reuse an existing customer on email match, so a repeat enquiry attaches
     // to the person we already know rather than creating a duplicate.
-    const cleanEmail = email.trim().toLowerCase();
-    const { data: existing } = await sb
-      .from('customers')
-      .select('id')
-      .eq('org_id', org.id)
-      .ilike('email', cleanEmail)
-      .maybeSingle();
+    const cleanEmail = email?.trim().toLowerCase() || null;
+    const cleanPhone = phone?.trim() || null;
+
+    // Match on whichever identifier we were given. A phone lead who later
+    // gives an email should attach to the same person, not become a second.
+    let existing: { id: string } | null = null;
+    if (cleanEmail) {
+      const r = await sb.from('customers').select('id').eq('org_id', org.id)
+        .ilike('email', cleanEmail).maybeSingle();
+      existing = r.data;
+    }
+    if (!existing && cleanPhone) {
+      const digits = cleanPhone.replace(/\D/g, '').slice(-10);
+      if (digits.length >= 7) {
+        const r = await sb.from('customers').select('id, phone').eq('org_id', org.id)
+          .not('phone', 'is', null);
+        existing =
+          (r.data ?? []).find(
+            (c: { id: string; phone: string | null }) =>
+              (c.phone ?? '').replace(/\D/g, '').slice(-10) === digits
+          ) ?? null;
+      }
+    }
 
     let customerId = existing?.id ?? null;
 
@@ -138,7 +160,7 @@ export async function POST(req: NextRequest) {
           org_id: org.id,
           name: name.trim(),
           email: cleanEmail,
-          phone: phone?.trim() || null,
+          phone: cleanPhone,
           address: address?.trim() || null,
           notes: company?.trim() ? `Company: ${company.trim()}` : null,
         })
@@ -170,6 +192,26 @@ export async function POST(req: NextRequest) {
 
     if (jobErr) throw new Error(jobErr.message);
 
+    // In-app notification and a CRM history entry. Both are best-effort: the
+    // lead is already saved, and failing to announce it must not lose it.
+    await sb.from('notifications').insert({
+      org_id: org.id,
+      kind: 'lead',
+      title: `New lead — ${name.trim()}`,
+      body: cleanEmail
+        ? message.trim().slice(0, 120)
+        : `No email yet — get one when you call back. ${message.trim().slice(0, 90)}`,
+      href: `/jobs/${job.id}`,
+    }).then(undefined, (e) => console.error('[leads/ingest] notification row:', e));
+
+    await sb.from('customer_notes').insert({
+      org_id: org.id,
+      customer_id: customerId,
+      job_id: job.id,
+      kind: 'system',
+      body: `Enquiry via ${src}: ${message.trim()}`,
+    }).then(undefined, (e) => console.error('[leads/ingest] history row:', e));
+
     // Notify. A failure here must not lose the lead — it's already saved.
     const resendKey = process.env.RESEND_API_KEY;
     if (resendKey) {
@@ -183,13 +225,13 @@ export async function POST(req: NextRequest) {
           // and can't be replied to, so a real domain is worth verifying.
           from: process.env.MAIL_FROM || 'CALO&CO <onboarding@resend.dev>',
           to: route.notify,
-          replyTo: email.trim(),
+          ...(cleanEmail ? { replyTo: cleanEmail } : {}),
           subject: `New ${route.label} lead — ${name.trim()}`,
           html: `
 <div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.6;color:#111;">
   <p style="color:#666;font-size:13px;margin:0 0 16px;">${route.label} · ${src}</p>
   <p><strong>${name.trim()}</strong><br/>
-  <a href="mailto:${email.trim()}">${email.trim()}</a>${phone ? `<br/>${phone}` : ''}
+  ${cleanEmail ? `<a href="mailto:${cleanEmail}">${cleanEmail}</a>` : '<em style="color:#b45309;">No email — capture one on the callback</em>'}${cleanPhone ? `<br/>${cleanPhone}` : ''}
   ${company?.trim() ? `<br/>${company.trim()}` : ''}</p>
   <p style="background:#f6f6f4;padding:14px;border-radius:6px;white-space:pre-wrap;">${message
     .trim()

@@ -149,6 +149,18 @@ export default function WebsitePage() {
       });
       if (res.error) throw new Error(res.error.message);
 
+      // Tell the agency that manages this site. Best-effort — the request is
+      // already saved, and a failed announcement must not lose it.
+      if (site?.managed_by_org_id) {
+        await supabase.from('notifications').insert({
+          org_id: site.managed_by_org_id,
+          kind: 'site_request',
+          title: `${org.name}: ${title.trim()}`,
+          body: body.trim().slice(0, 120),
+          href: '/requests',
+        });
+      }
+
       setTitle(''); setBody(''); setKind('change'); setUrgency('normal');
       setAsking(false);
       setNotice('Sent. You can track it below.');

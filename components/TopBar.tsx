@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useTutorial } from '@/lib/spine/tutorial';
 import { C } from '@/components/spine/ui';
+import { Notifications } from '@/components/spine/Notifications';
 
 const TITLES: Record<string, string> = {
   '/': 'Dashboard',
@@ -48,6 +49,7 @@ export default function TopBar() {
       <span style={{ fontSize: 13, color: C.faint }}>{title}</span>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <Notifications />
         {/* Was a dark/light toggle. A theme switch doubled every color
             decision and taught nobody anything; guided paths do. */}
         <button

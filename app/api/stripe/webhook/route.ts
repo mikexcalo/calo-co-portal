@@ -48,6 +48,34 @@ function verify(payload: string, header: string | null, secret: string): boolean
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
+/**
+ * Email alert for the events worth interrupting someone over. Best-effort —
+ * a mail failure must never fail the webhook, or Stripe retries a payment we
+ * already recorded.
+ */
+async function notifyByEmail(subject: string, body: string): Promise<void> {
+  const key = process.env.RESEND_API_KEY;
+  const to = process.env.ALERT_EMAIL || 'mikexcalo@gmail.com';
+  if (!key) return;
+
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: process.env.MAIL_FROM || 'CALO&CO <onboarding@resend.dev>',
+        to,
+        subject,
+        html: `<div style="font-family:-apple-system,sans-serif;font-size:15px;line-height:1.6;">
+<p>${body}</p>
+<p><a href="https://nautilusapp.vercel.app/billing" style="color:#2563eb;">Open Billing →</a></p></div>`,
+      }),
+    });
+  } catch (e) {
+    console.error('[stripe/webhook] alert email:', e);
+  }
+}
+
 export async function POST(req: NextRequest) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -81,23 +109,55 @@ export async function POST(req: NextRequest) {
 
   try {
     switch (event.type) {
-      case 'invoice.paid':
-        await db
+      case 'invoice.paid': {
+        const { data: updated } = await db
           .from('job_invoices')
           .update({
             status: 'paid',
             amount_paid: cents(obj.amount_paid),
             paid_at: new Date().toISOString(),
           })
-          .eq('external_ref', stripeInvoiceId);
-        break;
+          .eq('external_ref', stripeInvoiceId)
+          .select('id, org_id, number, total, job_id')
+          .maybeSingle();
 
-      case 'invoice.payment_failed':
-        await db
+        // Getting paid is the single event most worth being told about.
+        if (updated) {
+          await db.from('notifications').insert({
+            org_id: updated.org_id,
+            kind: 'invoice_paid',
+            title: `${updated.number} paid`,
+            body: `$${Number(updated.total).toFixed(2)} received`,
+            href: '/billing',
+          });
+
+          await notifyByEmail(
+            `Invoice ${updated.number} paid`,
+            `$${Number(updated.total).toFixed(2)} has landed for invoice ${updated.number}.`
+          );
+        }
+        break;
+      }
+
+      case 'invoice.payment_failed': {
+        const { data: failed } = await db
           .from('job_invoices')
           .update({ status: 'overdue' })
-          .eq('external_ref', stripeInvoiceId);
+          .eq('external_ref', stripeInvoiceId)
+          .select('id, org_id, number')
+          .maybeSingle();
+
+        if (failed) {
+          await db.from('notifications').insert({
+            org_id: failed.org_id,
+            kind: 'invoice_overdue',
+            title: `Payment failed — ${failed.number}`,
+            body: 'The card or bank transfer was declined.',
+            href: '/billing',
+          });
+        }
         break;
+      }
 
       // A partial payment still leaves money owed — don't call it paid.
       case 'invoice.updated': {

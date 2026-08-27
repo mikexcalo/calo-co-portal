@@ -386,3 +386,71 @@ export const today = (): string => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
+
+/**
+ * A face, or initials when there isn't one.
+ *
+ * People recall a photo instantly and a row of text not at all, which is why
+ * this is the largest element on a CRM row.
+ */
+export function Avatar({
+  src,
+  name,
+  size = 40,
+}: {
+  src?: string | null;
+  name?: string | null;
+  size?: number;
+}) {
+  const [failed, setFailed] = React.useState(false);
+
+  const initials = (name ?? '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join('');
+
+  if (src && !failed) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={name ?? ''}
+        onError={() => setFailed(true)}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: '50%',
+          objectFit: 'cover',
+          flexShrink: 0,
+          border: `1px solid ${C.border}`,
+          background: C.panelAlt,
+        }}
+      />
+    );
+  }
+
+  return (
+    <div
+      aria-hidden
+      style={{
+        width: size,
+        height: size,
+        borderRadius: '50%',
+        flexShrink: 0,
+        background: C.panelAlt,
+        border: `1px solid ${C.border}`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: C.faint,
+        fontSize: size * 0.36,
+        fontWeight: 600,
+        letterSpacing: '0.02em',
+      }}
+    >
+      {initials || '·'}
+    </div>
+  );
+}
