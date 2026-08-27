@@ -43,7 +43,7 @@ const ThemeContext = createContext<ThemeContextValue>({
 /**
  * Light only.
  *
- * The dark/light toggle was removed: it doubled every colour decision, and a
+ * The dark/light toggle was removed: it doubled every color decision, and a
  * theme switch is not a feature anyone learns anything from. Kept as a
  * provider so the legacy modules that read `t` keep compiling while they are
  * migrated off it.

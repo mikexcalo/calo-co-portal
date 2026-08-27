@@ -117,7 +117,7 @@ It only matters once a job is complete. On the P&L page, anything still negative
     id: 'switch-business',
     question: 'How do I switch between businesses?',
     keywords: ['switch', 'business', 'org', 'company', 'change', 'account', 'toggle'],
-    body: `Use the switcher at the top of the sidebar, under the Nautilus name. The coloured dot tells you which one you're in.
+    body: `Use the switcher at the top of the sidebar, under the Nautilus name. The colored dot tells you which one you're in.
 
 Each business has completely separate data. The words change too — a "Job" in one is an "Engagement" in the other.`,
   },

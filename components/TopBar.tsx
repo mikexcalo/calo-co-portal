@@ -48,7 +48,7 @@ export default function TopBar() {
       <span style={{ fontSize: 13, color: C.faint }}>{title}</span>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        {/* Was a dark/light toggle. A theme switch doubled every colour
+        {/* Was a dark/light toggle. A theme switch doubled every color
             decision and taught nobody anything; guided paths do. */}
         <button
           onClick={openPanel}

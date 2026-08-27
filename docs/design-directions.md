@@ -13,7 +13,7 @@ early. Aesthetics come after the plumbing.
 ### What made it work
 
 The serif headline does **all** the personality work and everything else shuts
-up. One accent colour, used only for wayfinding — never on a button — so that
+up. One accent color, used only for wayfinding — never on a button — so that
 when something is orange it actually means something.
 
 ### Palette
@@ -37,7 +37,7 @@ red   #B3392E / #FAECEA
 blue  #2C5F8A / #EAF0F6
 ```
 
-Meaning colours are muted on purpose: a red that shouts on a white page makes
+Meaning colors are muted on purpose: a red that shouts on a white page makes
 every screen feel like an emergency.
 
 ### Type
@@ -66,6 +66,6 @@ Everything else is token-driven and follows automatically.
 
 ## Current: dark
 
-The original direction. Near-black surfaces, blue primary, colour used for
+The original direction. Near-black surfaces, blue primary, color used for
 status meaning only. It is not precious — it exists so the plumbing can be
 judged without the paint distracting.

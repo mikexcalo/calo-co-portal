@@ -7,7 +7,7 @@
  * disagreed with itself between server and browser — that was the hydration
  * error on load. Every time-dependent value here is computed after mount.
  *
- * The organising idea: a dashboard should answer "what should I do next",
+ * The organizing idea: a dashboard should answer "what should I do next",
  * not "here is everything we know". So it leads with money you haven't
  * billed, because that's the most common and most expensive omission.
  */

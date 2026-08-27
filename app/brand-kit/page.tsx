@@ -3,8 +3,8 @@
 /**
  * Brand Kit — the brand, and the things people actually need to DO with it.
  *
- * The old one was a viewer: here are your colours, admire them. Nobody opens
- * a brand kit to admire colours. They open it because they need a hex code, a
+ * The old one was a viewer: here are your colors, admire them. Nobody opens
+ * a brand kit to admire colors. They open it because they need a hex code, a
  * logo file, or an email signature that doesn't look broken in Outlook.
  *
  * So this is: the assets, plus tools that consume them.
@@ -23,6 +23,16 @@ import {
   type SignatureStyle,
 } from '@/lib/spine/signature';
 import {
+  FORMAT_NOTES,
+  LOGO_SIZES,
+  convertLogo,
+  describeFromFilename,
+  downloadBlob,
+  fileNameFor,
+  type LogoFormat,
+  type LogoVariant,
+} from '@/lib/spine/logos';
+import {
   Button,
   C,
   Card,
@@ -34,11 +44,13 @@ import {
   inputStyle,
 } from '@/components/spine/ui';
 
-type Tab = 'brand' | 'signature';
+type Tab = 'brand' | 'logos' | 'signature';
 
 interface BrandColor {
   name: string;
   hex: string;
+  /** What the color is for, e.g. "Primary". Optional. */
+  role?: string;
 }
 
 interface BrandSettings {
@@ -47,6 +59,8 @@ interface BrandSettings {
   fontBody: string;
   logoLight: string;
   logoDark: string;
+  /** Every logo file, beyond the two headline ones. */
+  logos: string[];
   voice: string;
 }
 
@@ -56,6 +70,7 @@ const EMPTY_BRAND: BrandSettings = {
   fontBody: '',
   logoLight: '',
   logoDark: '',
+  logos: [],
   voice: '',
 };
 
@@ -70,6 +85,7 @@ export default function BrandKitPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [editingColor, setEditingColor] = useState<number | null>(null);
 
   // Brand lives in orgs.settings — one row per business, so switching
   // businesses switches brands without any extra plumbing.
@@ -167,7 +183,7 @@ export default function BrandKitPage() {
       )}
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 22 }}>
-        {(['brand', 'signature'] as Tab[]).map((tb) => (
+        {(['brand', 'logos', 'signature'] as Tab[]).map((tb) => (
           <button
             key={tb}
             onClick={() => setTab(tb)}
@@ -182,7 +198,7 @@ export default function BrandKitPage() {
               fontFamily: 'inherit',
             }}
           >
-            {tb === 'brand' ? 'Brand' : 'Email signature'}
+            {tb === 'brand' ? 'Colors & type' : tb === 'logos' ? 'Logos' : 'Email signature'}
           </button>
         ))}
       </div>
@@ -191,68 +207,45 @@ export default function BrandKitPage() {
         <div style={{ display: 'grid', gap: 18, maxWidth: 720 }}>
           <Card>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <SectionLabel>Colours</SectionLabel>
-              <Button variant="ghost" onClick={addColor}>Add colour</Button>
+              <SectionLabel>Colors</SectionLabel>
+              <Button variant="ghost" onClick={addColor}>Add color</Button>
             </div>
+
             {brand.colors.length === 0 ? (
-              <Empty>No colours yet.</Empty>
+              <Empty>No colors yet.</Empty>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))',
+                  gap: 12,
+                }}
+              >
                 {brand.colors.map((c, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <input
-                      type="color"
-                      value={c.hex}
-                      onChange={(e) =>
-                        setBrand((b) => ({
-                          ...b,
-                          colors: b.colors.map((x, j) =>
-                            j === i ? { ...x, hex: e.target.value } : x
-                          ),
-                        }))
-                      }
-                      style={{
-                        width: 42, height: 34, padding: 2, borderRadius: 6,
-                        border: `1px solid ${C.border}`, background: C.panelAlt, cursor: 'pointer',
-                      }}
-                    />
-                    <input
-                      value={c.name}
-                      placeholder="Name, e.g. Hull"
-                      onChange={(e) =>
-                        setBrand((b) => ({
-                          ...b,
-                          colors: b.colors.map((x, j) =>
-                            j === i ? { ...x, name: e.target.value } : x
-                          ),
-                        }))
-                      }
-                      style={{ ...inputStyle, flex: 1 }}
-                    />
-                    <button
-                      onClick={() => copyText(c.hex, c.hex)}
-                      style={{
-                        ...inputStyle, width: 100, cursor: 'pointer',
-                        textAlign: 'center', color: copied === c.hex ? C.green : C.dim,
-                      }}
-                    >
-                      {copied === c.hex ? 'Copied' : c.hex}
-                    </button>
-                    <button
-                      onClick={() =>
-                        setBrand((b) => ({ ...b, colors: b.colors.filter((_, j) => j !== i) }))
-                      }
-                      style={{
-                        background: 'none', border: 'none', color: C.faint,
-                        cursor: 'pointer', fontSize: 16,
-                      }}
-                    >
-                      ×
-                    </button>
-                  </div>
+                  <ColorTile
+                    key={i}
+                    color={c}
+                    editing={editingColor === i}
+                    copied={copied === c.hex}
+                    onCopy={() => copyText(c.hex, c.hex)}
+                    onEdit={() => setEditingColor(editingColor === i ? null : i)}
+                    onChange={(patch) =>
+                      setBrand((b) => ({
+                        ...b,
+                        colors: b.colors.map((x, j) => (j === i ? { ...x, ...patch } : x)),
+                      }))
+                    }
+                    onRemove={() => {
+                      setEditingColor(null);
+                      setBrand((b) => ({ ...b, colors: b.colors.filter((_, j) => j !== i) }));
+                    }}
+                  />
                 ))}
               </div>
             )}
+            <div style={{ fontSize: 11.5, color: C.faint, marginTop: 14 }}>
+              Click a swatch to copy its hex. Click the name to rename it.
+            </div>
           </Card>
 
           <Card>
@@ -278,29 +271,6 @@ export default function BrandKitPage() {
           </Card>
 
           <Card>
-            <SectionLabel>Logos</SectionLabel>
-            <Field label="Logo URL — light backgrounds">
-              <input
-                value={brand.logoLight}
-                onChange={(e) => setBrand((b) => ({ ...b, logoLight: e.target.value }))}
-                style={inputStyle}
-                placeholder="https://…"
-              />
-            </Field>
-            <Field label="Logo URL — dark backgrounds">
-              <input
-                value={brand.logoDark}
-                onChange={(e) => setBrand((b) => ({ ...b, logoDark: e.target.value }))}
-                style={inputStyle}
-              />
-            </Field>
-            <div style={{ fontSize: 11.5, color: C.faint }}>
-              These need to be public URLs. An email signature can&apos;t load a file from
-              someone&apos;s laptop.
-            </div>
-          </Card>
-
-          <Card>
             <SectionLabel>Voice</SectionLabel>
             <textarea
               value={brand.voice}
@@ -310,6 +280,12 @@ export default function BrandKitPage() {
             />
           </Card>
         </div>
+      ) : tab === 'logos' ? (
+        <LogosTab
+          brand={brand}
+          company={org?.name ?? 'brand'}
+          onChange={(patch) => setBrand((b) => ({ ...b, ...patch }))}
+        />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 18 }}>
           <div>
@@ -440,5 +416,328 @@ export default function BrandKitPage() {
         </div>
       )}
     </Page>
+  );
+}
+
+/**
+ * One color, as a swatch you can actually judge.
+ *
+ * A big circle of the color reads far faster than a hex code in a row — you
+ * see the palette as a palette. Click to copy, click the name to rename.
+ */
+function ColorTile({
+  color,
+  editing,
+  copied,
+  onCopy,
+  onEdit,
+  onChange,
+  onRemove,
+}: {
+  color: BrandColor;
+  editing: boolean;
+  copied: boolean;
+  onCopy: () => void;
+  onEdit: () => void;
+  onChange: (patch: Partial<BrandColor>) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <button
+        onClick={onCopy}
+        title={`Copy ${color.hex}`}
+        style={{
+          width: 72,
+          height: 72,
+          borderRadius: '50%',
+          background: color.hex,
+          border: `1px solid ${C.borderStrong}`,
+          cursor: 'pointer',
+          display: 'block',
+          margin: '0 auto 10px',
+          boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.04)',
+          position: 'relative',
+        }}
+      >
+        {copied && (
+          <span
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '50%',
+              background: 'rgba(0,0,0,.55)',
+              color: '#fff',
+              fontSize: 11,
+              fontWeight: 600,
+            }}
+          >
+            Copied
+          </span>
+        )}
+      </button>
+
+      {editing ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <input
+            value={color.name}
+            onChange={(e) => onChange({ name: e.target.value })}
+            style={{ ...inputStyle, fontSize: 12, padding: '5px 7px', textAlign: 'center' }}
+            placeholder="Name"
+            autoFocus
+          />
+          <input
+            value={color.role ?? ''}
+            onChange={(e) => onChange({ role: e.target.value })}
+            style={{ ...inputStyle, fontSize: 11, padding: '4px 7px', textAlign: 'center' }}
+            placeholder="Role"
+          />
+          <input
+            type="color"
+            value={color.hex}
+            onChange={(e) => onChange({ hex: e.target.value })}
+            style={{
+              width: '100%', height: 28, padding: 2, borderRadius: 5,
+              border: `1px solid ${C.border}`, background: C.panelAlt, cursor: 'pointer',
+            }}
+          />
+          <div style={{ display: 'flex', gap: 4 }}>
+            <button
+              onClick={onEdit}
+              style={{
+                flex: 1, fontSize: 11, padding: '4px', borderRadius: 5,
+                border: `1px solid ${C.border}`, background: 'transparent',
+                color: C.dim, cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              Done
+            </button>
+            <button
+              onClick={onRemove}
+              title="Remove"
+              style={{
+                fontSize: 12, padding: '4px 8px', borderRadius: 5,
+                border: `1px solid ${C.border}`, background: 'transparent',
+                color: C.red, cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={onEdit}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontFamily: 'inherit', padding: 0, width: '100%',
+          }}
+        >
+          <div style={{ fontSize: 12.5, color: C.text, fontWeight: 500 }}>
+            {color.name || 'Unnamed'}
+          </div>
+          {color.role && (
+            <div style={{ fontSize: 10.5, color: C.faint, marginTop: 1 }}>{color.role}</div>
+          )}
+          <div
+            style={{
+              fontSize: 10.5,
+              color: C.faint,
+              marginTop: 3,
+              fontVariantNumeric: 'tabular-nums',
+              textTransform: 'uppercase',
+            }}
+          >
+            {color.hex}
+          </div>
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Logos — see what you're getting before you download it.
+ *
+ * Each variant previews on the background it's built for, so a white logo
+ * shows on dark rather than vanishing into the page.
+ */
+function LogosTab({
+  brand,
+  company,
+  onChange,
+}: {
+  brand: BrandSettings;
+  company: string;
+  onChange: (patch: Partial<BrandSettings>) => void;
+}) {
+  const [adding, setAdding] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  // The two headline slots plus any extras, de-duplicated.
+  const urls = useMemo(() => {
+    const all = [brand.logoLight, brand.logoDark, ...(brand.logos ?? [])]
+      .map((u) => (u ?? '').trim())
+      .filter(Boolean);
+    return Array.from(new Set(all));
+  }, [brand.logoLight, brand.logoDark, brand.logos]);
+
+  const variants: LogoVariant[] = urls.map((url, i) => ({
+    id: `${i}-${url}`,
+    url,
+    ...describeFromFilename(url),
+  }));
+
+  const addLogo = () => {
+    const url = adding.trim();
+    if (!url) return;
+    onChange({ logos: [...(brand.logos ?? []), url] });
+    setAdding('');
+  };
+
+  return (
+    <div style={{ maxWidth: 860 }}>
+      {error && (
+        <Card style={{ borderColor: C.red, marginBottom: 16 }}>
+          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+        </Card>
+      )}
+
+      {variants.length === 0 ? (
+        <Card><Empty>No logos yet. Add a public image URL below.</Empty></Card>
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+            gap: 14,
+          }}
+        >
+          {variants.map((v) => (
+            <LogoCard key={v.id} variant={v} company={company} onError={setError} />
+          ))}
+        </div>
+      )}
+
+      <Card style={{ marginTop: 18 }}>
+        <SectionLabel>Add a logo</SectionLabel>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            value={adding}
+            onChange={(e) => setAdding(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addLogo()}
+            style={inputStyle}
+            placeholder="https://…/logo.png"
+          />
+          <Button onClick={addLogo} disabled={!adding.trim()}>Add</Button>
+        </div>
+        <div style={{ fontSize: 11.5, color: C.faint, marginTop: 10, lineHeight: 1.6 }}>
+          The file has to be publicly reachable and allow cross-origin reads, or the browser
+          can&apos;t redraw it into other formats. Files served from your own sites work.
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function LogoCard({
+  variant,
+  company,
+  onError,
+}: {
+  variant: LogoVariant;
+  company: string;
+  onError: (msg: string | null) => void;
+}) {
+  const [format, setFormat] = useState<LogoFormat>('png');
+  const [size, setSize] = useState(0);
+  const [busy, setBusy] = useState(false);
+
+  // Preview on the background the file is actually built for, so a reversed
+  // logo doesn't disappear into a white card.
+  const previewBg =
+    variant.preview === 'dark' ? '#1F2D48' : variant.preview === 'brand' ? '#F4EFE3' : '#FFFFFF';
+
+  const download = async () => {
+    setBusy(true);
+    onError(null);
+    try {
+      const blob = await convertLogo(variant.url, format, size, previewBg);
+      downloadBlob(blob, fileNameFor(company, variant, format, size));
+    } catch (e) {
+      onError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card style={{ padding: 0, overflow: 'hidden' }}>
+      <div
+        style={{
+          background: previewBg,
+          padding: variant.shape === 'icon' ? '26px 20px' : '30px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: 130,
+          borderBottom: `1px solid ${C.border}`,
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={variant.url}
+          alt={variant.name}
+          style={{
+            maxWidth: variant.shape === 'icon' ? 68 : '85%',
+            maxHeight: variant.shape === 'icon' ? 68 : 78,
+            objectFit: 'contain',
+            display: 'block',
+          }}
+        />
+      </div>
+
+      <div style={{ padding: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <span style={{ fontSize: 13.5, fontWeight: 500 }}>{variant.name}</span>
+          <Pill tone="neutral">{variant.shape === 'icon' ? 'Mark only' : 'Full lockup'}</Pill>
+        </div>
+        <div style={{ fontSize: 11.5, color: C.faint, lineHeight: 1.5, marginBottom: 12 }}>
+          {variant.use}
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, marginBottom: 9 }}>
+          <select
+            value={format}
+            onChange={(e) => setFormat(e.target.value as LogoFormat)}
+            style={{ ...inputStyle, padding: '6px 8px', fontSize: 12 }}
+          >
+            <option value="png">PNG</option>
+            <option value="jpg">JPG</option>
+            <option value="webp">WebP</option>
+          </select>
+          <select
+            value={size}
+            onChange={(e) => setSize(Number(e.target.value))}
+            style={{ ...inputStyle, padding: '6px 8px', fontSize: 12 }}
+          >
+            {LOGO_SIZES.map((s) => (
+              <option key={s.label} value={s.px}>{s.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ fontSize: 10.5, color: C.faint, marginBottom: 10, lineHeight: 1.5 }}>
+          {FORMAT_NOTES[format]}
+        </div>
+
+        <Button onClick={download} disabled={busy}>
+          {busy ? 'Preparing…' : 'Download'}
+        </Button>
+      </div>
+    </Card>
   );
 }

@@ -79,7 +79,7 @@ export default function ProfitLossPage() {
     })();
   }, []);
 
-  // Revenue is recognised from issued invoices, so the period filter applies
+  // Revenue is recognized from issued invoices, so the period filter applies
   // to invoices rather than to jobs — a job spanning two quarters shouldn't
   // land entirely in one.
   const scoped = useMemo(() => {
