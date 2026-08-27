@@ -40,9 +40,15 @@ interface PriceItem {
   category: string | null;
   unit: string | null;
   unit_price: number;
+  price_high: number | null;
   kind: 'labor' | 'material' | 'subcontractor' | 'other';
   active: boolean;
   public: boolean;
+  /** Someone who sets prices has verified this. */
+  confirmed: boolean;
+  /** No single rate is honest — quote it per job. */
+  varies: boolean;
+  source_note: string | null;
   position: number;
 }
 
@@ -64,6 +70,7 @@ export default function PricingPage() {
   const [adding, setAdding] = useState(false);
   const [imported, setImported] = useState<Draft[] | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false);
 
   const [draft, setDraft] = useState<Draft>({
     name: '', description: '', unit: '', unit_price: 0, kind: 'labor', category: '',
@@ -201,6 +208,37 @@ export default function PricingPage() {
         style={{ display: 'none' }}
       />
 
+      {/* Drop zone. Dragging a PDF straight in is how people actually expect
+          to move a file they're already looking at in Finder. */}
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          importFile(e.dataTransfer.files?.[0] ?? null);
+        }}
+        onClick={() => fileRef.current?.click()}
+        style={{
+          border: `1.5px dashed ${dragging ? C.accent : C.borderStrong}`,
+          background: dragging ? C.accentSoft : 'transparent',
+          borderRadius: 10,
+          padding: dragging ? '30px 18px' : '22px 18px',
+          textAlign: 'center',
+          cursor: 'pointer',
+          marginBottom: 20,
+          transition: 'padding .12s, background .12s',
+        }}
+      >
+        <div style={{ fontSize: 13.5, color: dragging ? C.accent : C.text, fontWeight: 500 }}>
+          {busy ? 'Reading…' : dragging ? 'Drop it' : 'Drag a price list here'}
+        </div>
+        <div style={{ fontSize: 11.5, color: C.faint, marginTop: 5 }}>
+          PDF or a photo of a printed sheet — or click to browse. Nothing is saved until you
+          check it.
+        </div>
+      </div>
+
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
@@ -209,6 +247,20 @@ export default function PricingPage() {
       {notice && (
         <Card style={{ borderColor: C.green, marginBottom: 16 }}>
           <div style={{ color: C.green, fontSize: 13 }}>{notice}</div>
+        </Card>
+      )}
+
+      {!loading && items.some((i) => !i.confirmed) && (
+        <Card style={{ marginBottom: 20, borderColor: C.amber, background: C.amberSoft }}>
+          <div style={{ fontSize: 13.5, fontWeight: 500, color: C.text, marginBottom: 6 }}>
+            {items.filter((i) => !i.confirmed).length} prices need confirming
+          </div>
+          <div style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.6 }}>
+            These were read from a document or worked out from one job&apos;s totals. A rate
+            that was right for one house can be wrong for the next — access, ceiling height and
+            wire runs all move it. <strong>Unconfirmed prices are kept out of estimates</strong>{' '}
+            until someone who sets prices ticks them off.
+          </div>
         </Card>
       )}
 
@@ -356,33 +408,63 @@ export default function PricingPage() {
           <div key={category} style={{ marginBottom: 22 }}>
             <SectionLabel>{category}</SectionLabel>
             <Table>
-              <Row cols="1fr 100px 110px 90px 90px" header>
-                <div>Item</div><div>Unit</div><div>Price</div><div>On site</div><div>Active</div>
+              <Row cols="1fr 100px 130px 100px 80px" header>
+                <div>Item</div><div>Unit</div><div>Price</div><div>Status</div><div>On site</div>
               </Row>
               {rows.map((i) => (
-                <Row key={i.id} cols="1fr 100px 110px 90px 90px">
+                <Row key={i.id} cols="1fr 100px 130px 100px 80px">
                   <div style={{ opacity: i.active ? 1 : 0.5 }}>
-                    {i.name}
-                    <span style={{ marginLeft: 8 }}>
-                      <Pill tone={i.kind === 'labor' ? 'blue' : 'neutral'}>{i.kind}</Pill>
-                    </span>
+                    <div>
+                      {i.name}
+                      <span style={{ marginLeft: 8 }}>
+                        <Pill tone={i.kind === 'labor' ? 'blue' : 'neutral'}>{i.kind}</Pill>
+                      </span>
+                      {i.varies && (
+                        <span style={{ marginLeft: 6 }}>
+                          <Pill tone="amber">Varies by job</Pill>
+                        </span>
+                      )}
+                    </div>
+                    {i.source_note && !i.confirmed && (
+                      <div style={{ fontSize: 11, color: C.faint, marginTop: 3 }}>
+                        {i.source_note}
+                      </div>
+                    )}
                   </div>
                   <div style={{ color: C.dim }}>{i.unit || '—'}</div>
-                  <div>{money(i.unit_price)}</div>
+                  <div style={{ color: i.confirmed ? C.text : C.faint }}>
+                    {i.varies && !i.price_high ? (
+                      <span title="Quote this per job">
+                        {money(i.unit_price)} <span style={{ fontSize: 10.5 }}>ref.</span>
+                      </span>
+                    ) : i.price_high ? (
+                      `${money(i.unit_price)}–${money(i.price_high)}`
+                    ) : (
+                      money(i.unit_price)
+                    )}
+                  </div>
+                  <div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: i.confirmed ? C.green : C.amber, cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={i.confirmed}
+                        onChange={(e) =>
+                          toggle(i, {
+                            confirmed: e.target.checked,
+                            // Confirming a price is what makes it usable.
+                            active: e.target.checked ? true : i.active,
+                          })
+                        }
+                      />
+                      {i.confirmed ? 'Confirmed' : 'Confirm'}
+                    </label>
+                  </div>
                   <div>
                     <input
                       type="checkbox"
                       checked={i.public}
                       onChange={(e) => toggle(i, { public: e.target.checked })}
                       title="Show on the public price list"
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="checkbox"
-                      checked={i.active}
-                      onChange={(e) => toggle(i, { active: e.target.checked })}
-                      title="Available when building an estimate"
                     />
                   </div>
                 </Row>
@@ -394,10 +476,12 @@ export default function PricingPage() {
 
       {items.length > 0 && (
         <div style={{ fontSize: 11.5, color: C.faint, marginTop: 6, maxWidth: 640, lineHeight: 1.6 }}>
-          <strong>On site</strong> publishes an item to the public price list your website can
-          read. <strong>Active</strong> controls whether it shows when building an{' '}
-          {vocab.estimate?.toLowerCase() ?? 'estimate'} — uncheck rather than delete, so old
-          estimates still show what was actually quoted.
+          <strong>Confirm</strong> means someone who sets prices has stood behind the number.
+          Only confirmed items appear when building an{' '}
+          {vocab.estimate?.toLowerCase() ?? 'estimate'}. <strong>Varies by job</strong> marks
+          work where no single rate is honest — the figure shown is a reference point, not a
+          rate to autofill. <strong>On site</strong> publishes to the public price list your
+          website can read.
         </div>
       )}
     </Page>

@@ -72,6 +72,9 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
           .from('price_items')
           .select('id, name, unit, unit_price, kind, category')
           .eq('active', true)
+          // Unconfirmed prices stay out. A number nobody has stood behind is
+          // worse than no number, because no number makes you think.
+          .eq('confirmed', true)
           .order('category')
           .order('name');
         if (!cat.error) {
