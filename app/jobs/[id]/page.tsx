@@ -20,6 +20,7 @@ import {
   getJobLedger,
   listCosts,
   listDocuments,
+  listEstimates,
   listInvoices,
   listTimeEntries,
   updateJob,
@@ -32,6 +33,7 @@ import {
 import type {
   Cost,
   DocumentRecord,
+  Estimate,
   JobInvoice,
   JobLedger,
   JobStatus,
@@ -79,6 +81,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [costs, setCosts] = useState<Cost[]>([]);
   const [invoices, setInvoices] = useState<JobInvoice[]>([]);
+  const [estimates, setEstimates] = useState<Estimate[]>([]);
   const [docs, setDocs] = useState<DocumentRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -89,7 +92,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
   const [showCost, setShowCost] = useState(false);
 
   const load = useCallback(async () => {
-    const [org, j, l, t, c, inv, d] = await Promise.all([
+    const [org, j, l, t, c, inv, d, est] = await Promise.all([
       getCurrentOrg(),
       getJob(jobId),
       getJobLedger(jobId),
@@ -97,6 +100,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
       listCosts(jobId),
       listInvoices(jobId),
       listDocuments({ jobId }),
+      listEstimates(jobId),
     ]);
     setOrgId(org?.id ?? null);
     setDefaultRate(Number(org?.default_labor_rate ?? 0));
@@ -106,6 +110,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     setCosts(c);
     setInvoices(inv);
     setDocs(d);
+    setEstimates(est);
   }, [jobId]);
 
   useEffect(() => {
@@ -151,6 +156,30 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
   const unbilled = ledger ? ledger.unbilled_labor + ledger.unbilled_cost : 0;
   const outstanding = ledger ? ledger.invoiced_total - ledger.collected : 0;
   const isTM = job.billing_type === 'tm';
+
+  const sendEstimate = async (est: Estimate) => {
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetch('/api/estimates/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estimateId: est.id }),
+      });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error || 'Could not send');
+      setNotice(payload.message ?? 'Sent.');
+      if (payload.link) {
+        await navigator.clipboard.writeText(payload.link).catch(() => {});
+      }
+      await load();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const handleDraftInvoice = () =>
     run(async () => {
@@ -207,6 +236,29 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
             Billed from actual hours and receipts
           </span>
         )}
+
+        {/* Dates feed the calendar subscription — a job with no dates simply
+            doesn't appear there. */}
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginLeft: 'auto' }}>
+          <span style={{ fontSize: 11.5, color: C.faint }}>Scheduled</span>
+          <input
+            type="date"
+            value={job.scheduled_start ?? ''}
+            onChange={(e) =>
+              run(async () => { await updateJob(jobId, { scheduled_start: e.target.value || null }); })
+            }
+            style={{ ...inputStyle, width: 'auto', padding: '6px 8px', fontSize: 12 }}
+          />
+          <span style={{ fontSize: 11.5, color: C.faint }}>to</span>
+          <input
+            type="date"
+            value={job.scheduled_end ?? ''}
+            onChange={(e) =>
+              run(async () => { await updateJob(jobId, { scheduled_end: e.target.value || null }); })
+            }
+            style={{ ...inputStyle, width: 'auto', padding: '6px 8px', fontSize: 12 }}
+          />
+        </div>
       </div>
 
       {/* The money */}
@@ -370,16 +422,40 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
             New estimate
           </Button>
         </div>
-        <Card>
-          {(ledger?.estimate_total ?? 0) > 0 ? (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 13, color: C.dim }}>Accepted estimate</span>
-              <span style={{ fontSize: 18 }}>{money(ledger?.estimate_total ?? 0)}</span>
-            </div>
-          ) : (
-            <Empty>No accepted estimate yet.</Empty>
-          )}
-        </Card>
+        {estimates.length === 0 ? (
+          <Card><Empty>No estimate yet.</Empty></Card>
+        ) : (
+          <Table>
+            <Row cols="70px 1fr 140px 200px" header>
+              <div>Version</div><div>Total</div><div>Status</div><div />
+            </Row>
+            {estimates.map((e) => (
+              <Row key={e.id} cols="70px 1fr 140px 200px">
+                <div style={{ color: C.dim }}>#{e.version}</div>
+                <div>{money(e.total)}</div>
+                <div>
+                  <Pill
+                    tone={
+                      e.status === 'accepted' ? 'green'
+                      : e.status === 'declined' ? 'red'
+                      : e.status === 'sent' ? 'blue'
+                      : 'neutral'
+                    }
+                  >
+                    {e.status}
+                  </Pill>
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {['draft', 'sent'].includes(e.status) && (
+                    <Button onClick={() => sendEstimate(e)} disabled={busy}>
+                      {e.status === 'sent' ? 'Resend' : 'Send to customer'}
+                    </Button>
+                  )}
+                </div>
+              </Row>
+            ))}
+          </Table>
+        )}
       </div>
 
       {/* Invoices */}

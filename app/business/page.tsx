@@ -18,11 +18,39 @@ import {
   Field,
   Page,
   Pill,
+  SectionLabel,
   inputStyle,
 } from '@/components/spine/ui';
 
+function CopyRow({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  if (!value) return <div style={{ fontSize: 12, color: C.faint }}>Not available.</div>;
+  return (
+    <div style={{ display: 'flex', gap: 8 }}>
+      <input
+        readOnly
+        value={value}
+        onFocus={(e) => e.currentTarget.select()}
+        style={{ ...inputStyle, fontSize: 11.5, fontFamily: 'ui-monospace, monospace' }}
+      />
+      <Button
+        variant="ghost"
+        onClick={async () => {
+          await navigator.clipboard.writeText(value).catch(() => {});
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        }}
+      >
+        {copied ? 'Copied' : 'Copy'}
+      </Button>
+    </div>
+  );
+}
+
 export default function BusinessPage() {
   const { org, vocab, loading, refresh } = useOrg();
+  const [origin, setOrigin] = useState('');
+  useEffect(() => setOrigin(window.location.origin), []);
   const [rate, setRate] = useState('');
   const [markup, setMarkup] = useState('');
   const [tax, setTax] = useState('');
@@ -145,6 +173,34 @@ export default function BusinessPage() {
         <Button onClick={save} disabled={busy}>
           {busy ? 'Saving…' : 'Save'}
         </Button>
+      </Card>
+
+      <Card style={{ maxWidth: 560, marginTop: 18 }}>
+        <SectionLabel>Connect other things to this</SectionLabel>
+
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 4 }}>Calendar</div>
+          <p style={{ fontSize: 12.5, color: C.dim, margin: '0 0 8px', lineHeight: 1.6 }}>
+            Subscribe to this in Google or Apple Calendar and scheduled jobs appear alongside
+            everything else. One-way and read-only — jobs with no dates don&apos;t show up.
+          </p>
+          <CopyRow value={org.calendar_token ? `${origin}/api/calendar/${org.calendar_token}` : ''} />
+        </div>
+
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 4 }}>Price list feed</div>
+          <p style={{ fontSize: 12.5, color: C.dim, margin: '0 0 8px', lineHeight: 1.6 }}>
+            For your website to pull live prices. Returns only items marked both{' '}
+            <strong>on site</strong> and <strong>confirmed</strong>, so nothing unverified can
+            reach a customer.
+          </p>
+          <CopyRow value={org.price_feed_token ? `${origin}/api/public/prices/${org.price_feed_token}` : ''} />
+        </div>
+
+        <div style={{ fontSize: 11.5, color: C.faint, marginTop: 16, lineHeight: 1.6 }}>
+          Treat both links as private. Anyone holding one can read what it exposes — nothing
+          more, and neither allows any changes.
+        </div>
       </Card>
     </Page>
   );

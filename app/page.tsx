@@ -15,6 +15,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { listDocuments, listInvoices, listJobLedger, listJobs } from '@/lib/spine/db';
+import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { useTutorial } from '@/lib/spine/tutorial';
 import { JOB_STATUS_LABEL } from '@/lib/spine/types';
@@ -56,6 +57,8 @@ export default function Dashboard() {
   const [ledger, setLedger] = useState<JobLedger[]>([]);
   const [invoices, setInvoices] = useState<JobInvoice[]>([]);
   const [docs, setDocs] = useState<DocumentRecord[]>([]);
+  /** Retainers whose billing period has come round with work sitting on them. */
+  const [dueToBill, setDueToBill] = useState<Array<{ job_id: string; name: string; unbilled_total: number; due_on: string | null }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   /** Computed after mount — never during render. That was the old bug. */
@@ -75,11 +78,24 @@ export default function Dashboard() {
           listInvoices(),
           listDocuments({ unfiledOnly: true }),
         ]);
+        const bd = await supabase.from('billing_due').select('*');
         if (cancelled) return;
         setJobs(j);
         setLedger(l);
         setInvoices(inv);
         setDocs(d);
+        if (!bd.error) {
+          setDueToBill(
+            (bd.data ?? [])
+              .map((r: Record<string, unknown>) => ({
+                job_id: r.job_id as string,
+                name: r.name as string,
+                unbilled_total: Number(r.unbilled_total) || 0,
+                due_on: (r.due_on as string) ?? null,
+              }))
+              .filter((r) => r.unbilled_total > 0)
+          );
+        }
       } catch (e) {
         if (!cancelled) setError((e as Error).message);
       } finally {
@@ -152,6 +168,23 @@ export default function Dashboard() {
       tone: 'amber',
     });
   }
+  // Only count a retainer as due once its date has actually arrived.
+  const dueNow = todayIso
+    ? dueToBill.filter((r) => !r.due_on || r.due_on <= todayIso)
+    : [];
+  if (dueNow.length) {
+    const amt = dueNow.reduce((s, r) => s + r.unbilled_total, 0);
+    attention.push({
+      key: 'retainer',
+      weight: amt * 1.5,
+      title: `${money(amt)} due to be billed`,
+      detail: `${dueNow.length} ${dueNow.length === 1 ? 'retainer has' : 'retainers have'} reached the end of a billing period with work on them.`,
+      cta: 'Open jobs',
+      href: '/jobs',
+      tone: 'amber',
+    });
+  }
+
   if (org && Number(org.default_labor_rate) === 0) {
     attention.push({
       key: 'rate',

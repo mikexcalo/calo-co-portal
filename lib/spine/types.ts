@@ -69,6 +69,8 @@ export interface Org {
   settings: Record<string, unknown>;
   /** Per-business module flags; empty means use the defaults for `kind`. */
   modules: Record<string, boolean>;
+  price_feed_token: string | null;
+  calendar_token: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -99,6 +101,10 @@ export interface Job {
   source: string | null;
   started_on: string | null;
   completed_on: string | null;
+  scheduled_start: string | null;
+  scheduled_end: string | null;
+  billing_period: 'none' | 'weekly' | 'biweekly' | 'monthly' | null;
+  last_billed_on: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -119,6 +125,11 @@ export interface Estimate {
   notes: string | null;
   sent_at: string | null;
   decided_at: string | null;
+  public_token: string | null;
+  sent_to: string | null;
+  viewed_at: string | null;
+  decided_by_name: string | null;
+  decline_reason: string | null;
   created_at: string;
   updated_at: string;
 }

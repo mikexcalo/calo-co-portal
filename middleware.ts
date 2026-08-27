@@ -70,8 +70,13 @@ export const config = {
      * Match all routes EXCEPT:
      * - _next/static, _next/image (Next.js internals)
      * - favicon.ico, favicon.svg, images, videos (static assets)
-     * - /api/leads/ingest (public lead-capture endpoint)
+     * - /api/leads/ingest      public lead capture
+     * - /api/estimates/decide   customer accepting a quote, no account
+     * - /api/public/            published price feeds
+     * - /api/calendar/          calendar subscriptions
+     * - /api/stripe/webhook     Stripe calling us
+     * - /e/                     the customer-facing estimate page
      */
-    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|e/).*)',
   ],
 };
