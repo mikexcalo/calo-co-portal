@@ -31,6 +31,7 @@ import type {
   JobWithCustomer,
 } from '@/lib/spine/types';
 import { ExtractionReview, type ReviewResult } from '@/components/spine/ExtractionReview';
+import { Confirm } from '@/components/spine/Confirm';
 import {
   Button,
   C,
@@ -59,6 +60,7 @@ export default function DocumentsPage() {
   const [working, setWorking] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState<DocumentRecord | null>(null);
   /**
    * Documents waiting on human sign-off. Nothing is written to the document
    * row until the owner approves what was read.
@@ -222,6 +224,8 @@ export default function DocumentsPage() {
       await load();
     } catch (e) {
       setError((e as Error).message);
+    } finally {
+      setConfirmingDelete(null);
     }
   };
 
@@ -299,6 +303,16 @@ export default function DocumentsPage() {
       />
       <MobileAction label="📷  Photograph a receipt" onClick={() => cameraRef.current?.click()} />
 
+      {confirmingDelete && (
+        <Confirm
+          title="Delete this document?"
+          body="The original file is removed too. If it has already become a job cost, that cost stays but loses its receipt — which is what you would need if the charge is ever questioned."
+          confirmLabel="Delete document"
+          onConfirm={() => removeDoc(confirmingDelete)}
+          onCancel={() => setConfirmingDelete(null)}
+        />
+      )}
+
       {/* One at a time, in arrival order — a stack of modals is worse than a
           queue you work through. */}
       {pending.length > 0 && (
@@ -360,7 +374,7 @@ export default function DocumentsPage() {
               busy={working.includes(doc.id)}
               onFile={(jobId) => fileToJob(doc, jobId)}
               onView={() => viewDoc(doc)}
-              onDelete={() => removeDoc(doc)}
+              onDelete={() => setConfirmingDelete(doc)}
             />
           ))}
         </div>

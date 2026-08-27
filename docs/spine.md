@@ -127,6 +127,27 @@ and seeing it is the point.
 
 ---
 
+## Beyond contractors
+
+Mammoth is the first user, not the only intended one. The spine is already
+industry-neutral where it counts:
+
+- A **job** is any unit of work with money in, money out and a margin. A
+  remodel, a design engagement, a legal matter, an event.
+- **Time & materials vs fixed price** is how most service businesses bill,
+  not a construction idea.
+- **Receipts becoming job costs** is universal to anyone who spends to deliver.
+- Vocabulary already swaps by business kind (`lib/spine/org.tsx`) — Jobs and
+  Customers for a contractor, Engagements and Clients for an agency. Adding a
+  third vocabulary is a few lines, not a rebuild.
+
+What is genuinely contractor-shaped and would need generalizing later:
+material markup, the trade categories in the price list, and some copy in the
+guided paths. None of it is structural.
+
+The rule: resist adding anything that only makes sense for construction
+unless it earns its place for Mammoth *now*. A permit tracker would be a trap.
+
 ## Rules for building on this
 
 1. **Never loop queries over a list.** If you need totals across many jobs,

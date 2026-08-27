@@ -17,6 +17,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { getCurrentOrg, getDocumentUrl } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
+import { Confirm } from '@/components/spine/Confirm';
 import {
   Button,
   C,
@@ -84,6 +85,7 @@ export default function FilesPage() {
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [today, setToday] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<BusinessFile | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   /** Files staged for upload, each with its own details. Dropping five at
@@ -223,12 +225,17 @@ export default function FilesPage() {
 
   const remove = async (f: BusinessFile) => {
     setBusy(true);
+    setError(null);
     try {
       await supabase.storage.from('documents').remove([f.storage_path]).catch(() => {});
-      await supabase.from('business_files').delete().eq('id', f.id);
+      const res = await supabase.from('business_files').delete().eq('id', f.id);
+      if (res.error) throw new Error(res.error.message);
       await load();
+    } catch (e) {
+      setError((e as Error).message);
     } finally {
       setBusy(false);
+      setConfirming(null);
     }
   };
 
@@ -260,6 +267,17 @@ export default function FilesPage() {
         style={{ display: 'none' }}
       />
 
+      {confirming && (
+        <Confirm
+          title={`Delete "${confirming.name}"?`}
+          body="The file is removed from storage as well as the list. This cannot be undone — if it is an insurance certificate or a license, make sure you have the original elsewhere."
+          confirmLabel="Delete file"
+          busy={busy}
+          onConfirm={() => remove(confirming)}
+          onCancel={() => setConfirming(null)}
+        />
+      )}
+
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
@@ -267,7 +285,7 @@ export default function FilesPage() {
       )}
 
       {soon.length > 0 && (
-        <Card style={{ marginBottom: 20, borderColor: C.amber, background: C.amberSoft }}>
+        <Card style={{ marginBottom: 20, borderColor: C.amber, background: C.amberSoft, maxWidth: 720 }}>
           <SectionLabel>Expiring soon</SectionLabel>
           {soon.map((f) => {
             const expired = today && f.expires_on && f.expires_on < today;
@@ -302,6 +320,7 @@ export default function FilesPage() {
           textAlign: 'center',
           cursor: 'pointer',
           marginBottom: 20,
+          maxWidth: 720,
           transition: 'padding .12s, background .12s',
         }}
       >
@@ -314,7 +333,7 @@ export default function FilesPage() {
       </div>
 
       {staged.length > 0 && (
-        <Card style={{ marginBottom: 20, borderColor: C.accent }}>
+        <Card style={{ marginBottom: 20, borderColor: C.accent, maxWidth: 720 }}>
           <SectionLabel>
             Ready to upload ({staged.length})
           </SectionLabel>
@@ -390,8 +409,27 @@ export default function FilesPage() {
         <Card><Empty>Nothing filed yet.</Empty></Card>
       ) : (
         CATEGORIES.filter((c) => grouped[c.id]?.length).map((c) => (
-          <div key={c.id} style={{ marginBottom: 22 }}>
-            <SectionLabel>{c.label}</SectionLabel>
+          <div key={c.id} style={{ marginBottom: 26, maxWidth: 720 }}>
+            {/* Real heading rather than a faint uppercase label — these are
+                the dividers you scan by. */}
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: C.text,
+                marginBottom: 10,
+                paddingBottom: 7,
+                borderBottom: `1px solid ${C.border}`,
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: 8,
+              }}
+            >
+              {c.label}
+              <span style={{ fontSize: 11.5, fontWeight: 400, color: C.faint }}>
+                {grouped[c.id].length}
+              </span>
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {grouped[c.id].map((f) => {
                 const expired = today && f.expires_on && f.expires_on < today;
@@ -407,6 +445,7 @@ export default function FilesPage() {
                       gap: 12,
                       alignItems: 'center',
                       flexWrap: 'wrap',
+                      maxWidth: '100%',
                     }}
                   >
                     <div style={{ flex: 1, minWidth: 200 }}>
@@ -428,10 +467,33 @@ export default function FilesPage() {
                         {f.file_name} · {mb(f.size_bytes)}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 7 }}>
-                      <Button variant="ghost" onClick={() => view(f)}>Open</Button>
+                    <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
+                      <Button onClick={() => view(f)}>Open</Button>
                       <Button variant="ghost" onClick={() => download(f)}>Download</Button>
-                      <Button variant="danger" onClick={() => remove(f)} disabled={busy}>Delete</Button>
+                      {/* Small and quiet. Destroying a record should take
+                          deliberate aim, not sit under your thumb. */}
+                      <button
+                        onClick={() => setConfirming(f)}
+                        aria-label={`Delete ${f.name}`}
+                        title="Delete"
+                        style={{
+                          width: 26,
+                          height: 26,
+                          borderRadius: 6,
+                          border: `1px solid ${C.border}`,
+                          background: 'transparent',
+                          color: C.faint,
+                          cursor: 'pointer',
+                          fontSize: 13,
+                          lineHeight: 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: 0,
+                        }}
+                      >
+                        ×
+                      </button>
                     </div>
                   </div>
                 );
