@@ -22,12 +22,14 @@ export type ModuleId =
   | 'client_requests' // agency-facing: the inbox of client requests
   | 'brand_kit'
   | 'account'        // client-facing: what I owe my agency
+  | 'pricing'
   | 'team'
   | 'business';
 
 const CONTRACTOR: ModuleId[] = [
   'jobs',
   'customers',
+  'pricing',
   'documents',
   'billing',
   'pl',
@@ -40,6 +42,7 @@ const CONTRACTOR: ModuleId[] = [
 const AGENCY: ModuleId[] = [
   'jobs',
   'customers',
+  'pricing',
   'documents',
   'billing',
   'pl',
@@ -79,6 +82,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/brand-kit', 'brand_kit'],
   ['/business', 'business'],
   ['/team', 'team'],
+  ['/pricing', 'pricing'],
   ['/account', 'account'],
 ];
 
@@ -119,6 +123,7 @@ export function navFor(
       items: [
         { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'yardSign' },
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
+        { id: 'pricing', label: 'Price list', href: '/pricing', icon: 'financials' },
         { id: 'documents', label: 'Documents', href: '/documents', icon: 'quotes' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },

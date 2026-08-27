@@ -22,6 +22,18 @@ export interface Answer {
 
 export const ANSWERS: Answer[] = [
   {
+    id: 'price-list',
+    question: 'How do I load my price list?',
+    keywords: ['price', 'prices', 'pricing', 'rate card', 'catalog', 'catalogue', 'list', 'import', 'pdf', 'sheet'],
+    body: `Go to Price list and hit "Import from a file". Drop in the price sheet you already have — a PDF, or a photo of a printed one.
+
+It gets read into line items and shown to you to check BEFORE anything is saved, because a misread price becomes a wrong estimate to a customer.
+
+After that, building an estimate is picking from a dropdown instead of typing. Same number on the estimate, the invoice, and your website.`,
+    href: '/pricing',
+    hrefLabel: 'Open Price list',
+  },
+  {
     id: 'add-receipt',
     question: 'How do I add a receipt?',
     keywords: ['receipt', 'upload', 'photo', 'scan', 'expense', 'material', 'add', 'camera'],

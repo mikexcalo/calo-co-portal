@@ -11,6 +11,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createEstimate, getCurrentOrg, getJob } from '@/lib/spine/db';
+import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import type { JobWithCustomer, LineKind } from '@/lib/spine/types';
 import {
@@ -48,6 +49,10 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
   const [notes, setNotes] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** The price list, so nobody retypes a line item they already priced. */
+  const [catalog, setCatalog] = useState<
+    Array<{ id: string; name: string; unit: string | null; unit_price: number; kind: LineKind; category: string | null }>
+  >([]);
 
   useEffect(() => {
     (async () => {
@@ -63,11 +68,41 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
             },
           ]);
         }
+        const cat = await supabase
+          .from('price_items')
+          .select('id, name, unit, unit_price, kind, category')
+          .eq('active', true)
+          .order('category')
+          .order('name');
+        if (!cat.error) {
+          setCatalog(
+            (cat.data ?? []).map((r: Record<string, unknown>) => ({
+              ...(r as { id: string; name: string; unit: string | null; kind: LineKind; category: string | null }),
+              unit_price: Number(r.unit_price) || 0,
+            }))
+          );
+        }
       } catch (e) {
         setError((e as Error).message);
       }
     })();
   }, [params.id]);
+
+  /** Drop a catalog item onto the estimate at its standard price. */
+  const addFromCatalog = (id: string) => {
+    const item = catalog.find((c) => c.id === id);
+    if (!item) return;
+    setLines((prev) => [
+      ...prev,
+      {
+        kind: item.kind,
+        description: item.name,
+        qty: '1',
+        unit: item.unit ?? '',
+        unit_price: String(item.unit_price),
+      },
+    ]);
+  };
 
   const update = (i: number, patch: Partial<DraftLine>) =>
     setLines((prev) => prev.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
@@ -242,7 +277,21 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
           </div>
         ))}
 
-        <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+          {catalog.length > 0 && (
+            <select
+              value=""
+              onChange={(e) => { addFromCatalog(e.target.value); e.target.value = ''; }}
+              style={{ ...inputStyle, width: 'auto', minWidth: 200, padding: '8px 10px' }}
+            >
+              <option value="">Add from price list…</option>
+              {catalog.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} — {c.unit_price.toFixed(2)}{c.unit ? `/${c.unit}` : ''}
+                </option>
+              ))}
+            </select>
+          )}
           <Button variant="ghost" onClick={() => setLines((p) => [...p, blank('labor')])}>
             + Labor
           </Button>

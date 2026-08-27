@@ -34,6 +34,93 @@ export interface LearningPath {
 
 export const PATHS: LearningPath[] = [
   {
+    id: 'first-week',
+    name: 'Start here',
+    blurb:
+      'Everything to do once, in order, to get set up. About twenty minutes, and then you never think about it again.',
+    minutes: 20,
+    steps: [
+      {
+        id: 'password',
+        title: 'Set your password',
+        body:
+          'You got an invite email with a link. Follow it and pick a password. If you cannot find the email, check spam — and if it is not there, ask for another.',
+        done: 'You can sign in without the emailed link.',
+      },
+      {
+        id: 'rate',
+        title: 'Set your hourly rate and markup',
+        body:
+          'Your crew rate per hour, and the percentage you add to materials when billing them on. Both start at zero, which would make every invoice come out at zero.',
+        href: '/business',
+        done: 'The orange warning on the dashboard is gone.',
+      },
+      {
+        id: 'prices',
+        title: 'Load your price list',
+        body:
+          'Drop in the price sheet you already have — a PDF or a photo works. It gets read into line items you check before saving. After that, building an estimate is picking from a list instead of typing.',
+        href: '/pricing',
+        done: 'Your standard items appear under Price list.',
+      },
+      {
+        id: 'customer',
+        title: 'Add a customer',
+        body:
+          'One real homeowner or GC you are working with. Their email matters — you cannot send them an invoice without it.',
+        href: '/customers',
+        done: 'They show in your customer list.',
+      },
+      {
+        id: 'first-job',
+        title: 'Create your first job',
+        body:
+          'A real one you are working on now. Name it how you would say it out loud — "Gorshteyn bathroom" beats "Job 001". Pick time & materials unless you quoted a fixed number.',
+        href: '/jobs/new',
+        done: 'It appears on the pipeline board.',
+      },
+      {
+        id: 'log-day',
+        title: 'Log a day of work',
+        body:
+          'Open the job and put in a day you actually worked — hours, who did it, what got done. What you type here shows up on the invoice, so write it how a customer should read it.',
+        href: '/jobs',
+        done: 'Unbilled goes up on the job.',
+      },
+      {
+        id: 'receipt',
+        title: 'Photograph a receipt',
+        body:
+          'On your phone, open Documents and use the button at the bottom — it opens the camera. Take a picture of a real receipt. It reads the vendor, date and total on its own, and keeps the photo for taxes.',
+        href: '/documents',
+        done: 'The receipt shows a vendor and an amount.',
+      },
+      {
+        id: 'file-it',
+        title: 'File that receipt to the job',
+        body:
+          'Pick the job from the dropdown and hit File. It becomes a cost on that job with the photo attached.',
+        href: '/documents',
+        done: 'The inbox is empty and the job cost went up.',
+      },
+      {
+        id: 'invoice',
+        title: 'Build an invoice from it',
+        body:
+          'Back on the job, hit the invoice button. Every hour and receipt you have not billed becomes invoice lines, with your markup already applied. You are approving an invoice, not writing one.',
+        href: '/jobs',
+        done: 'A draft invoice exists with lines you recognize.',
+      },
+      {
+        id: 'phone',
+        title: 'Put it on your phone',
+        body:
+          'Open the site on your phone and add it to your home screen — Share, then Add to Home Screen. That is where you will use it most: photographing receipts in the truck before they go through the wash.',
+        done: 'There is an icon on your home screen.',
+      },
+    ],
+  },
+  {
     id: 'money-in',
     name: 'Getting paid',
     blurb:
