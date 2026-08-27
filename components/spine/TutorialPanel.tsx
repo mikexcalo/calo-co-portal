@@ -1,7 +1,9 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PATHS, useTutorial } from '@/lib/spine/tutorial';
+import { ANSWERS, search } from '@/lib/spine/answers';
 import { C, SERIF, radius, useIsPhone } from './ui';
 
 /**
@@ -84,9 +86,16 @@ export function TutorialPanel() {
         <div style={{ flex: 1, overflowY: 'auto', padding: 22 }}>
           {!activePath ? (
             <>
-              <p style={{ fontSize: 13.5, color: C.dim, marginTop: 0, lineHeight: 1.55 }}>
-                Each path walks a whole process end to end on your real data — not a tour with
-                tooltips. Pick one and work through it.
+              <AskBox />
+
+              <div style={{
+                fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.09em',
+                color: C.faint, fontWeight: 600, margin: '26px 0 10px',
+              }}>
+                Or walk a whole process
+              </div>
+              <p style={{ fontSize: 13, color: C.dim, marginTop: 0, lineHeight: 1.55 }}>
+                Each path goes end to end on your real data — not a tour with tooltips.
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
@@ -308,5 +317,155 @@ export function TutorialPanel() {
         )}
       </aside>
     </>
+  );
+}
+
+/**
+ * Ask a question — answered from a local index, never a model call.
+ *
+ * It only knows what's written in lib/spine/answers.ts. When nothing matches
+ * it says so instead of inventing something, which is the whole reason this
+ * is a keyword index and not a chatbot: it costs nothing per question and it
+ * cannot make things up.
+ */
+function AskBox() {
+  const router = useRouter();
+  const { closePanel } = useTutorial();
+  const [q, setQ] = useState('');
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  const matches = useMemo(() => search(q), [q]);
+  const asking = q.trim().length > 1;
+
+  // Before typing, show the questions people actually ask most.
+  const shown = asking ? matches.map((m) => m.answer) : ANSWERS.slice(0, 5);
+
+  return (
+    <div>
+      <input
+        value={q}
+        onChange={(e) => {
+          setQ(e.target.value);
+          setOpenId(null);
+        }}
+        placeholder="Ask a question — how do I add receipts?"
+        style={{
+          width: '100%',
+          background: C.panelAlt,
+          border: `1px solid ${C.border}`,
+          borderRadius: radius.md,
+          padding: '11px 13px',
+          color: C.text,
+          fontSize: 13.5,
+          fontFamily: 'inherit',
+          boxSizing: 'border-box',
+        }}
+      />
+
+      <div style={{ fontSize: 11, color: C.faint, margin: '7px 2px 0' }}>
+        Answered from a built-in guide — free, instant, and it never makes anything up.
+      </div>
+
+      {asking && matches.length === 0 ? (
+        <div
+          style={{
+            marginTop: 14,
+            padding: 14,
+            borderRadius: radius.md,
+            background: C.panelAlt,
+            fontSize: 12.5,
+            color: C.dim,
+            lineHeight: 1.55,
+          }}
+        >
+          Nothing in the guide covers that yet. Rather than guess at an answer, it&apos;s
+          saying so — tell Mike what you were looking for and it can be added.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 14 }}>
+          {!asking && (
+            <div
+              style={{
+                fontSize: 9.5,
+                textTransform: 'uppercase',
+                letterSpacing: '0.09em',
+                color: C.faint,
+                fontWeight: 600,
+                marginBottom: 2,
+              }}
+            >
+              Common questions
+            </div>
+          )}
+          {shown.map((a) => {
+            const isOpen = openId === a.id;
+            return (
+              <div
+                key={a.id}
+                style={{
+                  border: `1px solid ${isOpen ? C.borderStrong : C.border}`,
+                  borderRadius: radius.md,
+                  overflow: 'hidden',
+                }}
+              >
+                <button
+                  onClick={() => setOpenId(isOpen ? null : a.id)}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '11px 13px',
+                    background: 'transparent',
+                    border: 'none',
+                    color: C.text,
+                    fontSize: 13,
+                    fontWeight: isOpen ? 500 : 400,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  {a.question}
+                </button>
+
+                {isOpen && (
+                  <div style={{ padding: '0 13px 13px' }}>
+                    <div
+                      style={{
+                        fontSize: 12.5,
+                        color: C.dim,
+                        lineHeight: 1.6,
+                        whiteSpace: 'pre-wrap',
+                      }}
+                    >
+                      {a.body}
+                    </div>
+                    {a.href && (
+                      <button
+                        onClick={() => {
+                          closePanel();
+                          router.push(a.href!);
+                        }}
+                        style={{
+                          marginTop: 11,
+                          background: 'transparent',
+                          border: `1px solid ${C.borderStrong}`,
+                          borderRadius: radius.md,
+                          padding: '6px 12px',
+                          fontSize: 12,
+                          color: C.text,
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                        }}
+                      >
+                        {a.hrefLabel ?? 'Take me there'} →
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }

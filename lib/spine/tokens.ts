@@ -1,40 +1,39 @@
 /**
  * Design tokens.
  *
- * Back to the original dark direction. The Carta-inspired light theme is
- * parked, not discarded — see docs/design-directions.md for the palette and
- * the reasoning, so picking it back up later is a token swap rather than
- * archaeology.
+ * Light. Plain and functional on purpose — the visual direction is a later
+ * pass, and the parked Carta palette lives in docs/design-directions.md.
+ * This is meant to be legible and unremarkable so the plumbing can be judged
+ * without paint in the way.
  */
 
 export const C = {
-  bg: '#111113',
-  panel: '#18181b',
-  panelAlt: '#1f1f23',
-  rail: '#18181b',
-  ink: '#f5f5f5',
+  bg: '#F7F7F5',
+  panel: '#FFFFFF',
+  panelAlt: '#F2F2EF',
+  rail: '#FFFFFF',
+  ink: '#141414',
 
-  text: '#f5f5f5',
-  dim: '#9b9ba3',
-  faint: '#6b6b73',
+  text: '#1A1A1A',
+  dim: '#5A5A5A',
+  faint: '#8A8A88',
 
-  border: '#2a2a30',
-  borderStrong: '#3a3a42',
+  border: '#E4E4E0',
+  borderStrong: '#CFCFC9',
 
-  accent: '#3b82f6',
-  accentSoft: '#1e3a5f',
+  accent: '#2563EB',
+  accentSoft: '#EEF3FD',
 
-  green: '#22c55e',
-  greenSoft: '#12281a',
-  amber: '#f59e0b',
-  amberSoft: '#2a1f08',
-  red: '#ef4444',
-  redSoft: '#2a1414',
-  blue: '#3b82f6',
-  blueSoft: '#15233d',
+  green: '#15803D',
+  greenSoft: '#EDF6F0',
+  amber: '#B45309',
+  amberSoft: '#FDF4E7',
+  red: '#B91C1C',
+  redSoft: '#FBEDED',
+  blue: '#2563EB',
+  blueSoft: '#EEF3FD',
 } as const;
 
-/** Headings use the body face. The serif experiment is parked. */
 export const SERIF = 'inherit';
 
 export const radius = {

@@ -58,3 +58,20 @@ culled after 51 idle days and took the site down with it.
 
 - ~~Supabase login so migrations could run~~ — done 2026-08-21
 - ~~Restore the paused Supabase project~~ — done 2026-08-20
+
+---
+
+## Flagged 2026-08-26 — Mammoth's form doesn't reach Nautilus
+
+Mammoth's contact form posts to **Web3Forms** (`api.web3forms.com`), which
+emails `info@mammothconstructiontx.com`. It has never touched Nautilus, so
+Mammoth leads do not appear in the CRM at all.
+
+calo-co-site is wired correctly (`source: "calo-co-site-contact-form"`).
+
+**Fix:** add a second POST to `https://nautilusapp.vercel.app/api/leads/ingest`
+in `~/Desktop/mammoth-construction-site/index.html` (around line 1958, alongside
+the existing Web3Forms call), with `source: "mammoth-construction-site"`. Keep
+Web3Forms so their email notification doesn't change.
+
+Not done yet — that's a client's live site in another repo and needs your say-so.

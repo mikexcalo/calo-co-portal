@@ -34,7 +34,8 @@ const SOURCE_ROUTING: Array<{ match: RegExp; slug: string; label: string; notify
     match: /mammoth/i,
     slug: 'mammoth',
     label: 'Mammoth Construction',
-    notify: 'mikexcalo@gmail.com',
+    // Their own inbox, taken from the contact address on their site.
+    notify: 'info@mammothconstructiontx.com',
   },
   {
     match: /calo|company|portfolio|mikecalo/i,

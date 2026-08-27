@@ -28,8 +28,8 @@ export default function RootLayout({
       <body
         style={{
           margin: 0,
-          background: '#111113',
-          color: '#f5f5f5',
+          background: '#F7F7F5',
+          color: '#1A1A1A',
           fontFamily: 'inherit',
           WebkitFontSmoothing: 'antialiased',
         }}

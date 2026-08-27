@@ -67,6 +67,8 @@ export interface Org {
   default_material_markup_pct: number;
   tax_rate: number;
   settings: Record<string, unknown>;
+  /** Per-business module flags; empty means use the defaults for `kind`. */
+  modules: Record<string, boolean>;
   created_at: string;
   updated_at: string;
 }
