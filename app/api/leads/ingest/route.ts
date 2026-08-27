@@ -178,7 +178,10 @@ export async function POST(req: NextRequest) {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nautilusapp.vercel.app';
 
         await resend.emails.send({
-          from: 'Nautilus <onboarding@resend.dev>',
+          // Verified sender for this deployment. onboarding@resend.dev is
+          // Resend's shared sandbox address — it works, but it reads as spam
+          // and can't be replied to, so a real domain is worth verifying.
+          from: process.env.MAIL_FROM || 'CALO&CO <onboarding@resend.dev>',
           to: route.notify,
           replyTo: email.trim(),
           subject: `New ${route.label} lead — ${name.trim()}`,

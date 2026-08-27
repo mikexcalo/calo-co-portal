@@ -30,6 +30,7 @@ import type {
   ExtractedReceipt,
   JobWithCustomer,
 } from '@/lib/spine/types';
+import { ExtractionReview, type ReviewResult } from '@/components/spine/ExtractionReview';
 import {
   Button,
   C,
@@ -58,6 +59,17 @@ export default function DocumentsPage() {
   const [working, setWorking] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
+  /**
+   * Documents waiting on human sign-off. Nothing is written to the document
+   * row until the owner approves what was read.
+   */
+  const [pending, setPending] = useState<Array<{
+    doc: DocumentRecord;
+    fileName: string;
+    previewUrl: string | null;
+    extracted: (ExtractedReceipt & { kind?: DocumentKind }) | null;
+    costCents?: number;
+  }>>([]);
 
   const load = useCallback(async () => {
     const [org, d, j, s] = await Promise.all([
@@ -132,14 +144,27 @@ export default function DocumentsPage() {
         if (!res.ok) throw new Error(payload.error || 'Extraction failed');
 
         const ex = payload.extracted as ExtractedReceipt & { kind?: DocumentKind };
+
+        // Record what it cost and that it was read, but hold the DATA until a
+        // human confirms it. An unreviewed wrong amount becomes a wrong job
+        // cost, then a wrong invoice, then a conversation with a customer.
         await updateDocument(doc.id, {
-          status: ex.needs_review ? 'needs_review' : 'extracted',
-          kind: (ex.kind as DocumentKind) || 'unknown',
-          extracted: ex,
+          status: 'needs_review',
           extraction_model: payload.meta.model,
           extraction_cost_cents: payload.meta.cost_cents,
           extracted_at: new Date().toISOString(),
         });
+
+        setPending((q) => [
+          ...q,
+          {
+            doc,
+            fileName: file.name,
+            previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
+            extracted: ex,
+            costCents: payload.meta.cost_cents,
+          },
+        ]);
       } catch (e) {
         await updateDocument(doc.id, {
           status: 'failed',
@@ -200,6 +225,48 @@ export default function DocumentsPage() {
     }
   };
 
+  /** The human said yes — now the extraction becomes data. */
+  const approveExtraction = async (result: ReviewResult) => {
+    const entry = pending[0];
+    if (!entry) return;
+    setError(null);
+    try {
+      await updateDocument(entry.doc.id, {
+        status: 'extracted',
+        kind: result.kind,
+        extracted: {
+          vendor: result.vendor,
+          purchased_on: result.purchased_on,
+          amount: result.amount,
+          category: result.category,
+          summary: result.summary,
+          needs_review: false,
+        },
+      });
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      if (entry.previewUrl) URL.revokeObjectURL(entry.previewUrl);
+      setPending((q) => q.slice(1));
+      await load();
+    }
+  };
+
+  /** Discarding removes the file too — an unapproved document is not a record. */
+  const rejectExtraction = async () => {
+    const entry = pending[0];
+    if (!entry) return;
+    try {
+      await deleteDocument(entry.doc);
+    } catch {
+      /* the row may already be gone */
+    } finally {
+      if (entry.previewUrl) URL.revokeObjectURL(entry.previewUrl);
+      setPending((q) => q.slice(1));
+      await load();
+    }
+  };
+
   const inbox = docs.filter((d) => d.status !== 'filed');
   const filed = docs.filter((d) => d.status === 'filed');
 
@@ -231,6 +298,24 @@ export default function DocumentsPage() {
         style={{ display: 'none' }}
       />
       <MobileAction label="📷  Photograph a receipt" onClick={() => cameraRef.current?.click()} />
+
+      {/* One at a time, in arrival order — a stack of modals is worse than a
+          queue you work through. */}
+      {pending.length > 0 && (
+        <ExtractionReview
+          key={pending[0].doc.id}
+          fileName={
+            pending.length > 1
+              ? `${pending[0].fileName}  ·  ${pending.length - 1} more waiting`
+              : pending[0].fileName
+          }
+          previewUrl={pending[0].previewUrl}
+          extracted={pending[0].extracted}
+          costCents={pending[0].costCents}
+          onApprove={approveExtraction}
+          onReject={rejectExtraction}
+        />
+      )}
 
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
