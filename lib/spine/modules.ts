@@ -21,6 +21,7 @@ export type ModuleId =
   | 'website'        // client-facing: ask my agency for a site change
   | 'client_requests' // agency-facing: the inbox of client requests
   | 'brand_kit'
+  | 'account'        // client-facing: what I owe my agency
   | 'business';
 
 const CONTRACTOR: ModuleId[] = [
@@ -30,6 +31,7 @@ const CONTRACTOR: ModuleId[] = [
   'billing',
   'pl',
   'website',
+  'account',
   'business',
 ];
 
@@ -56,6 +58,42 @@ export function modulesFor(org: Org | null): Set<ModuleId> {
     else out.delete(id as ModuleId);
   }
   return out;
+}
+
+/**
+ * Which route belongs to which module. Used to catch the case where you're
+ * looking at a page, switch to a business that doesn't have it, and end up
+ * stranded on a screen that isn't in their nav.
+ */
+const ROUTE_MODULE: Array<[string, ModuleId]> = [
+  ['/jobs', 'jobs'],
+  ['/customers', 'customers'],
+  ['/documents', 'documents'],
+  ['/billing', 'billing'],
+  ['/pl', 'pl'],
+  ['/website', 'website'],
+  ['/requests', 'client_requests'],
+  ['/brand-kit', 'brand_kit'],
+  ['/business', 'business'],
+  ['/account', 'account'],
+];
+
+/** Routes every business can reach regardless of modules. */
+const ALWAYS = ['/', '/settings', '/login', '/welcome'];
+
+/**
+ * Is this path reachable for this business? Returns false only for a route
+ * that maps to a module the business doesn't have.
+ */
+export function pathAllowed(org: Org | null, pathname: string): boolean {
+  if (ALWAYS.includes(pathname)) return true;
+
+  const entry = ROUTE_MODULE.find(
+    ([prefix]) => pathname === prefix || pathname.startsWith(prefix + '/')
+  );
+  if (!entry) return true; // unmapped routes aren't gated
+
+  return modulesFor(org).has(entry[1]);
 }
 
 /** Nav grouping. Order and headings come from here so the sidebar reads. */
@@ -93,6 +131,7 @@ export function navFor(
       items: [
         { id: 'client_requests', label: 'Client requests', href: '/requests', icon: 'designStudio' },
         { id: 'website', label: 'Request a change', href: '/website', icon: 'designStudio' },
+        { id: 'account', label: 'Your account', href: '/account', icon: 'invoices' },
         { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },

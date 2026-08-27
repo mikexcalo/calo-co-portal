@@ -1,18 +1,33 @@
 'use client';
 
-import { useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import TopBar from '@/components/TopBar';
 import { useIsPhone, C } from '@/components/spine/ui';
 import { TutorialPanel } from '@/components/spine/TutorialPanel';
+import { useOrg } from '@/lib/spine/org';
+import { pathAllowed } from '@/lib/spine/modules';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const phone = useIsPhone();
+  const { org, loading: orgLoading } = useOrg();
   const [navOpen, setNavOpen] = useState(false);
 
   const isBarePage = pathname === '/login' || pathname === '/welcome';
+
+  /**
+   * Switching to a business that doesn't have the module you're looking at
+   * used to leave you stranded on a page missing from their nav — Brand Kit
+   * still on screen after switching to a business without one. Bounce home.
+   */
+  useEffect(() => {
+    if (isBarePage || orgLoading || !org) return;
+    if (!pathAllowed(org, pathname)) router.replace('/');
+  }, [org, orgLoading, pathname, isBarePage, router]);
+
   if (isBarePage) return <>{children}</>;
 
   // Phone: the sidebar becomes a drawer. Desktop is unchanged.
