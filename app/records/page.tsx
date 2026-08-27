@@ -1,12 +1,16 @@
 'use client';
 
 /**
- * Files — the records a business has to keep and occasionally produce.
+ * Records — the documents a business has to keep and occasionally produce.
  *
- * Deliberately separate from Documents. That one is a pipeline: a receipt
- * arrives, gets read, becomes a job cost. These are records — insurance
- * certificates, licenses, W-9s, manuals, subcontractor agreements. Putting a
- * 113-page manual through a receipt-review queue would be absurd.
+ * Deliberately separate from Receipts. That one is a pipeline: a receipt
+ * arrives, gets read, becomes a job cost, and is done with. These are
+ * reference — insurance certificates, licenses, W-9s, manuals, subcontractor
+ * agreements. Putting a 113-page manual through a receipt-review queue would
+ * be absurd, which is why they were split.
+ *
+ * The original names, Documents and Files, were synonyms and told nobody
+ * anything.
  *
  * The feature that earns this screen its place is the expiry date. A
  * contractor's liability certificate and license both lapse, and finding out
@@ -255,8 +259,8 @@ export default function FilesPage() {
 
   return (
     <Page
-      title="Files"
-      subtitle={`Insurance, licenses, contracts and manuals for ${org?.name ?? 'this business'} — the things you have to be able to produce.`}
+      title="Records"
+      subtitle={`Insurance, licenses, contracts and manuals for ${org?.name ?? 'this business'} — the things you have to be able to produce on request.`}
       action={<Button onClick={() => fileRef.current?.click()}>Add a file</Button>}
     >
       <input

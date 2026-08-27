@@ -25,6 +25,7 @@ import type {
   JobStatus,
   JobWithCustomer,
   Customer,
+  LineKind,
   Org,
   TimeEntry,
 } from './types';
@@ -691,6 +692,153 @@ export async function draftInvoiceFromActuals(
   }
 
   return invoice;
+}
+
+/**
+ * Invoice a fixed-price job from its accepted estimate.
+ *
+ * The actuals sweep does not apply here: on a fixed-price job the customer
+ * agreed a number, and what it actually cost is the contractor's margin, not
+ * the customer's bill. Without this, a fixed-price job could not be invoiced
+ * at all — which is exactly where Turks Cap sat.
+ *
+ * Construction bills in draws, so `percent` invoices a slice of the contract.
+ * Anything already invoiced is deducted, so repeated draws cannot overrun the
+ * agreed total — billing a customer more than they signed for is the one
+ * mistake you cannot apologise your way out of.
+ */
+export async function invoiceFromEstimate(
+  orgId: string,
+  jobId: string,
+  opts?: { percent?: number; taxRate?: number; dueInDays?: number; description?: string }
+): Promise<JobInvoice> {
+  const [estimates, existing, job] = await Promise.all([
+    listEstimates(jobId),
+    listInvoices(jobId),
+    getJob(jobId),
+  ]);
+
+  const accepted = estimates.find((e) => e.status === 'accepted');
+  if (!accepted) {
+    throw new Error(
+      'No accepted estimate on this job. Send the estimate and get it accepted first.'
+    );
+  }
+
+  const contract = num(accepted.total);
+  const alreadyInvoiced = existing
+    .filter((i) => i.status !== 'void')
+    .reduce((sum, i) => sum + num(i.subtotal), 0);
+
+  const remaining = round2(contract - alreadyInvoiced);
+  if (remaining <= 0) {
+    throw new Error(
+      `The full contract of ${contract.toFixed(2)} has already been invoiced.`
+    );
+  }
+
+  const pct = opts?.percent;
+  const requested =
+    pct != null ? round2(contract * (Math.min(100, Math.max(0, pct)) / 100)) : remaining;
+
+  // Never let a draw take the total past the agreed contract.
+  const amount = Math.min(requested, remaining);
+
+  const lines =
+    pct != null && amount < remaining
+      ? [
+          {
+            kind: 'other' as LineKind,
+            description:
+              opts?.description ??
+              `${pct}% progress draw — ${job?.name ?? 'contract'}`,
+            qty: 1,
+            unit: null,
+            unit_price: amount,
+            total: amount,
+            position: 0,
+            source_time_entry_id: null,
+            source_cost_id: null,
+          },
+        ]
+      : // Final or only invoice: itemize it, so the customer sees what they
+        // agreed to rather than one opaque number.
+        (await getEstimateLines(accepted.id)).map((l, i) => ({
+          kind: l.kind,
+          description: l.description,
+          qty: num(l.qty),
+          unit: l.unit,
+          unit_price: num(l.unit_price),
+          total: num(l.total),
+          position: i,
+          source_time_entry_id: null,
+          source_cost_id: null,
+        }));
+
+  // If earlier draws were taken, the itemized final has to be reduced by them.
+  const lineSum = round2(lines.reduce((sum, l) => sum + l.total, 0));
+  if (alreadyInvoiced > 0 && lineSum > amount) {
+    lines.push({
+      kind: 'other' as LineKind,
+      description: 'Less: previously invoiced',
+      qty: 1,
+      unit: null,
+      unit_price: round2(-alreadyInvoiced),
+      total: round2(-alreadyInvoiced),
+      position: lines.length,
+      source_time_entry_id: null,
+      source_cost_id: null,
+    });
+  }
+
+  const subtotal = round2(lines.reduce((sum, l) => sum + l.total, 0));
+  const taxRate = opts?.taxRate ?? 0;
+  const taxAmount = round2(subtotal * (taxRate / 100));
+
+  const due = new Date();
+  due.setDate(due.getDate() + (opts?.dueInDays ?? 30));
+
+  const invoice = unwrap(
+    await supabase
+      .from('job_invoices')
+      .insert({
+        org_id: orgId,
+        job_id: jobId,
+        number: await nextInvoiceNumber(orgId),
+        status: 'draft',
+        issued_on: new Date().toISOString().slice(0, 10),
+        due_on: due.toISOString().slice(0, 10),
+        subtotal,
+        tax_rate: taxRate,
+        tax_amount: taxAmount,
+        total: round2(subtotal + taxAmount),
+        notes:
+          pct != null && amount < remaining
+            ? `Progress draw against an agreed contract of $${contract.toFixed(2)}.`
+            : null,
+      })
+      .select()
+      .single()
+  ) as JobInvoice;
+
+  const res = await supabase
+    .from('job_invoice_lines')
+    .insert(lines.map((l) => ({ ...l, invoice_id: invoice.id })));
+  if (res.error) throw new Error(res.error.message);
+
+  return invoice;
+}
+
+/** Every estimate across every job — the proposals overview. */
+export async function listAllEstimates(): Promise<
+  Array<Estimate & { job: { id: string; name: string; customer: { name: string } | null } | null }>
+> {
+  return unwrap(
+    await supabase
+      .from('estimates')
+      .select('*, job:jobs(id, name, customer:customers(name))')
+      .order('created_at', { ascending: false })
+  ) as Array<Estimate & { job: { id: string; name: string; customer: { name: string } | null } | null }>;
 }
 
 export async function updateInvoice(

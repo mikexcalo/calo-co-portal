@@ -121,7 +121,7 @@ export function QrStudio({
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               style={inputStyle}
-              placeholder="https://mammoth-construction.vercel.app"
+              placeholder="https://www.mammothconstructiontx.com"
             />
           </Field>
           <div style={{ fontSize: 11.5, color: C.faint, marginTop: -8 }}>
@@ -184,6 +184,10 @@ export function QrStudio({
             style={{
               display: 'flex',
               justifyContent: 'center',
+              // Without this the flex default of `stretch` pulls the canvas
+              // vertically and the QR renders as a rectangle — which does not
+              // scan.
+              alignItems: 'center',
               padding: 18,
               borderRadius: radius.md,
               // Checkerboard so a transparent background reads as transparent.
@@ -193,7 +197,15 @@ export function QrStudio({
               border: `1px solid ${C.border}`,
             }}
           >
-            <canvas ref={canvasRef} style={{ maxWidth: '100%', height: 'auto' }} />
+            <canvas
+              ref={canvasRef}
+              style={{
+                display: 'block',
+                maxWidth: '100%',
+                height: 'auto',
+                aspectRatio: '1 / 1',
+              }}
+            />
           </div>
 
           <div

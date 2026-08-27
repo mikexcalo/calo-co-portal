@@ -15,7 +15,7 @@ import type { Org } from './types';
 export type ModuleId =
   | 'jobs'
   | 'customers'
-  | 'documents'
+  | 'receipts'
   | 'billing'
   | 'pl'
   | 'website'        // client-facing: ask my agency for a site change
@@ -23,18 +23,20 @@ export type ModuleId =
   | 'brand_kit'
   | 'account'        // client-facing: what I owe my agency
   | 'pricing'
-  | 'files'
+  | 'records'
+  | 'proposals'
   | 'team'
   | 'business';
 
 const CONTRACTOR: ModuleId[] = [
   'jobs',
   'customers',
-  'pricing',
-  'documents',
-  'files',
+  'receipts',
+  'proposals',
   'billing',
   'pl',
+  'pricing',
+  'records',
   'website',
   'account',
   'team',
@@ -44,12 +46,14 @@ const CONTRACTOR: ModuleId[] = [
 const AGENCY: ModuleId[] = [
   'jobs',
   'customers',
-  'pricing',
-  'documents',
+  'receipts',
+  'proposals',
   'billing',
   'pl',
-  'client_requests',
+  'pricing',
+  'records',
   'brand_kit',
+  'client_requests',
   'team',
   'business',
 ];
@@ -76,7 +80,7 @@ export function modulesFor(org: Org | null): Set<ModuleId> {
 const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/jobs', 'jobs'],
   ['/customers', 'customers'],
-  ['/documents', 'documents'],
+  ['/documents', 'receipts'],
   ['/billing', 'billing'],
   ['/pl', 'pl'],
   ['/website', 'website'],
@@ -85,7 +89,8 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/business', 'business'],
   ['/team', 'team'],
   ['/pricing', 'pricing'],
-  ['/files', 'files'],
+  ['/records', 'records'],
+  ['/proposals', 'proposals'],
   ['/account', 'account'],
 ];
 
@@ -122,30 +127,39 @@ export function navFor(
 
   const groups: NavGroup[] = [
     {
+      // Doing the work. Receipts sits here because photographing one is an
+      // action you take on site, not something you look up.
       heading: 'The Work',
       items: [
         { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'yardSign' },
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
-        { id: 'pricing', label: 'Price List', href: '/pricing', icon: 'financials' },
-        { id: 'documents', label: 'Documents', href: '/documents', icon: 'quotes' },
-        { id: 'files', label: 'Files', href: '/files', icon: 'folder' },
+        { id: 'receipts', label: 'Receipts', href: '/documents', icon: 'quotes' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
+      // The money, in the order it moves: quote it, bill it, see what's left.
       heading: 'Money',
       items: [
+        { id: 'proposals', label: 'Proposals', href: '/proposals', icon: 'proposal' },
         { id: 'billing', label: 'Billing', href: '/billing', icon: 'invoices' },
         { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
-      // Named for what it is from each side: a client asks, an agency answers.
+      // Things you consult rather than work through.
+      heading: 'Reference',
+      items: [
+        { id: 'pricing', label: 'Price List', href: '/pricing', icon: 'financials' },
+        { id: 'records', label: 'Records', href: '/records', icon: 'folder' },
+        { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
+      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
+    },
+    {
       heading: org?.kind === 'agency' ? 'Clients' : 'Your Website',
       items: [
         { id: 'client_requests', label: 'Client Requests', href: '/requests', icon: 'designStudio' },
         { id: 'website', label: 'Request a Change', href: '/website', icon: 'designStudio' },
         { id: 'account', label: 'Your Account', href: '/account', icon: 'invoices' },
-        { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {

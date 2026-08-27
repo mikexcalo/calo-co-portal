@@ -276,8 +276,8 @@ export default function DocumentsPage() {
 
   return (
     <Page
-      title="Documents"
-      subtitle="Drop in receipts and paperwork. Each one is read once, then becomes a job cost."
+      title="Receipts"
+      subtitle="Photograph a receipt and it becomes a job cost. Each one is read once, and you approve what it read before anything is saved."
       action={
         <Button onClick={() => fileRef.current?.click()}>Add documents</Button>
       }

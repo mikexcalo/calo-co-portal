@@ -95,6 +95,14 @@ const icons: Record<string, React.ReactNode> = {
       <circle cx="11.5" cy="11.5" r="2.8" />
     </svg>
   ),
+  // A signed document — a proposal awaiting a decision.
+  proposal: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 2.4h6.3L13 6v7.6a.9.9 0 0 1-.9.9H3.9a.9.9 0 0 1-.9-.9z" />
+      <path d="M9.2 2.4V6H13" />
+      <path d="M5.4 10.6c.9-1 1.6.9 2.5 0s1.6.6 2.5-.4" />
+    </svg>
+  ),
   // Wrench — setup.
   settings: (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
