@@ -1,175 +1,444 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useTheme } from "@/lib/theme";
-import { DB, loadClients, loadAllBrandKits } from "@/lib/database";
-import { motion } from "framer-motion";
-import BrandKit from "@/components/shared/BrandKit";
-import AgencyBrandIdentity from "@/components/AgencyBrandIdentity";
-import SegmentedControl from "@/components/shared/SegmentedControl";
-import BrandKitLayout from "@/components/BrandKitLayout";
+/**
+ * Brand Kit — the brand, and the things people actually need to DO with it.
+ *
+ * The old one was a viewer: here are your colours, admire them. Nobody opens
+ * a brand kit to admire colours. They open it because they need a hex code, a
+ * logo file, or an email signature that doesn't look broken in Outlook.
+ *
+ * So this is: the assets, plus tools that consume them.
+ */
 
-const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
-const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } } };
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import supabase from '@/lib/supabase';
+import { getCurrentOrg, updateOrg } from '@/lib/spine/db';
+import { useOrg } from '@/lib/spine/org';
+import {
+  EMPTY_SIGNATURE,
+  INSTALL_GUIDES,
+  SIGNATURE_STYLES,
+  renderSignature,
+  type SignatureFields,
+  type SignatureStyle,
+} from '@/lib/spine/signature';
+import {
+  Button,
+  C,
+  Card,
+  Empty,
+  Field,
+  Page,
+  Pill,
+  SectionLabel,
+  inputStyle,
+} from '@/components/spine/ui';
+
+type Tab = 'brand' | 'signature';
+
+interface BrandColor {
+  name: string;
+  hex: string;
+}
+
+interface BrandSettings {
+  colors: BrandColor[];
+  fontHeading: string;
+  fontBody: string;
+  logoLight: string;
+  logoDark: string;
+  voice: string;
+}
+
+const EMPTY_BRAND: BrandSettings = {
+  colors: [],
+  fontHeading: '',
+  fontBody: '',
+  logoLight: '',
+  logoDark: '',
+  voice: '',
+};
 
 export default function BrandKitPage() {
-  const { t } = useTheme();
-  const [activeTab, setActiveTab] = useState<"identity" | "visual" | "messaging">("identity");
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const [ribbonData, setRibbonData] = useState<{ name: string; colors: string[]; logoVariants: number; font: string } | null>(null);
+  const { org, refresh } = useOrg();
+  const [tab, setTab] = useState<Tab>('brand');
+  const [brand, setBrand] = useState<BrandSettings>(EMPTY_BRAND);
+  const [sig, setSig] = useState<SignatureFields>(EMPTY_SIGNATURE);
+  const [style, setStyle] = useState<SignatureStyle>('stacked');
+  const [guideId, setGuideId] = useState('gmail');
+  const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
 
+  // Brand lives in orgs.settings — one row per business, so switching
+  // businesses switches brands without any extra plumbing.
   useEffect(() => {
-    (async () => {
-      try {
-        if (DB.clientsState !== "loaded") await loadClients();
-        if (!DB.clients.some((c: any) => c.brandKit?._id)) await loadAllBrandKits();
-        const bk = DB.agency.brandKit;
-        const colors = (bk?.colors || []).slice(0, 7).map((c: any) => typeof c === "string" ? c : c?.hex || "#ccc");
-        const logoKeys = ["color", "light", "dark", "icon"];
-        const logoVariants = logoKeys.filter(k => (bk?.logos as any)?.[k]?.length > 0).length;
-        const font = bk?.fonts?.heading || "";
-        setRibbonData({ name: DB.agency.name || "CALO&CO", colors, logoVariants, font });
-      } catch (e) { console.error("[brand-kit ribbon] load error:", e); }
-    })();
-  }, []);
+    if (!org) return;
+    const s = (org.settings ?? {}) as Record<string, unknown>;
+    setBrand({ ...EMPTY_BRAND, ...((s.brand as Partial<BrandSettings>) ?? {}) });
+    setSig({
+      ...EMPTY_SIGNATURE,
+      company: org.name,
+      ...((s.signature as Partial<SignatureFields>) ?? {}),
+    });
+  }, [org]);
 
-  const HELM_FALLBACK_COLORS = ["#006AFF", "#00C9A0", "#0EA8C1", "#DC2626", "#8B6F47", "#1A1A1A", "#F5F5F5"];
-  const ribbonColors = ribbonData?.colors?.length ? ribbonData.colors : HELM_FALLBACK_COLORS;
-  const ribbonLogoCount = ribbonData?.logoVariants ?? 0;
-  const ribbonFont = ribbonData?.font || "Not set";
-  const ribbonName = ribbonData?.name || "CALO&CO";
+  const save = useCallback(
+    async (next: { brand?: BrandSettings; signature?: SignatureFields }) => {
+      if (!org) return;
+      setBusy(true);
+      setError(null);
+      try {
+        const current = (org.settings ?? {}) as Record<string, unknown>;
+        await updateOrg(org.id, {
+          settings: { ...current, ...next } as Record<string, unknown>,
+        });
+        await refresh();
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2500);
+      } catch (e) {
+        setError((e as Error).message);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [org, refresh]
+  );
+
+  const html = useMemo(() => renderSignature(sig, style), [sig, style]);
+  const guide = INSTALL_GUIDES.find((g) => g.id === guideId) ?? INSTALL_GUIDES[0];
+
+  const copyText = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(label);
+      setTimeout(() => setCopied(null), 2000);
+    } catch {
+      setError('Could not copy — your browser blocked clipboard access.');
+    }
+  };
+
+  /**
+   * Copies the RENDERED signature, not the source. Mail clients want rich
+   * content on the clipboard; pasting source into Gmail shows the code.
+   */
+  const copyRendered = async () => {
+    try {
+      const blob = new Blob([html], { type: 'text/html' });
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'text/html': blob,
+          'text/plain': new Blob([sig.name], { type: 'text/plain' }),
+        }),
+      ]);
+      setCopied('signature');
+      setTimeout(() => setCopied(null), 2000);
+    } catch {
+      setError(
+        'Your browser blocked the rich copy. Use "Copy HTML" and paste into an HTML source view instead.'
+      );
+    }
+  };
+
+  const addColor = () =>
+    setBrand((b) => ({ ...b, colors: [...b.colors, { name: '', hex: '#000000' }] }));
 
   return (
-    <BrandKitLayout selectedKitId="agency">
-      <div style={{ padding: 32, maxWidth: 960 }}>
-        <motion.div variants={stagger} initial="hidden" animate="show">
+    <Page
+      title="Brand Kit"
+      subtitle={org ? `${org.name} — assets, and the tools that use them.` : undefined}
+      action={
+        <>
+          {saved && <Pill tone="green">Saved</Pill>}
+          <Button
+            onClick={() => save(tab === 'brand' ? { brand } : { signature: sig })}
+            disabled={busy || !org}
+          >
+            {busy ? 'Saving…' : 'Save'}
+          </Button>
+        </>
+      }
+    >
+      {error && (
+        <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
+          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+        </Card>
+      )}
 
-          {/* Snapshot ribbon */}
-          <motion.div variants={fadeUp} style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            padding: "8px 0 20px",
-            borderBottom: `0.5px solid ${t.border.default}`,
-            marginBottom: 24,
-          }}>
-            <div style={{
-              width: 44,
-              height: 44,
-              borderRadius: 8,
-              background: t.bg.surfaceHover,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={t.text.secondary} strokeWidth="1.5" strokeLinecap="round">
-                <circle cx="12" cy="12" r="8.5"/>
-                <circle cx="12" cy="12" r="3"/>
-                <line x1="12" y1="3.5" x2="12" y2="9"/>
-                <line x1="12" y1="15" x2="12" y2="20.5"/>
-                <line x1="3.5" y1="12" x2="9" y2="12"/>
-                <line x1="15" y1="12" x2="20.5" y2="12"/>
-              </svg>
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-                <div style={{ fontSize: 22, fontWeight: 500, color: t.text.primary, marginBottom: 4, letterSpacing: "-0.2px", lineHeight: 1.2 }}>
-                  {ribbonName}
-                </div>
-                {saveStatus !== "idle" && (
-                  <span style={{ fontSize: 11, fontWeight: 500, display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-                    {saveStatus === "saving" && <span style={{ color: t.text.tertiary }}>Saving&hellip;</span>}
-                    {saveStatus === "saved" && <><span style={{ color: "#00C9A0" }}>&#9679;</span><span style={{ color: t.text.tertiary }}>Saved</span></>}
-                    {saveStatus === "error" && <span style={{ color: "#DC2626" }}>Save failed</span>}
-                  </span>
-                )}
-              </div>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, color: t.text.tertiary }}>
-                {ribbonColors.length > 0 && (
-                  <span style={{ display: "inline-flex", gap: 3, alignItems: "center" }}>
-                    {ribbonColors.map((hex, i) => (
-                      <span key={i} title={hex} style={{ width: 12, height: 12, borderRadius: 3, background: hex, border: hex.toUpperCase() === "#F5F5F5" || hex.toUpperCase() === "#FFFFFF" ? `0.5px solid ${t.border.default}` : "none" }}/>
-                    ))}
-                  </span>
-                )}
-                <span style={{ color: t.text.tertiary, fontSize: 12 }}>&middot;</span>
-                <span>{ribbonLogoCount === 0 ? "No logos uploaded" : `${ribbonLogoCount} of 4 logo variants`}</span>
-                <span style={{ color: t.text.tertiary, fontSize: 12 }}>&middot;</span>
-                <span>{ribbonFont}</span>
-              </div>
-              <div style={{ fontSize: 12, color: t.text.tertiary, marginTop: 8, lineHeight: 1.5, maxWidth: 600 }}>
-                Identity feeds Quote PDFs, email signatures, and the Rewriter. Visual powers logos and design templates. Messaging stores reusable copy.
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Identity / Visual / Messaging tabs */}
-          <motion.div variants={fadeUp} style={{ marginBottom: 20 }}>
-            <SegmentedControl
-              tabs={[
-                {
-                  key: "identity",
-                  label: "Identity",
-                  icon: (
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="8" cy="5.5" r="2.5"/>
-                      <path d="M3 13.5c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5"/>
-                    </svg>
-                  ),
-                },
-                {
-                  key: "visual",
-                  label: "Visual",
-                  icon: (
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="2" y="2.5" width="12" height="11" rx="1"/>
-                      <circle cx="6" cy="6.5" r="1.3"/>
-                      <path d="M14 10.5l-3.5-3.5L3 13.5"/>
-                    </svg>
-                  ),
-                },
-                {
-                  key: "messaging",
-                  label: "Messaging",
-                  icon: (
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M2.5 3.5h11a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H6l-3 2.5v-2.5H2.5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z"/>
-                      <line x1="5" y1="6.5" x2="11" y2="6.5"/>
-                      <line x1="5" y1="9" x2="9" y2="9"/>
-                    </svg>
-                  ),
-                },
-              ]}
-              activeTab={activeTab}
-              onChange={(key) => setActiveTab(key as "identity" | "visual" | "messaging")}
-            />
-          </motion.div>
-
-          {activeTab === "identity" && (
-            <motion.div variants={fadeUp}>
-              <AgencyBrandIdentity onSaveStatus={setSaveStatus} />
-            </motion.div>
-          )}
-
-          {activeTab === "visual" && (
-            <motion.div variants={fadeUp}>
-              <BrandKit context={{ type: "agency" }} />
-            </motion.div>
-          )}
-
-          {activeTab === "messaging" && (
-            <motion.div variants={fadeUp}>
-              <div style={{ padding: "48px 0", textAlign: "center" }}>
-                <div style={{ fontSize: 14, color: t.text.secondary, marginBottom: 8 }}>Messaging library coming soon</div>
-                <div style={{ fontSize: 12, color: t.text.tertiary, maxWidth: 400, margin: "0 auto", lineHeight: 1.5 }}>
-                  Reusable copy chunks — taglines, boilerplate, social bios — that feed your quotes, invoices, and Rewriter.
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </motion.div>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 22 }}>
+        {(['brand', 'signature'] as Tab[]).map((tb) => (
+          <button
+            key={tb}
+            onClick={() => setTab(tb)}
+            style={{
+              padding: '8px 14px',
+              borderRadius: 7,
+              border: `1px solid ${tab === tb ? C.blue : C.border}`,
+              background: tab === tb ? C.blueSoft : 'transparent',
+              color: tab === tb ? C.text : C.dim,
+              fontSize: 13,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            {tb === 'brand' ? 'Brand' : 'Email signature'}
+          </button>
+        ))}
       </div>
-    </BrandKitLayout>
+
+      {tab === 'brand' ? (
+        <div style={{ display: 'grid', gap: 18, maxWidth: 720 }}>
+          <Card>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <SectionLabel>Colours</SectionLabel>
+              <Button variant="ghost" onClick={addColor}>Add colour</Button>
+            </div>
+            {brand.colors.length === 0 ? (
+              <Empty>No colours yet.</Empty>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {brand.colors.map((c, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <input
+                      type="color"
+                      value={c.hex}
+                      onChange={(e) =>
+                        setBrand((b) => ({
+                          ...b,
+                          colors: b.colors.map((x, j) =>
+                            j === i ? { ...x, hex: e.target.value } : x
+                          ),
+                        }))
+                      }
+                      style={{
+                        width: 42, height: 34, padding: 2, borderRadius: 6,
+                        border: `1px solid ${C.border}`, background: C.panelAlt, cursor: 'pointer',
+                      }}
+                    />
+                    <input
+                      value={c.name}
+                      placeholder="Name, e.g. Hull"
+                      onChange={(e) =>
+                        setBrand((b) => ({
+                          ...b,
+                          colors: b.colors.map((x, j) =>
+                            j === i ? { ...x, name: e.target.value } : x
+                          ),
+                        }))
+                      }
+                      style={{ ...inputStyle, flex: 1 }}
+                    />
+                    <button
+                      onClick={() => copyText(c.hex, c.hex)}
+                      style={{
+                        ...inputStyle, width: 100, cursor: 'pointer',
+                        textAlign: 'center', color: copied === c.hex ? C.green : C.dim,
+                      }}
+                    >
+                      {copied === c.hex ? 'Copied' : c.hex}
+                    </button>
+                    <button
+                      onClick={() =>
+                        setBrand((b) => ({ ...b, colors: b.colors.filter((_, j) => j !== i) }))
+                      }
+                      style={{
+                        background: 'none', border: 'none', color: C.faint,
+                        cursor: 'pointer', fontSize: 16,
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          <Card>
+            <SectionLabel>Typography</SectionLabel>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <Field label="Headings">
+                <input
+                  value={brand.fontHeading}
+                  onChange={(e) => setBrand((b) => ({ ...b, fontHeading: e.target.value }))}
+                  style={inputStyle}
+                  placeholder="Nib Pro"
+                />
+              </Field>
+              <Field label="Body">
+                <input
+                  value={brand.fontBody}
+                  onChange={(e) => setBrand((b) => ({ ...b, fontBody: e.target.value }))}
+                  style={inputStyle}
+                  placeholder="Geist"
+                />
+              </Field>
+            </div>
+          </Card>
+
+          <Card>
+            <SectionLabel>Logos</SectionLabel>
+            <Field label="Logo URL — light backgrounds">
+              <input
+                value={brand.logoLight}
+                onChange={(e) => setBrand((b) => ({ ...b, logoLight: e.target.value }))}
+                style={inputStyle}
+                placeholder="https://…"
+              />
+            </Field>
+            <Field label="Logo URL — dark backgrounds">
+              <input
+                value={brand.logoDark}
+                onChange={(e) => setBrand((b) => ({ ...b, logoDark: e.target.value }))}
+                style={inputStyle}
+              />
+            </Field>
+            <div style={{ fontSize: 11.5, color: C.faint }}>
+              These need to be public URLs. An email signature can&apos;t load a file from
+              someone&apos;s laptop.
+            </div>
+          </Card>
+
+          <Card>
+            <SectionLabel>Voice</SectionLabel>
+            <textarea
+              value={brand.voice}
+              onChange={(e) => setBrand((b) => ({ ...b, voice: e.target.value }))}
+              style={{ ...inputStyle, minHeight: 90, resize: 'vertical' }}
+              placeholder="How this brand sounds. Plain, direct, no jargon…"
+            />
+          </Card>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 18 }}>
+          <div>
+            <Card style={{ marginBottom: 16 }}>
+              <SectionLabel>Details</SectionLabel>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <Field label="Name">
+                  <input value={sig.name} onChange={(e) => setSig({ ...sig, name: e.target.value })} style={inputStyle} />
+                </Field>
+                <Field label="Title">
+                  <input value={sig.title} onChange={(e) => setSig({ ...sig, title: e.target.value })} style={inputStyle} />
+                </Field>
+                <Field label="Company">
+                  <input value={sig.company} onChange={(e) => setSig({ ...sig, company: e.target.value })} style={inputStyle} />
+                </Field>
+                <Field label="Phone">
+                  <input value={sig.phone} onChange={(e) => setSig({ ...sig, phone: e.target.value })} style={inputStyle} />
+                </Field>
+                <Field label="Email">
+                  <input value={sig.email} onChange={(e) => setSig({ ...sig, email: e.target.value })} style={inputStyle} />
+                </Field>
+                <Field label="Website">
+                  <input value={sig.website} onChange={(e) => setSig({ ...sig, website: e.target.value })} style={inputStyle} />
+                </Field>
+              </div>
+              <Field label="Logo URL">
+                <input
+                  value={sig.logoUrl}
+                  onChange={(e) => setSig({ ...sig, logoUrl: e.target.value })}
+                  style={inputStyle}
+                  placeholder={brand.logoLight || 'https://…'}
+                />
+              </Field>
+              <Field label="Tagline (optional)">
+                <input value={sig.tagline} onChange={(e) => setSig({ ...sig, tagline: e.target.value })} style={inputStyle} />
+              </Field>
+            </Card>
+
+            <Card>
+              <SectionLabel>Layout</SectionLabel>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {SIGNATURE_STYLES.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => setStyle(s.id)}
+                    style={{
+                      textAlign: 'left', padding: '10px 12px', borderRadius: 7,
+                      border: `1px solid ${style === s.id ? C.blue : C.border}`,
+                      background: style === s.id ? C.blueSoft : 'transparent',
+                      cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    <div style={{ fontSize: 13, color: C.text }}>{s.name}</div>
+                    <div style={{ fontSize: 11.5, color: C.faint, marginTop: 2 }}>{s.note}</div>
+                  </button>
+                ))}
+              </div>
+            </Card>
+          </div>
+
+          <div>
+            <Card style={{ marginBottom: 16 }}>
+              <SectionLabel>Preview</SectionLabel>
+              <div
+                style={{
+                  background: '#ffffff',
+                  borderRadius: 7,
+                  padding: 20,
+                  border: `1px solid ${C.border}`,
+                  overflowX: 'auto',
+                }}
+                dangerouslySetInnerHTML={{ __html: html }}
+              />
+              <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
+                <Button onClick={copyRendered}>
+                  {copied === 'signature' ? 'Copied' : 'Copy signature'}
+                </Button>
+                <Button variant="ghost" onClick={() => copyText(html, 'html')}>
+                  {copied === 'html' ? 'Copied' : 'Copy HTML'}
+                </Button>
+              </div>
+              <div style={{ fontSize: 11.5, color: C.faint, marginTop: 10 }}>
+                &quot;Copy signature&quot; puts the rendered version on your clipboard — that&apos;s
+                what mail clients want. &quot;Copy HTML&quot; gives you the source, for anything with
+                a code view.
+              </div>
+            </Card>
+
+            <Card>
+              <SectionLabel>Install it</SectionLabel>
+              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 14 }}>
+                {INSTALL_GUIDES.map((g) => (
+                  <button
+                    key={g.id}
+                    onClick={() => setGuideId(g.id)}
+                    style={{
+                      padding: '5px 10px', borderRadius: 20, fontSize: 11.5,
+                      border: `1px solid ${guideId === g.id ? C.blue : C.border}`,
+                      background: guideId === g.id ? C.blueSoft : 'transparent',
+                      color: guideId === g.id ? C.text : C.dim,
+                      cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    {g.name}
+                  </button>
+                ))}
+              </div>
+
+              <ol style={{ margin: 0, paddingLeft: 20, fontSize: 12.5, color: C.dim, lineHeight: 1.7 }}>
+                {guide.steps.map((s, i) => (
+                  <li key={i} style={{ marginBottom: 4 }}>{s}</li>
+                ))}
+              </ol>
+
+              {guide.gotcha && (
+                <div
+                  style={{
+                    marginTop: 14, padding: 11, borderRadius: 7,
+                    background: C.amberSoft, border: `1px solid ${C.amber}44`,
+                    fontSize: 12, color: C.amber, lineHeight: 1.55,
+                  }}
+                >
+                  {guide.gotcha}
+                </div>
+              )}
+            </Card>
+          </div>
+        </div>
+      )}
+    </Page>
   );
 }

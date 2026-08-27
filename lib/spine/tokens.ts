@@ -1,52 +1,44 @@
 /**
- * Design tokens — Carta-inspired.
+ * Design tokens.
  *
- * Editorial, unhurried, serious about money. The serif headline carries all
- * the personality; everything else stays quiet. One accent colour, used
- * sparingly, so that when something IS orange it means something.
- *
- * Light by default and only light. The old app carried a dark/light toggle
- * that doubled every colour decision and earned nothing.
+ * Back to the original dark direction. The Carta-inspired light theme is
+ * parked, not discarded — see docs/design-directions.md for the palette and
+ * the reasoning, so picking it back up later is a token swap rather than
+ * archaeology.
  */
 
 export const C = {
-  // Surfaces — warm off-white, not clinical grey
-  bg: '#FAF9F7',
-  panel: '#FFFFFF',
-  panelAlt: '#F5F3F0',
-  rail: '#FFFFFF',
-  ink: '#111111',
+  bg: '#111113',
+  panel: '#18181b',
+  panelAlt: '#1f1f23',
+  rail: '#18181b',
+  ink: '#f5f5f5',
 
-  // Text
-  text: '#1A1A1A',
-  dim: '#5C5C5C',
-  faint: '#8A8A85',
+  text: '#f5f5f5',
+  dim: '#9b9ba3',
+  faint: '#6b6b73',
 
-  // Hairlines — the whole layout is built from these, so they stay light
-  border: '#E6E3DE',
-  borderStrong: '#D4D0C9',
+  border: '#2a2a30',
+  borderStrong: '#3a3a42',
 
-  // The one accent
-  accent: '#D2703A',
-  accentSoft: '#FBF0E8',
+  accent: '#3b82f6',
+  accentSoft: '#1e3a5f',
 
-  // Meaning colours. Muted on purpose — a red that shouts on a white page
-  // makes every screen feel like an emergency.
-  green: '#2F7D4F',
-  greenSoft: '#EAF3ED',
-  amber: '#B67A12',
-  amberSoft: '#FBF3E3',
-  red: '#B3392E',
-  redSoft: '#FAECEA',
-  blue: '#2C5F8A',
-  blueSoft: '#EAF0F6',
+  green: '#22c55e',
+  greenSoft: '#12281a',
+  amber: '#f59e0b',
+  amberSoft: '#2a1f08',
+  red: '#ef4444',
+  redSoft: '#2a1414',
+  blue: '#3b82f6',
+  blueSoft: '#15233d',
 } as const;
 
-/** Applied to headings. Set in layout.tsx via next/font. */
-export const SERIF = 'var(--font-serif), Georgia, "Times New Roman", serif';
+/** Headings use the body face. The serif experiment is parked. */
+export const SERIF = 'inherit';
 
 export const radius = {
-  sm: 4,
-  md: 6,
-  lg: 8,
+  sm: 5,
+  md: 7,
+  lg: 10,
 } as const;

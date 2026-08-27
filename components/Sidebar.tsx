@@ -15,20 +15,15 @@ const icons: Record<string, React.ReactNode> = {
   settings: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>,
   yardSign: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="3" y="1.5" width="10" height="8" rx="1"/><line x1="6" y1="9.5" x2="6" y2="14.5" strokeLinecap="round"/><line x1="10" y1="9.5" x2="10" y2="14.5" strokeLinecap="round"/></svg>,
   clients: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="6" cy="5" r="2.5"/><path d="M1.5 14c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5"/><circle cx="11" cy="4.5" r="2"/><path d="M14.5 13c0-2 1.5-3.5-1.5-3.5"/></svg>,
-  contacts: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="8" cy="5.5" r="3"/><path d="M2.5 14.5c0-3 2.5-5.5 5.5-5.5s5.5 2.5 5.5 5.5"/></svg>,
-  sun: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="8" cy="8" r="3"/><line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/><line x1="3" y1="3" x2="4.4" y2="4.4"/><line x1="11.6" y1="11.6" x2="13" y2="13"/><line x1="3" y1="13" x2="4.4" y2="11.6"/><line x1="11.6" y1="4.4" x2="13" y2="3"/></svg>,
-  moon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M13.5 8.5a5.5 5.5 0 1 1-6-6 4.5 4.5 0 0 0 6 6z"/></svg>,
 };
 
 export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { theme, setTheme, t } = useTheme();
+  const { t } = useTheme();
   const { vocab } = useOrg();
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
-    if (href === '/brand-kit') return pathname === '/brand-kit' || pathname.startsWith('/brand-kit/') || /^\/clients\/[^/]+\/brand-kit/.test(pathname);
-    if (href === '/clients') return (pathname === '/clients' || pathname.startsWith('/clients/')) && !/\/brand-kit/.test(pathname);
     return pathname === href || pathname.startsWith(href + '/') || pathname.startsWith(href + '?');
   };
 
@@ -74,9 +69,6 @@ export default function Sidebar() {
       <div style={{ flex: 1, padding: '12px 8px 8px', display: 'flex', flexDirection: 'column', gap: 0, overflowY: 'auto' }}>
         {navBtn('Dashboard', '/', icons.dashboard)}
 
-        {/* The spine. Jobs -> Documents -> Billing is the whole loop.
-            Labels follow the active business: Jobs for a contractor,
-            Engagements for the agency. */}
         {/* The work. Jobs -> Documents -> Billing is the whole loop. */}
         <div style={{ height: 12 }} />
         {navBtn(vocab.jobPlural, '/jobs', icons.yardSign)}
@@ -84,25 +76,12 @@ export default function Sidebar() {
         {navBtn('Documents', '/documents', icons.quotes)}
         {navBtn('Billing', '/billing', icons.invoices)}
 
-        {/* The numbers. */}
+        {/* The numbers, and the brand. */}
         <div style={{ height: 12 }} />
         {navBtn('Profit & Loss', '/pl', icons.financials)}
+        {navBtn('Site requests', '/requests', icons.designStudio)}
         {navBtn('Brand Kit', '/brand-kit', icons.brandKit)}
         {navBtn('Business', '/business', icons.settings)}
-
-        {/* Legacy modules — superseded, kept until their data is migrated.
-            See docs/spine.md. */}
-        <div style={{ height: 18 }} />
-        <div style={{
-          fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em',
-          color: t.text.tertiary, fontWeight: 600, padding: '0 16px 6px',
-        }}>
-          Legacy
-        </div>
-        {navBtn('Old clients', '/clients', icons.clients)}
-        {navBtn('Old contacts', '/contacts', icons.contacts)}
-        {navBtn('Old invoices', '/invoices', icons.invoices)}
-        {navBtn('Design Studio', '/design', icons.designStudio)}
       </div>
       <div style={{ padding: '8px 8px 4px', borderTop: `0.5px solid ${t.border.default}` }}>
         {navBtn('Settings', '/settings', icons.settings)}

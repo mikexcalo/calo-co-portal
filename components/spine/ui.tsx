@@ -62,22 +62,11 @@ export function Page({
         }}
       >
         <div>
-          {/* The serif headline is where all the personality lives. */}
-          <h1
-            style={{
-              fontFamily: SERIF,
-              fontSize: phone ? 26 : 32,
-              fontWeight: 400,
-              letterSpacing: '-0.01em',
-              lineHeight: 1.15,
-              margin: 0,
-              color: C.text,
-            }}
-          >
+          <h1 style={{ fontSize: phone ? 19 : 21, fontWeight: 500, margin: 0, color: C.text }}>
             {title}
           </h1>
           {subtitle && (
-            <p style={{ fontSize: 13.5, color: C.dim, margin: '8px 0 0', maxWidth: 640 }}>
+            <p style={{ fontSize: 13, color: C.faint, margin: '6px 0 0', maxWidth: 640 }}>
               {subtitle}
             </p>
           )}
@@ -143,12 +132,10 @@ export function Button({
   disabled?: boolean;
   type?: 'button' | 'submit';
 }) {
-  // Solid black primary, like Carta's. The accent orange is reserved for
-  // wayfinding, so it never competes with a call to action.
   const styles: Record<string, React.CSSProperties> = {
-    primary: { background: C.ink, color: '#fff', border: `1px solid ${C.ink}` },
-    ghost: { background: C.panel, color: C.text, border: `1px solid ${C.borderStrong}` },
-    danger: { background: C.panel, color: C.red, border: `1px solid ${C.border}` },
+    primary: { background: C.blue, color: '#fff', border: `1px solid ${C.blue}` },
+    ghost: { background: 'transparent', color: C.dim, border: `1px solid ${C.border}` },
+    danger: { background: 'transparent', color: C.red, border: `1px solid ${C.red}44` },
   };
   return (
     <button
@@ -225,18 +212,7 @@ export function Metric({
       <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.07em', color: C.faint, fontWeight: 600 }}>
         {label}
       </div>
-      {/* Numbers get the serif too — it's what makes a figure feel considered
-          rather than generated. */}
-      <div
-        style={{
-          fontFamily: SERIF,
-          fontSize: 27,
-          fontWeight: 400,
-          color,
-          marginTop: 8,
-          letterSpacing: '-0.015em',
-        }}
-      >
+      <div style={{ fontSize: 24, fontWeight: 500, color, marginTop: 8, letterSpacing: '-0.01em' }}>
         {value}
       </div>
       {hint && <div style={{ fontSize: 11, color: C.faint, marginTop: 4 }}>{hint}</div>}
