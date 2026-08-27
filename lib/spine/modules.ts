@@ -128,14 +128,14 @@ export function navFor(
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
         { id: 'pricing', label: 'Price List', href: '/pricing', icon: 'financials' },
         { id: 'documents', label: 'Documents', href: '/documents', icon: 'quotes' },
-        { id: 'files', label: 'Files', href: '/files', icon: 'brandKit' },
+        { id: 'files', label: 'Files', href: '/files', icon: 'folder' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
       heading: 'Money',
       items: [
         { id: 'billing', label: 'Billing', href: '/billing', icon: 'invoices' },
-        { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'financials' },
+        { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {

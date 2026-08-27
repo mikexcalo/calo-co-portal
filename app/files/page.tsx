@@ -197,6 +197,30 @@ export default function FilesPage() {
     else setError('Could not open that file.');
   };
 
+  /**
+   * Download rather than preview. A 113-page manual is something Mark hands
+   * a new hire, not something he reads in a browser tab — and on a phone,
+   * "open" often means a viewer he then can't get the file out of.
+   */
+  const download = async (f: BusinessFile) => {
+    setError(null);
+    try {
+      const res = await supabase.storage.from('documents').download(f.storage_path);
+      if (res.error) throw new Error(res.error.message);
+
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = f.file_name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      setError(`Could not download that file: ${(e as Error).message}`);
+    }
+  };
+
   const remove = async (f: BusinessFile) => {
     setBusy(true);
     try {
@@ -406,6 +430,7 @@ export default function FilesPage() {
                     </div>
                     <div style={{ display: 'flex', gap: 7 }}>
                       <Button variant="ghost" onClick={() => view(f)}>Open</Button>
+                      <Button variant="ghost" onClick={() => download(f)}>Download</Button>
                       <Button variant="danger" onClick={() => remove(f)} disabled={busy}>Delete</Button>
                     </div>
                   </div>

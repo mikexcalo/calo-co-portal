@@ -14,16 +14,93 @@ import { navFor } from '@/lib/spine/modules';
 import { OrgSwitcher } from '@/components/spine/OrgSwitcher';
 import { C, radius } from '@/components/spine/ui';
 
+/**
+ * Nav icons.
+ *
+ * Drawn at 1.75 stroke rather than 1.4 so they hold up next to the text
+ * weight, and chosen to say what the thing IS rather than reaching for the
+ * nearest generic glyph — a yard sign for jobs, a hard hat for customers, a
+ * receipt for documents, a folder for files.
+ */
 const icons: Record<string, React.ReactNode> = {
-  dashboard: <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>,
-  yardSign: <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="3" y="1.5" width="10" height="8" rx="1"/><line x1="6" y1="9.5" x2="6" y2="14.5" strokeLinecap="round"/><line x1="10" y1="9.5" x2="10" y2="14.5" strokeLinecap="round"/></svg>,
-  clients: <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="6" cy="5" r="2.5"/><path d="M1.5 14c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5"/><circle cx="11" cy="4.5" r="2"/><path d="M14.5 13c0-2 1.5-3.5-1.5-3.5"/></svg>,
-  quotes: <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 1.5h7L13 4.5v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V2.5a1 1 0 0 1 1-1z"/><path d="M10 1.5v3h3"/><line x1="5" y1="8" x2="10" y2="8"/><line x1="5" y1="11" x2="9" y2="11"/></svg>,
-  invoices: <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="8" r="6.5"/><path d="M10 5.5c-.5-.6-1.3-1-2.1-1-1.3 0-2.4.8-2.4 1.8S6.6 8 7.9 8s2.4.8 2.4 1.8-1.1 1.8-2.4 1.8c-.9 0-1.7-.4-2.1-1"/><line x1="8" y1="3" x2="8" y2="4.5"/><line x1="8" y1="11.6" x2="8" y2="13"/></svg>,
-  financials: <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><line x1="2" y1="14" x2="14" y2="14"/><line x1="4" y1="14" x2="4" y2="10" strokeWidth="1.8"/><line x1="8" y1="14" x2="8" y2="7" strokeWidth="1.8"/><line x1="12" y1="14" x2="12" y2="4" strokeWidth="1.8"/></svg>,
-  designStudio: <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><rect x="1.5" y="3" width="13" height="9" rx="1"/><line x1="1.5" y1="6" x2="14.5" y2="6"/><circle cx="3.6" cy="4.5" r="0.5" fill="currentColor"/></svg>,
-  brandKit: <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="12" height="12" rx="1.5"/><rect x="4" y="4.5" width="4.5" height="3" rx="0.5" fill="currentColor" stroke="none"/><line x1="4" y1="9.5" x2="12" y2="9.5"/><line x1="4" y1="11.5" x2="10" y2="11.5"/></svg>,
-  settings: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>,
+  dashboard: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 6.6 8 2l6 4.6" /><path d="M3.4 7.6V13a.8.8 0 0 0 .8.8h7.6a.8.8 0 0 0 .8-.8V7.6" />
+      <path d="M6.4 13.8V9.6h3.2v4.2" />
+    </svg>
+  ),
+  // A yard sign — what a contractor plants on a job.
+  yardSign: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2.2" y="2" width="11.6" height="7.2" rx="1.1" />
+      <path d="M5.2 5.1h5.6M5.2 7h3.4" />
+      <path d="M8 9.2V14" /><path d="M5.6 14h4.8" />
+    </svg>
+  ),
+  // A hard hat — the people a contractor deals with.
+  clients: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2.2 11.4a5.8 5.8 0 0 1 11.6 0" />
+      <path d="M6.2 6.1V3.4a.9.9 0 0 1 .9-.9h1.8a.9.9 0 0 1 .9.9v2.7" />
+      <path d="M1.4 11.4h13.2" />
+    </svg>
+  ),
+  // A receipt, torn edge and all.
+  quotes: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3.4 1.8h9.2v11.4l-1.8-1.1-1.8 1.1-1.8-1.1-1.8 1.1-1.8-1.1z" />
+      <path d="M5.8 5h4.4M5.8 7.8h3" />
+    </svg>
+  ),
+  // A price tag.
+  financials: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8.3 1.9H14v5.7L7.4 14.2a1 1 0 0 1-1.4 0L1.8 10a1 1 0 0 1 0-1.4z" />
+      <circle cx="11.1" cy="4.8" r="1.05" />
+    </svg>
+  ),
+  // A folder — records you keep.
+  folder: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1.8 12.6V3.6a.9.9 0 0 1 .9-.9h3.1l1.5 1.8h6a.9.9 0 0 1 .9.9v7.2a.9.9 0 0 1-.9.9H2.7a.9.9 0 0 1-.9-.9z" />
+    </svg>
+  ),
+  // Banknote.
+  invoices: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="1.4" y="3.6" width="13.2" height="8.8" rx="1.2" />
+      <circle cx="8" cy="8" r="1.9" /><path d="M4.1 8h.02M11.9 8h.02" />
+    </svg>
+  ),
+  // Bar chart with a rising line.
+  chart: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 13.6h12.2" />
+      <path d="M4.2 13.6V9.4M7.4 13.6V6.2M10.6 13.6V8M13.8 13.6V3.4" />
+    </svg>
+  ),
+  // Browser window — website work.
+  designStudio: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="1.5" y="2.6" width="13" height="10.8" rx="1.2" />
+      <path d="M1.5 5.9h13" /><path d="M3.6 4.25h.02M5.5 4.25h.02" />
+    </svg>
+  ),
+  // Paint swatches.
+  brandKit: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="1.7" y="1.7" width="5.6" height="5.6" rx="1" />
+      <rect x="8.7" y="1.7" width="5.6" height="5.6" rx="1" />
+      <rect x="1.7" y="8.7" width="5.6" height="5.6" rx="1" />
+      <circle cx="11.5" cy="11.5" r="2.8" />
+    </svg>
+  ),
+  // Wrench — setup.
+  settings: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.4 5.6a2.9 2.9 0 0 1-3.7 3.7l-4 4a1.3 1.3 0 0 1-1.9-1.9l4-4a2.9 2.9 0 0 1 3.7-3.7L7 5.2l.6 2.2 2.2.6z" />
+    </svg>
+  ),
 };
 
 export default function Sidebar() {
