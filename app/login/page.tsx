@@ -1,30 +1,60 @@
 'use client';
 
-import { useState } from 'react';
+/**
+ * Sign in.
+ *
+ * This is where a client lands from the "Log in" link on calo.company, so it
+ * has to make sense to someone who has never seen Nautilus and was told
+ * "your portal is here" — not just to Mike.
+ *
+ * There is deliberately no self-signup. Accounts are created for a client
+ * when their workspace is set up; an open signup form would let anyone make
+ * an orphan account with no business attached, which looks broken and is
+ * worse than an honest "ask us".
+ */
+
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
 
-export default function LoginPage() {
+const INK = '#111113';
+const PANEL = '#ffffff';
+const BORDER = '#e4e4e0';
+const TEXT = '#1a1a1a';
+const DIM = '#5a5a5a';
+const FAINT = '#8a8a88';
+const ACCENT = '#2563eb';
+const RED = '#b91c1c';
+
+function LoginForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const params = useSearchParams();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(searchParams.get('error') === 'auth' ? 'Authentication failed. Please try again.' : '');
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<'password' | 'reset'>('password');
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState(
+    params.get('error') === 'auth' ? 'That sign-in link did not work. Try again.' : ''
+  );
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const signIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     const supabase = createSupabaseBrowser();
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (authError) {
-      setError(authError.message);
+      // Supabase says "Invalid login credentials" for both a wrong password
+      // and an account that doesn't exist. Say something a human can act on.
+      setError(
+        /invalid login/i.test(authError.message)
+          ? "That email and password don't match. Check both, or reset your password below."
+          : authError.message
+      );
       setLoading(false);
       return;
     }
@@ -33,189 +63,224 @@ export default function LoginPage() {
     router.refresh();
   };
 
-  const handleGoogleLogin = async () => {
+  const sendReset = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError('');
     setLoading(true);
 
     const supabase = createSupabaseBrowser();
-    const { error: authError } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        // TODO: Configure Google OAuth in the Supabase Dashboard:
-        // 1. Go to Authentication → Providers → Google
-        // 2. Enable Google provider
-        // 3. Paste your Google Client ID and Client Secret
-        // 4. Set the authorized redirect URI in Google Cloud Console to:
-        //    https://<your-project>.supabase.co/auth/v1/callback
-      },
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback`,
     });
 
-    if (authError) {
-      setError(authError.message);
-      setLoading(false);
+    setLoading(false);
+    if (resetError) {
+      setError(resetError.message);
+      return;
     }
+    // Always report success — confirming which emails exist would leak them.
+    setSent(true);
+  };
+
+  const field: React.CSSProperties = {
+    width: '100%',
+    background: '#fbfbfa',
+    border: `1px solid ${BORDER}`,
+    borderRadius: 7,
+    padding: '11px 13px',
+    fontSize: 14,
+    color: TEXT,
+    fontFamily: 'inherit',
+    boxSizing: 'border-box',
   };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <div style={styles.brand}>Nautilus</div>
-        <p style={styles.sub}>Sign in to continue</p>
-
-        {error && <div style={styles.error}>{error}</div>}
-
-        <form onSubmit={handleEmailLogin} style={styles.form}>
-          <label style={styles.label}>
-            Email
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={styles.input}
-              placeholder="you@example.com"
-              autoComplete="email"
-            />
-          </label>
-          <label style={styles.label}>
-            Password
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={styles.input}
-              placeholder="••••••••"
-              autoComplete="current-password"
-            />
-          </label>
-          <button type="submit" disabled={loading} style={styles.btn}>
-            {loading ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
-
-        <div style={styles.divider}>
-          <span style={styles.dividerLine} />
-          <span style={styles.dividerText}>or</span>
-          <span style={styles.dividerLine} />
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#f7f7f5',
+        padding: 20,
+        fontFamily: 'inherit',
+      }}
+    >
+      <div style={{ width: '100%', maxWidth: 400 }}>
+        <div style={{ textAlign: 'center', marginBottom: 26 }}>
+          <div style={{ fontSize: 22, fontWeight: 600, color: INK, letterSpacing: '-0.4px' }}>
+            Nautilus
+          </div>
+          <div style={{ fontSize: 13, color: FAINT, marginTop: 6 }}>
+            Your workspace from CALO&amp;CO
+          </div>
         </div>
 
-        <button onClick={handleGoogleLogin} disabled={loading} style={styles.googleBtn}>
-          <svg width="18" height="18" viewBox="0 0 48 48">
-            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-            <path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.9 7.34 2.56 10.52l7.97-5.93z"/>
-            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 5.93C6.51 42.62 14.62 48 24 48z"/>
-          </svg>
-          Continue with Google
-        </button>
+        <div
+          style={{
+            background: PANEL,
+            border: `1px solid ${BORDER}`,
+            borderRadius: 12,
+            padding: 26,
+          }}
+        >
+          {sent ? (
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 15, fontWeight: 500, color: TEXT, marginBottom: 8 }}>
+                Check your email
+              </div>
+              <p style={{ fontSize: 13, color: DIM, lineHeight: 1.6, margin: 0 }}>
+                If there&apos;s an account for <strong>{email}</strong>, a link to set a new
+                password is on its way. It expires in an hour.
+              </p>
+              <button
+                onClick={() => {
+                  setSent(false);
+                  setMode('password');
+                }}
+                style={{
+                  marginTop: 18,
+                  background: 'transparent',
+                  border: 'none',
+                  color: ACCENT,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Back to sign in
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={mode === 'password' ? signIn : sendReset}>
+              <div style={{ fontSize: 15, fontWeight: 500, color: TEXT, marginBottom: 4 }}>
+                {mode === 'password' ? 'Sign in' : 'Reset your password'}
+              </div>
+              <p style={{ fontSize: 12.5, color: FAINT, margin: '0 0 20px', lineHeight: 1.5 }}>
+                {mode === 'password'
+                  ? 'Use the email your workspace was set up with.'
+                  : "We'll email you a link to set a new one."}
+              </p>
+
+              <label style={{ display: 'block', marginBottom: 14 }}>
+                <div style={{ fontSize: 12, color: DIM, marginBottom: 6 }}>Email</div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoFocus
+                  autoComplete="email"
+                  style={field}
+                  placeholder="you@company.com"
+                />
+              </label>
+
+              {mode === 'password' && (
+                <label style={{ display: 'block', marginBottom: 14 }}>
+                  <div style={{ fontSize: 12, color: DIM, marginBottom: 6 }}>Password</div>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                    style={field}
+                  />
+                </label>
+              )}
+
+              {error && (
+                <div
+                  style={{
+                    background: '#fbeded',
+                    border: `1px solid ${RED}33`,
+                    borderRadius: 7,
+                    padding: '10px 12px',
+                    fontSize: 12.5,
+                    color: RED,
+                    marginBottom: 14,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  background: INK,
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 7,
+                  padding: '12px',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: loading ? 'wait' : 'pointer',
+                  opacity: loading ? 0.6 : 1,
+                  fontFamily: 'inherit',
+                }}
+              >
+                {loading
+                  ? 'One moment…'
+                  : mode === 'password'
+                  ? 'Sign in'
+                  : 'Send reset link'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMode(mode === 'password' ? 'reset' : 'password');
+                  setError('');
+                }}
+                style={{
+                  width: '100%',
+                  marginTop: 14,
+                  background: 'transparent',
+                  border: 'none',
+                  color: DIM,
+                  fontSize: 12.5,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {mode === 'password' ? 'Forgot your password?' : 'Back to sign in'}
+              </button>
+            </form>
+          )}
+        </div>
+
+        <div
+          style={{
+            textAlign: 'center',
+            marginTop: 20,
+            fontSize: 12.5,
+            color: FAINT,
+            lineHeight: 1.6,
+          }}
+        >
+          Don&apos;t have an account yet?
+          <br />
+          Workspaces are set up for you —{' '}
+          <a href="mailto:mikexcalo@gmail.com" style={{ color: ACCENT, textDecoration: 'none' }}>
+            get in touch
+          </a>
+          .
+        </div>
       </div>
     </div>
   );
 }
 
-const styles: Record<string, React.CSSProperties> = {
-  page: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: '#111113',
-    padding: '24px',
-  },
-  card: {
-    width: '100%',
-    maxWidth: '380px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0',
-  },
-  brand: {
-    fontFamily: 'Georgia, serif',
-    fontSize: '28px',
-    fontWeight: 400,
-    color: '#f5f5f5',
-    letterSpacing: '-0.02em',
-    marginBottom: '8px',
-  },
-  sub: {
-    fontSize: '15px',
-    color: '#6a6a6e',
-    margin: '0 0 32px',
-  },
-  error: {
-    background: 'rgba(248,113,113,0.12)',
-    border: '1px solid rgba(248,113,113,0.25)',
-    borderRadius: '8px',
-    padding: '12px 16px',
-    fontSize: '14px',
-    color: '#f87171',
-    marginBottom: '20px',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  label: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-    fontSize: '13px',
-    fontWeight: 500,
-    color: '#a1a1a5',
-  },
-  input: {
-    padding: '12px 14px',
-    borderRadius: '8px',
-    border: '1px solid rgba(255,255,255,0.10)',
-    background: '#1c1c20',
-    color: '#f5f5f5',
-    fontSize: '15px',
-    outline: 'none',
-    transition: 'border-color 0.15s',
-  },
-  btn: {
-    marginTop: '8px',
-    padding: '14px',
-    borderRadius: '8px',
-    border: 'none',
-    background: '#f5f5f5',
-    color: '#111113',
-    fontSize: '15px',
-    fontWeight: 600,
-    cursor: 'pointer',
-    transition: 'opacity 0.15s',
-  },
-  divider: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    margin: '28px 0',
-  },
-  dividerLine: {
-    flex: 1,
-    height: '1px',
-    background: 'rgba(255,255,255,0.08)',
-  },
-  dividerText: {
-    fontSize: '13px',
-    color: '#6a6a6e',
-  },
-  googleBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '10px',
-    padding: '13px',
-    borderRadius: '8px',
-    border: '1px solid rgba(255,255,255,0.10)',
-    background: 'transparent',
-    color: '#f5f5f5',
-    fontSize: '15px',
-    fontWeight: 500,
-    cursor: 'pointer',
-    transition: 'background 0.15s, border-color 0.15s',
-  },
-};
+export default function LoginPage() {
+  // useSearchParams needs a Suspense boundary during static generation.
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}

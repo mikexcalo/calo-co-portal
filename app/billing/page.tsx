@@ -11,12 +11,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
+  brandAccent,
+  brandOf,
   getInvoiceLines,
   listInvoices,
   listJobs,
   updateInvoice,
   voidInvoice,
 } from '@/lib/spine/db';
+import { useOrg } from '@/lib/spine/org';
 import { INVOICE_STATUS_LABEL } from '@/lib/spine/types';
 import type { JobInvoice, JobInvoiceLine, JobWithCustomer } from '@/lib/spine/types';
 import {
@@ -36,6 +39,10 @@ import {
 
 export default function BillingPage() {
   const router = useRouter();
+  const { org } = useOrg();
+  // Client-facing documents carry the business's brand, not the app's.
+  const accent = brandAccent(org, C.blue);
+  const logo = brandOf(org).logoLight;
   const [invoices, setInvoices] = useState<JobInvoice[]>([]);
   const [jobs, setJobs] = useState<Record<string, JobWithCustomer>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -193,6 +200,25 @@ export default function BillingPage() {
 
                 {isOpen && (
                   <div style={{ padding: '14px 18px', background: C.panelAlt, borderBottom: `1px solid ${C.border}` }}>
+                    {/* Brand marker — the Brand Kit feeding a real document. */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        paddingBottom: 12,
+                        marginBottom: 12,
+                        borderBottom: `2px solid ${accent}`,
+                      }}
+                    >
+                      {logo && (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={logo} alt="" style={{ height: 22, objectFit: 'contain' }} />
+                      )}
+                      <span style={{ fontSize: 12, color: C.dim }}>
+                        {org?.name} · {inv.number}
+                      </span>
+                    </div>
                     {inv.period_start && (
                       <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 10 }}>
                         Work from {shortDate(inv.period_start)} to {shortDate(inv.period_end)}

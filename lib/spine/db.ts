@@ -69,6 +69,41 @@ export async function getCurrentOrg(): Promise<Org | null> {
   return org.data as Org | null;
 }
 
+/**
+ * The brand for the current business.
+ *
+ * Read this anywhere the app renders something a client sees — invoices,
+ * estimates, emails. A brand kit that only lives on its own page is a
+ * scrapbook; the point is that everything downstream picks it up.
+ */
+export interface Brand {
+  colors: Array<{ name: string; hex: string; role?: string }>;
+  fontHeading: string;
+  fontBody: string;
+  logoLight: string;
+  logoDark: string;
+  logos: string[];
+  voice: string;
+}
+
+export const EMPTY_BRAND: Brand = {
+  colors: [], fontHeading: '', fontBody: '',
+  logoLight: '', logoDark: '', logos: [], voice: '',
+};
+
+export function brandOf(org: Org | null): Brand {
+  const raw = (org?.settings as Record<string, unknown> | undefined)?.brand;
+  return { ...EMPTY_BRAND, ...((raw as Partial<Brand>) ?? {}) };
+}
+
+/** The color to use for accents on client-facing documents. */
+export function brandAccent(org: Org | null, fallback = '#111113'): string {
+  const b = brandOf(org);
+  return b.colors.find((c) => /primary/i.test(c.role ?? ''))?.hex
+    ?? b.colors[0]?.hex
+    ?? fallback;
+}
+
 /** Update the org's own settings — rates, markup, tax. */
 export async function updateOrg(id: string, patch: Partial<Org>): Promise<Org> {
   return unwrap(

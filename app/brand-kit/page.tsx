@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { getCurrentOrg, updateOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
+import { QrStudio } from '@/components/spine/QrStudio';
 import {
   EMPTY_SIGNATURE,
   INSTALL_GUIDES,
@@ -44,7 +45,7 @@ import {
   inputStyle,
 } from '@/components/spine/ui';
 
-type Tab = 'brand' | 'logos' | 'signature';
+type Tab = 'brand' | 'logos' | 'qr' | 'signature';
 
 interface BrandColor {
   name: string;
@@ -85,7 +86,16 @@ export default function BrandKitPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
-  const [editingColor, setEditingColor] = useState<number | null>(null);
+  const [siteUrl, setSiteUrl] = useState('');
+
+  // Default the QR target to this business's own site, since that's what a
+  // yard sign or truck door almost always points at.
+  useEffect(() => {
+    (async () => {
+      const res = await supabase.from('client_sites').select('url').limit(1).maybeSingle();
+      if (!res.error && res.data?.url) setSiteUrl(res.data.url);
+    })();
+  }, [org?.id]);
 
   // Brand lives in orgs.settings — one row per business, so switching
   // businesses switches brands without any extra plumbing.
@@ -157,9 +167,6 @@ export default function BrandKitPage() {
     }
   };
 
-  const addColor = () =>
-    setBrand((b) => ({ ...b, colors: [...b.colors, { name: '', hex: '#000000' }] }));
-
   return (
     <Page
       title="Brand Kit"
@@ -183,7 +190,7 @@ export default function BrandKitPage() {
       )}
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 22 }}>
-        {(['brand', 'logos', 'signature'] as Tab[]).map((tb) => (
+        {(['brand', 'logos', 'qr', 'signature'] as Tab[]).map((tb) => (
           <button
             key={tb}
             onClick={() => setTab(tb)}
@@ -198,7 +205,10 @@ export default function BrandKitPage() {
               fontFamily: 'inherit',
             }}
           >
-            {tb === 'brand' ? 'Colors & type' : tb === 'logos' ? 'Logos' : 'Email signature'}
+            {tb === 'brand' ? 'Colors & type'
+              : tb === 'logos' ? 'Logos'
+              : tb === 'qr' ? 'QR codes'
+              : 'Email signature'}
           </button>
         ))}
       </div>
@@ -206,45 +216,29 @@ export default function BrandKitPage() {
       {tab === 'brand' ? (
         <div style={{ display: 'grid', gap: 18, maxWidth: 720 }}>
           <Card>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <SectionLabel>Colors</SectionLabel>
-              <Button variant="ghost" onClick={addColor}>Add color</Button>
-            </div>
-
+            <SectionLabel>Colors</SectionLabel>
             {brand.colors.length === 0 ? (
-              <Empty>No colors yet.</Empty>
+              <Empty>No colors set for this brand.</Empty>
             ) : (
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))',
-                  gap: 12,
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(112px, 1fr))',
+                  gap: 14,
                 }}
               >
                 {brand.colors.map((c, i) => (
                   <ColorTile
                     key={i}
                     color={c}
-                    editing={editingColor === i}
                     copied={copied === c.hex}
                     onCopy={() => copyText(c.hex, c.hex)}
-                    onEdit={() => setEditingColor(editingColor === i ? null : i)}
-                    onChange={(patch) =>
-                      setBrand((b) => ({
-                        ...b,
-                        colors: b.colors.map((x, j) => (j === i ? { ...x, ...patch } : x)),
-                      }))
-                    }
-                    onRemove={() => {
-                      setEditingColor(null);
-                      setBrand((b) => ({ ...b, colors: b.colors.filter((_, j) => j !== i) }));
-                    }}
                   />
                 ))}
               </div>
             )}
-            <div style={{ fontSize: 11.5, color: C.faint, marginTop: 14 }}>
-              Click a swatch to copy its hex. Click the name to rename it.
+            <div style={{ fontSize: 11.5, color: C.faint, marginTop: 16 }}>
+              Click any color to copy its hex code.
             </div>
           </Card>
 
@@ -280,6 +274,12 @@ export default function BrandKitPage() {
             />
           </Card>
         </div>
+      ) : tab === 'qr' ? (
+        <QrStudio
+          colors={brand.colors}
+          company={org?.name ?? 'brand'}
+          defaultUrl={siteUrl}
+        />
       ) : tab === 'logos' ? (
         <LogosTab
           brand={brand}
@@ -422,42 +422,43 @@ export default function BrandKitPage() {
 /**
  * One color, as a swatch you can actually judge.
  *
- * A big circle of the color reads far faster than a hex code in a row — you
- * see the palette as a palette. Click to copy, click the name to rename.
+ * A circle of the color reads far faster than a hex code in a row — you see
+ * the palette as a palette. Read-only on purpose: a brand kit is a reference,
+ * and letting anyone retype the brand color is how a brand drifts.
  */
 function ColorTile({
   color,
-  editing,
   copied,
   onCopy,
-  onEdit,
-  onChange,
-  onRemove,
 }: {
   color: BrandColor;
-  editing: boolean;
   copied: boolean;
   onCopy: () => void;
-  onEdit: () => void;
-  onChange: (patch: Partial<BrandColor>) => void;
-  onRemove: () => void;
 }) {
   return (
-    <div style={{ textAlign: 'center' }}>
-      <button
-        onClick={onCopy}
-        title={`Copy ${color.hex}`}
+    <button
+      onClick={onCopy}
+      title={`Copy ${color.hex}`}
+      style={{
+        background: 'none',
+        border: 'none',
+        padding: 0,
+        cursor: 'pointer',
+        fontFamily: 'inherit',
+        textAlign: 'center',
+        width: '100%',
+      }}
+    >
+      <div
         style={{
-          width: 72,
-          height: 72,
+          width: 76,
+          height: 76,
           borderRadius: '50%',
           background: color.hex,
           border: `1px solid ${C.borderStrong}`,
-          cursor: 'pointer',
-          display: 'block',
-          margin: '0 auto 10px',
-          boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.04)',
+          margin: '0 auto 11px',
           position: 'relative',
+          boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.04)',
         }}
       >
         {copied && (
@@ -469,7 +470,7 @@ function ColorTile({
               alignItems: 'center',
               justifyContent: 'center',
               borderRadius: '50%',
-              background: 'rgba(0,0,0,.55)',
+              background: 'rgba(0,0,0,.6)',
               color: '#fff',
               fontSize: 11,
               fontWeight: 600,
@@ -478,84 +479,24 @@ function ColorTile({
             Copied
           </span>
         )}
-      </button>
+      </div>
 
-      {editing ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-          <input
-            value={color.name}
-            onChange={(e) => onChange({ name: e.target.value })}
-            style={{ ...inputStyle, fontSize: 12, padding: '5px 7px', textAlign: 'center' }}
-            placeholder="Name"
-            autoFocus
-          />
-          <input
-            value={color.role ?? ''}
-            onChange={(e) => onChange({ role: e.target.value })}
-            style={{ ...inputStyle, fontSize: 11, padding: '4px 7px', textAlign: 'center' }}
-            placeholder="Role"
-          />
-          <input
-            type="color"
-            value={color.hex}
-            onChange={(e) => onChange({ hex: e.target.value })}
-            style={{
-              width: '100%', height: 28, padding: 2, borderRadius: 5,
-              border: `1px solid ${C.border}`, background: C.panelAlt, cursor: 'pointer',
-            }}
-          />
-          <div style={{ display: 'flex', gap: 4 }}>
-            <button
-              onClick={onEdit}
-              style={{
-                flex: 1, fontSize: 11, padding: '4px', borderRadius: 5,
-                border: `1px solid ${C.border}`, background: 'transparent',
-                color: C.dim, cursor: 'pointer', fontFamily: 'inherit',
-              }}
-            >
-              Done
-            </button>
-            <button
-              onClick={onRemove}
-              title="Remove"
-              style={{
-                fontSize: 12, padding: '4px 8px', borderRadius: 5,
-                border: `1px solid ${C.border}`, background: 'transparent',
-                color: C.red, cursor: 'pointer', fontFamily: 'inherit',
-              }}
-            >
-              ×
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button
-          onClick={onEdit}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            fontFamily: 'inherit', padding: 0, width: '100%',
-          }}
-        >
-          <div style={{ fontSize: 12.5, color: C.text, fontWeight: 500 }}>
-            {color.name || 'Unnamed'}
-          </div>
-          {color.role && (
-            <div style={{ fontSize: 10.5, color: C.faint, marginTop: 1 }}>{color.role}</div>
-          )}
-          <div
-            style={{
-              fontSize: 10.5,
-              color: C.faint,
-              marginTop: 3,
-              fontVariantNumeric: 'tabular-nums',
-              textTransform: 'uppercase',
-            }}
-          >
-            {color.hex}
-          </div>
-        </button>
+      <div style={{ fontSize: 13, color: C.text, fontWeight: 500 }}>{color.name}</div>
+      {color.role && (
+        <div style={{ fontSize: 10.5, color: C.faint, marginTop: 2 }}>{color.role}</div>
       )}
-    </div>
+      <div
+        style={{
+          fontSize: 10.5,
+          color: C.faint,
+          marginTop: 3,
+          fontVariantNumeric: 'tabular-nums',
+          textTransform: 'uppercase',
+        }}
+      >
+        {color.hex}
+      </div>
+    </button>
   );
 }
 
