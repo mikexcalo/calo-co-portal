@@ -15,9 +15,12 @@ and looks untrustworthy to a client.
 
 **To fix:**
 
-1. In Resend → Domains, add a domain you control — `calo.company` is the
-   natural one, since that's where clients click "Log in".
-2. Add the DNS records Resend gives you (SPF, DKIM, and ideally DMARC).
+1. In Resend → Domains, add `calo.company` — that's where clients click
+   "Log in", so it's the address they'll recognise.
+2. Resend gives you 3-4 DNS records. **calo.company's DNS is on Vercel**
+   (nameservers ns1/ns2.vercel-dns.com), so add them in the Vercel dashboard
+   under the domain's DNS tab. There are currently **no MX and no SPF records
+   at all**, so nothing can conflict — this is a clean slate.
    Verification usually takes minutes.
 3. Set `MAIL_FROM` in Vercel to something on that domain, e.g.
    `CALO&CO <nautilus@calo.company>`.
@@ -53,6 +56,20 @@ Name      CALO&CO
 Then Authentication → Emails to reword the invite and reset templates. The
 defaults say "Supabase", which is confusing for a client who has never heard
 of Supabase and thinks they're logging into your platform.
+
+---
+
+## The bit that trips everyone up
+
+**The "from" address does not need to be a real mailbox.**
+
+`nautilus@calo.company` can send email without anyone being able to receive
+email there. It costs nothing and needs no mail provider — just the DNS
+records proving you control the domain.
+
+Google Workspace is for *receiving* mail at `mike@calo.company` and having it
+in Gmail. Useful, and worth doing eventually, but **completely separate from
+this** and not a prerequisite. Sending and receiving are different problems.
 
 ---
 
