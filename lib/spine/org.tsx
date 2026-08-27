@@ -96,7 +96,35 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
 
       const list = (orgRows ?? []) as Org[];
       setOrgs(list);
-      setOrg(list.find((o) => o.id === profile?.active_org_id) ?? list[0] ?? null);
+
+      const activeId = profile?.active_org_id ?? null;
+      const matched = activeId ? list.find((o) => o.id === activeId) ?? null : null;
+
+      if (matched) {
+        setOrg(matched);
+      } else if (list.length) {
+        // The label and the database's scope MUST agree. Silently defaulting
+        // to list[0] while the database still scopes to something else is how
+        // one client's data ends up displayed under another client's name.
+        // So don't guess — write the choice back, then display it.
+        const fallback = list[0];
+        const fix = await supabase
+          .from('profiles')
+          .update({ active_org_id: fallback.id })
+          .eq('id', auth.user.id);
+
+        if (fix.error) {
+          setOrg(null);
+          setError(
+            'Could not work out which business you are viewing. Reload, and if it persists, sign out and back in.'
+          );
+          return;
+        }
+        setOrg(fallback);
+      } else {
+        setOrg(null);
+      }
+
       setError(null);
     } catch (e) {
       setError((e as Error).message);
@@ -109,17 +137,39 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
     load();
   }, [load]);
 
+  /**
+   * Re-check on focus. Switching business in a second tab changes the value
+   * server-side, which would otherwise leave this tab showing the old name
+   * over the new tab's data.
+   */
+  useEffect(() => {
+    const recheck = () => {
+      if (document.visibilityState === 'visible') load();
+    };
+    window.addEventListener('focus', recheck);
+    document.addEventListener('visibilitychange', recheck);
+    return () => {
+      window.removeEventListener('focus', recheck);
+      document.removeEventListener('visibilitychange', recheck);
+    };
+  }, [load]);
+
   const switchOrg = useCallback(
     async (orgId: string) => {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth?.user) return;
 
+      // select() back so a write blocked by RLS surfaces as an error rather
+      // than a reload into the wrong business.
       const res = await supabase
         .from('profiles')
         .update({ active_org_id: orgId })
-        .eq('id', auth.user.id);
-      if (res.error) {
-        setError(res.error.message);
+        .eq('id', auth.user.id)
+        .select('active_org_id')
+        .maybeSingle();
+
+      if (res.error || res.data?.active_org_id !== orgId) {
+        setError(res.error?.message ?? 'Could not switch business. Try again.');
         return;
       }
 

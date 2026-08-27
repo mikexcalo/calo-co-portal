@@ -77,10 +77,14 @@ export default function PricingPage() {
   });
 
   const load = useCallback(async () => {
-    const [o, res] = await Promise.all([
-      getCurrentOrg(),
-      supabase.from('price_items').select('*').order('position').order('name'),
-    ]);
+    const o = await getCurrentOrg();
+    // Filter by the org we're about to DISPLAY, not just whatever RLS allows.
+    // Belt and braces: if the label and the database's scope ever disagree,
+    // this returns nothing rather than returning another business's prices.
+    // Empty is confusing. Wrong is dangerous.
+    const res = o
+      ? await supabase.from('price_items').select('*').eq('org_id', o.id).order('position').order('name')
+      : { data: [], error: null };
     setOrgId(o?.id ?? null);
     if (res.error) throw new Error(res.error.message);
     setItems(
