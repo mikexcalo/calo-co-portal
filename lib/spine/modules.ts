@@ -122,11 +122,11 @@ export function navFor(
 
   const groups: NavGroup[] = [
     {
-      heading: 'The work',
+      heading: 'The Work',
       items: [
         { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'yardSign' },
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
-        { id: 'pricing', label: 'Price list', href: '/pricing', icon: 'financials' },
+        { id: 'pricing', label: 'Price List', href: '/pricing', icon: 'financials' },
         { id: 'documents', label: 'Documents', href: '/documents', icon: 'quotes' },
         { id: 'files', label: 'Files', href: '/files', icon: 'brandKit' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
@@ -140,11 +140,11 @@ export function navFor(
     },
     {
       // Named for what it is from each side: a client asks, an agency answers.
-      heading: org?.kind === 'agency' ? 'Clients' : 'Your website',
+      heading: org?.kind === 'agency' ? 'Clients' : 'Your Website',
       items: [
-        { id: 'client_requests', label: 'Client requests', href: '/requests', icon: 'designStudio' },
-        { id: 'website', label: 'Request a change', href: '/website', icon: 'designStudio' },
-        { id: 'account', label: 'Your account', href: '/account', icon: 'invoices' },
+        { id: 'client_requests', label: 'Client Requests', href: '/requests', icon: 'designStudio' },
+        { id: 'website', label: 'Request a Change', href: '/website', icon: 'designStudio' },
+        { id: 'account', label: 'Your Account', href: '/account', icon: 'invoices' },
         { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },

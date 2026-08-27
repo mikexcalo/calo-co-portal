@@ -61,6 +61,20 @@ const MAX_BYTES = 25 * 1024 * 1024;
 
 const mb = (b: number | null) => (b ? `${(b / 1024 / 1024).toFixed(1)} MB` : '');
 
+/** Guess from the filename so the common case needs no thought. */
+function guessCategory(fileName: string): string {
+  const n = fileName.toLowerCase();
+  if (/insur|coi|liabilit|policy/.test(n)) return 'insurance';
+  if (/licen[cs]e|permit/.test(n)) return 'license';
+  if (/cert/.test(n)) return 'certification';
+  if (/contract|agreement|msa|sow/.test(n)) return 'contract';
+  if (/w-?9|1099|tax|irs/.test(n)) return 'tax';
+  if (/manual|handbook|guide|responsib/.test(n)) return 'manual';
+  if (/warrant/.test(n)) return 'warranty';
+  if (/safety|osha|msds|sds/.test(n)) return 'safety';
+  return 'other';
+}
+
 export default function FilesPage() {
   const { org } = useOrg();
   const [files, setFiles] = useState<BusinessFile[]>([]);
@@ -72,8 +86,15 @@ export default function FilesPage() {
   const [today, setToday] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [pending, setPending] = useState<File | null>(null);
-  const [meta, setMeta] = useState({ name: '', category: 'other', expires_on: '', description: '' });
+  /** Files staged for upload, each with its own details. Dropping five at
+      once and filling them in together beats five round trips. */
+  const [staged, setStaged] = useState<Array<{
+    file: File;
+    name: string;
+    category: string;
+    expires_on: string;
+    description: string;
+  }>>([]);
 
   useEffect(() => setToday(new Date().toISOString().slice(0, 10)), []);
 
@@ -100,59 +121,74 @@ export default function FilesPage() {
     })();
   }, [load, org?.id]);
 
-  const stage = (f: File | null) => {
-    if (!f) return;
-    if (f.size > MAX_BYTES) {
-      setError(`${f.name} is larger than 25MB.`);
-      return;
-    }
+  const stage = (list: FileList | null) => {
+    if (!list?.length) return;
     setError(null);
-    setPending(f);
-    // Strip the extension for a sensible default name.
-    setMeta((m) => ({ ...m, name: f.name.replace(/\.[^.]+$/, '') }));
+
+    const tooBig = Array.from(list).filter((f) => f.size > MAX_BYTES);
+    if (tooBig.length) {
+      setError(`${tooBig.map((f) => f.name).join(', ')} — larger than 25MB.`);
+    }
+
+    setStaged((prev) => [
+      ...prev,
+      ...Array.from(list)
+        .filter((f) => f.size <= MAX_BYTES)
+        .map((f) => ({
+          file: f,
+          // Filename minus extension, with separators turned back into spaces.
+          name: f.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').trim(),
+          category: guessCategory(f.name),
+          expires_on: '',
+          description: '',
+        })),
+    ]);
   };
 
   const upload = async () => {
-    if (!pending || !orgId) return;
+    if (!staged.length || !orgId) return;
     setBusy(true);
     setError(null);
-    try {
-      const ext = pending.name.split('.').pop()?.toLowerCase() || 'bin';
+
+    const { data: auth } = await supabase.auth.getUser();
+    const failed: string[] = [];
+
+    for (const item of staged) {
+      const ext = item.file.name.split('.').pop()?.toLowerCase() || 'bin';
       const path = `${orgId}/${crypto.randomUUID()}.${ext}`;
+      try {
+        const up = await supabase.storage.from('documents').upload(path, item.file, {
+          contentType: item.file.type || 'application/octet-stream',
+        });
+        if (up.error) throw new Error(up.error.message);
 
-      const up = await supabase.storage.from('documents').upload(path, pending, {
-        contentType: pending.type || 'application/octet-stream',
-      });
-      if (up.error) throw new Error(up.error.message);
-
-      const { data: auth } = await supabase.auth.getUser();
-      const res = await supabase.from('business_files').insert({
-        org_id: orgId,
-        name: meta.name.trim() || pending.name,
-        description: meta.description.trim() || null,
-        category: meta.category,
-        expires_on: meta.expires_on || null,
-        storage_path: path,
-        file_name: pending.name,
-        mime_type: pending.type || null,
-        size_bytes: pending.size,
-        uploaded_by: auth?.user?.id ?? null,
-      });
-      if (res.error) {
-        // Don't leave the file orphaned in storage.
-        await supabase.storage.from('documents').remove([path]).catch(() => {});
-        throw new Error(res.error.message);
+        const res = await supabase.from('business_files').insert({
+          org_id: orgId,
+          name: item.name.trim() || item.file.name,
+          description: item.description.trim() || null,
+          category: item.category,
+          expires_on: item.expires_on || null,
+          storage_path: path,
+          file_name: item.file.name,
+          mime_type: item.file.type || null,
+          size_bytes: item.file.size,
+          uploaded_by: auth?.user?.id ?? null,
+        });
+        if (res.error) {
+          // Never leave a file orphaned in storage with no row pointing at it.
+          await supabase.storage.from('documents').remove([path]).catch(() => {});
+          throw new Error(res.error.message);
+        }
+      } catch (e) {
+        failed.push(`${item.file.name}: ${(e as Error).message}`);
       }
-
-      setPending(null);
-      setMeta({ name: '', category: 'other', expires_on: '', description: '' });
-      await load();
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-      if (fileRef.current) fileRef.current.value = '';
     }
+
+    if (failed.length) setError(failed.join(' · '));
+    setStaged([]);
+    setBusy(false);
+    if (fileRef.current) fileRef.current.value = '';
+    await load();
   };
 
   const view = async (f: BusinessFile) => {
@@ -195,7 +231,8 @@ export default function FilesPage() {
       <input
         ref={fileRef}
         type="file"
-        onChange={(e) => stage(e.target.files?.[0] ?? null)}
+        multiple
+        onChange={(e) => stage(e.target.files)}
         style={{ display: 'none' }}
       />
 
@@ -226,73 +263,101 @@ export default function FilesPage() {
         </Card>
       )}
 
-      {pending ? (
-        <Card style={{ marginBottom: 20, maxWidth: 620, borderColor: C.accent }}>
-          <SectionLabel>About this file</SectionLabel>
-          <div style={{ fontSize: 12, color: C.faint, marginBottom: 14 }}>
-            {pending.name} · {mb(pending.size)}
+      {/* The drop zone stays put. Hiding it behind a details form meant you
+          could only ever add one file, and lost the place you drop things. */}
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => { e.preventDefault(); setDragging(false); stage(e.dataTransfer.files); }}
+        onClick={() => fileRef.current?.click()}
+        style={{
+          border: `1.5px dashed ${dragging ? C.accent : C.borderStrong}`,
+          background: dragging ? C.accentSoft : 'transparent',
+          borderRadius: 10,
+          padding: dragging ? '30px 18px' : '22px 18px',
+          textAlign: 'center',
+          cursor: 'pointer',
+          marginBottom: 20,
+          transition: 'padding .12s, background .12s',
+        }}
+      >
+        <div style={{ fontSize: 13.5, color: dragging ? C.accent : C.text, fontWeight: 500 }}>
+          {dragging ? 'Drop them' : 'Drag files here'}
+        </div>
+        <div style={{ fontSize: 11.5, color: C.faint, marginTop: 5 }}>
+          Insurance, licenses, contracts, manuals — several at once is fine. Or click to browse.
+        </div>
+      </div>
+
+      {staged.length > 0 && (
+        <Card style={{ marginBottom: 20, borderColor: C.accent }}>
+          <SectionLabel>
+            Ready to upload ({staged.length})
+          </SectionLabel>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {staged.map((item, i) => {
+              const cat = CATEGORIES.find((c) => c.id === item.category);
+              return (
+                <div
+                  key={i}
+                  style={{
+                    borderBottom: i < staged.length - 1 ? `1px solid ${C.border}` : 'none',
+                    paddingBottom: i < staged.length - 1 ? 14 : 0,
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontSize: 11.5, color: C.faint }}>
+                      {item.file.name} · {mb(item.file.size)}
+                    </span>
+                    <button
+                      onClick={() => setStaged((p) => p.filter((_, j) => j !== i))}
+                      style={{ background: 'none', border: 'none', color: C.faint, cursor: 'pointer', fontSize: 16 }}
+                      title="Remove"
+                    >×</button>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,2fr) 150px 150px', gap: 8 }}>
+                    <input
+                      value={item.name}
+                      onChange={(e) => setStaged((p) => p.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}
+                      style={inputStyle}
+                      placeholder="What is it?"
+                    />
+                    <select
+                      value={item.category}
+                      onChange={(e) => setStaged((p) => p.map((x, j) => j === i ? { ...x, category: e.target.value } : x))}
+                      style={inputStyle}
+                    >
+                      {CATEGORIES.map((c) => (
+                        <option key={c.id} value={c.id}>{c.label}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="date"
+                      value={item.expires_on}
+                      onChange={(e) => setStaged((p) => p.map((x, j) => j === i ? { ...x, expires_on: e.target.value } : x))}
+                      style={{
+                        ...inputStyle,
+                        borderColor: cat?.expires && !item.expires_on ? C.amber : C.border,
+                      }}
+                      title="Expiry date"
+                    />
+                  </div>
+                  {cat?.expires && !item.expires_on && (
+                    <div style={{ fontSize: 11, color: C.amber, marginTop: 5 }}>
+                      {cat.label}s usually expire — add a date and you&apos;ll be warned before it lapses.
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-          <Field label="What is it?">
-            <input value={meta.name} onChange={(e) => setMeta({ ...meta, name: e.target.value })} style={inputStyle} autoFocus />
-          </Field>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <Field label="Category">
-              <select
-                value={meta.category}
-                onChange={(e) => setMeta({ ...meta, category: e.target.value })}
-                style={inputStyle}
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c.id} value={c.id}>{c.label}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Expires (if it does)">
-              <input
-                type="date"
-                value={meta.expires_on}
-                onChange={(e) => setMeta({ ...meta, expires_on: e.target.value })}
-                style={inputStyle}
-              />
-            </Field>
-          </div>
-          {CATEGORIES.find((c) => c.id === meta.category)?.expires && !meta.expires_on && (
-            <div style={{ fontSize: 11.5, color: C.amber, margin: '-8px 0 14px' }}>
-              These usually expire. Setting a date means you get warned before it lapses.
-            </div>
-          )}
-          <Field label="Notes">
-            <input value={meta.description} onChange={(e) => setMeta({ ...meta, description: e.target.value })} style={inputStyle} />
-          </Field>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <Button onClick={upload} disabled={busy}>{busy ? 'Uploading…' : 'Save'}</Button>
-            <Button variant="ghost" onClick={() => setPending(null)}>Cancel</Button>
+          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+            <Button onClick={upload} disabled={busy}>
+              {busy ? 'Uploading…' : `Upload ${staged.length} file${staged.length === 1 ? '' : 's'}`}
+            </Button>
+            <Button variant="ghost" onClick={() => setStaged([])}>Clear</Button>
           </div>
         </Card>
-      ) : (
-        <div
-          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={(e) => { e.preventDefault(); setDragging(false); stage(e.dataTransfer.files?.[0] ?? null); }}
-          onClick={() => fileRef.current?.click()}
-          style={{
-            border: `1.5px dashed ${dragging ? C.accent : C.borderStrong}`,
-            background: dragging ? C.accentSoft : 'transparent',
-            borderRadius: 10,
-            padding: dragging ? '30px 18px' : '22px 18px',
-            textAlign: 'center',
-            cursor: 'pointer',
-            marginBottom: 20,
-            transition: 'padding .12s, background .12s',
-          }}
-        >
-          <div style={{ fontSize: 13.5, color: dragging ? C.accent : C.text, fontWeight: 500 }}>
-            {dragging ? 'Drop it' : 'Drag a file here'}
-          </div>
-          <div style={{ fontSize: 11.5, color: C.faint, marginTop: 5 }}>
-            Insurance certificates, licenses, contracts, manuals — or click to browse.
-          </div>
-        </div>
       )}
 
       {loading ? (

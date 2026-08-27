@@ -168,19 +168,22 @@ export default function JobsPage() {
                           cursor: 'pointer',
                         }}
                       >
-                        <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 3 }}>
+                        {/* Name and customer only. A pipeline card is for
+                            recognising a job at a glance and clicking it —
+                            the money lives one click deeper, on the job. */}
+                        <div style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.35 }}>
                           {job.name}
                         </div>
-                        <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 8 }}>
-                          {job.customer?.name ?? 'No customer'}
-                        </div>
-
-                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                          <Pill tone={job.billing_type === 'tm' ? 'blue' : 'neutral'}>
-                            {job.billing_type === 'tm' ? 'T&M' : 'Fixed'}
-                          </Pill>
-                          {pending > 0 && <Pill tone="amber">{money0(pending)} unbilled</Pill>}
-                        </div>
+                        {job.customer?.name && (
+                          <div style={{ fontSize: 11.5, color: C.faint, marginTop: 4 }}>
+                            {job.customer.name}
+                          </div>
+                        )}
+                        {pending > 0 && (
+                          <div style={{ fontSize: 11.5, color: C.amber, marginTop: 7 }}>
+                            {money0(pending)} unbilled
+                          </div>
+                        )}
                       </div>
                     );
                   })}
