@@ -8,6 +8,26 @@ Last updated: 2026-08-26
 
 ## Open
 
+### 0. Verify calo.company for email — 2026-08-27
+Blocks: Mark's invite arriving and not looking like phishing.
+
+DNS for calo.company is on **Vercel**, with no MX or SPF records today, so
+nothing conflicts.
+
+1. Resend → Domains → add `calo.company`
+2. Paste the 3-4 records into Vercel's DNS tab for the domain
+3. Set `MAIL_FROM` in Vercel to `CALO&CO <nautilus@calo.company>`
+4. Supabase → Authentication → SMTP Settings → point at Resend
+   (`smtp.resend.com`, port 465, user `resend`, password = Resend API key)
+
+The sending address does NOT need a real mailbox and does not need Google
+Workspace. Full detail in docs/email-setup.md.
+
+### 0b. Supabase Pro — $25/month
+Blocks: nothing today. Prevents the project pausing on inactivity, which is
+what took the site down in July, and adds daily backups. Once Mark has real
+job data in there, this stops being optional.
+
 ### 1. Stripe keys — deferred by you, 2026-08-26
 Blocks: sending invoices for payment, automatic paid marking.
 Built and waiting; the routes return a clear message until the keys exist.

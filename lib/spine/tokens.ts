@@ -15,11 +15,14 @@ export const C = {
   ink: '#141414',
 
   text: '#1A1A1A',
-  dim: '#5A5A5A',
-  faint: '#8A8A88',
+  // Contrast-checked against both #FFFFFF and the #F7F7F5 page background.
+  // The old faint (#8A8A88) came out at 3.2:1 — below the 4.5:1 minimum for
+  // body text, which is exactly why labels were hard to read.
+  dim: '#4A4A4A',    // 8.3:1
+  faint: '#6B6B68',  // 5.0:1
 
   border: '#E4E4E0',
-  borderStrong: '#CFCFC9',
+  borderStrong: '#C4C4BE',
 
   accent: '#2563EB',
   accentSoft: '#EEF3FD',
