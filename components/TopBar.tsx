@@ -4,17 +4,16 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { DB } from '@/lib/database';
 import { useTheme } from '@/lib/theme';
+import { useTutorial } from '@/lib/spine/tutorial';
+import { C } from '@/components/spine/ui';
 import { QuickAdd } from '@/components/shared/QuickAdd';
 
 export default function TopBar() {
   const pathname = usePathname();
-  const { theme, setTheme, t } = useTheme();
+  const { t } = useTheme();
+  const { openPanel } = useTutorial();
   const router = useRouter();
   const [avatar, setAvatar] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchResult, setSearchResult] = useState<string | null>(null);
-  const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Read avatar immediately
@@ -29,24 +28,6 @@ export default function TopBar() {
     window.addEventListener('storage', handler);
     return () => window.removeEventListener('storage', handler);
   }, []);
-
-  useEffect(() => {
-    const h = (e: MouseEvent) => { if (searchRef.current && !searchRef.current.contains(e.target as Node) && searchResult) { setSearchResult(null); setSearchQuery(''); } };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
-  }, [searchResult]);
-
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-    setSearchLoading(true); setSearchResult(null);
-    try {
-      const resp = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: searchQuery }) });
-      const data = await resp.json();
-      setSearchResult(data.answer || data.content || 'No results found.');
-    } catch { setSearchResult('Search failed.'); }
-    finally { setSearchLoading(false); }
-  };
-
 
   // Build breadcrumb segments: { label, href? }
   const buildSegments = (): { label: string; href?: string }[] => {
@@ -101,51 +82,24 @@ export default function TopBar() {
 
       {/* Right: search + toggle + avatar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div ref={searchRef} style={{ position: 'relative', width: 240 }}>
-          <input
-            style={{ width: '100%', height: 36, background: t.bg.surface, border: `0.5px solid ${searchLoading || searchResult ? t.accent.primary : t.border.default}`, borderRadius: 8, padding: '0 46px 0 32px', fontSize: 13, color: t.text.primary, outline: 'none', fontFamily: 'inherit', transition: 'border-color 150ms', boxSizing: 'border-box' as const }}
-            placeholder="Search Nautilus..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); if (e.key === 'Escape') { setSearchResult(null); setSearchQuery(''); } }}
-          />
-          <svg style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="13" height="13" viewBox="0 0 16 16" fill="none" stroke={t.text.secondary} strokeWidth="1.5">
-            <circle cx="6.5" cy="6.5" r="5"/><line x1="10" y1="10" x2="14.5" y2="14.5"/>
+        {/* Was a dark/light toggle. A theme switch doubled every colour
+            decision and taught nobody anything; guided paths do. */}
+        <button
+          onClick={openPanel}
+          title="Learn Nautilus"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 7,
+            height: 32, padding: '0 12px', borderRadius: 6,
+            border: `1px solid ${C.borderStrong}`, background: C.panel,
+            cursor: 'pointer', color: C.text, fontSize: 12.5,
+            fontWeight: 500, fontFamily: 'inherit',
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 3.5h4.5A1.5 1.5 0 0 1 8 5v8a1.2 1.2 0 0 0-1.2-1.2H2z" />
+            <path d="M14 3.5H9.5A1.5 1.5 0 0 0 8 5v8a1.2 1.2 0 0 1 1.2-1.2H14z" />
           </svg>
-          <span style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: 10, fontWeight: 500, color: t.text.tertiary, background: t.bg.surfaceHover, borderRadius: 4, padding: '1px 5px', letterSpacing: '0.3px' }}>
-            ⌘K
-          </span>
-          {(searchLoading || searchResult) && (
-            <div style={{ position: 'absolute', top: '100%', right: 0, width: 320, marginTop: 8, background: t.bg.surface, borderRadius: 10, padding: 16, border: `0.5px solid ${t.border.default}`, boxShadow: t.shadow.elevated, zIndex: 10 }}>
-              {searchLoading ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ position: 'relative', width: 8, height: 8 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#2563eb' }} />
-                    <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: '#2563eb', animation: 'beacon-ping 1.8s ease-out infinite' }} />
-                  </div>
-                  <span style={{ fontSize: 12, color: t.text.tertiary }}>Searching...</span>
-                </div>
-              ) : (
-                <div style={{ animation: 'fade-in-up 300ms ease-out', position: 'relative' }}>
-                  <button onClick={() => { setSearchResult(null); setSearchQuery(''); }}
-                    style={{ position: 'absolute', top: -4, right: -4, width: 20, height: 20, borderRadius: '50%', background: t.bg.surfaceHover, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.text.tertiary, fontSize: 14, lineHeight: 1, padding: 0 }}
-                    title="Dismiss">×</button>
-                  <div style={{ fontSize: 13, color: t.text.primary, lineHeight: 1.5, paddingRight: 20 }}>{searchResult}</div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-        <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
-          width: 32, height: 32, border: 'none', borderRadius: 6, background: 'transparent',
-          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: t.text.tertiary, transition: 'color 150ms',
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.color = t.text.primary}
-        onMouseLeave={(e) => e.currentTarget.style.color = t.text.tertiary}>
-          {theme === 'dark'
-            ? <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="8" cy="8" r="3"/><line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/><line x1="3" y1="3" x2="4.4" y2="4.4"/><line x1="11.6" y1="11.6" x2="13" y2="13"/><line x1="3" y1="13" x2="4.4" y2="11.6"/><line x1="11.6" y1="4.4" x2="13" y2="3"/></svg>
-            : <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M13.5 8.5a5.5 5.5 0 1 1-6-6 4.5 4.5 0 0 0 6 6z"/></svg>}
+          Learn
         </button>
         {avatar ? (
           <img src={avatar} alt="" title="Settings" onClick={() => router.push('/settings?tab=profile')}

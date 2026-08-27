@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import TopBar from '@/components/TopBar';
 import { useIsPhone, C } from '@/components/spine/ui';
+import { TutorialPanel } from '@/components/spine/TutorialPanel';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -68,6 +69,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
 
         <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>{children}</main>
+        <TutorialPanel />
       </div>
     );
   }
@@ -81,6 +83,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
+      <TutorialPanel />
     </div>
   );
 }

@@ -77,13 +77,21 @@ export default function Sidebar() {
         {/* The spine. Jobs -> Documents -> Billing is the whole loop.
             Labels follow the active business: Jobs for a contractor,
             Engagements for the agency. */}
+        {/* The work. Jobs -> Documents -> Billing is the whole loop. */}
         <div style={{ height: 12 }} />
         {navBtn(vocab.jobPlural, '/jobs', icons.yardSign)}
+        {navBtn(vocab.customerPlural, '/customers', icons.clients)}
         {navBtn('Documents', '/documents', icons.quotes)}
         {navBtn('Billing', '/billing', icons.invoices)}
-        {navBtn('Business', '/business', icons.financials)}
 
-        {/* Legacy modules — being sunset. See docs/spine.md. */}
+        {/* The numbers. */}
+        <div style={{ height: 12 }} />
+        {navBtn('Profit & Loss', '/pl', icons.financials)}
+        {navBtn('Brand Kit', '/brand-kit', icons.brandKit)}
+        {navBtn('Business', '/business', icons.settings)}
+
+        {/* Legacy modules — superseded, kept until their data is migrated.
+            See docs/spine.md. */}
         <div style={{ height: 18 }} />
         <div style={{
           fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em',
@@ -91,12 +99,9 @@ export default function Sidebar() {
         }}>
           Legacy
         </div>
-        {navBtn('Clients', '/clients', icons.clients)}
-        {navBtn('Contacts', '/contacts', icons.contacts)}
-        {navBtn('Quotes', '/quotes', icons.quotes)}
-        {navBtn('Invoices', '/invoices', icons.invoices)}
-        {navBtn('Financials', '/financials', icons.financials)}
-        {navBtn('Brand Kit', '/brand-kit', icons.brandKit)}
+        {navBtn('Old clients', '/clients', icons.clients)}
+        {navBtn('Old contacts', '/contacts', icons.contacts)}
+        {navBtn('Old invoices', '/invoices', icons.invoices)}
         {navBtn('Design Studio', '/design', icons.designStudio)}
       </div>
       <div style={{ padding: '8px 8px 4px', borderTop: `0.5px solid ${t.border.default}` }}>

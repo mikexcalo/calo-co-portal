@@ -40,28 +40,18 @@ const ThemeContext = createContext<ThemeContextValue>({
   t: darkTokens,
 });
 
+/**
+ * Light only.
+ *
+ * The dark/light toggle was removed: it doubled every colour decision, and a
+ * theme switch is not a feature anyone learns anything from. Kept as a
+ * provider so the legacy modules that read `t` keep compiling while they are
+ * migrated off it.
+ */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('dark');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('calo-theme') as Theme | null;
-    if (stored === 'light' || stored === 'dark') setThemeState(stored);
-    setMounted(true);
-  }, []);
-
-  const setTheme = (t: Theme) => {
-    setThemeState(t);
-    localStorage.setItem('calo-theme', t);
-  };
-
-  const t = theme === 'light' ? lightTokens : darkTokens;
-
-  useEffect(() => {
-    if (!mounted) return;
-    document.body.style.background = t.bg.primary;
-    document.body.style.color = t.text.primary;
-  }, [t, mounted]);
+  const [theme] = useState<Theme>('light');
+  const setTheme = (_t: Theme) => { /* themes are no longer switchable */ };
+  const t = lightTokens;
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, t }}>
