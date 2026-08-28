@@ -564,21 +564,14 @@ export async function getInvoiceLines(invoiceId: string): Promise<JobInvoiceLine
   ) as JobInvoiceLine[];
 }
 
-/** Next invoice number for the org, as INV-0001. */
-async function nextInvoiceNumber(orgId: string): Promise<string> {
-  const rows = unwrap(
-    await supabase
-      .from('job_invoices')
-      .select('number')
-      .eq('org_id', orgId)
-      .order('number', { ascending: false })
-      .limit(1)
-  ) as Array<{ number: string }>;
-
-  const last = rows[0]?.number ?? '';
-  const n = parseInt(last.replace(/\D/g, ''), 10);
-  return `INV-${String(Number.isFinite(n) ? n + 1 : 1).padStart(4, '0')}`;
-}
+/**
+ * Invoice numbers are assigned by a database trigger, not here.
+ *
+ * The client used to read the highest existing number and add one, which
+ * races: two invoices raised at the same moment both read the same value.
+ * Assigning it inside the insert closes that gap, and it also fixes the sort,
+ * which was text-based and would have restarted numbering at INV-10000.
+ */
 
 /**
  * THE CORE MOVE — draft an invoice from everything unbilled on a job.
@@ -611,7 +604,6 @@ export async function draftInvoiceFromActuals(
       .insert({
         org_id: orgId,
         job_id: jobId,
-        number: await nextInvoiceNumber(orgId),
         status: 'draft',
         issued_on: new Date().toISOString().slice(0, 10),
         due_on: due.toISOString().slice(0, 10),
@@ -837,7 +829,6 @@ export async function invoiceFromEstimate(
       .insert({
         org_id: orgId,
         job_id: jobId,
-        number: await nextInvoiceNumber(orgId),
         status: 'draft',
         issued_on: new Date().toISOString().slice(0, 10),
         due_on: due.toISOString().slice(0, 10),

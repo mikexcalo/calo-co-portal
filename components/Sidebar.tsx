@@ -116,8 +116,27 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { org, vocab } = useOrg();
 
-  const isActive = (href: string) =>
-    href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
+  /**
+   * A section stays highlighted while you're on any of its tabs — otherwise
+   * clicking through to Billing would leave nothing lit in the sidebar and
+   * you'd lose your sense of where you are.
+   */
+  const SECTION_ROUTES: Record<string, string[]> = {
+    '/proposals': ['/proposals', '/billing', '/pl'],
+    '/billing': ['/proposals', '/billing', '/pl'],
+    '/pl': ['/proposals', '/billing', '/pl'],
+    '/pricing': ['/pricing', '/records', '/brand-kit'],
+    '/records': ['/pricing', '/records', '/brand-kit'],
+    '/brand-kit': ['/pricing', '/records', '/brand-kit'],
+    '/business': ['/business', '/team'],
+    '/team': ['/business', '/team'],
+  };
+
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    const family = SECTION_ROUTES[href] ?? [href];
+    return family.some((h) => pathname === h || pathname.startsWith(h + '/'));
+  };
 
   const navBtn = (label: string, href: string, icon: React.ReactNode) => {
     const active = isActive(href);
@@ -207,19 +226,21 @@ export default function Sidebar() {
         {navBtn('Manifest', '/', icons.dashboard)}
 
         {groups.map((g) => (
-          <div key={g.heading} style={{ marginTop: 16 }}>
-            <div
-              style={{
-                fontSize: 9.5,
-                textTransform: 'uppercase',
-                letterSpacing: '0.09em',
-                color: C.faint,
-                fontWeight: 600,
-                padding: '0 12px 5px',
-              }}
-            >
-              {g.heading}
-            </div>
+          <div key={g.heading || g.items[0]?.href} style={{ marginTop: g.heading ? 16 : 8 }}>
+            {g.heading && (
+              <div
+                style={{
+                  fontSize: 9.5,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.09em',
+                  color: C.faint,
+                  fontWeight: 600,
+                  padding: '0 12px 5px',
+                }}
+              >
+                {g.heading}
+              </div>
+            )}
             {g.items.map((i) => navBtn(i.label, i.href, icons[i.icon]))}
           </div>
         ))}

@@ -32,6 +32,7 @@ import {
   money,
   money0,
 } from '@/components/spine/ui';
+import { SECTIONS, SectionTabs } from '@/components/spine/SectionTabs';
 
 type Period = 'all' | 'ytd' | 'quarter' | 'month';
 
@@ -145,6 +146,7 @@ export default function ProfitLossPage() {
             cursor: 'pointer',
           }}
         >
+      <SectionTabs tabs={[...SECTIONS.money]} />
           {(Object.keys(PERIOD_LABEL) as Period[]).map((p) => (
             <option key={p} value={p}>{PERIOD_LABEL[p]}</option>
           ))}

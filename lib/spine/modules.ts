@@ -125,10 +125,33 @@ export function navFor(
   const on = modulesFor(org);
   const has = (id: ModuleId) => on.has(id);
 
+  // One entry per SECTION, not per screen. Thirteen destinations across five
+  // headings had stopped being navigation and become a list you re-read every
+  // time. Related screens now sit behind tabs on the page they land on — see
+  // components/spine/SectionTabs.tsx.
+  //
+  // The link points at the first tab the business actually has, so a
+  // contractor without Brand Kit still lands somewhere real.
+  const first = (ids: ModuleId[], hrefs: Record<string, string>) => {
+    const found = ids.find((id) => has(id));
+    return found ? hrefs[found] : null;
+  };
+
+  const moneyHref = first(
+    ['proposals', 'billing', 'pl'],
+    { proposals: '/proposals', billing: '/billing', pl: '/pl' }
+  );
+  const libraryHref = first(
+    ['pricing', 'records', 'brand_kit'],
+    { pricing: '/pricing', records: '/records', brand_kit: '/brand-kit' }
+  );
+  const setupHref = first(
+    ['business', 'team'],
+    { business: '/business', team: '/team' }
+  );
+
   const groups: NavGroup[] = [
     {
-      // Doing the work. Receipts sits here because photographing one is an
-      // action you take on site, not something you look up.
       heading: 'The Work',
       items: [
         { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'yardSign' },
@@ -137,37 +160,29 @@ export function navFor(
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
-      // The money, in the order it moves: quote it, bill it, see what's left.
-      heading: 'Money',
+      heading: '',
       items: [
-        { id: 'proposals', label: 'Proposals', href: '/proposals', icon: 'proposal' },
-        { id: 'billing', label: 'Billing', href: '/billing', icon: 'invoices' },
-        { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
-      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
-    },
-    {
-      // Things you consult rather than work through.
-      heading: 'Reference',
-      items: [
-        { id: 'pricing', label: 'Price List', href: '/pricing', icon: 'financials' },
-        { id: 'records', label: 'Records', href: '/records', icon: 'folder' },
-        { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
-      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
+        ...(moneyHref
+          ? [{ id: 'billing' as ModuleId, label: 'Money', href: moneyHref, icon: 'invoices' }]
+          : []),
+        ...(libraryHref
+          ? [{ id: 'pricing' as ModuleId, label: 'Library', href: libraryHref, icon: 'folder' }]
+          : []),
+      ] as NavGroup['items'],
     },
     {
       heading: org?.kind === 'agency' ? 'Clients' : 'Your Website',
       items: [
         { id: 'client_requests', label: 'Client Requests', href: '/requests', icon: 'designStudio' },
         { id: 'website', label: 'Request a Change', href: '/website', icon: 'designStudio' },
-        { id: 'account', label: 'Your Account', href: '/account', icon: 'invoices' },
+        { id: 'account', label: 'Your Account', href: '/account', icon: 'proposal' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
-      heading: 'Setup',
-      items: [
-        { id: 'business', label: 'Business', href: '/business', icon: 'settings' },
-        { id: 'team', label: 'Team', href: '/team', icon: 'clients' },
-      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
+      heading: '',
+      items: (setupHref
+        ? [{ id: 'business' as ModuleId, label: 'Setup', href: setupHref, icon: 'settings' }]
+        : []) as NavGroup['items'],
     },
   ];
 

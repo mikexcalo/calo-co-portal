@@ -32,6 +32,7 @@ import {
   money,
   useIsPhone,
 } from '@/components/spine/ui';
+import { SECTIONS, SectionTabs } from '@/components/spine/SectionTabs';
 
 interface PriceItem {
   id: string;
@@ -199,6 +200,7 @@ export default function PricingPage() {
       subtitle={`Standard prices for ${org?.name ?? 'this business'}. Used on estimates and invoices so the same number appears everywhere.`}
       action={
         <>
+      <SectionTabs tabs={[...SECTIONS.library]} />
           <Button variant="ghost" onClick={() => fileRef.current?.click()} disabled={busy}>
             Import from a file
           </Button>

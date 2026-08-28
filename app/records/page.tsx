@@ -35,6 +35,7 @@ import {
   radius,
   shortDate,
 } from '@/components/spine/ui';
+import { SECTIONS, SectionTabs } from '@/components/spine/SectionTabs';
 
 interface BusinessFile {
   id: string;
@@ -263,6 +264,7 @@ export default function FilesPage() {
       subtitle={`Insurance, licenses, contracts and manuals for ${org?.name ?? 'this business'} — the things you have to be able to produce on request.`}
       action={<Button onClick={() => fileRef.current?.click()}>Add a file</Button>}
     >
+      <SectionTabs tabs={[...SECTIONS.library]} />
       <input
         ref={fileRef}
         type="file"

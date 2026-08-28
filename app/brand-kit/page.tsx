@@ -45,6 +45,7 @@ import {
   inputStyle,
   useIsPhone,
 } from '@/components/spine/ui';
+import { SECTIONS, SectionTabs } from '@/components/spine/SectionTabs';
 
 type Tab = 'brand' | 'logos' | 'qr' | 'signature';
 
@@ -175,6 +176,7 @@ export default function BrandKitPage() {
       subtitle={org ? `${org.name} — assets, and the tools that use them.` : undefined}
       action={
         <>
+      <SectionTabs tabs={[...SECTIONS.library]} />
           {saved && <Pill tone="green">Saved</Pill>}
           <Button
             onClick={() => save(tab === 'brand' ? { brand } : { signature: sig })}

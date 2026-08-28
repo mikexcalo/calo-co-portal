@@ -36,6 +36,7 @@ import {
   money0,
   shortDate,
 } from '@/components/spine/ui';
+import { SECTIONS, SectionTabs } from '@/components/spine/SectionTabs';
 
 export default function BillingPage() {
   const router = useRouter();
@@ -135,6 +136,7 @@ export default function BillingPage() {
 
   return (
     <Page title="Billing" subtitle="Invoices built from logged hours and filed receipts.">
+      <SectionTabs tabs={[...SECTIONS.money]} />
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 13 }}>{error}</div>

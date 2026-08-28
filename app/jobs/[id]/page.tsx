@@ -60,7 +60,6 @@ import {
   today,
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
-import { AddToCalendar } from '@/components/spine/AddToCalendar';
 
 const STATUSES: JobStatus[] = [
   'lead',
@@ -200,21 +199,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
       action={
         <div style={{ display: 'flex', gap: 8 }}>
           <Button variant="ghost" onClick={() => router.push('/jobs')}>All jobs</Button>
-          <AddToCalendar
-            disabled={!job.scheduled_start}
-            event={
-              job.scheduled_start
-                ? {
-                    title: job.name,
-                    start: job.scheduled_start,
-                    end: job.scheduled_end,
-                    location: job.address,
-                    details: [job.customer?.name, job.description].filter(Boolean).join(' — '),
-                    url: typeof window !== 'undefined' ? window.location.href : null,
-                  }
-                : null
-            }
-          />
+
           <Button onClick={handleDraftInvoice} disabled={busy || unbilled <= 0}>
             {unbilled > 0 ? `Invoice ${money0(unbilled)}` : 'Nothing to invoice'}
           </Button>
