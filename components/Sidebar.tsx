@@ -204,7 +204,7 @@ export default function Sidebar() {
       </div>
 
       <div style={{ flex: 1, padding: '8px 8px 8px', overflowY: 'auto' }}>
-        {navBtn('Dashboard', '/', icons.dashboard)}
+        {navBtn('Manifest', '/', icons.dashboard)}
 
         {groups.map((g) => (
           <div key={g.heading} style={{ marginTop: 16 }}>

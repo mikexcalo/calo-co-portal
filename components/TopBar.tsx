@@ -6,7 +6,7 @@ import { C } from '@/components/spine/ui';
 import { Notifications } from '@/components/spine/Notifications';
 
 const TITLES: Record<string, string> = {
-  '/': 'Dashboard',
+  '/': 'Manifest',
   '/jobs': 'Jobs',
   '/customers': 'Customers',
   '/documents': 'Receipts',

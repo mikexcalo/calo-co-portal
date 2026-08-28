@@ -15,6 +15,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { listDocuments, listInvoices, listJobLedger, listJobs } from '@/lib/spine/db';
+import { modulesFor } from '@/lib/spine/modules';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { useTutorial } from '@/lib/spine/tutorial';
@@ -59,6 +60,21 @@ export default function Dashboard() {
   const [docs, setDocs] = useState<DocumentRecord[]>([]);
   /** Retainers whose billing period has come round with work sitting on them. */
   const [dueToBill, setDueToBill] = useState<Array<{ job_id: string; name: string; unbilled_total: number; due_on: string | null }>>([]);
+  /**
+   * Everything else the manifest should be watching. Each is a small count
+   * query rather than a full table read — the manifest should be fast even
+   * when the business isn't small.
+   */
+  const [signals, setSignals] = useState({
+    customersNoEmail: 0,
+    unconfirmedPrices: 0,
+    draftEstimates: 0,
+    staleEstimates: 0,
+    expiringRecords: 0,
+    docsNeedingReview: 0,
+    openRequests: 0,
+    jobsNoCustomer: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   /** Computed after mount — never during render. That was the old bug. */
@@ -79,11 +95,44 @@ export default function Dashboard() {
           listDocuments({ unfiledOnly: true }),
         ]);
         const bd = await supabase.from('billing_due').select('*');
+
+        const staleCutoff = new Date();
+        staleCutoff.setDate(staleCutoff.getDate() - 7);
+        const soonCutoff = new Date();
+        soonCutoff.setDate(soonCutoff.getDate() + 45);
+        const head = { count: 'exact' as const, head: true };
+
+        const [noEmail, unconfirmed, draftEst, staleEst, expiring, needReview, reqs, noCustomer] =
+          await Promise.all([
+            supabase.from('customers').select('id', head).is('email', null),
+            supabase.from('price_items').select('id', head).eq('confirmed', false),
+            supabase.from('estimates').select('id', head).eq('status', 'draft'),
+            supabase.from('estimates').select('id', head).eq('status', 'sent')
+              .lt('sent_at', staleCutoff.toISOString()),
+            supabase.from('business_files').select('id', head)
+              .not('expires_on', 'is', null)
+              .lte('expires_on', soonCutoff.toISOString().slice(0, 10)),
+            supabase.from('documents').select('id', head).eq('status', 'needs_review'),
+            supabase.from('site_requests').select('id', head)
+              .in('status', ['submitted', 'needs_info']),
+            supabase.from('jobs').select('id', head).is('customer_id', null)
+              .not('status', 'in', '(closed,lost)'),
+          ]);
         if (cancelled) return;
         setJobs(j);
         setLedger(l);
         setInvoices(inv);
         setDocs(d);
+        setSignals({
+          customersNoEmail: noEmail.count ?? 0,
+          unconfirmedPrices: unconfirmed.count ?? 0,
+          draftEstimates: draftEst.count ?? 0,
+          staleEstimates: staleEst.count ?? 0,
+          expiringRecords: expiring.count ?? 0,
+          docsNeedingReview: needReview.count ?? 0,
+          openRequests: reqs.count ?? 0,
+          jobsNoCustomer: noCustomer.count ?? 0,
+        });
         if (!bd.error) {
           setDueToBill(
             (bd.data ?? [])
@@ -185,6 +234,106 @@ export default function Dashboard() {
     });
   }
 
+  const mods = modulesFor(org);
+
+  // Blocking problems — these stop money moving, so they outrank everything
+  // that is merely untidy.
+  if (signals.customersNoEmail > 0) {
+    attention.push({
+      key: 'noemail',
+      weight: 5e8,
+      title: `${signals.customersNoEmail} ${vocab.customerPlural.toLowerCase()} with no email`,
+      detail: "You can't send an invoice or an estimate to someone with no email address.",
+      cta: `Open ${vocab.customerPlural.toLowerCase()}`,
+      href: '/customers',
+      tone: 'red',
+    });
+  }
+
+  if (signals.docsNeedingReview > 0) {
+    attention.push({
+      key: 'review',
+      weight: signals.docsNeedingReview * 400,
+      title: `${signals.docsNeedingReview} receipt${signals.docsNeedingReview === 1 ? '' : 's'} waiting on you`,
+      detail: 'Read but not approved, so not counted against any job yet.',
+      cta: 'Review them',
+      href: '/documents',
+      tone: 'amber',
+    });
+  }
+
+  if (mods.has('proposals') && signals.draftEstimates > 0) {
+    attention.push({
+      key: 'draftest',
+      weight: signals.draftEstimates * 300,
+      title: `${signals.draftEstimates} proposal${signals.draftEstimates === 1 ? '' : 's'} never sent`,
+      detail: 'Nobody can accept a proposal they never received.',
+      cta: 'Open proposals',
+      href: '/proposals',
+      tone: 'amber',
+    });
+  }
+
+  if (mods.has('proposals') && signals.staleEstimates > 0) {
+    attention.push({
+      key: 'staleest',
+      weight: signals.staleEstimates * 200,
+      title: `${signals.staleEstimates} proposal${signals.staleEstimates === 1 ? ' has' : 's have'} gone quiet`,
+      detail: 'Sent over a week ago with no answer. A phone call beats another email.',
+      cta: 'See which',
+      href: '/proposals',
+      tone: 'blue',
+    });
+  }
+
+  if (signals.expiringRecords > 0) {
+    attention.push({
+      key: 'expiring',
+      weight: 8e8, // an expired certificate can stop a job outright
+      title: `${signals.expiringRecords} record${signals.expiringRecords === 1 ? '' : 's'} expiring`,
+      detail: 'Insurance or a license is close to lapsing. Finding out when a GC asks is the expensive way.',
+      cta: 'Open records',
+      href: '/records',
+      tone: 'red',
+    });
+  }
+
+  if (mods.has('client_requests') && signals.openRequests > 0) {
+    attention.push({
+      key: 'requests',
+      weight: signals.openRequests * 250,
+      title: `${signals.openRequests} client request${signals.openRequests === 1 ? '' : 's'} waiting`,
+      detail: 'A client asked for something and hasn\u2019t heard back.',
+      cta: 'Open requests',
+      href: '/requests',
+      tone: 'amber',
+    });
+  }
+
+  if (signals.jobsNoCustomer > 0) {
+    attention.push({
+      key: 'nocustomer',
+      weight: signals.jobsNoCustomer * 100,
+      title: `${signals.jobsNoCustomer} ${signals.jobsNoCustomer === 1 ? vocab.job.toLowerCase() : vocab.jobPlural.toLowerCase()} with nobody attached`,
+      detail: 'No customer means no invoice and no way to follow up.',
+      cta: `Open ${vocab.jobPlural.toLowerCase()}`,
+      href: '/jobs',
+      tone: 'amber',
+    });
+  }
+
+  if (mods.has('pricing') && signals.unconfirmedPrices > 0) {
+    attention.push({
+      key: 'prices',
+      weight: 60,
+      title: `${signals.unconfirmedPrices} price${signals.unconfirmedPrices === 1 ? '' : 's'} not confirmed`,
+      detail: 'Unconfirmed prices stay out of estimates until someone stands behind them.',
+      cta: 'Open price list',
+      href: '/pricing',
+      tone: 'neutral',
+    });
+  }
+
   if (org && Number(org.default_labor_rate) === 0) {
     attention.push({
       key: 'rate',
@@ -204,11 +353,11 @@ export default function Dashboard() {
 
   return (
     <Page
-      title={org ? org.name : 'Nautilus'}
+      title="Manifest"
       subtitle={
         emptyApp
-          ? 'Nothing here yet — which is the right place to start.'
-          : 'What needs doing, most costly first.'
+          ? `Nothing logged for ${org?.name ?? 'this business'} yet — which is the right place to start.`
+          : `Everything ${org?.name ?? 'this business'} needs you to deal with, most costly first.`
       }
       action={
         <>
@@ -246,7 +395,7 @@ export default function Dashboard() {
         <>
           {attention.length > 0 && (
             <div style={{ marginBottom: 30 }}>
-              <SectionLabel>Needs you</SectionLabel>
+              <SectionLabel>Needs you ({attention.length})</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {attention.map((a) => {
                   const accent =
@@ -285,6 +434,17 @@ export default function Dashboard() {
                 })}
               </div>
             </div>
+          )}
+
+          {attention.length === 0 && (
+            <Card style={{ marginBottom: 30, borderColor: C.green, background: C.greenSoft }}>
+              <div style={{ fontSize: 14, color: C.green, fontWeight: 500 }}>
+                Nothing needs you right now.
+              </div>
+              <div style={{ fontSize: 12.5, color: C.dim, marginTop: 4 }}>
+                Everything billable is billed, every receipt is filed, and nothing is expiring.
+              </div>
+            </Card>
           )}
 
           <div
