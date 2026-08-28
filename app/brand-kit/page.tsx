@@ -43,6 +43,7 @@ import {
   Pill,
   SectionLabel,
   inputStyle,
+  useIsPhone,
 } from '@/components/spine/ui';
 
 type Tab = 'brand' | 'logos' | 'qr' | 'signature';
@@ -76,6 +77,7 @@ const EMPTY_BRAND: BrandSettings = {
 };
 
 export default function BrandKitPage() {
+  const phone = useIsPhone();
   const { org, refresh } = useOrg();
   const [tab, setTab] = useState<Tab>('brand');
   const [brand, setBrand] = useState<BrandSettings>(EMPTY_BRAND);
@@ -287,7 +289,7 @@ export default function BrandKitPage() {
           onChange={(patch) => setBrand((b) => ({ ...b, ...patch }))}
         />
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 18 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: phone ? '1fr' : 'minmax(0,1fr) minmax(0,1fr)', gap: 18 }}>
           <div>
             <Card style={{ marginBottom: 16 }}>
               <SectionLabel>Details</SectionLabel>

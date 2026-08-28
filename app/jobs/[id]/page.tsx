@@ -59,6 +59,7 @@ import {
   shortDate,
   today,
 } from '@/components/spine/ui';
+import { Confirm } from '@/components/spine/Confirm';
 
 const STATUSES: JobStatus[] = [
   'lead',
@@ -90,6 +91,9 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
   const [showTime, setShowTime] = useState(false);
   const [showCost, setShowCost] = useState(false);
+  const [confirming, setConfirming] = useState<
+    { kind: 'time' | 'cost'; id: string; label: string } | null
+  >(null);
 
   const load = useCallback(async () => {
     const [org, j, l, t, c, inv, d, est] = await Promise.all([
@@ -210,6 +214,23 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         <Card style={{ borderColor: `${C.green}55`, marginBottom: 16 }}>
           <div style={{ color: C.green, fontSize: 13 }}>{notice}</div>
         </Card>
+      )}
+
+      {confirming && (
+        <Confirm
+          title={confirming.kind === 'time' ? 'Delete these hours?' : 'Delete this cost?'}
+          body={`${confirming.label}. This removes it from the job and from anything not yet invoiced.`}
+          confirmLabel="Delete"
+          busy={busy}
+          onConfirm={() =>
+            run(async () => {
+              if (confirming.kind === 'time') await deleteTimeEntry(confirming.id);
+              else await deleteCost(confirming.id);
+              setConfirming(null);
+            })
+          }
+          onCancel={() => setConfirming(null)}
+        />
       )}
 
       {/* Status + billing type */}
@@ -341,7 +362,13 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                 <div>
                   {!e.invoiced_on && (
                     <button
-                      onClick={() => run(async () => { await deleteTimeEntry(e.id); })}
+                      onClick={() =>
+                        setConfirming({
+                          kind: 'time',
+                          id: e.id,
+                          label: `${e.hours}h on ${e.worked_on}`,
+                        })
+                      }
                       style={{ background: 'none', border: 'none', color: C.faint, cursor: 'pointer', fontSize: 15 }}
                       title="Delete"
                     >×</button>
@@ -402,7 +429,13 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                 <div>
                   {!c.invoiced_on && (
                     <button
-                      onClick={() => run(async () => { await deleteCost(c.id); })}
+                      onClick={() =>
+                        setConfirming({
+                          kind: 'cost',
+                          id: c.id,
+                          label: `${c.description || c.vendor || 'cost'} — ${money(c.amount)}`,
+                        })
+                      }
                       style={{ background: 'none', border: 'none', color: C.faint, cursor: 'pointer', fontSize: 15 }}
                       title="Delete"
                     >×</button>

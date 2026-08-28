@@ -26,6 +26,7 @@ import {
   SectionLabel,
   inputStyle,
   shortDate,
+  useIsPhone,
 } from '@/components/spine/ui';
 
 interface Site {
@@ -65,6 +66,7 @@ const STATUS_COPY: Record<string, { label: string; tone: 'neutral' | 'amber' | '
 };
 
 export default function WebsitePage() {
+  const phone = useIsPhone();
   const { org } = useOrg();
   const [site, setSite] = useState<Site | null>(null);
   const [content, setContent] = useState<Content[]>([]);
@@ -216,7 +218,7 @@ export default function WebsitePage() {
               placeholder="Which page, what it should say, and anything you'd send along — photos, wording, a link to an example you like."
             />
           </Field>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: phone ? '1fr' : '1fr 1fr', gap: 12 }}>
             <Field label="Type">
               <select value={kind} onChange={(e) => setKind(e.target.value)} style={inputStyle}>
                 <option value="copy">Wording</option>

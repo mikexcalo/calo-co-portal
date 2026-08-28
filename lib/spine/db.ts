@@ -503,11 +503,15 @@ export async function getDocumentUrl(
 }
 
 export async function deleteDocument(doc: DocumentRecord): Promise<void> {
+  // Row first. The other order leaves a record pointing at a file that no
+  // longer exists if the row delete fails — a document you can see and cannot
+  // open, which is worse than an unreferenced file nobody knows about.
+  const res = await supabase.from('documents').delete().eq('id', doc.id);
+  if (res.error) throw new Error(res.error.message);
+
   if (doc.storage_path && !doc.storage_path.startsWith('pending/')) {
     await supabase.storage.from(BUCKET).remove([doc.storage_path]).catch(() => {});
   }
-  const res = await supabase.from('documents').delete().eq('id', doc.id);
-  if (res.error) throw new Error(res.error.message);
 }
 
 /**
@@ -590,64 +594,16 @@ export async function draftInvoiceFromActuals(
   jobId: string,
   opts?: { taxRate?: number; dueInDays?: number }
 ): Promise<JobInvoice | null> {
-  const [entries, costs, job] = await Promise.all([
-    listTimeEntries(jobId),
-    listCosts(jobId),
-    getJob(jobId),
-  ]);
+  const job = await getJob(jobId);
 
-  const unbilledTime = entries.filter((e) => e.billable && !e.invoiced_on);
-  const unbilledCosts = costs.filter((c) => c.billable && !c.invoiced_on);
-  if (!unbilledTime.length && !unbilledCosts.length) return null;
-
-  type Draft = Omit<JobInvoiceLine, 'id' | 'invoice_id' | 'created_at'>;
-  const lines: Draft[] = [];
-
-  // Labor: one line per day worked, so the customer sees the shape of the work.
-  for (const e of unbilledTime) {
-    lines.push({
-      kind: 'labor',
-      description:
-        e.description || `Labor${e.worker_name ? ` — ${e.worker_name}` : ''} (${e.worked_on})`,
-      qty: e.hours,
-      unit: 'hr',
-      unit_price: e.rate,
-      total: round2(e.hours * e.rate),
-      position: lines.length,
-      source_time_entry_id: e.id,
-      source_cost_id: null,
-    });
-  }
-
-  // Materials: cost plus whatever markup applies.
-  for (const c of unbilledCosts) {
-    const markup = c.markup_pct ?? job?.material_markup_pct ?? 0;
-    const billed = round2(c.amount * (1 + markup / 100));
-    lines.push({
-      kind: c.kind === 'subcontractor' ? 'subcontractor' : 'material',
-      description: c.description || c.vendor || 'Materials',
-      qty: 1,
-      unit: null,
-      unit_price: billed,
-      total: billed,
-      position: lines.length,
-      source_time_entry_id: null,
-      source_cost_id: c.id,
-    });
-  }
-
-  const subtotal = round2(lines.reduce((s, l) => s + l.total, 0));
-  const taxRate = opts?.taxRate ?? 0;
-  const taxAmount = round2(subtotal * (taxRate / 100));
-
-  const periods = [
-    ...unbilledTime.map((e) => e.worked_on),
-    ...unbilledCosts.map((c) => c.purchased_on),
-  ].sort();
-
-  const dueInDays = opts?.dueInDays ?? 30;
+  // Create the invoice FIRST, then claim work onto it. The obvious order —
+  // read what's unbilled, build the invoice, then mark it billed — has a gap
+  // between the read and the mark. Two people hitting the button at once both
+  // read the same unbilled work and both bill it. Claiming with a conditional
+  // update means the second claim finds nothing and gets an empty invoice
+  // rather than a duplicate one.
   const due = new Date();
-  due.setDate(due.getDate() + dueInDays);
+  due.setDate(due.getDate() + (opts?.dueInDays ?? 30));
 
   const invoice = unwrap(
     await supabase
@@ -657,41 +613,125 @@ export async function draftInvoiceFromActuals(
         job_id: jobId,
         number: await nextInvoiceNumber(orgId),
         status: 'draft',
-        period_start: periods[0] ?? null,
-        period_end: periods[periods.length - 1] ?? null,
         issued_on: new Date().toISOString().slice(0, 10),
         due_on: due.toISOString().slice(0, 10),
-        subtotal,
-        tax_rate: taxRate,
-        tax_amount: taxAmount,
-        total: round2(subtotal + taxAmount),
+        subtotal: 0,
+        tax_rate: opts?.taxRate ?? 0,
+        tax_amount: 0,
+        total: 0,
       })
       .select()
       .single()
   ) as JobInvoice;
 
-  const linesRes = await supabase
-    .from('job_invoice_lines')
-    .insert(lines.map((l) => ({ ...l, invoice_id: invoice.id })));
-  if (linesRes.error) throw new Error(linesRes.error.message);
+  const cleanup = async () => {
+    await supabase.from('job_invoices').delete().eq('id', invoice.id);
+  };
 
-  // Mark the sources as billed so they can't land on a second invoice.
-  if (unbilledTime.length) {
-    const res = await supabase
-      .from('time_entries')
-      .update({ invoiced_on: invoice.id })
-      .in('id', unbilledTime.map((e) => e.id));
-    if (res.error) throw new Error(res.error.message);
-  }
-  if (unbilledCosts.length) {
-    const res = await supabase
-      .from('costs')
-      .update({ invoiced_on: invoice.id })
-      .in('id', unbilledCosts.map((c) => c.id));
-    if (res.error) throw new Error(res.error.message);
-  }
+  try {
+    // `.is('invoiced_on', null)` is the lock. Only rows still unclaimed at
+    // this instant come back.
+    const [timeRes, costRes] = await Promise.all([
+      supabase
+        .from('time_entries')
+        .update({ invoiced_on: invoice.id })
+        .eq('job_id', jobId)
+        .eq('billable', true)
+        .is('invoiced_on', null)
+        .select(),
+      supabase
+        .from('costs')
+        .update({ invoiced_on: invoice.id })
+        .eq('job_id', jobId)
+        .eq('billable', true)
+        .is('invoiced_on', null)
+        .select(),
+    ]);
 
-  return invoice;
+    if (timeRes.error) throw new Error(timeRes.error.message);
+    if (costRes.error) throw new Error(costRes.error.message);
+
+    const claimedTime = (timeRes.data ?? []) as TimeEntry[];
+    const claimedCosts = (costRes.data ?? []) as Cost[];
+
+    if (!claimedTime.length && !claimedCosts.length) {
+      await cleanup();
+      return null;
+    }
+
+    type Draft = Omit<JobInvoiceLine, 'id' | 'invoice_id' | 'created_at'>;
+    const lines: Draft[] = [];
+
+    // Labor: one line per day worked, so the customer sees the shape of it.
+    for (const e of claimedTime) {
+      const hours = num(e.hours);
+      const rate = num(e.rate);
+      lines.push({
+        kind: 'labor',
+        description:
+          e.description || `Labor${e.worker_name ? ` — ${e.worker_name}` : ''} (${e.worked_on})`,
+        qty: hours,
+        unit: 'hr',
+        unit_price: rate,
+        total: round2(hours * rate),
+        position: lines.length,
+        source_time_entry_id: e.id,
+        source_cost_id: null,
+      });
+    }
+
+    // Materials: cost plus whatever markup applies.
+    for (const c of claimedCosts) {
+      const markup = c.markup_pct ?? job?.material_markup_pct ?? 0;
+      const billed = round2(num(c.amount) * (1 + num(markup) / 100));
+      lines.push({
+        kind: c.kind === 'subcontractor' ? 'subcontractor' : 'material',
+        description: c.description || c.vendor || 'Materials',
+        qty: 1,
+        unit: null,
+        unit_price: billed,
+        total: billed,
+        position: lines.length,
+        source_time_entry_id: null,
+        source_cost_id: c.id,
+      });
+    }
+
+    const linesRes = await supabase
+      .from('job_invoice_lines')
+      .insert(lines.map((l) => ({ ...l, invoice_id: invoice.id })));
+    if (linesRes.error) throw new Error(linesRes.error.message);
+
+    const subtotal = round2(lines.reduce((s, l) => s + l.total, 0));
+    const taxRate = opts?.taxRate ?? 0;
+    const taxAmount = round2(subtotal * (taxRate / 100));
+
+    const periods = [
+      ...claimedTime.map((e) => e.worked_on),
+      ...claimedCosts.map((c) => c.purchased_on),
+    ].sort();
+
+    return unwrap(
+      await supabase
+        .from('job_invoices')
+        .update({
+          subtotal,
+          tax_amount: taxAmount,
+          total: round2(subtotal + taxAmount),
+          period_start: periods[0] ?? null,
+          period_end: periods[periods.length - 1] ?? null,
+        })
+        .eq('id', invoice.id)
+        .select()
+        .single()
+    ) as JobInvoice;
+  } catch (e) {
+    // Release anything claimed so the work isn't stranded on a dead invoice.
+    await supabase.from('time_entries').update({ invoiced_on: null }).eq('invoiced_on', invoice.id);
+    await supabase.from('costs').update({ invoiced_on: null }).eq('invoiced_on', invoice.id);
+    await cleanup();
+    throw e;
+  }
 }
 
 /**
@@ -699,13 +739,13 @@ export async function draftInvoiceFromActuals(
  *
  * The actuals sweep does not apply here: on a fixed-price job the customer
  * agreed a number, and what it actually cost is the contractor's margin, not
- * the customer's bill. Without this, a fixed-price job could not be invoiced
+ * the customer's bill. Without this a fixed-price job could not be invoiced
  * at all — which is exactly where Turks Cap sat.
  *
- * Construction bills in draws, so `percent` invoices a slice of the contract.
- * Anything already invoiced is deducted, so repeated draws cannot overrun the
- * agreed total — billing a customer more than they signed for is the one
- * mistake you cannot apologise your way out of.
+ * Construction bills in draws, so `percent` invoices a slice. Anything
+ * already invoiced is deducted so repeated draws cannot overrun the agreed
+ * total: billing more than someone signed for is the one mistake you cannot
+ * apologise your way out of.
  */
 export async function invoiceFromEstimate(
   orgId: string,
@@ -720,9 +760,7 @@ export async function invoiceFromEstimate(
 
   const accepted = estimates.find((e) => e.status === 'accepted');
   if (!accepted) {
-    throw new Error(
-      'No accepted estimate on this job. Send the estimate and get it accepted first.'
-    );
+    throw new Error('No accepted estimate on this job. Send it and get it accepted first.');
   }
 
   const contract = num(accepted.total);
@@ -732,54 +770,49 @@ export async function invoiceFromEstimate(
 
   const remaining = round2(contract - alreadyInvoiced);
   if (remaining <= 0) {
-    throw new Error(
-      `The full contract of ${contract.toFixed(2)} has already been invoiced.`
-    );
+    throw new Error(`The full contract of ${contract.toFixed(2)} has already been invoiced.`);
   }
 
   const pct = opts?.percent;
   const requested =
     pct != null ? round2(contract * (Math.min(100, Math.max(0, pct)) / 100)) : remaining;
-
-  // Never let a draw take the total past the agreed contract.
   const amount = Math.min(requested, remaining);
 
-  const lines =
-    pct != null && amount < remaining
-      ? [
-          {
-            kind: 'other' as LineKind,
-            description:
-              opts?.description ??
-              `${pct}% progress draw — ${job?.name ?? 'contract'}`,
-            qty: 1,
-            unit: null,
-            unit_price: amount,
-            total: amount,
-            position: 0,
-            source_time_entry_id: null,
-            source_cost_id: null,
-          },
-        ]
-      : // Final or only invoice: itemize it, so the customer sees what they
-        // agreed to rather than one opaque number.
-        (await getEstimateLines(accepted.id)).map((l, i) => ({
-          kind: l.kind,
-          description: l.description,
-          qty: num(l.qty),
-          unit: l.unit,
-          unit_price: num(l.unit_price),
-          total: num(l.total),
-          position: i,
+  type Draft = Omit<JobInvoiceLine, 'id' | 'invoice_id' | 'created_at'>;
+  const isDraw = pct != null && amount < remaining;
+
+  const lines: Draft[] = isDraw
+    ? [
+        {
+          kind: 'other',
+          description: opts?.description ?? `${pct}% progress draw — ${job?.name ?? 'contract'}`,
+          qty: 1,
+          unit: null,
+          unit_price: amount,
+          total: amount,
+          position: 0,
           source_time_entry_id: null,
           source_cost_id: null,
-        }));
+        },
+      ]
+    : // Final or only invoice: itemize, so the customer sees what they agreed
+      // to rather than one opaque number.
+      (await getEstimateLines(accepted.id)).map((l, i) => ({
+        kind: l.kind,
+        description: l.description,
+        qty: num(l.qty),
+        unit: l.unit,
+        unit_price: num(l.unit_price),
+        total: num(l.total),
+        position: i,
+        source_time_entry_id: null,
+        source_cost_id: null,
+      }));
 
-  // If earlier draws were taken, the itemized final has to be reduced by them.
-  const lineSum = round2(lines.reduce((sum, l) => sum + l.total, 0));
-  if (alreadyInvoiced > 0 && lineSum > amount) {
+  // If draws were already taken, the itemized final must deduct them.
+  if (!isDraw && alreadyInvoiced > 0) {
     lines.push({
-      kind: 'other' as LineKind,
+      kind: 'other',
       description: 'Less: previously invoiced',
       qty: 1,
       unit: null,
@@ -812,10 +845,9 @@ export async function invoiceFromEstimate(
         tax_rate: taxRate,
         tax_amount: taxAmount,
         total: round2(subtotal + taxAmount),
-        notes:
-          pct != null && amount < remaining
-            ? `Progress draw against an agreed contract of $${contract.toFixed(2)}.`
-            : null,
+        notes: isDraw
+          ? `Progress draw against an agreed contract of $${contract.toFixed(2)}.`
+          : null,
       })
       .select()
       .single()

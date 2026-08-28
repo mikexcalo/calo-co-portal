@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import { createCustomer, createJob, getCurrentOrg, listCustomers } from '@/lib/spine/db';
 import type { BillingType, Customer, JobStatus } from '@/lib/spine/types';
 import { JOB_STATUS_LABEL } from '@/lib/spine/types';
-import { Button, C, Card, Field, Page, inputStyle } from '@/components/spine/ui';
+import { Button, C, Card, Field, Page, inputStyle, useIsPhone } from '@/components/spine/ui';
 
 export default function NewJobPage() {
+  const phone = useIsPhone();
   const router = useRouter();
   const [orgId, setOrgId] = useState<string | null>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -114,7 +115,7 @@ export default function NewJobPage() {
           />
         </Field>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: phone ? '1fr' : '1fr 1fr', gap: 12 }}>
           <Field label="Stage">
             <select
               value={status}

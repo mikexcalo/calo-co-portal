@@ -42,8 +42,12 @@ const PERIOD_LABEL: Record<Period, string> = {
   all: 'All time',
 };
 
-function periodStart(p: Period): Date | null {
-  const now = new Date();
+/**
+ * Takes `now` rather than reading the clock, so nothing time-dependent is
+ * computed during render. That is the same mistake that produced the
+ * hydration error on the old dashboard.
+ */
+function periodStart(p: Period, now: Date): Date | null {
   switch (p) {
     case 'month':
       return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -64,6 +68,11 @@ export default function ProfitLossPage() {
   const [period, setPeriod] = useState<Period>('ytd');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  /** Set after mount — never read the clock during render. */
+  const [todayMs, setTodayMs] = useState<number | null>(null);
+
+
+  useEffect(() => setTodayMs(Date.now()), []);
 
   useEffect(() => {
     (async () => {
@@ -83,7 +92,7 @@ export default function ProfitLossPage() {
   // to invoices rather than to jobs — a job spanning two quarters shouldn't
   // land entirely in one.
   const scoped = useMemo(() => {
-    const start = periodStart(period);
+    const start = todayMs ? periodStart(period, new Date(todayMs)) : null;
     const live = invoices.filter((i) => i.status !== 'void');
     const inPeriod = start
       ? live.filter((i) => i.issued_on && new Date(i.issued_on) >= start)
@@ -106,7 +115,7 @@ export default function ProfitLossPage() {
       margin: revenue > 0 ? ((revenue - costs) / revenue) * 100 : 0,
       count: inPeriod.length,
     };
-  }, [invoices, ledger, period]);
+  }, [invoices, ledger, period, todayMs]);
 
   const ranked = useMemo(
     () => [...ledger].sort((a, b) => a.margin_to_date - b.margin_to_date),

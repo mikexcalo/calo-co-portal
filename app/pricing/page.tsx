@@ -30,6 +30,7 @@ import {
   Table,
   inputStyle,
   money,
+  useIsPhone,
 } from '@/components/spine/ui';
 
 interface PriceItem {
@@ -60,6 +61,7 @@ const num = (v: unknown) => {
 };
 
 export default function PricingPage() {
+  const phone = useIsPhone();
   const { org, vocab } = useOrg();
   const [items, setItems] = useState<PriceItem[]>([]);
   const [orgId, setOrgId] = useState<string | null>(null);
@@ -345,7 +347,7 @@ export default function PricingPage() {
 
       {adding && (
         <Card style={{ marginBottom: 20, maxWidth: 640 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: phone ? '1fr' : '1fr 1fr', gap: 12 }}>
             <Field label="Name">
               <input
                 value={draft.name}

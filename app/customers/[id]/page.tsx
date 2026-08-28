@@ -34,6 +34,7 @@ import {
   radius,
   shortDate,
   today as todayStr,
+  useIsPhone,
 } from '@/components/spine/ui';
 
 interface Customer {
@@ -78,6 +79,7 @@ const KIND_LABEL: Record<Note['kind'], string> = {
 };
 
 export default function CustomerDetail({ params }: { params: { id: string } }) {
+  const phone = useIsPhone();
   const router = useRouter();
   const { vocab } = useOrg();
 
@@ -229,7 +231,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
         </Card>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: phone ? '1fr' : 'minmax(0,1fr) 320px', gap: 20 }}>
         <div>
           {customer.next_action && !editing && (
             <Card style={{ marginBottom: 16, borderColor: C.amber, background: C.amberSoft }}>
