@@ -105,7 +105,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
  * module turned off should never be able to strand someone halfway through
  * setting up two-factor.
  */
-const ALWAYS = ['/', '/login', '/welcome', '/security'];
+const ALWAYS = ['/', '/login', '/welcome', '/security', '/trust'];
 
 /**
  * Is this path reachable for this business? Returns false only for a route

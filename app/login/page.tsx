@@ -453,6 +453,11 @@ function LoginForm() {
             get in touch
           </a>
           .
+          <div style={{ marginTop: 14 }}>
+            <a href="/trust" style={{ color: FAINT, textDecoration: 'underline' }}>
+              How we look after your data
+            </a>
+          </div>
         </div>
       </div>
     </div>

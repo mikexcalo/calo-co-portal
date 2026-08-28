@@ -58,10 +58,13 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
-  const isPublic = path.startsWith('/login') || path.startsWith('/welcome');
+  // /trust is readable signed out on purpose — the person who needs
+  // convincing hasn't got an account yet.
+  const isPublic =
+    path.startsWith('/login') || path.startsWith('/welcome') || path.startsWith('/trust');
 
   // Not logged in → redirect to /login (unless already there)
-  if (!user && !path.startsWith('/login')) {
+  if (!user && !path.startsWith('/login') && !path.startsWith('/trust')) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
