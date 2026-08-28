@@ -246,9 +246,7 @@ export default function Sidebar() {
         ))}
       </div>
 
-      <div style={{ padding: '8px', borderTop: `1px solid ${C.border}` }}>
-        {navBtn('Settings', '/settings', icons.settings)}
-      </div>
+
     </div>
   );
 }

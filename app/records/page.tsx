@@ -35,7 +35,7 @@ import {
   radius,
   shortDate,
 } from '@/components/spine/ui';
-import { SECTIONS, SectionTabs } from '@/components/spine/SectionTabs';
+import { DropZone } from '@/components/spine/DropZone';
 
 interface BusinessFile {
   id: string;
@@ -88,7 +88,6 @@ export default function FilesPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [dragging, setDragging] = useState(false);
   const [today, setToday] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<BusinessFile | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -264,7 +263,6 @@ export default function FilesPage() {
       subtitle={`Insurance, licenses, contracts and manuals for ${org?.name ?? 'this business'} — the things you have to be able to produce on request.`}
       action={<Button onClick={() => fileRef.current?.click()}>Add a file</Button>}
     >
-      <SectionTabs tabs={[...SECTIONS.library]} />
       <input
         ref={fileRef}
         type="file"
@@ -311,32 +309,12 @@ export default function FilesPage() {
         </Card>
       )}
 
-      {/* The drop zone stays put. Hiding it behind a details form meant you
-          could only ever add one file, and lost the place you drop things. */}
-      <div
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={(e) => { e.preventDefault(); setDragging(false); stage(e.dataTransfer.files); }}
-        onClick={() => fileRef.current?.click()}
-        style={{
-          border: `1.5px dashed ${dragging ? C.accent : C.borderStrong}`,
-          background: dragging ? C.accentSoft : 'transparent',
-          borderRadius: 10,
-          padding: dragging ? '30px 18px' : '22px 18px',
-          textAlign: 'center',
-          cursor: 'pointer',
-          marginBottom: 20,
-          maxWidth: 720,
-          transition: 'padding .12s, background .12s',
-        }}
-      >
-        <div style={{ fontSize: 13.5, color: dragging ? C.accent : C.text, fontWeight: 500 }}>
-          {dragging ? 'Drop them' : 'Drag files here'}
-        </div>
-        <div style={{ fontSize: 11.5, color: C.faint, marginTop: 5 }}>
-          Insurance, licenses, contracts, manuals — several at once is fine. Or click to browse.
-        </div>
-      </div>
+      <DropZone
+        onFiles={stage}
+        busy={busy}
+        label="Drag files here"
+        hint="Insurance, licenses, contracts, manuals — several at once is fine. Or click to browse."
+      />
 
       {staged.length > 0 && (
         <Card style={{ marginBottom: 20, borderColor: C.accent, maxWidth: 720 }}>

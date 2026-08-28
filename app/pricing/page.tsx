@@ -32,7 +32,7 @@ import {
   money,
   useIsPhone,
 } from '@/components/spine/ui';
-import { SECTIONS, SectionTabs } from '@/components/spine/SectionTabs';
+import { DropZone } from '@/components/spine/DropZone';
 
 interface PriceItem {
   id: string;
@@ -73,7 +73,6 @@ export default function PricingPage() {
   const [adding, setAdding] = useState(false);
   const [imported, setImported] = useState<Draft[] | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [dragging, setDragging] = useState(false);
 
   const [draft, setDraft] = useState<Draft>({
     name: '', description: '', unit: '', unit_price: 0, kind: 'labor', category: '',
@@ -200,7 +199,6 @@ export default function PricingPage() {
       subtitle={`Standard prices for ${org?.name ?? 'this business'}. Used on estimates and invoices so the same number appears everywhere.`}
       action={
         <>
-      <SectionTabs tabs={[...SECTIONS.library]} />
           <Button variant="ghost" onClick={() => fileRef.current?.click()} disabled={busy}>
             Import from a file
           </Button>
@@ -216,36 +214,14 @@ export default function PricingPage() {
         style={{ display: 'none' }}
       />
 
-      {/* Drop zone. Dragging a PDF straight in is how people actually expect
-          to move a file they're already looking at in Finder. */}
-      <div
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setDragging(false);
-          importFile(e.dataTransfer.files?.[0] ?? null);
-        }}
-        onClick={() => fileRef.current?.click()}
-        style={{
-          border: `1.5px dashed ${dragging ? C.accent : C.borderStrong}`,
-          background: dragging ? C.accentSoft : 'transparent',
-          borderRadius: 10,
-          padding: dragging ? '30px 18px' : '22px 18px',
-          textAlign: 'center',
-          cursor: 'pointer',
-          marginBottom: 20,
-          transition: 'padding .12s, background .12s',
-        }}
-      >
-        <div style={{ fontSize: 13.5, color: dragging ? C.accent : C.text, fontWeight: 500 }}>
-          {busy ? 'Reading…' : dragging ? 'Drop it' : 'Drag a price list here'}
-        </div>
-        <div style={{ fontSize: 11.5, color: C.faint, marginTop: 5 }}>
-          PDF or a photo of a printed sheet — or click to browse. Nothing is saved until you
-          check it.
-        </div>
-      </div>
+      <DropZone
+        onFiles={(files) => importFile(files[0] ?? null)}
+        accept="application/pdf,image/jpeg,image/png,image/webp"
+        multiple={false}
+        busy={busy}
+        label="Drag a price list here"
+        hint="PDF or a photo of a printed sheet — or click to browse. Nothing is saved until you check it."
+      />
 
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>

@@ -95,7 +95,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
 ];
 
 /** Routes every business can reach regardless of modules. */
-const ALWAYS = ['/', '/settings', '/login', '/welcome'];
+const ALWAYS = ['/', '/login', '/welcome'];
 
 /**
  * Is this path reachable for this business? Returns false only for a route
@@ -125,31 +125,10 @@ export function navFor(
   const on = modulesFor(org);
   const has = (id: ModuleId) => on.has(id);
 
-  // One entry per SECTION, not per screen. Thirteen destinations across five
-  // headings had stopped being navigation and become a list you re-read every
-  // time. Related screens now sit behind tabs on the page they land on — see
-  // components/spine/SectionTabs.tsx.
-  //
-  // The link points at the first tab the business actually has, so a
-  // contractor without Brand Kit still lands somewhere real.
-  const first = (ids: ModuleId[], hrefs: Record<string, string>) => {
-    const found = ids.find((id) => has(id));
-    return found ? hrefs[found] : null;
-  };
-
-  const moneyHref = first(
-    ['proposals', 'billing', 'pl'],
-    { proposals: '/proposals', billing: '/billing', pl: '/pl' }
-  );
-  const libraryHref = first(
-    ['pricing', 'records', 'brand_kit'],
-    { pricing: '/pricing', records: '/records', brand_kit: '/brand-kit' }
-  );
-  const setupHref = first(
-    ['business', 'team'],
-    { business: '/business', team: '/team' }
-  );
-
+  // Every destination visible. The previous attempt hid these behind section
+  // tabs and cut the sidebar from thirteen items to six — which looked tidier
+  // and made Brand Kit impossible to find. A list you can scan beats a short
+  // list that hides things; the fix for "too long" is grouping, not hiding.
   const groups: NavGroup[] = [
     {
       heading: 'The Work',
@@ -160,15 +139,20 @@ export function navFor(
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
-      heading: '',
+      heading: 'Money',
       items: [
-        ...(moneyHref
-          ? [{ id: 'billing' as ModuleId, label: 'Money', href: moneyHref, icon: 'invoices' }]
-          : []),
-        ...(libraryHref
-          ? [{ id: 'pricing' as ModuleId, label: 'Library', href: libraryHref, icon: 'folder' }]
-          : []),
-      ] as NavGroup['items'],
+        { id: 'proposals', label: 'Proposals', href: '/proposals', icon: 'proposal' },
+        { id: 'billing', label: 'Billing', href: '/billing', icon: 'invoices' },
+        { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
+      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
+    },
+    {
+      heading: 'Library',
+      items: [
+        { id: 'pricing', label: 'Price List', href: '/pricing', icon: 'financials' },
+        { id: 'records', label: 'Records', href: '/records', icon: 'folder' },
+        { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
+      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
       heading: org?.kind === 'agency' ? 'Clients' : 'Your Website',
@@ -179,10 +163,11 @@ export function navFor(
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
-      heading: '',
-      items: (setupHref
-        ? [{ id: 'business' as ModuleId, label: 'Setup', href: setupHref, icon: 'settings' }]
-        : []) as NavGroup['items'],
+      heading: 'Setup',
+      items: [
+        { id: 'business', label: 'Business', href: '/business', icon: 'settings' },
+        { id: 'team', label: 'Team', href: '/team', icon: 'clients' },
+      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
   ];
 

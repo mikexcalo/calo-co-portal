@@ -33,7 +33,6 @@ import {
   radius,
   shortDate,
 } from '@/components/spine/ui';
-import { SECTIONS, SectionTabs } from '@/components/spine/SectionTabs';
 
 type Row_ = Estimate & {
   job: { id: string; name: string; customer: { name: string } | null } | null;
@@ -103,7 +102,6 @@ export default function ProposalsPage() {
       title="Proposals"
       subtitle={`Everything quoted across every ${vocab.job.toLowerCase()}. Accepted proposals become invoiceable.`}
     >
-      <SectionTabs tabs={[...SECTIONS.money]} />
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 13 }}>{error}</div>

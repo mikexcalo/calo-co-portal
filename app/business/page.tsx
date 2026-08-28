@@ -21,7 +21,6 @@ import {
   SectionLabel,
   inputStyle,
 } from '@/components/spine/ui';
-import { SECTIONS, SectionTabs } from '@/components/spine/SectionTabs';
 
 function CopyRow({ value }: { value: string }) {
   const [copied, setCopied] = useState(false);
@@ -93,7 +92,6 @@ export default function BusinessPage() {
   if (!org) {
     return (
       <Page title="Business">
-      <SectionTabs tabs={[...SECTIONS.setup]} />
         <Card>No business selected.</Card>
       </Page>
     );

@@ -32,6 +32,7 @@ import type {
 } from '@/lib/spine/types';
 import { ExtractionReview, type ReviewResult } from '@/components/spine/ExtractionReview';
 import { Confirm } from '@/components/spine/Confirm';
+import { DropZone } from '@/components/spine/DropZone';
 import {
   Button,
   C,
@@ -302,6 +303,15 @@ export default function DocumentsPage() {
         style={{ display: 'none' }}
       />
       <MobileAction label="📷  Photograph a receipt" onClick={() => cameraRef.current?.click()} />
+
+      <DropZone
+        onFiles={handleFiles}
+        accept={ACCEPTED.join(',')}
+        busy={working.length > 0}
+        busyLabel={`Reading ${working.length} file${working.length === 1 ? '' : 's'}…`}
+        label="Drag receipts here"
+        hint="Photos or PDFs — several at once is fine. Or click to browse. You approve what was read before anything is saved."
+      />
 
       {confirmingDelete && (
         <Confirm

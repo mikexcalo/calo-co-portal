@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import supabase from '@/lib/supabase';
 import { useTutorial } from '@/lib/spine/tutorial';
 import { C } from '@/components/spine/ui';
 import { Notifications } from '@/components/spine/Notifications';
@@ -18,7 +20,6 @@ const TITLES: Record<string, string> = {
   '/requests': 'Site requests',
   '/brand-kit': 'Brand Kit',
   '/business': 'Business',
-  '/settings': 'Settings',
 };
 
 export default function TopBar() {
@@ -90,25 +91,111 @@ export default function TopBar() {
           Learn
         </button>
 
-        <button
-          onClick={() => router.push('/settings')}
-          title="Settings"
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
-            background: C.blue,
-            border: 'none',
-            color: '#fff',
-            fontSize: 11,
-            fontWeight: 600,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-          }}
-        >
-          MC
-        </button>
+        <AccountMenu />
       </div>
+    </div>
+  );
+}
+
+
+/**
+ * The avatar used to be a circle that navigated to a page duplicating the
+ * sidebar. Now it does what an avatar in a top bar is for: tells you who you
+ * are signed in as, and lets you sign out.
+ */
+function AccountMenu() {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setEmail(data?.user?.email ?? null));
+  }, []);
+
+  const initials = (email ?? '?')
+    .split('@')[0]
+    .split(/[.\-_]/)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join('') || '?';
+
+  const item: React.CSSProperties = {
+    display: 'block',
+    width: '100%',
+    textAlign: 'left',
+    padding: '9px 12px',
+    background: 'transparent',
+    border: 'none',
+    fontSize: 13,
+    color: C.text,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+  };
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        title={email ?? 'Account'}
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: '50%',
+          background: C.accent,
+          border: 'none',
+          color: '#fff',
+          fontSize: 11,
+          fontWeight: 600,
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+        }}
+      >
+        {initials}
+      </button>
+
+      {open && (
+        <>
+          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 50 }} />
+          <div
+            style={{
+              position: 'absolute',
+              top: 'calc(100% + 6px)',
+              right: 0,
+              minWidth: 210,
+              background: C.panel,
+              border: `1px solid ${C.border}`,
+              borderRadius: 8,
+              zIndex: 51,
+              padding: 4,
+              boxShadow: '0 10px 26px rgba(0,0,0,.12)',
+            }}
+          >
+            <div style={{ padding: '9px 12px', borderBottom: `1px solid ${C.border}`, marginBottom: 4 }}>
+              <div style={{ fontSize: 10.5, color: C.faint, textTransform: 'uppercase', letterSpacing: '.07em', fontWeight: 600 }}>
+                Signed in as
+              </div>
+              <div style={{ fontSize: 12.5, color: C.text, marginTop: 3, wordBreak: 'break-all' }}>
+                {email ?? '—'}
+              </div>
+            </div>
+            <button
+              style={item}
+              onClick={() => { setOpen(false); router.push('/business'); }}
+            >
+              Business settings
+            </button>
+            <button
+              style={{ ...item, color: C.red }}
+              onClick={async () => {
+                await supabase.auth.signOut();
+                router.push('/login');
+              }}
+            >
+              Sign out
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

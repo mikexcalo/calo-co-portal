@@ -25,7 +25,6 @@ import {
   inputStyle,
   shortDate,
 } from '@/components/spine/ui';
-import { SECTIONS, SectionTabs } from '@/components/spine/SectionTabs';
 
 interface Member {
   user_id: string;
@@ -117,7 +116,6 @@ export default function TeamPage() {
           : undefined
       }
     >
-      <SectionTabs tabs={[...SECTIONS.setup]} />
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
