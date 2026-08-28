@@ -35,7 +35,9 @@ import {
   money,
   money0,
   shortDate,
+  inputStyle,
 } from '@/components/spine/ui';
+import { METHODS } from '@/lib/spine/payments';
 
 export default function BillingPage() {
   const router = useRouter();
@@ -103,6 +105,29 @@ export default function BillingPage() {
    * Hand the invoice to Stripe. Falls back gracefully with a clear message
    * when Stripe isn't configured yet — marking paid by hand still works.
    */
+  /** Email a link to the invoice page, where the customer picks how to pay. */
+  const sendAsLink = async (inv: JobInvoice) => {
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetch('/api/invoices/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invoiceId: inv.id }),
+      });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error || 'Could not send');
+      setNotice(payload.message);
+      if (payload.link) await navigator.clipboard.writeText(payload.link).catch(() => {});
+      await load();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const sendViaStripe = async (inv: JobInvoice) => {
     setBusy(true);
     setError(null);
@@ -269,9 +294,15 @@ export default function BillingPage() {
                         </Button>
                         {inv.status === 'draft' && (
                           <>
-                            {/* The real path: Stripe emails it and collects payment. */}
-                            <Button disabled={busy} onClick={() => sendViaStripe(inv)}>
-                              Send for payment
+                            {/* Default: a link listing every method they
+                                accept. Stripe stays available for anyone who
+                                wants instant card payment, but it is no
+                                longer the only way to send a bill. */}
+                            <Button disabled={busy} onClick={() => sendAsLink(inv)}>
+                              Send invoice
+                            </Button>
+                            <Button variant="ghost" disabled={busy} onClick={() => sendViaStripe(inv)}>
+                              Send via Stripe
                             </Button>
                             <Button
                               variant="ghost"
@@ -290,20 +321,30 @@ export default function BillingPage() {
                           </>
                         )}
                         {['sent', 'partial', 'overdue'].includes(inv.status) && (
-                          <Button
+                          <select
+                            defaultValue=""
                             disabled={busy}
-                            onClick={() =>
+                            onChange={(e) => {
+                              const via = e.target.value;
+                              if (!via) return;
                               act(async () => {
                                 await updateInvoice(inv.id, {
                                   status: 'paid',
                                   amount_paid: inv.total,
                                   paid_at: new Date().toISOString(),
+                                  // Knowing HOW it arrived is what tells you
+                                  // later whether card fees were worth paying.
+                                  paid_via: via,
                                 });
-                              })
-                            }
+                              });
+                            }}
+                            style={{ ...inputStyle, width: 'auto', padding: '8px 10px' }}
                           >
-                            Mark paid
-                          </Button>
+                            <option value="">Mark paid by…</option>
+                            {METHODS.map((m) => (
+                              <option key={m.id} value={m.id}>{m.label}</option>
+                            ))}
+                          </select>
                         )}
                         {inv.status !== 'void' && inv.status !== 'paid' && (
                           <Button

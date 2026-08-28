@@ -69,6 +69,7 @@ export interface Org {
   settings: Record<string, unknown>;
   /** Per-business module flags; empty means use the defaults for `kind`. */
   modules: Record<string, boolean>;
+  payment_methods: unknown[];
   price_feed_token: string | null;
   calendar_token: string | null;
   created_at: string;
@@ -238,6 +239,10 @@ export interface JobInvoice {
   sent_at: string | null;
   paid_at: string | null;
   external_ref: string | null;
+  public_token: string | null;
+  viewed_at: string | null;
+  paid_via: string | null;
+  payment_note: string | null;
   created_at: string;
   updated_at: string;
 }

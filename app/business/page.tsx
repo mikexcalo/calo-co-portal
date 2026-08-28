@@ -10,6 +10,12 @@
 
 import { useEffect, useState } from 'react';
 import { updateOrg } from '@/lib/spine/db';
+import {
+  METHODS,
+  looksLikeAccountNumber,
+  type PaymentMethod,
+  type PaymentMethodId,
+} from '@/lib/spine/payments';
 import { useOrg } from '@/lib/spine/org';
 import {
   Button,
@@ -58,6 +64,7 @@ export default function BusinessPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [methods, setMethods] = useState<PaymentMethod[]>([]);
 
   useEffect(() => {
     if (!org) return;
@@ -65,6 +72,13 @@ export default function BusinessPage() {
     setRate(String(org.default_labor_rate ?? 0));
     setMarkup(String(org.default_material_markup_pct ?? 0));
     setTax(String(org.tax_rate ?? 0));
+    const existing = (org.payment_methods ?? []) as PaymentMethod[];
+    setMethods(
+      METHODS.map((spec) => {
+        const found = Array.isArray(existing) ? existing.find((m) => m.id === spec.id) : null;
+        return found ?? { id: spec.id, enabled: false, handle: '', note: '' };
+      })
+    );
   }, [org]);
 
   const save = async () => {
@@ -78,6 +92,7 @@ export default function BusinessPage() {
         default_labor_rate: parseFloat(rate) || 0,
         default_material_markup_pct: parseFloat(markup) || 0,
         tax_rate: parseFloat(tax) || 0,
+        payment_methods: methods.filter((m) => m.enabled) as unknown as Record<string, unknown>[],
       });
       await refresh();
       setSaved(true);
@@ -172,6 +187,77 @@ export default function BusinessPage() {
 
         <Button onClick={save} disabled={busy}>
           {busy ? 'Saving…' : 'Save'}
+        </Button>
+      </Card>
+
+      <Card style={{ maxWidth: 560, marginTop: 18 }}>
+        <SectionLabel>How you get paid</SectionLabel>
+        <p style={{ fontSize: 12.5, color: C.dim, margin: '0 0 16px', lineHeight: 1.6 }}>
+          Everything you tick shows on your invoices, cheapest option first. Card is the
+          convenient one, not the only one — on a $19,000 invoice it costs about $564 to
+          receive money that a bank transfer moves for $5.
+        </p>
+
+        {methods.map((m, i) => {
+          const spec = METHODS.find((x) => x.id === m.id)!;
+          const warn = m.handle ? looksLikeAccountNumber(m.handle) : false;
+          return (
+            <div
+              key={m.id}
+              style={{
+                paddingBottom: 12,
+                marginBottom: 12,
+                borderBottom: i < methods.length - 1 ? `1px solid ${C.border}` : 'none',
+              }}
+            >
+              <label style={{ display: 'flex', alignItems: 'center', gap: 9, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={m.enabled}
+                  onChange={(e) =>
+                    setMethods((p) =>
+                      p.map((x, j) => (j === i ? { ...x, enabled: e.target.checked } : x))
+                    )
+                  }
+                />
+                <span style={{ fontSize: 13.5, fontWeight: 500 }}>{spec.label}</span>
+                <span style={{ fontSize: 11, color: C.faint, marginLeft: 'auto' }}>
+                  {spec.costLabel}
+                </span>
+              </label>
+
+              {m.enabled && spec.handleLabel && (
+                <div style={{ marginTop: 9, marginLeft: 26 }}>
+                  <input
+                    value={m.handle ?? ''}
+                    onChange={(e) =>
+                      setMethods((p) =>
+                        p.map((x, j) => (j === i ? { ...x, handle: e.target.value } : x))
+                      )
+                    }
+                    style={{ ...inputStyle, borderColor: warn ? C.red : C.border }}
+                    placeholder={spec.placeholder}
+                  />
+                  {warn && (
+                    <div style={{ fontSize: 11.5, color: C.red, marginTop: 5, lineHeight: 1.5 }}>
+                      That looks like an account number. Don&apos;t put one here — this text goes
+                      on every invoice a customer sees. Write how to request the details instead.
+                    </div>
+                  )}
+                  {spec.sensitive && !warn && (
+                    <div style={{ fontSize: 11, color: C.faint, marginTop: 5, lineHeight: 1.5 }}>
+                      Never put account or routing numbers here. This appears on customer-facing
+                      invoices.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        <Button onClick={save} disabled={busy}>
+          {busy ? 'Saving…' : 'Save payment methods'}
         </Button>
       </Card>
 

@@ -95,3 +95,28 @@ the existing Web3Forms call), with `source: "mammoth-construction-site"`. Keep
 Web3Forms so their email notification doesn't change.
 
 Not done yet — that's a client's live site in another repo and needs your say-so.
+
+---
+
+## Project plan — deferred, not forgotten
+
+### Vercel Pro — $20/month
+Deferred until Mark is up and running in Nautilus.
+
+The Hobby plan is **non-commercial**. Hosting a paying client's marketing site
+already stretches it; running their business software on it breaks it
+outright. The $20 covers every project on the account, not per site, so one
+charge carries all client hosting.
+
+Worth knowing when pricing: passing through even $15/month of it to a client
+covers most of the cost, and every client after the first is pure margin.
+
+### Supabase Pro — $25/month
+Also deferred. Free-tier projects sleep after about a week of inactivity,
+which is what took the site down in July. Fine while it is only Mike using it
+daily. Not fine the day Mark depends on it.
+
+### Payment handles
+Venmo, PayPal and Zelle handles for CALO&CO and Mammoth still need entering at
+**Business → How you get paid**. Handles only — never account or routing
+numbers; that text appears on customer-facing invoices.

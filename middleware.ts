@@ -76,7 +76,8 @@ export const config = {
      * - /api/calendar/          calendar subscriptions
      * - /api/stripe/webhook     Stripe calling us
      * - /e/                     the customer-facing estimate page
+     * - /i/                     the customer-facing invoice page
      */
-    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|e/).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|e/|i/).*)',
   ],
 };
