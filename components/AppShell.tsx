@@ -25,6 +25,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
    */
   useEffect(() => {
     if (isBarePage || orgLoading || !org) return;
+
+    // First login: the app cannot invoice without a rate or say how to pay
+    // without a method, so ask once before anything else.
+    if (!org.onboarded_at) {
+      router.replace('/welcome');
+      return;
+    }
+
     if (!pathAllowed(org, pathname)) router.replace('/');
   }, [org, orgLoading, pathname, isBarePage, router]);
 

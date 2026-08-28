@@ -149,6 +149,10 @@ export function navFor(
         { id: 'proposals', label: 'Proposals', href: '/proposals', icon: 'proposal' },
         { id: 'billing', label: 'Billing', href: '/billing', icon: 'invoices' },
         { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
+        // What you owe your agency is money, not a website thing. It sat
+        // under "Your Website" because that is who it comes from, which is
+        // not how anyone looks for a bill.
+        { id: 'account', label: 'Bills to You', href: '/account', icon: 'proposal' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
@@ -175,7 +179,6 @@ export function navFor(
       items: [
         { id: 'client_requests', label: 'Client Requests', href: '/requests', icon: 'designStudio' },
         { id: 'website', label: 'Request a Change', href: '/website', icon: 'designStudio' },
-        { id: 'account', label: 'Your Account', href: '/account', icon: 'proposal' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {

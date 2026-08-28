@@ -157,10 +157,10 @@ export default function AccountPage() {
 
   return (
     <Page
-      title="Your account"
+      title="Bills to You"
       subtitle={
         rows.length
-          ? `Work ${agency} has logged for you, and what's outstanding.`
+          ? `What ${agency} has logged against your account, and what's outstanding.`
           : undefined
       }
     >

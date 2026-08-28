@@ -334,6 +334,19 @@ export default function Dashboard() {
     });
   }
 
+  // Setup gaps, surfaced here because the flow is skippable by design.
+  if (org && !(org.payment_methods as unknown[])?.length) {
+    attention.push({
+      key: 'nopay',
+      weight: 4e8,
+      title: 'No payment methods set',
+      detail: 'Invoices go out with no instructions on how to pay them.',
+      cta: 'Set them up',
+      href: '/business',
+      tone: 'red',
+    });
+  }
+
   if (org && Number(org.default_labor_rate) === 0) {
     attention.push({
       key: 'rate',
