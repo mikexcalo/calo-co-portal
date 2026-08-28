@@ -131,11 +131,16 @@ export function navFor(
   // list that hides things; the fix for "too long" is grouping, not hiding.
   const groups: NavGroup[] = [
     {
+      // The sidebar should hold what gets touched most. A contractor
+      // photographs receipts daily, so Receipts belongs up here for them; an
+      // agency files a handful a month, so it sits in Library instead.
       heading: 'The Work',
       items: [
         { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'yardSign' },
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
-        { id: 'receipts', label: 'Receipts', href: '/documents', icon: 'quotes' },
+        ...(org?.kind === 'contractor'
+          ? [{ id: 'receipts' as ModuleId, label: 'Receipts', href: '/documents', icon: 'quotes' }]
+          : []),
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
@@ -150,6 +155,9 @@ export function navFor(
       heading: 'Library',
       items: [
         { id: 'pricing', label: 'Price List', href: '/pricing', icon: 'financials' },
+        ...(org?.kind !== 'contractor'
+          ? [{ id: 'receipts' as ModuleId, label: 'Receipts', href: '/documents', icon: 'quotes' }]
+          : []),
         { id: 'records', label: 'Records', href: '/records', icon: 'folder' },
         { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],

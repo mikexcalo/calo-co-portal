@@ -60,6 +60,7 @@ import {
   today,
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
+import { UndoBar, type UndoState } from '@/components/spine/Undo';
 
 const STATUSES: JobStatus[] = [
   'lead',
@@ -94,6 +95,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
   const [confirming, setConfirming] = useState<
     { kind: 'time' | 'cost'; id: string; label: string } | null
   >(null);
+  const [undo, setUndo] = useState<UndoState | null>(null);
 
   const load = useCallback(async () => {
     const [org, j, l, t, c, inv, d, est] = await Promise.all([
@@ -217,6 +219,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         </Card>
       )}
 
+      <UndoBar undo={undo} onDone={() => setUndo(null)} />
+
       {confirming && (
         <Confirm
           title={confirming.kind === 'time' ? 'Delete these hours?' : 'Delete this cost?'}
@@ -225,8 +229,47 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
           busy={busy}
           onConfirm={() =>
             run(async () => {
-              if (confirming.kind === 'time') await deleteTimeEntry(confirming.id);
-              else await deleteCost(confirming.id);
+              // Keep the row before removing it, so Undo can restore the same
+              // values rather than an approximation of them.
+              if (confirming.kind === 'time') {
+                const row = entries.find((x) => x.id === confirming.id);
+                await deleteTimeEntry(confirming.id);
+                if (row && orgId) {
+                  setUndo({
+                    message: 'Hours deleted.',
+                    restore: async () => {
+                      await createTimeEntry(orgId, jobId, {
+                        worked_on: row.worked_on,
+                        hours: row.hours,
+                        rate: row.rate,
+                        worker_name: row.worker_name ?? undefined,
+                        description: row.description ?? undefined,
+                      });
+                      await load();
+                    },
+                  });
+                }
+              } else {
+                const row = costs.find((x) => x.id === confirming.id);
+                await deleteCost(confirming.id);
+                if (row && orgId) {
+                  setUndo({
+                    message: 'Cost deleted.',
+                    restore: async () => {
+                      await createCost(orgId, jobId, {
+                        amount: row.amount,
+                        purchased_on: row.purchased_on,
+                        kind: row.kind,
+                        vendor: row.vendor ?? undefined,
+                        description: row.description ?? undefined,
+                        document_id: row.document_id ?? undefined,
+                        markup_pct: row.markup_pct ?? undefined,
+                      });
+                      await load();
+                    },
+                  });
+                }
+              }
               setConfirming(null);
             })
           }

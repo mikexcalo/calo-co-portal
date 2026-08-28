@@ -91,7 +91,7 @@ export const PATHS: LearningPath[] = [
         id: 'receipt',
         title: 'Photograph a receipt',
         body:
-          'On your phone, open Documents and use the button at the bottom — it opens the camera. Take a picture of a real receipt. It reads the vendor, date and total on its own, and keeps the photo for taxes.',
+          'On your phone, open Receipts and use the button at the bottom — it opens the camera. Photograph a real receipt. It reads the vendor, date and total, shows you what it found, and keeps the photo for taxes.',
         href: '/documents',
         done: 'The receipt shows a vendor and an amount.',
       },
@@ -163,7 +163,7 @@ export const PATHS: LearningPath[] = [
         id: 'receipt',
         title: 'Photograph a receipt',
         body:
-          'Go to Documents and add a receipt — on a phone the button opens your camera. It gets read automatically: vendor, date, amount. The file itself is kept, which is what you need at tax time.',
+          'Open Receipts and add one — drag it in, or on a phone use the camera button. It gets read automatically: vendor, date, amount. You check what it read before anything is saved, and the photo itself is kept, which is what you need at tax time.',
         href: '/documents',
         done: 'The receipt shows a vendor and an amount.',
       },
@@ -204,7 +204,7 @@ export const PATHS: LearningPath[] = [
         id: 'dump',
         title: 'Dump everything in',
         body:
-          'Add documents in bulk — receipts, supplier invoices, permits. Each one is read once and never charged for again.',
+          'Drag a pile in at once — receipts, supplier invoices, permits. Each is read once and never charged for again, and each stops for you to approve before it becomes a cost.',
         href: '/documents',
         done: 'They land in the inbox with vendor and amount filled in.',
       },
@@ -212,7 +212,7 @@ export const PATHS: LearningPath[] = [
         id: 'review',
         title: 'Check what needs eyes',
         body:
-          'Anything smudged or ambiguous is flagged "Needs review" instead of being guessed at. A missing number is safer than a wrong one, because a wrong one becomes a wrong invoice.',
+          'Every document stops for your approval before anything is saved. Anything smudged is left blank rather than guessed — a missing number is safer than a wrong one, because a wrong one becomes a wrong invoice.',
         href: '/documents',
         done: 'You know which ones to look at.',
       },
@@ -220,7 +220,7 @@ export const PATHS: LearningPath[] = [
         id: 'cost',
         title: 'Watch the cost',
         body:
-          'The page shows exactly what reading these has cost you, in real money. It is about half a cent per document, once. There is no ongoing charge for having them.',
+          'The page shows exactly what reading these has cost, in real money — about half a cent per document, once. Keeping them costs nothing after that.',
         href: '/documents',
         done: 'The total is a number you can live with.',
       },
