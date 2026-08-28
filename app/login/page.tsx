@@ -13,9 +13,10 @@
  * worse than an honest "ask us".
  */
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
+import { verifySignIn } from '@/lib/spine/mfa';
 
 const INK = '#111113';
 const PANEL = '#ffffff';
@@ -33,11 +34,23 @@ function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<'password' | 'reset'>('password');
+  const [mode, setMode] = useState<'password' | 'reset' | 'code'>('password');
   const [sent, setSent] = useState(false);
+  const [code, setCode] = useState('');
+  const [recovery, setRecovery] = useState('');
+  const [useRecovery, setUseRecovery] = useState(false);
   const [error, setError] = useState(
     params.get('error') === 'auth' ? 'That sign-in link did not work. Try again.' : ''
   );
+
+  /**
+   * Arriving with ?mfa=1 means middleware turned someone away for owing a
+   * code — they are already past the password, so asking for it again would
+   * be theatre. Go straight to the code step.
+   */
+  useEffect(() => {
+    if (params.get('mfa') === '1') setMode('code');
+  }, [params]);
 
   const signIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +72,71 @@ function LoginForm() {
       return;
     }
 
+    /**
+     * The password is only half the door when two-factor is on. Supabase
+     * hands back a real session either way — it is just a session at the
+     * lower assurance level, which the database treats as blind: every
+     * policy comes back empty until the code is accepted. So there is no
+     * harm in holding it while we ask.
+     */
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal?.nextLevel === 'aal2' && aal.nextLevel !== aal.currentLevel) {
+      setMode('code');
+      setLoading(false);
+      return;
+    }
+
     router.push('/');
+    router.refresh();
+  };
+
+  const submitCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await verifySignIn(code);
+      router.push('/');
+      router.refresh();
+    } catch (err) {
+      setError((err as Error).message);
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Spending a recovery code takes the second factor off rather than
+   * standing in for it — so this lands you signed in with a password-only
+   * account, and the security page nags you to set it up again.
+   */
+  const submitRecovery = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    const supabase = createSupabaseBrowser();
+    const { data: session } = await supabase.auth.getSession();
+
+    const res = await fetch('/api/auth/mfa/codes', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.session?.access_token ?? ''}`,
+      },
+      body: JSON.stringify({ code: recovery }),
+    });
+    const payload = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      setError(payload.error || 'That code did not work.');
+      setLoading(false);
+      return;
+    }
+
+    // The old token still says this session owes a factor that no longer
+    // exists. Refresh it so the claim catches up before anything is loaded.
+    await supabase.auth.refreshSession();
+    router.push('/security');
     router.refresh();
   };
 
@@ -151,6 +228,112 @@ function LoginForm() {
                 Back to sign in
               </button>
             </div>
+          ) : mode === 'code' ? (
+            <form onSubmit={useRecovery ? submitRecovery : submitCode}>
+              <div style={{ fontSize: 15, fontWeight: 500, color: TEXT, marginBottom: 4 }}>
+                {useRecovery ? 'Use a recovery code' : 'One more step'}
+              </div>
+              <p style={{ fontSize: 12.5, color: FAINT, margin: '0 0 20px', lineHeight: 1.55 }}>
+                {useRecovery
+                  ? 'This will switch two-factor off so you can get back in. You can set it up again on a new phone afterwards.'
+                  : 'Open your authenticator app and enter the six digits it shows.'}
+              </p>
+
+              {useRecovery ? (
+                <label style={{ display: 'block', marginBottom: 14 }}>
+                  <div style={{ fontSize: 12, color: DIM, marginBottom: 6 }}>Recovery code</div>
+                  <input
+                    value={recovery}
+                    onChange={(e) => setRecovery(e.target.value.toUpperCase())}
+                    required
+                    autoFocus
+                    placeholder="XXXXX-XXXXX"
+                    style={{
+                      ...field,
+                      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                      letterSpacing: '.08em',
+                    }}
+                  />
+                </label>
+              ) : (
+                <label style={{ display: 'block', marginBottom: 14 }}>
+                  <div style={{ fontSize: 12, color: DIM, marginBottom: 6 }}>Six-digit code</div>
+                  <input
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    required
+                    autoFocus
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    placeholder="000000"
+                    style={{
+                      ...field,
+                      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                      fontSize: 20,
+                      letterSpacing: '.35em',
+                      textAlign: 'center',
+                    }}
+                  />
+                </label>
+              )}
+
+              {error && (
+                <div
+                  style={{
+                    background: '#fbeded',
+                    border: `1px solid ${RED}33`,
+                    borderRadius: 7,
+                    padding: '10px 12px',
+                    fontSize: 12.5,
+                    color: RED,
+                    marginBottom: 14,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading || (!useRecovery && code.length !== 6)}
+                style={{
+                  width: '100%',
+                  background: INK,
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 7,
+                  padding: '12px',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: loading ? 'wait' : 'pointer',
+                  opacity: loading || (!useRecovery && code.length !== 6) ? 0.5 : 1,
+                  fontFamily: 'inherit',
+                }}
+              >
+                {loading ? 'Checking…' : useRecovery ? 'Use this code' : 'Sign in'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setUseRecovery((v) => !v);
+                  setError('');
+                }}
+                style={{
+                  width: '100%',
+                  marginTop: 14,
+                  background: 'transparent',
+                  border: 'none',
+                  color: DIM,
+                  fontSize: 12.5,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {useRecovery ? 'Back — I have my authenticator' : "Lost your phone? Use a recovery code"}
+              </button>
+            </form>
           ) : (
             <form onSubmit={mode === 'password' ? signIn : sendReset}>
               <div style={{ fontSize: 15, fontWeight: 500, color: TEXT, marginBottom: 4 }}>

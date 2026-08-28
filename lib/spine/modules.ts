@@ -26,6 +26,7 @@ export type ModuleId =
   | 'records'
   | 'proposals'
   | 'team'
+  | 'security'
   | 'business';
 
 const CONTRACTOR: ModuleId[] = [
@@ -40,6 +41,7 @@ const CONTRACTOR: ModuleId[] = [
   'website',
   'account',
   'team',
+  'security',
   'business',
 ];
 
@@ -55,6 +57,7 @@ const AGENCY: ModuleId[] = [
   'brand_kit',
   'client_requests',
   'team',
+  'security',
   'business',
 ];
 
@@ -94,8 +97,15 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/account', 'account'],
 ];
 
-/** Routes every business can reach regardless of modules. */
-const ALWAYS = ['/', '/login', '/welcome'];
+/**
+ * Routes every business can reach regardless of modules.
+ *
+ * /security belongs here rather than in ROUTE_MODULE: it protects the person,
+ * not the business, and switching to a business that happened to have the
+ * module turned off should never be able to strand someone halfway through
+ * setting up two-factor.
+ */
+const ALWAYS = ['/', '/login', '/welcome', '/security'];
 
 /**
  * Is this path reachable for this business? Returns false only for a route
@@ -186,6 +196,9 @@ export function navFor(
       items: [
         { id: 'business', label: 'Business', href: '/business', icon: 'settings' },
         { id: 'team', label: 'Team', href: '/team', icon: 'clients' },
+        // Visible rather than buried in Business. Nobody goes looking for
+        // two-factor; they have to trip over it to turn it on.
+        { id: 'security', label: 'Security', href: '/security', icon: 'settings' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
   ];
