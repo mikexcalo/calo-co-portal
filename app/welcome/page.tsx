@@ -68,6 +68,22 @@ const BILLING_STYLES = [
 
 const STEPS = 4;
 
+/**
+ * Does this business already hold real work? Cheap head-count queries — we
+ * only need to know whether any row exists, never what it says.
+ */
+async function alreadyInUse(o: Org): Promise<boolean> {
+  const brand = (o.settings as Record<string, unknown> | null)?.brand;
+  if (brand && typeof brand === 'object') return true;
+
+  const counts = await Promise.all(
+    ['customers', 'jobs', 'estimates'].map((t) =>
+      supabase.from(t).select('id', { count: 'exact', head: true }).eq('org_id', o.id)
+    )
+  );
+  return counts.some((c) => (c.count ?? 0) > 0);
+}
+
 export default function WelcomePage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -100,6 +116,20 @@ export default function WelcomePage() {
           router.replace('/');
           return;
         }
+
+        /**
+         * A business that already has a name, a brand and customers is not a
+         * new business — it just predates this column. Never ask it to set
+         * itself up: the answers overwrite what is already there, and the
+         * first field is the business name, so a wrong answer renames someone
+         * else's company. Stamp it as done and get out of the way.
+         */
+        if (o && (await alreadyInUse(o))) {
+          await updateOrg(o.id, { onboarded_at: new Date().toISOString() } as Partial<Org>);
+          router.replace('/');
+          return;
+        }
+
         if (auth?.user) {
           const p = await supabase.from('profiles').select('full_name').eq('id', auth.user.id).maybeSingle();
           setFullName(p.data?.full_name ?? '');
@@ -215,6 +245,15 @@ export default function WelcomePage() {
           <div style={{ fontSize: 13.5, color: FAINT, marginTop: 6 }}>
             Four quick questions and you&apos;re set up.
           </div>
+          {/* Which business these answers land on. Without this, someone with
+              access to more than one can fill the whole thing in for the
+              wrong one and only find out from the sidebar afterwards. */}
+          {org && (
+            <div style={{ fontSize: 12, color: DIM, marginTop: 10 }}>
+              Setting up{' '}
+              <strong style={{ color: TEXT }}>{org.name}</strong>
+            </div>
+          )}
         </div>
 
         <div style={{ display: 'flex', gap: 6, marginBottom: 22 }}>
