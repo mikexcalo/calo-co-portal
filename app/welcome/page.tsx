@@ -3,19 +3,14 @@
 /**
  * First-login setup.
  *
- * Not a tutorial — the app already has guided paths for that. This is the
- * configuration the app genuinely cannot work without, asked once, in the
- * order it matters:
+ * Configuration, not a tutorial — Learn already handles teaching. This asks
+ * only what the app genuinely cannot work without, and asks it in the order
+ * someone would naturally answer.
  *
- *   who you are -> what you charge -> how you get paid
- *
- * The rates step exists because an hourly rate of $0 makes every invoice come
- * out at zero, and someone who skips it will not find out until they try to
- * bill a real customer. Payment methods exist because without them an invoice
- * has no instructions on it.
- *
- * Everything is skippable and everything nags from the Manifest afterwards.
- * Blocking someone at a form on their first minute is how you lose them.
+ * The rewrite after first review fixed the things that made it feel like a
+ * form rather than a welcome: headings that named the section instead of
+ * asking the question, an hourly rate demanded of people who do not bill by
+ * the hour, and a wall of fee percentages competing with the actual choice.
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -32,6 +27,7 @@ const DIM = '#363634';
 const FAINT = '#55554f';
 const ACCENT = '#2563eb';
 const AMBER = '#b45309';
+const RED = '#b91c1c';
 
 const field: React.CSSProperties = {
   width: '100%',
@@ -45,7 +41,32 @@ const field: React.CSSProperties = {
   boxSizing: 'border-box',
 };
 
-const STEPS = ['You', 'Your business', 'What you charge', 'Getting paid'] as const;
+const label: React.CSSProperties = { fontSize: 12.5, color: DIM, marginBottom: 6, fontWeight: 500 };
+const optional = <span style={{ color: FAINT, fontWeight: 400 }}> · optional</span>;
+
+/**
+ * Recognisable colour and initial per method rather than the real brand
+ * marks — those are trademarked artwork, and a coloured badge does the same
+ * job of making the list scannable without borrowing anyone's logo.
+ */
+const BADGE: Record<string, { bg: string; fg: string; ch: string }> = {
+  stripe:  { bg: '#635BFF', fg: '#fff', ch: '⌗' },
+  venmo:   { bg: '#008CFF', fg: '#fff', ch: 'V' },
+  paypal:  { bg: '#003087', fg: '#fff', ch: 'P' },
+  zelle:   { bg: '#6D1ED4', fg: '#fff', ch: 'Z' },
+  check:   { bg: '#E4E4E0', fg: '#444', ch: '✓' },
+  bank:    { bg: '#1F2D48', fg: '#fff', ch: '⌂' },
+  cash:    { bg: '#15803D', fg: '#fff', ch: '$' },
+};
+
+const BILLING_STYLES = [
+  { id: 'hourly',   label: 'By the hour',        hint: 'Time and materials. You log hours and bill them.' },
+  { id: 'fixed',    label: 'A fixed price per job', hint: 'You quote a number up front and bill that.' },
+  { id: 'both',     label: 'Both, depending',    hint: 'Some jobs hourly, some quoted flat.' },
+  { id: 'retainer', label: 'A monthly retainer', hint: 'Same amount each period, regardless of hours.' },
+] as const;
+
+const STEPS = 4;
 
 export default function WelcomePage() {
   const router = useRouter();
@@ -54,14 +75,19 @@ export default function WelcomePage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [feesOpen, setFeesOpen] = useState(false);
 
   const [fullName, setFullName] = useState('');
   const [bizName, setBizName] = useState('');
+  const [bizEmail, setBizEmail] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
+  const [billingStyle, setBillingStyle] = useState<string>('');
   const [rate, setRate] = useState('');
   const [markup, setMarkup] = useState('');
   const [tax, setTax] = useState('');
+  const [chargesMarkup, setChargesMarkup] = useState(false);
+  const [chargesTax, setChargesTax] = useState(false);
   const [methods, setMethods] = useState<PaymentMethod[]>(
     METHODS.map((m) => ({ id: m.id, enabled: false, handle: '' }))
   );
@@ -69,43 +95,30 @@ export default function WelcomePage() {
   useEffect(() => {
     (async () => {
       try {
-        const [{ data: auth }, o] = await Promise.all([
-          supabase.auth.getUser(),
-          getCurrentOrg(),
-        ]);
-
-        // Already set up? Nothing to do here.
+        const [{ data: auth }, o] = await Promise.all([supabase.auth.getUser(), getCurrentOrg()]);
         if (o?.onboarded_at) {
           router.replace('/');
           return;
         }
-
         if (auth?.user) {
-          const p = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', auth.user.id)
-            .maybeSingle();
+          const p = await supabase.from('profiles').select('full_name').eq('id', auth.user.id).maybeSingle();
           setFullName(p.data?.full_name ?? '');
+          setBizEmail(auth.user.email ?? '');
         }
-
         if (o) {
           setOrg(o);
           setBizName(o.name);
           const s = (o.settings ?? {}) as Record<string, string>;
           setAddress(s.address ?? '');
           setPhone(s.phone ?? '');
-          setRate(Number(o.default_labor_rate) ? String(o.default_labor_rate) : '');
-          setMarkup(Number(o.default_material_markup_pct) ? String(o.default_material_markup_pct) : '');
-          setTax(Number(o.tax_rate) ? String(o.tax_rate) : '');
-          const existing = (o.payment_methods ?? []) as PaymentMethod[];
-          if (Array.isArray(existing) && existing.length) {
-            setMethods(
-              METHODS.map((spec) => {
-                const found = existing.find((m) => m.id === spec.id);
-                return found ?? { id: spec.id, enabled: false, handle: '' };
-              })
-            );
+          if (Number(o.default_labor_rate)) setRate(String(o.default_labor_rate));
+          if (Number(o.default_material_markup_pct)) {
+            setMarkup(String(o.default_material_markup_pct));
+            setChargesMarkup(true);
+          }
+          if (Number(o.tax_rate)) {
+            setTax(String(o.tax_rate));
+            setChargesTax(true);
           }
         }
       } catch (e) {
@@ -117,42 +130,41 @@ export default function WelcomePage() {
   }, [router]);
 
   const finish = useCallback(
-    async (skipRest = false) => {
+    async (skipped = false) => {
       setBusy(true);
       setError(null);
       try {
         const { data: auth } = await supabase.auth.getUser();
         if (auth?.user && fullName.trim()) {
-          await supabase
-            .from('profiles')
-            .upsert({ id: auth.user.id, full_name: fullName.trim() }, { onConflict: 'id' });
+          await supabase.from('profiles').upsert(
+            { id: auth.user.id, full_name: fullName.trim() },
+            { onConflict: 'id' }
+          );
         }
-
         if (org) {
           const settings = { ...((org.settings ?? {}) as Record<string, unknown>) };
           if (address.trim()) settings.address = address.trim();
           if (phone.trim()) settings.phone = phone.trim();
+          if (bizEmail.trim()) settings.email = bizEmail.trim();
 
           await updateOrg(org.id, {
             name: bizName.trim() || org.name,
             settings,
+            billing_style: billingStyle || null,
             default_labor_rate: parseFloat(rate) || 0,
-            default_material_markup_pct: parseFloat(markup) || 0,
-            tax_rate: parseFloat(tax) || 0,
+            default_material_markup_pct: chargesMarkup ? parseFloat(markup) || 0 : 0,
+            tax_rate: chargesTax ? parseFloat(tax) || 0 : 0,
             payment_methods: methods.filter((m) => m.enabled) as unknown as Record<string, unknown>[],
-            // Marked done even when skipped — the Manifest picks up whatever
-            // is still missing, so nobody gets asked twice.
             onboarded_at: new Date().toISOString(),
           } as Partial<Org>);
         }
-
-        router.replace(skipRest ? '/' : '/?welcome=1');
+        router.replace('/');
       } catch (e) {
         setError((e as Error).message);
         setBusy(false);
       }
     },
-    [org, fullName, bizName, address, phone, rate, markup, tax, methods, router]
+    [org, fullName, bizName, bizEmail, address, phone, billingStyle, rate, markup, tax, chargesMarkup, chargesTax, methods, router]
   );
 
   if (loading) {
@@ -163,188 +175,334 @@ export default function WelcomePage() {
     );
   }
 
-  const last = step === STEPS.length - 1;
+  const needsRate = billingStyle === 'hourly' || billingStyle === 'both';
+  const last = step === STEPS - 1;
+
+  const nextBtn = (disabled?: boolean) => (
+    <button
+      onClick={() => (last ? finish() : setStep((s) => s + 1))}
+      disabled={busy || disabled}
+      style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        background: INK,
+        color: '#fff',
+        border: 'none',
+        borderRadius: 7,
+        padding: '12px',
+        fontSize: 14,
+        fontWeight: 500,
+        cursor: busy || disabled ? 'not-allowed' : 'pointer',
+        opacity: busy || disabled ? 0.45 : 1,
+        fontFamily: 'inherit',
+      }}
+    >
+      {busy ? 'Saving…' : last ? 'Finish setup' : 'Next'}
+      {!busy && <span aria-hidden style={{ fontSize: 15 }}>→</span>}
+    </button>
+  );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f7f5', padding: '32px 20px 60px' }}>
-      <div style={{ maxWidth: 520, margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', background: '#f7f7f5', padding: '36px 20px 60px' }}>
+      <div style={{ maxWidth: 540, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 26 }}>
-          <div style={{ fontSize: 20, fontWeight: 600, color: INK, letterSpacing: '-0.3px' }}>
-            Nautilus
+          <div style={{ fontSize: 22, fontWeight: 600, color: INK, letterSpacing: '-0.3px' }}>
+            Welcome to Nautilus
           </div>
-          <div style={{ fontSize: 13, color: FAINT, marginTop: 5 }}>
-            A few things and you&apos;re set up. Two minutes.
+          <div style={{ fontSize: 13.5, color: FAINT, marginTop: 6 }}>
+            Four quick questions and you&apos;re set up.
           </div>
         </div>
 
-        {/* Progress. Four dots reads as short; a percentage bar reads as long. */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 22 }}>
-          {STEPS.map((s, i) => (
-            <div
-              key={s}
-              style={{
-                flex: 1,
-                height: 3,
-                borderRadius: 2,
-                background: i <= step ? ACCENT : BORDER,
-              }}
-            />
+          {Array.from({ length: STEPS }).map((_, i) => (
+            <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= step ? ACCENT : BORDER }} />
           ))}
         </div>
 
         <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 12, padding: 26 }}>
           <div style={{ fontSize: 11, color: FAINT, textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 600 }}>
-            Step {step + 1} of {STEPS.length}
-          </div>
-          <div style={{ fontSize: 18, fontWeight: 600, color: TEXT, margin: '6px 0 18px' }}>
-            {STEPS[step]}
+            Step {step + 1} of {STEPS}
           </div>
 
           {error && (
-            <div style={{ background: '#fbeded', border: '1px solid #b91c1c33', borderRadius: 7, padding: '10px 12px', fontSize: 12.5, color: '#b91c1c', marginBottom: 14 }}>
+            <div style={{ background: '#fbeded', border: `1px solid ${RED}33`, borderRadius: 7, padding: '10px 12px', fontSize: 12.5, color: RED, margin: '14px 0 0' }}>
               {error}
             </div>
           )}
 
           {step === 0 && (
             <>
-              <p style={{ fontSize: 13.5, color: DIM, marginTop: 0, lineHeight: 1.6 }}>
-                What should we call you? This shows on the work you log.
+              <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
+                What should we call you?
+              </h1>
+              <p style={{ fontSize: 13.5, color: DIM, margin: '0 0 18px', lineHeight: 1.6 }}>
+                Your full name. It appears on the work you log, so a customer reading an invoice
+                knows who did what.
               </p>
-              <input
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                style={field}
-                placeholder="Mark Mesedahl"
-                autoFocus
-              />
+              <label style={{ display: 'block' }}>
+                <div style={label}>Full name</div>
+                <input
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  style={field}
+                  placeholder="Mark Mesedahl"
+                  autoComplete="name"
+                  autoFocus
+                />
+              </label>
+              <div style={{ display: 'flex', gap: 8, marginTop: 22 }}>{nextBtn(!fullName.trim())}</div>
             </>
           )}
 
           {step === 1 && (
             <>
-              <p style={{ fontSize: 13.5, color: DIM, marginTop: 0, lineHeight: 1.6 }}>
+              <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
+                What&apos;s the name of your brand or business?
+              </h1>
+              <p style={{ fontSize: 13.5, color: DIM, margin: '0 0 18px', lineHeight: 1.6 }}>
                 This appears on every estimate and invoice you send.
               </p>
-              <label style={{ display: 'block', marginBottom: 12 }}>
-                <div style={{ fontSize: 12, color: DIM, marginBottom: 6 }}>Business name</div>
+              <label style={{ display: 'block', marginBottom: 14 }}>
+                <div style={label}>Business name</div>
                 <input value={bizName} onChange={(e) => setBizName(e.target.value)} style={field} autoFocus />
               </label>
-              <label style={{ display: 'block', marginBottom: 12 }}>
-                <div style={{ fontSize: 12, color: DIM, marginBottom: 6 }}>Address</div>
-                <input value={address} onChange={(e) => setAddress(e.target.value)} style={field} placeholder="1018 Cushing Dr #B, Round Rock, TX 78664" />
+              <label style={{ display: 'block', marginBottom: 14 }}>
+                <div style={label}>Business email</div>
+                <input
+                  type="email"
+                  value={bizEmail}
+                  onChange={(e) => setBizEmail(e.target.value)}
+                  style={field}
+                  placeholder="hello@yourbusiness.com"
+                />
+                <div style={{ fontSize: 11.5, color: FAINT, marginTop: 5 }}>
+                  Where customers reply when they get an estimate or invoice.
+                </div>
               </label>
-              <label style={{ display: 'block' }}>
-                <div style={{ fontSize: 12, color: DIM, marginBottom: 6 }}>Phone</div>
+              <label style={{ display: 'block', marginBottom: 14 }}>
+                <div style={label}>Phone{optional}</div>
                 <input value={phone} onChange={(e) => setPhone(e.target.value)} style={field} placeholder="714-271-4837" />
               </label>
+              <label style={{ display: 'block' }}>
+                <div style={label}>Business address{optional}</div>
+                <input value={address} onChange={(e) => setAddress(e.target.value)} style={field} placeholder="Leave blank if you work remotely" />
+              </label>
+              <div style={{ display: 'flex', gap: 8, marginTop: 22 }}>
+                <BackBtn onClick={() => setStep((s) => s - 1)} />
+                {nextBtn()}
+              </div>
             </>
           )}
 
           {step === 2 && (
             <>
-              <p style={{ fontSize: 13.5, color: DIM, marginTop: 0, lineHeight: 1.6 }}>
-                Your defaults. You can override them on any single job.
+              <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
+                How do you charge?
+              </h1>
+              <p style={{ fontSize: 13.5, color: DIM, margin: '0 0 18px', lineHeight: 1.6 }}>
+                So the right fields show up when you build an estimate. You can change any of
+                this per job.
               </p>
-              <label style={{ display: 'block', marginBottom: 12 }}>
-                <div style={{ fontSize: 12, color: DIM, marginBottom: 6 }}>Hourly rate</div>
-                <input type="number" value={rate} onChange={(e) => setRate(e.target.value)} style={field} placeholder="85" autoFocus />
-              </label>
-              {!parseFloat(rate) && (
-                <div style={{ fontSize: 12, color: AMBER, margin: '-6px 0 12px', lineHeight: 1.55 }}>
-                  Leave this at zero and every invoice will total zero. You can set it later, but
-                  you will have to before you bill anyone.
-                </div>
-              )}
-              <label style={{ display: 'block', marginBottom: 12 }}>
-                <div style={{ fontSize: 12, color: DIM, marginBottom: 6 }}>Material markup %</div>
-                <input type="number" value={markup} onChange={(e) => setMarkup(e.target.value)} style={field} placeholder="15" />
-              </label>
-              <div style={{ fontSize: 11.5, color: FAINT, margin: '-6px 0 12px' }}>
-                Added to receipts when you bill them on. A $100 receipt at 15% bills as $115.
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 18 }}>
+                {BILLING_STYLES.map((b) => {
+                  const on = billingStyle === b.id;
+                  return (
+                    <button
+                      key={b.id}
+                      onClick={() => setBillingStyle(b.id)}
+                      style={{
+                        textAlign: 'left',
+                        padding: '12px 14px',
+                        borderRadius: 8,
+                        border: `1px solid ${on ? ACCENT : BORDER}`,
+                        background: on ? '#eef3fd' : '#fff',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      <div style={{ fontSize: 14, fontWeight: on ? 600 : 500, color: TEXT }}>{b.label}</div>
+                      <div style={{ fontSize: 12, color: FAINT, marginTop: 2 }}>{b.hint}</div>
+                    </button>
+                  );
+                })}
               </div>
-              <label style={{ display: 'block' }}>
-                <div style={{ fontSize: 12, color: DIM, marginBottom: 6 }}>Sales tax % (leave blank if you don&apos;t charge it)</div>
-                <input type="number" value={tax} onChange={(e) => setTax(e.target.value)} style={field} placeholder="0" />
-              </label>
+
+              {needsRate && (
+                <label style={{ display: 'block', marginBottom: 14 }}>
+                  <div style={label}>Your hourly rate</div>
+                  <div style={{ position: 'relative' }}>
+                    <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: FAINT, fontSize: 14, pointerEvents: 'none' }}>
+                      $
+                    </span>
+                    <input
+                      type="number"
+                      value={rate}
+                      onChange={(e) => setRate(e.target.value)}
+                      style={{ ...field, paddingLeft: 26 }}
+                      placeholder="85"
+                    />
+                  </div>
+                  {!parseFloat(rate) && (
+                    <div style={{ fontSize: 11.5, color: AMBER, marginTop: 6, lineHeight: 1.55 }}>
+                      Leave this blank and hourly invoices come out at zero.
+                    </div>
+                  )}
+                </label>
+              )}
+
+              {/* Off by default. Plenty of businesses mark up nothing and
+                  charge no sales tax, and asking them to type 0 twice is a
+                  small insult. */}
+              <Toggle
+                on={chargesMarkup}
+                onChange={setChargesMarkup}
+                title="I mark up materials"
+                hint="A percentage added when you bill a receipt on to a customer."
+              >
+                <div style={{ position: 'relative', maxWidth: 160 }}>
+                  <input
+                    type="number"
+                    value={markup}
+                    onChange={(e) => setMarkup(e.target.value)}
+                    style={{ ...field, paddingRight: 28 }}
+                    placeholder="15"
+                  />
+                  <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: FAINT, fontSize: 14 }}>%</span>
+                </div>
+              </Toggle>
+
+              <Toggle
+                on={chargesTax}
+                onChange={setChargesTax}
+                title="I charge sales tax"
+                hint="Added to invoice totals."
+              >
+                <div style={{ position: 'relative', maxWidth: 160 }}>
+                  <input
+                    type="number"
+                    value={tax}
+                    onChange={(e) => setTax(e.target.value)}
+                    style={{ ...field, paddingRight: 28 }}
+                    placeholder="8.25"
+                  />
+                  <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: FAINT, fontSize: 14 }}>%</span>
+                </div>
+              </Toggle>
+
+              <div style={{ display: 'flex', gap: 8, marginTop: 22 }}>
+                <BackBtn onClick={() => setStep((s) => s - 1)} />
+                {nextBtn(!billingStyle)}
+              </div>
             </>
           )}
 
           {step === 3 && (
             <>
-              <p style={{ fontSize: 13.5, color: DIM, marginTop: 0, lineHeight: 1.6 }}>
-                Tick everything you accept. These appear on your invoices so customers know how
-                to pay you.
+              <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
+                How do you want to get paid?
+              </h1>
+              <p style={{ fontSize: 13.5, color: DIM, margin: '0 0 6px', lineHeight: 1.6 }}>
+                Pick everything you accept. These appear on your invoices so customers know
+                where to send money.
               </p>
-              {methods.map((m, i) => {
-                const spec = METHODS.find((x) => x.id === m.id)!;
-                const warn = m.handle ? looksLikeAccountNumber(m.handle) : false;
-                return (
-                  <div key={m.id} style={{ marginBottom: 10 }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 9, cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={m.enabled}
-                        onChange={(e) =>
-                          setMethods((p) => p.map((x, j) => (j === i ? { ...x, enabled: e.target.checked } : x)))
-                        }
-                      />
-                      <span style={{ fontSize: 13.5 }}>{spec.label}</span>
-                      <span style={{ fontSize: 11, color: FAINT, marginLeft: 'auto' }}>{spec.costLabel}</span>
-                    </label>
-                    {m.enabled && spec.handleLabel && (
-                      <div style={{ marginLeft: 26, marginTop: 7 }}>
+
+              {/* Fees behind a toggle. They matter, but a column of
+                  percentages next to every option buries the actual choice. */}
+              <button
+                onClick={() => setFeesOpen((v) => !v)}
+                style={{ background: 'none', border: 'none', padding: 0, color: ACCENT, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 16 }}
+              >
+                {feesOpen ? 'Hide what each one costs' : 'What does each one cost me?'}
+              </button>
+
+              {feesOpen && (
+                <div style={{ background: '#f7f7f5', borderRadius: 8, padding: 13, marginBottom: 16, fontSize: 12, color: DIM, lineHeight: 1.7 }}>
+                  {METHODS.map((m) => (
+                    <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                      <span>{m.label}</span>
+                      <span style={{ color: FAINT, textAlign: 'right' }}>{m.costLabel}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {methods.map((m, i) => {
+                  const spec = METHODS.find((x) => x.id === m.id)!;
+                  const badge = BADGE[m.id];
+                  const warn = m.handle ? looksLikeAccountNumber(m.handle) : false;
+                  return (
+                    <div
+                      key={m.id}
+                      style={{
+                        border: `1px solid ${m.enabled ? ACCENT : BORDER}`,
+                        borderRadius: 8,
+                        padding: '11px 13px',
+                        background: m.enabled ? '#fbfcff' : '#fff',
+                      }}
+                    >
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 11, cursor: 'pointer' }}>
                         <input
-                          value={m.handle ?? ''}
-                          onChange={(e) =>
-                            setMethods((p) => p.map((x, j) => (j === i ? { ...x, handle: e.target.value } : x)))
-                          }
-                          style={{ ...field, borderColor: warn ? '#b91c1c' : BORDER }}
-                          placeholder={spec.placeholder}
+                          type="checkbox"
+                          checked={m.enabled}
+                          onChange={(e) => setMethods((p) => p.map((x, j) => (j === i ? { ...x, enabled: e.target.checked } : x)))}
                         />
-                        {warn && (
-                          <div style={{ fontSize: 11.5, color: '#b91c1c', marginTop: 5, lineHeight: 1.5 }}>
-                            That looks like an account number — don&apos;t put one here. This text
-                            goes on invoices customers can see.
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                        <span
+                          aria-hidden
+                          style={{
+                            width: 26, height: 26, borderRadius: 6, flexShrink: 0,
+                            background: badge.bg, color: badge.fg,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 13, fontWeight: 700,
+                          }}
+                        >
+                          {badge.ch}
+                        </span>
+                        <span style={{ fontSize: 14, color: TEXT }}>{spec.label}</span>
+                      </label>
+
+                      {m.enabled && spec.handleLabel && (
+                        <div style={{ marginTop: 10, marginLeft: 37 }}>
+                          <div style={label}>{spec.handleLabel}</div>
+                          <input
+                            value={m.handle ?? ''}
+                            onChange={(e) => setMethods((p) => p.map((x, j) => (j === i ? { ...x, handle: e.target.value } : x)))}
+                            style={{ ...field, borderColor: warn ? RED : BORDER }}
+                            placeholder={spec.placeholder}
+                            autoFocus
+                          />
+                          {warn && (
+                            <div style={{ fontSize: 11.5, color: RED, marginTop: 5, lineHeight: 1.5 }}>
+                              That looks like an account number — don&apos;t put one here. This
+                              text appears on invoices your customers can see.
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ display: 'flex', gap: 8, marginTop: 22 }}>
+                <BackBtn onClick={() => setStep((s) => s - 1)} />
+                {nextBtn()}
+              </div>
+
+              <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${BORDER}`, fontSize: 11.5, color: FAINT, lineHeight: 1.7 }}>
+                <strong style={{ color: DIM }}>Your information stays yours.</strong> Everything
+                is encrypted in transit and at rest, and each business&apos;s data is walled off
+                at the database so nobody else can read it. Nautilus never stores card numbers
+                or bank account numbers — card payments go straight to Stripe, and the handles
+                above are the public ones you already share to receive money.
+              </div>
             </>
           )}
-
-          <div style={{ display: 'flex', gap: 8, marginTop: 22, alignItems: 'center' }}>
-            {step > 0 && (
-              <button
-                onClick={() => setStep((s) => s - 1)}
-                style={{ background: 'transparent', border: `1px solid ${BORDER}`, borderRadius: 7, padding: '11px 16px', fontSize: 14, color: DIM, cursor: 'pointer', fontFamily: 'inherit' }}
-              >
-                Back
-              </button>
-            )}
-            <button
-              onClick={() => (last ? finish() : setStep((s) => s + 1))}
-              disabled={busy || (step === 0 && !fullName.trim())}
-              style={{
-                flex: 1,
-                background: INK,
-                color: '#fff',
-                border: 'none',
-                borderRadius: 7,
-                padding: '12px',
-                fontSize: 14,
-                fontWeight: 500,
-                cursor: busy ? 'wait' : 'pointer',
-                opacity: busy || (step === 0 && !fullName.trim()) ? 0.5 : 1,
-                fontFamily: 'inherit',
-              }}
-            >
-              {busy ? 'Saving…' : last ? 'Finish setup' : 'Continue'}
-            </button>
-          </div>
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 16 }}>
@@ -357,6 +515,45 @@ export default function WelcomePage() {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function BackBtn({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 6,
+        background: 'transparent', border: `1px solid ${BORDER}`, borderRadius: 7,
+        padding: '11px 16px', fontSize: 14, color: DIM, cursor: 'pointer', fontFamily: 'inherit',
+      }}
+    >
+      <span aria-hidden>←</span> Back
+    </button>
+  );
+}
+
+/** A yes/no that reveals its field only when the answer is yes. */
+function Toggle({
+  on, onChange, title, hint, children,
+}: {
+  on: boolean;
+  onChange: (v: boolean) => void;
+  title: string;
+  hint: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, cursor: 'pointer' }}>
+        <input type="checkbox" checked={on} onChange={(e) => onChange(e.target.checked)} style={{ marginTop: 3 }} />
+        <span>
+          <span style={{ fontSize: 13.5, color: TEXT }}>{title}</span>
+          <span style={{ display: 'block', fontSize: 11.5, color: FAINT, marginTop: 1 }}>{hint}</span>
+        </span>
+      </label>
+      {on && <div style={{ marginTop: 9, marginLeft: 26 }}>{children}</div>}
     </div>
   );
 }

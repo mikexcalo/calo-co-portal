@@ -71,6 +71,7 @@ export interface Org {
   modules: Record<string, boolean>;
   payment_methods: unknown[];
   onboarded_at: string | null;
+  billing_style: string | null;
   price_feed_token: string | null;
   calendar_token: string | null;
   created_at: string;
