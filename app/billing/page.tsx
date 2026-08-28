@@ -327,6 +327,29 @@ export default function BillingPage() {
                         Voiding returns these hours and receipts to unbilled so they can be re-invoiced.
                       </div>
                     )}
+
+                    {/* Card fees are a percentage, so on a big invoice the
+                        difference is real money. Worth saying at the moment
+                        the invoice goes out, not in a settings page. */}
+                    {inv.total >= 2000 && inv.status !== 'paid' && inv.status !== 'void' && (
+                      <div
+                        style={{
+                          marginTop: 10,
+                          padding: 10,
+                          borderRadius: 6,
+                          background: C.amberSoft,
+                          fontSize: 11.5,
+                          color: C.amber,
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        On {money(inv.total)}, card fees run about{' '}
+                        <strong>{money(inv.total * 0.029 + 0.3)}</strong>. Bank transfer costs
+                        about <strong>{money(Math.min(inv.total * 0.008, 5))}</strong> — a
+                        difference of {money(inv.total * 0.029 + 0.3 - Math.min(inv.total * 0.008, 5))}.
+                        Worth asking for on invoices this size.
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

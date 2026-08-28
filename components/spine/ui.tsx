@@ -9,6 +9,7 @@
  */
 
 import React from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 
 import { C, SERIF, radius } from '@/lib/spine/tokens';
 
@@ -30,15 +31,24 @@ export function useIsPhone(): boolean {
   return phone;
 }
 
+export interface PageTab {
+  label: string;
+  href: string;
+}
+
 export function Page({
   title,
   subtitle,
   action,
+  tabs,
   children,
 }: {
   title: string;
   subtitle?: string;
   action?: React.ReactNode;
+  /** Sibling screens within one section. Rendered under the header, never
+      beside it — the previous attempt let them collide with the buttons. */
+  tabs?: readonly PageTab[];
   children: React.ReactNode;
 }) {
   const phone = useIsPhone();
@@ -75,10 +85,64 @@ export function Page({
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{action}</div>
         )}
       </div>
+
+      {tabs && tabs.length > 1 && <PageTabs tabs={tabs} phone={phone} />}
+
       {children}
     </div>
   );
 }
+
+function PageTabs({ tabs, phone }: { tabs: readonly PageTab[]; phone: boolean }) {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: 2,
+        marginBottom: 24,
+        borderBottom: `1px solid ${C.border}`,
+        overflowX: phone ? 'auto' : 'visible',
+      }}
+    >
+      {tabs.map((t) => {
+        // Exact match only. Prefix matching is what lit every Library tab at
+        // once, because /pricing, /records and /brand-kit all belong to it.
+        const active = pathname === t.href;
+        return (
+          <button
+            key={t.href}
+            onClick={() => router.push(t.href)}
+            style={{
+              padding: '9px 15px',
+              border: 'none',
+              borderBottom: `2px solid ${active ? C.accent : 'transparent'}`,
+              background: 'transparent',
+              color: active ? C.text : C.dim,
+              fontSize: 13.5,
+              fontWeight: active ? 500 : 400,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              whiteSpace: 'nowrap',
+              marginBottom: -1,
+            }}
+          >
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** The Library's three screens. One place so nav and tabs cannot drift. */
+export const LIBRARY_TABS: readonly PageTab[] = [
+  { label: 'Price List', href: '/pricing' },
+  { label: 'Records', href: '/records' },
+  { label: 'Brand Kit', href: '/brand-kit' },
+];
 
 export function Card({
   children,

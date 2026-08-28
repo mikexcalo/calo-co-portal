@@ -14,6 +14,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { listInvoices, listJobLedger } from '@/lib/spine/db';
+import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import type { JobInvoice, JobLedger } from '@/lib/spine/types';
 import { JOB_STATUS_LABEL } from '@/lib/spine/types';
@@ -70,6 +71,13 @@ export default function ProfitLossPage() {
   const [error, setError] = useState<string | null>(null);
   /** Set after mount — never read the clock during render. */
   const [todayMs, setTodayMs] = useState<number | null>(null);
+  /** What the system caught, as opposed to what the business earned. */
+  const [recovery, setRecovery] = useState<{
+    recovered: number;
+    recoveredItems: number;
+    avgDays: number | null;
+    months: number;
+  } | null>(null);
 
 
   useEffect(() => setTodayMs(Date.now()), []);
@@ -77,7 +85,27 @@ export default function ProfitLossPage() {
   useEffect(() => {
     (async () => {
       try {
-        const [l, inv] = await Promise.all([listJobLedger(), listInvoices()]);
+        const [l, inv, rec] = await Promise.all([
+          listJobLedger(),
+          listInvoices(),
+          supabase.from('recovery_metrics').select('*'),
+        ]);
+
+        if (!rec.error && rec.data?.length) {
+          const rows = rec.data as Array<Record<string, unknown>>;
+          const n = (v: unknown) => Number(v) || 0;
+          const totalItems = rows.reduce((s, r) => s + n(r.items_billed), 0);
+          setRecovery({
+            recovered: rows.reduce((s, r) => s + n(r.recovered), 0),
+            recoveredItems: rows.reduce((s, r) => s + n(r.recovered_items), 0),
+            // Weight the average by volume rather than by month, or one quiet
+            // month distorts it.
+            avgDays: totalItems
+              ? rows.reduce((s, r) => s + n(r.avg_days_to_bill) * n(r.items_billed), 0) / totalItems
+              : null,
+            months: rows.length,
+          });
+        }
         setLedger(l);
         setInvoices(inv);
       } catch (e) {
@@ -237,6 +265,44 @@ export default function ProfitLossPage() {
                 A negative margin is normal while a job is still running — you spend before you
                 bill. It only matters once the job is complete.
               </div>
+            </div>
+          )}
+
+          {recovery && recovery.recovered > 0 && (
+            <div style={{ marginBottom: 28 }}>
+              <SectionLabel>What Nautilus caught</SectionLabel>
+              <Card style={{ borderColor: C.green }}>
+                <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ fontSize: 26, color: C.green, fontWeight: 500 }}>
+                      {money0(recovery.recovered)}
+                    </div>
+                    <div style={{ fontSize: 12, color: C.dim, marginTop: 3 }}>
+                      billed after sitting more than three weeks
+                    </div>
+                  </div>
+                  {recovery.avgDays != null && (
+                    <div>
+                      <div style={{ fontSize: 26, fontWeight: 500 }}>
+                        {recovery.avgDays.toFixed(0)} days
+                      </div>
+                      <div style={{ fontSize: 12, color: C.dim, marginTop: 3 }}>
+                        average from work done to invoice sent
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div style={{ fontSize: 11.5, color: C.faint, marginTop: 14, lineHeight: 1.65, maxWidth: 620 }}>
+                  {recovery.recoveredItems} item{recovery.recoveredItems === 1 ? '' : 's'} —
+                  hours and receipts that were recorded, sat long enough to be at real risk of
+                  being forgotten, and then got invoiced.{' '}
+                  <strong style={{ color: C.dim }}>
+                    This is work the system caught, not revenue it created
+                  </strong>{' '}
+                  — you did the work either way. Anything billed inside three weeks is a normal
+                  cycle and isn&apos;t counted.
+                </div>
+              </Card>
             </div>
           )}
 

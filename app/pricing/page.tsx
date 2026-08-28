@@ -31,6 +31,7 @@ import {
   inputStyle,
   money,
   useIsPhone,
+  LIBRARY_TABS,
 } from '@/components/spine/ui';
 import { DropZone } from '@/components/spine/DropZone';
 
@@ -195,6 +196,7 @@ export default function PricingPage() {
 
   return (
     <Page
+      tabs={LIBRARY_TABS}
       title="Price list"
       subtitle={`Standard prices for ${org?.name ?? 'this business'}. Used on estimates and invoices so the same number appears everywhere.`}
       action={

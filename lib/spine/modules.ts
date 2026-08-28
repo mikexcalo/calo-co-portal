@@ -152,14 +152,22 @@ export function navFor(
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
+      // Library is one destination with tabs inside — a library OF records,
+      // price lists and brand assets. Three sidebar rows for three reference
+      // screens was more weight than they earn.
       heading: 'Library',
       items: [
-        { id: 'pricing', label: 'Price List', href: '/pricing', icon: 'financials' },
         ...(org?.kind !== 'contractor'
           ? [{ id: 'receipts' as ModuleId, label: 'Receipts', href: '/documents', icon: 'quotes' }]
           : []),
-        { id: 'records', label: 'Records', href: '/records', icon: 'folder' },
-        { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
+        ...(has('pricing') || has('records') || has('brand_kit')
+          ? [{
+              id: (has('pricing') ? 'pricing' : has('records') ? 'records' : 'brand_kit') as ModuleId,
+              label: 'Library',
+              href: has('pricing') ? '/pricing' : has('records') ? '/records' : '/brand-kit',
+              icon: 'folder',
+            }]
+          : []),
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {

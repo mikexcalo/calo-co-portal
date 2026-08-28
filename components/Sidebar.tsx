@@ -117,25 +117,15 @@ export default function Sidebar() {
   const { org, vocab } = useOrg();
 
   /**
-   * A section stays highlighted while you're on any of its tabs — otherwise
-   * clicking through to Billing would leave nothing lit in the sidebar and
-   * you'd lose your sense of where you are.
+   * Library covers three screens behind one entry, so it stays lit on any of
+   * them. Everything else matches its own path.
    */
-  const SECTION_ROUTES: Record<string, string[]> = {
-    '/proposals': ['/proposals', '/billing', '/pl'],
-    '/billing': ['/proposals', '/billing', '/pl'],
-    '/pl': ['/proposals', '/billing', '/pl'],
-    '/pricing': ['/pricing', '/records', '/brand-kit'],
-    '/records': ['/pricing', '/records', '/brand-kit'],
-    '/brand-kit': ['/pricing', '/records', '/brand-kit'],
-    '/business': ['/business', '/team'],
-    '/team': ['/business', '/team'],
-  };
+  const LIBRARY = ['/pricing', '/records', '/brand-kit'];
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
-    const family = SECTION_ROUTES[href] ?? [href];
-    return family.some((h) => pathname === h || pathname.startsWith(h + '/'));
+    if (LIBRARY.includes(href)) return LIBRARY.some((h) => pathname === h);
+    return pathname === href || pathname.startsWith(href + '/');
   };
 
   const navBtn = (label: string, href: string, icon: React.ReactNode) => {
