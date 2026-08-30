@@ -161,9 +161,14 @@ export default function CustomersPage() {
       title={vocab.customerPlural}
       subtitle={`Who to deal with today, and what everyone is worth. Value comes from their ${vocab.jobPlural.toLowerCase()}, never typed in.`}
       action={
-        <Button onClick={() => setAdding((v) => !v)}>
-          {adding ? 'Cancel' : `New ${vocab.customer.toLowerCase()}`}
-        </Button>
+        <>
+          <Button variant="ghost" onClick={() => router.push('/customers/import')}>
+            Import a list
+          </Button>
+          <Button onClick={() => setAdding((v) => !v)}>
+            {adding ? 'Cancel' : `New ${vocab.customer.toLowerCase()}`}
+          </Button>
+        </>
       }
     >
       {error && (

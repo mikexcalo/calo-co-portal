@@ -22,7 +22,20 @@ import { PRODUCT } from '@/lib/brand';
 export const metadata: Metadata = {
   title: PRODUCT,
   description: `${PRODUCT} — run the work, bill the work.`,
-  icons: { icon: '/favicon.svg' },
+  /**
+   * The ampersand from calo.company, copied rather than redrawn — it is set
+   * in Lora italic with the font embedded in the file, so any recreation
+   * would be a near-miss that reads as slightly wrong beside the real site.
+   */
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+    shortcut: '/favicon.ico',
+  },
 };
 
 export const viewport = {
