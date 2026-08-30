@@ -29,8 +29,9 @@ export async function POST(req: NextRequest) {
 
   let invoiceId: string | undefined;
   let to: string | undefined;
+  let previewOnly: boolean | undefined;
   try {
-    ({ invoiceId, to } = await req.json());
+    ({ invoiceId, to, previewOnly } = await req.json());
   } catch {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
@@ -75,11 +76,27 @@ export async function POST(req: NextRequest) {
       (m) => m.enabled
     );
 
+    /**
+     * A preview mints the link and stops there.
+     *
+     * Looking at your own invoice must not mark it sent. Otherwise checking
+     * how it turned out silently tells the app a customer has it, the
+     * overdue clock starts, and Today begins chasing you about a bill nobody
+     * ever received.
+     */
     const upd = await db
       .from('job_invoices')
-      .update({ public_token: token, status: 'sent', sent_at: new Date().toISOString() })
+      .update(
+        previewOnly
+          ? { public_token: token }
+          : { public_token: token, status: 'sent', sent_at: new Date().toISOString() }
+      )
       .eq('id', inv.id);
     if (upd.error) throw new Error(upd.error.message);
+
+    if (previewOnly) {
+      return NextResponse.json({ ok: true, link, preview: true });
+    }
 
     const owed = Number(inv.total) - Number(inv.amount_paid);
 

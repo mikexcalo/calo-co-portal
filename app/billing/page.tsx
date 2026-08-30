@@ -105,7 +105,60 @@ export default function BillingPage() {
    * Hand the invoice to Stripe. Falls back gracefully with a clear message
    * when Stripe isn't configured yet — marking paid by hand still works.
    */
-  /** Email a link to the invoice page, where the customer picks how to pay. */
+  /**
+   * Open exactly what the customer will see.
+   *
+   * There was no way to look at an invoice before sending it, which meant the
+   * first person to see how it turned out was the person being asked for
+   * money. Minting the link is harmless: it is unguessable, and it is the same
+   * link the send would use.
+   */
+  const preview = async (inv: JobInvoice) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/invoices/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invoiceId: inv.id, previewOnly: true }),
+      });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error || 'Could not build a preview');
+      if (payload.link) window.open(payload.link, '_blank', 'noopener');
+      await load();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** Email the invoice as a link, and notify them in-app if they're on here. */
+  const emailInvoice = async (inv: JobInvoice) => {
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetch('/api/invoices/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invoiceId: inv.id }),
+      });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error || 'Could not send');
+      setNotice(payload.message);
+      if (!payload.message?.startsWith('Sent') && payload.link) {
+        await navigator.clipboard.writeText(payload.link).catch(() => {});
+      }
+      await load();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** Copy a link to the invoice page, where the customer picks how to pay. */
   const sendAsLink = async (inv: JobInvoice) => {
     setBusy(true);
     setError(null);
@@ -292,14 +345,20 @@ export default function BillingPage() {
                         <Button variant="ghost" onClick={() => router.push(`/jobs/${inv.job_id}`)}>
                           Open job
                         </Button>
+                        <Button variant="ghost" disabled={busy} onClick={() => preview(inv)}>
+                          Preview
+                        </Button>
                         {inv.status === 'draft' && (
                           <>
-                            {/* Default: a link listing every method they
+                            {/* Default: email a link listing every method they
                                 accept. Stripe stays available for anyone who
                                 wants instant card payment, but it is no
                                 longer the only way to send a bill. */}
-                            <Button disabled={busy} onClick={() => sendAsLink(inv)}>
-                              Send invoice
+                            <Button disabled={busy} onClick={() => emailInvoice(inv)}>
+                              Email invoice
+                            </Button>
+                            <Button variant="ghost" disabled={busy} onClick={() => sendAsLink(inv)}>
+                              Copy link
                             </Button>
                             <Button variant="ghost" disabled={busy} onClick={() => sendViaStripe(inv)}>
                               Send via Stripe
