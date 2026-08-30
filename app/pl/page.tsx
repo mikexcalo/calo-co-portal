@@ -78,6 +78,7 @@ export default function ProfitLossPage() {
     avgDays: number | null;
     months: number;
   } | null>(null);
+  const [overheadMonthly, setOverheadMonthly] = useState(0);
 
 
   useEffect(() => setTodayMs(Date.now()), []);
@@ -85,11 +86,14 @@ export default function ProfitLossPage() {
   useEffect(() => {
     (async () => {
       try {
-        const [l, inv, rec] = await Promise.all([
+        const [l, inv, rec, oh] = await Promise.all([
           listJobLedger(),
           listInvoices(),
           supabase.from('recovery_metrics').select('*'),
+          supabase.from('overhead_summary').select('monthly_run_rate').maybeSingle(),
         ]);
+
+        if (!oh.error && oh.data) setOverheadMonthly(Number(oh.data.monthly_run_rate) || 0);
 
         if (!rec.error && rec.data?.length) {
           const rows = rec.data as Array<Record<string, unknown>>;
@@ -130,20 +134,44 @@ export default function ProfitLossPage() {
     const collected = inPeriod.reduce((s, i) => s + i.amount_paid, 0);
     const outstanding = revenue - collected;
 
-    const costs = ledger.reduce((s, r) => s + r.cost_total, 0);
+    const jobCosts = ledger.reduce((s, r) => s + r.cost_total, 0);
     const unbilled = ledger.reduce((s, r) => s + r.unbilled_labor + r.unbilled_cost, 0);
+
+    /**
+     * Overheads for the span being looked at. Recurring costs are held as a
+     * monthly figure, so they are spread across the period rather than
+     * counted once — a $25 monthly subscription is $75 in a quarter, not $25.
+     *
+     * "All time" gets twelve months rather than a guess at how long the
+     * business has existed. Inventing a longer history would quietly inflate
+     * costs and understate profit.
+     */
+    const months =
+      period === 'month'
+        ? 1
+        : period === 'quarter'
+        ? 3
+        : period === 'ytd'
+        // Months elapsed so far this year, not a full twelve — charging a
+        // whole year of subscriptions in February would invent costs.
+        ? (todayMs ? new Date(todayMs).getMonth() + 1 : 1)
+        : 12;
+    const overhead = overheadMonthly * months;
+    const costs = jobCosts + overhead;
 
     return {
       revenue,
       collected,
       outstanding,
       costs,
+      jobCosts,
+      overhead,
       unbilled,
       profit: revenue - costs,
       margin: revenue > 0 ? ((revenue - costs) / revenue) * 100 : 0,
       count: inPeriod.length,
     };
-  }, [invoices, ledger, period, todayMs]);
+  }, [invoices, ledger, period, todayMs, overheadMonthly]);
 
   const ranked = useMemo(
     () => [...ledger].sort((a, b) => a.margin_to_date - b.margin_to_date),
@@ -202,7 +230,15 @@ export default function ProfitLossPage() {
               value={money0(scoped.revenue)}
               hint={`${scoped.count} invoice${scoped.count === 1 ? '' : 's'}`}
             />
-            <Metric label="Costs" value={money0(scoped.costs)} hint="Materials, subs, permits" />
+            <Metric
+              label="Costs"
+              value={money0(scoped.costs)}
+              hint={
+                scoped.overhead > 0
+                  ? `${money0(scoped.jobCosts)} jobs + ${money0(scoped.overhead)} overheads`
+                  : 'Materials, subs, permits'
+              }
+            />
             <Metric
               label="Profit"
               value={money0(scoped.profit)}

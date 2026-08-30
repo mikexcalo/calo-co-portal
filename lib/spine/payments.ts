@@ -43,6 +43,12 @@ export interface MethodSpec {
   customerHint: string;
   /** Warn when a handle looks like something it shouldn't be. */
   sensitive?: boolean;
+  /**
+   * Needs a connected Stripe account before it can be offered. Everything
+   * else works the day you type a handle in, because everything else is you
+   * telling a customer where to send money — no integration involved.
+   */
+  needsStripe?: boolean;
 }
 
 export const METHODS: MethodSpec[] = [
@@ -50,6 +56,7 @@ export const METHODS: MethodSpec[] = [
     id: 'stripe',
     label: 'Card or bank transfer online',
     handleLabel: null,
+    needsStripe: true,
     cost: (a) => a * 0.029 + 0.3,
     costLabel: '2.9% + 30¢ on cards, ~0.8% on bank transfer',
     customerHint: 'Pay online by card or bank transfer. Instant confirmation.',
@@ -58,7 +65,7 @@ export const METHODS: MethodSpec[] = [
     id: 'venmo',
     label: 'Venmo',
     handleLabel: 'Your Venmo username',
-    placeholder: '@mammoth-construction',
+    placeholder: '@your-username',
     // Personal Venmo is free; business profiles take a cut.
     cost: () => 0,
     costLabel: 'Free between personal accounts; 1.9% + 10¢ on business profiles',
@@ -68,7 +75,7 @@ export const METHODS: MethodSpec[] = [
     id: 'paypal',
     label: 'PayPal',
     handleLabel: 'Your PayPal email or PayPal.me link',
-    placeholder: 'mark@mammothconstructiontx.com',
+    placeholder: 'you@yourbusiness.com',
     cost: (a) => a * 0.0349 + 0.49,
     costLabel: '3.49% + 49¢ for goods and services',
     customerHint: 'Send to this PayPal account.',
@@ -77,7 +84,7 @@ export const METHODS: MethodSpec[] = [
     id: 'zelle',
     label: 'Zelle',
     handleLabel: 'The email or phone your Zelle is registered to',
-    placeholder: 'mark@mammothconstructiontx.com',
+    placeholder: 'you@yourbusiness.com',
     cost: () => 0,
     costLabel: 'Free — bank to bank',
     customerHint: 'Send through your bank’s Zelle to this address.',
@@ -86,7 +93,7 @@ export const METHODS: MethodSpec[] = [
     id: 'check',
     label: 'Check',
     handleLabel: 'Where to mail it',
-    placeholder: '1018 Cushing Dr #B, Round Rock, TX 78664',
+    placeholder: '123 Main St, Suite 4, Your City, ST 00000',
     cost: () => 0,
     costLabel: 'Free, but slow to arrive and slow to clear',
     customerHint: 'Make it out to the business name and mail it here.',
@@ -96,7 +103,7 @@ export const METHODS: MethodSpec[] = [
     label: 'Bank transfer / ACH',
     // Deliberately not a field for account numbers.
     handleLabel: 'A note on how to request details',
-    placeholder: 'Call or email and we’ll send account details',
+    placeholder: 'Call or email us and we’ll send account details',
     cost: (a) => Math.min(a * 0.008, 5),
     costLabel: 'Usually free or a few dollars',
     customerHint: 'Ask for account details and pay from your bank.',

@@ -26,6 +26,7 @@ export type ModuleId =
   | 'records'
   | 'proposals'
   | 'team'
+  | 'expenses'
   | 'security'
   | 'business';
 
@@ -36,6 +37,7 @@ const CONTRACTOR: ModuleId[] = [
   'proposals',
   'billing',
   'pl',
+  'expenses',
   'pricing',
   'records',
   'website',
@@ -52,6 +54,7 @@ const AGENCY: ModuleId[] = [
   'proposals',
   'billing',
   'pl',
+  'expenses',
   'pricing',
   'records',
   'brand_kit',
@@ -86,6 +89,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/documents', 'receipts'],
   ['/billing', 'billing'],
   ['/pl', 'pl'],
+  ['/expenses', 'expenses'],
   ['/website', 'website'],
   ['/requests', 'client_requests'],
   ['/brand-kit', 'brand_kit'],
@@ -159,6 +163,10 @@ export function navFor(
         { id: 'proposals', label: 'Proposals', href: '/proposals', icon: 'proposal' },
         { id: 'billing', label: 'Billing', href: '/billing', icon: 'invoices' },
         { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
+        // Overheads are money out that no job caused. Without somewhere to put
+        // them, Profit & Loss shows what the work earned and none of what it
+        // costs to be open.
+        { id: 'expenses', label: 'Overheads', href: '/expenses', icon: 'wallet' },
         // What you owe your agency is money, not a website thing. It sat
         // under "Your Website" because that is who it comes from, which is
         // not how anyone looks for a bill.
@@ -194,7 +202,7 @@ export function navFor(
     {
       heading: 'Setup',
       items: [
-        { id: 'business', label: 'Business', href: '/business', icon: 'settings' },
+        { id: 'business', label: 'Business', href: '/business', icon: 'storefront' },
         { id: 'team', label: 'Team', href: '/team', icon: 'clients' },
         // Visible rather than buried in Business. Nobody goes looking for
         // two-factor; they have to trip over it to turn it on.

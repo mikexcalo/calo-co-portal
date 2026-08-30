@@ -109,9 +109,23 @@ const icons: Record<string, React.ReactNode> = {
       <path d="M10.4 5.6a2.9 2.9 0 0 1-3.7 3.7l-4 4a1.3 1.3 0 0 1-1.9-1.9l4-4a2.9 2.9 0 0 1 3.7-3.7L7 5.2l.6 2.2 2.2.6z" />
     </svg>
   ),
-  // A wrench reads as "settings", which is what Security had and why it did
-  // not look like security. A shield is the one shape everyone already reads
-  // as protection.
+  // Wrenches were doing duty for both Security and Business, which meant two
+  // unrelated destinations looked identical and neither looked like itself.
+  // A shield reads as protection; a storefront reads as the business.
+  storefront: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2.3 6.2 3.4 2.6h9.2l1.1 3.6" />
+      <path d="M2.3 6.2a1.8 1.8 0 0 0 3.5 0 1.8 1.8 0 0 0 3.5 0 1.8 1.8 0 0 0 3.5 0" />
+      <path d="M3.1 7.6v5.8h9.8V7.6" />
+      <path d="M6.4 13.4v-3.3h3.2v3.3" />
+    </svg>
+  ),
+  wallet: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 4.6v7.2a1.4 1.4 0 0 0 1.4 1.4h9.2a1.4 1.4 0 0 0 1.4-1.4V6.8a1.4 1.4 0 0 0-1.4-1.4H3.4A1.4 1.4 0 0 1 2 4v0a1.4 1.4 0 0 1 1.4-1.4h8" />
+      <path d="M11.2 9.2h.01" />
+    </svg>
+  ),
   shield: (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 1.6 2.9 3.8v3.5c0 3 2.1 5.7 5.1 6.9 3-1.2 5.1-3.9 5.1-6.9V3.8z" />
