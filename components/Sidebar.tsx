@@ -152,11 +152,12 @@ export default function Sidebar() {
     return pathname === href || pathname.startsWith(href + '/');
   };
 
-  const navBtn = (label: string, href: string, icon: React.ReactNode) => {
+  const navBtn = (label: string, href: string, iconKey: string) => {
     const active = isActive(href);
     return (
       <button
         key={href}
+        className="navItem"
         onClick={() => router.push(href)}
         style={{
           display: 'flex',
@@ -177,6 +178,8 @@ export default function Sidebar() {
         }}
       >
         <span
+          className="navIcon"
+          data-icon={iconKey}
           style={{
             width: 18,
             display: 'flex',
@@ -186,7 +189,7 @@ export default function Sidebar() {
             color: active ? C.accent : C.faint,
           }}
         >
-          {icon}
+          {icons[iconKey]}
         </span>
         {label}
       </button>
@@ -237,7 +240,7 @@ export default function Sidebar() {
       </div>
 
       <div style={{ flex: 1, padding: '8px 8px 8px', overflowY: 'auto' }}>
-        {navBtn('Manifest', '/', icons.dashboard)}
+        {navBtn('Manifest', '/', 'dashboard')}
 
         {groups.map((g) => (
           <div key={g.heading || g.items[0]?.href} style={{ marginTop: g.heading ? 16 : 8 }}>
@@ -255,7 +258,7 @@ export default function Sidebar() {
                 {g.heading}
               </div>
             )}
-            {g.items.map((i) => navBtn(i.label, i.href, icons[i.icon]))}
+            {g.items.map((i) => navBtn(i.label, i.href, i.icon))}
           </div>
         ))}
       </div>

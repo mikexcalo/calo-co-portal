@@ -4538,3 +4538,140 @@ input:focus, textarea:focus, select:focus {
 
 /* deploy */
 /* fix */
+
+/* ==========================================================================
+   NAV ICON MOTION
+   ==========================================================================
+   Each icon moves in a way that belongs to the thing it depicts — the yard
+   sign sways on its post, the folder's lid lifts, the chart's bars grow, the
+   shield's tick draws itself. A single shared wobble applied to everything
+   would read as decoration; motion that matches the object reads as the
+   object responding.
+
+   Kept under 400ms and small in amplitude. This fires every time a cursor
+   crosses the sidebar, so anything longer or larger stops being a flourish
+   and becomes something to sit through.
+
+   Transforms only — no width, height, or margin — so nothing reflows and the
+   text beside the icon never shifts.
+   ========================================================================== */
+
+.navItem .navIcon svg {
+  transition: transform 0.32s cubic-bezier(0.34, 1.4, 0.64, 1);
+  overflow: visible;
+}
+.navItem .navIcon svg * {
+  transition: transform 0.32s cubic-bezier(0.34, 1.4, 0.64, 1),
+              opacity 0.28s ease;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Everything gets a small lift, so nothing feels dead on hover. */
+.navItem:hover .navIcon svg {
+  transform: translateY(-1.5px);
+}
+
+/* A sign planted in a yard, catching the wind. Pivots at the base of the
+   post rather than the middle, which is where it would actually pivot. */
+.navItem .navIcon[data-icon='yardSign'] svg {
+  transform-origin: 50% 100%;
+}
+.navItem:hover .navIcon[data-icon='yardSign'] svg {
+  transform: rotate(-5deg) translateY(-1px);
+}
+
+/* The house lifts off its own footprint. */
+.navItem:hover .navIcon[data-icon='dashboard'] svg > path:first-child {
+  transform: translateY(-1.5px);
+}
+
+/* Bars grow, tallest last — a chart drawing itself in. */
+.navItem:hover .navIcon[data-icon='chart'] svg > path:last-child {
+  transform: scaleY(1.22);
+  transform-origin: 50% 100%;
+}
+
+/* A folder's lid opening. */
+.navItem .navIcon[data-icon='folder'] svg > path {
+  transform-origin: 10% 90%;
+}
+.navItem:hover .navIcon[data-icon='folder'] svg > path {
+  transform: rotate(-4deg);
+}
+
+/* The tick inside the shield draws on, rather than simply appearing. */
+.navItem .navIcon[data-icon='shield'] svg > path:last-child {
+  stroke-dasharray: 8;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.34s ease;
+}
+.navItem:hover .navIcon[data-icon='shield'] svg > path:last-child {
+  animation: navTick 0.42s ease forwards;
+}
+@keyframes navTick {
+  from { stroke-dashoffset: 8; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* A note sliding out of the wallet. */
+.navItem:hover .navIcon[data-icon='wallet'] svg > path:last-child {
+  transform: translateX(1.5px);
+}
+
+/* The awning ripples; the shop stays put. */
+.navItem:hover .navIcon[data-icon='storefront'] svg > path:nth-child(2) {
+  transform: translateY(-1px) scaleY(1.15);
+}
+
+/* A receipt tearing free. */
+.navItem:hover .navIcon[data-icon='quotes'] svg > path:first-child {
+  transform: translateY(-1px) rotate(-2deg);
+}
+
+/* The hard hat's brim settles. */
+.navItem:hover .navIcon[data-icon='clients'] svg > path:nth-child(2) {
+  transform: translateY(-1.5px);
+}
+
+/* A banknote's face, leaning in. */
+.navItem:hover .navIcon[data-icon='invoices'] svg > circle {
+  transform: scale(1.18);
+}
+
+/* The tag swings from its hole. */
+.navItem .navIcon[data-icon='financials'] svg {
+  transform-origin: 78% 22%;
+}
+.navItem:hover .navIcon[data-icon='financials'] svg {
+  transform: rotate(-6deg);
+}
+
+/* Swatches fanning apart. */
+.navItem:hover .navIcon[data-icon='brandKit'] svg > circle {
+  transform: scale(1.12) translate(0.5px, 0.5px);
+}
+
+/* The signature on a proposal, re-signing itself. */
+.navItem .navIcon[data-icon='proposal'] svg > path:last-child {
+  stroke-dasharray: 10;
+}
+.navItem:hover .navIcon[data-icon='proposal'] svg > path:last-child {
+  animation: navTick 0.5s ease forwards;
+}
+
+/* A browser window's chrome, nudging. */
+.navItem:hover .navIcon[data-icon='designStudio'] svg > path:last-child {
+  transform: translateX(1px);
+}
+
+/* Anyone who has asked their system to stop animating things means it. The
+   colour and weight changes still happen; only the movement stops. */
+@media (prefers-reduced-motion: reduce) {
+  .navItem .navIcon svg,
+  .navItem .navIcon svg * {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}
