@@ -41,7 +41,11 @@ const CONTRACTOR: ModuleId[] = [
   'pricing',
   'records',
   'website',
-  'account',
+  // 'account' — deliberately NOT here. "Bills to You" is what you owe the
+  // agency that set your workspace up, which is true of Mammoth and false of
+  // an artist or a builder who came to this on their own. A permanently empty
+  // nav row teaches people the app is full of things that do nothing. Turned
+  // on per business via orgs.modules where it is actually true.
   'team',
   'security',
   'business',
@@ -134,7 +138,7 @@ export interface NavGroup {
 
 export function navFor(
   org: Org | null,
-  vocab: { jobPlural: string; customerPlural: string }
+  vocab: { jobPlural: string; customerPlural: string; estimate: string }
 ): NavGroup[] {
   const on = modulesFor(org);
   const has = (id: ModuleId) => on.has(id);
@@ -155,12 +159,26 @@ export function navFor(
         ...(org?.kind === 'contractor'
           ? [{ id: 'receipts' as ModuleId, label: 'Receipts', href: '/documents', icon: 'quotes' }]
           : []),
+        // Library lived under a heading called "Library", which is a label
+        // introducing itself. Price lists, records and brand assets are
+        // reference material for doing the work, so they belong with it.
+        ...(has('pricing') || has('records') || has('brand_kit')
+          ? [{
+              id: (has('pricing') ? 'pricing' : has('records') ? 'records' : 'brand_kit') as ModuleId,
+              label: 'Library',
+              href: has('pricing') ? '/pricing' : has('records') ? '/records' : '/brand-kit',
+              icon: 'folder',
+            }]
+          : []),
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
       heading: 'Money',
       items: [
-        { id: 'proposals', label: 'Proposals', href: '/proposals', icon: 'proposal' },
+        // One thing, one name. This was "Proposals" in the sidebar and
+        // "Estimate" on the job screen — two words for the same object, in a
+        // product where the object is what someone owes you money for.
+        { id: 'proposals', label: `${vocab.estimate}s`, href: '/proposals', icon: 'proposal' },
         { id: 'billing', label: 'Billing', href: '/billing', icon: 'invoices' },
         { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
         // Overheads are money out that no job caused. Without somewhere to put
@@ -174,29 +192,23 @@ export function navFor(
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
-      // Library is one destination with tabs inside — a library OF records,
-      // price lists and brand assets. Three sidebar rows for three reference
-      // screens was more weight than they earn.
-      heading: 'Library',
+      // An agency files a handful of receipts a month, so they sit here rather
+      // than up with the daily work.
+      heading: org?.kind === 'agency' ? 'Reference' : '',
       items: [
         ...(org?.kind !== 'contractor'
           ? [{ id: 'receipts' as ModuleId, label: 'Receipts', href: '/documents', icon: 'quotes' }]
           : []),
-        ...(has('pricing') || has('records') || has('brand_kit')
-          ? [{
-              id: (has('pricing') ? 'pricing' : has('records') ? 'records' : 'brand_kit') as ModuleId,
-              label: 'Library',
-              href: has('pricing') ? '/pricing' : has('records') ? '/records' : '/brand-kit',
-              icon: 'folder',
-            }]
-          : []),
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
-      heading: org?.kind === 'agency' ? 'Clients' : 'Your Website',
+      // A heading over a single row is furniture. "Your Website" says what the
+      // destination is; "Request a Change" described the form inside it, which
+      // is not how anyone looks for their own website.
+      heading: org?.kind === 'agency' ? 'Clients' : '',
       items: [
         { id: 'client_requests', label: 'Client Requests', href: '/requests', icon: 'designStudio' },
-        { id: 'website', label: 'Request a Change', href: '/website', icon: 'designStudio' },
+        { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {

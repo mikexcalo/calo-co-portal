@@ -124,18 +124,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Could not resolve the user' }, { status: 500 });
     }
 
-    // A profile row must exist before a membership means anything — the org
-    // wall reads active_org_id from it.
-    const { error: profileErr } = await admin
+    /**
+     * A profile row must exist before a membership means anything — the org
+     * wall reads active_org_id from it.
+     *
+     * But only set active_org_id when there is nothing there yet. Adding an
+     * existing person to a second business must not silently move them out of
+     * the one they were looking at: they would carry on working, under a
+     * heading that no longer matches the data underneath. That exact failure
+     * has already put one client's price list under another client's name.
+     */
+    const { data: existingProfile } = await admin
       .from('profiles')
-      .upsert(
-        {
-          id: userId,
-          full_name: body.fullName?.trim() || null,
-          active_org_id: orgId,
-        },
-        { onConflict: 'id' }
-      );
+      .select('id, active_org_id, full_name')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const profileErr = existingProfile
+      ? (
+          await admin
+            .from('profiles')
+            .update({
+              full_name: existingProfile.full_name ?? body.fullName?.trim() ?? null,
+              active_org_id: existingProfile.active_org_id ?? orgId,
+            })
+            .eq('id', userId)
+        ).error
+      : (
+          await admin.from('profiles').insert({
+            id: userId,
+            full_name: body.fullName?.trim() || null,
+            active_org_id: orgId,
+          })
+        ).error;
 
     if (profileErr) throw new Error(profileErr.message);
 

@@ -117,7 +117,42 @@ export default function WelcomePage() {
   useEffect(() => {
     (async () => {
       try {
-        const [{ data: auth }, o] = await Promise.all([supabase.auth.getUser(), getCurrentOrg()]);
+        const [{ data: auth }, initial] = await Promise.all([
+          supabase.auth.getUser(),
+          getCurrentOrg(),
+        ]);
+
+        /**
+         * Self-heal a missing profile.
+         *
+         * getCurrentOrg() reads active_org_id off the profile row. No profile
+         * means no business — and the old code carried on regardless: the
+         * whole setup flow ran, every question got an answer, and `finish()`
+         * silently skipped every write because `org` was null. Somebody spends
+         * four screens setting up their business and lands on an empty
+         * dashboard with none of it saved and no error to explain why.
+         *
+         * The invite route does create a profile, so this should not happen —
+         * but "should not happen" is not a reason to lose someone's setup when
+         * it does.
+         */
+        let o = initial;
+        if (!o && auth?.user) {
+          const membership = await supabase
+            .from('memberships')
+            .select('org_id')
+            .eq('user_id', auth.user.id)
+            .limit(1)
+            .maybeSingle();
+
+          if (membership.data?.org_id) {
+            await supabase
+              .from('profiles')
+              .upsert({ id: auth.user.id, active_org_id: membership.data.org_id }, { onConflict: 'id' });
+            o = await getCurrentOrg();
+          }
+        }
+
         if (o?.onboarded_at) {
           router.replace('/');
           return;
@@ -177,7 +212,15 @@ export default function WelcomePage() {
             { onConflict: 'id' }
           );
         }
-        if (org) {
+        if (!org) {
+          // Everything typed would be thrown away. Say so rather than
+          // pretending it worked.
+          throw new Error(
+            "We couldn't work out which business to save this to, so nothing has been saved. Refresh and try again, or get in touch and we'll sort it out."
+          );
+        }
+
+        {
           const settings = { ...((org.settings ?? {}) as Record<string, unknown>) };
           if (address.trim()) settings.address = address.trim();
           if (phone.trim()) settings.phone = phone.trim();
@@ -556,7 +599,7 @@ export default function WelcomePage() {
             disabled={busy}
             style={{ background: 'transparent', border: 'none', color: FAINT, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
           >
-            Skip for now — anything missing will be waiting on the Manifest
+            Skip for now — anything missing will be waiting for you on the Today screen
           </button>
         </div>
       </div>

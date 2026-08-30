@@ -366,7 +366,7 @@ export default function Dashboard() {
 
   return (
     <Page
-      title="Manifest"
+      title="Today"
       subtitle={
         emptyApp
           ? `Nothing logged for ${org?.name ?? 'this business'} yet — which is the right place to start.`

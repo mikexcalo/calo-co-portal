@@ -240,7 +240,7 @@ export default function Sidebar() {
       </div>
 
       <div style={{ flex: 1, padding: '8px 8px 8px', overflowY: 'auto' }}>
-        {navBtn('Manifest', '/', 'dashboard')}
+        {navBtn('Today', '/', 'dashboard')}
 
         {groups.map((g) => (
           <div key={g.heading || g.items[0]?.href} style={{ marginTop: g.heading ? 16 : 8 }}>

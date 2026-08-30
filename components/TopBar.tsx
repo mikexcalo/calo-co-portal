@@ -9,7 +9,7 @@ import { Notifications } from '@/components/spine/Notifications';
 import { PRODUCT } from '@/lib/brand';
 
 const TITLES: Record<string, string> = {
-  '/': 'Manifest',
+  '/': 'Today',
   '/jobs': 'Jobs',
   '/customers': 'Customers',
   '/documents': 'Receipts',

@@ -99,8 +99,8 @@ export default function ProposalsPage() {
 
   return (
     <Page
-      title="Proposals"
-      subtitle={`Everything quoted across every ${vocab.job.toLowerCase()}. Accepted proposals become invoiceable.`}
+      title={`${vocab.estimate}s`}
+      subtitle={`Everything quoted across every ${vocab.job.toLowerCase()}. Once accepted, they can be invoiced.`}
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>

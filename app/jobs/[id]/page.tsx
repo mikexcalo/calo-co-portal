@@ -61,6 +61,7 @@ import {
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
 import { UndoBar, type UndoState } from '@/components/spine/Undo';
+import { useOrg } from '@/lib/spine/org';
 
 const STATUSES: JobStatus[] = [
   'lead',
@@ -73,6 +74,7 @@ const STATUSES: JobStatus[] = [
 ];
 
 export default function JobDetailPage({ params }: { params: { id: string } }) {
+  const { vocab } = useOrg();
   const router = useRouter();
   const jobId = params.id;
 
@@ -494,7 +496,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
       {/* Estimates */}
       <div style={{ marginBottom: 26 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <SectionLabel>Estimate</SectionLabel>
+          <SectionLabel>{vocab.estimate}</SectionLabel>
           <Button variant="ghost" onClick={() => router.push(`/jobs/${jobId}/estimate`)}>
             New estimate
           </Button>
