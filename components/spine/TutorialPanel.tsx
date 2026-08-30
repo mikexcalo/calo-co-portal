@@ -96,7 +96,7 @@ export function TutorialPanel() {
                 Or walk a whole process
               </div>
               <p style={{ fontSize: 13, color: C.dim, marginTop: 0, lineHeight: 1.55 }}>
-                Each path goes end to end on your real data — not a tour with tooltips.
+                Each path runs end to end on your real data. Not a tour with tooltips.
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
@@ -349,7 +349,7 @@ function AskBox() {
           setQ(e.target.value);
           setOpenId(null);
         }}
-        placeholder="Ask a question — how do I add receipts?"
+        placeholder="Ask a question, like how do I add receipts?"
         style={{
           width: '100%',
           background: C.panelAlt,
@@ -364,7 +364,7 @@ function AskBox() {
       />
 
       <div style={{ fontSize: 11, color: C.faint, margin: '7px 2px 0' }}>
-        Answered from a built-in guide — free, instant, and it never makes anything up.
+        Answered from a built-in guide. Free, instant, and it never makes anything up.
       </div>
 
       {asking && matches.length === 0 ? (
@@ -380,7 +380,7 @@ function AskBox() {
           }}
         >
           Nothing in the guide covers that yet. Rather than guess at an answer, it&apos;s
-          saying so — tell Mike what you were looking for and it can be added.
+          saying so. Tell us what you were looking for and we&apos;ll add it.
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 14 }}>

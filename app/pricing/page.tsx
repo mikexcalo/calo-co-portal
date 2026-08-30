@@ -177,7 +177,7 @@ export default function PricingPage() {
       } else {
         setImported(rows);
         setNotice(
-          `Read ${rows.length} item${rows.length === 1 ? '' : 's'} — cost ${payload.meta?.cost_cents?.toFixed(2) ?? '?'}¢. Check them before saving.`
+          `Read ${rows.length} item${rows.length === 1 ? '' : 's'}. Cost ${payload.meta?.cost_cents?.toFixed(2) ?? '?'}¢. Check them before saving.`
         );
       }
     } catch (e) {
@@ -222,7 +222,7 @@ export default function PricingPage() {
         multiple={false}
         busy={busy}
         label="Drag a price list here"
-        hint="PDF or a photo of a printed sheet — or click to browse. Nothing is saved until you check it."
+        hint="PDF or a photo of a printed sheet, or click to browse. Nothing saves until you check it."
       />
 
       {error && (
@@ -243,7 +243,7 @@ export default function PricingPage() {
           </div>
           <div style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.6 }}>
             These were read from a document or worked out from one job&apos;s totals. A rate
-            that was right for one house can be wrong for the next — access, ceiling height and
+            that was right for one house can be wrong for the next. Access, ceiling height and
             wire runs all move it. <strong>Unconfirmed prices are kept out of estimates</strong>{' '}
             until someone who sets prices ticks them off.
           </div>
@@ -333,7 +333,7 @@ export default function PricingPage() {
                 value={draft.name}
                 onChange={(e) => setDraft({ ...draft, name: e.target.value })}
                 style={inputStyle}
-                placeholder="Demo — bathroom"
+                placeholder="Demo, bathroom"
                 autoFocus
               />
             </Field>
@@ -465,7 +465,7 @@ export default function PricingPage() {
           <strong>Confirm</strong> means someone who sets prices has stood behind the number.
           Only confirmed items appear when building an{' '}
           {vocab.estimate?.toLowerCase() ?? 'estimate'}. <strong>Varies by job</strong> marks
-          work where no single rate is honest — the figure shown is a reference point, not a
+          work where no single rate is honest. The figure shown is a reference point, not a
           rate to autofill. <strong>On site</strong> publishes to the public price list your
           website can read.
         </div>

@@ -57,7 +57,7 @@ interface Request {
 }
 
 const STATUS_COPY: Record<string, { label: string; tone: 'neutral' | 'amber' | 'blue' | 'green' }> = {
-  submitted: { label: 'Sent — waiting on review', tone: 'amber' },
+  submitted: { label: 'Sent, waiting on review', tone: 'amber' },
   needs_info: { label: 'They asked a question', tone: 'amber' },
   approved: { label: 'Approved', tone: 'blue' },
   building: { label: 'Being built', tone: 'blue' },
@@ -123,7 +123,7 @@ export default function WebsitePage() {
       const res = await supabase.from('site_content').update({ value }).eq('id', c.id);
       if (res.error) throw new Error(res.error.message);
       setContent((prev) => prev.map((x) => (x.id === c.id ? { ...x, value } : x)));
-      setNotice(`${c.label} updated — it's live on the site now.`);
+      setNotice(`${c.label} updated. It's live on the site now.`);
       setTimeout(() => setNotice(null), 4000);
     } catch (e) {
       setError((e as Error).message);
@@ -215,7 +215,7 @@ export default function WebsitePage() {
               value={body}
               onChange={(e) => setBody(e.target.value)}
               style={{ ...inputStyle, minHeight: 120, resize: 'vertical', lineHeight: 1.55 }}
-              placeholder="Which page, what it should say, and anything you'd send along — photos, wording, a link to an example you like."
+              placeholder="Which page, what it should say, and anything you'd send along: photos, wording, a link to an example you like."
             />
           </Field>
           <div style={{ display: 'grid', gridTemplateColumns: phone ? '1fr' : '1fr 1fr', gap: 12 }}>

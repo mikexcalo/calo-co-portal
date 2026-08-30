@@ -40,9 +40,9 @@ function contrastRatio(a: string, b: string): number {
 }
 
 const SIZES = [
-  { label: 'Web — 512px', px: 512 },
-  { label: 'Print — 1024px', px: 1024 },
-  { label: 'Large print — 2048px', px: 2048 },
+  { label: 'Web, 512px', px: 512 },
+  { label: 'Print, 1024px', px: 1024 },
+  { label: 'Large print, 2048px', px: 2048 },
 ];
 
 export function QrStudio({
@@ -129,7 +129,7 @@ export function QrStudio({
             />
           </Field>
           <div style={{ fontSize: 11.5, color: C.faint, marginTop: -8 }}>
-            Anything a phone can open — a page, a phone number as{' '}
+            Anything a phone can open: a page, a phone number as{' '}
             <code>tel:512...</code>, an email as <code>mailto:...</code>.
           </div>
         </Card>

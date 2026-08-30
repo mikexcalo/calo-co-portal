@@ -39,7 +39,7 @@ export default function NewJobPage() {
     setBusy(true);
     setError(null);
     try {
-      if (!orgId) throw new Error('No organization on your profile — set org_id on your profile row.');
+      if (!orgId) throw new Error('No business is attached to your profile yet. Get in touch and we\'ll fix it.');
 
       let cid = customerId || null;
       if (!cid && newCustomer.trim()) {
@@ -64,7 +64,7 @@ export default function NewJobPage() {
   };
 
   return (
-    <Page title="New job" subtitle="A lead and a job are the same record — start it wherever it is.">
+    <Page title="New job" subtitle="A lead and a job are the same record. Start it wherever it is.">
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 13 }}>{error}</div>

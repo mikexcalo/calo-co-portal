@@ -299,7 +299,7 @@ export default function ProfitLossPage() {
                 ))}
               </Card>
               <div style={{ fontSize: 11.5, color: C.faint, marginTop: 8 }}>
-                A negative margin is normal while a job is still running — you spend before you
+                A negative margin is normal while a job is running. You spend before you
                 bill. It only matters once the job is complete.
               </div>
             </div>
@@ -336,7 +336,7 @@ export default function ProfitLossPage() {
                   <strong style={{ color: C.dim }}>
                     This is work the system caught, not revenue it created
                   </strong>{' '}
-                  — you did the work either way. Anything billed inside three weeks is a normal
+                  You did the work either way. Anything billed inside three weeks is a normal
                   cycle and isn&apos;t counted.
                 </div>
               </Card>
@@ -392,7 +392,7 @@ export default function ProfitLossPage() {
           <div style={{ fontSize: 11.5, color: C.faint, marginTop: 14, maxWidth: 620, lineHeight: 1.6 }}>
             Revenue counts invoices issued in the period. Costs and margin are lifetime per job,
             so a job spanning two periods shows its full cost here. This is a management view,
-            not a tax return — your accountant will want the real books.
+            not a tax return. Your accountant will want the real books.
           </div>
         </>
       )}

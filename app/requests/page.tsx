@@ -154,7 +154,7 @@ export default function RequestsPage() {
   return (
     <Page
       title="Site requests"
-      subtitle="Changes clients have asked for. Approve or modify — what gets built is your version of the brief."
+      subtitle="Changes clients have asked for. Approve or modify. What gets built is your version of the brief."
     >
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
@@ -230,7 +230,7 @@ export default function RequestsPage() {
                       </div>
                     </div>
 
-                    <Field label="Brief to build from — edit freely">
+                    <Field label="Brief to build from. Edit freely">
                       <textarea
                         value={draftBrief}
                         onChange={(e) => setDraftBrief(e.target.value)}
@@ -238,7 +238,7 @@ export default function RequestsPage() {
                       />
                     </Field>
                     <div style={{ fontSize: 11.5, color: C.faint, margin: '-8px 0 14px' }}>
-                      This is what gets built — not the text above. Tighten anything ambiguous now,
+                      This is what gets built, not the text above. Tighten anything ambiguous now,
                       because ambiguity gets resolved by guessing on a live client site.
                     </div>
 
@@ -247,7 +247,7 @@ export default function RequestsPage() {
                         value={clientNote}
                         onChange={(e) => setClientNote(e.target.value)}
                         style={inputStyle}
-                        placeholder="On it — live by Thursday."
+                        placeholder="On it. Live by Thursday."
                       />
                     </Field>
 

@@ -134,7 +134,7 @@ export default function FilesPage() {
 
     const tooBig = Array.from(list).filter((f) => f.size > MAX_BYTES);
     if (tooBig.length) {
-      setError(`${tooBig.map((f) => f.name).join(', ')} — larger than 25MB.`);
+      setError(`${tooBig.map((f) => f.name).join(', ')}: larger than 25MB.`);
     }
 
     setStaged((prev) => [
@@ -262,7 +262,7 @@ export default function FilesPage() {
     <Page
       tabs={LIBRARY_TABS}
       title="Records"
-      subtitle={`Insurance, licenses, contracts and manuals for ${org?.name ?? 'this business'} — the things you have to be able to produce on request.`}
+      subtitle={`Insurance, licenses, contracts and manuals for ${org?.name ?? 'this business'}. The things you have to produce on request.`}
       action={<Button onClick={() => fileRef.current?.click()}>Add a file</Button>}
     >
       <input
@@ -276,7 +276,7 @@ export default function FilesPage() {
       {confirming && (
         <Confirm
           title={`Delete "${confirming.name}"?`}
-          body="The file is removed from storage as well as the list. This cannot be undone — if it is an insurance certificate or a license, make sure you have the original elsewhere."
+          body="The file is removed from storage as well as the list. This cannot be undone. If it is an insurance certificate or a license, make sure you have the original elsewhere."
           confirmLabel="Delete file"
           busy={busy}
           onConfirm={() => remove(confirming)}
@@ -315,7 +315,7 @@ export default function FilesPage() {
         onFiles={stage}
         busy={busy}
         label="Drag files here"
-        hint="Insurance, licenses, contracts, manuals — several at once is fine. Or click to browse."
+        hint="Insurance, licenses, contracts, manuals. Several at once is fine, or click to browse."
       />
 
       {staged.length > 0 && (
@@ -373,7 +373,7 @@ export default function FilesPage() {
                   </div>
                   {cat?.expires && !item.expires_on && (
                     <div style={{ fontSize: 11, color: C.amber, marginTop: 5 }}>
-                      {cat.label}s usually expire — add a date and you&apos;ll be warned before it lapses.
+                      {cat.label}s usually expire. Add a date and we&apos;ll warn you before it lapses.
                     </div>
                   )}
                 </div>

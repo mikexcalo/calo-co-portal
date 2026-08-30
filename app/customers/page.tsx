@@ -215,7 +215,7 @@ export default function CustomersPage() {
             <Flag tone="blue" label="Owing you" value={money0(owing.reduce((s, r) => s + r.owed, 0))} />
           )}
           {noEmail.length > 0 && (
-            <Flag tone="neutral" label="No email — can't invoice" value={String(noEmail.length)} />
+            <Flag tone="neutral" label="No email, can't invoice" value={String(noEmail.length)} />
           )}
         </div>
       )}
@@ -307,7 +307,7 @@ export default function CustomersPage() {
                           {r.email}
                         </a>
                       ) : (
-                        <span style={{ color: C.amber }}>No email — can&apos;t invoice them</span>
+                        <span style={{ color: C.amber }}>No email, so you can&apos;t invoice them</span>
                       )}
                       {r.phone && (
                         <a

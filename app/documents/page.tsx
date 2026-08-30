@@ -189,7 +189,7 @@ export default function DocumentsPage() {
     setError(null);
     try {
       const ex = doc.extracted;
-      if (!ex?.amount) throw new Error('No amount was read — fix it before filing.');
+      if (!ex?.amount) throw new Error('No amount was read. Fix it before filing.');
 
       await createCost(orgId, jobId, {
         amount: ex.amount,
@@ -364,7 +364,7 @@ export default function DocumentsPage() {
           </div>
         </div>
         <div style={{ flex: 1, minWidth: 220, fontSize: 11.5, color: C.faint, alignSelf: 'center' }}>
-          One-time cost per document — reading a file never costs anything again.
+          One charge per document. Reading a file again never costs anything.
           There is no search or chat billing on top of this.
         </div>
       </Card>

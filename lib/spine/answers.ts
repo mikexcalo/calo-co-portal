@@ -27,7 +27,7 @@ export const ANSWERS: Answer[] = [
     id: 'price-list',
     question: 'How do I load my price list?',
     keywords: ['price', 'prices', 'pricing', 'rate card', 'catalog', 'catalogue', 'list', 'import', 'pdf', 'sheet'],
-    body: `Go to Price list and hit "Import from a file". Drop in the price sheet you already have — a PDF, or a photo of a printed one.
+    body: `Go to Price list and hit "Import from a file". Drop in the price sheet you already have. A PDF works, so does a photo of a printed one.
 
 It gets read into line items and shown to you to check BEFORE anything is saved, because a misread price becomes a wrong estimate to a customer.
 
@@ -39,7 +39,7 @@ After that, building an estimate is picking from a dropdown instead of typing. S
     id: 'add-receipt',
     question: 'How do I add a receipt?',
     keywords: ['receipt', 'upload', 'photo', 'scan', 'expense', 'material', 'add', 'camera'],
-    body: `Go to Documents and hit "Add documents". On a phone there's a button at the bottom of the screen that opens your camera directly — photograph the receipt where you're standing.
+    body: `Go to Documents and hit "Add documents". On a phone, a button at the bottom of the screen opens your camera directly. photograph the receipt where you're standing.
 
 It gets read automatically: vendor, date, amount. Then pick the job from the dropdown and hit File. That turns it into a cost on that job, with the original photo kept alongside it.`,
     href: '/documents',
@@ -51,7 +51,7 @@ It gets read automatically: vendor, date, amount. Then pick the job from the dro
     keywords: ['cost', 'price', 'fee', 'charge', 'expensive', 'billing', 'api', 'token', 'money'],
     body: `About half a cent per document, once. A thousand receipts is roughly five dollars, total, ever.
 
-It's a one-time cost per file — opening it again next year is free. The Documents page shows exactly what you've spent so far, measured, not estimated.
+One charge per file. Opening it again next year is free. The Documents page shows exactly what you've spent so far, measured, not estimated.
 
 Nothing else in ${PRODUCT} costs anything to run. There's no search-the-documents feature precisely because that would charge you every time you asked a question.`,
     href: '/documents',
@@ -61,7 +61,7 @@ Nothing else in ${PRODUCT} costs anything to run. There's no search-the-document
     id: 'invoice-zero',
     question: 'Why is my invoice $0?',
     keywords: ['zero', '0', 'invoice', 'empty', 'nothing', 'rate', 'wrong', 'total'],
-    body: `Your hourly rate is probably still set to zero. It starts that way on purpose — a rate of $0 makes an obviously broken invoice, which is safer than a made-up number that looks plausible.
+    body: `Your hourly rate is probably still set to zero. It starts that way on purpose. A rate of $0 makes an obviously broken invoice, which is safer than a made-up number that looks plausible.
 
 Go to Business and set the hourly rate and material markup for this business.`,
     href: '/business',
@@ -71,7 +71,7 @@ Go to Business and set the hourly rate and material markup for this business.`,
     id: 'create-invoice',
     question: 'How do I create an invoice?',
     keywords: ['invoice', 'bill', 'create', 'draft', 'charge', 'send'],
-    body: `You don't write one — you approve one.
+    body: `You don't write one. You approve one.
 
 Open the job. If there are unbilled hours or filed receipts, the button at the top says how much is waiting. Hit it, and everything unbilled becomes invoice lines, with markup applied to materials.
 
@@ -83,7 +83,7 @@ Each line remembers which receipt or which logged hours produced it, so when a c
     id: 'unbilled',
     question: 'What does "unbilled" mean?',
     keywords: ['unbilled', 'outstanding', 'owed', 'difference', 'meaning'],
-    body: `Unbilled is work you've done but never charged for — hours logged and receipts filed that haven't made it onto an invoice yet. For most contractors this is the single biggest leak.
+    body: `Unbilled is work you've done but never charged for: hours logged and receipts filed that haven't reached an invoice yet. For most contractors this is the single biggest leak.
 
 Owed to you is different: that's money you HAVE invoiced but haven't been paid. One needs an invoice, the other needs a phone call.`,
     href: '/pl',
@@ -95,7 +95,7 @@ Owed to you is different: that's money you HAVE invoiced but haven't been paid. 
     keywords: ['t&m', 'tm', 'time', 'materials', 'fixed', 'price', 'billing', 'type', 'estimate'],
     body: `On fixed price, the estimate is a promise. The invoice repeats it, and if the job costs more than expected, that comes out of your margin.
 
-On time & materials, the estimate is only a forecast. The invoice is built from what actually happened — real hours, real receipts. That's why filing receipts matters so much on T&M jobs: the paperwork IS the bill.`,
+On time & materials, the estimate is only a forecast. The invoice is built from what actually happened: real hours, real receipts. That's why filing receipts matters so much on T&M jobs: the paperwork IS the bill.`,
   },
   {
     id: 'log-hours',
@@ -111,7 +111,7 @@ The description shows up on the invoice, so "Framed the bathroom wall" reads a l
     id: 'lead-vs-job',
     question: 'Where do leads go?',
     keywords: ['lead', 'enquiry', 'inquiry', 'contact', 'form', 'new', 'prospect'],
-    body: `A lead IS a job — it just sits at the "Lead" stage of the pipeline. There's no separate leads list to keep in sync.
+    body: `A lead IS a job. It just sits at the "Lead" stage of the pipeline. There's no separate leads list to keep in sync.
 
 When someone fills in your website form, they arrive as a customer plus a job at the Lead stage, already on the board. You move it right as it progresses.`,
     href: '/jobs',

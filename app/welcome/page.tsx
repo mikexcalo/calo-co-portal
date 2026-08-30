@@ -566,7 +566,7 @@ export default function WelcomePage() {
                           />
                           {warn && (
                             <div style={{ fontSize: 11.5, color: RED, marginTop: 5, lineHeight: 1.5 }}>
-                              That looks like an account number — don&apos;t put one here. This
+                              That looks like an account number. Don&apos;t put one here, because this
                               text appears on invoices your customers can see.
                             </div>
                           )}
@@ -586,7 +586,7 @@ export default function WelcomePage() {
                 <strong style={{ color: DIM }}>Your information stays yours.</strong> Everything
                 is encrypted in transit and at rest, and each business&apos;s data is walled off
                 at the database so nobody else can read it. {PRODUCT} never stores card numbers
-                or bank account numbers — card payments go straight to Stripe, and the handles
+                or bank account numbers. Card payments go straight to Stripe, and the handles
                 above are the public ones you already share to receive money.
               </div>
             </>
@@ -599,7 +599,7 @@ export default function WelcomePage() {
             disabled={busy}
             style={{ background: 'transparent', border: 'none', color: FAINT, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
           >
-            Skip for now — anything missing will be waiting for you on the Today screen
+            Skip for now. Anything missing will be waiting on the Today screen
           </button>
         </div>
       </div>

@@ -78,7 +78,7 @@ export default function TeamPage() {
       // page claims about itself.
       const { data: session } = await supabase.auth.getSession();
       const token = session?.session?.access_token;
-      if (!token) throw new Error('Your session expired — sign in again.');
+      if (!token) throw new Error('Your session expired. Sign in again.');
 
       const res = await fetch('/api/team/invite', {
         method: 'POST',
@@ -157,9 +157,9 @@ export default function TeamPage() {
             onChange={(e) => setRole(e.target.value as typeof role)}
             style={inputStyle}
           >
-            <option value="member">Member — can use everything in this business</option>
-            <option value="admin">Admin — can also invite others</option>
-            <option value="owner">Owner — full control</option>
+            <option value="member">Member: can use everything in this business</option>
+            <option value="admin">Admin: can also invite others</option>
+            <option value="owner">Owner: full control</option>
           </select>
         </Field>
 
@@ -169,7 +169,7 @@ export default function TeamPage() {
 
         <div style={{ fontSize: 11.5, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
           They get an email to set their own password. You never see or handle it. They will
-          only be able to see <strong>{org?.name}</strong> — no other business you belong to.
+          only see <strong>{org?.name}</strong>, and no other business you belong to.
         </div>
       </Card>
 
@@ -196,7 +196,7 @@ export default function TeamPage() {
       )}
 
       <div style={{ fontSize: 11.5, color: C.faint, marginTop: 14, maxWidth: 620, lineHeight: 1.6 }}>
-        Emails aren&apos;t shown here — the members table only stores the user id, and reading
+        Emails aren&apos;t shown here. The members table stores only the user id, and reading
         the auth records needs admin access the browser deliberately doesn&apos;t have.
       </div>
     </Page>
