@@ -290,7 +290,35 @@ export default function BusinessPage() {
       {tab === 'payments' && (
         <Card style={{ maxWidth: 620 }}>
           <SectionLabel>How you get paid</SectionLabel>
-          <p style={{ fontSize: 13, color: C.dim, margin: '8px 0 18px', lineHeight: 1.7 }}>
+
+          {/* The page title already names the business, and that was not
+              enough — one person's Venmo handle got saved against another
+              business's account, which would have told their customers to
+              pay the wrong person. Anything that ends up in front of someone
+              else's customers says whose it is, right where you type it. */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              background: C.blueSoft,
+              border: `1px solid ${C.blue}33`,
+              borderRadius: 8,
+              padding: '10px 13px',
+              margin: '10px 0 16px',
+              fontSize: 12.5,
+              color: C.text,
+              lineHeight: 1.5,
+            }}
+          >
+            <span aria-hidden style={{ fontSize: 14 }}>↳</span>
+            <span>
+              These are <strong>{org.name}</strong>&apos;s payment details. They appear on
+              invoices {org.name} sends, so their customers pay {org.name}.
+            </span>
+          </div>
+
+          <p style={{ fontSize: 13, color: C.dim, margin: '0 0 18px', lineHeight: 1.7 }}>
             Everything you turn on appears on your invoices, cheapest first, so a customer can
             choose. Card is the convenient option rather than the only one — on a $19,000 invoice
             it costs about $564 to receive money that a bank transfer moves for $5.

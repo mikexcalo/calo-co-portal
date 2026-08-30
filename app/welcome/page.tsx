@@ -73,9 +73,14 @@ const STEPS = 4;
  * only need to know whether any row exists, never what it says.
  */
 async function alreadyInUse(o: Org): Promise<boolean> {
-  const brand = (o.settings as Record<string, unknown> | null)?.brand;
-  if (brand && typeof brand === 'object') return true;
-
+  /**
+   * Work, not decoration. An earlier version also treated a brand kit as
+   * proof the account was in use, which was wrong: a business can be set up
+   * for someone with their logo and colors already loaded and still have
+   * never been touched by the person it belongs to. Mammoth was exactly that
+   * — fully branded, zero customers — and the check would have skipped Mark
+   * past his own setup.
+   */
   const counts = await Promise.all(
     ['customers', 'jobs', 'estimates'].map((t) =>
       supabase.from(t).select('id', { count: 'exact', head: true }).eq('org_id', o.id)
@@ -118,11 +123,11 @@ export default function WelcomePage() {
         }
 
         /**
-         * A business that already has a name, a brand and customers is not a
-         * new business — it just predates this column. Never ask it to set
-         * itself up: the answers overwrite what is already there, and the
-         * first field is the business name, so a wrong answer renames someone
-         * else's company. Stamp it as done and get out of the way.
+         * A business that already holds real work is not a new business — it
+         * just predates this column. Never ask it to set itself up: the
+         * answers overwrite what is already there, and the first field is the
+         * business name, so a wrong answer renames someone else's company.
+         * Stamp it as done and get out of the way.
          */
         if (o && (await alreadyInUse(o))) {
           await updateOrg(o.id, { onboarded_at: new Date().toISOString() } as Partial<Org>);
