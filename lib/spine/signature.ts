@@ -30,7 +30,7 @@ export const EMPTY_SIGNATURE: SignatureFields = {
   phone: '',
   website: '',
   logoUrl: '',
-  accent: '#2563eb',
+  accent: '#006AFF',
   tagline: '',
 };
 
@@ -53,7 +53,7 @@ const href = (url: string) => (/^https?:\/\//i.test(url) ? url : `https://${url}
 export function renderSignature(f: SignatureFields, style: SignatureStyle): string {
   const font =
     "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
-  const accent = esc(f.accent || '#2563eb');
+  const accent = esc(f.accent || '#006AFF');
 
   const name = f.name
     ? `<div style="${font};font-size:15px;font-weight:600;color:#111111;line-height:1.3;">${esc(f.name)}</div>`
