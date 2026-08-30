@@ -888,5 +888,23 @@ export async function voidInvoice(id: string): Promise<void> {
 }
 
 function round2(n: number): number {
-  return Math.round(n * 100) / 100;
+  /**
+   * Money, rounded the way a person expects.
+   *
+   * `Math.round(n * 100) / 100` is the obvious version and it is wrong on
+   * exactly the values that matter. A 15% markup on $432.10 is $496.915, which
+   * multiplies to 49691.499999999993 in binary floating point and rounds DOWN
+   * to $496.91 — a cent short, silently, on a real invoice. $1.005 becomes
+   * $1.00 for the same reason.
+   *
+   * Shifting the decimal through the number's string form sidesteps the
+   * multiplication that introduces the error, so 0.5 rounds up like everyone
+   * was taught.
+   *
+   * A cent is not worth much. Being a cent out on a document someone is
+   * checking against their own arithmetic is worth a great deal.
+   */
+  if (!Number.isFinite(n)) return 0;
+  const shifted = Math.round(Number(`${n}e2`));
+  return Number(`${shifted}e-2`);
 }

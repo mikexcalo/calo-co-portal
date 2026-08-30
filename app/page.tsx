@@ -74,6 +74,7 @@ export default function Dashboard() {
     docsNeedingReview: 0,
     openRequests: 0,
     jobsNoCustomer: 0,
+    customerCount: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -102,7 +103,7 @@ export default function Dashboard() {
         soonCutoff.setDate(soonCutoff.getDate() + 45);
         const head = { count: 'exact' as const, head: true };
 
-        const [noEmail, unconfirmed, draftEst, staleEst, expiring, needReview, reqs, noCustomer] =
+        const [noEmail, unconfirmed, draftEst, staleEst, expiring, needReview, reqs, noCustomer, custCount] =
           await Promise.all([
             supabase.from('customers').select('id', head).is('email', null),
             supabase.from('price_items').select('id', head).eq('confirmed', false),
@@ -117,6 +118,7 @@ export default function Dashboard() {
               .in('status', ['submitted', 'needs_info']),
             supabase.from('jobs').select('id', head).is('customer_id', null)
               .not('status', 'in', '(closed,lost)'),
+            supabase.from('customers').select('id', head),
           ]);
         if (cancelled) return;
         setJobs(j);
@@ -132,6 +134,7 @@ export default function Dashboard() {
           docsNeedingReview: needReview.count ?? 0,
           openRequests: reqs.count ?? 0,
           jobsNoCustomer: noCustomer.count ?? 0,
+          customerCount: custCount.count ?? 0,
         });
         if (!bd.error) {
           setDueToBill(
@@ -361,6 +364,48 @@ export default function Dashboard() {
 
   attention.sort((a, b) => b.weight - a.weight);
 
+  /**
+   * The five things that have to be true before this app can do its job, each
+   * checked against real data rather than a "seen it" flag. Someone who set
+   * their rate during signup arrives with step one already ticked, which is
+   * both accurate and encouraging.
+   */
+  const chargesFixed = org?.billing_style === 'fixed' || org?.billing_style === 'retainer';
+  const firstRun = [
+    {
+      label: chargesFixed ? 'Confirm how you charge' : 'Set your hourly rate',
+      why: chargesFixed
+        ? 'So estimates and invoices start from the right numbers.'
+        : 'Without it, every invoice comes out at zero.',
+      done: chargesFixed || Number(org?.default_labor_rate ?? 0) > 0,
+      href: '/business',
+    },
+    {
+      label: 'Say how you want to be paid',
+      why: 'These appear on your invoices so customers know where to send money.',
+      done: Array.isArray(org?.payment_methods) && (org?.payment_methods as unknown[]).length > 0,
+      href: '/business',
+    },
+    {
+      label: `Add your first ${vocab.customer.toLowerCase()}`,
+      why: 'Name, phone, email — whatever you have.',
+      done: signals.customerCount > 0,
+      href: '/customers',
+    },
+    {
+      label: `Create your first ${vocab.job.toLowerCase()}`,
+      why: 'Everything else hangs off this — hours, receipts, invoices.',
+      done: jobs.length > 0,
+      href: '/jobs/new',
+    },
+    {
+      label: `Send your first ${vocab.estimate.toLowerCase()}`,
+      why: 'They see it as a web page and can accept it with one click.',
+      done: signals.draftEstimates > 0 || invoices.length > 0,
+      href: jobs.length > 0 ? `/jobs/${jobs[0].id}/estimate` : '/jobs/new',
+    },
+  ];
+
   const busy = loading || orgLoading;
   const emptyApp = !busy && jobs.length === 0 && invoices.length === 0 && docs.length === 0;
 
@@ -386,20 +431,84 @@ export default function Dashboard() {
       )}
 
       {emptyApp ? (
+        /**
+         * A checklist against real data, not a paragraph.
+         *
+         * This screen is the first thing someone sees on an account with
+         * nothing in it, and the audience is people running a business off a
+         * phone and a shoebox. "Show me the paths" asks them to trust that
+         * something useful is behind a button. A list of five concrete things
+         * with three already ticked asks nothing — it shows where they are and
+         * what is next, and it disappears on its own once they are going.
+         */
         <Card style={{ maxWidth: 620 }}>
-          <div style={{ fontFamily: SERIF, fontSize: 22, marginBottom: 10 }}>
-            Start with a guided path
+          <div style={{ fontFamily: SERIF, fontSize: 22, marginBottom: 6 }}>
+            Let&apos;s get you set up
           </div>
-          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.6, marginTop: 0 }}>
-            The fastest way in is to run one real process end to end — set your rates, create a{' '}
-            {vocab.job.toLowerCase()}, log a day, photograph a receipt, and let the invoice build
-            itself. It takes about twelve minutes on real data.
+          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.65, margin: '0 0 18px' }}>
+            Five things, in order. Each one takes a minute or two, and this list goes away once
+            you&apos;re running.
           </p>
-          <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
-            <Button onClick={openPanel}>Show me the paths</Button>
-            <Button variant="ghost" onClick={() => router.push('/business')}>
-              Set rates first
-            </Button>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {firstRun.map((step, i) => {
+              const next = firstRun.findIndex((x) => !x.done) === i;
+              return (
+                <div
+                  key={step.label}
+                  onClick={step.done ? undefined : () => router.push(step.href)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '12px 13px',
+                    borderRadius: radius.md,
+                    background: next ? C.blueSoft : 'transparent',
+                    cursor: step.done ? 'default' : 'pointer',
+                  }}
+                >
+                  <span
+                    aria-hidden
+                    style={{
+                      width: 20,
+                      height: 20,
+                      flexShrink: 0,
+                      borderRadius: 10,
+                      border: `1.5px solid ${step.done ? C.green : C.border}`,
+                      background: step.done ? C.green : 'transparent',
+                      color: '#fff',
+                      fontSize: 11,
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {step.done ? '✓' : ''}
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 13.5,
+                        fontWeight: next ? 600 : 500,
+                        color: step.done ? C.faint : C.text,
+                        textDecoration: step.done ? 'line-through' : 'none',
+                      }}
+                    >
+                      {step.label}
+                    </div>
+                    {!step.done && (
+                      <div style={{ fontSize: 12, color: C.dim, marginTop: 2 }}>{step.why}</div>
+                    )}
+                  </div>
+                  {next && <span style={{ fontSize: 12.5, color: C.blue, fontWeight: 500 }}>Start →</span>}
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, marginTop: 18, flexWrap: 'wrap' }}>
+            <Button variant="ghost" onClick={openPanel}>Walk me through it instead</Button>
           </div>
         </Card>
       ) : busy ? (
