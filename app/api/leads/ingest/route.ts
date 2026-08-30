@@ -20,6 +20,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { PRODUCT } from '@/lib/brand';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -237,7 +238,7 @@ export async function POST(req: NextRequest) {
     .trim()
     .replace(/</g, '&lt;')}</p>
   <hr style="border:none;border-top:1px solid #e5e5e5;margin:24px 0;"/>
-  <p><a href="${appUrl}/jobs/${job.id}" style="color:#2563eb;">Open in Nautilus →</a></p>
+  <p><a href="${appUrl}/jobs/${job.id}" style="color:#2563eb;">Open in ${PRODUCT} →</a></p>
 </div>`.trim(),
         });
       } catch (emailErr) {

@@ -13,6 +13,7 @@ import { useOrg } from '@/lib/spine/org';
 import { navFor } from '@/lib/spine/modules';
 import { OrgSwitcher } from '@/components/spine/OrgSwitcher';
 import { C, radius } from '@/components/spine/ui';
+import { PRODUCT } from '@/lib/brand';
 
 /**
  * Nav icons.
@@ -227,7 +228,7 @@ export default function Sidebar() {
             cursor: 'pointer',
           }}
         >
-          Nautilus
+          {PRODUCT}
         </span>
       </div>
 

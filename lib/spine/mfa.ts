@@ -12,6 +12,7 @@
  */
 
 import supabase from '@/lib/supabase';
+import { AUTH_ISSUER } from '@/lib/brand';
 
 export interface EnrolStart {
   factorId: string;
@@ -46,7 +47,7 @@ export async function startEnrolment(): Promise<EnrolStart> {
    */
   const { data, error } = await supabase.auth.mfa.enroll({
     factorType: 'totp',
-    issuer: 'Nautilus',
+    issuer: AUTH_ISSUER,
     friendlyName: `Authenticator ${new Date().toISOString().slice(0, 10)}`,
   });
   if (error) throw new Error(error.message);

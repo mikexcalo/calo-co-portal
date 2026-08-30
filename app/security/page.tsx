@@ -33,6 +33,7 @@ import {
   inputStyle,
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
+import { PRODUCT } from '@/lib/brand';
 import {
   confirmEnrolment,
   disable as disableMfa,
@@ -91,7 +92,7 @@ const DATA_FACTS = [
   {
     title: 'We never store card numbers',
     body:
-      'When a customer pays you by card, the number goes straight to Stripe and never passes through Nautilus at all. Stripe holds card data for millions of businesses and is certified at the highest level the payments industry has, so it is safer in their hands than in ours.',
+      `When a customer pays you by card, the number goes straight to Stripe and never passes through ${PRODUCT} at all. Stripe holds card data for millions of businesses and is certified at the highest level the payments industry has, so it is safer in their hands than in ours.`,
     icon: icon(
       <>
         <rect x="1.8" y="3.6" width="12.4" height="8.8" rx="1.5" />
@@ -102,7 +103,7 @@ const DATA_FACTS = [
   {
     title: 'We never store bank account or routing numbers',
     body:
-      'This one is a deliberate design decision rather than something we have not got to. The only payment details kept here are the handles you already give out freely — a Venmo username, a PayPal address. Knowing one lets somebody send you money, not take it. When a customer needs your real account details, Nautilus tells them to ask you directly instead of storing them.',
+      `This one is a deliberate design decision rather than something we have not got to. The only payment details kept here are the handles you already give out freely — a Venmo username, a PayPal address. Knowing one lets somebody send you money, not take it. When a customer needs your real account details, ${PRODUCT} tells them to ask you directly instead of storing them.`,
     icon: icon(
       <>
         <path d="M2.2 6.2 8 3l5.8 3.2" />
@@ -114,7 +115,7 @@ const DATA_FACTS = [
   {
     title: 'The servers underneath are independently audited',
     body:
-      'Nautilus runs on Supabase and Vercel, both of which pay outside auditors every year to verify how they handle customer data, to the SOC 2 Type II standard. Your records are held in the United States on Amazon Web Services.',
+      `${PRODUCT} runs on Supabase and Vercel, both of which pay outside auditors every year to verify how they handle customer data, to the SOC 2 Type II standard. Your records are held in the United States on Amazon Web Services.`,
     icon: icon(
       <>
         <rect x="2" y="2.4" width="12" height="4.4" rx="1.2" />
@@ -268,7 +269,7 @@ export default function SecurityPage() {
           <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 16px', maxWidth: 560 }}>
             Keep them somewhere other than the phone you just set up — a password manager, or
             printed and filed with your business paperwork. They cannot be looked up again later,
-            and no one at Nautilus can retrieve them for you.
+            and no one at {PRODUCT} can retrieve them for you.
           </p>
 
           <div
@@ -324,7 +325,7 @@ export default function SecurityPage() {
             Two-factor is on. You&apos;re done.
           </div>
           <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 14px', maxWidth: 560 }}>
-            Nothing else to do now. The next time you sign in, Nautilus will ask for your
+            Nothing else to do now. The next time you sign in, {PRODUCT} will ask for your
             password as usual, and then for the six-digit code showing in your authenticator app.
           </p>
           <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 18px', maxWidth: 560 }}>
@@ -344,7 +345,7 @@ export default function SecurityPage() {
           </h2>
           <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 16px', maxWidth: 580 }}>
             An <strong>authenticator app</strong> on your phone that produces a six-digit code,
-            changing every 30 seconds. From now on, signing in to Nautilus takes your password
+            changing every 30 seconds. From now on, signing in to {PRODUCT} takes your password
             and then that code. Anyone who gets hold of your password still cannot get in,
             because they do not have your phone.
           </p>
@@ -393,7 +394,7 @@ export default function SecurityPage() {
           <SectionLabel>Step 1 of 3 — scan this</SectionLabel>
           <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: '8px 0 14px', maxWidth: 560 }}>
             Open your authenticator app, choose to add an account, and point your camera at this
-            square. Your app will start showing a six-digit code for Nautilus.
+            square. Your app will start showing a six-digit code for {PRODUCT}.
           </p>
 
           {/* Supabase hands back an SVG data URI. It is a QR code, so it must
@@ -454,7 +455,7 @@ export default function SecurityPage() {
           <div style={{ marginTop: 22 }}>
             <SectionLabel>Step 2 of 3 — prove it worked</SectionLabel>
             <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: '8px 0 12px' }}>
-              Type the six digits your app is now showing for Nautilus. They change every 30
+              Type the six digits your app is now showing for {PRODUCT}. They change every 30
               seconds, so use whichever is on screen when you type.
             </p>
             <div style={{ maxWidth: 200 }}>
@@ -504,7 +505,7 @@ export default function SecurityPage() {
                 <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: 0 }}>
                   {enabled
                     ? 'Signing in now takes your password and a six-digit code from your phone. Someone who steals your password still cannot get in without your phone.'
-                    : 'Adds a second step when you sign in: after your password, Nautilus asks for a six-digit code that only your phone can produce. It means a stolen or guessed password is not enough on its own — which is how most business accounts are lost.'}
+                    : `Adds a second step when you sign in: after your password, ${PRODUCT} asks for a six-digit code that only your phone can produce. It means a stolen or guessed password is not enough on its own — which is how most business accounts are lost.`}
                 </p>
               </div>
               <div>

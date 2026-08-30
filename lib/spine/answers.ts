@@ -10,6 +10,8 @@
  * match, it says so rather than inventing an answer.
  */
 
+import { PRODUCT } from '@/lib/brand';
+
 export interface Answer {
   id: string;
   question: string;
@@ -51,7 +53,7 @@ It gets read automatically: vendor, date, amount. Then pick the job from the dro
 
 It's a one-time cost per file — opening it again next year is free. The Documents page shows exactly what you've spent so far, measured, not estimated.
 
-Nothing else in Nautilus costs anything to run. There's no search-the-documents feature precisely because that would charge you every time you asked a question.`,
+Nothing else in ${PRODUCT} costs anything to run. There's no search-the-documents feature precisely because that would charge you every time you asked a question.`,
     href: '/documents',
     hrefLabel: 'See the running total',
   },
@@ -129,7 +131,7 @@ It only matters once a job is complete. On the P&L page, anything still negative
     id: 'switch-business',
     question: 'How do I switch between businesses?',
     keywords: ['switch', 'business', 'org', 'company', 'change', 'account', 'toggle'],
-    body: `Use the switcher at the top of the sidebar, under the Nautilus name. The colored dot tells you which one you're in.
+    body: `Use the switcher at the top of the sidebar, under the ${PRODUCT} name. The colored dot tells you which one you're in.
 
 Each business has completely separate data. The words change too — a "Job" in one is an "Engagement" in the other.`,
   },

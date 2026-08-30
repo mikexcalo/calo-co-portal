@@ -12,10 +12,11 @@
  */
 
 import Link from 'next/link';
+import { PRODUCT, PROVIDER, SUPPORT_EMAIL } from '@/lib/brand';
 
 export const metadata = {
-  title: 'Security & Trust · Nautilus',
-  description: 'How Nautilus stores and protects your business data.',
+  title: `Security & Trust · ${PRODUCT}`,
+  description: `How ${PRODUCT} stores and protects your business data.`,
 };
 
 const INK = '#141414';
@@ -30,17 +31,17 @@ const FACTS = [
   {
     title: 'Your data is walled off from everyone else’s',
     body:
-      'Every business using Nautilus is separated inside the database itself, not just in the app. That distinction matters: it means a bug on a screen cannot show you another company’s customers or invoices, because the database refuses the request before the screen ever sees it.',
+      `Every business using ${PRODUCT} is separated inside the database itself, not just in the app. That distinction matters: it means a bug on a screen cannot show you another company’s customers or invoices, because the database refuses the request before the screen ever sees it.`,
   },
   {
     title: 'We never store card numbers',
     body:
-      'Card payments go straight to Stripe, who are certified at the highest level in the payments industry to hold them. No card number ever reaches Nautilus, so there is none here to lose.',
+      `Card payments go straight to Stripe, who are certified at the highest level in the payments industry to hold them. No card number ever reaches ${PRODUCT}, so there is none here to lose.`,
   },
   {
     title: 'We never store bank account or routing numbers',
     body:
-      'This is a deliberate choice rather than a gap. The payment details kept here are the public handles you already hand out to get paid — a Venmo username, a PayPal address. Knowing one lets someone send you money, not take it. Where a customer needs real account details, Nautilus tells them to ask you directly.',
+      `This is a deliberate choice rather than a gap. The payment details kept here are the public handles you already hand out to get paid — a Venmo username, a PayPal address. Knowing one lets someone send you money, not take it. Where a customer needs real account details, ${PRODUCT} tells them to ask you directly.`,
   },
   {
     title: 'Encrypted going in and sitting still',
@@ -55,12 +56,12 @@ const FACTS = [
   {
     title: 'Audited infrastructure underneath',
     body:
-      'Nautilus runs on Supabase and Vercel, both independently audited to SOC 2 Type II — the standard a company’s IT department asks about. Data is held in the United States on Amazon Web Services.',
+      `${PRODUCT} runs on Supabase and Vercel, both independently audited to SOC 2 Type II — the standard a company’s IT department asks about. Data is held in the United States on Amazon Web Services.`,
   },
 ];
 
 const NOT_YET = [
-  ['Our own SOC 2 certification', 'The infrastructure is certified; Nautilus as a company is not yet. This is the honest gap, and it is the one a large company’s procurement team will ask about.'],
+  ['Our own SOC 2 certification', `The infrastructure is certified; ${PRODUCT} as a company is not yet. This is the honest gap, and it is the one a large company’s procurement team will ask about.`],
   ['An independent penetration test', 'Nobody outside has yet been paid to try to break in.'],
   ['A formal data processing agreement', 'If your business needs one on file, ask and we will sort it out for you directly.'],
 ];
@@ -71,7 +72,7 @@ export default function TrustPage() {
       <div style={{ maxWidth: 660, margin: '0 auto' }}>
         <div style={{ marginBottom: 34 }}>
           <div style={{ fontSize: 22, fontWeight: 600, color: INK, letterSpacing: '-0.4px' }}>
-            Nautilus
+            {PRODUCT}
           </div>
           <h1 style={{ fontSize: 27, fontWeight: 600, color: INK, letterSpacing: '-0.6px', margin: '20px 0 12px' }}>
             Security &amp; trust
@@ -132,7 +133,7 @@ export default function TrustPage() {
             What we haven&apos;t done yet
           </h2>
           <p style={{ fontSize: 13.5, color: DIM, lineHeight: 1.7, margin: '0 0 14px' }}>
-            Nautilus is new and built by a small team. Anyone claiming a perfect security posture
+            {PRODUCT} is new and built by a small team. Anyone claiming a perfect security posture
             at this size is guessing or hoping you won&apos;t check. These are the gaps:
           </p>
           <div
@@ -186,7 +187,7 @@ export default function TrustPage() {
           }}
         >
           Found something that looks wrong, or have a question this page doesn&apos;t answer?{' '}
-          <a href="mailto:mikexcalo@gmail.com" style={{ color: ACCENT, textDecoration: 'none' }}>
+          <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: ACCENT, textDecoration: 'none' }}>
             Tell us
           </a>
           . Security reports are welcome and always answered.

@@ -6,6 +6,7 @@ import supabase from '@/lib/supabase';
 import { useTutorial } from '@/lib/spine/tutorial';
 import { C } from '@/components/spine/ui';
 import { Notifications } from '@/components/spine/Notifications';
+import { PRODUCT } from '@/lib/brand';
 
 const TITLES: Record<string, string> = {
   '/': 'Manifest',
@@ -58,7 +59,7 @@ export default function TopBar() {
             decision and taught nobody anything; guided paths do. */}
         <button
           onClick={openPanel}
-          title="Learn Nautilus"
+          title={`Learn ${PRODUCT}`}
           style={{
             display: 'flex',
             alignItems: 'center',

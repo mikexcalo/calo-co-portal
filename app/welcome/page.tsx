@@ -19,6 +19,7 @@ import supabase from '@/lib/supabase';
 import { getCurrentOrg, updateOrg } from '@/lib/spine/db';
 import { METHODS, looksLikeAccountNumber, type PaymentMethod } from '@/lib/spine/payments';
 import type { Org } from '@/lib/spine/types';
+import { PRODUCT } from '@/lib/brand';
 
 const INK = '#141414';
 const BORDER = '#e4e4e0';
@@ -245,7 +246,7 @@ export default function WelcomePage() {
       <div style={{ maxWidth: 540, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 26 }}>
           <div style={{ fontSize: 22, fontWeight: 600, color: INK, letterSpacing: '-0.3px' }}>
-            Welcome to Nautilus
+            Welcome to {PRODUCT}
           </div>
           <div style={{ fontSize: 13.5, color: FAINT, marginTop: 6 }}>
             Four quick questions and you&apos;re set up.
@@ -541,7 +542,7 @@ export default function WelcomePage() {
               <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${BORDER}`, fontSize: 11.5, color: FAINT, lineHeight: 1.7 }}>
                 <strong style={{ color: DIM }}>Your information stays yours.</strong> Everything
                 is encrypted in transit and at rest, and each business&apos;s data is walled off
-                at the database so nobody else can read it. Nautilus never stores card numbers
+                at the database so nobody else can read it. {PRODUCT} never stores card numbers
                 or bank account numbers — card payments go straight to Stripe, and the handles
                 above are the public ones you already share to receive money.
               </div>

@@ -18,6 +18,7 @@ import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import type { JobInvoice, JobLedger } from '@/lib/spine/types';
 import { JOB_STATUS_LABEL } from '@/lib/spine/types';
+import { PRODUCT } from '@/lib/brand';
 import {
   Button,
   C,
@@ -306,7 +307,7 @@ export default function ProfitLossPage() {
 
           {recovery && recovery.recovered > 0 && (
             <div style={{ marginBottom: 28 }}>
-              <SectionLabel>What Nautilus caught</SectionLabel>
+              <SectionLabel>What {PRODUCT} caught</SectionLabel>
               <Card style={{ borderColor: C.green }}>
                 <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
                   <div>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { PATHS, useTutorial } from '@/lib/spine/tutorial';
 import { ANSWERS, search } from '@/lib/spine/answers';
 import { C, SERIF, radius, useIsPhone } from './ui';
+import { PRODUCT } from '@/lib/brand';
 
 /**
  * The guided-path drawer. Slides in from the right, stays out of the way,
@@ -59,7 +60,7 @@ export function TutorialPanel() {
         >
           <div>
             <div style={{ fontFamily: SERIF, fontSize: 20 }}>
-              {activePath ? activePath.name : 'Learn Nautilus'}
+              {activePath ? activePath.name : `Learn ${PRODUCT}`}
             </div>
             {activePath && (
               <div style={{ fontSize: 11.5, color: C.faint, marginTop: 2 }}>

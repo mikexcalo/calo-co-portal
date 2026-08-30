@@ -24,6 +24,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { PRODUCT } from '@/lib/brand';
 
 export const runtime = 'nodejs';
 
@@ -64,7 +65,7 @@ ${opts.brief}
 | Type | ${opts.kind} |
 | Urgency | ${opts.urgency} |
 | Requested by | ${opts.requester} |
-| Nautilus request | \`${opts.requestId}\` |
+| ${PRODUCT} request | \`${opts.requestId}\` |
 
 ## Rules for this build
 
@@ -141,7 +142,7 @@ export async function POST(req: NextRequest) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: `[Nautilus] ${request.title}`,
+          title: `[${PRODUCT}] ${request.title}`,
           body: markdown,
           labels: ['nautilus-build', request.urgency === 'urgent' ? 'urgent' : 'queued'],
         }),

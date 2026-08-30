@@ -36,6 +36,7 @@ import {
   today,
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
+import { PRODUCT } from '@/lib/brand';
 
 interface Overhead {
   id: string;
@@ -202,7 +203,7 @@ export default function ExpensesPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 style={inputStyle}
-                placeholder="Database and hosting for Nautilus"
+                placeholder={`Database and hosting for ${PRODUCT}`}
               />
             </Field>
 

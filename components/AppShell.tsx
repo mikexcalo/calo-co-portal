@@ -8,6 +8,7 @@ import { useIsPhone, C } from '@/components/spine/ui';
 import { TutorialPanel } from '@/components/spine/TutorialPanel';
 import { useOrg } from '@/lib/spine/org';
 import { pathAllowed } from '@/lib/spine/modules';
+import { PRODUCT } from '@/lib/brand';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -72,7 +73,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             ☰
           </button>
           <span style={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.3px' }}>
-            Nautilus
+            {PRODUCT}
           </span>
         </div>
 

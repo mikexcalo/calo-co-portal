@@ -5,10 +5,11 @@ import { ThemeProvider } from '@/lib/theme';
 import { AppShell } from '@/components/AppShell';
 import { OrgProvider } from '@/lib/spine/org';
 import { TutorialProvider } from '@/lib/spine/tutorial';
+import { PRODUCT } from '@/lib/brand';
 
 export const metadata: Metadata = {
-  title: 'Nautilus',
-  description: 'Nautilus — run the work, bill the work.',
+  title: PRODUCT,
+  description: `${PRODUCT} — run the work, bill the work.`,
   icons: { icon: '/favicon.svg' },
 };
 

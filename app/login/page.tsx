@@ -17,6 +17,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
 import { verifySignIn } from '@/lib/spine/mfa';
+import { PRODUCT, PROVIDER, SUPPORT_EMAIL } from '@/lib/brand';
 
 const INK = '#111113';
 const PANEL = '#ffffff';
@@ -186,10 +187,10 @@ function LoginForm() {
       <div style={{ width: '100%', maxWidth: 400 }}>
         <div style={{ textAlign: 'center', marginBottom: 26 }}>
           <div style={{ fontSize: 22, fontWeight: 600, color: INK, letterSpacing: '-0.4px' }}>
-            Nautilus
+            {PRODUCT}
           </div>
           <div style={{ fontSize: 13, color: FAINT, marginTop: 6 }}>
-            Your workspace from CALO&amp;CO
+            Your workspace from {PROVIDER}
           </div>
         </div>
 
@@ -236,7 +237,7 @@ function LoginForm() {
               <p style={{ fontSize: 12.5, color: FAINT, margin: '0 0 20px', lineHeight: 1.55 }}>
                 {useRecovery
                   ? 'Enter one of the eight backup codes you saved when you set this up. It switches two-factor off so you can sign in with your password, and you can set it up again on your new phone afterwards.'
-                  : 'Open your authenticator app and enter the six-digit code it shows for Nautilus.'}
+                  : `Open your authenticator app and enter the six-digit code it shows for ${PRODUCT}.`}
               </p>
 
               {useRecovery ? (
@@ -449,7 +450,7 @@ function LoginForm() {
           Don&apos;t have an account yet?
           <br />
           Workspaces are set up for you —{' '}
-          <a href="mailto:mikexcalo@gmail.com" style={{ color: ACCENT, textDecoration: 'none' }}>
+          <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: ACCENT, textDecoration: 'none' }}>
             get in touch
           </a>
           .
