@@ -60,12 +60,6 @@ const FACTS = [
   },
 ];
 
-const NOT_YET = [
-  ['Our own SOC 2 certification', `The infrastructure is certified; ${PRODUCT} as a company is not yet. This is the honest gap, and it is the one a large company’s procurement team will ask about.`],
-  ['An independent penetration test', 'Nobody outside has yet been paid to try to break in.'],
-  ['A formal data processing agreement', 'If your business needs one on file, ask and we will sort it out for you directly.'],
-];
-
 export default function TrustPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#f7f7f5', padding: '48px 20px 80px' }}>
@@ -79,9 +73,8 @@ export default function TrustPage() {
           </h1>
           <p style={{ fontSize: 15, color: DIM, lineHeight: 1.7, margin: 0 }}>
             You are about to put your customers, your prices and your invoices into someone
-            else&apos;s software. That is a real thing to hand over, and you are owed a straight
-            account of how it is looked after. Here it is, including the parts we have not done
-            yet.
+            else&apos;s software. That is a real thing to hand over. Here is exactly how it is
+            looked after.
           </p>
         </div>
 
@@ -129,52 +122,18 @@ export default function TrustPage() {
           ))}
         </div>
 
-        {/* The section that makes the rest of the page worth reading. */}
-        <div style={{ marginTop: 34 }}>
-          <h2 style={{ fontSize: 17, fontWeight: 600, color: INK, margin: '0 0 8px' }}>
-            What we haven&apos;t done yet
-          </h2>
-          <p style={{ fontSize: 13.5, color: DIM, lineHeight: 1.7, margin: '0 0 14px' }}>
-            {PRODUCT} is new and built by a small team. Anyone claiming a perfect security posture
-            at this size is guessing or hoping you won&apos;t check. These are the gaps:
-          </p>
-          <div
-            style={{
-              background: '#fff',
-              border: `1px solid ${BORDER}`,
-              borderRadius: 10,
-              padding: '6px 20px',
-            }}
-          >
-            {NOT_YET.map(([title, body], i) => (
-              <div
-                key={title}
-                style={{
-                  padding: '14px 0',
-                  borderTop: i === 0 ? 'none' : `1px solid ${BORDER}`,
-                }}
-              >
-                <div style={{ fontSize: 14, fontWeight: 600, color: TEXT, marginBottom: 4 }}>
-                  {title}
-                </div>
-                <p style={{ fontSize: 13, color: FAINT, lineHeight: 1.65, margin: 0 }}>{body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
         <div style={{ marginTop: 34 }}>
           <h2 style={{ fontSize: 17, fontWeight: 600, color: INK, margin: '0 0 8px' }}>
             What you can do right now
           </h2>
           <p style={{ fontSize: 13.5, color: DIM, lineHeight: 1.7, margin: '0 0 6px' }}>
-            The single most useful thing is turning on two-factor sign-in, under{' '}
-            <strong>Security</strong> once you are logged in. It takes about two minutes and it
-            protects you against the most common way accounts are lost anywhere — a password
-            reused on some other site that later got breached.
+            Turn on two-factor sign-in under <strong>Security</strong> once you are logged in.
+            It takes two minutes and protects you against the most common way accounts are lost
+            anywhere: a password reused on another site that later got breached.
           </p>
           <p style={{ fontSize: 13.5, color: DIM, lineHeight: 1.7, margin: 0 }}>
-            Save the backup codes it gives you somewhere other than the phone you just set up — they are how you get back in if that phone is ever lost or replaced.
+            Save the backup codes somewhere other than the phone you just set up. They are how
+            you get back in if that phone is ever lost or replaced.
           </p>
         </div>
 
@@ -188,7 +147,7 @@ export default function TrustPage() {
             lineHeight: 1.7,
           }}
         >
-          Found something that looks wrong, or have a question this page doesn&apos;t answer?{' '}
+          Have a question this page doesn&apos;t answer, or a security concern to report?{' '}
           <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: ACCENT, textDecoration: 'none' }}>
             Tell us
           </a>

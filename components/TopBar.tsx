@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useTutorial } from '@/lib/spine/tutorial';
+import { useOrg } from '@/lib/spine/org';
 import { C } from '@/components/spine/ui';
 import { Notifications } from '@/components/spine/Notifications';
 import { PRODUCT } from '@/lib/brand';
@@ -27,6 +28,33 @@ export default function TopBar() {
   const pathname = usePathname();
   const router = useRouter();
   const { openPanel } = useTutorial();
+  const { org } = useOrg();
+
+  /**
+   * The business's own website, one click away from anywhere.
+   *
+   * The point is not convenience for its own sake. If this is where the work
+   * lives, then checking that a change actually went live has to happen from
+   * here — otherwise the loop runs through a bookmark, a browser window and a
+   * guess about which tab was the current one.
+   */
+  const [siteUrl, setSiteUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!org) { setSiteUrl(null); return; }
+    let cancelled = false;
+    supabase
+      .from('client_sites')
+      .select('url')
+      .eq('org_id', org.id)
+      .not('url', 'is', null)
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setSiteUrl(data?.url ?? null);
+      });
+    return () => { cancelled = true; };
+  }, [org]);
 
   const title =
     TITLES[pathname] ??
@@ -54,6 +82,35 @@ export default function TopBar() {
       <span style={{ fontSize: 13, color: C.faint }}>{title}</span>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {siteUrl && (
+          <a
+            href={siteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={`Open ${siteUrl.replace(/^https?:\/\/(www\.)?/, '')} in a new tab`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 7,
+              background: 'transparent',
+              border: `1px solid ${C.border}`,
+              borderRadius: 7,
+              padding: '6px 11px',
+              fontSize: 12.5,
+              fontWeight: 500,
+              color: C.dim,
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <circle cx="8" cy="8" r="6.3" />
+              <path d="M1.7 8h12.6" />
+              <path d="M8 1.7a10 10 0 0 1 0 12.6 10 10 0 0 1 0-12.6" />
+            </svg>
+            Your site
+          </a>
+        )}
         <Notifications />
         {/* Was a dark/light toggle. A theme switch doubled every color
             decision and taught nobody anything; guided paths do. */}

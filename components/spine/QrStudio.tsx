@@ -85,6 +85,20 @@ export function QrStudio({
           light: transparent ? '#00000000' : light,
         },
       });
+
+      /**
+       * The library writes its own width and height straight onto the
+       * element's style attribute, and it does that after React has rendered.
+       * Whatever React set therefore loses, which is why the code kept
+       * escaping its box no matter how the box was described.
+       *
+       * Handing the sizing back to CSS here is the actual fix. The two
+       * previous attempts changed the container, which was never the thing
+       * overriding anything.
+       */
+      const el = canvasRef.current;
+      el.style.width = '100%';
+      el.style.height = '100%';
     } catch (e) {
       setError((e as Error).message);
     }

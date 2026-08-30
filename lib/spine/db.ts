@@ -410,12 +410,30 @@ export async function listDocuments(opts?: {
   jobId?: string;
   unfiledOnly?: boolean;
   status?: DocumentStatus[];
+  /** Photos are excluded unless asked for. See below. */
+  kind?: string;
 }): Promise<DocumentRecord[]> {
   let q = supabase.from('documents').select('*').order('created_at', { ascending: false });
 
   if (opts?.jobId) q = q.eq('job_id', opts.jobId);
   if (opts?.unfiledOnly) q = q.is('job_id', null);
   if (opts?.status?.length) q = q.in('status', opts.status);
+
+  if (opts?.kind) {
+    q = q.eq('kind', opts.kind);
+  } else {
+    /**
+     * Photos share this table but not this pipeline.
+     *
+     * A receipt is unfiled until it is attached to a job, and the app chases
+     * you about it. A photo of a finished bathroom belongs to a customer and
+     * is never going to be attached to anything — so without this it would
+     * sit in the Receipts inbox forever, and appear on Today as work you had
+     * failed to deal with. Eight holiday snaps of a kitchen would read as
+     * eight unbilled expenses.
+     */
+    q = q.neq('kind', 'photo');
+  }
 
   return unwrap(await q) as DocumentRecord[];
 }
