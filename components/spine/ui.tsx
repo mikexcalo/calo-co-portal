@@ -234,6 +234,40 @@ const PILL_TONE = {
 
 export type PillTone = keyof typeof PILL_TONE;
 
+/**
+ * A completed / not-completed marker.
+ *
+ * Shared because it appeared three times, drawn three different ways: a solid
+ * filled circle here, a bordered circle there, a green disc on the trust page.
+ * Solid fills are the loudest thing this interface does and a checklist is not
+ * the loudest thing on its screen — the rest of the app states status with a
+ * soft background and coloured text, and this now does the same.
+ */
+export function Check({ done, size = 20 }: { done: boolean; size?: number }) {
+  return (
+    <span
+      aria-hidden
+      style={{
+        width: size,
+        height: size,
+        flexShrink: 0,
+        borderRadius: radius.md,
+        background: done ? C.greenSoft : 'transparent',
+        border: `1px solid ${done ? `${C.green}55` : C.border}`,
+        color: C.green,
+        fontSize: Math.round(size * 0.55),
+        fontWeight: 700,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        lineHeight: 1,
+      }}
+    >
+      {done ? '✓' : ''}
+    </span>
+  );
+}
+
 export function Pill({ children, tone = 'neutral' }: { children: React.ReactNode; tone?: PillTone }) {
   const t = PILL_TONE[tone];
   return (

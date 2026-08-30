@@ -138,6 +138,15 @@ export function pathAllowed(org: Org | null, pathname: string): boolean {
 export interface NavGroup {
   heading: string;
   items: Array<{ id: ModuleId; label: string; href: string; icon: string }>;
+  /**
+   * Whether the group starts open.
+   *
+   * Setup starts closed. It is a handful of screens you visit twice in the
+   * first week and then rarely again, and keeping it permanently expanded
+   * spends five rows of a fourteen-row sidebar on the least-used part of the
+   * product.
+   */
+  defaultOpen?: boolean;
 }
 
 export function navFor(
@@ -160,11 +169,10 @@ export function navFor(
       items: [
         { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'yardSign' },
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
-        ...(org?.kind === 'contractor'
-          ? [{ id: 'receipts' as ModuleId, label: 'Receipts', href: '/documents', icon: 'quotes' }]
-          : []),
-        // Conversations are work. They belong with the jobs and the people
-        // they are about, not filed away under reference material.
+        // Receipts sits here for every kind of business. Splitting it by org
+        // kind left agencies with a single row under a heading of its own,
+        // which is the exact furniture the last pass set out to remove.
+        { id: 'receipts', label: 'Receipts', href: '/documents', icon: 'quotes' },
         { id: 'notes', label: 'Notes', href: '/notes', icon: 'proposal' },
         // Library lived under a heading called "Library", which is a label
         // introducing itself. Price lists, records and brand assets are
@@ -199,27 +207,20 @@ export function navFor(
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
-      // An agency files a handful of receipts a month, so they sit here rather
-      // than up with the daily work.
-      heading: org?.kind === 'agency' ? 'Reference' : '',
-      items: [
-        ...(org?.kind !== 'contractor'
-          ? [{ id: 'receipts' as ModuleId, label: 'Receipts', href: '/documents', icon: 'quotes' }]
-          : []),
-      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
-    },
-    {
       // A heading over a single row is furniture. "Your Website" says what the
       // destination is; "Request a Change" described the form inside it, which
       // is not how anyone looks for their own website.
       heading: org?.kind === 'agency' ? 'Clients' : '',
       items: [
-        { id: 'client_requests', label: 'Client Requests', href: '/requests', icon: 'designStudio' },
+        // Under a heading that already says Clients, the word was doing the
+        // job twice.
+        { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'designStudio' },
         { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
       heading: 'Setup',
+      defaultOpen: false,
       items: [
         { id: 'business', label: 'Business', href: '/business', icon: 'storefront' },
         { id: 'team', label: 'Team', href: '/team', icon: 'clients' },

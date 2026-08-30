@@ -135,9 +135,10 @@ export const config = {
      * - /api/public/            published price feeds
      * - /api/calendar/          calendar subscriptions
      * - /api/stripe/webhook     Stripe calling us
+     * - /q/                     a scanned QR code, forwarded onward
      * - /e/                     the customer-facing estimate page
      * - /i/                     the customer-facing invoice page
      */
-    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|e/|i/).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|q/|e/|i/).*)',
   ],
 };

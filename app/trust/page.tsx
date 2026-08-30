@@ -101,17 +101,19 @@ export default function TrustPage() {
                   aria-hidden
                   style={{
                     flexShrink: 0,
-                    width: 18,
-                    height: 18,
-                    borderRadius: 9,
-                    background: '#e7f5ec',
+                    width: 20,
+                    height: 20,
+                    borderRadius: 7,
+                    background: '#ECF6F0',
+                    border: `1px solid ${GREEN}55`,
                     color: GREEN,
                     fontSize: 11,
                     fontWeight: 700,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginTop: 2,
+                    marginTop: 1,
+                    lineHeight: 1,
                   }}
                 >
                   ✓

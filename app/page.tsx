@@ -25,6 +25,7 @@ import {
   Button,
   C,
   Card,
+  Check,
   Empty,
   Metric,
   Page,
@@ -467,25 +468,7 @@ export default function Dashboard() {
                     cursor: step.done ? 'default' : 'pointer',
                   }}
                 >
-                  <span
-                    aria-hidden
-                    style={{
-                      width: 20,
-                      height: 20,
-                      flexShrink: 0,
-                      borderRadius: 10,
-                      border: `1.5px solid ${step.done ? C.green : C.border}`,
-                      background: step.done ? C.green : 'transparent',
-                      color: '#fff',
-                      fontSize: 11,
-                      fontWeight: 700,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {step.done ? '✓' : ''}
-                  </span>
+                  <Check done={step.done} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       style={{

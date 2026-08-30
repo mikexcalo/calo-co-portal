@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import { Button, C, Card, Field, SectionLabel, inputStyle, radius } from './ui';
+import { QrCampaigns, type Campaign } from './QrCampaigns';
 
 interface BrandColor {
   name: string;
@@ -48,10 +49,12 @@ export function QrStudio({
   colors,
   defaultUrl,
   company,
+  orgId,
 }: {
   colors: BrandColor[];
   defaultUrl: string;
   company: string;
+  orgId?: string;
 }) {
   const [url, setUrl] = useState(defaultUrl);
   const [dark, setDark] = useState(colors[0]?.hex ?? '#000000');
@@ -60,6 +63,7 @@ export function QrStudio({
   const [transparent, setTransparent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
 
   const ratio = contrastRatio(dark, light);
   // Scanners need roughly 3:1 to be reliable in the wild; below that it may
@@ -175,11 +179,40 @@ export function QrStudio({
             1cm wide for every 10cm of scanning distance.
           </div>
         </Card>
+
+        {orgId && (
+          <QrCampaigns
+            orgId={orgId}
+            defaultDestination={defaultUrl}
+            selectedCode={campaign?.code ?? null}
+            onSelect={(u, c) => {
+              setUrl(u);
+              setCampaign(c);
+            }}
+          />
+        )}
       </div>
 
       <div>
         <Card style={{ position: 'sticky', top: 16 }}>
           <SectionLabel>Preview</SectionLabel>
+          {campaign && (
+            <div
+              style={{
+                fontSize: 12,
+                color: C.dim,
+                lineHeight: 1.55,
+                margin: '4px 0 12px',
+                padding: '9px 11px',
+                background: C.blueSoft,
+                border: `1px solid ${C.blue}33`,
+                borderRadius: radius.md,
+              }}
+            >
+              Tracking <strong style={{ color: C.text }}>{campaign.label}</strong>. Scans forward
+              to {campaign.destination.replace(/^https?:\/\//, '')} and are counted here.
+            </div>
+          )}
           <div
             style={{
               display: 'flex',
@@ -197,15 +230,35 @@ export function QrStudio({
               border: `1px solid ${C.border}`,
             }}
           >
-            <canvas
-              ref={canvasRef}
+            {/*
+              The square is enforced by the wrapper, not by the canvas.
+              Relying on the canvas's own aspect-ratio kept producing a
+              rectangle, because a canvas has intrinsic pixel dimensions that
+              argue with CSS sizing and one of them wins unpredictably.
+
+              A wrapper with a fixed aspect ratio and a canvas told to fill it
+              completely removes the argument. There is no combination of
+              widths that makes this anything but square.
+            */}
+            <div
               style={{
-                display: 'block',
-                maxWidth: '100%',
-                height: 'auto',
+                width: '100%',
+                maxWidth: 280,
                 aspectRatio: '1 / 1',
+                position: 'relative',
               }}
-            />
+            >
+              <canvas
+                ref={canvasRef}
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'block',
+                  width: '100%',
+                  height: '100%',
+                }}
+              />
+            </div>
           </div>
 
           <div

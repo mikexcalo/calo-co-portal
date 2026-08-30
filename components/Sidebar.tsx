@@ -8,6 +8,7 @@
  * business you're in — a contractor has no use for a client-request inbox.
  */
 
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useOrg } from '@/lib/spine/org';
 import { navFor } from '@/lib/spine/modules';
@@ -198,6 +199,54 @@ export default function Sidebar() {
 
   const groups = navFor(org, vocab);
 
+  /**
+   * Collapsed sections, remembered.
+   *
+   * Fourteen rows is more than anyone scans; it gets read once and then
+   * navigated by muscle memory, which is how items become invisible. Folding
+   * a section away is the difference between a list you skim and a list you
+   * ignore.
+   *
+   * The choice persists per browser rather than per account. It is a
+   * preference about this screen on this machine, not a fact about the
+   * business, and syncing it would mean a phone deciding what a desktop looks
+   * like.
+   */
+  const [closed, setClosed] = useState<Set<string>>(new Set());
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem('nav.closed');
+      if (saved) {
+        setClosed(new Set(JSON.parse(saved) as string[]));
+      } else {
+        // First visit: honour the defaults the nav declares.
+        setClosed(new Set(groups.filter((g) => g.defaultOpen === false).map((g) => g.heading)));
+      }
+    } catch {
+      // A browser refusing storage is not a reason to render nothing.
+    }
+    setReady(true);
+    // Runs once. Re-running on every nav change would reset the user's
+    // choice every time they switch business.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const toggleGroup = useCallback((heading: string) => {
+    setClosed((prev) => {
+      const next = new Set(prev);
+      if (next.has(heading)) next.delete(heading);
+      else next.add(heading);
+      try {
+        window.localStorage.setItem('nav.closed', JSON.stringify([...next]));
+      } catch {
+        // Storage unavailable; the choice still applies for this session.
+      }
+      return next;
+    });
+  }, []);
+
   return (
     <div
       style={{
@@ -242,25 +291,59 @@ export default function Sidebar() {
       <div style={{ flex: 1, padding: '8px 8px 8px', overflowY: 'auto' }}>
         {navBtn('Today', '/', 'dashboard')}
 
-        {groups.map((g) => (
-          <div key={g.heading || g.items[0]?.href} style={{ marginTop: g.heading ? 16 : 8 }}>
-            {g.heading && (
-              <div
-                style={{
-                  fontSize: 9.5,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.09em',
-                  color: C.faint,
-                  fontWeight: 600,
-                  padding: '0 12px 5px',
-                }}
-              >
-                {g.heading}
-              </div>
-            )}
-            {g.items.map((i) => navBtn(i.label, i.href, i.icon))}
-          </div>
-        ))}
+        {groups.map((g) => {
+          // A collapsed section that hides the page you are on would leave you
+          // unable to see where you are. Force it open in that case.
+          const holdsCurrent = g.items.some((i) => isActive(i.href));
+          const isClosed = ready && g.heading && closed.has(g.heading) && !holdsCurrent;
+
+          return (
+            <div key={g.heading || g.items[0]?.href} style={{ marginTop: g.heading ? 16 : 8 }}>
+              {g.heading && (
+                <button
+                  onClick={() => toggleGroup(g.heading)}
+                  aria-expanded={!isClosed}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    width: '100%',
+                    background: 'transparent',
+                    border: 'none',
+                    fontSize: 9.5,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.09em',
+                    color: C.faint,
+                    fontWeight: 600,
+                    padding: '0 12px 5px',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    textAlign: 'left',
+                  }}
+                >
+                  <span
+                    aria-hidden
+                    style={{
+                      display: 'inline-block',
+                      fontSize: 8,
+                      transform: isClosed ? 'rotate(-90deg)' : 'none',
+                      transition: 'transform .18s ease',
+                    }}
+                  >
+                    ▼
+                  </span>
+                  {g.heading}
+                  {isClosed && (
+                    <span style={{ marginLeft: 'auto', fontVariantNumeric: 'tabular-nums' }}>
+                      {g.items.length}
+                    </span>
+                  )}
+                </button>
+              )}
+              {!isClosed && g.items.map((i) => navBtn(i.label, i.href, i.icon))}
+            </div>
+          );
+        })}
       </div>
 
 

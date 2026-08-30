@@ -280,6 +280,7 @@ export default function BrandKitPage() {
         </div>
       ) : tab === 'qr' ? (
         <QrStudio
+          orgId={org?.id}
           colors={brand.colors}
           company={org?.name ?? 'brand'}
           defaultUrl={siteUrl}
