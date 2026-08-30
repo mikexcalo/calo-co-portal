@@ -17,6 +17,7 @@ export type ModuleId =
   | 'customers'
   | 'receipts'
   | 'notes'
+  | 'pitches'
   | 'billing'
   | 'pl'
   | 'website'        // client-facing: ask my agency for a site change
@@ -36,6 +37,7 @@ const CONTRACTOR: ModuleId[] = [
   'customers',
   'receipts',
   'notes',
+  'pitches',
   'proposals',
   'billing',
   'pl',
@@ -58,6 +60,7 @@ const AGENCY: ModuleId[] = [
   'customers',
   'receipts',
   'notes',
+  'pitches',
   'proposals',
   'billing',
   'pl',
@@ -95,6 +98,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/customers', 'customers'],
   ['/documents', 'receipts'],
   ['/notes', 'notes'],
+  ['/pitches', 'pitches'],
   ['/billing', 'billing'],
   ['/pl', 'pl'],
   ['/expenses', 'expenses'],
@@ -216,6 +220,14 @@ export function navFor(
         // job twice.
         { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'designStudio' },
         { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },
+      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
+    },
+    {
+      // Winning work is a different activity from doing it or billing it, and
+      // burying it in either one is how it stops happening.
+      heading: 'Growth',
+      items: [
+        { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'designStudio' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
