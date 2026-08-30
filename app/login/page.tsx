@@ -40,6 +40,7 @@ function LoginForm() {
   const [code, setCode] = useState('');
   const [recovery, setRecovery] = useState('');
   const [useRecovery, setUseRecovery] = useState(false);
+  const [googleReady, setGoogleReady] = useState(false);
   const [error, setError] = useState(
     params.get('error') === 'auth'
       ? 'That sign-in link did not work. Try again.'
@@ -47,6 +48,28 @@ function LoginForm() {
       ? `That account signed in fine, but there's no workspace attached to it yet. ${PROVIDER} sets those up — get in touch and we'll add you.`
       : ''
   );
+
+  /**
+   * Only offer Google if Supabase will actually accept it.
+   *
+   * Shipped without this check, the button was visible before the provider
+   * was configured — and pressing it handed the browser to Supabase, which
+   * answered with raw JSON on a blank white page. A dead end that looks like
+   * the product crashed.
+   *
+   * /auth/v1/settings is public and lists which providers are live, so the
+   * button can simply not exist until it works.
+   */
+  useEffect(() => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !key) return;
+
+    fetch(`${url}/auth/v1/settings`, { headers: { apikey: key } })
+      .then((r) => r.json())
+      .then((d) => setGoogleReady(!!d?.external?.google))
+      .catch(() => setGoogleReady(false));
+  }, []);
 
   /**
    * Google sign-in. Mark's email is on Google Workspace, so for him this is
@@ -370,7 +393,7 @@ function LoginForm() {
                   : "We'll email you a link to set a new one."}
               </p>
 
-              {mode === 'password' && (
+              {mode === 'password' && googleReady && (
                 <>
                   <button
                     type="button"
