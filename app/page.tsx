@@ -204,7 +204,7 @@ export default function Dashboard() {
       key: 'docs',
       weight: docs.length * 50,
       title: `${docs.length} document${docs.length === 1 ? '' : 's'} not filed`,
-      detail: `Sitting in the inbox, not yet attached to a ${vocab.job.toLowerCase()} — so not in your P&L.`,
+      detail: `Sitting in the inbox and not yet attached to a ${vocab.job.toLowerCase()}, so it is missing from your P&L.`,
       cta: 'Open documents',
       href: '/documents',
       tone: 'blue',
@@ -383,25 +383,25 @@ export default function Dashboard() {
     },
     {
       label: 'Say how you want to be paid',
-      why: 'These appear on your invoices so customers know where to send money.',
+      why: 'Customers see these on every invoice, so they know where to send money.',
       done: Array.isArray(org?.payment_methods) && (org?.payment_methods as unknown[]).length > 0,
       href: '/business',
     },
     {
       label: `Add your first ${vocab.customer.toLowerCase()}`,
-      why: 'Name, phone, email — whatever you have.',
+      why: 'Name, phone, email. Whatever you have is enough.',
       done: signals.customerCount > 0,
       href: '/customers',
     },
     {
       label: `Create your first ${vocab.job.toLowerCase()}`,
-      why: 'Everything else hangs off this — hours, receipts, invoices.',
+      why: 'Hours, receipts and invoices all hang off it.',
       done: jobs.length > 0,
       href: '/jobs/new',
     },
     {
       label: `Send your first ${vocab.estimate.toLowerCase()}`,
-      why: 'They see it as a web page and can accept it with one click.',
+      why: 'Customers get a web page they can accept in one click.',
       done: signals.draftEstimates > 0 || invoices.length > 0,
       href: jobs.length > 0 ? `/jobs/${jobs[0].id}/estimate` : '/jobs/new',
     },
@@ -415,7 +415,7 @@ export default function Dashboard() {
       title="Today"
       subtitle={
         emptyApp
-          ? `Nothing logged for ${org?.name ?? 'this business'} yet — which is the right place to start.`
+          ? `Nothing logged for ${org?.name ?? 'this business'} yet. Five minutes here and you're running.`
           : `Everything ${org?.name ?? 'this business'} needs you to deal with, most costly first.`
       }
       action={
@@ -447,8 +447,7 @@ export default function Dashboard() {
             Let&apos;s get you set up
           </div>
           <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.65, margin: '0 0 18px' }}>
-            Five things, in order. Each one takes a minute or two, and this list goes away once
-            you&apos;re running.
+            Five things, in order. Each takes a minute. This list disappears once you&apos;re running.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -547,7 +546,7 @@ export default function Dashboard() {
                 Nothing needs you right now.
               </div>
               <div style={{ fontSize: 12.5, color: C.dim, marginTop: 4 }}>
-                Everything billable is billed, every receipt is filed, and nothing is expiring.
+                Everything billable is billed, every receipt is filed, nothing is expiring.
               </div>
             </Card>
           )}

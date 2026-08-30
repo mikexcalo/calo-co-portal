@@ -70,7 +70,7 @@ const DATA_FACTS = [
   {
     title: 'Everything is encrypted, both moving and sitting still',
     body:
-      'Your information is scrambled while it travels between your browser and our servers, and it stays scrambled on the disks where it rests. Someone who walked out with the hardware would have nothing readable.',
+      'Your information is scrambled travelling between your browser and our servers, and stays scrambled on the disks it rests on. Someone who walked out with the hardware would have nothing readable.',
     icon: icon(
       <>
         <rect x="3" y="7" width="10" height="6.5" rx="1.4" />
@@ -81,7 +81,7 @@ const DATA_FACTS = [
   {
     title: 'Your business is walled off from every other business',
     body:
-      'The separation is built into the database itself rather than into the screens on top of it. That means the protection does not depend on the app being written perfectly — even a mistake on a page cannot pull up another company’s customers, prices or invoices, because the request is refused before it ever reaches the screen.',
+      'The separation lives in the database, not in the screens on top of it. Protection never depends on the app being written perfectly. A mistake on a page still can’t pull up another company’s customers, prices or invoices, because the request is refused before it reaches the screen.',
     icon: icon(
       <>
         <path d="M8 1.9 2.9 4v3.4c0 2.9 2 5.5 5.1 6.7 3-1.2 5.1-3.8 5.1-6.7V4z" />
@@ -237,7 +237,7 @@ export default function SecurityPage() {
   return (
     <Page
       title="Security"
-      subtitle="How your account is protected, and what happens if you lose your phone."
+      subtitle="How your account is protected, and how to get back in if you lose your phone."
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
@@ -259,17 +259,13 @@ export default function SecurityPage() {
             These are how you get in if you lose your phone
           </h2>
           <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 12px', maxWidth: 560 }}>
-            Your phone is now the only thing that can produce your sign-in codes. If it is lost,
-            stolen, replaced or wiped, these eight codes are the way back into your account.
+            Your phone is now the only thing that can produce your sign-in codes. If it&apos;s lost, stolen, replaced or wiped, these eight codes get you back in.
           </p>
           <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 12px', maxWidth: 560 }}>
-            Enter one on the sign-in screen and it switches two-factor off, so your password works
-            on its own again. Then you set it up fresh on your new phone. Each code works once.
+            Enter one at sign-in and two-factor turns off, so your password works on its own. Set it up fresh on your new phone. Each code works once.
           </p>
           <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 16px', maxWidth: 560 }}>
-            Keep them somewhere other than the phone you just set up — a password manager, or
-            printed and filed with your business paperwork. They cannot be looked up again later,
-            and no one at {PRODUCT} can retrieve them for you.
+            Store them somewhere other than the phone you just set up. A password manager works, so does printing them and filing them with your business paperwork. They can&apos;t be looked up again, and no one at {PRODUCT} can retrieve them for you.
           </p>
 
           <div
@@ -325,11 +321,10 @@ export default function SecurityPage() {
             Two-factor is on. You&apos;re done.
           </div>
           <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 14px', maxWidth: 560 }}>
-            Nothing else to do now. The next time you sign in, {PRODUCT} will ask for your
-            password as usual, and then for the six-digit code showing in your authenticator app.
+            You&apos;re done. Next time you sign in, {PRODUCT} asks for your password as usual, then the six-digit code from your authenticator app.
           </p>
           <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 18px', maxWidth: 560 }}>
-            Your existing sign-in on this device keeps working — you will not be logged out.
+            Your sign-in on this device keeps working. You won&apos;t be logged out.
           </p>
           <Button onClick={() => setStage('idle')}>Back to security settings</Button>
         </Card>
@@ -344,10 +339,7 @@ export default function SecurityPage() {
             What you&apos;re setting up
           </h2>
           <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 16px', maxWidth: 580 }}>
-            An <strong>authenticator app</strong> on your phone that produces a six-digit code,
-            changing every 30 seconds. From now on, signing in to {PRODUCT} takes your password
-            and then that code. Anyone who gets hold of your password still cannot get in,
-            because they do not have your phone.
+            An <strong>authenticator app</strong> on your phone generates a six-digit code that changes every 30 seconds. From then on, signing in to {PRODUCT} takes your password and that code. Anyone who gets your password still can&apos;t get in, because they don&apos;t have your phone.
           </p>
 
           <div
@@ -364,12 +356,10 @@ export default function SecurityPage() {
               You&apos;ll need an authenticator app
             </div>
             <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.7, margin: '0 0 8px' }}>
-              You may already have one. iPhone and Android both have it built into the password
-              manager, and 1Password, Bitwarden and LastPass all do it too.
+              You may already have one. iPhone and Android both build it into the password manager, and 1Password, Bitwarden and LastPass all do it too.
             </p>
             <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.7, margin: 0 }}>
-              If not, search your app store for <strong>Google Authenticator</strong>. It is free,
-              takes a minute to install, and works for every other site that offers this.
+              If not, search your app store for <strong>Google Authenticator</strong>. It&apos;s free, installs in a minute, and works on every other site that offers this.
             </p>
           </div>
 
@@ -393,8 +383,7 @@ export default function SecurityPage() {
         <Card>
           <SectionLabel>Step 1 of 3 — scan this</SectionLabel>
           <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: '8px 0 14px', maxWidth: 560 }}>
-            Open your authenticator app, choose to add an account, and point your camera at this
-            square. Your app will start showing a six-digit code for {PRODUCT}.
+            Open your authenticator app, choose to add an account, and point your camera at this square. It&apos;ll start showing a six-digit code for {PRODUCT}.
           </p>
 
           {/* Supabase hands back an SVG data URI. It is a QR code, so it must
@@ -455,8 +444,7 @@ export default function SecurityPage() {
           <div style={{ marginTop: 22 }}>
             <SectionLabel>Step 2 of 3 — prove it worked</SectionLabel>
             <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: '8px 0 12px' }}>
-              Type the six digits your app is now showing for {PRODUCT}. They change every 30
-              seconds, so use whichever is on screen when you type.
+              Type the six digits your app is showing for {PRODUCT}. They change every 30 seconds, so use whatever is on screen.
             </p>
             <div style={{ maxWidth: 200 }}>
               <Field label="Six-digit code">
@@ -504,7 +492,7 @@ export default function SecurityPage() {
                 </div>
                 <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: 0 }}>
                   {enabled
-                    ? 'Signing in now takes your password and a six-digit code from your phone. Someone who steals your password still cannot get in without your phone.'
+                    ? 'Signing in takes your password plus a six-digit code from your phone. Someone with your password still gets nowhere without it.'
                     : `Adds a second step when you sign in: after your password, ${PRODUCT} asks for a six-digit code that only your phone can produce. It means a stolen or guessed password is not enough on its own — which is how most business accounts are lost.`}
                 </p>
               </div>
@@ -535,8 +523,8 @@ export default function SecurityPage() {
                     </div>
                     <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: 0 }}>
                       {remaining === 0
-                        ? 'You have none left. If your phone is lost or replaced now, there is no way back into this account. Generate a new set and save them.'
-                        : 'Your way in if your phone is lost, stolen or replaced. Entering one on the sign-in screen switches two-factor off so your password works alone again, and each code can only be used once.'}
+                        ? 'None left. If your phone is lost or replaced now, there is no way back into this account. Generate a new set and save them.'
+                        : 'Your way in if your phone is lost, stolen or replaced. Entering one at sign-in turns two-factor off so your password works alone. Each code works once.'}
                     </p>
                   </div>
                   <div>
@@ -547,8 +535,7 @@ export default function SecurityPage() {
                 </div>
                 {remaining > 0 && (
                   <p style={{ fontSize: 11.5, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
-                    Generating a new set cancels the old one — any codes you saved or printed
-                    before will stop working.
+                    Generating a new set cancels the old one. Any codes you saved or printed before will stop working.
                   </p>
                 )}
               </Card>

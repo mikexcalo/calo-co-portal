@@ -227,8 +227,7 @@ export default function BusinessPage() {
           {unset && (
             <Card style={{ borderColor: `${C.amber}55`, marginBottom: 16, maxWidth: 560 }}>
               <div style={{ color: C.amber, fontSize: 13, lineHeight: 1.6 }}>
-                The hourly rate is still $0, so invoices will come out at zero. Set it before
-                billing anything real.
+                Your hourly rate is $0, so invoices will come out at zero. Set it before you bill anything real.
               </div>
             </Card>
           )}
@@ -262,7 +261,7 @@ export default function BusinessPage() {
               />
             </Field>
             <div style={{ fontSize: 11.5, color: C.faint, margin: '-8px 0 14px' }}>
-              Added to receipts when they&apos;re billed. A $100 receipt at 15% bills as $115.
+              Added to receipts when you bill them. A $100 receipt at 15% bills as $115.
             </div>
 
             <Field label="Tax rate (%)">
@@ -281,8 +280,7 @@ export default function BusinessPage() {
           </Card>
 
           <div style={{ fontSize: 12, color: C.faint, marginTop: 12, maxWidth: 560, lineHeight: 1.6 }}>
-            These are starting points applied to every new {vocab.job.toLowerCase()}. You can
-            change any of them on an individual {vocab.job.toLowerCase()} without affecting these.
+            These are the starting points for every new {vocab.job.toLowerCase()}. Change them on any individual {vocab.job.toLowerCase()} without affecting these.
           </div>
         </>
       )}
@@ -319,9 +317,7 @@ export default function BusinessPage() {
           </div>
 
           <p style={{ fontSize: 13, color: C.dim, margin: '0 0 18px', lineHeight: 1.7 }}>
-            Everything you turn on appears on your invoices, cheapest first, so a customer can
-            choose. Card is the convenient option rather than the only one — on a $19,000 invoice
-            it costs about $564 to receive money that a bank transfer moves for $5.
+            Everything you turn on appears on your invoices, cheapest first, so customers can choose. Card is the convenient option, not the only one. On a $19,000 invoice, card costs about $564 to receive money a bank transfer moves for $5.
           </p>
 
           {!editingPayments && active.length > 0 ? (
@@ -363,7 +359,7 @@ export default function BusinessPage() {
                           </div>
                         ) : (
                           <div style={{ fontSize: 12, color: C.faint, marginTop: 3 }}>
-                            Nothing for the customer to copy — you&apos;ll arrange it directly.
+                            Nothing for the customer to copy. You&apos;ll arrange it directly.
                           </div>
                         )}
                       </div>
@@ -425,8 +421,7 @@ export default function BusinessPage() {
 
                     {blocked && (
                       <div style={{ fontSize: 11.5, color: C.amber, marginTop: 6, marginLeft: 26, lineHeight: 1.55 }}>
-                        Needs a Stripe account connected first. Until then this would show a
-                        customer a payment option that goes nowhere, so it stays off.
+                        Needs a Stripe account connected first. Until then it would show customers a payment option that goes nowhere, so it stays off.
                       </div>
                     )}
 
@@ -447,9 +442,7 @@ export default function BusinessPage() {
                         />
                         {warn && (
                           <div style={{ fontSize: 11.5, color: C.red, marginTop: 5, lineHeight: 1.5 }}>
-                            That looks like an account number. Don&apos;t put one here — this text
-                            goes on every invoice a customer sees. Write how to request the
-                            details instead.
+                            That looks like an account number. Don&apos;t put one here. This text appears on every invoice a customer sees, so write how to request the details instead.
                           </div>
                         )}
                         {spec.sensitive && !warn && (

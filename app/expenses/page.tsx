@@ -271,9 +271,7 @@ export default function ExpensesPage() {
       ) : rows.length === 0 ? (
         <Card>
           <Empty>
-            Nothing recorded yet. This is where software subscriptions, insurance, fuel and
-            anything else that isn&apos;t caused by one particular job belongs — so Profit &amp;
-            Loss shows what the business actually made, not just what the work earned.
+            Nothing recorded yet. Software subscriptions, insurance, fuel and anything else no single job caused belongs here. It&apos;s what makes Profit &amp; Loss show what the business made, not just what the work earned.
           </Empty>
         </Card>
       ) : (
@@ -332,8 +330,7 @@ export default function ExpensesPage() {
 
           {oneOffTotal > 0 && (
             <div style={{ fontSize: 12, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
-              Plus {money(oneOffTotal)} of one-off costs, which aren&apos;t counted in the monthly
-              figure above.
+              Plus {money(oneOffTotal)} in one-off costs, which the monthly figure above excludes.
             </div>
           )}
         </>

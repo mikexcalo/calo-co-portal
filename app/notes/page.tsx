@@ -160,7 +160,7 @@ export default function NotesPage() {
 
   const onDrop = async (file: File) => {
     if (!/\.(txt|md|vtt|srt|csv|rtf)$/i.test(file.name) && !file.type.startsWith('text/')) {
-      setError('That needs to be a text file — a .txt, .md or a transcript export.');
+      setError('That needs to be a text file. Try a .txt, .md, or a transcript export.');
       return;
     }
     setRaw(await file.text());
@@ -170,7 +170,7 @@ export default function NotesPage() {
   return (
     <Page
       title="Notes"
-      subtitle="Paste a call transcript or your notes. It pulls out what matters; you check it before it's saved."
+      subtitle="Paste a call transcript or your notes. We pull out what matters. You approve it before it saves."
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16, maxWidth: 720 }}>
@@ -236,7 +236,7 @@ export default function NotesPage() {
               {busy ? 'Reading…' : 'Read this'}
             </Button>
             <span style={{ fontSize: 12, color: C.faint }}>
-              About a cent, paid once. Opening it again later is free.
+              About a cent, charged once. Reading it back later is free.
             </span>
           </div>
         </Card>
@@ -310,8 +310,7 @@ export default function NotesPage() {
                 </div>
               ))}
               <div style={{ fontSize: 11.5, color: C.faint, marginTop: 6, lineHeight: 1.55 }}>
-                Recorded as part of the note, not as a quote. Numbers said out loud in a
-                conversation aren&apos;t an estimate until you make one.
+                Saved with the note, not as a quote. A number said out loud isn&apos;t an estimate until you build one.
               </div>
             </div>
           )}
@@ -340,8 +339,7 @@ export default function NotesPage() {
             <Button variant="ghost" onClick={() => setResult(null)}>Back to the text</Button>
           </div>
           <div style={{ fontSize: 11.5, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
-            The original text is kept underneath the summary. A summary is a convenience; if
-            anyone ever disputes what was agreed, the original is the record.
+            We keep the original text below the summary. If anyone ever disputes what was agreed, the original is what counts.
           </div>
         </Card>
       )}
@@ -353,7 +351,7 @@ export default function NotesPage() {
         ) : notes.length === 0 ? (
           <Card>
             <Empty>
-              Nothing yet. Anything you paste above ends up here, filed against the{' '}
+              Nothing yet. Anything you paste above lands here, filed against the{' '}
               {vocab.customer.toLowerCase()} it&apos;s about.
             </Empty>
           </Card>

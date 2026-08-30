@@ -45,7 +45,7 @@ function LoginForm() {
     params.get('error') === 'auth'
       ? 'That sign-in link did not work. Try again.'
       : params.get('error') === 'noworkspace'
-      ? `That account signed in fine, but there's no workspace attached to it yet. ${PROVIDER} sets those up — get in touch and we'll add you.`
+      ? `That account works, but no workspace is attached to it yet. ${PROVIDER} sets those up. Get in touch and we'll add you.`
       : ''
   );
 
@@ -283,7 +283,7 @@ function LoginForm() {
               </div>
               <p style={{ fontSize: 12.5, color: FAINT, margin: '0 0 20px', lineHeight: 1.55 }}>
                 {useRecovery
-                  ? 'Enter one of the eight backup codes you saved when you set this up. It switches two-factor off so you can sign in with your password, and you can set it up again on your new phone afterwards.'
+                  ? 'Enter one of the eight backup codes you saved during setup. It turns two-factor off so your password works on its own. Set it up again once you have your new phone.'
                   : `Open your authenticator app and enter the six-digit code it shows for ${PRODUCT}.`}
               </p>
 
@@ -379,7 +379,7 @@ function LoginForm() {
                   fontFamily: 'inherit',
                 }}
               >
-                {useRecovery ? 'Back — I have my phone' : "Lost your phone? Use a backup code"}
+                {useRecovery ? 'Back to the code from my phone' : 'Lost your phone? Use a backup code'}
               </button>
             </form>
           ) : (
@@ -546,7 +546,7 @@ function LoginForm() {
         >
           Don&apos;t have an account yet?
           <br />
-          Workspaces are set up for you —{' '}
+          Workspaces are set up for you.{' '}
           <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: ACCENT, textDecoration: 'none' }}>
             get in touch
           </a>

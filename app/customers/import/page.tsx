@@ -61,7 +61,7 @@ export default function ImportCustomersPage() {
 
       if (parsed.rows.length === 0) {
         setError(
-          "Couldn't find any contacts in that. It needs a row per person, with columns for at least a name or an email."
+          "We couldn't find any contacts in that. Check there's one row per person, with at least a name or an email."
         );
         return;
       }
@@ -88,7 +88,7 @@ export default function ImportCustomersPage() {
     }
     if (/\.xlsx?$/i.test(file.name)) {
       setError(
-        "Excel files aren't readable directly yet. In Excel: File → Save As → CSV, then drop that. Or select the cells, copy, and paste them into the box below — that works too."
+        "We can't read Excel files directly yet. In Excel, choose File then Save As then CSV, and drop that instead. Copying the cells and pasting them below works too."
       );
       return;
     }
@@ -167,7 +167,7 @@ export default function ImportCustomersPage() {
   return (
     <Page
       title={`Import ${vocab.customerPlural.toLowerCase()}`}
-      subtitle="Bring in a list you already have. Nothing is saved until you've read it."
+      subtitle="Bring in the list you already have. Nothing saves until you approve it."
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16, maxWidth: 700 }}>
@@ -203,7 +203,7 @@ export default function ImportCustomersPage() {
                 Drop a CSV here
               </div>
               <p style={{ fontSize: 13, color: C.dim, margin: '0 0 16px', lineHeight: 1.6 }}>
-                One row per person. However your columns are named, it&apos;ll work them out.
+                One row per person. We&apos;ll match your columns whatever they&apos;re called.
               </p>
               <label>
                 <input
@@ -236,8 +236,7 @@ export default function ImportCustomersPage() {
           <Card style={{ maxWidth: 700, marginTop: 14 }}>
             <SectionLabel>Or paste it</SectionLabel>
             <p style={{ fontSize: 13, color: C.dim, margin: '8px 0 12px', lineHeight: 1.6 }}>
-              Select the cells in Excel, Numbers or Google Sheets, copy, and paste below. That
-              avoids the Save-As-CSV dance entirely.
+              Copy the cells straight from Excel, Numbers or Google Sheets and paste them below. No need to export a file.
             </p>
             <textarea
               value={pasted}
@@ -273,8 +272,7 @@ export default function ImportCustomersPage() {
                   {sourceName ? ` in ${sourceName}` : ''}
                 </div>
                 <div style={{ fontSize: 12.5, color: C.dim, marginTop: 4, lineHeight: 1.6 }}>
-                  Read them over and fix anything wrong — you&apos;re editing here, not in the
-                  spreadsheet. Nothing is saved until you press import.
+                  Fix anything wrong right here, not back in the spreadsheet. Nothing saves until you press import.
                   {skippedCount > 0 && ` ${skippedCount} empty ${skippedCount === 1 ? 'row was' : 'rows were'} ignored.`}
                 </div>
               </div>
@@ -299,8 +297,7 @@ export default function ImportCustomersPage() {
                   lineHeight: 1.6,
                 }}
               >
-                Some of these came out without a name, which usually means the columns were read
-                wrong. Worth checking a few before importing.
+                Some rows came through without a name. That usually means a column was matched wrong, so check a few before importing.
               </div>
             )}
 
@@ -318,8 +315,7 @@ export default function ImportCustomersPage() {
                 }}
               >
                 {dupes.size} {dupes.size === 1 ? 'looks like someone' : 'look like people'} you
-                already have — unticked below so you don&apos;t end up with two of everybody.
-                Tick them back on if they&apos;re genuinely different.
+                already have, so they&apos;re unticked below. Tick any back on if they&apos;re genuinely different people.
               </div>
             )}
           </Card>
@@ -405,8 +401,7 @@ export default function ImportCustomersPage() {
             {imported} {imported === 1 ? vocab.customer.toLowerCase() : vocab.customerPlural.toLowerCase()} imported
           </div>
           <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 18px' }}>
-            They&apos;re in and ready to have {vocab.jobPlural.toLowerCase()} and invoices attached
-            to them.
+            They&apos;re in. You can attach {vocab.jobPlural.toLowerCase()} and invoices to them now.
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <Button onClick={() => router.push('/customers')}>
