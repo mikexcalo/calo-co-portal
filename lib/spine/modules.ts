@@ -198,7 +198,7 @@ export function navFor(
         { id: 'team', label: 'Team', href: '/team', icon: 'clients' },
         // Visible rather than buried in Business. Nobody goes looking for
         // two-factor; they have to trip over it to turn it on.
-        { id: 'security', label: 'Security', href: '/security', icon: 'settings' },
+        { id: 'security', label: 'Security', href: '/security', icon: 'shield' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
   ];

@@ -109,6 +109,15 @@ const icons: Record<string, React.ReactNode> = {
       <path d="M10.4 5.6a2.9 2.9 0 0 1-3.7 3.7l-4 4a1.3 1.3 0 0 1-1.9-1.9l4-4a2.9 2.9 0 0 1 3.7-3.7L7 5.2l.6 2.2 2.2.6z" />
     </svg>
   ),
+  // A wrench reads as "settings", which is what Security had and why it did
+  // not look like security. A shield is the one shape everyone already reads
+  // as protection.
+  shield: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 1.6 2.9 3.8v3.5c0 3 2.1 5.7 5.1 6.9 3-1.2 5.1-3.9 5.1-6.9V3.8z" />
+      <path d="M6.1 7.9 7.5 9.3l2.6-2.7" />
+    </svg>
+  ),
 };
 
 export default function Sidebar() {

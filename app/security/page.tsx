@@ -44,6 +44,87 @@ import {
 
 type Stage = 'idle' | 'explain' | 'scan' | 'codes' | 'done';
 
+const icon = (d: React.ReactNode) => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {d}
+  </svg>
+);
+
+/**
+ * Written as sentences someone would say, not as a specification. Each one
+ * leads with what it means for the reader and only then explains the
+ * mechanism, because "a bug on a page cannot show you someone else's books"
+ * is the part a contractor actually cares about.
+ */
+const DATA_FACTS = [
+  {
+    title: 'Everything is encrypted, both moving and sitting still',
+    body:
+      'Your information is scrambled while it travels between your browser and our servers, and it stays scrambled on the disks where it rests. Someone who walked out with the hardware would have nothing readable.',
+    icon: icon(
+      <>
+        <rect x="3" y="7" width="10" height="6.5" rx="1.4" />
+        <path d="M5.4 7V5.1a2.6 2.6 0 0 1 5.2 0V7" />
+      </>
+    ),
+  },
+  {
+    title: 'Your business is walled off from every other business',
+    body:
+      'The separation is built into the database itself rather than into the screens on top of it. That means the protection does not depend on the app being written perfectly — even a mistake on a page cannot pull up another company’s customers, prices or invoices, because the request is refused before it ever reaches the screen.',
+    icon: icon(
+      <>
+        <path d="M8 1.9 2.9 4v3.4c0 2.9 2 5.5 5.1 6.7 3-1.2 5.1-3.8 5.1-6.7V4z" />
+        <path d="M8 3v10.4" />
+      </>
+    ),
+  },
+  {
+    title: 'We never store card numbers',
+    body:
+      'When a customer pays you by card, the number goes straight to Stripe and never passes through Nautilus at all. Stripe holds card data for millions of businesses and is certified at the highest level the payments industry has, so it is safer in their hands than in ours.',
+    icon: icon(
+      <>
+        <rect x="1.8" y="3.6" width="12.4" height="8.8" rx="1.5" />
+        <path d="M1.8 6.6h12.4" />
+      </>
+    ),
+  },
+  {
+    title: 'We never store bank account or routing numbers',
+    body:
+      'This one is a deliberate design decision rather than something we have not got to. The only payment details kept here are the handles you already give out freely — a Venmo username, a PayPal address. Knowing one lets somebody send you money, not take it. When a customer needs your real account details, Nautilus tells them to ask you directly instead of storing them.',
+    icon: icon(
+      <>
+        <path d="M2.2 6.2 8 3l5.8 3.2" />
+        <path d="M3.6 6.9v5.4M7 6.9v5.4M10.4 6.9v5.4M13.8 6.9v5.4" />
+        <path d="M2.2 13.2h11.6" />
+      </>
+    ),
+  },
+  {
+    title: 'The servers underneath are independently audited',
+    body:
+      'Nautilus runs on Supabase and Vercel, both of which pay outside auditors every year to verify how they handle customer data, to the SOC 2 Type II standard. Your records are held in the United States on Amazon Web Services.',
+    icon: icon(
+      <>
+        <rect x="2" y="2.4" width="12" height="4.4" rx="1.2" />
+        <rect x="2" y="9.2" width="12" height="4.4" rx="1.2" />
+        <path d="M4.6 4.6h.01M4.6 11.4h.01" />
+      </>
+    ),
+  },
+];
+
 export default function SecurityPage() {
   const [enabled, setEnabled] = useState(false);
   const [remaining, setRemaining] = useState(0);
@@ -476,22 +557,42 @@ export default function SecurityPage() {
           <div style={{ marginTop: 26 }}>
             <SectionLabel>How your data is held</SectionLabel>
             <Card>
-              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: C.dim, lineHeight: 1.85 }}>
-                <li>Encrypted travelling to and from this site, and encrypted on the disks it sits on.</li>
-                <li>
-                  Each business is walled off in the database itself, not just in the app — so a
-                  bug on a page cannot show you someone else&apos;s books.
-                </li>
-                <li>
-                  No card numbers are stored here, ever. Card payments go straight to Stripe, who
-                  are certified to hold them.
-                </li>
-                <li>
-                  No bank account or routing numbers either. That is deliberate: the payment
-                  details kept here are the public handles you already hand out to get paid.
-                </li>
-                <li>Hosted on infrastructure independently audited to SOC 2 Type II.</li>
-              </ul>
+              {/* Five separate ideas. As a bullet list they ran together into
+                  one grey paragraph and you had to read all of it to find the
+                  one you cared about. An icon and a heading per idea means you
+                  can find the one you came for without reading the rest. */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {DATA_FACTS.map((f) => (
+                  <div key={f.title} style={{ display: 'flex', gap: 13, alignItems: 'flex-start' }}>
+                    <span
+                      aria-hidden
+                      style={{
+                        flexShrink: 0,
+                        width: 30,
+                        height: 30,
+                        borderRadius: 8,
+                        background: C.panelAlt,
+                        border: `1px solid ${C.border}`,
+                        color: C.dim,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginTop: 1,
+                      }}
+                    >
+                      {f.icon}
+                    </span>
+                    <div>
+                      <div style={{ fontSize: 13.5, fontWeight: 600, color: C.text, marginBottom: 4 }}>
+                        {f.title}
+                      </div>
+                      <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.75, margin: 0, maxWidth: 560 }}>
+                        {f.body}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </Card>
           </div>
         </>

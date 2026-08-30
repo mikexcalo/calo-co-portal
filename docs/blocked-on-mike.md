@@ -2,11 +2,23 @@
 
 Things only you can do. I'll remind you as these come up.
 
-Last updated: 2026-08-26
+Last updated: 2026-08-30
 
 ---
 
 ## Open
+
+### 0a. Turn on two-factor for your own account — 2026-08-30
+Blocks: nothing, but do it before Mark sees the product.
+
+Sidebar → **Security** → Set it up. Two minutes. Save the eight backup codes
+somewhere that is not the phone you just set up — a password manager, or
+printed and filed. They cannot be looked up again, and nobody at Nautilus can
+retrieve them.
+
+Walk it once so you know what Mark will see. Do not require it of Mark on day
+one; asking a contractor to install an authenticator before he has seen the
+product is a good way to lose him.
 
 ### 0. Verify calo.company for email — 2026-08-27
 Blocks: Mark's invite arriving and not looking like phishing.
@@ -24,9 +36,18 @@ The sending address does NOT need a real mailbox and does not need Google
 Workspace. Full detail in docs/email-setup.md.
 
 ### 0b. Supabase Pro — $25/month
-Blocks: nothing today. Prevents the project pausing on inactivity, which is
-what took the site down in July, and adds daily backups. Once Mark has real
-job data in there, this stops being optional.
+Blocks: nothing today, but this moved up the list on 2026-08-30.
+
+Three things it buys:
+
+1. **Daily backups and point-in-time recovery.** Right now there are none. If
+   the database were corrupted, or something were deleted wrong, there is no
+   clean restore. That is a lose-everything risk, not a break-in risk, and it
+   is the strongest single argument on this page.
+2. Stops the project pausing on inactivity — what took the site down in July.
+3. Better limits as Mark's data grows.
+
+Once Mark has real job data in there, this stops being optional.
 
 ### 1. Stripe keys — deferred by you, 2026-08-26
 Blocks: sending invoices for payment, automatic paid marking.
@@ -120,3 +141,45 @@ daily. Not fine the day Mark depends on it.
 Venmo, PayPal and Zelle handles for CALO&CO and Mammoth still need entering at
 **Business → How you get paid**. Handles only — never account or routing
 numbers; that text appears on customer-facing invoices.
+
+
+---
+
+## Naming — before this goes to anyone beyond Mark
+
+### The name in people's authenticator apps — raised 2026-08-30
+Two-factor sign-in makes the product's name show up in a place that is hard to
+change later, so both of these need settling before more people enrol.
+
+**Fixed already:** the app was going to list as `nautilusapp.vercel.app`, which
+is what Supabase falls back to when nothing else is set. It now says
+**Nautilus**.
+
+**Still open:** that string is written into the QR code at the moment somebody
+sets up two-factor. Renaming the product later does not rename it for anyone
+already enrolled — they keep seeing the old name in their authenticator until
+they turn two-factor off and set it up again.
+
+So when the rename happens, the plan has to include:
+
+- Change `issuer` in `lib/spine/mfa.ts` (one line).
+- Tell existing users their authenticator still shows the old name, that this
+  is expected, and that it fixes itself if they re-enrol.
+- Anyone enrolling after the change gets the new name automatically.
+
+The cost of getting this wrong is small but confusing, and it is exactly the
+kind of thing that erodes trust in a security feature.
+
+### Renaming Nautilus itself — no date
+Known and expected. Places the current name is baked in, so nothing is missed
+when the time comes:
+
+- The authenticator issuer, above
+- `nautilusapp.vercel.app` — the domain, and the Stripe webhook pointing at it
+- The sign-in screen, the trust page at `/trust`, and the setup flow
+- Email templates and the `MAIL_FROM` address
+- QR codes already printed or shared, which will keep resolving to the old
+  domain unless a redirect is kept in place
+
+None of this is hard. It is only expensive if it is discovered piecemeal after
+the fact.

@@ -33,8 +33,20 @@ export async function startEnrolment(): Promise<EnrolStart> {
   const stale = (existing.data?.all ?? []).filter((f) => f.status === 'unverified');
   for (const f of stale) await supabase.auth.mfa.unenroll({ factorId: f.id });
 
+  /**
+   * `issuer` is the name the authenticator app lists the account under.
+   * Without it Supabase falls back to the project hostname, so people would
+   * see "nautilusapp.vercel.app" sitting in their app next to their bank.
+   *
+   * Worth knowing before the product is renamed: this string is baked into
+   * the QR code at the moment of setup. Changing it later renames nothing —
+   * existing users keep seeing the old name until they re-enrol. So it is
+   * pinned here rather than derived from anything, and the rename plan has
+   * to include telling people why the label is stale.
+   */
   const { data, error } = await supabase.auth.mfa.enroll({
     factorType: 'totp',
+    issuer: 'Nautilus',
     friendlyName: `Authenticator ${new Date().toISOString().slice(0, 10)}`,
   });
   if (error) throw new Error(error.message);
