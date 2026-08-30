@@ -16,6 +16,7 @@ export type ModuleId =
   | 'jobs'
   | 'customers'
   | 'receipts'
+  | 'notes'
   | 'billing'
   | 'pl'
   | 'website'        // client-facing: ask my agency for a site change
@@ -34,6 +35,7 @@ const CONTRACTOR: ModuleId[] = [
   'jobs',
   'customers',
   'receipts',
+  'notes',
   'proposals',
   'billing',
   'pl',
@@ -55,6 +57,7 @@ const AGENCY: ModuleId[] = [
   'jobs',
   'customers',
   'receipts',
+  'notes',
   'proposals',
   'billing',
   'pl',
@@ -91,6 +94,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/jobs', 'jobs'],
   ['/customers', 'customers'],
   ['/documents', 'receipts'],
+  ['/notes', 'notes'],
   ['/billing', 'billing'],
   ['/pl', 'pl'],
   ['/expenses', 'expenses'],
@@ -159,6 +163,9 @@ export function navFor(
         ...(org?.kind === 'contractor'
           ? [{ id: 'receipts' as ModuleId, label: 'Receipts', href: '/documents', icon: 'quotes' }]
           : []),
+        // Conversations are work. They belong with the jobs and the people
+        // they are about, not filed away under reference material.
+        { id: 'notes', label: 'Notes', href: '/notes', icon: 'proposal' },
         // Library lived under a heading called "Library", which is a label
         // introducing itself. Price lists, records and brand assets are
         // reference material for doing the work, so they belong with it.

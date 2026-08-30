@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { getCurrentOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
+import { Links } from '@/components/spine/Links';
 import { JOB_STATUS_LABEL } from '@/lib/spine/types';
 import type { JobStatus } from '@/lib/spine/types';
 import {
@@ -315,6 +316,8 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               </Button>
             </Card>
           ) : null}
+
+          {orgId && <Links orgId={orgId} customerId={params.id} />}
 
           <SectionLabel>History</SectionLabel>
           <Card style={{ marginBottom: 14 }}>
