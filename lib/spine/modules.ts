@@ -44,6 +44,7 @@ const CONTRACTOR: ModuleId[] = [
   'expenses',
   'pricing',
   'records',
+  'brand_kit',
   'website',
   // 'account' — deliberately NOT here. "Bills to You" is what you owe the
   // agency that set your workspace up, which is true of Mammoth and false of
@@ -164,70 +165,64 @@ export function navFor(
   // tabs and cut the sidebar from thirteen items to six — which looked tidier
   // and made Brand Kit impossible to find. A list you can scan beats a short
   // list that hides things; the fix for "too long" is grouping, not hiding.
+  /**
+   * Four groups, named for what you are trying to do rather than for what the
+   * screens are.
+   *
+   * The previous shape had problems that only show up once the list is long.
+   * "Clients" was a heading AND a row inside a different heading, so the word
+   * meant two things on one screen. Receipts sat with the daily work when it
+   * is really a cost that becomes a line on an invoice. Brand Kit was filed
+   * under reference material when it is the opposite: the thing you reach for
+   * when you are trying to win something.
+   *
+   * The grouping now follows the four jobs a small business actually does in
+   * a day, which is also the order they happen in.
+   */
   const groups: NavGroup[] = [
     {
-      // The sidebar should hold what gets touched most. A contractor
-      // photographs receipts daily, so Receipts belongs up here for them; an
-      // agency files a handful a month, so it sits in Library instead.
-      heading: 'The Work',
+      // Doing it. The people, the work, and what was said about it.
+      heading: 'Work',
       items: [
         { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'yardSign' },
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
-        // Receipts sits here for every kind of business. Splitting it by org
-        // kind left agencies with a single row under a heading of its own,
-        // which is the exact furniture the last pass set out to remove.
-        { id: 'receipts', label: 'Receipts', href: '/documents', icon: 'quotes' },
         { id: 'notes', label: 'Notes', href: '/notes', icon: 'proposal' },
-        // Library lived under a heading called "Library", which is a label
-        // introducing itself. Price lists, records and brand assets are
-        // reference material for doing the work, so they belong with it.
-        ...(has('pricing') || has('records') || has('brand_kit')
+        // An agency's inbox of client change requests is inbound work, not
+        // marketing and not admin.
+        { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'designStudio' },
+        // Prices and records are what you look things up in while working.
+        ...(has('pricing') || has('records')
           ? [{
-              id: (has('pricing') ? 'pricing' : has('records') ? 'records' : 'brand_kit') as ModuleId,
+              id: (has('pricing') ? 'pricing' : 'records') as ModuleId,
               label: 'Library',
-              href: has('pricing') ? '/pricing' : has('records') ? '/records' : '/brand-kit',
+              href: has('pricing') ? '/pricing' : '/records',
               icon: 'folder',
             }]
           : []),
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
+      // Getting paid for it. Receipts belong here: a receipt is a cost that
+      // becomes a line on an invoice, which is money, not craft.
       heading: 'Money',
       items: [
-        // One thing, one name. This was "Proposals" in the sidebar and
-        // "Estimate" on the job screen — two words for the same object, in a
-        // product where the object is what someone owes you money for.
         { id: 'proposals', label: `${vocab.estimate}s`, href: '/proposals', icon: 'proposal' },
         { id: 'billing', label: 'Billing', href: '/billing', icon: 'invoices' },
-        { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
-        // Overheads are money out that no job caused. Without somewhere to put
-        // them, Profit & Loss shows what the work earned and none of what it
-        // costs to be open.
+        { id: 'receipts', label: 'Receipts', href: '/documents', icon: 'quotes' },
         { id: 'expenses', label: 'Overheads', href: '/expenses', icon: 'wallet' },
-        // What you owe your agency is money, not a website thing. It sat
-        // under "Your Website" because that is who it comes from, which is
-        // not how anyone looks for a bill.
+        { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
         { id: 'account', label: 'Bills to You', href: '/account', icon: 'proposal' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
-      // A heading over a single row is furniture. "Your Website" says what the
-      // destination is; "Request a Change" described the form inside it, which
-      // is not how anyone looks for their own website.
-      heading: org?.kind === 'agency' ? 'Clients' : '',
-      items: [
-        // Under a heading that already says Clients, the word was doing the
-        // job twice.
-        { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'designStudio' },
-        { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },
-      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
-    },
-    {
-      // Winning work is a different activity from doing it or billing it, and
-      // burying it in either one is how it stops happening.
-      heading: 'Growth',
+      // Winning the next one. Brand Kit lives here rather than in Library
+      // because a logo, a QR code for a yard sign and an email signature are
+      // things you reach for when you are trying to get hired.
+      heading: 'Grow',
       items: [
         { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'designStudio' },
+        { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
+        { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
@@ -236,8 +231,6 @@ export function navFor(
       items: [
         { id: 'business', label: 'Business', href: '/business', icon: 'storefront' },
         { id: 'team', label: 'Team', href: '/team', icon: 'clients' },
-        // Visible rather than buried in Business. Nobody goes looking for
-        // two-factor; they have to trip over it to turn it on.
         { id: 'security', label: 'Security', href: '/security', icon: 'shield' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },

@@ -20,6 +20,7 @@ import {
   getJobLedger,
   listCosts,
   listDocuments,
+  invoiceFromEstimate,
   listEstimates,
   listInvoices,
   listTimeEntries,
@@ -164,6 +165,28 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
   const unbilled = ledger ? ledger.unbilled_labor + ledger.unbilled_cost : 0;
   const outstanding = ledger ? ledger.invoiced_total - ledger.collected : 0;
   const isTM = job.billing_type === 'tm';
+
+  /**
+   * Turn the accepted quote into an invoice.
+   *
+   * Itemised from what they agreed to, not retyped, so the invoice and the
+   * quote cannot drift apart. The underlying function already refuses to bill
+   * more than the contract in total, which is the one mistake in progress
+   * billing you cannot apologise your way out of.
+   */
+  const billFromEstimate = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const orgId = job?.org_id;
+      if (!orgId) throw new Error('No business on this job.');
+      const inv = await invoiceFromEstimate(orgId, jobId);
+      router.push(`/billing?invoice=${inv.id}`);
+    } catch (e) {
+      setError((e as Error).message);
+      setBusy(false);
+    }
+  };
 
   const sendEstimate = async (est: Estimate) => {
     setBusy(true);
@@ -528,6 +551,17 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                   {['draft', 'sent'].includes(e.status) && (
                     <Button onClick={() => sendEstimate(e)} disabled={busy}>
                       {e.status === 'sent' ? 'Resend' : 'Send to customer'}
+                    </Button>
+                  )}
+                  {/*
+                    The step that was missing. An accepted quote was a dead
+                    end: the customer said yes and there was no way to turn
+                    that into a bill without rebuilding it by hand, which is
+                    exactly where the numbers stop matching what was agreed.
+                  */}
+                  {e.status === 'accepted' && (
+                    <Button onClick={() => billFromEstimate()} disabled={busy}>
+                      Create invoice
                     </Button>
                   )}
                 </div>

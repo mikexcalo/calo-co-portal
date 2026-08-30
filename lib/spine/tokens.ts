@@ -31,8 +31,15 @@ export const C = {
   border: '#E7E8EB',
   borderStrong: '#DFE0E5',
 
-  accent: '#2563EB',
-  accentSoft: '#EEF2FF',
+  /**
+   * CALO&CO's own call-to-action blue, taken from calo.company rather than
+   * approximated. The previous value was a generic framework blue that looked
+   * close and was not the brand.
+   *
+   * 4.66:1 with white text, which clears the 4.5 floor for buttons and links.
+   */
+  accent: '#006AFF',
+  accentSoft: '#E8F1FF',
 
   green: '#15803D',
   greenSoft: '#ECF6F0',
@@ -40,8 +47,17 @@ export const C = {
   amberSoft: '#FDF4E8',
   red: '#B91C1C',
   redSoft: '#FCEDED',
-  blue: '#2563EB',
-  blueSoft: '#EEF2FF',
+  /**
+   * The same blue, darkened for text.
+   *
+   * #006AFF is right on a white button and wrong as small text on a pale blue
+   * panel, where it measures 4.1:1 against the 4.5 floor. Rather than wash the
+   * panel out until the maths passes, the fill stays exactly the brand blue
+   * and the writing sits a few steps darker. Nobody reads the two as different
+   * colours; everybody can read the second one.
+   */
+  blue: '#0052C9',
+  blueSoft: '#E8F1FF',
 } as const;
 
 /**

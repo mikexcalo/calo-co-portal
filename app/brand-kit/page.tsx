@@ -44,8 +44,7 @@ import {
   SectionLabel,
   inputStyle,
   useIsPhone,
-  LIBRARY_TABS,
-} from '@/components/spine/ui';
+  } from '@/components/spine/ui';
 
 type Tab = 'brand' | 'logos' | 'qr' | 'signature';
 
@@ -172,8 +171,7 @@ export default function BrandKitPage() {
 
   return (
     <Page
-      tabs={LIBRARY_TABS}
-      title="Brand Kit"
+            title="Brand Kit"
       subtitle={org ? `${org.name} — assets, and the tools that use them.` : undefined}
       action={
         <>

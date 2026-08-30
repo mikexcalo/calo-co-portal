@@ -138,10 +138,15 @@ function PageTabs({ tabs, phone }: { tabs: readonly PageTab[]; phone: boolean })
 }
 
 /** The Library's three screens. One place so nav and tabs cannot drift. */
+/**
+ * Library is the things you look up while working: what you charge, and the
+ * paperwork you have to be able to produce. Brand Kit moved out to Grow — a
+ * logo and a QR code for a yard sign are not reference material, they are what
+ * you reach for when you are trying to get hired.
+ */
 export const LIBRARY_TABS: readonly PageTab[] = [
   { label: 'Price List', href: '/pricing' },
   { label: 'Records', href: '/records' },
-  { label: 'Brand Kit', href: '/brand-kit' },
 ];
 
 export function Card({
@@ -197,7 +202,10 @@ export function Button({
   type?: 'button' | 'submit';
 }) {
   const styles: Record<string, React.CSSProperties> = {
-    primary: { background: C.blue, color: '#fff', border: `1px solid ${C.blue}` },
+    // The brand blue itself on a filled button, where white text clears the
+    // contrast floor against it. C.blue is the darkened variant and belongs to
+    // text, not to fills.
+    primary: { background: C.accent, color: '#fff', border: `1px solid ${C.accent}` },
     ghost: { background: 'transparent', color: C.dim, border: `1px solid ${C.border}` },
     danger: { background: 'transparent', color: C.red, border: `1px solid ${C.red}44` },
   };
