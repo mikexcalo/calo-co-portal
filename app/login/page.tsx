@@ -231,17 +231,17 @@ function LoginForm() {
           ) : mode === 'code' ? (
             <form onSubmit={useRecovery ? submitRecovery : submitCode}>
               <div style={{ fontSize: 15, fontWeight: 500, color: TEXT, marginBottom: 4 }}>
-                {useRecovery ? 'Use a recovery code' : 'One more step'}
+                {useRecovery ? 'Use a backup code' : 'One more step'}
               </div>
               <p style={{ fontSize: 12.5, color: FAINT, margin: '0 0 20px', lineHeight: 1.55 }}>
                 {useRecovery
-                  ? 'This will switch two-factor off so you can get back in. You can set it up again on a new phone afterwards.'
-                  : 'Open your authenticator app and enter the six digits it shows.'}
+                  ? 'Enter one of the eight backup codes you saved when you set this up. It switches two-factor off so you can sign in with your password, and you can set it up again on your new phone afterwards.'
+                  : 'Open your authenticator app and enter the six-digit code it shows for Nautilus.'}
               </p>
 
               {useRecovery ? (
                 <label style={{ display: 'block', marginBottom: 14 }}>
-                  <div style={{ fontSize: 12, color: DIM, marginBottom: 6 }}>Recovery code</div>
+                  <div style={{ fontSize: 12, color: DIM, marginBottom: 6 }}>Backup code</div>
                   <input
                     value={recovery}
                     onChange={(e) => setRecovery(e.target.value.toUpperCase())}
@@ -331,7 +331,7 @@ function LoginForm() {
                   fontFamily: 'inherit',
                 }}
               >
-                {useRecovery ? 'Back — I have my authenticator' : "Lost your phone? Use a recovery code"}
+                {useRecovery ? 'Back — I have my phone' : "Lost your phone? Use a backup code"}
               </button>
             </form>
           ) : (

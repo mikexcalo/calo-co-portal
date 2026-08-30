@@ -1,15 +1,23 @@
 'use client';
 
 /**
- * Security — turning two-factor on, and the recovery codes that make it safe
- * to do so.
+ * Security — turning two-factor on, and the backup codes that make it safe to
+ * do so.
  *
- * The hard part of two-factor is not the cryptography, it is that people
- * refuse to switch it on. They refuse because losing the phone means losing
- * the business, and they are right to worry. So recovery codes are not an
- * afterthought here: they are shown once, at the moment of enrolment, before
- * the switch is thrown, and the flow will not let you past without seeing
- * them.
+ * The hard part is not the cryptography, it is that people refuse to switch it
+ * on. They refuse because losing the phone means losing the business, and they
+ * are right to worry. So backup codes are not an afterthought: they are shown
+ * once, during setup, and the flow will not let you past without seeing them.
+ *
+ * The copy went through a rewrite after a real run-through, which is worth
+ * recording so it does not drift back. The first version explained the
+ * mechanism to someone who already knew what a second factor was, and said
+ * "nobody can let you in, including me" — the author's voice, in a product
+ * a stranger is meant to trust. Now: say what the thing is before asking
+ * anyone to set it up, call them backup codes rather than recovery codes
+ * because that is what people say out loud, and finish with a screen that
+ * confirms it worked instead of leaving someone staring at a grid of codes
+ * wondering what happens next.
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -34,7 +42,7 @@ import {
   type EnrolStart,
 } from '@/lib/spine/mfa';
 
-type Stage = 'idle' | 'scan' | 'codes';
+type Stage = 'idle' | 'explain' | 'scan' | 'codes' | 'done';
 
 export default function SecurityPage() {
   const [enabled, setEnabled] = useState(false);
@@ -130,7 +138,7 @@ export default function SecurityPage() {
       await disableMfa();
       setConfirmOff(false);
       setStage('idle');
-      setNotice('Two-factor is off. Your password is now the only thing protecting this account.');
+      setNotice('Two-factor is off. Signing in now takes only your password.');
       await refresh();
     } catch (e) {
       setError((e as Error).message);
@@ -141,13 +149,13 @@ export default function SecurityPage() {
 
   const copyCodes = () => {
     navigator.clipboard?.writeText(codes.join('\n'));
-    setNotice('Copied. Put them somewhere that is not this computer.');
+    setNotice('Copied to your clipboard. Paste them somewhere safe now.');
   };
 
   return (
     <Page
       title="Security"
-      subtitle="How this account is protected, and what happens if you lose your phone."
+      subtitle="How your account is protected, and what happens if you lose your phone."
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
@@ -164,11 +172,22 @@ export default function SecurityPage() {
         <Card><div style={{ fontSize: 13, color: C.faint }}>Loading…</div></Card>
       ) : stage === 'codes' ? (
         <Card>
-          <SectionLabel>Save these now</SectionLabel>
-          <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: '8px 0 16px', maxWidth: 560 }}>
-            Each of these works once, and only to <strong>switch two-factor off</strong> — never
-            to sign in on its own. If your phone is lost or wiped, one of these plus your
-            password gets you back in. Without one, nobody can let you in, including me.
+          <SectionLabel>Step 3 of 3 — save your backup codes</SectionLabel>
+          <h2 style={{ fontSize: 17, fontWeight: 600, color: C.text, margin: '8px 0 10px' }}>
+            These are how you get in if you lose your phone
+          </h2>
+          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 12px', maxWidth: 560 }}>
+            Your phone is now the only thing that can produce your sign-in codes. If it is lost,
+            stolen, replaced or wiped, these eight codes are the way back into your account.
+          </p>
+          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 12px', maxWidth: 560 }}>
+            Enter one on the sign-in screen and it switches two-factor off, so your password works
+            on its own again. Then you set it up fresh on your new phone. Each code works once.
+          </p>
+          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 16px', maxWidth: 560 }}>
+            Keep them somewhere other than the phone you just set up — a password manager, or
+            printed and filed with your business paperwork. They cannot be looked up again later,
+            and no one at Nautilus can retrieve them for you.
           </p>
 
           <div
@@ -202,29 +221,98 @@ export default function SecurityPage() {
             <Button onClick={copyCodes}>Copy all</Button>
             <Button variant="ghost" onClick={() => window.print()}>Print</Button>
             <Button
-              variant="ghost"
               onClick={() => {
                 setCodes([]);
-                setStage('idle');
+                setStage('done');
                 setNotice(null);
               }}
             >
-              I&apos;ve saved them
+              I&apos;ve saved them — finish
             </Button>
           </div>
 
           <p style={{ fontSize: 11.5, color: C.faint, marginTop: 14, lineHeight: 1.6 }}>
-            This is the only time they are shown. They are stored scrambled, so they cannot be
-            looked up later — if you lose them, generate a new set.
+            This is the only time these are shown on screen.
           </p>
+        </Card>
+      ) : stage === 'done' ? (
+        /* A finish line. Without one, the last thing someone sees is a wall of
+           codes and no confirmation that any of it worked. */
+        <Card>
+          <div style={{ fontSize: 17, fontWeight: 600, color: C.text, marginBottom: 10 }}>
+            Two-factor is on. You&apos;re done.
+          </div>
+          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 14px', maxWidth: 560 }}>
+            Nothing else to do now. The next time you sign in, Nautilus will ask for your
+            password as usual, and then for the six-digit code showing in your authenticator app.
+          </p>
+          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 18px', maxWidth: 560 }}>
+            Your existing sign-in on this device keeps working — you will not be logged out.
+          </p>
+          <Button onClick={() => setStage('idle')}>Back to security settings</Button>
+        </Card>
+      ) : stage === 'explain' ? (
+        /* Nobody should be asked to scan a QR code before being told what it
+           is for, what an authenticator app is, or how long this takes.
+           Skipping this screen is why people abandon halfway and end up with
+           a half-enrolled account. */
+        <Card>
+          <SectionLabel>Before you start</SectionLabel>
+          <h2 style={{ fontSize: 17, fontWeight: 600, color: C.text, margin: '8px 0 12px' }}>
+            What you&apos;re setting up
+          </h2>
+          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 16px', maxWidth: 580 }}>
+            An <strong>authenticator app</strong> on your phone that produces a six-digit code,
+            changing every 30 seconds. From now on, signing in to Nautilus takes your password
+            and then that code. Anyone who gets hold of your password still cannot get in,
+            because they do not have your phone.
+          </p>
+
+          <div
+            style={{
+              background: C.panelAlt,
+              border: `1px solid ${C.border}`,
+              borderRadius: 8,
+              padding: '14px 16px',
+              marginBottom: 16,
+              maxWidth: 580,
+            }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 8 }}>
+              You&apos;ll need an authenticator app
+            </div>
+            <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.7, margin: '0 0 8px' }}>
+              You may already have one. iPhone and Android both have it built into the password
+              manager, and 1Password, Bitwarden and LastPass all do it too.
+            </p>
+            <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.7, margin: 0 }}>
+              If not, search your app store for <strong>Google Authenticator</strong>. It is free,
+              takes a minute to install, and works for every other site that offers this.
+            </p>
+          </div>
+
+          <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 8 }}>
+            Three steps, about two minutes
+          </div>
+          <ol style={{ margin: '0 0 20px', paddingLeft: 20, fontSize: 13.5, color: C.dim, lineHeight: 1.9, maxWidth: 580 }}>
+            <li>Point your authenticator app at a square barcode on the next screen.</li>
+            <li>Type the six digits it starts showing, to prove it worked.</li>
+            <li>Save eight backup codes — your way in if the phone is ever lost.</li>
+          </ol>
+
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button onClick={begin} disabled={busy}>
+              {busy ? 'One moment…' : 'I have an authenticator app — continue'}
+            </Button>
+            <Button variant="ghost" onClick={() => setStage('idle')}>Not now</Button>
+          </div>
         </Card>
       ) : stage === 'scan' && enrol ? (
         <Card>
-          <SectionLabel>Step 1 — scan this</SectionLabel>
+          <SectionLabel>Step 1 of 3 — scan this</SectionLabel>
           <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: '8px 0 14px', maxWidth: 560 }}>
-            Open an authenticator app and point it at this square. Google Authenticator, 1Password,
-            Authy and the password manager built into your phone all work. If you don&apos;t have
-            one, Google Authenticator is free and takes a minute to install.
+            Open your authenticator app, choose to add an account, and point your camera at this
+            square. Your app will start showing a six-digit code for Nautilus.
           </p>
 
           {/* Supabase hands back an SVG data URI. It is a QR code, so it must
@@ -283,9 +371,10 @@ export default function SecurityPage() {
           )}
 
           <div style={{ marginTop: 22 }}>
-            <SectionLabel>Step 2 — prove it worked</SectionLabel>
+            <SectionLabel>Step 2 of 3 — prove it worked</SectionLabel>
             <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: '8px 0 12px' }}>
-              Type the six digits your app is showing right now. They change every 30 seconds.
+              Type the six digits your app is now showing for Nautilus. They change every 30
+              seconds, so use whichever is on screen when you type.
             </p>
             <div style={{ maxWidth: 200 }}>
               <Field label="Six-digit code">
@@ -331,18 +420,18 @@ export default function SecurityPage() {
                   </span>
                   <Pill tone={enabled ? 'green' : 'amber'}>{enabled ? 'On' : 'Off'}</Pill>
                 </div>
-                <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: 0 }}>
+                <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: 0 }}>
                   {enabled
-                    ? 'Signing in asks for a code from your phone as well as your password. Someone who steals the password still cannot get in.'
-                    : 'Right now your password is the only thing between anyone and every customer, rate and invoice in here. Passwords get reused and leaked. A code from your phone fixes that in about two minutes.'}
+                    ? 'Signing in now takes your password and a six-digit code from your phone. Someone who steals your password still cannot get in without your phone.'
+                    : 'Adds a second step when you sign in: after your password, Nautilus asks for a six-digit code that only your phone can produce. It means a stolen or guessed password is not enough on its own — which is how most business accounts are lost.'}
                 </p>
               </div>
               <div>
                 {enabled ? (
                   <Button variant="danger" onClick={() => setConfirmOff(true)}>Turn off</Button>
                 ) : (
-                  <Button onClick={begin} disabled={busy}>
-                    {busy ? 'One moment…' : 'Turn it on'}
+                  <Button onClick={() => setStage('explain')} disabled={busy}>
+                    Set it up
                   </Button>
                 )}
               </div>
@@ -356,7 +445,7 @@ export default function SecurityPage() {
                   <div style={{ maxWidth: 560 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
                       <span style={{ fontSize: 15, fontWeight: 500, color: C.text }}>
-                        Recovery codes
+                        Backup codes
                       </span>
                       <Pill tone={remaining === 0 ? 'red' : remaining <= 2 ? 'amber' : 'neutral'}>
                         {remaining} left
@@ -364,20 +453,20 @@ export default function SecurityPage() {
                     </div>
                     <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: 0 }}>
                       {remaining === 0
-                        ? 'You have none left. If you lose your phone now, there is no way back into this account — not even for me. Generate a set.'
-                        : 'Your way back in if the phone is lost. Each works once, and only to switch two-factor off — never to sign in by itself.'}
+                        ? 'You have none left. If your phone is lost or replaced now, there is no way back into this account. Generate a new set and save them.'
+                        : 'Your way in if your phone is lost, stolen or replaced. Entering one on the sign-in screen switches two-factor off so your password works alone again, and each code can only be used once.'}
                     </p>
                   </div>
                   <div>
                     <Button variant={remaining === 0 ? 'primary' : 'ghost'} onClick={regenerate} disabled={busy}>
-                      {remaining === 0 ? 'Generate codes' : 'Generate new set'}
+                      {remaining === 0 ? 'Generate backup codes' : 'Replace with a new set'}
                     </Button>
                   </div>
                 </div>
                 {remaining > 0 && (
                   <p style={{ fontSize: 11.5, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
-                    Generating a new set cancels the old one, so anything you printed before stops
-                    working.
+                    Generating a new set cancels the old one — any codes you saved or printed
+                    before will stop working.
                   </p>
                 )}
               </Card>
@@ -411,7 +500,7 @@ export default function SecurityPage() {
       {confirmOff && (
         <Confirm
           title="Turn off two-factor?"
-          body="Your password becomes the only thing protecting every customer, rate and invoice in this account. Your recovery codes will be destroyed."
+          body="Signing in will go back to just your password. Your backup codes will stop working, and you can set two-factor up again at any time."
           confirmLabel="Turn it off"
           busy={busy}
           onConfirm={turnOff}

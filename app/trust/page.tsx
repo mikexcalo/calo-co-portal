@@ -50,7 +50,7 @@ const FACTS = [
   {
     title: 'Two-factor sign-in, enforced properly',
     body:
-      'You can require a code from your phone on top of your password. Plenty of tools ask for the code and then let the app do as it pleases; here, a sign-in that skipped the code cannot read anything at all, because the block is in the database rather than in the screen. Recovery codes mean losing your phone does not mean losing your business.',
+      'You can require a code from your phone on top of your password. Plenty of tools ask for the code and then let the app do as it pleases; here, a sign-in that skipped the code cannot read anything at all, because the block is in the database rather than in the screen. Backup codes mean losing your phone does not mean losing access to your business.',
   },
   {
     title: 'Audited infrastructure underneath',
@@ -171,7 +171,7 @@ export default function TrustPage() {
             reused on some other site that later got breached.
           </p>
           <p style={{ fontSize: 13.5, color: DIM, lineHeight: 1.7, margin: 0 }}>
-            Save the recovery codes it gives you somewhere that is not the phone you just set up.
+            Save the backup codes it gives you somewhere other than the phone you just set up — they are how you get back in if that phone is ever lost or replaced.
           </p>
         </div>
 
