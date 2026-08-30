@@ -30,7 +30,7 @@ import {
   Page,
   Pill,
   Row,
-  SERIF,
+  DISPLAY,
   SectionLabel,
   Table,
   money,
@@ -442,7 +442,7 @@ export default function Dashboard() {
          * what is next, and it disappears on its own once they are going.
          */
         <Card style={{ maxWidth: 620 }}>
-          <div style={{ fontFamily: SERIF, fontSize: 22, marginBottom: 6 }}>
+          <div style={{ ...DISPLAY, fontSize: 22, marginBottom: 6 }}>
             Let&apos;s get you set up
           </div>
           <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.65, margin: '0 0 18px' }}>
@@ -541,7 +541,7 @@ export default function Dashboard() {
                       }}
                     >
                       <div style={{ minWidth: 240, flex: 1 }}>
-                        <div style={{ fontFamily: SERIF, fontSize: 18, color: C.text }}>
+                        <div style={{ ...DISPLAY, fontSize: 18, color: C.text }}>
                           {a.title}
                         </div>
                         <div style={{ fontSize: 12.5, color: C.dim, marginTop: 4 }}>
@@ -615,7 +615,7 @@ export default function Dashboard() {
                       onClick={() => router.push(`/jobs/${j.id}`)}
                     >
                       <div>
-                        <span style={{ fontFamily: SERIF, fontSize: 15.5 }}>{j.name}</span>
+                        <span style={{ ...DISPLAY, fontSize: 15.5 }}>{j.name}</span>
                         <span style={{ marginLeft: 8 }}>
                           <Pill tone={j.status === 'active' ? 'blue' : 'neutral'}>
                             {JOB_STATUS_LABEL[j.status]}

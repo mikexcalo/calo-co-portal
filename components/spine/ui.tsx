@@ -11,9 +11,9 @@
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
-import { C, SERIF, radius } from '@/lib/spine/tokens';
+import { C, DISPLAY, SERIF, radius } from '@/lib/spine/tokens';
 
-export { C, SERIF, radius };
+export { C, DISPLAY, SERIF, radius };
 
 /**
  * Breakpoint hook. Used to collapse layouts rather than to hide things —
@@ -490,6 +490,12 @@ export function MobileAction({
 // ---------------------------------------------------------------------------
 // Formatting
 // ---------------------------------------------------------------------------
+
+/** Figures line up in columns only if the digits are the same width. */
+export const numeric: React.CSSProperties = {
+  fontVariantNumeric: 'tabular-nums',
+  fontFeatureSettings: '"tnum"',
+};
 
 export const money = (n: number | null | undefined): string =>
   `$${(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

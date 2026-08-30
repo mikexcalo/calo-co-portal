@@ -28,7 +28,7 @@ import {
   Page,
   Pill,
   Row,
-  SERIF,
+  DISPLAY,
   SectionLabel,
   Table,
   money,
@@ -274,7 +274,7 @@ export default function ProfitLossPage() {
               }}
             >
               <div>
-                <div style={{ fontFamily: SERIF, fontSize: 18, color: C.text }}>
+                <div style={{ ...DISPLAY, fontSize: 18, color: C.text }}>
                   {money(scoped.unbilled)} of work you haven&apos;t billed
                 </div>
                 <div style={{ fontSize: 12.5, color: C.dim, marginTop: 4 }}>

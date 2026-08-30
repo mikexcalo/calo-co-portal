@@ -1,6 +1,18 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { GeistSans } from 'geist/font/sans';
+/**
+ * Inter, variable — the face Polymarket runs, loaded the same way they do.
+ * Geist Mono for figures, so columns of money line up and a reference code
+ * cannot be mistaken for prose.
+ */
+import { Inter } from 'next/font/google';
+import { GeistMono } from 'geist/font/mono';
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-sans',
+});
 import { ThemeProvider } from '@/lib/theme';
 import { AppShell } from '@/components/AppShell';
 import { OrgProvider } from '@/lib/spine/org';
@@ -25,12 +37,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={GeistSans.className}>
+    <html lang="en" className={inter.className}>
       <body
         style={{
           margin: 0,
-          background: '#F7F7F5',
-          color: '#1A1A1A',
+          background: '#FFFFFF',
+          color: '#1D1F24',
           fontFamily: 'inherit',
           WebkitFontSmoothing: 'antialiased',
         }}

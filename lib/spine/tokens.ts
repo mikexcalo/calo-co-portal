@@ -1,3 +1,5 @@
+import type React from 'react';
+
 /**
  * Design tokens.
  *
@@ -8,38 +10,52 @@
  */
 
 export const C = {
-  bg: '#F7F7F5',
+  bg: '#FFFFFF',
   panel: '#FFFFFF',
-  panelAlt: '#F2F2EF',
+  panelAlt: '#F4F5F6',
   rail: '#FFFFFF',
   ink: '#141414',
 
-  text: '#1A1A1A',
+  text: '#1D1F24',
   // Contrast-checked against both #FFFFFF and the #F7F7F5 page background.
-  // The old faint (#8A8A88) came out at 3.2:1 — below the 4.5:1 minimum for
-  // body text, which is exactly why labels were hard to read.
-  dim: '#363634',    // 11.3:1
-  faint: '#55554F',  //  7.0:1 — well past the 4.5:1 floor, because passing
+  // Cool greys taken from Polymarket's palette, with one deliberate
+  // departure: their own muted grey is #A0A3B1, which reads at 2.5:1 on
+  // white — below the 4.5:1 floor for body text and exactly the "I can't
+  // read this" problem we already fixed twice. Structure and hue borrowed,
+  // legibility kept.
+  dim: '#444952',   //  9.1:1    // 11.3:1
+  faint: '#646973', //  5.5:1  //  7.0:1 — well past the 4.5:1 floor, because passing
                      //  a threshold and being comfortable to read are not
                      //  the same thing.
 
-  border: '#E4E4E0',
-  borderStrong: '#C4C4BE',
+  border: '#E7E8EB',
+  borderStrong: '#DFE0E5',
 
   accent: '#2563EB',
-  accentSoft: '#EEF3FD',
+  accentSoft: '#EEF2FF',
 
   green: '#15803D',
-  greenSoft: '#EDF6F0',
+  greenSoft: '#ECF6F0',
   amber: '#B45309',
-  amberSoft: '#FDF4E7',
+  amberSoft: '#FDF4E8',
   red: '#B91C1C',
-  redSoft: '#FBEDED',
+  redSoft: '#FCEDED',
   blue: '#2563EB',
-  blueSoft: '#EEF3FD',
+  blueSoft: '#EEF2FF',
 } as const;
 
+/**
+ * Display type.
+ *
+ * Was a serif. Polymarket carries its whole hierarchy on one grotesque and
+ * varies weight and tracking instead, so headings now do the same — the
+ * emphasis comes from -0.02em and 600, not from a second typeface.
+ */
 export const SERIF = 'inherit';
+export const DISPLAY: React.CSSProperties = {
+  fontWeight: 600,
+  letterSpacing: '-0.021em',
+};
 
 export const radius = {
   sm: 5,
