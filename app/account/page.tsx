@@ -228,7 +228,7 @@ export default function AccountPage() {
                 {invoices.map((i) => {
                   const outstanding = i.total - i.amount_paid;
                   return (
-                    <Row key={i.id} cols="110px 130px 120px 110px 110px">
+                    <Row key={i.id} cols="110px 130px 120px 110px 110px" labels={['Number', 'Status', 'Due', 'Total', '']}>
                       <div>{i.number}</div>
                       <div>
                         <Pill tone={i.status === 'paid' ? 'green' : i.status === 'overdue' ? 'red' : 'blue'}>
@@ -259,7 +259,7 @@ export default function AccountPage() {
                   <div>Date</div><div>Work</div><div>Hours</div><div>Rate</div><div>Value</div>
                 </Row>
                 {entries.map((e) => (
-                  <Row key={e.id} cols="100px 1fr 80px 90px 100px">
+                  <Row key={e.id} cols="100px 1fr 80px 90px 100px" labels={['Date', 'Work', 'Hours', 'Rate', 'Value']}>
                     <div style={{ color: C.dim }}>{shortDate(e.worked_on)}</div>
                     <div>
                       {e.description || 'Work'}

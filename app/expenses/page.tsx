@@ -305,7 +305,7 @@ export default function ExpensesPage() {
               <div />
             </Row>
             {rows.map((r) => (
-              <Row key={r.id} cols="1fr 110px 110px 110px 70px">
+              <Row key={r.id} cols="1fr 110px 110px 110px 70px" labels={['Expense', 'How often', 'Amount', 'Per month', '']}>
                 <div>
                   <div style={{ fontWeight: 500 }}>{r.vendor}</div>
                   <div style={{ fontSize: 11.5, color: C.faint, marginTop: 2 }}>

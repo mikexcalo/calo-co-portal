@@ -230,8 +230,7 @@ export default function ProposalsPage() {
                 .sort((a, b) => (b.decided_at ?? '').localeCompare(a.decided_at ?? ''))
                 .map((r) => (
                   <Row
-                    key={r.id}
-                    cols="1fr 150px 110px 110px 110px"
+                    key={r.id} cols="1fr 150px 110px 110px 110px" labels={['', '', 'Status', 'Decided', 'Value']}
                     onClick={() => r.job && router.push(`/jobs/${r.job.id}`)}
                   >
                     <div>{r.job?.name ?? '—'}</div>

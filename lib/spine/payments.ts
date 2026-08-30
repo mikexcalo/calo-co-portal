@@ -147,3 +147,48 @@ export function looksLikeAccountNumber(value: string): boolean {
   const digits = value.replace(/\D/g, '');
   return digits.length >= 8 && digits.length / Math.max(value.length, 1) > 0.6;
 }
+
+/**
+ * A link that opens the payment app with as much filled in as possible.
+ *
+ * Reading a handle off a screen and retyping it into Venmo is where payment
+ * gets postponed to later and later becomes never. Where the service supports
+ * a deep link, one tap beats a copy.
+ *
+ * Returns null when no reliable link exists, and the handle is shown as text
+ * instead. A link that 404s is worse than no link — it looks like the invoice
+ * is broken, which is the last thing to suggest to someone about to pay.
+ */
+export function payLink(
+  id: PaymentMethodId,
+  handle: string | undefined,
+  amount: number,
+  note?: string
+): string | null {
+  const h = (handle ?? '').trim();
+  if (!h) return null;
+
+  const amt = amount > 0 ? amount.toFixed(2) : '';
+
+  if (id === 'venmo') {
+    const user = h.replace(/^@/, '').replace(/^https?:\/\/(www\.)?venmo\.com\/(u\/)?/i, '');
+    if (!/^[A-Za-z0-9_-]+$/.test(user)) return null;
+    const q = new URLSearchParams({ txn: 'pay' });
+    if (amt) q.set('amount', amt);
+    if (note) q.set('note', note);
+    return `https://venmo.com/${encodeURIComponent(user)}?${q.toString()}`;
+  }
+
+  if (id === 'paypal') {
+    // PayPal.me needs a username. An email address is a perfectly good PayPal
+    // account and no link at all, so it stays as text rather than becoming a
+    // guess that fails.
+    const m = h.match(/^(?:https?:\/\/)?(?:www\.)?paypal\.me\/([A-Za-z0-9]+)/i);
+    const user = m ? m[1] : /^[A-Za-z0-9]+$/.test(h) ? h : null;
+    if (!user) return null;
+    return `https://paypal.me/${user}${amt ? `/${amt}` : ''}`;
+  }
+
+  // Zelle, check, bank and cash have no link anyone can rely on.
+  return null;
+}

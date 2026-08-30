@@ -329,26 +329,83 @@ export function Row({
   children,
   header,
   onClick,
+  labels,
 }: {
   cols: string;
   children: React.ReactNode;
   header?: boolean;
   onClick?: () => void;
+  /**
+   * Column headings, for the phone layout only.
+   *
+   * On a phone the header row is dropped and the cells wrap, which used to
+   * leave a run of bare numbers — a date, an amount, a rate and a total with
+   * nothing saying which was which. On a billing screen that is not untidy,
+   * it is unreadable: you cannot tell the rate from the total.
+   *
+   * Pass one label per cell and each value gets its own line with its name
+   * above it. Tables that have not been given labels fall back to scrolling
+   * sideways with the header intact, which is clumsy but never ambiguous.
+   */
+  labels?: string[];
 }) {
   const phone = useIsPhone();
 
   if (phone && header) return null;
 
+  if (phone && labels) {
+    const cells = React.Children.toArray(children);
+    return (
+      <div
+        onClick={onClick}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+          padding: '14px',
+          borderBottom: `1px solid ${C.border}`,
+          fontSize: 13.5,
+          color: C.text,
+          cursor: onClick ? 'pointer' : 'default',
+        }}
+      >
+        {cells.map((cell, i) => {
+          const label = labels[i];
+          // A cell with no heading is an action button or a spacer. Giving it
+          // a label would invent one.
+          if (!label) return <div key={i}>{cell}</div>;
+          return (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 14 }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  color: C.faint,
+                  fontWeight: 600,
+                  flexShrink: 0,
+                  paddingTop: 1,
+                }}
+              >
+                {label}
+              </span>
+              <span style={{ textAlign: 'right', minWidth: 0 }}>{cell}</span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div
       onClick={onClick}
       style={{
-        display: phone ? 'flex' : 'grid',
-        flexWrap: phone ? 'wrap' : undefined,
-        gridTemplateColumns: phone ? undefined : cols,
-        gap: phone ? 8 : 12,
+        display: 'grid',
+        gridTemplateColumns: cols,
+        gap: 12,
         alignItems: 'center',
-        padding: header ? '9px 14px' : phone ? '14px' : '12px 14px',
+        padding: header ? '9px 14px' : '12px 14px',
         borderBottom: `1px solid ${C.border}`,
         fontSize: header ? 10 : 13,
         textTransform: header ? 'uppercase' : 'none',
@@ -357,6 +414,7 @@ export function Row({
         fontWeight: header ? 600 : 400,
         background: header ? C.panelAlt : 'transparent',
         cursor: onClick ? 'pointer' : 'default',
+        minWidth: 'max-content',
       }}
     >
       {children}
@@ -365,13 +423,23 @@ export function Row({
 }
 
 export function Table({ children }: { children: React.ReactNode }) {
+  /**
+   * Scrolls sideways rather than squashing. A table narrower than its content
+   * either wraps into ambiguity or crushes columns until the numbers collide;
+   * scrolling keeps every figure beside its own heading.
+   *
+   * Rows given `labels` stack instead and never reach this, so the scroll is
+   * the fallback rather than the plan.
+   */
   return (
     <div
       style={{
         border: `1px solid ${C.border}`,
         borderRadius: 10,
-        overflow: 'hidden',
+        overflowX: 'auto',
+        overflowY: 'hidden',
         background: C.panel,
+        WebkitOverflowScrolling: 'touch',
       }}
     >
       {children}

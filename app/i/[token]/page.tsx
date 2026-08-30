@@ -12,7 +12,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
-import { METHODS, type PaymentMethod } from '@/lib/spine/payments';
+import { METHODS, payLink, type PaymentMethod } from '@/lib/spine/payments';
 
 export const dynamic = 'force-dynamic';
 
@@ -149,11 +149,36 @@ export default async function PublicInvoice({ params }: { params: { token: strin
                   <div key={m.id} style={{ border: '1px solid #e4e4e0', borderRadius: 8, padding: '13px 15px', background: '#fff' }}>
                     <div style={{ fontSize: 13.5, fontWeight: 500, color: '#111' }}>{spec.label}</div>
                     <div style={{ fontSize: 12.5, color: '#666', marginTop: 3 }}>{spec.customerHint}</div>
-                    {m.handle && (
-                      <div style={{ fontSize: 14, color: '#111', marginTop: 7, fontWeight: 500, wordBreak: 'break-word' }}>
-                        {m.handle}
-                      </div>
-                    )}
+                    {m.handle && (() => {
+                      const link = payLink(m.id, m.handle, owed, `Invoice ${invoice.number}`);
+                      return (
+                        <div style={{ marginTop: 8 }}>
+                          <div style={{ fontSize: 14, color: '#111', fontWeight: 500, wordBreak: 'break-word' }}>
+                            {m.handle}
+                          </div>
+                          {link && (
+                            <a
+                              href={link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                display: 'inline-block',
+                                marginTop: 9,
+                                padding: '8px 14px',
+                                borderRadius: 7,
+                                background: '#111',
+                                color: '#fff',
+                                fontSize: 13,
+                                fontWeight: 500,
+                                textDecoration: 'none',
+                              }}
+                            >
+                              Open {spec.label} with {money(owed)} filled in
+                            </a>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })}

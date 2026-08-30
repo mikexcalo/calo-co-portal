@@ -203,7 +203,7 @@ export default function BillingPage() {
             const isOpen = expanded === inv.id;
             return (
               <div key={inv.id}>
-                <Row cols="100px 1fr 130px 110px 110px" onClick={() => toggle(inv.id)}>
+                <Row cols="100px 1fr 130px 110px 110px" labels={['Number', 'Job', 'Status', 'Total', 'Due']} onClick={() => toggle(inv.id)}>
                   <div>{inv.number}</div>
                   <div style={{ color: C.dim }}>{job?.name ?? '—'}</div>
                   <div>
