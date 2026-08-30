@@ -25,7 +25,7 @@ const BORDER = '#e4e4e0';
 const TEXT = '#1a1a1a';
 const DIM = '#5a5a5a';
 const FAINT = '#8a8a88';
-const ACCENT = '#2563eb';
+const ACCENT = '#006AFF';
 const RED = '#b91c1c';
 
 function LoginForm() {

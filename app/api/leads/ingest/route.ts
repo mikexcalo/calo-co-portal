@@ -238,7 +238,7 @@ export async function POST(req: NextRequest) {
     .trim()
     .replace(/</g, '&lt;')}</p>
   <hr style="border:none;border-top:1px solid #e5e5e5;margin:24px 0;"/>
-  <p><a href="${appUrl}/jobs/${job.id}" style="color:#2563eb;">Open in ${PRODUCT} →</a></p>
+  <p><a href="${appUrl}/jobs/${job.id}" style="color:#006AFF;">Open in ${PRODUCT} →</a></p>
 </div>`.trim(),
         });
       } catch (emailErr) {

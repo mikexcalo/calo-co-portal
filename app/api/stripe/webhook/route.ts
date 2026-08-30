@@ -68,7 +68,7 @@ async function notifyByEmail(subject: string, body: string): Promise<void> {
         subject,
         html: `<div style="font-family:-apple-system,sans-serif;font-size:15px;line-height:1.6;">
 <p>${body}</p>
-<p><a href="https://nautilusapp.vercel.app/billing" style="color:#2563eb;">Open Billing →</a></p></div>`,
+<p><a href="https://nautilusapp.vercel.app/billing" style="color:#006AFF;">Open Billing →</a></p></div>`,
       }),
     });
   } catch (e) {

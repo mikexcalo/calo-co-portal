@@ -20,7 +20,7 @@ const lightTokens = {
   border: { default: 'rgba(0,0,0,0.08)', hover: 'rgba(0,0,0,0.15)', active: 'rgba(0,0,0,0.20)' },
   text: { primary: '#111113', secondary: '#6b6b6f', tertiary: '#9b9b9f', inverse: '#f7f7f8' },
   accent: { primary: '#006AFF', primaryHover: '#0052CC', subtle: 'rgba(0,106,255,0.06)', text: '#0052CC' },
-  status: { success: '#00C9A0', warning: '#f59e0b', danger: '#f87171', info: '#2563eb' },
+  status: { success: '#00C9A0', warning: '#f59e0b', danger: '#f87171', info: '#006AFF' },
   teal: { primary: '#00C9A0', hover: '#00B28D', subtle: '#E6FAF5', text: '#054D3D' },
   radius: { sm: '6px', md: '8px', lg: '12px' },
   shadow: { card: '0 1px 3px rgba(0,0,0,0.06)', elevated: '0 4px 12px rgba(0,0,0,0.08)' },

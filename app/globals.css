@@ -9,7 +9,7 @@
      every cold load, not a working design. */
   --nav-bg: #FFFFFF;
   --page-bg: #FFFFFF;
-  --primary: #2563eb;
+  --primary: #006AFF;
   --amber: #f59e0b;
   --red: #dc2626;
   --green: #16a34a;
@@ -46,7 +46,7 @@ textarea {
 
 /* ── Global interaction standards ── */
 input:focus, textarea:focus, select:focus {
-  border-color: #2563eb !important;
+  border-color: #006AFF !important;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08) !important;
   outline: none !important;
 }
@@ -216,7 +216,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 .btn-primary {
-  background: #2563eb;
+  background: #006AFF;
   color: #fff;
 }
 
@@ -250,7 +250,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 .topbar .btn-primary:hover {
-  background: #2563eb;
+  background: #006AFF;
 }
 
 .btn-danger {
@@ -359,7 +359,7 @@ input:focus, textarea:focus, select:focus {
 /* ── Client Banner ── */
 .client-banner {
   background: #1e3a5f;
-  border-bottom: 1px solid #2563eb;
+  border-bottom: 1px solid #006AFF;
   padding: 7px 32px;
   display: none;
   align-items: center;
@@ -410,7 +410,7 @@ input:focus, textarea:focus, select:focus {
   font-size: 13px;
   font-weight: 600;
   font-family: var(--font-sans), 'Inter', system-ui, sans-serif;
-  background: #2563eb;
+  background: #006AFF;
   color: #fff;
   border: none;
   cursor: pointer;

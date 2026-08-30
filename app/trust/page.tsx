@@ -24,7 +24,7 @@ const TEXT = '#1a1a1a';
 const DIM = '#363634';
 const FAINT = '#55554f';
 const BORDER = '#e4e4e0';
-const ACCENT = '#2563eb';
+const ACCENT = '#006AFF';
 const GREEN = '#15803d';
 
 const FACTS = [

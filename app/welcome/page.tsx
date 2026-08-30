@@ -26,7 +26,7 @@ const BORDER = '#e4e4e0';
 const TEXT = '#1a1a1a';
 const DIM = '#363634';
 const FAINT = '#55554f';
-const ACCENT = '#2563eb';
+const ACCENT = '#006AFF';
 const AMBER = '#b45309';
 const RED = '#b91c1c';
 
@@ -408,7 +408,7 @@ export default function WelcomePage() {
                         padding: '12px 14px',
                         borderRadius: 8,
                         border: `1px solid ${on ? ACCENT : BORDER}`,
-                        background: on ? '#eef3fd' : '#fff',
+                        background: on ? '#E8F1FF' : '#fff',
                         cursor: 'pointer',
                         fontFamily: 'inherit',
                       }}
