@@ -341,7 +341,10 @@ export default function BillingPage() {
                         gap: 10,
                       }}
                     >
-                      <div style={{ display: 'flex', gap: 8 }}>
+                      {/* Wraps. Six buttons in a fixed row runs off the side
+                          of a phone and the actions that fall off are the ones
+                          that send the invoice. */}
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                         <Button variant="ghost" onClick={() => router.push(`/jobs/${inv.job_id}`)}>
                           Open job
                         </Button>

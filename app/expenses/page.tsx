@@ -300,7 +300,7 @@ export default function ExpensesPage() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <Button onClick={add} disabled={busy || !vendor.trim() || !parseFloat(amount)}>
                 {busy ? 'Saving…' : 'Add expense'}
               </Button>

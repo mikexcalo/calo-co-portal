@@ -225,7 +225,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
       title={job.name}
       subtitle={[job.customer?.name, job.address].filter(Boolean).join(' · ') || undefined}
       action={
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <Button variant="ghost" onClick={() => router.push('/jobs')}>All jobs</Button>
 
           <Button onClick={handleDraftInvoice} disabled={busy || unbilled <= 0}>
@@ -454,7 +454,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
       <div style={{ marginBottom: 26 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <SectionLabel>Costs</SectionLabel>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <Button variant="ghost" onClick={() => router.push('/documents')}>
               Add from receipt
             </Button>

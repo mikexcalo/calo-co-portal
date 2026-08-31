@@ -372,7 +372,7 @@ export default function SecurityPage() {
             <li>Save eight backup codes — your way in if the phone is ever lost.</li>
           </ol>
 
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <Button onClick={begin} disabled={busy}>
               {busy ? 'One moment…' : 'I have an authenticator app — continue'}
             </Button>

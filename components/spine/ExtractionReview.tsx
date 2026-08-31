@@ -272,7 +272,7 @@ export function ExtractionReview({
               'An amount is needed before this can be saved.'
             )}
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <Button variant="ghost" onClick={onReject}>Discard</Button>
             <Button
               onClick={() =>

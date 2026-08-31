@@ -45,7 +45,7 @@ function CopyRow({ value }: { value: string }) {
   const [copied, setCopied] = useState(false);
   if (!value) return <div style={{ fontSize: 12, color: C.faint }}>Not available.</div>;
   return (
-    <div style={{ display: 'flex', gap: 8 }}>
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
       <input
         readOnly
         value={value}

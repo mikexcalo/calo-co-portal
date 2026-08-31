@@ -570,7 +570,7 @@ function LogosTab({
 
       <Card style={{ marginTop: 18 }}>
         <SectionLabel>Add a logo</SectionLabel>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <input
             value={adding}
             onChange={(e) => setAdding(e.target.value)}
