@@ -318,6 +318,45 @@ export default function ExpensesPage() {
         </Card>
       )}
 
+      {isOwner && ai && ai.reads > 0 && (
+        <div style={{ marginBottom: 24 }}>
+          <SectionLabel>Reading documents and notes</SectionLabel>
+          <Card>
+            <div style={{ display: 'flex', gap: 30, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+              <div>
+                <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
+                  This month
+                </div>
+                <div style={{ fontSize: 21, marginTop: 5, color: C.text, fontVariantNumeric: 'tabular-nums' }}>
+                  {ai.thisMonth < 100 ? `${ai.thisMonth.toFixed(1)}¢` : money(ai.thisMonth / 100)}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
+                  All time
+                </div>
+                <div style={{ fontSize: 21, marginTop: 5, color: C.text, fontVariantNumeric: 'tabular-nums' }}>
+                  {ai.cents < 100 ? `${ai.cents.toFixed(1)}¢` : money(ai.cents / 100)}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
+                  Files read
+                </div>
+                <div style={{ fontSize: 21, marginTop: 5, color: C.text, fontVariantNumeric: 'tabular-nums' }}>
+                  {ai.reads}
+                </div>
+              </div>
+              <div style={{ flex: 1, minWidth: 230, fontSize: 11.5, color: C.faint, lineHeight: 1.6, alignSelf: 'center' }}>
+                Measured, not estimated. Only owners and admins see this, and it is not
+                charged to anyone — it is here so the numbers behind pricing come from real
+                usage rather than a guess.
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {loading ? (
         <Card><Empty>Loading…</Empty></Card>
       ) : rows.length === 0 ? (
@@ -344,45 +383,6 @@ export default function ExpensesPage() {
             <Metric label="Every year" value={money0(monthly * 12)} hint="The same, annually" />
             <Metric label="Subscriptions" value={String(subs)} hint="Costs that repeat" />
           </div>
-
-          {isOwner && ai && ai.reads > 0 && (
-            <div style={{ marginBottom: 24 }}>
-              <SectionLabel>Reading documents and notes</SectionLabel>
-              <Card>
-                <div style={{ display: 'flex', gap: 30, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-                  <div>
-                    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
-                      This month
-                    </div>
-                    <div style={{ fontSize: 21, marginTop: 5, color: C.text, fontVariantNumeric: 'tabular-nums' }}>
-                      {ai.thisMonth < 100 ? `${ai.thisMonth.toFixed(1)}¢` : money(ai.thisMonth / 100)}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
-                      All time
-                    </div>
-                    <div style={{ fontSize: 21, marginTop: 5, color: C.text, fontVariantNumeric: 'tabular-nums' }}>
-                      {ai.cents < 100 ? `${ai.cents.toFixed(1)}¢` : money(ai.cents / 100)}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
-                      Files read
-                    </div>
-                    <div style={{ fontSize: 21, marginTop: 5, color: C.text, fontVariantNumeric: 'tabular-nums' }}>
-                      {ai.reads}
-                    </div>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 230, fontSize: 11.5, color: C.faint, lineHeight: 1.6, alignSelf: 'center' }}>
-                    Measured, not estimated. Only owners and admins see this, and it is not
-                    charged to anyone — it is here so the numbers behind pricing come from real
-                    usage rather than a guess.
-                  </div>
-                </div>
-              </Card>
-            </div>
-          )}
 
           <SectionLabel>Recorded</SectionLabel>
           <Table>
