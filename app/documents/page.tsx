@@ -4,8 +4,16 @@
  * Documents — the shoebox.
  *
  * Drop in scattered paperwork. Each file is read ONCE, structured data is
- * stored, and the result becomes a job cost with one click. The running
- * extraction cost is shown on the page on purpose: this is a one-time cost
+ * stored, and the result becomes a job cost with one click.
+ *
+ * What it costs to read is recorded but no longer shown here. Putting a price
+ * beside the button turns a feature into a meter, and people behave
+ * differently around a meter — they hesitate, they batch, they decide this one
+ * is not worth it. That hesitation is the opposite of the point, which is
+ * everything in the shoebox ending up in here. The number lives in Overheads
+ * where the owner can see it and nobody else has to think about it.
+ *
+ * Historically this was a one-time cost
  * per document, and seeing the real number beats guessing at it.
  */
 
@@ -347,25 +355,22 @@ export default function DocumentsPage() {
         </Card>
       )}
 
-      {/* Cost transparency — deliberately visible */}
+      {/*
+        The running spend used to sit here. It is recorded exactly as before,
+        and now lives in Overheads where only an owner sees it.
+      */}
       <Card style={{ marginBottom: 22, display: 'flex', gap: 28, flexWrap: 'wrap' }}>
         <div>
           <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
             Documents read
           </div>
-          <div style={{ fontSize: 20, marginTop: 6 }}>{spend.documents}</div>
-        </div>
-        <div>
-          <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
-            Total spent reading them
-          </div>
-          <div style={{ fontSize: 20, marginTop: 6, color: C.green }}>
-            ${(spend.cents / 100).toFixed(2)}
+          <div style={{ fontSize: 20, marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>
+            {spend.documents}
           </div>
         </div>
         <div style={{ flex: 1, minWidth: 220, fontSize: 11.5, color: C.faint, alignSelf: 'center' }}>
-          One charge per document. Reading a file again never costs anything.
-          There is no search or chat billing on top of this.
+          Each file is read once. Opening it again later never re-reads it, and there is no
+          charge for searching or asking questions because neither exists.
         </div>
       </Card>
 

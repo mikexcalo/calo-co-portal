@@ -86,6 +86,21 @@ export default function ExpensesPage() {
   const [adding, setAdding] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<Overhead | null>(null);
 
+  /**
+   * What the reading has cost, for the owner only.
+   *
+   * Deliberately not shown to anybody else and deliberately not shown next to
+   * the buttons that spend it. This is a business input — it decides which
+   * tier includes how many reads — not a meter to make somebody hesitate over
+   * a receipt.
+   *
+   * Owner and admin only, because it is a cost of running the platform rather
+   * than a cost of running the business, and a team member seeing it would
+   * reasonably wonder why they are being charged for it. They are not.
+   */
+  const [ai, setAi] = useState<{ reads: number; cents: number; thisMonth: number } | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
+
   const [vendor, setVendor] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -119,6 +134,43 @@ export default function ExpensesPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!org) return;
+    let cancelled = false;
+
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth?.user) return;
+
+      const membership = await supabase
+        .from('memberships')
+        .select('role')
+        .eq('user_id', auth.user.id)
+        .eq('org_id', org.id)
+        .maybeSingle();
+
+      const owner = ['owner', 'admin'].includes(membership.data?.role ?? '');
+      if (cancelled) return;
+      setIsOwner(owner);
+      if (!owner) return;
+
+      const usage = await supabase.from('ai_usage').select('month, reads, cents').eq('org_id', org.id);
+      if (cancelled || usage.error) return;
+
+      const rows = usage.data ?? [];
+      const month = new Date().toISOString().slice(0, 7);
+      setAi({
+        reads: rows.reduce((s, r) => s + Number(r.reads ?? 0), 0),
+        cents: rows.reduce((s, r) => s + Number(r.cents ?? 0), 0),
+        thisMonth: rows
+          .filter((r) => String(r.month ?? '').startsWith(month))
+          .reduce((s, r) => s + Number(r.cents ?? 0), 0),
+      });
+    })();
+
+    return () => { cancelled = true; };
+  }, [org]);
 
   const reset = () => {
     setVendor('');
@@ -292,6 +344,45 @@ export default function ExpensesPage() {
             <Metric label="Every year" value={money0(monthly * 12)} hint="The same, annually" />
             <Metric label="Subscriptions" value={String(subs)} hint="Costs that repeat" />
           </div>
+
+          {isOwner && ai && ai.reads > 0 && (
+            <div style={{ marginBottom: 24 }}>
+              <SectionLabel>Reading documents and notes</SectionLabel>
+              <Card>
+                <div style={{ display: 'flex', gap: 30, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
+                      This month
+                    </div>
+                    <div style={{ fontSize: 21, marginTop: 5, color: C.text, fontVariantNumeric: 'tabular-nums' }}>
+                      {ai.thisMonth < 100 ? `${ai.thisMonth.toFixed(1)}¢` : money(ai.thisMonth / 100)}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
+                      All time
+                    </div>
+                    <div style={{ fontSize: 21, marginTop: 5, color: C.text, fontVariantNumeric: 'tabular-nums' }}>
+                      {ai.cents < 100 ? `${ai.cents.toFixed(1)}¢` : money(ai.cents / 100)}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
+                      Files read
+                    </div>
+                    <div style={{ fontSize: 21, marginTop: 5, color: C.text, fontVariantNumeric: 'tabular-nums' }}>
+                      {ai.reads}
+                    </div>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 230, fontSize: 11.5, color: C.faint, lineHeight: 1.6, alignSelf: 'center' }}>
+                    Measured, not estimated. Only owners and admins see this, and it is not
+                    charged to anyone — it is here so the numbers behind pricing come from real
+                    usage rather than a guess.
+                  </div>
+                </div>
+              </Card>
+            </div>
+          )}
 
           <SectionLabel>Recorded</SectionLabel>
           <Table>

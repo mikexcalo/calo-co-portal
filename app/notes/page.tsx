@@ -144,6 +144,8 @@ export default function NotesPage() {
         kind: 'note',
         source: 'transcript',
         happened_on: result.happened_on || new Date().toISOString().slice(0, 10),
+        // Recorded, never displayed. See the AI usage tile in Overheads.
+        extraction_cost_cents: cost,
       });
       if (res.error) throw new Error(res.error.message);
 
@@ -236,7 +238,7 @@ export default function NotesPage() {
               {busy ? 'Reading…' : 'Read this'}
             </Button>
             <span style={{ fontSize: 12, color: C.faint }}>
-              About a cent, charged once. Reading it back later is free.
+              Takes a few seconds. You&apos;ll check everything before it saves.
             </span>
           </div>
         </Card>
@@ -246,9 +248,7 @@ export default function NotesPage() {
         <Card style={{ maxWidth: 720 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', marginBottom: 4 }}>
             <SectionLabel>Check this before it&apos;s saved</SectionLabel>
-            {cost != null && (
-              <span style={{ fontSize: 11.5, color: C.faint }}>Cost {cost.toFixed(2)}¢</span>
-            )}
+
           </div>
 
           <input

@@ -107,7 +107,6 @@ export function ExtractionReview({
           <div style={{ fontSize: 16, fontWeight: 500 }}>Check what was read</div>
           <div style={{ fontSize: 12, color: C.faint, marginTop: 3 }}>
             {fileName}
-            {costCents != null && ` · cost ${costCents.toFixed(2)}¢`}
           </div>
         </div>
 

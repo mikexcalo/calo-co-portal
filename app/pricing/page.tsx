@@ -177,7 +177,7 @@ export default function PricingPage() {
       } else {
         setImported(rows);
         setNotice(
-          `Read ${rows.length} item${rows.length === 1 ? '' : 's'}. Cost ${payload.meta?.cost_cents?.toFixed(2) ?? '?'}¢. Check them before saving.`
+          `Read ${rows.length} item${rows.length === 1 ? '' : 's'}. Check them before saving.`
         );
       }
     } catch (e) {
