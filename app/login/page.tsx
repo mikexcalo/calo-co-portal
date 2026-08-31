@@ -256,27 +256,70 @@ function LoginForm() {
               <div style={{ fontSize: 15, fontWeight: 500, color: TEXT, marginBottom: 8 }}>
                 Check your email
               </div>
-              <p style={{ fontSize: 13, color: DIM, lineHeight: 1.6, margin: 0 }}>
+              <p style={{ fontSize: 13, color: DIM, lineHeight: 1.6, margin: '0 0 12px' }}>
                 If there&apos;s an account for <strong>{email}</strong>, a link to set a new
-                password is on its way. It expires in an hour.
+                password is on its way. It usually lands within a minute and expires in an hour.
               </p>
-              <button
-                onClick={() => {
-                  setSent(false);
-                  setMode('password');
-                }}
+              {/*
+                Naming the spam folder is worth the line. Password resets are
+                the most commonly filtered mail there is, and somebody who
+                does not find it in thirty seconds concludes the product is
+                broken rather than that Gmail moved it.
+
+                It also quietly asks them to mark it as not spam, which is the
+                single most useful thing anyone can do for a new sending
+                domain's reputation.
+              */}
+              <p
                 style={{
-                  marginTop: 18,
-                  background: 'transparent',
-                  border: 'none',
-                  color: ACCENT,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
+                  fontSize: 12.5,
+                  color: DIM,
+                  lineHeight: 1.6,
+                  margin: 0,
+                  background: '#f6f7f9',
+                  border: `1px solid ${BORDER}`,
+                  borderRadius: 8,
+                  padding: '11px 13px',
+                  textAlign: 'left',
                 }}
               >
-                Back to sign in
-              </button>
+                Not there? Look in spam or junk, and mark it as not spam so the next one arrives
+                properly. It comes from <strong>hello@calo.company</strong>.
+              </p>
+              <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 18 }}>
+                <button
+                  onClick={() => {
+                    setSent(false);
+                    setMode('reset');
+                  }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: ACCENT,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  Send it again
+                </button>
+                <button
+                  onClick={() => {
+                    setSent(false);
+                    setMode('password');
+                  }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: DIM,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  Back to sign in
+                </button>
+              </div>
             </div>
           ) : mode === 'code' ? (
             <form onSubmit={useRecovery ? submitRecovery : submitCode}>
