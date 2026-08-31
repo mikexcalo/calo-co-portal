@@ -18,6 +18,7 @@ import { useOrg } from '@/lib/spine/org';
 import { Links } from '@/components/spine/Links';
 import { Photos } from '@/components/spine/Photos';
 import { People } from '@/components/spine/People';
+import { Reminders } from '@/components/spine/Reminders';
 import { JOB_STATUS_LABEL } from '@/lib/spine/types';
 import type { JobStatus } from '@/lib/spine/types';
 import {
@@ -627,6 +628,8 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               </Table>
             )}
           </div>
+
+          {orgId && <Reminders orgId={orgId} customerId={params.id} />}
 
           {orgId && <People orgId={orgId} customerId={params.id} />}
 

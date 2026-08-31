@@ -63,6 +63,7 @@ import {
 import { Confirm } from '@/components/spine/Confirm';
 import { UndoBar, type UndoState } from '@/components/spine/Undo';
 import { useOrg } from '@/lib/spine/org';
+import { Reminders } from '@/components/spine/Reminders';
 
 const STATUSES: JobStatus[] = [
   'lead',
@@ -515,6 +516,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
           )}
         </Table>
       </div>
+
+      {job?.org_id && <Reminders orgId={job.org_id} jobId={jobId} />}
 
       {/* Estimates */}
       <div style={{ marginBottom: 26 }}>

@@ -77,6 +77,7 @@ export default function Dashboard() {
     jobsNoCustomer: 0,
     customerCount: 0,
     goneQuiet: 0,
+    remindersDue: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -108,7 +109,7 @@ export default function Dashboard() {
         soonCutoff.setDate(soonCutoff.getDate() + 45);
         const head = { count: 'exact' as const, head: true };
 
-        const [noEmail, unconfirmed, draftEst, staleEst, expiring, needReview, reqs, noCustomer, custCount, quiet] =
+        const [noEmail, unconfirmed, draftEst, staleEst, expiring, needReview, reqs, noCustomer, custCount, quiet, due] =
           await Promise.all([
             supabase.from('customers').select('id', head).is('email', null),
             supabase.from('price_items').select('id', head).eq('confirmed', false),
@@ -136,6 +137,13 @@ export default function Dashboard() {
               .select('id', head)
               .not('awaiting_reply_since', 'is', null)
               .lte('awaiting_reply_since', quietCutoff.toISOString().slice(0, 10)),
+            // Due today or already late. A reminder for next Tuesday is not
+            // something to be shown on a Monday; it is noise until it is not.
+            supabase
+              .from('reminders')
+              .select('id', head)
+              .is('done_at', null)
+              .lte('due_on', new Date().toISOString().slice(0, 10)),
           ]);
         if (cancelled) return;
         setJobs(j);
@@ -153,6 +161,7 @@ export default function Dashboard() {
           jobsNoCustomer: noCustomer.count ?? 0,
           customerCount: custCount.count ?? 0,
           goneQuiet: quiet.count ?? 0,
+          remindersDue: due.count ?? 0,
         });
         if (!bd.error) {
           setDueToBill(
@@ -377,6 +386,20 @@ export default function Dashboard() {
       cta: 'Set your rates',
       href: '/business',
       tone: 'red',
+    });
+  }
+
+  if (signals.remindersDue > 0) {
+    attention.push({
+      key: 'reminders',
+      tone: 'amber',
+      title: `${signals.remindersDue} ${signals.remindersDue === 1 ? 'reminder' : 'reminders'} due`,
+      detail: 'Things you asked to be reminded about, today or earlier.',
+      cta: 'See them',
+      href: '/customers',
+      // Above chasing and below money. You set these deliberately, which makes
+      // them a stronger signal than anything the app inferred on your behalf.
+      weight: 6_000,
     });
   }
 

@@ -537,17 +537,24 @@ export function MobileAction({
         position: 'fixed',
         left: 16,
         right: 16,
-        bottom: 16,
-        zIndex: 30,
+        /**
+         * Clear of the navigation bar.
+         *
+         * This was pinned 16px from the bottom, which is now where the tab bar
+         * lives. Two floating controls occupying the same corner is how
+         * somebody taps Add meaning to open the camera. Sits above it.
+         */
+        bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
+        zIndex: 29,
         padding: '15px',
         borderRadius: 11,
         border: 'none',
-        background: C.blue,
+        background: C.accent,
         color: '#fff',
         fontSize: 15,
         fontWeight: 600,
         fontFamily: 'inherit',
-        boxShadow: '0 6px 20px rgba(0,0,0,.45)',
+        boxShadow: '0 6px 20px rgba(0,0,0,.18)',
         cursor: 'pointer',
       }}
     >

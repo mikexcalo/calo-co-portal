@@ -7,6 +7,8 @@ import TopBar from '@/components/TopBar';
 import { useIsPhone, C } from '@/components/spine/ui';
 import { TutorialPanel } from '@/components/spine/TutorialPanel';
 import { useOrg } from '@/lib/spine/org';
+import { BottomBar } from '@/components/spine/BottomBar';
+import { AddSheet } from '@/components/spine/AddSheet';
 import { pathAllowed } from '@/lib/spine/modules';
 import { PRODUCT } from '@/lib/brand';
 
@@ -14,8 +16,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const phone = useIsPhone();
-  const { org, loading: orgLoading } = useOrg();
+  const { org, vocab, loading: orgLoading } = useOrg();
   const [navOpen, setNavOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
 
   const isBarePage = pathname === '/login' || pathname === '/welcome';
 
@@ -93,6 +96,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
 
         <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>{children}</main>
+
+        {/*
+          A bar at the bottom rather than a drawer at the top. A hamburger
+          costs a tap before you can see your options and puts them where a
+          thumb reaches last; this puts the four things somebody does in a
+          driveway permanently under the thumb.
+        */}
+        <BottomBar
+          vocab={vocab}
+          onMore={() => setNavOpen(true)}
+          onAdd={() => setAddOpen(true)}
+        />
+
+        {addOpen && <AddSheet vocab={vocab} onClose={() => setAddOpen(false)} />}
+
         <TutorialPanel />
       </div>
     );
