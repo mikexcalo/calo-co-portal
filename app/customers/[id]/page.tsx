@@ -10,7 +10,7 @@
  * is complete without anyone remembering to write "invoice paid" by hand.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { getCurrentOrg } from '@/lib/spine/db';
@@ -108,6 +108,19 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
    * so nobody has to remember to tidy up after a reply.
    */
   const [noteDirection, setNoteDirection] = useState<'out' | 'in'>('out');
+  /**
+   * When it actually happened.
+   *
+   * Defaults to today because most logging happens straight after the call.
+   * But people write these up in a batch on Friday, and stamping Friday on a
+   * Tuesday conversation makes the whole history a record of when somebody
+   * did their admin rather than of what happened.
+   *
+   * It also drives the "no reply" clock, which was reading four days of
+   * silence as zero because the note was dated the day it was typed.
+   */
+  const [noteDate, setNoteDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const noteRef = useRef<HTMLTextAreaElement>(null);
   const [draft, setDraft] = useState<Partial<Customer>>({});
 
   const load = useCallback(async () => {
@@ -143,6 +156,29 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
     })();
   }, [load]);
 
+  /**
+   * Give up on a reply, honestly.
+   *
+   * Not every unanswered message deserves chasing forever: plans change, the
+   * job goes elsewhere, you speak in person instead. Without this the warning
+   * sits there going stale, and a warning nobody can clear is one people learn
+   * to ignore — along with the ones that matter.
+   *
+   * Deliberately does not log an inbound message. Recording a reply that never
+   * came would be putting a lie in the record to silence a banner.
+   */
+  const stopWaiting = async () => {
+    setBusy(true);
+    setError(null);
+    const res = await supabase
+      .from('customers')
+      .update({ awaiting_reply_since: null })
+      .eq('id', params.id);
+    setBusy(false);
+    if (res.error) { setError(res.error.message); return; }
+    await load();
+  };
+
   const addNote = async () => {
     if (!orgId || !noteBody.trim()) return;
     setBusy(true);
@@ -155,6 +191,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
         kind: noteKind,
         direction: noteDirection,
         body: noteBody.trim(),
+        happened_on: noteDate,
         author_id: auth?.user?.id ?? null,
       });
       if (res.error) throw new Error(res.error.message);
@@ -359,7 +396,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                 </button>
               ))}
             </div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'center', flexWrap: 'wrap' }}>
               {([['out', 'I reached out'], ['in', 'They got in touch']] as const).map(([d, label]) => (
                 <button
                   key={d}
@@ -378,9 +415,21 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                   {label}
                 </button>
               ))}
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
+                <span style={{ fontSize: 11.5, color: C.faint }}>When</span>
+                <input
+                  type="date"
+                  value={noteDate}
+                  max={new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => setNoteDate(e.target.value)}
+                  style={{ ...inputStyle, width: 150, fontSize: 12, padding: '5px 8px' }}
+                />
+              </label>
             </div>
 
             <textarea
+              ref={noteRef}
               value={noteBody}
               onChange={(e) => setNoteBody(e.target.value)}
               style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }}
@@ -456,19 +505,20 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 7,
-                    marginTop: 4,
-                    padding: '9px 14px',
-                    borderRadius: 8,
+                    marginTop: 6,
+                    padding: '6px 11px',
+                    borderRadius: 7,
                     border: `1px solid ${C.border}`,
-                    background: C.panelAlt,
-                    fontSize: 13,
+                    background: 'transparent',
+                    fontSize: 12.5,
                     fontWeight: 500,
-                    color: C.text,
+                    color: C.dim,
                     textDecoration: 'none',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -484,27 +534,63 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               )}
             </div>
 
-            {customer.awaiting_reply_since && (
-              /* Said on the record itself, not only on Today. Opening
-                 somebody's page and seeing "silent since Thursday" is the
-                 moment you decide whether to chase, and it should not require
-                 reading back through the history to work out. */
-              <div
-                style={{
-                  marginTop: 14,
-                  padding: '10px 12px',
-                  borderRadius: 8,
-                  background: C.amberSoft,
-                  border: `1px solid ${C.amber}44`,
-                  fontSize: 12.5,
-                  color: C.text,
-                  lineHeight: 1.55,
-                }}
-              >
-                No reply since {shortDate(customer.awaiting_reply_since)}. Logging anything they
-                send clears this.
-              </div>
-            )}
+            {customer.awaiting_reply_since && (() => {
+              /**
+               * Say how long, then say what to do.
+               *
+               * "No reply since Aug 31" was a fact with no next step attached,
+               * and a date is harder to feel than a number of days. What
+               * somebody wants here is: how long has this been, and what are
+               * my options.
+               *
+               * Two buttons because there are exactly two honest answers.
+               * Chase them again, or accept that you are no longer waiting —
+               * which happens constantly and had no way to be recorded, so the
+               * warning would have sat there forever going stale.
+               */
+              const days = Math.max(
+                0,
+                Math.round(
+                  (Date.now() - new Date(customer.awaiting_reply_since).getTime()) / 86_400_000
+                )
+              );
+              return (
+                <div
+                  style={{
+                    marginTop: 14,
+                    padding: '12px 13px',
+                    borderRadius: 8,
+                    background: C.amberSoft,
+                    border: `1px solid ${C.amber}44`,
+                  }}
+                >
+                  <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 3 }}>
+                    Waiting on {customer.contact_name?.split(' ')[0] ?? 'them'}
+                    {days > 0 ? ` · ${days} ${days === 1 ? 'day' : 'days'}` : ''}
+                  </div>
+                  <div style={{ fontSize: 12, color: C.dim, lineHeight: 1.55, marginBottom: 10 }}>
+                    You reached out on {shortDate(customer.awaiting_reply_since)} and
+                    haven&apos;t heard back. Logging anything they send clears this on its own.
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <Button
+                      onClick={() => {
+                        setNoteDirection('out');
+                        setNoteKind('text');
+                        setNoteDate(new Date().toISOString().slice(0, 10));
+                        noteRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        noteRef.current?.focus();
+                      }}
+                    >
+                      Chase them
+                    </Button>
+                    <Button variant="ghost" onClick={stopWaiting} disabled={busy}>
+                      Stop waiting
+                    </Button>
+                  </div>
+                </div>
+              );
+            })()}
 
             {customer.last_contacted_on && (
               <div style={{ fontSize: 11, color: C.faint, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.border}` }}>
