@@ -14,10 +14,31 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
+
+/**
+ * Refuse to charge through the platform's Stripe account on behalf of a
+ * business that does not own it.
+ *
+ * The UI already hides the option, but a guard that only lives in the browser
+ * is not a guard. The failure this prevents is money arriving in the wrong
+ * bank account, which nobody discovers until a contractor asks where his
+ * payment went — so it is checked again here, against the invoice's own
+ * business, where it cannot be skipped.
+ */
+async function stripeAllowedFor(
+  db: SupabaseClient,
+  orgId: string | null | undefined
+): Promise<boolean> {
+  if (!orgId) return false;
+  const owner = (process.env.STRIPE_OWNER_ORG || 'calo-co').trim();
+  const { data } = await db.from('orgs').select('slug').eq('id', orgId).maybeSingle();
+  return (data as { slug?: string } | null)?.slug === owner;
+}
+
 
 const STRIPE_API = 'https://api.stripe.com/v1';
 
@@ -97,6 +118,16 @@ export async function POST(req: NextRequest) {
 
     if (invErr) throw new Error(invErr.message);
     if (!invoice) return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
+
+    if (!(await stripeAllowedFor(db, invoice.org_id))) {
+      return NextResponse.json(
+        {
+          error:
+            "Card payments aren't connected to this business yet. Sending through Stripe would put the money in somebody else's account, so it's blocked. Email the invoice as a link instead.",
+        },
+        { status: 403 }
+      );
+    }
     if (invoice.status === 'void') {
       return NextResponse.json({ error: 'Cannot send a voided invoice' }, { status: 400 });
     }

@@ -10,9 +10,30 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 export const runtime = 'nodejs';
+
+/**
+ * Refuse to charge through the platform's Stripe account on behalf of a
+ * business that does not own it.
+ *
+ * The UI already hides the option, but a guard that only lives in the browser
+ * is not a guard. The failure this prevents is money arriving in the wrong
+ * bank account, which nobody discovers until a contractor asks where his
+ * payment went — so it is checked again here, against the invoice's own
+ * business, where it cannot be skipped.
+ */
+async function stripeAllowedFor(
+  db: SupabaseClient,
+  orgId: string | null | undefined
+): Promise<boolean> {
+  if (!orgId) return false;
+  const owner = (process.env.STRIPE_OWNER_ORG || 'calo-co').trim();
+  const { data } = await db.from('orgs').select('slug').eq('id', orgId).maybeSingle();
+  return (data as { slug?: string } | null)?.slug === owner;
+}
+
 
 export async function POST(req: NextRequest) {
   let invoiceId: string | undefined;
@@ -38,7 +59,7 @@ export async function POST(req: NextRequest) {
   try {
     const { data: invoice, error } = await db
       .from('job_invoices')
-      .select('id, number, status, external_ref, total, amount_paid')
+      .select('id, number, status, external_ref, total, amount_paid, org_id')
       .eq('id', invoiceId)
       .maybeSingle();
 
@@ -47,6 +68,13 @@ export async function POST(req: NextRequest) {
 
     if (invoice.status === 'paid') {
       return NextResponse.json({ message: 'This invoice is already paid.' });
+    }
+
+    if (!(await stripeAllowedFor(db, invoice.org_id))) {
+      return NextResponse.json({
+        message:
+          'Card payment is not set up for this business. The invoice lists the other ways to pay.',
+      });
     }
 
     if (!stripeKey) {

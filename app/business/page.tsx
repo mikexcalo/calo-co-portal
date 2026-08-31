@@ -116,12 +116,18 @@ export default function BusinessPage() {
   const [editingPayments, setEditingPayments] = useState(false);
   const [stripeReady, setStripeReady] = useState<boolean | null>(null);
 
+  const [stripeReason, setStripeReason] = useState<string | null>(null);
+
   useEffect(() => {
-    fetch('/api/config/payments')
+    if (!org) return;
+    fetch(`/api/config/payments?org=${encodeURIComponent(org.slug)}`)
       .then((r) => r.json())
-      .then((d) => setStripeReady(!!d.stripe))
+      .then((d) => {
+        setStripeReady(!!d.stripe);
+        setStripeReason(d.reason ?? null);
+      })
       .catch(() => setStripeReady(false));
-  }, []);
+  }, [org]);
 
   const hydrate = useCallback(() => {
     if (!org) return;
@@ -421,7 +427,9 @@ export default function BusinessPage() {
 
                     {blocked && (
                       <div style={{ fontSize: 11.5, color: C.amber, marginTop: 6, marginLeft: 26, lineHeight: 1.55 }}>
-                        Needs a Stripe account connected first. Until then it would show customers a payment option that goes nowhere, so it stays off.
+                        {stripeReason === 'not_your_account'
+                          ? `Card payments aren't connected to ${org.name} yet. Turning this on would send your customers' card payments to somebody else's account, so it stays off until you have your own Stripe connected.`
+                          : 'Needs a Stripe account connected first. Until then it would show customers a payment option that goes nowhere, so it stays off.'}
                       </div>
                     )}
 
