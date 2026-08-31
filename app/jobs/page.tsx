@@ -112,7 +112,7 @@ export default function JobsPage() {
         <Empty>Loading…</Empty>
       ) : jobs.length === 0 ? (
         <Card>
-          <Empty>
+          <Empty hero>
             No jobs yet. Create one, or let a lead come in from the site form.
           </Empty>
         </Card>

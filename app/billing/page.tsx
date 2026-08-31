@@ -241,7 +241,7 @@ export default function BillingPage() {
         <Empty>Loading…</Empty>
       ) : invoices.length === 0 ? (
         <Card>
-          <Empty>
+          <Empty hero>
             No invoices yet. Open a job with unbilled work and draft one from its actuals.
           </Empty>
         </Card>

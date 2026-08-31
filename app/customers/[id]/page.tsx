@@ -599,31 +599,41 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             )}
           </Card>
 
+          {/*
+            The work comes before the filing.
+            
+            Jobs sat last, under two sections that are usually empty, so the
+            money was below the fold on a record whose whole purpose is the
+            money. Nobody scrolls to a tile they cannot see, which makes a
+            buried action the same as an unbuilt one.
+          */}
+          <div style={{ marginBottom: 22 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+              <SectionLabel>{vocab.jobPlural} ({jobs.length})</SectionLabel>
+              <Button variant="ghost" onClick={() => router.push('/jobs/new')}>
+                New {vocab.job.toLowerCase()}
+              </Button>
+            </div>
+            {jobs.length === 0 ? (
+              <Card><Empty>Nothing on the books for them yet.</Empty></Card>
+            ) : (
+              <Table>
+                {jobs.map((j) => (
+                  <Row key={j.id} cols="1fr 90px" onClick={() => router.push(`/jobs/${j.id}`)}>
+                    <div>{j.name}</div>
+                    <div><Pill tone="neutral">{JOB_STATUS_LABEL[j.status]}</Pill></div>
+                  </Row>
+                ))}
+              </Table>
+            )}
+          </div>
+
           {orgId && <People orgId={orgId} customerId={params.id} />}
 
           {orgId && <Links orgId={orgId} customerId={params.id} />}
 
-          {/*
-            Photos only where they mean something. A contractor documents the
-            work; an agency does not photograph a client, so leading with an
-            empty gallery was answering a question nobody asked.
-          */}
           {orgId && org?.kind === 'contractor' && (
             <Photos orgId={orgId} customerId={params.id} />
-          )}
-
-          <SectionLabel>{vocab.jobPlural} ({jobs.length})</SectionLabel>
-          {jobs.length === 0 ? (
-            <Card><Empty>None yet.</Empty></Card>
-          ) : (
-            <Table>
-              {jobs.map((j) => (
-                <Row key={j.id} cols="1fr 90px" onClick={() => router.push(`/jobs/${j.id}`)}>
-                  <div>{j.name}</div>
-                  <div><Pill tone="neutral">{JOB_STATUS_LABEL[j.status]}</Pill></div>
-                </Row>
-              ))}
-            </Table>
           )}
         </div>
       </div>

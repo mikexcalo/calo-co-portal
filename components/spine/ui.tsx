@@ -353,9 +353,36 @@ export const inputStyle: React.CSSProperties = {
   boxSizing: 'border-box',
 };
 
-export function Empty({ children }: { children: React.ReactNode }) {
+/**
+ * Nothing here yet.
+ *
+ * Was 28px of padding and centred text, so an empty section took as much
+ * vertical space as a full one. Stack four of those on a record and the
+ * things somebody can actually act on end up below the fold, which is the
+ * same as not building them.
+ *
+ * Now a single quiet line, left-aligned with everything else on the page. The
+ * `hero` variant keeps the old weight for the handful of places where the
+ * empty state IS the screen — a first-run inbox, an untouched module — and
+ * where filling it is the only thing to do.
+ */
+export function Empty({
+  children,
+  hero,
+}: {
+  children: React.ReactNode;
+  hero?: boolean;
+}) {
   return (
-    <div style={{ padding: '28px 4px', color: C.faint, fontSize: 13, textAlign: 'center' }}>
+    <div
+      style={{
+        padding: hero ? '28px 4px' : '2px 0',
+        color: C.faint,
+        fontSize: 13,
+        lineHeight: 1.6,
+        textAlign: hero ? 'center' : 'left',
+      }}
+    >
       {children}
     </div>
   );

@@ -210,7 +210,30 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
                     Make main
                   </Button>
                 )}
-                <Button variant="danger" onClick={() => setConfirmDelete(p)}>Remove</Button>
+                {/* Pushed away from the phone number it was sitting beside.
+                    A destructive control inside arm's reach of the thing you
+                    tap most is how people delete a contact trying to call
+                    one. */}
+                <button
+                  onClick={() => setConfirmDelete(p)}
+                  aria-label={`Remove ${p.name}`}
+                  title="Remove"
+                  style={{
+                    marginLeft: 4,
+                    width: 26,
+                    height: 26,
+                    borderRadius: 6,
+                    border: `1px solid ${C.border}`,
+                    background: 'transparent',
+                    color: C.faint,
+                    fontSize: 14,
+                    lineHeight: 1,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  ×
+                </button>
               </div>
             </div>
           ))}
