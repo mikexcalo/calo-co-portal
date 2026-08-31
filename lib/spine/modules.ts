@@ -120,12 +120,17 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
 /**
  * Routes every business can reach regardless of modules.
  *
+ * /brands is deliberately not in the sidebar. Every brand belongs to a client,
+ * so the door is on the client record. The wall view of every brand at once
+ * earns its own row at ten clients and not at two, and this keeps it built and
+ * reachable until then. See docs/decisions.md.
+ *
  * /security belongs here rather than in ROUTE_MODULE: it protects the person,
  * not the business, and switching to a business that happened to have the
  * module turned off should never be able to strand someone halfway through
  * setting up two-factor.
  */
-const ALWAYS = ['/', '/login', '/welcome', '/security', '/trust'];
+const ALWAYS = ['/', '/login', '/welcome', '/security', '/trust', '/brands'];
 
 /**
  * Is this path reachable for this business? Returns false only for a route
@@ -242,8 +247,6 @@ export function navFor(
       items: [
         { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'megaphone' },
         { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
-        // Client identities, which only an agency holds.
-        { id: 'brands', label: 'Brands', href: '/brands', icon: 'palette' },
         { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'inbox' },
         { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
