@@ -158,6 +158,14 @@ const icons: Record<string, React.ReactNode> = {
       <path d="M12.6 6.2a2.6 2.6 0 0 1 0 3.6" />
     </svg>
   ),
+  // Overlapping swatches. Brand Kit is your own identity; this is the shelf of
+  // everyone else's.
+  palette: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 1.9a6.1 6.1 0 1 0 0 12.2c.9 0 1.4-.6 1.4-1.3 0-.8-.7-1.2-.7-1.9 0-.6.5-1.1 1.2-1.1h1.2A3.1 3.1 0 0 0 14.1 6.7C13.7 4 11.1 1.9 8 1.9z" />
+      <circle cx="5.2" cy="6.4" r=".85" /><circle cx="8" cy="4.9" r=".85" /><circle cx="10.8" cy="6.4" r=".85" />
+    </svg>
+  ),
   shield: (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 1.6 2.9 3.8v3.5c0 3 2.1 5.7 5.1 6.9 3-1.2 5.1-3.9 5.1-6.9V3.8z" />

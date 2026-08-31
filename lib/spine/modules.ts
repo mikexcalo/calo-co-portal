@@ -23,6 +23,7 @@ export type ModuleId =
   | 'website'        // client-facing: ask my agency for a site change
   | 'client_requests' // agency-facing: the inbox of client requests
   | 'brand_kit'
+  | 'brands'
   | 'account'        // client-facing: what I owe my agency
   | 'pricing'
   | 'records'
@@ -69,6 +70,7 @@ const AGENCY: ModuleId[] = [
   'pricing',
   'records',
   'brand_kit',
+  'brands',
   'client_requests',
   'team',
   'security',
@@ -106,6 +108,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/website', 'website'],
   ['/requests', 'client_requests'],
   ['/brand-kit', 'brand_kit'],
+  ['/brands', 'brands'],
   ['/business', 'business'],
   ['/team', 'team'],
   ['/pricing', 'pricing'],
@@ -239,6 +242,8 @@ export function navFor(
       items: [
         { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'megaphone' },
         { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
+        // Client identities, which only an agency holds.
+        { id: 'brands', label: 'Brands', href: '/brands', icon: 'palette' },
         { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'inbox' },
         { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],

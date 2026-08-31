@@ -69,7 +69,7 @@ const STAGE_TONE = {
 
 export default function CustomersPage() {
   const router = useRouter();
-  const { vocab } = useOrg();
+  const { vocab, org } = useOrg();
   const [rows, setRows] = useState<Summary[]>([]);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -140,16 +140,47 @@ export default function CustomersPage() {
     }
   };
 
+  /**
+   * Brands a client owns, for the agency view.
+   *
+   * A client and a brand are not the same thing and searching by contact name
+   * only finds one of them. A parent company can hold several identities, and
+   * the one you carry in your head is usually the brand, not the legal entity
+   * that pays the invoice.
+   *
+   * Contractors never see this: they have no brands, so the row never renders.
+   */
+  const [brands, setBrands] = useState<Array<{ id: string; name: string; customer_id: string | null }>>([]);
+  const [brandFilter, setBrandFilter] = useState<string>('all');
+
+  useEffect(() => {
+    if (!org) return;
+    supabase
+      .from('brands')
+      .select('id, name, customer_id')
+      .eq('org_id', org.id)
+      .neq('status', 'archived')
+      .order('name')
+      .then(({ data }) => setBrands(data ?? []));
+  }, [org]);
+
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
+    const brandClient =
+      brandFilter === 'all' ? null : brands.find((b) => b.id === brandFilter)?.customer_id ?? null;
+
     return rows.filter((r) => {
       if (stageFilter !== 'all' && r.stage !== stageFilter) return false;
+      if (brandFilter !== 'all' && r.customer_id !== brandClient) return false;
       if (!term) return true;
-      return [r.name, r.contact_name, r.email, r.phone].some((v) =>
+      // Brand names are searchable too, so typing "Colette" finds the client
+      // even when the record is filed under a different legal name.
+      const brandNames = brands.filter((b) => b.customer_id === r.customer_id).map((b) => b.name);
+      return [r.name, r.contact_name, r.email, r.phone, ...brandNames].some((v) =>
         v?.toLowerCase().includes(term)
       );
     });
-  }, [rows, q, stageFilter]);
+  }, [rows, q, stageFilter, brandFilter, brands]);
 
   // The three things a CRM should shout about.
   const dueNow = today ? rows.filter((r) => r.next_action_on && r.next_action_on <= today) : [];
@@ -248,6 +279,22 @@ export default function CustomersPage() {
             </button>
           ))}
         </div>
+
+        {/* Only appears once there is more than one brand to choose between.
+            A filter with a single option is furniture. */}
+        {brands.length > 1 && (
+          <select
+            value={brandFilter}
+            onChange={(e) => setBrandFilter(e.target.value)}
+            aria-label="Filter by brand"
+            style={{ ...inputStyle, maxWidth: 190, background: C.panel, fontSize: 12.5 }}
+          >
+            <option value="all">All brands</option>
+            {brands.map((b) => (
+              <option key={b.id} value={b.id}>{b.name}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       {loading ? (
