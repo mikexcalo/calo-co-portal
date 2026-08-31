@@ -110,7 +110,9 @@ export function Links({
 
   return (
     <div style={{ marginBottom: 26 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+      {/* SectionLabel carries its own bottom margin, which the flex row eats.
+          Without a margin here the button sits flush on whatever follows. */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 10 }}>
         <SectionLabel>Links ({rows.length})</SectionLabel>
         <Button variant="ghost" onClick={() => setAdding((v) => !v)}>
           {adding ? 'Cancel' : 'Add a link'}

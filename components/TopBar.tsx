@@ -9,26 +9,39 @@ import { C } from '@/components/spine/ui';
 import { Notifications } from '@/components/spine/Notifications';
 import { PRODUCT } from '@/lib/brand';
 
-const TITLES: Record<string, string> = {
+/**
+ * Page titles, in the business's own words.
+ *
+ * This was a fixed map, so the sidebar said Clients and the bar above it said
+ * Customers on the same screen. Two names for one thing, six inches apart, is
+ * the kind of detail that makes software feel unfinished.
+ */
+const titlesFor = (vocab: { jobPlural: string; customerPlural: string; estimate: string }) => ({
   '/': 'Today',
-  '/jobs': 'Jobs',
-  '/customers': 'Customers',
+  '/jobs': vocab.jobPlural,
+  '/customers': vocab.customerPlural,
   '/documents': 'Receipts',
-  '/billing': 'Billing',
+  '/billing': 'Invoices',
   '/pl': 'Profit & Loss',
   '/records': 'Records',
-  '/proposals': 'Proposals',
+  '/notes': 'Notes',
+  '/expenses': 'Overheads',
+  '/proposals': `${vocab.estimate}s`,
   '/pricing': 'Price List',
-  '/requests': 'Site requests',
+  '/requests': 'Requests',
+  '/pitches': 'Pitches',
   '/brand-kit': 'Brand Kit',
+  '/website': 'Your Website',
+  '/security': 'Security',
+  '/team': 'Team',
   '/business': 'Business',
-};
+} as Record<string, string>);
 
 export default function TopBar() {
   const pathname = usePathname();
   const router = useRouter();
   const { openPanel } = useTutorial();
-  const { org } = useOrg();
+  const { org, vocab } = useOrg();
 
   /**
    * The business's own website, one click away from anywhere.
@@ -57,7 +70,7 @@ export default function TopBar() {
   }, [org]);
 
   const title =
-    TITLES[pathname] ??
+    titlesFor(vocab)[pathname] ??
     pathname
       .split('/')
       .filter(Boolean)[0]

@@ -76,6 +76,7 @@ export default function Dashboard() {
     openRequests: 0,
     jobsNoCustomer: 0,
     customerCount: 0,
+    goneQuiet: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -98,13 +99,16 @@ export default function Dashboard() {
         ]);
         const bd = await supabase.from('billing_due').select('*');
 
+        const quietCutoff = new Date();
+        quietCutoff.setDate(quietCutoff.getDate() - 4);
+
         const staleCutoff = new Date();
         staleCutoff.setDate(staleCutoff.getDate() - 7);
         const soonCutoff = new Date();
         soonCutoff.setDate(soonCutoff.getDate() + 45);
         const head = { count: 'exact' as const, head: true };
 
-        const [noEmail, unconfirmed, draftEst, staleEst, expiring, needReview, reqs, noCustomer, custCount] =
+        const [noEmail, unconfirmed, draftEst, staleEst, expiring, needReview, reqs, noCustomer, custCount, quiet] =
           await Promise.all([
             supabase.from('customers').select('id', head).is('email', null),
             supabase.from('price_items').select('id', head).eq('confirmed', false),
@@ -120,6 +124,18 @@ export default function Dashboard() {
             supabase.from('jobs').select('id', head).is('customer_id', null)
               .not('status', 'in', '(closed,lost)'),
             supabase.from('customers').select('id', head),
+            /**
+             * People who owe you an answer.
+             *
+             * Four days is the threshold. Sooner and you are pestering
+             * somebody who is on a roof; much later and the job has gone cold
+             * without anybody deciding to let it.
+             */
+            supabase
+              .from('customers')
+              .select('id', head)
+              .not('awaiting_reply_since', 'is', null)
+              .lte('awaiting_reply_since', quietCutoff.toISOString().slice(0, 10)),
           ]);
         if (cancelled) return;
         setJobs(j);
@@ -136,6 +152,7 @@ export default function Dashboard() {
           openRequests: reqs.count ?? 0,
           jobsNoCustomer: noCustomer.count ?? 0,
           customerCount: custCount.count ?? 0,
+          goneQuiet: quiet.count ?? 0,
         });
         if (!bd.error) {
           setDueToBill(
@@ -360,6 +377,22 @@ export default function Dashboard() {
       cta: 'Set your rates',
       href: '/business',
       tone: 'red',
+    });
+  }
+
+  if (signals.goneQuiet > 0) {
+    attention.push({
+      key: 'quiet',
+      tone: 'amber',
+      title: `${signals.goneQuiet} ${signals.goneQuiet === 1 ? 'person hasn' : "people haven"}'t replied`,
+      detail:
+        'You reached out and heard nothing back. Four days or more. Worth another try before it goes cold.',
+      cta: 'See who',
+      href: '/customers',
+      // Below unbilled money, above tidying. A silent customer is a job that
+      // may quietly not happen, which costs more than a missing email address
+      // and less than work you have already done and not charged for.
+      weight: 4_000,
     });
   }
 

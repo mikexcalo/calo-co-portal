@@ -153,7 +153,7 @@ export function Photos({
 
   return (
     <div style={{ marginBottom: 26 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 10 }}>
         <SectionLabel>Photos ({photos.length})</SectionLabel>
         <Button variant="ghost" onClick={() => inputRef.current?.click()} disabled={busy}>
           {busy ? `Uploading ${uploading}…` : 'Add photos'}

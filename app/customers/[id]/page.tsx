@@ -17,6 +17,7 @@ import { getCurrentOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import { Links } from '@/components/spine/Links';
 import { Photos } from '@/components/spine/Photos';
+import { People } from '@/components/spine/People';
 import { JOB_STATUS_LABEL } from '@/lib/spine/types';
 import type { JobStatus } from '@/lib/spine/types';
 import {
@@ -49,6 +50,7 @@ interface Customer {
   phone: string | null;
   address: string | null;
   website: string | null;
+  awaiting_reply_since?: string | null;
   avatar_url: string | null;
   notes: string | null;
   stage: 'prospect' | 'active' | 'past' | 'lost';
@@ -59,7 +61,9 @@ interface Customer {
 
 interface Note {
   id: string;
-  kind: 'note' | 'call' | 'email' | 'meeting' | 'quote' | 'system';
+  kind: 'note' | 'call' | 'text' | 'email' | 'meeting' | 'quote' | 'system';
+  /** 'out' = you contacted them. Only an unanswered one means they owe a reply. */
+  direction?: 'out' | 'in' | null;
   body: string;
   happened_on: string;
   created_at: string;
@@ -74,6 +78,7 @@ interface JobRow {
 const KIND_LABEL: Record<Note['kind'], string> = {
   note: 'Note',
   call: 'Call',
+  text: 'Text',
   email: 'Email',
   meeting: 'Meeting',
   quote: 'Quote',
@@ -83,7 +88,7 @@ const KIND_LABEL: Record<Note['kind'], string> = {
 export default function CustomerDetail({ params }: { params: { id: string } }) {
   const phone = useIsPhone();
   const router = useRouter();
-  const { vocab } = useOrg();
+  const { vocab, org } = useOrg();
 
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -96,6 +101,13 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
 
   const [noteBody, setNoteBody] = useState('');
   const [noteKind, setNoteKind] = useState<Note['kind']>('call');
+  /**
+   * Who reached out. A note saying "texted Mark" reads identically whether he
+   * replied within the hour or has been silent a fortnight, and only one of
+   * those needs chasing. Logging anything inbound clears the flag on its own,
+   * so nobody has to remember to tidy up after a reply.
+   */
+  const [noteDirection, setNoteDirection] = useState<'out' | 'in'>('out');
   const [draft, setDraft] = useState<Partial<Customer>>({});
 
   const load = useCallback(async () => {
@@ -141,6 +153,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
         org_id: orgId,
         customer_id: params.id,
         kind: noteKind,
+        direction: noteDirection,
         body: noteBody.trim(),
         author_id: auth?.user?.id ?? null,
       });
@@ -318,14 +331,16 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             </Card>
           ) : null}
 
-          {orgId && <Photos orgId={orgId} customerId={params.id} />}
-
-          {orgId && <Links orgId={orgId} customerId={params.id} />}
-
+          {/*
+            History leads, because the question this page answers is "where are
+            we with these people". Photos led before, which meant an agency
+            opened a client record and was shown an empty picture gallery
+            instead of the last thing that was said.
+          */}
           <SectionLabel>History</SectionLabel>
           <Card style={{ marginBottom: 14 }}>
             <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-              {(['call', 'email', 'meeting', 'note'] as const).map((k) => (
+              {(['call', 'text', 'email', 'meeting', 'note'] as const).map((k) => (
                 <button
                   key={k}
                   onClick={() => setNoteKind(k)}
@@ -344,6 +359,27 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                 </button>
               ))}
             </div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+              {([['out', 'I reached out'], ['in', 'They got in touch']] as const).map(([d, label]) => (
+                <button
+                  key={d}
+                  onClick={() => setNoteDirection(d)}
+                  style={{
+                    padding: '5px 11px',
+                    borderRadius: 20,
+                    fontSize: 11.5,
+                    border: `1px solid ${noteDirection === d ? C.accent : C.border}`,
+                    background: noteDirection === d ? C.accentSoft : 'transparent',
+                    color: noteDirection === d ? C.text : C.dim,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
             <textarea
               value={noteBody}
               onChange={(e) => setNoteBody(e.target.value)}
@@ -412,8 +448,35 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                 </a>
               )}
               {customer.website && (
-                <a href={customer.website} target="_blank" rel="noopener" style={{ fontSize: 12.5, color: C.accent, textDecoration: 'none' }}>
-                  {customer.website.replace(/^https?:\/\//, '')}
+                /* A button rather than a line of small blue text. Opening a
+                   client's site is something you do constantly while working
+                   on it, and it should not look like a footnote. */
+                <a
+                  href={customer.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 7,
+                    marginTop: 4,
+                    padding: '9px 14px',
+                    borderRadius: 8,
+                    border: `1px solid ${C.border}`,
+                    background: C.panelAlt,
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: C.text,
+                    textDecoration: 'none',
+                  }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <circle cx="8" cy="8" r="6.3" />
+                    <path d="M1.7 8h12.6" />
+                    <path d="M8 1.7a10 10 0 0 1 0 12.6 10 10 0 0 1 0-12.6" />
+                  </svg>
+                  Open {customer.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
                 </a>
               )}
               {customer.address && (
@@ -421,12 +484,47 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               )}
             </div>
 
+            {customer.awaiting_reply_since && (
+              /* Said on the record itself, not only on Today. Opening
+                 somebody's page and seeing "silent since Thursday" is the
+                 moment you decide whether to chase, and it should not require
+                 reading back through the history to work out. */
+              <div
+                style={{
+                  marginTop: 14,
+                  padding: '10px 12px',
+                  borderRadius: 8,
+                  background: C.amberSoft,
+                  border: `1px solid ${C.amber}44`,
+                  fontSize: 12.5,
+                  color: C.text,
+                  lineHeight: 1.55,
+                }}
+              >
+                No reply since {shortDate(customer.awaiting_reply_since)}. Logging anything they
+                send clears this.
+              </div>
+            )}
+
             {customer.last_contacted_on && (
               <div style={{ fontSize: 11, color: C.faint, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.border}` }}>
                 Last contact {shortDate(customer.last_contacted_on)}
               </div>
             )}
           </Card>
+
+          {orgId && <People orgId={orgId} customerId={params.id} />}
+
+          {orgId && <Links orgId={orgId} customerId={params.id} />}
+
+          {/*
+            Photos only where they mean something. A contractor documents the
+            work; an agency does not photograph a client, so leading with an
+            empty gallery was answering a question nobody asked.
+          */}
+          {orgId && org?.kind === 'contractor' && (
+            <Photos orgId={orgId} customerId={params.id} />
+          )}
 
           <SectionLabel>{vocab.jobPlural} ({jobs.length})</SectionLabel>
           {jobs.length === 0 ? (
