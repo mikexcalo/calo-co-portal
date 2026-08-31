@@ -24,6 +24,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
+import { Processing } from '@/components/spine/Processing';
 import { findDuplicates, parseContacts, type SheetRow } from '@/lib/spine/sheet';
 import {
   Button,
@@ -53,13 +54,16 @@ export default function ImportCustomersPage() {
   const [error, setError] = useState<string | null>(null);
   const [imported, setImported] = useState(0);
   const [pasted, setPasted] = useState('');
+  const [reading, setReading] = useState(false);
 
   const ingest = useCallback(
     async (text: string, name: string) => {
       setError(null);
+      setReading(true);
       const parsed = parseContacts(text);
 
       if (parsed.rows.length === 0) {
+        setReading(false);
         setError(
           "We couldn't find any contacts in that. Check there's one row per person, with at least a name or an email."
         );
@@ -77,6 +81,7 @@ export default function ImportCustomersPage() {
       setNeedsHelp(parsed.needsHelp);
       setSourceName(name);
       setStage('review');
+      setReading(false);
     },
     []
   );
@@ -173,6 +178,12 @@ export default function ImportCustomersPage() {
         <Card style={{ borderColor: C.red, marginBottom: 16, maxWidth: 700 }}>
           <div style={{ color: C.red, fontSize: 13, lineHeight: 1.6 }}>{error}</div>
         </Card>
+      )}
+
+      {reading && (
+        <div style={{ maxWidth: 700, marginBottom: 14 }}>
+          <Processing stage="reading" stages={['reading']} />
+        </div>
       )}
 
       {stage === 'drop' && (

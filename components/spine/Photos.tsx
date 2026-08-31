@@ -18,6 +18,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, Empty, SectionLabel } from './ui';
 import { Confirm } from './Confirm';
+import { Processing } from './Processing';
 
 interface Photo {
   id: string;
@@ -170,6 +171,14 @@ export function Photos({
 
       {error && (
         <div style={{ fontSize: 12.5, color: C.red, margin: '6px 0 10px', lineHeight: 1.55 }}>{error}</div>
+      )}
+
+      {busy && uploading > 0 && (
+        <div style={{ margin: '8px 0 10px' }}>
+          {/* Photos are stored, never read, so offering a reading stage would
+              be describing work that never happens. */}
+          <Processing stage="uploading" stages={['uploading', 'saving']} count={uploading} />
+        </div>
       )}
 
       <div

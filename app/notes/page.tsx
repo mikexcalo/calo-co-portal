@@ -15,6 +15,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
+import { Processing } from '@/components/spine/Processing';
 import { useOrg } from '@/lib/spine/org';
 import {
   Button,
@@ -178,6 +179,12 @@ export default function NotesPage() {
         <Card style={{ borderColor: C.red, marginBottom: 16, maxWidth: 720 }}>
           <div style={{ color: C.red, fontSize: 13, lineHeight: 1.6 }}>{error}</div>
         </Card>
+      )}
+
+      {busy && !result && (
+        <div style={{ maxWidth: 720, marginBottom: 14 }}>
+          <Processing stage="reading" stages={['reading', 'saving']} />
+        </div>
       )}
 
       {!result && (

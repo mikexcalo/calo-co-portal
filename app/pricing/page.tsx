@@ -15,6 +15,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import supabase from '@/lib/supabase';
+import { Processing } from '@/components/spine/Processing';
 import { getCurrentOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import {
@@ -215,6 +216,17 @@ export default function PricingPage() {
         onChange={(e) => importFile(e.target.files?.[0] ?? null)}
         style={{ display: 'none' }}
       />
+
+      {busy && (
+
+        <div style={{ marginBottom: 12 }}>
+
+          <Processing stage="reading" />
+
+        </div>
+
+      )}
+
 
       <DropZone
         onFiles={(files) => importFile(files[0] ?? null)}
