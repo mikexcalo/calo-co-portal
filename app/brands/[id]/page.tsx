@@ -3,14 +3,13 @@
 /**
  * One brand.
  *
- * Everything that decides what the work looks like and sounds like: the
- * palette with each colour's job, the type stack, the voice rules, and the
- * things that are not cleared yet.
+ * The palette with each colour's job, and the type stack shown in the actual
+ * faces at the sizes their roles call for.
  *
- * What is unresolved goes first. An unlicensed wordmark and two uncleared
- * photographs are cheap to fix now and expensive on launch day, and they are
- * exactly the sort of thing that gets forgotten because nothing in a folder
- * of assets says "this one is a problem".
+ * A list of font names is a list of font names. Nobody can tell whether a
+ * pairing works by reading "Newsreader 300, tracking -0.03em" — you have to
+ * see the headline set as a headline next to the body set as body. So the page
+ * loads the real families and renders each one doing its own job.
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -47,6 +46,31 @@ interface Brand {
   customer?: { name: string; id: string } | null;
 }
 
+/**
+ * What each role should look like, taken from how these faces are actually
+ * used rather than from a generic type scale. A display face at 15px tells you
+ * nothing; at 42px you can see the tracking is too tight.
+ */
+function specimenStyle(role: string | undefined): React.CSSProperties {
+  const r = (role ?? '').toLowerCase();
+  if (/display|headline|wordmark/.test(r)) {
+    return { fontSize: 'clamp(30px, 4.4vw, 44px)', lineHeight: 1.12, letterSpacing: '-0.03em', fontWeight: 300 };
+  }
+  if (/eyebrow|label/.test(r)) {
+    return { fontSize: 13, letterSpacing: '0.17em', textTransform: 'uppercase', fontWeight: 600 };
+  }
+  return { fontSize: 17, lineHeight: 1.65, fontWeight: 400 };
+}
+
+/** What to set in each face so the specimen shows the face, not the words. */
+function specimenText(role: string | undefined, family: string): string {
+  const r = (role ?? '').toLowerCase();
+  if (/wordmark/.test(r)) return family.split(' ')[0];
+  if (/display|headline/.test(r)) return 'The work, in their own words';
+  if (/eyebrow|label/.test(r)) return 'How it works';
+  return 'Set at the size it runs on the page, so the line length and the colour of the paragraph are the thing you are judging.';
+}
+
 const kb = (n?: number) =>
   !n ? '' : n > 1_000_000 ? `${(n / 1_000_000).toFixed(1)}MB` : `${Math.round(n / 1000)}KB`;
 
@@ -76,22 +100,31 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
   if (loading) return <Page title="Brand"><Card><Empty>Loading…</Empty></Card></Page>;
   if (!brand) return <Page title="Brand"><Card><Empty>Not found.</Empty></Card></Page>;
 
-  const { colors = [], fonts = [], voice = {}, assets = [] } = brand.kit ?? {};
-  const items = brand.open_items ?? [];
+  const { colors = [], fonts = [], assets = [] } = brand.kit ?? {};
   const grouped = assets.reduce<Record<string, Asset[]>>((acc, a) => {
     const g = a.group || 'other';
     (acc[g] ??= []).push(a);
     return acc;
   }, {});
 
+  /**
+   * Only the families this brand actually uses, requested by name.
+   *
+   * Loading a fixed list would mean fetching faces nobody here needs and still
+   * missing the one the next client turns up with. Anything not on Google
+   * Fonts simply will not resolve, which is correct: a licensed face we have
+   * no rights to should not silently render.
+   */
+  const webFonts = fonts
+    .filter((f) => /google/i.test(f.source ?? ''))
+    .map((f) => `family=${f.family.trim().replace(/\s+/g, '+')}:wght@300;400;600;700`)
+    .join('&');
+
   const copy = (hex: string) => {
     navigator.clipboard?.writeText(hex);
     setCopied(hex);
     setTimeout(() => setCopied(null), 1500);
   };
-
-  const never = (voice.never_use as string[] | undefined) ?? [];
-  const always = (voice.always as string[] | undefined) ?? [];
 
   return (
     <Page
@@ -108,36 +141,12 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
         </>
       }
     >
-      {items.length > 0 && (
-        <div style={{ marginBottom: 26 }}>
-          <SectionLabel>Before this can launch ({items.length})</SectionLabel>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {items.map((it, i) => {
-              const blocking = it.severity === 'blocker';
-              return (
-                <div
-                  key={i}
-                  style={{
-                    border: `1px solid ${blocking ? `${C.red}44` : C.border}`,
-                    background: blocking ? C.redSoft : C.panel,
-                    borderRadius: 8,
-                    padding: '11px 13px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 13.5, fontWeight: 600, color: C.text }}>{it.item}</span>
-                    {blocking && <Pill tone="red">Blocks launch</Pill>}
-                  </div>
-                  {it.why && (
-                    <div style={{ fontSize: 12.5, color: C.dim, marginTop: 3, lineHeight: 1.55 }}>
-                      {it.why}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      {webFonts && (
+        // eslint-disable-next-line @next/next/no-page-custom-font
+        <link
+          rel="stylesheet"
+          href={`https://fonts.googleapis.com/css2?${webFonts}&display=swap`}
+        />
       )}
 
       {colors.length > 0 && (
@@ -208,96 +217,66 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
         <div style={{ marginBottom: 26 }}>
           <SectionLabel>Type</SectionLabel>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {fonts.map((f) => (
-              <div
-                key={f.family}
-                style={{
-                  border: `1px solid ${C.border}`,
-                  borderRadius: 8,
-                  padding: '11px 13px',
-                  background: C.panel,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                  flexWrap: 'wrap',
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{f.family}</div>
-                  <div style={{ fontSize: 12, color: C.faint, marginTop: 2 }}>
-                    {[f.role, f.weight, f.tracking].filter(Boolean).join(' · ')}
-                  </div>
-                </div>
-                {f.source && (
-                  <Pill tone={/licens/i.test(f.source) ? 'amber' : 'neutral'}>{f.source}</Pill>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {(never.length > 0 || always.length > 0) && (
-        <div style={{ marginBottom: 26 }}>
-          <SectionLabel>Voice</SectionLabel>
-          <Card>
-            {never.length > 0 && (
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: C.red, marginBottom: 7 }}>
-                  Never use
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {never.map((w) => (
-                    <span
-                      key={w}
-                      style={{
-                        fontSize: 12,
-                        padding: '4px 9px',
-                        borderRadius: 6,
-                        background: C.redSoft,
-                        color: C.red,
-                      }}
-                    >
-                      {w}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            {always.length > 0 && (
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: C.green, marginBottom: 7 }}>
-                  Always
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {always.map((w) => (
-                    <span
-                      key={w}
-                      style={{
-                        fontSize: 12,
-                        padding: '4px 9px',
-                        borderRadius: 6,
-                        background: C.greenSoft,
-                        color: C.green,
-                      }}
-                    >
-                      {w}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            {['rhythm', 'structure', 'rtb_test', 'section_rhythm'].map((k) =>
-              voice[k] ? (
-                <p
-                  key={k}
-                  style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: '0 0 8px' }}
+            {fonts.map((f) => {
+              const loadable = /google/i.test(f.source ?? '');
+              return (
+                <div
+                  key={f.family}
+                  style={{
+                    border: `1px solid ${C.border}`,
+                    borderRadius: 10,
+                    padding: '16px 18px',
+                    background: C.panel,
+                  }}
                 >
-                  {String(voice[k])}
-                </p>
-              ) : null
-            )}
-          </Card>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      gap: 12,
+                      flexWrap: 'wrap',
+                      alignItems: 'baseline',
+                      marginBottom: 12,
+                    }}
+                  >
+                    <div>
+                      <span style={{ fontSize: 13.5, fontWeight: 600, color: C.text }}>
+                        {f.family}
+                      </span>
+                      <span style={{ fontSize: 12, color: C.faint, marginLeft: 8 }}>
+                        {[f.role, f.weight, f.tracking].filter(Boolean).join(' · ')}
+                      </span>
+                    </div>
+                    {!loadable && f.source && (
+                      <Pill tone="amber">{f.source}</Pill>
+                    )}
+                  </div>
+
+                  <div
+                    style={{
+                      ...specimenStyle(f.role),
+                      // Falls back to a system serif or sans of roughly the
+                      // right shape, so an unloadable face still reads at the
+                      // right weight rather than collapsing to the UI font.
+                      fontFamily: loadable
+                        ? `'${f.family}', ${/newsreader|serif/i.test(f.family) ? 'Georgia, serif' : 'system-ui, sans-serif'}`
+                        : 'system-ui, sans-serif',
+                      color: C.text,
+                      opacity: loadable ? 1 : 0.55,
+                    }}
+                  >
+                    {specimenText(f.role, f.family)}
+                  </div>
+
+                  {!loadable && (
+                    <div style={{ fontSize: 11.5, color: C.faint, marginTop: 10, lineHeight: 1.55 }}>
+                      Shown in a substitute. This face is licensed and is not loaded here.
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
