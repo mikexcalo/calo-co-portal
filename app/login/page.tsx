@@ -44,6 +44,8 @@ function LoginForm() {
   const [error, setError] = useState(
     params.get('error') === 'auth'
       ? 'That sign-in link did not work. Try again.'
+      : params.get('error') === 'expired'
+      ? 'That link has already been used or has expired. Ask for a new one below.'
       : params.get('error') === 'noworkspace'
       ? `That account works, but no workspace is attached to it yet. ${PROVIDER} sets those up. Get in touch and we'll add you.`
       : ''
