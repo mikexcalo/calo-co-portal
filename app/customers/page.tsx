@@ -159,7 +159,7 @@ export default function CustomersPage() {
   return (
     <Page
       title={vocab.customerPlural}
-      subtitle={`Who to deal with today, and what everyone is worth. Value comes from their ${vocab.jobPlural.toLowerCase()}, never typed in.`}
+      subtitle={`Everyone you work with, sorted by who needs you first. Totals come straight from their ${vocab.jobPlural.toLowerCase()}.`}
       action={
         <>
           <Button variant="ghost" onClick={() => router.push('/customers/import')}>

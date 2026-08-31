@@ -36,7 +36,6 @@ import {
   money0,
   shortDate,
   inputStyle,
-  moneyTabs,
 } from '@/components/spine/ui';
 import { METHODS } from '@/lib/spine/payments';
 
@@ -213,7 +212,7 @@ export default function BillingPage() {
   const drafts = live.filter((i) => i.status === 'draft').length;
 
   return (
-    <Page tabs={moneyTabs(vocab)} title="Billing" subtitle="Invoices built from logged hours and filed receipts.">
+    <Page title="Billing" subtitle="Built from the hours you logged and the receipts you filed. Nothing retyped.">
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 13 }}>{error}</div>

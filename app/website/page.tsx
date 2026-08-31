@@ -28,7 +28,6 @@ import {
   inputStyle,
   shortDate,
   useIsPhone,
-  growTabs,
 } from '@/components/spine/ui';
 
 interface Site {
@@ -179,7 +178,6 @@ export default function WebsitePage() {
 
   return (
     <Page
-      tabs={growTabs({ requests: mods.has('client_requests'), website: mods.has('website'), brandKit: mods.has('brand_kit') })}
       title="Your website"
       subtitle={
         site

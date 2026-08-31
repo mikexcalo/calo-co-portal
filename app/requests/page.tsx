@@ -23,7 +23,6 @@ import {
   SectionLabel,
   inputStyle,
   shortDate,
-  growTabs,
 } from '@/components/spine/ui';
 
 type Status = 'submitted' | 'needs_info' | 'approved' | 'building' | 'shipped' | 'declined';
@@ -158,9 +157,8 @@ export default function RequestsPage() {
 
   return (
     <Page
-      tabs={growTabs({ requests: mods.has('client_requests'), website: mods.has('website'), brandKit: mods.has('brand_kit') })}
       title="Site requests"
-      subtitle="Changes clients have asked for. Approve or modify. What gets built is your version of the brief."
+      subtitle="Changes your clients have asked for. What you approve is what gets built."
     >
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>

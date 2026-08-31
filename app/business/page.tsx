@@ -181,7 +181,7 @@ export default function BusinessPage() {
   return (
     <Page
       title={org.name}
-      subtitle="Your rates, how customers pay you, and what connects to this."
+      subtitle="Your rates, how you get paid, and what else plugs into this."
       action={
         <Pill tone={org.kind === 'agency' ? 'blue' : 'green'}>
           {org.kind === 'agency' ? 'Agency' : 'Contractor'}

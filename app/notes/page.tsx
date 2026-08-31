@@ -173,7 +173,7 @@ export default function NotesPage() {
   return (
     <Page
       title="Notes"
-      subtitle="Paste a call transcript or your notes. We pull out what matters. You approve it before it saves."
+      subtitle="Paste a call transcript or your notes. We pull out what matters, you check it, then it saves."
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16, maxWidth: 720 }}>

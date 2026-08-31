@@ -55,7 +55,6 @@ import {
   money,
   shortDate,
   useIsPhone,
-  moneyTabs,
 } from '@/components/spine/ui';
 
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -288,9 +287,8 @@ export default function DocumentsPage() {
 
   return (
     <Page
-      tabs={moneyTabs(vocab)}
       title="Receipts"
-      subtitle="Photograph a receipt and it becomes a job cost. Each one is read once, and you approve what it read before anything is saved."
+      subtitle="Photograph a receipt and it becomes a job cost. You check what we read before anything saves."
       action={
         <Button onClick={() => fileRef.current?.click()}>Add documents</Button>
       }

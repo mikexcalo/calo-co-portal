@@ -199,7 +199,7 @@ export default function PricingPage() {
     <Page
       tabs={LIBRARY_TABS}
       title="Price list"
-      subtitle={`Standard prices for ${org?.name ?? 'this business'}. Used on estimates and invoices so the same number appears everywhere.`}
+      subtitle={`What you charge, in one place. Estimates and invoices pull from here, so the same number shows up everywhere.`}
       action={
         <>
           <Button variant="ghost" onClick={() => fileRef.current?.click()} disabled={busy}>

@@ -34,7 +34,6 @@ import {
   money0,
   shortDate,
   today,
-  moneyTabs,
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
 import { PRODUCT } from '@/lib/brand';
@@ -225,9 +224,8 @@ export default function ExpensesPage() {
 
   return (
     <Page
-      tabs={moneyTabs(vocab)}
       title="Overheads"
-      subtitle="What it costs to keep the business open, separate from any one job."
+      subtitle="What it costs to keep the doors open, separate from any one job."
       action={
         !adding ? <Button onClick={() => setAdding(true)}>Add an expense</Button> : undefined
       }

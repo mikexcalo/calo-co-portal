@@ -180,50 +180,70 @@ export function navFor(
    * a day, which is also the order they happen in.
    */
   /**
-   * Seven rows, no headings.
+   * Named rows, grouped, foldable. Nothing hidden behind a tab that isn't a
+   * different view of the same thing.
    *
-   * Fifteen rows across four headings was a table of contents, not a
-   * navigation. Nobody reads a list that long — they learn two or three
-   * positions by muscle memory and the rest becomes invisible, which is a
-   * worse outcome than not building the screens at all.
+   * This is the third arrangement, and the two failures either side of it are
+   * worth recording because they are opposite mistakes with the same cause.
    *
-   * What changed and why:
+   * Fifteen flat rows was a table of contents: everything visible, nothing
+   * prominent, so people learned three positions and the rest went unread.
    *
-   * Money became one destination with tabs. Invoices, estimates, receipts,
-   * overheads and profit are one subject seen from five angles, not five
-   * subjects. Five rows made them look unrelated and pushed everything else
-   * down the page.
+   * Seven rows with everything folded into tabs was worse. It looked tidy and
+   * made the product unusable, because a tab is invisible until you are
+   * already on the page that holds it. You cannot look for Receipts if
+   * nothing on screen says the word.
    *
-   * Grow became one destination the same way, for the same reason.
+   * THE RULE THAT SETTLED IT: tabs are for alternate views of the same
+   * thing. Rows are for different tasks. Price List and Records are both
+   * "look something up", so they share a row. Estimates and Invoices are
+   * quoting and billing — two different jobs on two different days — so they
+   * get their own rows and their own names.
    *
-   * Business, Team and Security left the sidebar entirely and live under the
-   * avatar, where every other product puts them. You configure them twice in
-   * the first week and then never again; three permanent rows for that is
-   * three rows stolen from the work.
-   *
-   * No group headings. At seven items they were labelling the obvious and
-   * costing four rows of vertical space, which matters most on the phone
-   * where this gets used standing up.
+   * Length is handled by folding a section you don't use, not by hiding
+   * things you might.
    */
-  const items: NavGroup['items'] = [
-    { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'yardSign' },
-    { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
-    { id: 'notes', label: 'Notes', href: '/notes', icon: 'proposal' },
-    // Money lands on Invoices, the one people open unprompted.
-    { id: 'billing', label: 'Money', href: '/billing', icon: 'invoices' },
-    ...(has('pricing') || has('records')
-      ? [{
-          id: (has('pricing') ? 'pricing' : 'records') as ModuleId,
-          label: 'Library',
-          href: has('pricing') ? '/pricing' : '/records',
-          icon: 'folder',
-        }]
-      : []),
-    { id: 'pitches', label: 'Grow', href: '/pitches', icon: 'designStudio' },
-    { id: 'account', label: 'Bills to You', href: '/account', icon: 'proposal' },
-  ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'];
-
-  const groups: NavGroup[] = [{ heading: '', items }];
+  const groups: NavGroup[] = [
+    {
+      heading: 'The Work',
+      items: [
+        { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'yardSign' },
+        { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
+        { id: 'receipts', label: 'Receipts', href: '/documents', icon: 'quotes' },
+        { id: 'notes', label: 'Notes', href: '/notes', icon: 'proposal' },
+        ...(has('pricing') || has('records')
+          ? [{
+              id: (has('pricing') ? 'pricing' : 'records') as ModuleId,
+              label: 'Library',
+              href: has('pricing') ? '/pricing' : '/records',
+              icon: 'folder',
+            }]
+          : []),
+      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
+    },
+    {
+      heading: 'Money',
+      items: [
+        { id: 'proposals', label: `${vocab.estimate}s`, href: '/proposals', icon: 'proposal' },
+        { id: 'billing', label: 'Invoices', href: '/billing', icon: 'invoices' },
+        { id: 'expenses', label: 'Overheads', href: '/expenses', icon: 'wallet' },
+        { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
+        { id: 'account', label: 'Bills to You', href: '/account', icon: 'proposal' },
+      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
+    },
+    {
+      heading: 'Grow',
+      // Folded by default. Winning work matters, but not every day, and this
+      // is the section somebody can lose without losing the product.
+      defaultOpen: false,
+      items: [
+        { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'designStudio' },
+        { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
+        { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'designStudio' },
+        { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },
+      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
+    },
+  ];
 
   return groups.filter((g) => g.items.length > 0);
 }

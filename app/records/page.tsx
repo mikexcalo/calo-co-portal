@@ -262,7 +262,7 @@ export default function FilesPage() {
     <Page
       tabs={LIBRARY_TABS}
       title="Records"
-      subtitle={`Insurance, licenses, contracts and manuals for ${org?.name ?? 'this business'}. The things you have to produce on request.`}
+      subtitle="Insurance, licenses, contracts, manuals. The paperwork you need to find fast when somebody asks for it."
       action={<Button onClick={() => fileRef.current?.click()}>Add a file</Button>}
     >
       <input

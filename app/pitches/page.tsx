@@ -23,7 +23,6 @@ import {
   Pill,
   SectionLabel,
   shortDate,
-  growTabs,
 } from '@/components/spine/ui';
 
 interface Pitch {
@@ -106,7 +105,6 @@ export default function PitchesPage() {
 
   return (
     <Page
-      tabs={growTabs({ requests: mods.has('client_requests'), website: mods.has('website'), brandKit: mods.has('brand_kit') })}
       title="Pitches"
       subtitle="Send a link instead of a slide deck. You'll know when it gets read."
       action={<Button onClick={create} disabled={busy}>{busy ? 'Creating…' : 'New pitch'}</Button>}
