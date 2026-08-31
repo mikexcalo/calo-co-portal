@@ -128,6 +128,36 @@ const icons: Record<string, React.ReactNode> = {
       <path d="M11.2 9.2h.01" />
     </svg>
   ),
+  // A page with writing on it. Notes and Proposals were sharing one glyph,
+  // which reads as a rendering fault rather than a design.
+  notes: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3.2 2.2h9.6v11.6H3.2z" />
+      <path d="M5.6 5.4h4.8M5.6 8h4.8M5.6 10.6h3" />
+    </svg>
+  ),
+  // A tray. Things arriving that you have to deal with.
+  inbox: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1.9 8.6 3.6 2.9h8.8l1.7 5.7" />
+      <path d="M1.9 8.6h3.4l.9 1.8h3.6l.9-1.8h3.4v3.8a.9.9 0 0 1-.9.9H2.8a.9.9 0 0 1-.9-.9z" />
+    </svg>
+  ),
+  // A banknote with an arrow in. What somebody else is billing you.
+  incoming: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="1.6" y="4.4" width="12.8" height="8.2" rx="1.2" />
+      <path d="M8 1.6v3.4" /><path d="M6.4 3.6 8 5.2l1.6-1.6" />
+      <circle cx="8" cy="8.5" r="1.6" />
+    </svg>
+  ),
+  // Announcing something. Pitches go out to people who have not asked yet.
+  megaphone: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2.2 6.4v3.2a1 1 0 0 0 1 1h1.5l5.8 2.9V2.5L4.7 5.4H3.2a1 1 0 0 0-1 1z" />
+      <path d="M12.6 6.2a2.6 2.6 0 0 1 0 3.6" />
+    </svg>
+  ),
   shield: (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 1.6 2.9 3.8v3.5c0 3 2.1 5.7 5.1 6.9 3-1.2 5.1-3.9 5.1-6.9V3.8z" />
@@ -152,11 +182,17 @@ export default function Sidebar() {
    * un-highlights Money and nothing in the sidebar is lit — so the app looks
    * like it has lost track of where you are, on the screen you are looking at.
    */
+  /**
+   * Only Library covers more than one screen.
+   *
+   * This map is left over from the version where Money and Grow were single
+   * rows with tabs behind them. Those became visible rows again and the
+   * families stayed, so standing on Profit & Loss lit Profit & Loss AND
+   * Invoices — two rows claiming to be where you are.
+   */
   const GROUPS: Record<string, string[]> = {
-    '/billing': ['/billing', '/proposals', '/documents', '/expenses', '/pl'],
     '/pricing': ['/pricing', '/records'],
     '/records': ['/pricing', '/records'],
-    '/pitches': ['/pitches', '/brand-kit', '/requests', '/website'],
   };
 
   const isActive = (href: string) => {

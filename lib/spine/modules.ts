@@ -210,7 +210,7 @@ export function navFor(
         { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'yardSign' },
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
         { id: 'receipts', label: 'Receipts', href: '/documents', icon: 'quotes' },
-        { id: 'notes', label: 'Notes', href: '/notes', icon: 'proposal' },
+        { id: 'notes', label: 'Notes', href: '/notes', icon: 'notes' },
         ...(has('pricing') || has('records')
           ? [{
               id: (has('pricing') ? 'pricing' : 'records') as ModuleId,
@@ -228,7 +228,7 @@ export function navFor(
         { id: 'billing', label: 'Invoices', href: '/billing', icon: 'invoices' },
         { id: 'expenses', label: 'Overheads', href: '/expenses', icon: 'wallet' },
         { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
-        { id: 'account', label: 'Bills to You', href: '/account', icon: 'proposal' },
+        { id: 'account', label: 'Bills to You', href: '/account', icon: 'incoming' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
@@ -237,9 +237,9 @@ export function navFor(
       // is the section somebody can lose without losing the product.
       defaultOpen: false,
       items: [
-        { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'designStudio' },
+        { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'megaphone' },
         { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
-        { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'designStudio' },
+        { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'inbox' },
         { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
