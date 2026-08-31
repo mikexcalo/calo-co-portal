@@ -149,6 +149,37 @@ export const LIBRARY_TABS: readonly PageTab[] = [
   { label: 'Records', href: '/records' },
 ];
 
+/**
+ * Money is one destination, not five.
+ *
+ * Invoices, estimates, receipts, overheads and profit are not five subjects.
+ * They are one subject seen from five angles: money promised, money owed,
+ * money out on a job, money out on the business, and what is left. Five
+ * sidebar rows made them look unrelated and pushed everything else down the
+ * list.
+ *
+ * Invoices lands first because it is the one people open unprompted. The
+ * others are where you go when you already know what you are looking for.
+ */
+export const moneyTabs = (vocab: { estimate: string }): PageTab[] => [
+  { label: 'Invoices', href: '/billing' },
+  { label: `${vocab.estimate}s`, href: '/proposals' },
+  { label: 'Receipts', href: '/documents' },
+  { label: 'Overheads', href: '/expenses' },
+  { label: 'Profit & Loss', href: '/pl' },
+];
+
+/**
+ * Winning work. Three things you touch when you are trying to get hired
+ * rather than when you are doing the job.
+ */
+export const growTabs = (opts: { requests: boolean; website: boolean; brandKit: boolean }): PageTab[] => [
+  { label: 'Pitches', href: '/pitches' },
+  ...(opts.brandKit ? [{ label: 'Brand Kit', href: '/brand-kit' }] : []),
+  ...(opts.requests ? [{ label: 'Requests', href: '/requests' }] : []),
+  ...(opts.website ? [{ label: 'Your Website', href: '/website' }] : []),
+];
+
 export function Card({
   children,
   style,

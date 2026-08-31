@@ -55,12 +55,14 @@ import {
   money,
   shortDate,
   useIsPhone,
+  moneyTabs,
 } from '@/components/spine/ui';
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ACCEPTED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
 
 export default function DocumentsPage() {
+  const { vocab } = useOrg();
   const [orgId, setOrgId] = useState<string | null>(null);
   const [docs, setDocs] = useState<DocumentRecord[]>([]);
   const [jobs, setJobs] = useState<JobWithCustomer[]>([]);
@@ -286,6 +288,7 @@ export default function DocumentsPage() {
 
   return (
     <Page
+      tabs={moneyTabs(vocab)}
       title="Receipts"
       subtitle="Photograph a receipt and it becomes a job cost. Each one is read once, and you approve what it read before anything is saved."
       action={

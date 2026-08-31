@@ -179,62 +179,51 @@ export function navFor(
    * The grouping now follows the four jobs a small business actually does in
    * a day, which is also the order they happen in.
    */
-  const groups: NavGroup[] = [
-    {
-      // Doing it. The people, the work, and what was said about it.
-      heading: 'Work',
-      items: [
-        { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'yardSign' },
-        { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
-        { id: 'notes', label: 'Notes', href: '/notes', icon: 'proposal' },
-        // An agency's inbox of client change requests is inbound work, not
-        // marketing and not admin.
-        { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'designStudio' },
-        // Prices and records are what you look things up in while working.
-        ...(has('pricing') || has('records')
-          ? [{
-              id: (has('pricing') ? 'pricing' : 'records') as ModuleId,
-              label: 'Library',
-              href: has('pricing') ? '/pricing' : '/records',
-              icon: 'folder',
-            }]
-          : []),
-      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
-    },
-    {
-      // Getting paid for it. Receipts belong here: a receipt is a cost that
-      // becomes a line on an invoice, which is money, not craft.
-      heading: 'Money',
-      items: [
-        { id: 'proposals', label: `${vocab.estimate}s`, href: '/proposals', icon: 'proposal' },
-        { id: 'billing', label: 'Billing', href: '/billing', icon: 'invoices' },
-        { id: 'receipts', label: 'Receipts', href: '/documents', icon: 'quotes' },
-        { id: 'expenses', label: 'Overheads', href: '/expenses', icon: 'wallet' },
-        { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
-        { id: 'account', label: 'Bills to You', href: '/account', icon: 'proposal' },
-      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
-    },
-    {
-      // Winning the next one. Brand Kit lives here rather than in Library
-      // because a logo, a QR code for a yard sign and an email signature are
-      // things you reach for when you are trying to get hired.
-      heading: 'Grow',
-      items: [
-        { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'designStudio' },
-        { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
-        { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },
-      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
-    },
-    {
-      heading: 'Setup',
-      defaultOpen: false,
-      items: [
-        { id: 'business', label: 'Business', href: '/business', icon: 'storefront' },
-        { id: 'team', label: 'Team', href: '/team', icon: 'clients' },
-        { id: 'security', label: 'Security', href: '/security', icon: 'shield' },
-      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
-    },
-  ];
+  /**
+   * Seven rows, no headings.
+   *
+   * Fifteen rows across four headings was a table of contents, not a
+   * navigation. Nobody reads a list that long — they learn two or three
+   * positions by muscle memory and the rest becomes invisible, which is a
+   * worse outcome than not building the screens at all.
+   *
+   * What changed and why:
+   *
+   * Money became one destination with tabs. Invoices, estimates, receipts,
+   * overheads and profit are one subject seen from five angles, not five
+   * subjects. Five rows made them look unrelated and pushed everything else
+   * down the page.
+   *
+   * Grow became one destination the same way, for the same reason.
+   *
+   * Business, Team and Security left the sidebar entirely and live under the
+   * avatar, where every other product puts them. You configure them twice in
+   * the first week and then never again; three permanent rows for that is
+   * three rows stolen from the work.
+   *
+   * No group headings. At seven items they were labelling the obvious and
+   * costing four rows of vertical space, which matters most on the phone
+   * where this gets used standing up.
+   */
+  const items: NavGroup['items'] = [
+    { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'yardSign' },
+    { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
+    { id: 'notes', label: 'Notes', href: '/notes', icon: 'proposal' },
+    // Money lands on Invoices, the one people open unprompted.
+    { id: 'billing', label: 'Money', href: '/billing', icon: 'invoices' },
+    ...(has('pricing') || has('records')
+      ? [{
+          id: (has('pricing') ? 'pricing' : 'records') as ModuleId,
+          label: 'Library',
+          href: has('pricing') ? '/pricing' : '/records',
+          icon: 'folder',
+        }]
+      : []),
+    { id: 'pitches', label: 'Grow', href: '/pitches', icon: 'designStudio' },
+    { id: 'account', label: 'Bills to You', href: '/account', icon: 'proposal' },
+  ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'];
+
+  const groups: NavGroup[] = [{ heading: '', items }];
 
   return groups.filter((g) => g.items.length > 0);
 }

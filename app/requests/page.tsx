@@ -9,6 +9,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
+import { useOrg } from '@/lib/spine/org';
+import { modulesFor } from '@/lib/spine/modules';
 import { getCurrentOrg } from '@/lib/spine/db';
 import {
   Button,
@@ -21,6 +23,7 @@ import {
   SectionLabel,
   inputStyle,
   shortDate,
+  growTabs,
 } from '@/components/spine/ui';
 
 type Status = 'submitted' | 'needs_info' | 'approved' | 'building' | 'shipped' | 'declined';
@@ -61,6 +64,8 @@ const STATUS_TONE: Record<Status, 'neutral' | 'amber' | 'blue' | 'green' | 'red'
 };
 
 export default function RequestsPage() {
+  const { org } = useOrg();
+  const mods = modulesFor(org);
   const [requests, setRequests] = useState<SiteRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -153,6 +158,7 @@ export default function RequestsPage() {
 
   return (
     <Page
+      tabs={growTabs({ requests: mods.has('client_requests'), website: mods.has('website'), brandKit: mods.has('brand_kit') })}
       title="Site requests"
       subtitle="Changes clients have asked for. Approve or modify. What gets built is your version of the brief."
     >

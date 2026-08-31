@@ -32,6 +32,7 @@ import {
   money0,
   radius,
   shortDate,
+  moneyTabs,
 } from '@/components/spine/ui';
 
 type Row_ = Estimate & {
@@ -99,6 +100,7 @@ export default function ProposalsPage() {
 
   return (
     <Page
+      tabs={moneyTabs(vocab)}
       title={`${vocab.estimate}s`}
       subtitle={`Everything quoted across every ${vocab.job.toLowerCase()}. Once accepted, they can be invoiced.`}
     >

@@ -145,11 +145,24 @@ export default function Sidebar() {
    * Library covers three screens behind one entry, so it stays lit on any of
    * them. Everything else matches its own path.
    */
-  const LIBRARY = ['/pricing', '/records', '/brand-kit'];
+  /**
+   * A sidebar row covers every tab underneath it.
+   *
+   * Money is one row and five screens. Without this, opening Receipts
+   * un-highlights Money and nothing in the sidebar is lit — so the app looks
+   * like it has lost track of where you are, on the screen you are looking at.
+   */
+  const GROUPS: Record<string, string[]> = {
+    '/billing': ['/billing', '/proposals', '/documents', '/expenses', '/pl'],
+    '/pricing': ['/pricing', '/records'],
+    '/records': ['/pricing', '/records'],
+    '/pitches': ['/pitches', '/brand-kit', '/requests', '/website'],
+  };
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
-    if (LIBRARY.includes(href)) return LIBRARY.some((h) => pathname === h);
+    const family = GROUPS[href];
+    if (family) return family.some((h) => pathname === h || pathname.startsWith(h + '/'));
     return pathname === href || pathname.startsWith(href + '/');
   };
 

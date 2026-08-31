@@ -34,6 +34,7 @@ import {
   money0,
   shortDate,
   today,
+  moneyTabs,
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
 import { PRODUCT } from '@/lib/brand';
@@ -78,7 +79,7 @@ const num = (v: unknown) => {
 };
 
 export default function ExpensesPage() {
-  const { org } = useOrg();
+  const { org, vocab } = useOrg();
   const [rows, setRows] = useState<Overhead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -224,6 +225,7 @@ export default function ExpensesPage() {
 
   return (
     <Page
+      tabs={moneyTabs(vocab)}
       title="Overheads"
       subtitle="What it costs to keep the business open, separate from any one job."
       action={

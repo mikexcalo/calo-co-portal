@@ -157,9 +157,15 @@ export default function TopBar() {
 
 
 /**
- * The avatar used to be a circle that navigated to a page duplicating the
- * sidebar. Now it does what an avatar in a top bar is for: tells you who you
- * are signed in as, and lets you sign out.
+ * Who you are, and the things you set up once.
+ *
+ * Business, Team and Security used to be three permanent sidebar rows. You
+ * configure them twice in the first week and then never again, so three rows
+ * of a seven-row navigation was a poor trade — especially on a phone, where
+ * every row costs a thumb-reach.
+ *
+ * Under the avatar is where every other product puts them, which means people
+ * already know to look here.
  */
 function AccountMenu() {
   const router = useRouter();
@@ -240,8 +246,21 @@ function AccountMenu() {
               style={item}
               onClick={() => { setOpen(false); router.push('/business'); }}
             >
-              Business settings
+              Business
             </button>
+            <button
+              style={item}
+              onClick={() => { setOpen(false); router.push('/team'); }}
+            >
+              Team
+            </button>
+            <button
+              style={item}
+              onClick={() => { setOpen(false); router.push('/security'); }}
+            >
+              Security
+            </button>
+            <div style={{ height: 1, background: C.border, margin: '4px 0' }} />
             <button
               style={{ ...item, color: C.red }}
               onClick={async () => {

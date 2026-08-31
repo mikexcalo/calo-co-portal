@@ -15,6 +15,7 @@ import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { getCurrentOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
+import { modulesFor } from '@/lib/spine/modules';
 import {
   Button,
   C,
@@ -27,6 +28,7 @@ import {
   inputStyle,
   shortDate,
   useIsPhone,
+  growTabs,
 } from '@/components/spine/ui';
 
 interface Site {
@@ -68,6 +70,7 @@ const STATUS_COPY: Record<string, { label: string; tone: 'neutral' | 'amber' | '
 export default function WebsitePage() {
   const phone = useIsPhone();
   const { org } = useOrg();
+  const mods = modulesFor(org);
   const [site, setSite] = useState<Site | null>(null);
   const [content, setContent] = useState<Content[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
@@ -176,6 +179,7 @@ export default function WebsitePage() {
 
   return (
     <Page
+      tabs={growTabs({ requests: mods.has('client_requests'), website: mods.has('website'), brandKit: mods.has('brand_kit') })}
       title="Your website"
       subtitle={
         site

@@ -12,6 +12,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
+import { modulesFor } from '@/lib/spine/modules';
 import {
   Button,
   C,
@@ -22,6 +23,7 @@ import {
   Pill,
   SectionLabel,
   shortDate,
+  growTabs,
 } from '@/components/spine/ui';
 
 interface Pitch {
@@ -38,6 +40,7 @@ interface Pitch {
 export default function PitchesPage() {
   const router = useRouter();
   const { org } = useOrg();
+  const mods = modulesFor(org);
   const [rows, setRows] = useState<Pitch[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -103,6 +106,7 @@ export default function PitchesPage() {
 
   return (
     <Page
+      tabs={growTabs({ requests: mods.has('client_requests'), website: mods.has('website'), brandKit: mods.has('brand_kit') })}
       title="Pitches"
       subtitle="Send a link instead of a slide deck. You'll know when it gets read."
       action={<Button onClick={create} disabled={busy}>{busy ? 'Creating…' : 'New pitch'}</Button>}

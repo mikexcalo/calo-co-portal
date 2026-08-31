@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { getCurrentOrg, updateOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
+import { modulesFor } from '@/lib/spine/modules';
 import { QrStudio } from '@/components/spine/QrStudio';
 import {
   EMPTY_SIGNATURE,
@@ -44,7 +45,8 @@ import {
   SectionLabel,
   inputStyle,
   useIsPhone,
-  } from '@/components/spine/ui';
+    growTabs,
+} from '@/components/spine/ui';
 
 type Tab = 'brand' | 'logos' | 'qr' | 'signature';
 
@@ -79,6 +81,7 @@ const EMPTY_BRAND: BrandSettings = {
 export default function BrandKitPage() {
   const phone = useIsPhone();
   const { org, refresh } = useOrg();
+  const mods = modulesFor(org);
   const [tab, setTab] = useState<Tab>('brand');
   const [brand, setBrand] = useState<BrandSettings>(EMPTY_BRAND);
   const [sig, setSig] = useState<SignatureFields>(EMPTY_SIGNATURE);
@@ -171,6 +174,7 @@ export default function BrandKitPage() {
 
   return (
     <Page
+      tabs={growTabs({ requests: mods.has('client_requests'), website: mods.has('website'), brandKit: mods.has('brand_kit') })}
             title="Brand Kit"
       subtitle={org ? `${org.name} — assets, and the tools that use them.` : undefined}
       action={

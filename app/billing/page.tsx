@@ -36,12 +36,13 @@ import {
   money0,
   shortDate,
   inputStyle,
+  moneyTabs,
 } from '@/components/spine/ui';
 import { METHODS } from '@/lib/spine/payments';
 
 export default function BillingPage() {
   const router = useRouter();
-  const { org } = useOrg();
+  const { org, vocab } = useOrg();
   // Client-facing documents carry the business's brand, not the app's.
   const accent = brandAccent(org, C.blue);
   const logo = brandOf(org).logoLight;
@@ -212,7 +213,7 @@ export default function BillingPage() {
   const drafts = live.filter((i) => i.status === 'draft').length;
 
   return (
-    <Page title="Billing" subtitle="Invoices built from logged hours and filed receipts.">
+    <Page tabs={moneyTabs(vocab)} title="Billing" subtitle="Invoices built from logged hours and filed receipts.">
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
