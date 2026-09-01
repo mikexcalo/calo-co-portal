@@ -178,6 +178,41 @@ export const SEO_TASKS: SeoTask[] = [
   },
 ];
 
+/**
+ * The order to do it in, which is not the order the checklist is written in.
+ *
+ * Verification is a postcard and takes about a week, so it starts first and
+ * everything else happens while it is in the mail. Getting this order wrong is
+ * how somebody spends an afternoon writing service pages and then waits a week
+ * before any of it can help.
+ */
+export const SETUP_ORDER: Array<{ step: string; note: string }> = [
+  {
+    step: 'Claim the Google Business Profile and start verification',
+    note: 'A postcard to the address, roughly a week. Everything else waits on it, so post it before you do anything else on this page.',
+  },
+  {
+    step: 'Set the primary category to the narrowest true one',
+    note: 'This decides which searches you are eligible for at all. Narrow competes with people who do your thing; broad competes with everybody.',
+  },
+  {
+    step: 'Fill in the details below',
+    note: 'Five minutes, and it generates the address block, the structured data and every page title.',
+  },
+  {
+    step: 'Paste the structured data into the website head',
+    note: 'Once per site, not per page. Check it afterwards with the Google Rich Results Test.',
+  },
+  {
+    step: 'Work the directory list with the copied address block',
+    note: 'Copy it every time. Retyping is how the same business ends up listed three slightly different ways.',
+  },
+  {
+    step: 'Turn on the review link and let it ask by itself',
+    note: 'Reviews are the only lever on this page that keeps paying after the setup is done.',
+  },
+];
+
 /** The directories worth the time, in order of how much they matter. */
 export const DEFAULT_CITATIONS: Array<{ name: string; url: string; note: string }> = [
   { name: 'Google Business Profile', url: 'https://business.google.com', note: 'The one that matters most' },

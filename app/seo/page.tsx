@@ -14,7 +14,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import {
-  DEFAULT_CITATIONS, SEO_TASKS, gbpDescription, napBlock, schemaMarkup, titleTags,
+  DEFAULT_CITATIONS, SEO_TASKS, SETUP_ORDER, gbpDescription, napBlock, schemaMarkup, titleTags,
   type Profile,
 } from '@/lib/spine/seo';
 import {
@@ -124,6 +124,23 @@ export default function SeoPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12, marginBottom: 24 }}>
         <Metric label="Checklist" value={`${done} / ${visible.length}`} tone={done === visible.length ? 'green' : undefined} />
         <Metric label="Directories claimed" value={`${claimed} / ${citations.length}`} />
+      </div>
+
+      {/* The order, which is not the order the checklist is written in.
+          Verification is a postcard, so it starts first and the rest happens
+          while it is in the mail. */}
+      <div style={{ marginBottom: 26 }}>
+        <SectionLabel>Do it in this order</SectionLabel>
+        <Card>
+          <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {SETUP_ORDER.map((s2) => (
+              <li key={s2.step} style={{ fontSize: 14.5, color: C.text, lineHeight: 1.5 }}>
+                {s2.step}
+                <div style={{ fontSize: 13, color: C.faint, marginTop: 3, lineHeight: 1.6 }}>{s2.note}</div>
+              </li>
+            ))}
+          </ol>
+        </Card>
       </div>
 
       {editing && (
