@@ -26,14 +26,14 @@ import { PRODUCT } from '@/lib/brand';
  */
 const icons: Record<string, React.ReactNode> = {
   dashboard: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M2 6.6 8 2l6 4.6" /><path d="M3.4 7.6V13a.8.8 0 0 0 .8.8h7.6a.8.8 0 0 0 .8-.8V7.6" />
       <path d="M6.4 13.8V9.6h3.2v4.2" />
     </svg>
   ),
   // A yard sign — what a contractor plants on a job.
   yardSign: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2.2" y="2" width="11.6" height="7.2" rx="1.1" />
       <path d="M5.2 5.1h5.6M5.2 7h3.4" />
       <path d="M8 9.2V14" /><path d="M5.6 14h4.8" />
@@ -41,7 +41,7 @@ const icons: Record<string, React.ReactNode> = {
   ),
   // A hard hat — the people a contractor deals with.
   clients: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M2.2 11.4a5.8 5.8 0 0 1 11.6 0" />
       <path d="M6.2 6.1V3.4a.9.9 0 0 1 .9-.9h1.8a.9.9 0 0 1 .9.9v2.7" />
       <path d="M1.4 11.4h13.2" />
@@ -49,48 +49,48 @@ const icons: Record<string, React.ReactNode> = {
   ),
   // A receipt, torn edge and all.
   quotes: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3.4 1.8h9.2v11.4l-1.8-1.1-1.8 1.1-1.8-1.1-1.8 1.1-1.8-1.1z" />
       <path d="M5.8 5h4.4M5.8 7.8h3" />
     </svg>
   ),
   // A price tag.
   financials: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8.3 1.9H14v5.7L7.4 14.2a1 1 0 0 1-1.4 0L1.8 10a1 1 0 0 1 0-1.4z" />
       <circle cx="11.1" cy="4.8" r="1.05" />
     </svg>
   ),
   // A folder — records you keep.
   folder: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M1.8 12.6V3.6a.9.9 0 0 1 .9-.9h3.1l1.5 1.8h6a.9.9 0 0 1 .9.9v7.2a.9.9 0 0 1-.9.9H2.7a.9.9 0 0 1-.9-.9z" />
     </svg>
   ),
   // Banknote.
   invoices: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <rect x="1.4" y="3.6" width="13.2" height="8.8" rx="1.2" />
       <circle cx="8" cy="8" r="1.9" /><path d="M4.1 8h.02M11.9 8h.02" />
     </svg>
   ),
   // Bar chart with a rising line.
   chart: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M2 13.6h12.2" />
       <path d="M4.2 13.6V9.4M7.4 13.6V6.2M10.6 13.6V8M13.8 13.6V3.4" />
     </svg>
   ),
   // Browser window — website work.
   designStudio: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <rect x="1.5" y="2.6" width="13" height="10.8" rx="1.2" />
       <path d="M1.5 5.9h13" /><path d="M3.6 4.25h.02M5.5 4.25h.02" />
     </svg>
   ),
   // Paint swatches.
   brandKit: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <rect x="1.7" y="1.7" width="5.6" height="5.6" rx="1" />
       <rect x="8.7" y="1.7" width="5.6" height="5.6" rx="1" />
       <rect x="1.7" y="8.7" width="5.6" height="5.6" rx="1" />
@@ -99,7 +99,7 @@ const icons: Record<string, React.ReactNode> = {
   ),
   // A signed document — a proposal awaiting a decision.
   proposal: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 2.4h6.3L13 6v7.6a.9.9 0 0 1-.9.9H3.9a.9.9 0 0 1-.9-.9z" />
       <path d="M9.2 2.4V6H13" />
       <path d="M5.4 10.6c.9-1 1.6.9 2.5 0s1.6.6 2.5-.4" />
@@ -107,7 +107,7 @@ const icons: Record<string, React.ReactNode> = {
   ),
   // Wrench — setup.
   settings: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M10.4 5.6a2.9 2.9 0 0 1-3.7 3.7l-4 4a1.3 1.3 0 0 1-1.9-1.9l4-4a2.9 2.9 0 0 1 3.7-3.7L7 5.2l.6 2.2 2.2.6z" />
     </svg>
   ),
@@ -115,7 +115,7 @@ const icons: Record<string, React.ReactNode> = {
   // unrelated destinations looked identical and neither looked like itself.
   // A shield reads as protection; a storefront reads as the business.
   storefront: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M2.3 6.2 3.4 2.6h9.2l1.1 3.6" />
       <path d="M2.3 6.2a1.8 1.8 0 0 0 3.5 0 1.8 1.8 0 0 0 3.5 0 1.8 1.8 0 0 0 3.5 0" />
       <path d="M3.1 7.6v5.8h9.8V7.6" />
@@ -123,7 +123,7 @@ const icons: Record<string, React.ReactNode> = {
     </svg>
   ),
   wallet: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M2 4.6v7.2a1.4 1.4 0 0 0 1.4 1.4h9.2a1.4 1.4 0 0 0 1.4-1.4V6.8a1.4 1.4 0 0 0-1.4-1.4H3.4A1.4 1.4 0 0 1 2 4v0a1.4 1.4 0 0 1 1.4-1.4h8" />
       <path d="M11.2 9.2h.01" />
     </svg>
@@ -131,21 +131,21 @@ const icons: Record<string, React.ReactNode> = {
   // A page with writing on it. Notes and Proposals were sharing one glyph,
   // which reads as a rendering fault rather than a design.
   notes: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3.2 2.2h9.6v11.6H3.2z" />
       <path d="M5.6 5.4h4.8M5.6 8h4.8M5.6 10.6h3" />
     </svg>
   ),
   // A tray. Things arriving that you have to deal with.
   inbox: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M1.9 8.6 3.6 2.9h8.8l1.7 5.7" />
       <path d="M1.9 8.6h3.4l.9 1.8h3.6l.9-1.8h3.4v3.8a.9.9 0 0 1-.9.9H2.8a.9.9 0 0 1-.9-.9z" />
     </svg>
   ),
   // A banknote with an arrow in. What somebody else is billing you.
   incoming: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <rect x="1.6" y="4.4" width="12.8" height="8.2" rx="1.2" />
       <path d="M8 1.6v3.4" /><path d="M6.4 3.6 8 5.2l1.6-1.6" />
       <circle cx="8" cy="8.5" r="1.6" />
@@ -153,7 +153,7 @@ const icons: Record<string, React.ReactNode> = {
   ),
   // Announcing something. Pitches go out to people who have not asked yet.
   megaphone: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M2.2 6.4v3.2a1 1 0 0 0 1 1h1.5l5.8 2.9V2.5L4.7 5.4H3.2a1 1 0 0 0-1 1z" />
       <path d="M12.6 6.2a2.6 2.6 0 0 1 0 3.6" />
     </svg>
@@ -161,13 +161,13 @@ const icons: Record<string, React.ReactNode> = {
   // Overlapping swatches. Brand Kit is your own identity; this is the shelf of
   // everyone else's.
   palette: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 1.9a6.1 6.1 0 1 0 0 12.2c.9 0 1.4-.6 1.4-1.3 0-.8-.7-1.2-.7-1.9 0-.6.5-1.1 1.2-1.1h1.2A3.1 3.1 0 0 0 14.1 6.7C13.7 4 11.1 1.9 8 1.9z" />
       <circle cx="5.2" cy="6.4" r=".85" /><circle cx="8" cy="4.9" r=".85" /><circle cx="10.8" cy="6.4" r=".85" />
     </svg>
   ),
   shield: (
-    <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 1.6 2.9 3.8v3.5c0 3 2.1 5.7 5.1 6.9 3-1.2 5.1-3.9 5.1-6.9V3.8z" />
       <path d="M6.1 7.9 7.5 9.3l2.6-2.7" />
     </svg>
@@ -220,23 +220,29 @@ export default function Sidebar() {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 13,
+          gap: 11,
           width: '100%',
-          padding: '9px 12px',
+          padding: '6px 12px',
           margin: '1px 0',
           borderRadius: radius.md,
           border: 'none',
           /**
-           * Carta's proportions: bigger, darker, and the same weight whether or
-           * not a row is selected.
+           * Darker and evenly weighted, but not larger.
            *
-           * Dimming every unselected row was the mistake. It made fourteen
+           * Dimming every unselected row was the real mistake: it made fourteen
            * items read as one active thing and thirteen disabled ones, so the
-           * eye had to work to find anything that was not already open. Every
-           * destination here is equally real, and selection is carried by the
-           * background and the icon rather than by making the rest recede.
+           * eye had to work to find anything not already open. Selection is
+           * carried by the background and the icon instead, and every
+           * destination is set in the same weight because every one of them is
+           * equally real.
+           *
+           * The size went with it and should not have. Carta's rows are roomy
+           * because Carta's sidebar holds five of them; the same spacing across
+           * fourteen items and three group headings is a column you scroll
+           * rather than scan. Density is a function of how much is in the list,
+           * not a house style you can copy across.
            */
-          fontSize: 15,
+          fontSize: 14,
           color: C.text,
           fontWeight: 500,
           letterSpacing: '-0.005em',
@@ -250,7 +256,7 @@ export default function Sidebar() {
           className="navIcon"
           data-icon={iconKey}
           style={{
-            width: 20,
+            width: 18,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -366,7 +372,7 @@ export default function Sidebar() {
           const isClosed = ready && g.heading && closed.has(g.heading) && !holdsCurrent;
 
           return (
-            <div key={g.heading || g.items[0]?.href} style={{ marginTop: g.heading ? 20 : 8 }}>
+            <div key={g.heading || g.items[0]?.href} style={{ marginTop: g.heading ? 15 : 6 }}>
               {g.heading && (
                 <button
                   onClick={() => toggleGroup(g.heading)}
@@ -378,12 +384,12 @@ export default function Sidebar() {
                     width: '100%',
                     background: 'transparent',
                     border: 'none',
-                    fontSize: 10.5,
+                    fontSize: 10,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.1em',
+                    letterSpacing: '0.09em',
                     color: C.faint,
                     fontWeight: 600,
-                    padding: '0 12px 7px',
+                    padding: '0 12px 5px',
                     cursor: 'pointer',
                     fontFamily: 'inherit',
                     textAlign: 'left',
