@@ -69,8 +69,19 @@ export default function TopBar() {
     return () => { canceled = true; };
   }, [org]);
 
+  /**
+   * Detail routes fall back to their section's title.
+   *
+   * /customers/<id> never matched the map, so it dropped through to a
+   * capitalised URL segment and produced "Customers" on a screen whose
+   * sidebar said "Clients". Two names for one thing, six inches apart.
+   */
+  const titles = titlesFor(vocab);
+  const section = '/' + (pathname.split('/').filter(Boolean)[0] ?? '');
+
   const title =
-    titlesFor(vocab)[pathname] ??
+    titles[pathname] ??
+    titles[section] ??
     pathname
       .split('/')
       .filter(Boolean)[0]

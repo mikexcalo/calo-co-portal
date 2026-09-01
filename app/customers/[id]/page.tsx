@@ -286,7 +286,22 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
         </Card>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: phone ? '1fr' : 'minmax(0,1fr) 320px', gap: 20 }}>
+      {/*
+        Both columns carry weight now.
+        
+        The right rail was a fixed 320px holding six sections in a queue, so
+        you scrolled a narrow strip for a minute while the left half of the
+        screen sat empty below the history form. Widening it and moving half
+        the sections across uses the space that was already there.
+      */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: phone ? '1fr' : 'minmax(0, 1.25fr) minmax(360px, 1fr)',
+          gap: 22,
+          alignItems: 'start',
+        }}
+      >
         <div>
           {customer.next_action && !editing && (
             <Card style={{ marginBottom: 16, borderColor: C.amber, background: C.amberSoft }}>
@@ -377,6 +392,10 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             opened a client record and was shown an empty picture gallery
             instead of the last thing that was said.
           */}
+          {orgId && <Reminders orgId={orgId} customerId={params.id} />}
+
+          {orgId && <People orgId={orgId} customerId={params.id} />}
+
           <SectionLabel>History</SectionLabel>
           <Card style={{ marginBottom: 14 }}>
             <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
@@ -436,7 +455,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               value={noteBody}
               onChange={(e) => setNoteBody(e.target.value)}
               style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }}
-              placeholder="Spoke with Mark — wants to start the Elm St bathroom in March, sending measurements Friday."
+              placeholder={`What was said, and what happens next. "${customer.contact_name?.split(" ")[0] ?? "They"} wants to start in March, sending measurements Friday."`}
             />
             <div style={{ marginTop: 10 }}>
               <Button onClick={addNote} disabled={busy || !noteBody.trim()}>Log it</Button>
@@ -632,10 +651,6 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           </div>
 
           <BrandCard customerId={params.id} />
-
-          {orgId && <Reminders orgId={orgId} customerId={params.id} />}
-
-          {orgId && <People orgId={orgId} customerId={params.id} />}
 
           {orgId && <Links orgId={orgId} customerId={params.id} />}
 
