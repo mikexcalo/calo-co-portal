@@ -47,6 +47,8 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
   const [job, setJob] = useState<JobWithCustomer | null>(null);
   const [lines, setLines] = useState<DraftLine[]>([blank('labor')]);
   const [notes, setNotes] = useState('');
+  const [scopeIn, setScopeIn] = useState('');
+  const [scopeOut, setScopeOut] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   /** The price list, so nobody retypes a line item they already priced. */
@@ -134,7 +136,14 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
           unit_price: parseFloat(l.unit_price) || 0,
           total: Math.round(lineTotal(l) * 100) / 100,
           position: i,
-        }))
+        })),
+        {
+          notes,
+          // Blank lines dropped rather than stored. An empty bullet on a
+          // document a client is about to accept reads as carelessness.
+          scopeIn: scopeIn.split('\n').map((x) => x.trim()).filter(Boolean),
+          scopeOut: scopeOut.split('\n').map((x) => x.trim()).filter(Boolean),
+        }
       );
 
       router.push(`/jobs/${params.id}`);
@@ -318,6 +327,45 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
           <span style={{ fontSize: 22, fontWeight: 500 }}>{money(total)}</span>
         </div>
       </Card>
+
+      {/*
+        What the price covers, and what it does not.
+        
+        On the estimate rather than on the engagement, because this is the
+        document the client actually reads and accepts by name. A scope they
+        never saw settles no argument in week six.
+        
+        One line each, because a paragraph gets skimmed and a list gets read.
+      */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: 14,
+          marginTop: 16,
+        }}
+      >
+        <Field label="What this covers">
+          <textarea
+            value={scopeIn}
+            onChange={(e) => setScopeIn(e.target.value)}
+            style={{ ...inputStyle, minHeight: 96, resize: 'vertical', lineHeight: 1.6 }}
+            placeholder={'One per line.\nBrand and messaging framework\nFour page website\nTwo rounds of revisions'}
+          />
+        </Field>
+        <Field label="What it does not">
+          <textarea
+            value={scopeOut}
+            onChange={(e) => setScopeOut(e.target.value)}
+            style={{ ...inputStyle, minHeight: 96, resize: 'vertical', lineHeight: 1.6 }}
+            placeholder={'One per line.\nPhotography\nOngoing content after launch\nPages beyond the four listed'}
+          />
+        </Field>
+      </div>
+      <p style={{ fontSize: 13, color: C.faint, margin: '0 0 16px', maxWidth: 620, lineHeight: 1.6 }}>
+        The second list is the one that matters and the one nobody writes without being asked.
+        Both appear on the copy the client accepts.
+      </p>
 
       <div style={{ marginTop: 16, maxWidth: 620 }}>
         <Field label="Notes for the customer">

@@ -249,7 +249,13 @@ export async function getEstimateLines(estimateId: string): Promise<EstimateLine
 export async function createEstimate(
   orgId: string,
   jobId: string,
-  lines: Array<Omit<EstimateLine, 'id' | 'estimate_id' | 'created_at'>>
+  lines: Array<Omit<EstimateLine, 'id' | 'estimate_id' | 'created_at'>>,
+  /**
+   * What the price covers, what it does not, and anything else the client
+   * should read. Optional so existing callers are unaffected, but this is the
+   * part that settles the week six argument, not the number.
+   */
+  terms?: { notes?: string; scopeIn?: string[]; scopeOut?: string[] }
 ): Promise<Estimate> {
   const existing = await listEstimates(jobId);
   const version = existing.length ? Math.max(...existing.map((e) => e.version)) + 1 : 1;
@@ -258,7 +264,15 @@ export async function createEstimate(
   const estimate = unwrap(
     await supabase
       .from('estimates')
-      .insert({ org_id: orgId, job_id: jobId, version, total })
+      .insert({
+        org_id: orgId,
+        job_id: jobId,
+        version,
+        total,
+        notes: terms?.notes?.trim() || null,
+        scope_in: terms?.scopeIn ?? [],
+        scope_out: terms?.scopeOut ?? [],
+      })
       .select()
       .single()
   ) as Estimate;

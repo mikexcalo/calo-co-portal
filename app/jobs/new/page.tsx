@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createCustomer, createJob, getCurrentOrg, listCustomers } from '@/lib/spine/db';
-import type { BillingType, Customer, JobStatus } from '@/lib/spine/types';
-import { JOB_STATUS_LABEL } from '@/lib/spine/types';
+import type { BillingType, Consideration, Customer, JobStatus } from '@/lib/spine/types';
+import { CONSIDERATION_LABEL, JOB_STATUS_LABEL } from '@/lib/spine/types';
 import { Button, C, Card, Field, Page, inputStyle, useIsPhone } from '@/components/spine/ui';
 
 export default function NewJobPage() {
@@ -21,6 +21,10 @@ export default function NewJobPage() {
   const [address, setAddress] = useState('');
   const [status, setStatus] = useState<JobStatus>('lead');
   const [billingType, setBillingType] = useState<BillingType>('tm');
+  const [consideration, setConsideration] = useState<Consideration>('cash');
+  const [considerationNote, setConsiderationNote] = useState('');
+  const [retainerAmount, setRetainerAmount] = useState('');
+  const [retainerHours, setRetainerHours] = useState('');
   const [description, setDescription] = useState('');
 
   useEffect(() => {
@@ -54,6 +58,10 @@ export default function NewJobPage() {
         description: description.trim() || null,
         status,
         billing_type: billingType,
+        consideration,
+        consideration_note: consideration === 'cash' ? null : considerationNote.trim() || null,
+        retainer_amount: billingType === 'retainer' ? Number(retainerAmount) || null : null,
+        retainer_hours: billingType === 'retainer' ? Number(retainerHours) || null : null,
       });
 
       router.push(`/jobs/${job.id}`);
@@ -136,8 +144,58 @@ export default function NewJobPage() {
             >
               <option value="tm">Time &amp; materials</option>
               <option value="fixed">Fixed price</option>
+              <option value="retainer">Monthly retainer</option>
             </select>
           </Field>
+        </div>
+
+        {billingType === 'retainer' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 }}>
+            <Field label="Monthly fee">
+              <input
+                value={retainerAmount}
+                onChange={(e) => setRetainerAmount(e.target.value)}
+                inputMode="decimal"
+                placeholder="5000"
+                style={inputStyle}
+              />
+            </Field>
+            {/* The reason a flat fee needs software at all. The invoice is the
+                same every month by definition; whether you went over is not. */}
+            <Field label="Hours the fee assumes">
+              <input
+                value={retainerHours}
+                onChange={(e) => setRetainerHours(e.target.value)}
+                inputMode="decimal"
+                placeholder="20"
+                style={inputStyle}
+              />
+            </Field>
+          </div>
+        )}
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 }}>
+          <Field label="Paid in">
+            <select
+              value={consideration}
+              onChange={(e) => setConsideration(e.target.value as Consideration)}
+              style={inputStyle}
+            >
+              {(Object.keys(CONSIDERATION_LABEL) as Consideration[]).map((k) => (
+                <option key={k} value={k}>{CONSIDERATION_LABEL[k]}</option>
+              ))}
+            </select>
+          </Field>
+          {consideration !== 'cash' && (
+            <Field label="On what terms">
+              <input
+                value={considerationNote}
+                onChange={(e) => setConsiderationNote(e.target.value)}
+                placeholder="0.5% on a 4 year vest, 1 year cliff"
+                style={inputStyle}
+              />
+            </Field>
+          )}
         </div>
 
         <Field label="Notes">

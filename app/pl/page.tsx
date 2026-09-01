@@ -17,7 +17,7 @@ import { listInvoices, listJobLedger } from '@/lib/spine/db';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import type { JobInvoice, JobLedger } from '@/lib/spine/types';
-import { JOB_STATUS_LABEL } from '@/lib/spine/types';
+import { CONSIDERATION_LABEL, JOB_STATUS_LABEL } from '@/lib/spine/types';
 import { PRODUCT } from '@/lib/brand';
 import {
   Button,
@@ -33,6 +33,7 @@ import {
   Table,
   money,
   money0,
+  hours as fmtHours,
 } from '@/components/spine/ui';
 
 type Period = 'all' | 'ytd' | 'quarter' | 'month';
@@ -65,6 +66,10 @@ function periodStart(p: Period, now: Date): Date | null {
 export default function ProfitLossPage() {
   const router = useRouter();
   const { vocab, org } = useOrg();
+  // Null when nobody has set a rate, which is deliberately different from
+  // zero: zero is a decision, null is a question nobody has answered.
+  const taxPct = org?.tax_set_aside_pct ?? null;
+
   const [ledger, setLedger] = useState<JobLedger[]>([]);
   const [invoices, setInvoices] = useState<JobInvoice[]>([]);
   const [period, setPeriod] = useState<Period>('ytd');
@@ -160,6 +165,16 @@ export default function ProfitLossPage() {
     const overhead = overheadMonthly * months;
     const costs = jobCosts + overhead;
 
+    /**
+     * Money to hold back for tax.
+     *
+     * Taken off collected rather than invoiced, because you cannot set aside a
+     * share of money that has not arrived. An invoice sent in March and paid in
+     * June creates the obligation in June, and reserving against it in March is
+     * how a business ends up with a number it cannot honor.
+     */
+    const setAside = taxPct != null ? collected * (taxPct / 100) : null;
+
     return {
       revenue,
       collected,
@@ -168,11 +183,41 @@ export default function ProfitLossPage() {
       jobCosts,
       overhead,
       unbilled,
+      setAside,
       profit: revenue - costs,
       margin: revenue > 0 ? ((revenue - costs) / revenue) * 100 : 0,
       count: inPeriod.length,
     };
-  }, [invoices, ledger, period, todayMs, overheadMonthly]);
+  }, [invoices, ledger, period, todayMs, overheadMonthly, taxPct]);
+
+  /**
+   * Work being paid for in something other than money.
+   *
+   * Reported beside the numbers, never inside them. Equity has no defensible
+   * dollar value until it has one, and putting a guess into your own profit
+   * and loss is how a business talks itself into believing it has been paid.
+   *
+   * The reason this exists at all is that leaving it out was worse than a gap:
+   * a client paying in equity showed nothing invoiced and nothing owed, which
+   * is indistinguishable on screen from a client who never paid.
+   */
+  const nonCash = useMemo(
+    () => ledger.filter((r) => r.consideration && r.consideration !== 'cash'),
+    [ledger]
+  );
+
+  /**
+   * Retainers where the hours have run past the fee.
+   *
+   * The only number a flat monthly can go wrong by. The invoice is identical
+   * every month by definition, so nothing in revenue will ever show you the
+   * month you worked sixty hours against a fee that assumed twenty. This is
+   * that month, named while you can still do something about it.
+   */
+  const overdelivering = useMemo(
+    () => ledger.filter((r) => r.retainer_variance != null && r.retainer_variance < 0),
+    [ledger]
+  );
 
   const ranked = useMemo(
     () => [...ledger].sort((a, b) => a.margin_to_date - b.margin_to_date),
@@ -258,7 +303,79 @@ export default function ProfitLossPage() {
               tone={scoped.outstanding > 0 ? 'amber' : undefined}
               hint="Invoiced, not paid"
             />
+            {/* Sits beside profit rather than inside it. Tax is not a cost of
+                doing the work, it is a share of the money that was never
+                yours. */}
+            <Metric
+              label="Hold back for tax"
+              value={scoped.setAside == null ? 'Not set' : money0(scoped.setAside)}
+              tone={scoped.setAside == null ? undefined : 'amber'}
+              hint={
+                taxPct == null
+                  ? 'Set a rate in Business'
+                  : `${taxPct}% of what you collected`
+              }
+            />
           </div>
+
+          {overdelivering.length > 0 && (
+            <Card style={{ marginBottom: 26, borderColor: C.amber, background: C.amberSoft }}>
+              <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.08em', color: C.amber, fontWeight: 600, marginBottom: 10 }}>
+                Over the retainer ({overdelivering.length})
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {overdelivering.map((r) => (
+                  <div key={r.job_id} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'baseline' }}>
+                    <span style={{ fontSize: 14, color: C.text, fontWeight: 500, flex: 1, minWidth: 160 }}>{r.name}</span>
+                    <span style={{ fontSize: 13, color: C.dim, fontVariantNumeric: 'tabular-nums' }}>
+                      {fmtHours(r.hours_logged)} against {fmtHours(r.retainer_hours ?? 0)} for {money0(r.retainer_amount ?? 0)}
+                    </span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: C.amber, fontVariantNumeric: 'tabular-nums' }}>
+                      {fmtHours(Math.abs(r.retainer_variance ?? 0))} over
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontSize: 12.5, color: C.dim, marginTop: 12, lineHeight: 1.6, maxWidth: 620 }}>
+                The invoice is the same either way, which is why this never shows up in revenue.
+                Either the scope has grown or the fee is wrong, and both are worth raising before
+                the next renewal rather than after it.
+              </p>
+            </Card>
+          )}
+
+          {/* Work paid for in something other than money.
+              Reported beside the numbers and never inside them, because equity
+              has no honest dollar value until it has one. Before this existed,
+              a client paying in equity showed nothing invoiced and nothing
+              owed, which on screen is indistinguishable from a client who
+              never paid at all. */}
+          {nonCash.length > 0 && (
+            <Card style={{ marginBottom: 26 }}>
+              <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.08em', color: C.faint, fontWeight: 600, marginBottom: 10 }}>
+                Not paid in cash ({nonCash.length})
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {nonCash.map((r) => (
+                  <div key={r.job_id} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'baseline' }}>
+                    <span style={{ fontSize: 14, color: C.text, fontWeight: 500 }}>{r.name}</span>
+                    <Pill tone="blue">{CONSIDERATION_LABEL[r.consideration]}</Pill>
+                    <span style={{ fontSize: 13, color: C.dim, flex: 1, minWidth: 180 }}>
+                      {r.consideration_note || 'No terms recorded'}
+                    </span>
+                    <span style={{ fontSize: 13, color: C.faint, fontVariantNumeric: 'tabular-nums' }}>
+                      {fmtHours(r.hours_logged)} logged
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontSize: 12.5, color: C.faint, marginTop: 12, lineHeight: 1.6, maxWidth: 620 }}>
+                Deliberately left out of revenue and profit above. Equity has no defensible dollar
+                value until it has one, and a guess in your own accounts is a story rather than a
+                number. This is here so the work is not invisible, not so it can be counted.
+              </p>
+            </Card>
+          )}
 
           {scoped.unbilled > 0 && (
             <Card

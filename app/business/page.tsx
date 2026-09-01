@@ -101,6 +101,7 @@ export default function BusinessPage() {
   const [rate, setRate] = useState('');
   const [markup, setMarkup] = useState('');
   const [tax, setTax] = useState('');
+  const [setAside, setSetAside] = useState('');
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -135,6 +136,7 @@ export default function BusinessPage() {
     setRate(String(org.default_labor_rate ?? 0));
     setMarkup(String(org.default_material_markup_pct ?? 0));
     setTax(String(org.tax_rate ?? 0));
+    setSetAside(org.tax_set_aside_pct == null ? '' : String(org.tax_set_aside_pct));
     const existing = (org.payment_methods ?? []) as PaymentMethod[];
     setMethods(
       METHODS.map((spec) => {
@@ -159,6 +161,10 @@ export default function BusinessPage() {
         default_labor_rate: parseFloat(rate) || 0,
         default_material_markup_pct: parseFloat(markup) || 0,
         tax_rate: parseFloat(tax) || 0,
+        // Empty stays null rather than becoming zero. Nobody has chosen a rate
+        // is a different state from somebody choosing to hold back nothing,
+        // and the profit and loss screen says so differently.
+        tax_set_aside_pct: setAside.trim() === '' ? null : parseFloat(setAside) || 0,
         payment_methods: methods.filter((m) => m.enabled) as unknown as Record<string, unknown>[],
       });
       await refresh();
@@ -281,6 +287,31 @@ export default function BusinessPage() {
                 placeholder="5.5"
               />
             </Field>
+
+            {/* Separated from the sales tax field above on purpose. One is
+                added to a customer's invoice; the other is money you already
+                collected that was never yours. Sitting them side by side under
+                one heading called Tax is how they get confused. */}
+            <div style={{ marginTop: 22, paddingTop: 18, borderTop: `1px solid ${C.border}` }}>
+              <Field label="Hold back for income tax (%)">
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  max="60"
+                  value={setAside}
+                  onChange={(e) => setSetAside(e.target.value)}
+                  style={inputStyle}
+                  placeholder="30"
+                />
+              </Field>
+              <p style={{ fontSize: 13, color: C.faint, marginTop: -6, lineHeight: 1.6, maxWidth: 560 }}>
+                A share of what you collect, shown on Profit &amp; Loss as money to leave alone.
+                Nobody is withholding on your behalf, and this applies to every dollar that comes
+                in regardless of how it arrives, including Venmo, PayPal and cash. Leave it blank
+                if you would rather not track it.
+              </p>
+            </div>
 
             <SaveBar onSave={() => save('rates')} busy={busy} saved={savedTab === 'rates'} />
           </Card>

@@ -14,7 +14,23 @@ export type JobStatus =
   | 'closed'
   | 'lost';
 
-export type BillingType = 'tm' | 'fixed';
+export type BillingType = 'tm' | 'fixed' | 'retainer';
+
+/**
+ * What you are actually being paid in.
+ *
+ * cash is the default and covers almost everything. The rest exist so that
+ * work paid for another way stops reading as work nobody paid for.
+ */
+export type Consideration = 'cash' | 'equity' | 'trade' | 'pro_bono' | 'deferred';
+
+export const CONSIDERATION_LABEL: Record<Consideration, string> = {
+  cash: 'Cash',
+  equity: 'Equity',
+  trade: 'Trade',
+  pro_bono: 'Pro bono',
+  deferred: 'Deferred',
+};
 
 export type LineKind = 'labor' | 'material' | 'subcontractor' | 'other';
 
@@ -72,6 +88,9 @@ export interface Org {
   payment_methods: unknown[];
   onboarded_at: string | null;
   billing_style: string | null;
+  /** Null means nobody has chosen one, which is not the same as choosing zero. */
+  tax_set_aside_pct: number | null;
+  tax_set_aside_note: string | null;
   price_feed_token: string | null;
   calendar_token: string | null;
   created_at: string;
@@ -107,6 +126,11 @@ export interface Job {
   scheduled_start: string | null;
   scheduled_end: string | null;
   billing_period: 'none' | 'weekly' | 'biweekly' | 'monthly' | null;
+  consideration: Consideration;
+  consideration_note: string | null;
+  retainer_amount: number | null;
+  /** Hours the fee assumes, so overdelivery is visible. */
+  retainer_hours: number | null;
   last_billed_on: string | null;
   created_at: string;
   updated_at: string;
@@ -281,6 +305,16 @@ export interface JobLedger {
   collected: number;
   estimate_total: number;
   margin_to_date: number;
+  /**
+   * Hours left against what the retainer fee assumed. Null unless this is a
+   * retainer with a stated expectation, because a zero would read as "on
+   * budget" when it actually means "nobody said".
+   */
+  retainer_variance: number | null;
+  consideration: Consideration;
+  consideration_note: string | null;
+  retainer_amount: number | null;
+  retainer_hours: number | null;
 }
 
 // ---------------------------------------------------------------------------

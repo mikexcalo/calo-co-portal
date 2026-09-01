@@ -80,6 +80,14 @@ export default async function PublicEstimate({ params }: { params: { token: stri
 
   const rows = (lines ?? []) as Line[];
   const subtotal = rows.reduce((s, l) => s + Number(l.total), 0);
+
+  // Defensive: these are jsonb, and a hand-edited row could hold anything.
+  // This page is public, so a bad value must render as nothing rather than
+  // throw a 500 at a client who is trying to accept.
+  const asList = (v: unknown): string[] =>
+    Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && x.trim().length > 0) : [];
+  const scopeIn = asList(estimate.scope_in);
+  const scopeOut = asList(estimate.scope_out);
   const decided = ['accepted', 'declined'].includes(estimate.status);
   const isTM = job?.billing_type === 'tm';
 
@@ -183,8 +191,51 @@ export default async function PublicEstimate({ params }: { params: { token: stri
             </div>
           )}
 
+          {/*
+            Scope, on the page they accept.
+            
+            Both lists sit above the notes and below the price, because this is
+            the moment the reader is deciding, and the exclusions are the half
+            they will otherwise assume in their own favor. Shown at the same
+            weight as the inclusions on purpose.
+          */}
+          {(scopeIn.length > 0 || scopeOut.length > 0) && (
+            <div
+              style={{
+                marginTop: 20,
+                display: 'grid',
+                gridTemplateColumns: scopeIn.length && scopeOut.length ? 'repeat(auto-fit, minmax(240px, 1fr))' : '1fr',
+                gap: 22,
+              }}
+            >
+              {scopeIn.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.09em', color: '#777', fontWeight: 600, marginBottom: 8 }}>
+                    What this covers
+                  </div>
+                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: 14, color: '#333', lineHeight: 1.7 }}>
+                    {scopeIn.map((x, i) => <li key={i}>{x}</li>)}
+                  </ul>
+                </div>
+              )}
+              {scopeOut.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.09em', color: '#777', fontWeight: 600, marginBottom: 8 }}>
+                    What it does not
+                  </div>
+                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: 14, color: '#333', lineHeight: 1.7 }}>
+                    {scopeOut.map((x, i) => <li key={i}>{x}</li>)}
+                  </ul>
+                  <div style={{ fontSize: 12.5, color: '#777', marginTop: 8, lineHeight: 1.55 }}>
+                    Anything here can be added later as a separate quote.
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {estimate.notes && (
-            <div style={{ marginTop: 16, fontSize: 14, color: '#444', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+            <div style={{ marginTop: 20, fontSize: 14, color: '#444', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
               {estimate.notes}
             </div>
           )}
