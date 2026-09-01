@@ -26,6 +26,7 @@ export type ModuleId =
   | 'brands'
   | 'stories'
   | 'ask'
+  | 'reviews'
   | 'account'        // client-facing: what I owe my agency
   | 'pricing'
   | 'records'
@@ -37,6 +38,7 @@ export type ModuleId =
 
 const CONTRACTOR: ModuleId[] = [
   'ask',
+  'reviews',
   'jobs',
   'customers',
   'receipts',
@@ -62,6 +64,7 @@ const CONTRACTOR: ModuleId[] = [
 
 const AGENCY: ModuleId[] = [
   'ask',
+  'reviews',
   'jobs',
   'customers',
   'receipts',
@@ -114,6 +117,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/requests', 'client_requests'],
   ['/brand-kit', 'brand_kit'],
   ['/ask', 'ask'],
+  ['/reviews', 'reviews'],
   ['/framework', 'brands'],
   ['/stories', 'stories'],
   ['/brands', 'brands'],
@@ -257,6 +261,7 @@ export function navFor(
         { id: 'brands', label: 'Brand Framework', href: '/framework', icon: 'brandKit' },
         { id: 'stories', label: 'Case Studies', href: '/stories', icon: 'megaphone' },
         { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
+        { id: 'reviews', label: 'Reviews', href: '/reviews', icon: 'megaphone' },
         { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'inbox' },
         { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],

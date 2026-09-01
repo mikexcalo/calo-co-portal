@@ -102,6 +102,8 @@ export default function BusinessPage() {
   const [markup, setMarkup] = useState('');
   const [tax, setTax] = useState('');
   const [setAside, setSetAside] = useState('');
+  const [reviewLink, setReviewLink] = useState('');
+  const [reviewDelay, setReviewDelay] = useState('1');
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -137,6 +139,8 @@ export default function BusinessPage() {
     setMarkup(String(org.default_material_markup_pct ?? 0));
     setTax(String(org.tax_rate ?? 0));
     setSetAside(org.tax_set_aside_pct == null ? '' : String(org.tax_set_aside_pct));
+    setReviewLink(org.review_link ?? '');
+    setReviewDelay(String(org.review_delay_days ?? 1));
     const existing = (org.payment_methods ?? []) as PaymentMethod[];
     setMethods(
       METHODS.map((spec) => {
@@ -165,6 +169,10 @@ export default function BusinessPage() {
         // is a different state from somebody choosing to hold back nothing,
         // and the profit and loss screen says so differently.
         tax_set_aside_pct: setAside.trim() === '' ? null : parseFloat(setAside) || 0,
+        // Blank switches asking off. Sending customers to a broken link is
+        // worse than never asking, so off is the safe default.
+        review_link: reviewLink.trim() || null,
+        review_delay_days: Math.max(0, Math.min(30, parseInt(reviewDelay, 10) || 1)),
         payment_methods: methods.filter((m) => m.enabled) as unknown as Record<string, unknown>[],
       });
       await refresh();
@@ -311,6 +319,34 @@ export default function BusinessPage() {
                 in regardless of how it arrives, including Venmo, PayPal and cash. Leave it blank
                 if you would rather not track it.
               </p>
+            </div>
+
+            {/* Reviews sit with the rates because both are things you set once
+                and then forget, not because they are the same kind of thing. */}
+            <div style={{ marginTop: 22, paddingTop: 18, borderTop: `1px solid ${C.border}` }}>
+              <Field label="Google review link">
+                <input
+                  value={reviewLink}
+                  onChange={(e) => setReviewLink(e.target.value)}
+                  placeholder="https://g.page/r/…/review"
+                  style={inputStyle}
+                />
+              </Field>
+              <p style={{ fontSize: 13, color: C.faint, marginTop: -6, marginBottom: 14, lineHeight: 1.6, maxWidth: 560 }}>
+                From your Google Business Profile, Ask for reviews. Once this is here, every
+                finished job gets one request, and nobody who still owes you money is asked.
+                Leave it blank and nothing is sent.
+              </p>
+              <Field label="Days to wait after a job finishes">
+                <input
+                  type="number"
+                  min="0"
+                  max="30"
+                  value={reviewDelay}
+                  onChange={(e) => setReviewDelay(e.target.value)}
+                  style={{ ...inputStyle, maxWidth: 120 }}
+                />
+              </Field>
             </div>
 
             <SaveBar onSave={() => save('rates')} busy={busy} saved={savedTab === 'rates'} />

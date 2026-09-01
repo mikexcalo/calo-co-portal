@@ -158,3 +158,40 @@ alter table public.notifications drop constraint if exists notifications_kind_ch
 alter table public.notifications add constraint notifications_kind_check
   check (kind in ('lead', 'invoice_paid', 'invoice_overdue', 'site_request',
                   'document', 'system', 'schedule', 'reminder'));
+
+
+-- ---------------------------------------------------------------------------
+-- Review asks are worth a nudge, not an automatic send.
+--
+-- The email goes out from the application, which holds the Resend key and the
+-- wording. What the daily pass does is notice that somebody is waiting to be
+-- asked, so the ask does not depend on remembering to open a screen.
+-- ---------------------------------------------------------------------------
+
+create or replace function public.daily_review_notice()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $function$
+begin
+  insert into notifications (org_id, kind, title, body, href, dedupe_key)
+  select
+    org_id,
+    'system',
+    case when count(*) = 1
+         then 'One finished job is waiting on a review request'
+         else count(*) || ' finished jobs are waiting on review requests' end,
+    'Paid up and ready to ask',
+    '/reviews',
+    'reviews:' || org_id || ':' || to_char(current_date, 'IYYY-IW')
+  from review_due
+  group by org_id
+  on conflict do nothing;
+end;
+$function$;
+
+select cron.unschedule('daily-reviews')
+  where exists (select 1 from cron.job where jobname = 'daily-reviews');
+
+select cron.schedule('daily-reviews', '30 12 * * *', $cron$select public.daily_review_notice();$cron$);

@@ -91,6 +91,9 @@ export interface Org {
   /** Null means nobody has chosen one, which is not the same as choosing zero. */
   tax_set_aside_pct: number | null;
   tax_set_aside_note: string | null;
+  /** Null switches review requests off, which is the safe default. */
+  review_link: string | null;
+  review_delay_days: number;
   price_feed_token: string | null;
   calendar_token: string | null;
   created_at: string;

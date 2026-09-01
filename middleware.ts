@@ -140,7 +140,8 @@ export const config = {
      * - /e/                     the customer-facing estimate page
      * - /i/                     the customer-facing invoice page
      * - /s/                     a published case study
+     * - /r/                     a review link, followed by a customer
      */
-    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|q/|p/|e/|i/|s/).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|q/|p/|e/|i/|s/|r/).*)',
   ],
 };
