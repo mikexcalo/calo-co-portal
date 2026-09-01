@@ -6,7 +6,7 @@
 -- get reused, phished and dumped. A second factor is the cheapest real
 -- protection available, and unlike SOC 2 it costs nothing but an afternoon.
 --
--- Supabase handles the TOTP mechanics: enrolment, the QR code, checking the
+-- Supabase handles the TOTP mechanics: enrollment, the QR code, checking the
 -- six digits, and raising the session's assurance level to aal2. What it does
 -- not do is enforce anything. A session that skipped the second step is still
 -- a valid session, and it can talk to the database directly.

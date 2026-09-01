@@ -19,7 +19,7 @@ when something is orange it actually means something.
 ### Palette
 
 ```
-bg           #FAF9F7   warm off-white, not clinical grey
+bg           #FAF9F7   warm off-white, not clinical gray
 panel        #FFFFFF
 panelAlt     #F5F3F0
 ink          #111111   solid black buttons

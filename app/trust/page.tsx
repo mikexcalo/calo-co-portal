@@ -46,7 +46,7 @@ const FACTS = [
   {
     title: 'Encrypted going in and sitting still',
     body:
-      'Everything is encrypted travelling between your browser and the servers, and encrypted again on the disks it rests on. Neither is optional or something we can switch off by accident.',
+      'Everything is encrypted traveling between your browser and the servers, and encrypted again on the disks it rests on. Neither is optional or something we can switch off by accident.',
   },
   {
     title: 'Two-factor sign-in, enforced properly',

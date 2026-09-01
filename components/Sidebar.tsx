@@ -3,7 +3,7 @@
 /**
  * Sidebar.
  *
- * Grouped and labelled, because a flat list of nine items has no shape and
+ * Grouped and labeled, because a flat list of nine items has no shape and
  * you end up reading all of it every time. Which items appear depends on the
  * business you're in — a contractor has no use for a client-request inbox.
  */
@@ -278,7 +278,7 @@ export default function Sidebar() {
       if (saved) {
         setClosed(new Set(JSON.parse(saved) as string[]));
       } else {
-        // First visit: honour the defaults the nav declares.
+        // First visit: honor the defaults the nav declares.
         setClosed(new Set(groups.filter((g) => g.defaultOpen === false).map((g) => g.heading)));
       }
     } catch {

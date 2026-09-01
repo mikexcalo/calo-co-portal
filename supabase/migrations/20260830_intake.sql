@@ -53,7 +53,7 @@ comment on table public.links is
 -- customer_notes already existed but only ever held a line typed by hand.
 -- A call transcript or a page of scribbled notes is the same thing arriving
 -- in bulk, so it goes in the same place — with a record of where it came from,
--- because a note somebody wrote and a note a model summarised deserve
+-- because a note somebody wrote and a note a model summarized deserve
 -- different amounts of trust, and six months later nobody remembers which is
 -- which.
 -- ---------------------------------------------------------------------------

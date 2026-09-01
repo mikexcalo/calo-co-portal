@@ -11,7 +11,7 @@
  * The list leads with what is unresolved rather than with what is finished.
  * A brand with an unlicensed font and two uncleared photographs is not a
  * brand you can launch, and that fact is worth more on this screen than a
- * swatch of colours.
+ * swatch of colors.
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -96,7 +96,7 @@ export default function BrandsPage() {
       ) : rows.length === 0 ? (
         <Card>
           <Empty hero>
-            No client brands yet. When you build an identity for somebody, its colours, type and
+            No client brands yet. When you build an identity for somebody, its colors, type and
             voice rules live here rather than in a folder.
           </Empty>
         </Card>
@@ -151,7 +151,7 @@ export default function BrandsPage() {
                       </div>
 
                       {/* The palette as the row's own signature. Faster to
-                          recognise than the name, once there are a dozen. */}
+                          recognize than the name, once there are a dozen. */}
                       {colors.length > 0 && (
                         <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
                           {colors.slice(0, 8).map((c) => (

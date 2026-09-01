@@ -26,7 +26,7 @@ export const ANSWERS: Answer[] = [
   {
     id: 'price-list',
     question: 'How do I load my price list?',
-    keywords: ['price', 'prices', 'pricing', 'rate card', 'catalog', 'catalogue', 'list', 'import', 'pdf', 'sheet'],
+    keywords: ['price', 'prices', 'pricing', 'rate card', 'catalog', 'catalog', 'list', 'import', 'pdf', 'sheet'],
     body: `Go to Price list and hit "Import from a file". Drop in the price sheet you already have. A PDF works, so does a photo of a printed one.
 
 It gets read into line items and shown to you to check BEFORE anything is saved, because a misread price becomes a wrong estimate to a customer.

@@ -4,7 +4,7 @@
  * WHY THIS EXISTS AT ALL
  * Supabase's default emails link straight to its own domain — something like
  * qwncdybiluseypcovitd.supabase.co. The message says it is from calo.company
- * and the button goes to a random string on a domain nobody recognises, which
+ * and the button goes to a random string on a domain nobody recognizes, which
  * is precisely the shape of a phishing email. Gmail agrees: the first reset we
  * sent was delivered to spam behind a red "this message might be dangerous"
  * banner.

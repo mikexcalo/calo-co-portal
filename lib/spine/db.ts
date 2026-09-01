@@ -48,7 +48,7 @@ function unwrap<T>(res: { data: T | null; error: { message: string } | null }): 
 
 /**
  * The org you're currently looking at. Reads active_org_id, which the
- * database only honours when a matching membership exists — so this can
+ * database only honors when a matching membership exists — so this can
  * never return an org you don't belong to.
  */
 export async function getCurrentOrg(): Promise<Org | null> {
@@ -755,7 +755,7 @@ export async function draftInvoiceFromActuals(
  * Construction bills in draws, so `percent` invoices a slice. Anything
  * already invoiced is deducted so repeated draws cannot overrun the agreed
  * total: billing more than someone signed for is the one mistake you cannot
- * apologise your way out of.
+ * apologize your way out of.
  */
 export async function invoiceFromEstimate(
   orgId: string,

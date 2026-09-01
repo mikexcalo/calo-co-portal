@@ -62,8 +62,8 @@ export default async function PitchPage({ params }: { params: { token: string } 
   }
 
   /**
-   * The sender's own colours, when they have set them. Falling back to
-   * near-black rather than to a house colour, because a pitch wearing our
+   * The sender's own colors, when they have set them. Falling back to
+   * near-black rather than to a house color, because a pitch wearing our
    * accent instead of theirs is a pitch that looks like it came from software.
    */
   const brand = pitch.org.brand as { colors?: Array<{ hex: string; role?: string }> };

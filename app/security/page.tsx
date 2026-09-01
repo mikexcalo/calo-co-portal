@@ -70,7 +70,7 @@ const DATA_FACTS = [
   {
     title: 'Everything is encrypted, both moving and sitting still',
     body:
-      'Your information is scrambled travelling between your browser and our servers, and stays scrambled on the disks it rests on. Someone who walked out with the hardware would have nothing readable.',
+      'Your information is scrambled traveling between your browser and our servers, and stays scrambled on the disks it rests on. Someone who walked out with the hardware would have nothing readable.',
     icon: icon(
       <>
         <rect x="3" y="7" width="10" height="6.5" rx="1.4" />
@@ -546,7 +546,7 @@ export default function SecurityPage() {
             <SectionLabel>How your data is held</SectionLabel>
             <Card>
               {/* Five separate ideas. As a bullet list they ran together into
-                  one grey paragraph and you had to read all of it to find the
+                  one gray paragraph and you had to read all of it to find the
                   one you cared about. An icon and a heading per idea means you
                   can find the one you came for without reading the rest. */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>

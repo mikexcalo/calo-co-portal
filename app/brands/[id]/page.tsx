@@ -3,7 +3,7 @@
 /**
  * One brand.
  *
- * The palette with each colour's job, and the type stack shown in the actual
+ * The palette with each color's job, and the type stack shown in the actual
  * faces at the sizes their roles call for.
  *
  * A list of font names is a list of font names. Nobody can tell whether a
@@ -26,7 +26,7 @@ import {
 } from '@/components/spine/ui';
 
 interface OpenItem { item: string; why?: string; severity?: string }
-interface Colour { name: string; hex: string; role?: string; token?: string }
+interface Color { name: string; hex: string; role?: string; token?: string }
 interface Font {
   family: string;
   role?: string;
@@ -34,8 +34,8 @@ interface Font {
   tracking?: string;
   source?: string;
   /** Where the file lives, for a face we host rather than fetch from Google. */
-  web_url?: string;
-  files?: Array<{ label: string; url: string }>;
+  storage_path?: string;
+  files?: Array<{ label: string; storage_path?: string; url?: string }>;
 }
 interface Asset {
   name?: string;
@@ -43,7 +43,12 @@ interface Asset {
   group?: string;
   bytes?: number;
   mime?: string;
-  url?: string;
+  /**
+   * Where the file sits in private storage. Deliberately not a URL: a URL
+   * implies anybody holding it can fetch the file, and these live in a bucket
+   * that requires a signature. Signed at render time for whoever is signed in.
+   */
+  storage_path?: string;
   needs_approval?: boolean;
 }
 
@@ -53,7 +58,7 @@ interface Brand {
   site_url: string | null;
   status: string;
   kit: {
-    colors?: Colour[];
+    colors?: Color[];
     fonts?: Font[];
     voice?: Record<string, unknown>;
     assets?: Asset[];
@@ -85,7 +90,7 @@ function specimenText(role: string | undefined, family: string): string {
   if (/wordmark/.test(r)) return family.split(' ')[0];
   if (/display|headline/.test(r)) return 'The work, in their own words';
   if (/eyebrow|label/.test(r)) return 'How it works';
-  return 'Set at the size it runs on the page, so the line length and the colour of the paragraph are the thing you are judging.';
+  return 'Set at the size it runs on the page, so the line length and the color of the paragraph are the thing you are judging.';
 }
 
 const kb = (n?: number) =>
@@ -97,6 +102,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState<string | null>(null);
   const [assetGroup, setAssetGroup] = useState('All');
+  const [signed, setSigned] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     const res = await supabase
@@ -114,6 +120,44 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
   }, [params.id]);
 
   useEffect(() => { load(); }, [load]);
+
+  /**
+   * Short-lived signed links for every file.
+   *
+   * The bucket is private, so nothing here is fetchable by an address alone.
+   * Signatures last an hour: long enough to browse and download a set, short
+   * enough that a link pasted into a chat stops working before it travels.
+   *
+   * A client's photo library is not ours to publish, and some of this
+   * photography is not cleared. A public bucket would have meant anybody with
+   * the address could pull the uncleared portrait, which is the sort of thing
+   * that only surfaces when it has already gone wrong.
+   */
+  useEffect(() => {
+    if (!brand) return;
+    const paths = [
+      ...(brand.kit?.assets ?? []).map((a) => a.storage_path).filter(Boolean),
+      ...(brand.kit?.fonts ?? []).flatMap((f) => [
+        f.storage_path,
+        ...(f.files ?? []).map((x) => x.storage_path),
+      ]).filter(Boolean),
+    ] as string[];
+    if (paths.length === 0) return;
+
+    let cancelled = false;
+    supabase.storage
+      .from('client-assets')
+      .createSignedUrls(paths.map((p) => `colette/${p}`), 3600)
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        const map: Record<string, string> = {};
+        data.forEach((d) => {
+          if (d.signedUrl && d.path) map[d.path.replace(/^colette\//, '')] = d.signedUrl;
+        });
+        setSigned(map);
+      });
+    return () => { cancelled = true; };
+  }, [brand]);
 
   if (loading) return <Page title="Brand"><Card><Empty>Loading…</Empty></Card></Page>;
   if (!brand) return <Page title="Brand"><Card><Empty>Not found.</Empty></Card></Page>;
@@ -147,10 +191,10 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
    * brand kit.
    */
   const hostedFaces = fonts
-    .filter((f) => f.web_url)
+    .filter((f) => f.storage_path && signed[f.storage_path])
     .map(
       (f) =>
-        `@font-face{font-family:'${f.family}';src:url('${f.web_url}') format('opentype');font-display:swap;}`
+        `@font-face{font-family:'${f.family}';src:url('${signed[f.storage_path!]}') format('opentype');font-display:swap;}`
     )
     .join('');
 
@@ -189,7 +233,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
 
       {colors.length > 0 && (
         <div style={{ marginBottom: 26 }}>
-          <SectionLabel>Colour ({colors.length})</SectionLabel>
+          <SectionLabel>Color ({colors.length})</SectionLabel>
           <div
             style={{
               display: 'grid',
@@ -256,7 +300,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
           <SectionLabel>Type</SectionLabel>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {fonts.map((f) => {
-              const loadable = /google/i.test(f.source ?? '') || !!f.web_url;
+              const loadable = /google/i.test(f.source ?? '') || !!(f.storage_path && signed[f.storage_path]);
               return (
                 <div
                   key={f.family}
@@ -310,8 +354,8 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                     <div style={{ display: 'flex', gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
                       {f.files.map((file) => (
                         <a
-                          key={file.url}
-                          href={file.url}
+                          key={file.label}
+                          href={file.storage_path ? signed[file.storage_path] : file.url}
                           download
                           style={{
                             fontSize: 11.5,
@@ -380,7 +424,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
 
           {/*
             A grid of what the files look like, not a list of what they are
-            called. Nobody recognises a logo by its filename, and a column of
+            called. Nobody recognizes a logo by its filename, and a column of
             chips in stacked cards was several screens of scrolling to see
             forty items that fit on one.
           */}
@@ -397,7 +441,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
               return (
                 <a
                   key={a.path}
-                  href={a.url}
+                  href={a.storage_path ? signed[a.storage_path] : undefined}
                   download
                   title={`${a.name ?? a.path}${a.bytes ? ` · ${kb(a.bytes)}` : ''}`}
                   style={{
@@ -422,14 +466,14 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                     {isImage ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={a.url}
+                        src={a.storage_path ? signed[a.storage_path] : undefined}
                         alt={a.name ?? a.path}
                         loading="lazy"
                         style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 6 }}
                       />
                     ) : isVideo ? (
                       <video
-                        src={a.url}
+                        src={a.storage_path ? signed[a.storage_path] : undefined}
                         muted
                         playsInline
                         preload="metadata"

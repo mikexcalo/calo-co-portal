@@ -89,7 +89,7 @@ function detectDelimiter(firstLine: string): string {
 const PATTERNS: Array<[keyof SheetRow, RegExp]> = [
   ['email',        /^(e[-\s]?mail|email\s*address|mail)$/i],
   ['phone',        /^(phone|telephone|tel|mobile|cell|phone\s*number|contact\s*number)$/i],
-  ['company',      /^(company|business|organisation|organization|firm|co\.?)$/i],
+  ['company',      /^(company|business|organization|organization|firm|co\.?)$/i],
   ['address',      /^(address|street|location|mailing\s*address|address\s*1|full\s*address)$/i],
   ['website',      /^(website|web|url|site|homepage)$/i],
   ['contact_name', /^(contact|contact\s*name|primary\s*contact|attn)$/i],

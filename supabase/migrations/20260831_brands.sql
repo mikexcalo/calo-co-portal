@@ -34,7 +34,7 @@ create table if not exists public.brands (
    *
    * jsonb rather than columns because the shape genuinely varies: a
    * restaurant-tech company has integration logos and a section rhythm rule,
-   * a builder has a wordmark and two colours. Forcing both into the same
+   * a builder has a wordmark and two colors. Forcing both into the same
    * columns would mean a table of mostly-null fields and a schema change
    * every time a client turns up with a kind of asset nobody anticipated.
    *

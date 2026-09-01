@@ -16,7 +16,7 @@ and looks untrustworthy to a client.
 **To fix:**
 
 1. In Resend → Domains, add `calo.company` — that's where clients click
-   "Log in", so it's the address they'll recognise.
+   "Log in", so it's the address they'll recognize.
 2. Resend gives you 3-4 DNS records. **calo.company's DNS is on Vercel**
    (nameservers ns1/ns2.vercel-dns.com), so add them in the Vercel dashboard
    under the domain's DNS tab. There are currently **no MX and no SPF records

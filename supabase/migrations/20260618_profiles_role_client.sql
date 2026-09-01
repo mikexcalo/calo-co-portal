@@ -1,5 +1,5 @@
 -- Step 1 of 2: Add role + client_id columns to profiles.
--- NO RLS policy changes. NO data-loading changes. App behaviour is unchanged.
+-- NO RLS policy changes. NO data-loading changes. App behavior is unchanged.
 
 -- 1. Add role column (admin or client; defaults to 'client')
 ALTER TABLE public.profiles

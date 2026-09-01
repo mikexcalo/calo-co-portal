@@ -5,7 +5,7 @@
 :root {
   /* Left over from the dark version of this app, which was reverted. The
      body rules below still painted a dark page and only lost by inline
-     styles winning the cascade — which is a flash of the wrong colour on
+     styles winning the cascade — which is a flash of the wrong color on
      every cold load, not a working design. */
   --nav-bg: #FFFFFF;
   --page-bg: #FFFFFF;
@@ -4670,7 +4670,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 /* Anyone who has asked their system to stop animating things means it. The
-   colour and weight changes still happen; only the movement stops. */
+   color and weight changes still happen; only the movement stops. */
 @media (prefers-reduced-motion: reduce) {
   .navItem .navIcon svg,
   .navItem .navIcon svg * {

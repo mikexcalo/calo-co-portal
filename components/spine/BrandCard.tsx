@@ -49,6 +49,8 @@ export function BrandCard({ customerId }: { customerId: string }) {
   // be told they are missing one.
   if (brands.length === 0) return null;
 
+  // Only the Google-hosted faces here. A privately stored face needs a signed
+  // link, and the summary card is not worth a storage round trip for one word.
   const webFonts = brands
     .flatMap((b) => b.kit?.fonts ?? [])
     .filter((f) => /google/i.test(f.source ?? ''))

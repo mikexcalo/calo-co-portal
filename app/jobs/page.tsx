@@ -42,24 +42,24 @@ export default function JobsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    let canceled = false;
 
     (async () => {
       try {
         // Two queries total, regardless of how many jobs exist.
         const [j, l] = await Promise.all([listJobs(), listJobLedger()]);
-        if (cancelled) return;
+        if (canceled) return;
         setJobs(j);
         setLedger(Object.fromEntries(l.map((row) => [row.job_id, row])));
       } catch (e) {
-        if (!cancelled) setError((e as Error).message);
+        if (!canceled) setError((e as Error).message);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!canceled) setLoading(false);
       }
     })();
 
     return () => {
-      cancelled = true;
+      canceled = true;
     };
   }, []);
 

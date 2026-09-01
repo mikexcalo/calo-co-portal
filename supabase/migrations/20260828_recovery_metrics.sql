@@ -8,7 +8,7 @@
 -- sat unbilled long enough that it was plausibly going to be forgotten, and
 -- then got invoiced.
 --
--- The 21-day threshold is a judgement call and it is deliberately
+-- The 21-day threshold is a judgment call and it is deliberately
 -- conservative. Anything billed inside three weeks is a normal billing cycle
 -- and gets no credit — claiming it would inflate the number and a contractor
 -- would spot that immediately. One inflated figure poisons the honest ones.

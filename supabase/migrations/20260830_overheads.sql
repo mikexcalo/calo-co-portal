@@ -61,7 +61,7 @@ select
   count(*)                                                          as items,
   round(sum(amount)::numeric, 2)                                    as total_recorded,
 
-  -- What the recurring ones cost every month, normalised to a monthly figure.
+  -- What the recurring ones cost every month, normalized to a monthly figure.
   round(sum(
     case recurrence
       when 'monthly'   then amount

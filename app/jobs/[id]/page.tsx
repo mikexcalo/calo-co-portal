@@ -124,18 +124,18 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
   }, [jobId]);
 
   useEffect(() => {
-    let cancelled = false;
+    let canceled = false;
     (async () => {
       try {
         await load();
       } catch (e) {
-        if (!cancelled) setError((e as Error).message);
+        if (!canceled) setError((e as Error).message);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!canceled) setLoading(false);
       }
     })();
     return () => {
-      cancelled = true;
+      canceled = true;
     };
   }, [load]);
 
@@ -173,7 +173,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
    * Itemised from what they agreed to, not retyped, so the invoice and the
    * quote cannot drift apart. The underlying function already refuses to bill
    * more than the contract in total, which is the one mistake in progress
-   * billing you cannot apologise your way out of.
+   * billing you cannot apologize your way out of.
    */
   const billFromEstimate = async () => {
     setBusy(true);

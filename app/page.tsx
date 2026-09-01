@@ -89,7 +89,7 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
+    let canceled = false;
     (async () => {
       try {
         const [j, l, inv, d] = await Promise.all([
@@ -145,7 +145,7 @@ export default function Dashboard() {
               .is('done_at', null)
               .lte('due_on', new Date().toISOString().slice(0, 10)),
           ]);
-        if (cancelled) return;
+        if (canceled) return;
         setJobs(j);
         setLedger(l);
         setInvoices(inv);
@@ -176,12 +176,12 @@ export default function Dashboard() {
           );
         }
       } catch (e) {
-        if (!cancelled) setError((e as Error).message);
+        if (!canceled) setError((e as Error).message);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!canceled) setLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => { canceled = true; };
   }, [org?.id]);
 
   const live = invoices.filter((i) => i.status !== 'void');

@@ -137,7 +137,7 @@ export default function ExpensesPage() {
 
   useEffect(() => {
     if (!org) return;
-    let cancelled = false;
+    let canceled = false;
 
     (async () => {
       const { data: auth } = await supabase.auth.getUser();
@@ -151,12 +151,12 @@ export default function ExpensesPage() {
         .maybeSingle();
 
       const owner = ['owner', 'admin'].includes(membership.data?.role ?? '');
-      if (cancelled) return;
+      if (canceled) return;
       setIsOwner(owner);
       if (!owner) return;
 
       const usage = await supabase.from('ai_usage').select('month, reads, cents').eq('org_id', org.id);
-      if (cancelled || usage.error) return;
+      if (canceled || usage.error) return;
 
       const rows = usage.data ?? [];
       const month = new Date().toISOString().slice(0, 7);
@@ -169,7 +169,7 @@ export default function ExpensesPage() {
       });
     })();
 
-    return () => { cancelled = true; };
+    return () => { canceled = true; };
   }, [org]);
 
   const reset = () => {

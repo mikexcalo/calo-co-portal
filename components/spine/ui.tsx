@@ -395,7 +395,7 @@ export const inputStyle: React.CSSProperties = {
 /**
  * Nothing here yet.
  *
- * Was 28px of padding and centred text, so an empty section took as much
+ * Was 28px of padding and centered text, so an empty section took as much
  * vertical space as a full one. Stack four of those on a record and the
  * things somebody can actually act on end up below the fold, which is the
  * same as not building them.

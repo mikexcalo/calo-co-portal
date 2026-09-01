@@ -99,7 +99,7 @@ safe to ship.
 
 ---
 
-## The authenticator name is baked in at enrolment
+## The authenticator name is baked in at enrollment
 
 `AUTH_ISSUER` in `lib/brand.ts` is deliberately separate from `PRODUCT`.
 

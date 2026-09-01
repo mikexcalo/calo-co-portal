@@ -23,7 +23,7 @@ export interface EnrolStart {
 }
 
 /**
- * Begin enrolment. Produces an unverified factor — until a code from it is
+ * Begin enrollment. Produces an unverified factor — until a code from it is
  * accepted, nothing about the account has changed.
  */
 export async function startEnrolment(): Promise<EnrolStart> {
@@ -59,7 +59,7 @@ export async function startEnrolment(): Promise<EnrolStart> {
   };
 }
 
-/** Confirm enrolment with the first code the app produces. */
+/** Confirm enrollment with the first code the app produces. */
 export async function confirmEnrolment(factorId: string, code: string): Promise<void> {
   const challenge = await supabase.auth.mfa.challenge({ factorId });
   if (challenge.error) throw new Error(challenge.error.message);

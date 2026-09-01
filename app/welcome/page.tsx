@@ -46,7 +46,7 @@ const label: React.CSSProperties = { fontSize: 12.5, color: DIM, marginBottom: 6
 const optional = <span style={{ color: FAINT, fontWeight: 400 }}> · optional</span>;
 
 /**
- * Recognisable colour and initial per method rather than the real brand
+ * Recognisable color and initial per method rather than the real brand
  * marks — those are trademarked artwork, and a coloured badge does the same
  * job of making the list scannable without borrowing anyone's logo.
  */

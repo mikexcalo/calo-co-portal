@@ -18,8 +18,8 @@ export const C = {
 
   text: '#1D1F24',
   // Contrast-checked against both #FFFFFF and the #F7F7F5 page background.
-  // Cool greys taken from Polymarket's palette, with one deliberate
-  // departure: their own muted grey is #A0A3B1, which reads at 2.5:1 on
+  // Cool grays taken from Polymarket's palette, with one deliberate
+  // departure: their own muted gray is #A0A3B1, which reads at 2.5:1 on
   // white — below the 4.5:1 floor for body text and exactly the "I can't
   // read this" problem we already fixed twice. Structure and hue borrowed,
   // legibility kept.
@@ -54,7 +54,7 @@ export const C = {
    * panel, where it measures 4.1:1 against the 4.5 floor. Rather than wash the
    * panel out until the maths passes, the fill stays exactly the brand blue
    * and the writing sits a few steps darker. Nobody reads the two as different
-   * colours; everybody can read the second one.
+   * colors; everybody can read the second one.
    */
   blue: '#0052C9',
   blueSoft: '#E8F1FF',

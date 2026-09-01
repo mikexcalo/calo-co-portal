@@ -55,7 +55,7 @@ export default function TopBar() {
 
   useEffect(() => {
     if (!org) { setSiteUrl(null); return; }
-    let cancelled = false;
+    let canceled = false;
     supabase
       .from('client_sites')
       .select('url')
@@ -64,9 +64,9 @@ export default function TopBar() {
       .limit(1)
       .maybeSingle()
       .then(({ data }) => {
-        if (!cancelled) setSiteUrl(data?.url ?? null);
+        if (!canceled) setSiteUrl(data?.url ?? null);
       });
-    return () => { cancelled = true; };
+    return () => { canceled = true; };
   }, [org]);
 
   const title =

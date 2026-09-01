@@ -40,7 +40,7 @@ function nameFromUrl(url: string): string {
   }
 }
 
-const normalise = (url: string) =>
+const normalize = (url: string) =>
   /^https?:\/\//i.test(url.trim()) ? url.trim() : `https://${url.trim()}`;
 
 export function Links({
@@ -75,7 +75,7 @@ export function Links({
   useEffect(() => { load(); }, [load]);
 
   const add = async () => {
-    const clean = normalise(url);
+    const clean = normalize(url);
     try {
       new URL(clean);
     } catch {

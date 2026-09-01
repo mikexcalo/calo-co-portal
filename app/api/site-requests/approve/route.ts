@@ -10,7 +10,7 @@
  *
  *   1. Writes the approved brief back onto the request (approve-or-modify:
  *      what gets built is Mike's edit, not the client's midnight paragraph)
- *   2. Opens a GitHub issue on the site's repo, labelled `nautilus-build`
+ *   2. Opens a GitHub issue on the site's repo, labeled `nautilus-build`
  *   3. Moves the request to `building` and stores the issue URL
  *
  * A Claude Code session — run by hand, or a scheduled cloud agent — picks up

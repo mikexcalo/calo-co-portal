@@ -53,7 +53,7 @@ create policy customer_contacts_own on public.customer_contacts
   with check (org_id = current_org_id());
 
 comment on table public.customer_contacts is
-  'Everyone else at a client company. A client is an organisation; one name was never going to be enough.';
+  'Everyone else at a client company. A client is an organization; one name was never going to be enough.';
 
 -- ---------------------------------------------------------------------------
 -- Chasing.
