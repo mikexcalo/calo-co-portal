@@ -98,6 +98,16 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [quickEmail, setQuickEmail] = useState('');
+  /**
+   * The logging form starts folded.
+   *
+   * It was five chips, two more chips, a date picker and a textarea, permanently
+   * open, and it sat above the history it was for. On a client with nothing
+   * logged that is a screen of controls guarding an empty box. Logging is a
+   * thing you do occasionally; reading what happened is what you came for.
+   */
+  const [logging, setLogging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
 
@@ -206,6 +216,8 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
         .eq('id', params.id);
 
       setNoteBody('');
+      // Folded away again. The reason you opened it is now in the list below.
+      setLogging(false);
       await load();
     } catch (e) {
       setError((e as Error).message);
@@ -254,6 +266,18 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
       await load();
     } finally {
       setBusy(false);
+    }
+  };
+
+  const saveQuickEmail = async () => {
+    const email = quickEmail.trim();
+    if (!email || !customer) return;
+    setBusy(true);
+    const res = await supabase.from('customers').update({ email }).eq('id', customer.id);
+    setBusy(false);
+    if (!res.error) {
+      setCustomer({ ...customer, email });
+      setQuickEmail('');
     }
   };
 
@@ -396,7 +420,22 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
 
           {orgId && <People orgId={orgId} customerId={params.id} />}
 
-          <SectionLabel>History</SectionLabel>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 12,
+              marginBottom: 10,
+            }}
+          >
+            <SectionLabel>History</SectionLabel>
+            <Button variant="ghost" onClick={() => setLogging((v) => !v)}>
+              {logging ? 'Cancel' : 'Log something'}
+            </Button>
+          </div>
+
+          {logging && (
           <Card style={{ marginBottom: 14 }}>
             <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
               {(['call', 'text', 'email', 'meeting', 'note'] as const).map((k) => (
@@ -461,6 +500,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               <Button onClick={addNote} disabled={busy || !noteBody.trim()}>Log it</Button>
             </div>
           </Card>
+          )}
 
           {notes.length === 0 ? (
             <Card><Empty>Nothing logged yet.</Empty></Card>
@@ -508,10 +548,33 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             </div>
 
             <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {customer.email && (
+              {customer.email ? (
                 <a href={`mailto:${customer.email}`} style={{ fontSize: 12.5, color: C.accent, textDecoration: 'none' }}>
                   {customer.email}
                 </a>
+              ) : (
+                /**
+                 * Fixable where you notice it.
+                 *
+                 * The list said "no email, so you can't invoice them" and then
+                 * this page said nothing at all, with the actual field buried
+                 * behind a button labelled Edit. Being told about a gap in one
+                 * place and having to hunt for the fix in another is how a
+                 * warning becomes wallpaper.
+                 */
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <input
+                    value={quickEmail}
+                    onChange={(e) => setQuickEmail(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') saveQuickEmail(); }}
+                    type="email"
+                    placeholder="Add their email"
+                    style={{ ...inputStyle, fontSize: 12.5, padding: '6px 9px' }}
+                  />
+                  {quickEmail.trim() && (
+                    <Button onClick={saveQuickEmail} disabled={busy}>Save</Button>
+                  )}
+                </div>
               )}
               {customer.phone && (
                 <a href={`tel:${customer.phone.replace(/[^\d+]/g, '')}`} style={{ fontSize: 12.5, color: C.dim, textDecoration: 'none' }}>

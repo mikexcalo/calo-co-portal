@@ -38,6 +38,9 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Person | null>(null);
+  /** Who is being edited, and the fields as they stand. */
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [edit, setEdit] = useState({ email: '', phone: '', title: '' });
 
   const load = useCallback(async () => {
     const res = await supabase
@@ -71,6 +74,30 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
     if (res.error) { setError(res.error.message); return; }
     setDraft(blank);
     setAdding(false);
+    await load();
+  };
+
+  /**
+   * Contact details, fixable in place.
+   *
+   * A person could be added and deleted but never corrected, so the one thing
+   * people actually do to a contact record, filling in the email they did not
+   * have on the day they created it, was the one thing there was no way to do.
+   */
+  const saveEdit = async (p: Person) => {
+    setBusy(true);
+    setError(null);
+    const res = await supabase
+      .from('customer_contacts')
+      .update({
+        email: edit.email.trim() || null,
+        phone: edit.phone.trim() || null,
+        title: edit.title.trim() || null,
+      })
+      .eq('id', p.id);
+    setBusy(false);
+    if (res.error) { setError(res.error.message); return; }
+    setEditingId(null);
     await load();
   };
 
@@ -221,13 +248,32 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
               </div>
 
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-                {p.email && (
+                {p.email ? (
                   <a
                     href={`mailto:${p.email}`}
                     style={{ fontSize: 12.5, color: C.blue, textDecoration: 'none' }}
                   >
                     {p.email}
                   </a>
+                ) : (
+                  /* The gap says what it costs you, and fixes itself. */
+                  <button
+                    onClick={() => {
+                      setEditingId(p.id);
+                      setEdit({ email: '', phone: p.phone ?? '', title: p.title ?? '' });
+                    }}
+                    style={{
+                      border: 'none',
+                      background: 'none',
+                      padding: 0,
+                      fontSize: 12.5,
+                      color: C.amber,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    No email, so you can&apos;t invoice them. Add one
+                  </button>
                 )}
                 {/* A tel: link, because half the time this is being read on a
                     phone with the person's number right there. */}
@@ -238,6 +284,17 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
                   >
                     {p.phone}
                   </a>
+                )}
+                {p.email && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setEditingId(editingId === p.id ? null : p.id);
+                      setEdit({ email: p.email ?? '', phone: p.phone ?? '', title: p.title ?? '' });
+                    }}
+                  >
+                    {editingId === p.id ? 'Cancel' : 'Edit'}
+                  </Button>
                 )}
                 {!p.is_primary && (
                   <Button variant="ghost" onClick={() => makePrimary(p)} disabled={busy}>
@@ -269,6 +326,50 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
                   ×
                 </button>
               </div>
+
+              {editingId === p.id && (
+                <div
+                  style={{
+                    flexBasis: '100%',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+                    gap: 8,
+                    marginTop: 10,
+                    paddingTop: 10,
+                    borderTop: `1px solid ${C.border}`,
+                  }}
+                >
+                  <input
+                    value={edit.email}
+                    onChange={(e) => setEdit({ ...edit, email: e.target.value })}
+                    onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(p); }}
+                    type="email"
+                    placeholder="Email"
+                    autoFocus
+                    style={{ ...inputStyle, fontSize: 12.5, padding: '6px 9px' }}
+                  />
+                  <input
+                    value={edit.phone}
+                    onChange={(e) => setEdit({ ...edit, phone: e.target.value })}
+                    onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(p); }}
+                    placeholder="Phone"
+                    style={{ ...inputStyle, fontSize: 12.5, padding: '6px 9px' }}
+                  />
+                  <input
+                    value={edit.title}
+                    onChange={(e) => setEdit({ ...edit, title: e.target.value })}
+                    onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(p); }}
+                    placeholder="Their title"
+                    style={{ ...inputStyle, fontSize: 12.5, padding: '6px 9px' }}
+                  />
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <Button onClick={() => saveEdit(p)} disabled={busy}>
+                      {busy ? 'Saving…' : 'Save'}
+                    </Button>
+                    <Button variant="ghost" onClick={() => setEditingId(null)}>Cancel</Button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

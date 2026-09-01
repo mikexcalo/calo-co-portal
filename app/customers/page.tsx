@@ -354,7 +354,12 @@ export default function CustomersPage() {
                           {r.email}
                         </a>
                       ) : (
-                        <span style={{ color: C.amber }}>No email, so you can&apos;t invoice them</span>
+                        /* Says what it costs and where to fix it, in one line.
+                           A warning that only announces a problem trains people
+                           to read past it. */
+                        <span style={{ color: C.amber }}>
+                          No email, so you can&apos;t invoice them. Open them to add one
+                        </span>
                       )}
                       {r.phone && (
                         <a
