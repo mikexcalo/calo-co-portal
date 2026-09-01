@@ -149,11 +149,11 @@ export default function PitchEditorPage({ params }: { params: { id: string } }) 
 
   return (
     <Page
+      back={{ label: 'Pitches', href: '/pitches' }}
       title={pitch.title || 'Untitled pitch'}
       subtitle={org?.name ? `From ${org.name}` : undefined}
       action={
         <>
-          <Button variant="ghost" onClick={() => router.push('/pitches')}>Back</Button>
           <Button onClick={() => save()} disabled={busy}>
             {busy ? 'Saving…' : saved ? 'Saved' : 'Save'}
           </Button>

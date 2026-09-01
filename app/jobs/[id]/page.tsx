@@ -222,6 +222,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
   return (
     <Page
+      back={{ label: vocab.jobPlural, href: '/jobs' }}
       title={job.name}
       subtitle={[job.customer?.name, job.address].filter(Boolean).join(' · ') || undefined}
       action={

@@ -41,11 +41,24 @@ export function Page({
   subtitle,
   action,
   tabs,
+  back,
   children,
 }: {
   title: string;
   subtitle?: string;
   action?: React.ReactNode;
+  /**
+   * Where this page came from.
+   *
+   * Detail screens had no way back to their list. The browser button works,
+   * but only if you arrived by clicking — anybody who opened a link, or hit
+   * refresh, was stranded on a record with no route to the thing it belongs
+   * to except the sidebar, which is a different mental operation.
+   *
+   * Sits above the title rather than beside it, so it reads as a location
+   * rather than as another action competing with the buttons.
+   */
+  back?: { label: string; href: string };
   /** Sibling screens within one section. Rendered under the header, never
       beside it — the previous attempt let them collide with the buttons. */
   tabs?: readonly PageTab[];
@@ -72,6 +85,7 @@ export function Page({
         }}
       >
         <div>
+          {back && <BackLink {...back} />}
           <h1 style={{ fontSize: phone ? 19 : 21, fontWeight: 500, margin: 0, color: C.text }}>
             {title}
           </h1>
@@ -148,6 +162,31 @@ export const LIBRARY_TABS: readonly PageTab[] = [
   { label: 'Price List', href: '/pricing' },
   { label: 'Records', href: '/records' },
 ];
+
+function BackLink({ label, href }: { label: string; href: string }) {
+  const router = useRouter();
+  return (
+    <button
+      onClick={() => router.push(href)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 5,
+        background: 'transparent',
+        border: 'none',
+        padding: 0,
+        marginBottom: 7,
+        color: C.faint,
+        fontSize: 12.5,
+        cursor: 'pointer',
+        fontFamily: 'inherit',
+      }}
+    >
+      <span aria-hidden style={{ fontSize: 14, lineHeight: 1 }}>←</span>
+      {label}
+    </button>
+  );
+}
 
 export function Card({
   children,

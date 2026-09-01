@@ -268,6 +268,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
 
   return (
     <Page
+      back={{ label: vocab.customerPlural, href: '/customers' }}
       title={customer.name}
       subtitle={
         [customer.contact_name, customer.contact_title].filter(Boolean).join(' · ') || undefined

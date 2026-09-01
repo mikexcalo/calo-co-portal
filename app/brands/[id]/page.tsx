@@ -26,9 +26,26 @@ import {
 } from '@/components/spine/ui';
 
 interface OpenItem { item: string; why?: string; severity?: string }
-interface Colour { name: string; hex: string; role?: string }
-interface Font { family: string; role?: string; weight?: string; tracking?: string; source?: string }
-interface Asset { path: string; group?: string; bytes?: number; needs_approval?: boolean }
+interface Colour { name: string; hex: string; role?: string; token?: string }
+interface Font {
+  family: string;
+  role?: string;
+  weight?: string;
+  tracking?: string;
+  source?: string;
+  /** Where the file lives, for a face we host rather than fetch from Google. */
+  web_url?: string;
+  files?: Array<{ label: string; url: string }>;
+}
+interface Asset {
+  name?: string;
+  path: string;
+  group?: string;
+  bytes?: number;
+  mime?: string;
+  url?: string;
+  needs_approval?: boolean;
+}
 
 interface Brand {
   id: string;
@@ -79,6 +96,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
   const [brand, setBrand] = useState<Brand | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState<string | null>(null);
+  const [assetGroup, setAssetGroup] = useState('All');
 
   const load = useCallback(async () => {
     const res = await supabase
@@ -120,6 +138,24 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
     .map((f) => `family=${f.family.trim().replace(/\s+/g, '+')}:wght@300;400;600;700`)
     .join('&');
 
+  /**
+   * Faces we host, declared properly.
+   *
+   * Roundo is not on Google Fonts, so it used to render in a substitute with
+   * an apology. The file is in storage now, which means the wordmark can be
+   * shown in the wordmark's actual face — which is the entire point of a
+   * brand kit.
+   */
+  const hostedFaces = fonts
+    .filter((f) => f.web_url)
+    .map(
+      (f) =>
+        `@font-face{font-family:'${f.family}';src:url('${f.web_url}') format('opentype');font-display:swap;}`
+    )
+    .join('');
+
+  const shown = assetGroup === 'All' ? assets : (grouped[assetGroup] ?? []);
+
   const copy = (hex: string) => {
     navigator.clipboard?.writeText(hex);
     setCopied(hex);
@@ -128,11 +164,11 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
 
   return (
     <Page
+      back={{ label: 'Brands', href: '/brands' }}
       title={brand.name}
       subtitle={brand.customer ? `Held for ${brand.customer.name}` : 'Your own brand'}
       action={
         <>
-          <Button variant="ghost" onClick={() => router.push('/brands')}>All brands</Button>
           {brand.customer && (
             <Button variant="ghost" onClick={() => router.push(`/customers/${brand.customer!.id}`)}>
               Open client
@@ -148,6 +184,8 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
           href={`https://fonts.googleapis.com/css2?${webFonts}&display=swap`}
         />
       )}
+
+      {hostedFaces && <style>{hostedFaces}</style>}
 
       {colors.length > 0 && (
         <div style={{ marginBottom: 26 }}>
@@ -199,7 +237,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                       fontFamily: 'ui-monospace, monospace',
                     }}
                   >
-                    {c.hex}
+                    {c.hex}{c.token ? ` · ${c.token}` : ''}
                   </span>
                   {c.role && (
                     <span style={{ display: 'block', fontSize: 11, color: C.faint, marginTop: 2 }}>
@@ -218,7 +256,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
           <SectionLabel>Type</SectionLabel>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {fonts.map((f) => {
-              const loadable = /google/i.test(f.source ?? '');
+              const loadable = /google/i.test(f.source ?? '') || !!f.web_url;
               return (
                 <div
                   key={f.family}
@@ -268,9 +306,31 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                     {specimenText(f.role, f.family)}
                   </div>
 
+                  {f.files && f.files.length > 0 && (
+                    <div style={{ display: 'flex', gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
+                      {f.files.map((file) => (
+                        <a
+                          key={file.url}
+                          href={file.url}
+                          download
+                          style={{
+                            fontSize: 11.5,
+                            padding: '5px 10px',
+                            borderRadius: 6,
+                            border: `1px solid ${C.border}`,
+                            color: C.dim,
+                            textDecoration: 'none',
+                          }}
+                        >
+                          ↓ {file.label}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+
                   {!loadable && (
                     <div style={{ fontSize: 11.5, color: C.faint, marginTop: 10, lineHeight: 1.55 }}>
-                      Shown in a substitute. This face is licensed and is not loaded here.
+                      Shown in a substitute. The file is not hosted here.
                     </div>
                   )}
                 </div>
@@ -282,37 +342,129 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
 
       {assets.length > 0 && (
         <div style={{ marginBottom: 26 }}>
-          <SectionLabel>Assets ({assets.length})</SectionLabel>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {Object.entries(grouped).map(([group, list]) => (
-              <Card key={group}>
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: C.text, marginBottom: 8 }}>
-                  {group.replace(/-/g, ' ')} ({list.length})
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {list.map((a) => (
-                    <span
-                      key={a.path}
-                      title={a.path}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 12,
+              marginBottom: 10,
+              flexWrap: 'wrap',
+            }}
+          >
+            <SectionLabel>Assets ({assets.length})</SectionLabel>
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+              {['All', ...Object.keys(grouped)].map((g) => {
+                const on = assetGroup === g;
+                return (
+                  <button
+                    key={g}
+                    onClick={() => setAssetGroup(g)}
+                    style={{
+                      padding: '5px 11px',
+                      borderRadius: 20,
+                      fontSize: 11.5,
+                      border: `1px solid ${on ? C.accent : C.border}`,
+                      background: on ? C.accentSoft : 'transparent',
+                      color: on ? C.text : C.dim,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    {g}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/*
+            A grid of what the files look like, not a list of what they are
+            called. Nobody recognises a logo by its filename, and a column of
+            chips in stacked cards was several screens of scrolling to see
+            forty items that fit on one.
+          */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(116px, 1fr))',
+              gap: 8,
+            }}
+          >
+            {shown.map((a) => {
+              const isImage = (a.mime ?? '').startsWith('image/');
+              const isVideo = (a.mime ?? '').startsWith('video/');
+              return (
+                <a
+                  key={a.path}
+                  href={a.url}
+                  download
+                  title={`${a.name ?? a.path}${a.bytes ? ` · ${kb(a.bytes)}` : ''}`}
+                  style={{
+                    border: `1px solid ${a.needs_approval ? `${C.amber}66` : C.border}`,
+                    borderRadius: 8,
+                    overflow: 'hidden',
+                    background: C.panel,
+                    textDecoration: 'none',
+                    display: 'block',
+                  }}
+                >
+                  <div
+                    style={{
+                      aspectRatio: '1 / 1',
+                      background: C.panelAlt,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {isImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={a.url}
+                        alt={a.name ?? a.path}
+                        loading="lazy"
+                        style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 6 }}
+                      />
+                    ) : isVideo ? (
+                      <video
+                        src={a.url}
+                        muted
+                        playsInline
+                        preload="metadata"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <span style={{ fontSize: 11, color: C.faint, textAlign: 'center', padding: 8 }}>
+                        {(a.name ?? '').split('.').pop()?.toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ padding: '7px 8px' }}>
+                    <div
                       style={{
-                        fontSize: 11.5,
-                        padding: '4px 9px',
-                        borderRadius: 6,
-                        background: a.needs_approval ? C.amberSoft : C.panelAlt,
-                        color: a.needs_approval ? C.amber : C.dim,
-                        fontFamily: 'ui-monospace, monospace',
+                        fontSize: 11,
+                        color: C.text,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
                       }}
                     >
-                      {a.path.split('/').pop()}
-                      {a.bytes ? ` · ${kb(a.bytes)}` : ''}
-                    </span>
-                  ))}
-                </div>
-              </Card>
-            ))}
+                      {a.name ?? a.path.split('/').pop()}
+                    </div>
+                    <div style={{ fontSize: 10, color: C.faint, marginTop: 1 }}>
+                      {kb(a.bytes)}
+                      {a.needs_approval ? ' · not cleared' : ''}
+                    </div>
+                  </div>
+                </a>
+              );
+            })}
           </div>
         </div>
       )}
+
     </Page>
   );
 }
