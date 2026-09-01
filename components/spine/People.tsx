@@ -172,7 +172,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
               style={{ ...inputStyle, flex: '1 1 140px' }}
             />
           </div>
-          {error && <div style={{ fontSize: 12, color: C.red, marginBottom: 8 }}>{error}</div>}
+          {error && <div style={{ fontSize: 13, color: C.red, marginBottom: 8 }}>{error}</div>}
           <Button onClick={add} disabled={busy || !draft.name.trim()}>
             {busy ? 'Saving…' : 'Add'}
           </Button>
@@ -221,7 +221,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: 600,
                 }}
               >
@@ -239,11 +239,11 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
 
               <div style={{ flex: 1, minWidth: 160 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 13.5, fontWeight: 600, color: C.text }}>{p.name}</span>
+                  <span style={{ fontSize: 14.5, fontWeight: 600, color: C.text }}>{p.name}</span>
                   {p.is_primary && <Pill tone="blue">Main contact</Pill>}
                 </div>
                 {p.title && (
-                  <div style={{ fontSize: 12, color: C.faint, marginTop: 2 }}>{p.title}</div>
+                  <div style={{ fontSize: 13, color: C.faint, marginTop: 2 }}>{p.title}</div>
                 )}
               </div>
 
@@ -251,7 +251,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
                 {p.email ? (
                   <a
                     href={`mailto:${p.email}`}
-                    style={{ fontSize: 12.5, color: C.blue, textDecoration: 'none' }}
+                    style={{ fontSize: 13.5, color: C.blue, textDecoration: 'none' }}
                   >
                     {p.email}
                   </a>
@@ -266,7 +266,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
                       border: 'none',
                       background: 'none',
                       padding: 0,
-                      fontSize: 12.5,
+                      fontSize: 13.5,
                       color: C.amber,
                       cursor: 'pointer',
                       fontFamily: 'inherit',
@@ -280,7 +280,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
                 {p.phone && (
                   <a
                     href={`tel:${p.phone.replace(/[^\d+]/g, '')}`}
-                    style={{ fontSize: 12.5, color: C.dim, textDecoration: 'none' }}
+                    style={{ fontSize: 13.5, color: C.dim, textDecoration: 'none' }}
                   >
                     {p.phone}
                   </a>
@@ -317,7 +317,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
                     border: `1px solid ${C.border}`,
                     background: 'transparent',
                     color: C.faint,
-                    fontSize: 14,
+                    fontSize: 15,
                     lineHeight: 1,
                     cursor: 'pointer',
                     fontFamily: 'inherit',
@@ -346,21 +346,21 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
                     type="email"
                     placeholder="Email"
                     autoFocus
-                    style={{ ...inputStyle, fontSize: 12.5, padding: '6px 9px' }}
+                    style={{ ...inputStyle, fontSize: 13.5, padding: '6px 9px' }}
                   />
                   <input
                     value={edit.phone}
                     onChange={(e) => setEdit({ ...edit, phone: e.target.value })}
                     onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(p); }}
                     placeholder="Phone"
-                    style={{ ...inputStyle, fontSize: 12.5, padding: '6px 9px' }}
+                    style={{ ...inputStyle, fontSize: 13.5, padding: '6px 9px' }}
                   />
                   <input
                     value={edit.title}
                     onChange={(e) => setEdit({ ...edit, title: e.target.value })}
                     onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(p); }}
                     placeholder="Their title"
-                    style={{ ...inputStyle, fontSize: 12.5, padding: '6px 9px' }}
+                    style={{ ...inputStyle, fontSize: 13.5, padding: '6px 9px' }}
                   />
                   <div style={{ display: 'flex', gap: 6 }}>
                     <Button onClick={() => saveEdit(p)} disabled={busy}>

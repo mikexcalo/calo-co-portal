@@ -237,12 +237,12 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     >
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
       {notice && (
         <Card style={{ borderColor: `${C.green}55`, marginBottom: 16 }}>
-          <div style={{ color: C.green, fontSize: 13 }}>{notice}</div>
+          <div style={{ color: C.green, fontSize: 14 }}>{notice}</div>
         </Card>
       )}
 
@@ -324,7 +324,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
           {isTM ? 'Time & materials' : 'Fixed price'}
         </Pill>
         {isTM && (
-          <span style={{ fontSize: 11.5, color: C.faint }}>
+          <span style={{ fontSize: 12.5, color: C.faint }}>
             Billed from actual hours and receipts
           </span>
         )}
@@ -332,23 +332,23 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         {/* Dates feed the calendar subscription — a job with no dates simply
             doesn't appear there. */}
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginLeft: 'auto' }}>
-          <span style={{ fontSize: 11.5, color: C.faint }}>Scheduled</span>
+          <span style={{ fontSize: 12.5, color: C.faint }}>Scheduled</span>
           <input
             type="date"
             value={job.scheduled_start ?? ''}
             onChange={(e) =>
               run(async () => { await updateJob(jobId, { scheduled_start: e.target.value || null }); })
             }
-            style={{ ...inputStyle, width: 'auto', padding: '6px 8px', fontSize: 12 }}
+            style={{ ...inputStyle, width: 'auto', padding: '6px 8px', fontSize: 13 }}
           />
-          <span style={{ fontSize: 11.5, color: C.faint }}>to</span>
+          <span style={{ fontSize: 12.5, color: C.faint }}>to</span>
           <input
             type="date"
             value={job.scheduled_end ?? ''}
             onChange={(e) =>
               run(async () => { await updateJob(jobId, { scheduled_end: e.target.value || null }); })
             }
-            style={{ ...inputStyle, width: 'auto', padding: '6px 8px', fontSize: 12 }}
+            style={{ ...inputStyle, width: 'auto', padding: '6px 8px', fontSize: 13 }}
           />
         </div>
       </div>
@@ -440,7 +440,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                           label: `${e.hours}h on ${e.worked_on}`,
                         })
                       }
-                      style={{ background: 'none', border: 'none', color: C.faint, cursor: 'pointer', fontSize: 15 }}
+                      style={{ background: 'none', border: 'none', color: C.faint, cursor: 'pointer', fontSize: 16 }}
                       title="Delete"
                     >×</button>
                   )}
@@ -507,7 +507,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                           label: `${c.description || c.vendor || 'cost'} — ${money(c.amount)}`,
                         })
                       }
-                      style={{ background: 'none', border: 'none', color: C.faint, cursor: 'pointer', fontSize: 15 }}
+                      style={{ background: 'none', border: 'none', color: C.faint, cursor: 'pointer', fontSize: 16 }}
                       title="Delete"
                     >×</button>
                   )}
@@ -618,7 +618,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                   border: `1px solid ${C.border}`,
                   borderRadius: 7,
                   padding: '8px 12px',
-                  fontSize: 12,
+                  fontSize: 13,
                   color: C.dim,
                 }}
               >

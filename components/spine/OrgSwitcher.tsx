@@ -33,7 +33,7 @@ export function OrgSwitcher() {
           border: `1px solid ${C.border}`,
           background: C.panelAlt,
           color: C.text,
-          fontSize: 13,
+          fontSize: 14,
           fontWeight: 500,
           fontFamily: 'inherit',
           cursor: single ? 'default' : 'pointer',
@@ -52,7 +52,7 @@ export function OrgSwitcher() {
         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {org.name}
         </span>
-        {!single && <span style={{ color: C.faint, fontSize: 10 }}>▾</span>}
+        {!single && <span style={{ color: C.faint, fontSize: 11 }}>▾</span>}
       </button>
 
       {open && !single && (
@@ -92,7 +92,7 @@ export function OrgSwitcher() {
                   border: 'none',
                   background: o.id === org.id ? '#ffffff0d' : 'transparent',
                   color: o.id === org.id ? C.text : C.dim,
-                  fontSize: 13,
+                  fontSize: 14,
                   fontFamily: 'inherit',
                   cursor: 'pointer',
                   textAlign: 'left',
@@ -108,7 +108,7 @@ export function OrgSwitcher() {
                   }}
                 />
                 <span style={{ flex: 1 }}>{o.name}</span>
-                <span style={{ fontSize: 10, color: C.faint }}>
+                <span style={{ fontSize: 11, color: C.faint }}>
                   {o.kind === 'agency' ? 'Agency' : 'Contractor'}
                 </span>
               </button>

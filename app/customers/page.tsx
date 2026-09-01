@@ -204,7 +204,7 @@ export default function CustomersPage() {
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
 
@@ -266,7 +266,7 @@ export default function CustomersPage() {
               style={{
                 padding: '6px 12px',
                 borderRadius: 20,
-                fontSize: 12,
+                fontSize: 13,
                 border: `1px solid ${stageFilter === s ? C.accent : C.border}`,
                 background: stageFilter === s ? C.accentSoft : 'transparent',
                 color: stageFilter === s ? C.text : C.dim,
@@ -287,7 +287,7 @@ export default function CustomersPage() {
             value={brandFilter}
             onChange={(e) => setBrandFilter(e.target.value)}
             aria-label="Filter by brand"
-            style={{ ...inputStyle, maxWidth: 190, background: C.panel, fontSize: 12.5 }}
+            style={{ ...inputStyle, maxWidth: 190, background: C.panel, fontSize: 13.5 }}
           >
             <option value="all">All brands</option>
             {brands.map((b) => (
@@ -328,7 +328,7 @@ export default function CustomersPage() {
 
                   <div style={{ flex: 1, minWidth: 200 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 15, fontWeight: 500 }}>{r.name}</span>
+                      <span style={{ fontSize: 16, fontWeight: 500 }}>{r.name}</span>
                       <Pill tone={STAGE_TONE[r.stage]}>{r.stage}</Pill>
                       {r.open_jobs > 0 && (
                         <Pill tone="blue">
@@ -338,13 +338,13 @@ export default function CustomersPage() {
                     </div>
 
                     {r.contact_name && (
-                      <div style={{ fontSize: 12.5, color: C.dim, marginTop: 3 }}>
+                      <div style={{ fontSize: 13.5, color: C.dim, marginTop: 3 }}>
                         {r.contact_name}
                         {r.contact_title && <span style={{ color: C.faint }}> · {r.contact_title}</span>}
                       </div>
                     )}
 
-                    <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 7, fontSize: 12 }}>
+                    <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 7, fontSize: 13 }}>
                       {r.email ? (
                         <a
                           href={`mailto:${r.email}`}
@@ -376,7 +376,7 @@ export default function CustomersPage() {
                       <div
                         style={{
                           marginTop: 10,
-                          fontSize: 12.5,
+                          fontSize: 13.5,
                           color: overdue ? C.amber : C.dim,
                           background: overdue ? C.amberSoft : C.panelAlt,
                           padding: '6px 10px',
@@ -418,7 +418,7 @@ function Stat({ label, value, color }: { label: string; value: string; color?: s
     <div style={{ minWidth: 72 }}>
       <div
         style={{
-          fontSize: 9.5,
+          fontSize: 10.5,
           textTransform: 'uppercase',
           letterSpacing: '0.08em',
           color: C.faint,
@@ -427,7 +427,7 @@ function Stat({ label, value, color }: { label: string; value: string; color?: s
       >
         {label}
       </div>
-      <div style={{ fontSize: 14, marginTop: 3, color: color ?? C.text }}>{value}</div>
+      <div style={{ fontSize: 15, marginTop: 3, color: color ?? C.text }}>{value}</div>
     </div>
   );
 }
@@ -452,8 +452,8 @@ function Flag({
         padding: '10px 14px',
       }}
     >
-      <div style={{ fontSize: 17, color: fg, fontWeight: 500 }}>{value}</div>
-      <div style={{ fontSize: 11, color: C.dim, marginTop: 2 }}>{label}</div>
+      <div style={{ fontSize: 18, color: fg, fontWeight: 500 }}>{value}</div>
+      <div style={{ fontSize: 12, color: C.dim, marginTop: 2 }}>{label}</div>
     </div>
   );
 }

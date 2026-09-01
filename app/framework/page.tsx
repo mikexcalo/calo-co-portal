@@ -191,7 +191,7 @@ export default function FrameworkPage() {
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
             <label
               style={{
-                fontSize: 12.5,
+                fontSize: 13.5,
                 color: C.blue,
                 cursor: 'pointer',
                 border: `1px solid ${C.border}`,
@@ -213,7 +213,7 @@ export default function FrameworkPage() {
                 style={{ display: 'none' }}
               />
             </label>
-            <span style={{ fontSize: 12, color: C.faint }}>
+            <span style={{ fontSize: 13, color: C.faint }}>
               Photograph your handwritten notes. It reads them.
             </span>
           </div>
@@ -224,7 +224,7 @@ export default function FrameworkPage() {
                 <span
                   key={`${f.file.name}-${i}`}
                   style={{
-                    fontSize: 11.5,
+                    fontSize: 12.5,
                     color: C.dim,
                     background: C.panelAlt,
                     borderRadius: 6,
@@ -256,7 +256,7 @@ export default function FrameworkPage() {
             <Button onClick={start} disabled={busy || !name.trim()}>
               {busy ? 'Starting…' : 'Start with the ten modules'}
             </Button>
-            <span style={{ fontSize: 12, color: C.faint }}>
+            <span style={{ fontSize: 13, color: C.faint }}>
               {seed.trim() || files.length
                 ? 'Kept as dropped. You choose what to read next.'
                 : 'Starts empty. You can drop things in at any point.'}
@@ -264,9 +264,9 @@ export default function FrameworkPage() {
           </div>
 
           {rejected.map((r) => (
-            <div key={r} style={{ fontSize: 12.5, color: C.amber, marginTop: 8 }}>{r}</div>
+            <div key={r} style={{ fontSize: 13.5, color: C.amber, marginTop: 8 }}>{r}</div>
           ))}
-          {error && <div style={{ fontSize: 12.5, color: C.red, marginTop: 10 }}>{error}</div>}
+          {error && <div style={{ fontSize: 13.5, color: C.red, marginTop: 10 }}>{error}</div>}
         </Card>
       )}
 
@@ -292,8 +292,8 @@ export default function FrameworkPage() {
                   style={{ cursor: 'pointer', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}
                 >
                   <div style={{ minWidth: 160, flex: 1 }}>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: C.text }}>{b.name}</div>
-                    <div style={{ fontSize: 12, color: C.faint, marginTop: 2 }}>
+                    <div style={{ fontSize: 16, fontWeight: 600, color: C.text }}>{b.name}</div>
+                    <div style={{ fontSize: 13, color: C.faint, marginTop: 2 }}>
                       {b.customer?.name ?? 'Your own brand'}
                     </div>
                   </div>
@@ -324,11 +324,11 @@ export default function FrameworkPage() {
                     })}
                   </div>
 
-                  <div style={{ minWidth: 88, textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontSize: 13, color: C.dim }}>
+                  <div style={{ minWidth: 88, textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontSize: 14, color: C.dim }}>
                     {b.p.locked} / {b.p.total} locked
                   </div>
 
-                  <div style={{ minWidth: 190, fontSize: 12, color: C.faint }}>
+                  <div style={{ minWidth: 190, fontSize: 13, color: C.faint }}>
                     {b.p.next ? `Next: ${b.p.next.name}` : 'Every module written'}
                   </div>
                 </div>
@@ -343,14 +343,14 @@ export default function FrameworkPage() {
       <div style={{ marginTop: 30 }}>
         <SectionLabel>The first email</SectionLabel>
         <Card>
-          <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: '0 0 12px', maxWidth: 640 }}>
+          <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.65, margin: '0 0 12px', maxWidth: 640 }}>
             Six modules&apos; worth of questions in one send. Asking somebody ten separate times is
             how a discovery process dies, so this goes first and the per-module scripts below are
             for chasing whatever comes back thin.
           </p>
           <pre
             style={{
-              fontSize: 12.5,
+              fontSize: 13.5,
               lineHeight: 1.7,
               color: C.dim,
               background: C.panelAlt,
@@ -370,7 +370,7 @@ export default function FrameworkPage() {
             <Button onClick={() => copy('first', FIRST_EMAIL)}>
               {copied === 'first' ? 'Copied' : 'Copy the email'}
             </Button>
-            <span style={{ fontSize: 12, color: C.faint }}>
+            <span style={{ fontSize: 13, color: C.faint }}>
               This is the science. What you ask after they answer is the other half.
             </span>
           </div>
@@ -388,19 +388,19 @@ export default function FrameworkPage() {
                   onClick={() => setOpenModule(open ? null : m.id)}
                   style={{ cursor: 'pointer', display: 'flex', gap: 14, alignItems: 'baseline', flexWrap: 'wrap' }}
                 >
-                  <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 11.5, color: C.faint, letterSpacing: '.08em' }}>
+                  <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12.5, color: C.faint, letterSpacing: '.08em' }}>
                     {String(i + 1).padStart(2, '0')}
                   </span>
-                  <span style={{ fontSize: 15, fontWeight: 600, color: C.text }}>{m.name}</span>
+                  <span style={{ fontSize: 16, fontWeight: 600, color: C.text }}>{m.name}</span>
                   <Pill>{m.note}</Pill>
-                  <span style={{ fontSize: 12, color: C.faint, marginLeft: 'auto' }}>
+                  <span style={{ fontSize: 13, color: C.faint, marginLeft: 'auto' }}>
                     {open ? 'Hide' : `${m.asks.length} questions`}
                   </span>
                 </div>
 
                 {open && (
                   <div style={{ marginTop: 12 }}>
-                    <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: '0 0 14px', maxWidth: 640 }}>
+                    <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.65, margin: '0 0 14px', maxWidth: 640 }}>
                       {m.job}
                     </p>
 
@@ -418,7 +418,7 @@ export default function FrameworkPage() {
                       <Head tone={C.blue}>Send this</Head>
                       <pre
                         style={{
-                          fontSize: 12.5,
+                          fontSize: 13.5,
                           lineHeight: 1.7,
                           color: C.dim,
                           margin: '0 0 10px',
@@ -434,7 +434,7 @@ export default function FrameworkPage() {
 
                       <div style={{ marginTop: 14 }}>
                         <Head tone={C.faint}>Or say this</Head>
-                        <div style={{ fontSize: 13, color: C.text, lineHeight: 1.6, fontStyle: 'italic' }}>
+                        <div style={{ fontSize: 14, color: C.text, lineHeight: 1.6, fontStyle: 'italic' }}>
                           &ldquo;{m.script.aloud}&rdquo;
                         </div>
                       </div>
@@ -466,7 +466,7 @@ export default function FrameworkPage() {
 
 function Head({ children, tone }: { children: React.ReactNode; tone: string }) {
   return (
-    <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.1em', fontWeight: 700, color: tone, marginBottom: 6 }}>
+    <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.1em', fontWeight: 700, color: tone, marginBottom: 6 }}>
       {children}
     </div>
   );
@@ -474,7 +474,7 @@ function Head({ children, tone }: { children: React.ReactNode; tone: string }) {
 
 function List({ items }: { items: string[] }) {
   return (
-    <ul style={{ margin: 0, paddingLeft: 17, fontSize: 12.5, color: C.dim, lineHeight: 1.6 }}>
+    <ul style={{ margin: 0, paddingLeft: 17, fontSize: 13.5, color: C.dim, lineHeight: 1.6 }}>
       {items.map((x, i) => <li key={i} style={{ marginBottom: 4 }}>{x}</li>)}
     </ul>
   );

@@ -77,7 +77,7 @@ export function UndoBar({
         maxWidth: 'calc(100vw - 32px)',
       }}
     >
-      <span style={{ fontSize: 13.5 }}>{undo.message}</span>
+      <span style={{ fontSize: 14.5 }}>{undo.message}</span>
       <button
         onClick={async () => {
           setBusy(true);
@@ -95,7 +95,7 @@ export function UndoBar({
           color: '#fff',
           borderRadius: radius.md,
           padding: '5px 13px',
-          fontSize: 12.5,
+          fontSize: 13.5,
           fontWeight: 600,
           cursor: busy ? 'wait' : 'pointer',
           fontFamily: 'inherit',

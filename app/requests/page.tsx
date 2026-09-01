@@ -162,12 +162,12 @@ export default function RequestsPage() {
     >
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
       {notice && (
         <Card style={{ borderColor: `${C.green}55`, marginBottom: 16 }}>
-          <div style={{ color: C.green, fontSize: 13 }}>{notice}</div>
+          <div style={{ color: C.green, fontSize: 14 }}>{notice}</div>
         </Card>
       )}
 
@@ -201,16 +201,16 @@ export default function RequestsPage() {
                 >
                   <div style={{ flex: 1, minWidth: 220 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 14, fontWeight: 500 }}>{r.title}</span>
+                      <span style={{ fontSize: 15, fontWeight: 500 }}>{r.title}</span>
                       <Pill tone={STATUS_TONE[r.status]}>{STATUS_LABEL[r.status]}</Pill>
                       {r.urgency === 'urgent' && <Pill tone="red">Urgent</Pill>}
                     </div>
-                    <div style={{ fontSize: 11.5, color: C.faint, marginTop: 5 }}>
+                    <div style={{ fontSize: 12.5, color: C.faint, marginTop: 5 }}>
                       {r.site?.name ?? 'No site'} · {r.requester_name || r.requester_email || 'Client'} ·{' '}
                       {shortDate(r.submitted_at)}
                     </div>
                   </div>
-                  <span style={{ color: C.faint, fontSize: 12 }}>
+                  <span style={{ color: C.faint, fontSize: 13 }}>
                     {openId === r.id ? 'Close' : 'Review'}
                   </span>
                 </div>
@@ -221,7 +221,7 @@ export default function RequestsPage() {
                       <SectionLabel>What they asked for</SectionLabel>
                       <div
                         style={{
-                          fontSize: 13,
+                          fontSize: 14,
                           color: C.dim,
                           background: C.panelAlt,
                           padding: 12,
@@ -241,7 +241,7 @@ export default function RequestsPage() {
                         style={{ ...inputStyle, minHeight: 120, resize: 'vertical', lineHeight: 1.55 }}
                       />
                     </Field>
-                    <div style={{ fontSize: 11.5, color: C.faint, margin: '-8px 0 14px' }}>
+                    <div style={{ fontSize: 12.5, color: C.faint, margin: '-8px 0 14px' }}>
                       This is what gets built, not the text above. Tighten anything ambiguous now,
                       because ambiguity gets resolved by guessing on a live client site.
                     </div>
@@ -273,7 +273,7 @@ export default function RequestsPage() {
                     </div>
 
                     {r.issue_url && (
-                      <div style={{ marginTop: 12, fontSize: 12 }}>
+                      <div style={{ marginTop: 12, fontSize: 13 }}>
                         <a
                           href={r.issue_url}
                           target="_blank"
@@ -286,7 +286,7 @@ export default function RequestsPage() {
                     )}
 
                     {!r.site?.repo && (
-                      <div style={{ marginTop: 12, fontSize: 11.5, color: C.amber }}>
+                      <div style={{ marginTop: 12, fontSize: 12.5, color: C.amber }}>
                         This site has no repo set, so approving won&apos;t file anything
                         automatically. Add one on the site record to enable handoff.
                       </div>
@@ -312,13 +312,13 @@ export default function RequestsPage() {
                       background: C.panel,
                       border: `1px solid ${C.border}`,
                       borderRadius: 8,
-                      fontSize: 12.5,
+                      fontSize: 13.5,
                       color: C.dim,
                     }}
                   >
                     <Pill tone={STATUS_TONE[r.status]}>{STATUS_LABEL[r.status]}</Pill>
                     <span style={{ flex: 1 }}>{r.title}</span>
-                    <span style={{ color: C.faint, fontSize: 11 }}>{shortDate(r.submitted_at)}</span>
+                    <span style={{ color: C.faint, fontSize: 12 }}>{shortDate(r.submitted_at)}</span>
                   </div>
                 ))}
               </div>

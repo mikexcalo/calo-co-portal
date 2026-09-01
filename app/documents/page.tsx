@@ -359,7 +359,7 @@ export default function DocumentsPage() {
 
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
 
@@ -369,14 +369,14 @@ export default function DocumentsPage() {
       */}
       <Card style={{ marginBottom: 22, display: 'flex', gap: 28, flexWrap: 'wrap' }}>
         <div>
-          <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
+          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
             Documents read
           </div>
           <div style={{ fontSize: 20, marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>
             {spend.documents}
           </div>
         </div>
-        <div style={{ flex: 1, minWidth: 220, fontSize: 11.5, color: C.faint, alignSelf: 'center' }}>
+        <div style={{ flex: 1, minWidth: 220, fontSize: 12.5, color: C.faint, alignSelf: 'center' }}>
           Each file is read once. Opening it again later never re-reads it, and there is no
           charge for searching or asking questions because neither exists.
         </div>
@@ -415,7 +415,7 @@ export default function DocumentsPage() {
                   border: `1px solid ${C.border}`,
                   borderRadius: 7,
                   padding: '7px 12px',
-                  fontSize: 12,
+                  fontSize: 13,
                   color: C.dim,
                 }}
               >
@@ -461,14 +461,14 @@ function DocCard({
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 240 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 500 }}>
+            <span style={{ fontSize: 14, fontWeight: 500 }}>
               {ex?.summary || doc.file_name}
             </span>
             <Pill tone={tone}>{busy ? 'Reading…' : DOC_STATUS_LABEL[doc.status]}</Pill>
           </div>
 
           {ex ? (
-            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', fontSize: 12.5 }}>
+            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', fontSize: 13.5 }}>
               <span style={{ color: C.faint }}>
                 Vendor <span style={{ color: C.text }}>{ex.vendor || '—'}</span>
               </span>
@@ -483,13 +483,13 @@ function DocCard({
               </span>
             </div>
           ) : (
-            <div style={{ fontSize: 12.5, color: C.faint }}>
+            <div style={{ fontSize: 13.5, color: C.faint }}>
               {doc.extraction_error || (busy ? 'Reading the document…' : 'Not read yet.')}
             </div>
           )}
 
           {ex?.needs_review && ex.review_reason && (
-            <div style={{ fontSize: 12, color: C.amber, marginTop: 8 }}>
+            <div style={{ fontSize: 13, color: C.amber, marginTop: 8 }}>
               {ex.review_reason}
             </div>
           )}

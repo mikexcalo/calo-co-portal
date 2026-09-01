@@ -159,30 +159,30 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
         }}
       >
         <Card>
-          <div style={{ fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '.08em', color: C.faint, fontWeight: 600 }}>
+          <div style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '.08em', color: C.faint, fontWeight: 600 }}>
             Locked
           </div>
           <div style={{ fontSize: 21, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
-            {locked} <span style={{ fontSize: 13, color: C.faint }}>of {modules.length}</span>
+            {locked} <span style={{ fontSize: 14, color: C.faint }}>of {modules.length}</span>
           </div>
         </Card>
         <Card>
-          <div style={{ fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '.08em', color: C.faint, fontWeight: 600 }}>
+          <div style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '.08em', color: C.faint, fontWeight: 600 }}>
             Proof not cleared
           </div>
           <div style={{ fontSize: 21, marginTop: 4, color: notCleared ? C.red : C.text, fontVariantNumeric: 'tabular-nums' }}>
             {notCleared}
           </div>
-          <div style={{ fontSize: 11.5, color: C.faint, marginTop: 2 }}>Cannot go in front of a customer</div>
+          <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2 }}>Cannot go in front of a customer</div>
         </Card>
         <Card>
-          <div style={{ fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '.08em', color: C.faint, fontWeight: 600 }}>
+          <div style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '.08em', color: C.faint, fontWeight: 600 }}>
             Banned terms
           </div>
           <div style={{ fontSize: 21, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
             {(brand.guardrails?.never ?? []).length}
           </div>
-          <div style={{ fontSize: 11.5, color: C.faint, marginTop: 2 }}>Checked below, not memorised</div>
+          <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2 }}>Checked below, not memorized</div>
         </Card>
       </div>
 
@@ -190,7 +190,7 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
       <div style={{ marginBottom: 30 }}>
         <SectionLabel>Check some copy</SectionLabel>
         <Card>
-          <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: '0 0 12px', maxWidth: 620 }}>
+          <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.65, margin: '0 0 12px', maxWidth: 620 }}>
             Paste a headline, a paragraph, or a whole page. It runs against this brand&apos;s own
             banned list. Free and instant, so it can run on every draft rather than the ones
             somebody remembers to check.
@@ -207,7 +207,7 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
             {violations !== null && (
               <span
                 style={{
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: 600,
                   color: violations.length ? C.red : C.green,
                 }}
@@ -231,13 +231,13 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
                     padding: '10px 12px',
                   }}
                 >
-                  <div style={{ fontSize: 13, fontWeight: 600, color: C.red }}>{v.term}</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: C.red }}>{v.term}</div>
                   {v.reason && (
-                    <div style={{ fontSize: 12.5, color: C.dim, marginTop: 2 }}>{v.reason}</div>
+                    <div style={{ fontSize: 13.5, color: C.dim, marginTop: 2 }}>{v.reason}</div>
                   )}
                   <div
                     style={{
-                      fontSize: 12,
+                      fontSize: 13,
                       color: C.faint,
                       marginTop: 6,
                       fontFamily: 'ui-monospace, monospace',
@@ -261,10 +261,10 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
                 padding: '10px 12px',
               }}
             >
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: C.text }}>
+              <div style={{ fontSize: 13.5, fontWeight: 600, color: C.text }}>
                 Two short sentences back to back, {rhythm.length}×
               </div>
-              <div style={{ fontSize: 12, color: C.dim, marginTop: 4, lineHeight: 1.6 }}>
+              <div style={{ fontSize: 13, color: C.dim, marginTop: 4, lineHeight: 1.6 }}>
                 {rhythm.slice(0, 3).map((r, i) => <div key={i}>{r}</div>)}
               </div>
             </div>
@@ -289,23 +289,23 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
                 <span
                   style={{
                     fontFamily: 'ui-monospace, monospace',
-                    fontSize: 11.5,
+                    fontSize: 12.5,
                     color: C.faint,
                     letterSpacing: '.08em',
                   }}
                 >
                   {String(i + 1).padStart(2, '0')}
                 </span>
-                <span style={{ fontSize: 15.5, fontWeight: 600, color: C.text }}>{m.name}</span>
+                <span style={{ fontSize: 16.5, fontWeight: 600, color: C.text }}>{m.name}</span>
                 <Pill tone={STATE_TONE[m.state]}>{m.state}</Pill>
                 {m.source && <Pill tone="blue">proposed</Pill>}
-                <span style={{ fontSize: 11.5, color: C.faint, marginLeft: 'auto' }}>{m.note}</span>
+                <span style={{ fontSize: 12.5, color: C.faint, marginLeft: 'auto' }}>{m.note}</span>
               </div>
 
               {!isOpen && m.content && (
                 <p
                   style={{
-                    fontSize: 13.5,
+                    fontSize: 14.5,
                     color: C.dim,
                     lineHeight: 1.6,
                     margin: '10px 0 0',
@@ -318,7 +318,7 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
 
               {isOpen && (
                 <div style={{ marginTop: 14 }}>
-                  <div style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.65, marginBottom: 12 }}>
+                  <div style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.65, marginBottom: 12 }}>
                     <strong style={{ color: C.text }}>What it does. </strong>{m.job}
                   </div>
 
@@ -330,13 +330,13 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
                   />
 
                   {m.source && (
-                    <div style={{ fontSize: 12, color: C.blue, marginBottom: 10, lineHeight: 1.55 }}>
+                    <div style={{ fontSize: 13, color: C.blue, marginBottom: 10, lineHeight: 1.55 }}>
                       {m.source}. Nobody has checked it against what was actually said yet.
                     </div>
                   )}
 
                   {m.state === 'locked' && (
-                    <div style={{ fontSize: 12, color: C.amber, marginBottom: 10, lineHeight: 1.55 }}>
+                    <div style={{ fontSize: 13, color: C.amber, marginBottom: 10, lineHeight: 1.55 }}>
                       This module is locked. Most drift comes from quietly rewriting a locked line
                       while editing something else, so changing it is a decision rather than an edit.
                     </div>
@@ -366,18 +366,18 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
                     }}
                   >
                     <div>
-                      <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.1em', fontWeight: 700, color: C.faint, marginBottom: 6 }}>
+                      <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.1em', fontWeight: 700, color: C.faint, marginBottom: 6 }}>
                         How to write it
                       </div>
-                      <ul style={{ margin: 0, paddingLeft: 17, fontSize: 12.5, color: C.dim, lineHeight: 1.6 }}>
+                      <ul style={{ margin: 0, paddingLeft: 17, fontSize: 13.5, color: C.dim, lineHeight: 1.6 }}>
                         {m.how.map((h, j) => <li key={j} style={{ marginBottom: 4 }}>{h}</li>)}
                       </ul>
                     </div>
                     <div>
-                      <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.1em', fontWeight: 700, color: C.red, marginBottom: 6 }}>
+                      <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.1em', fontWeight: 700, color: C.red, marginBottom: 6 }}>
                         Common failures
                       </div>
-                      <ul style={{ margin: 0, paddingLeft: 17, fontSize: 12.5, color: C.dim, lineHeight: 1.6 }}>
+                      <ul style={{ margin: 0, paddingLeft: 17, fontSize: 13.5, color: C.dim, lineHeight: 1.6 }}>
                         {m.failures.map((f, j) => <li key={j} style={{ marginBottom: 4 }}>{f}</li>)}
                       </ul>
                     </div>
@@ -399,16 +399,16 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
             <Card key={p.id}>
               <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 6 }}>
                 <Pill tone={PROOF_TONE[p.status]}>{p.status}</Pill>
-                <span style={{ fontSize: 11.5, color: C.faint, textTransform: 'uppercase', letterSpacing: '.07em' }}>
+                <span style={{ fontSize: 12.5, color: C.faint, textTransform: 'uppercase', letterSpacing: '.07em' }}>
                   {p.kind}
                 </span>
-                <span style={{ fontSize: 11.5, color: C.faint, marginLeft: 'auto' }}>
+                <span style={{ fontSize: 12.5, color: C.faint, marginLeft: 'auto' }}>
                   {PROOF_MEANS[p.status]}
                 </span>
               </div>
-              <div style={{ fontSize: 14, color: C.text, lineHeight: 1.6 }}>{p.body}</div>
+              <div style={{ fontSize: 15, color: C.text, lineHeight: 1.6 }}>{p.body}</div>
               {(p.attribution || p.source) && (
-                <div style={{ fontSize: 12, color: C.faint, marginTop: 5, lineHeight: 1.55 }}>
+                <div style={{ fontSize: 13, color: C.faint, marginTop: 5, lineHeight: 1.55 }}>
                   {[p.attribution, p.source].filter(Boolean).join(' · ')}
                 </div>
               )}
@@ -427,7 +427,7 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
                 <div key={r.term} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'baseline' }}>
                   <span
                     style={{
-                      fontSize: 12.5,
+                      fontSize: 13.5,
                       fontWeight: 600,
                       color: C.red,
                       background: C.redSoft,
@@ -438,13 +438,13 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
                   >
                     {r.term}
                   </span>
-                  <span style={{ fontSize: 12.5, color: C.dim, flex: 1, minWidth: 200 }}>
+                  <span style={{ fontSize: 13.5, color: C.dim, flex: 1, minWidth: 200 }}>
                     {r.reason}
                   </span>
                 </div>
               ))}
             </div>
-            <p style={{ fontSize: 11.5, color: C.faint, marginTop: 14, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 12.5, color: C.faint, marginTop: 14, lineHeight: 1.6 }}>
               Every rule carries its reason. Rules with reasons survive; rules without them get
               relitigated every quarter by whoever is loudest.
             </p>

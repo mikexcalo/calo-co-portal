@@ -52,7 +52,7 @@ export default async function PitchPage({ params }: { params: { token: string } 
           <h1 style={{ fontSize: 19, fontWeight: 600, color: INK, margin: '0 0 10px' }}>
             This link isn&apos;t available
           </h1>
-          <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.65, margin: 0 }}>
+          <p style={{ fontSize: 15, color: MUTED, lineHeight: 1.65, margin: 0 }}>
             It may have been taken down, or the address may be wrong. Get in touch with whoever
             sent it and they can send a fresh one.
           </p>
@@ -78,7 +78,7 @@ export default async function PitchPage({ params }: { params: { token: string } 
         <header style={{ paddingTop: 64, marginBottom: 46 }}>
           <div
             style={{
-              fontSize: 11.5,
+              fontSize: 12.5,
               fontWeight: 700,
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
@@ -102,7 +102,7 @@ export default async function PitchPage({ params }: { params: { token: string } 
             {pitch.title}
           </h1>
           {pitch.recipient && (
-            <p style={{ fontSize: 16, color: MUTED, margin: '16px 0 0' }}>
+            <p style={{ fontSize: 17, color: MUTED, margin: '16px 0 0' }}>
               Prepared for {pitch.recipient}
             </p>
           )}
@@ -133,7 +133,7 @@ export default async function PitchPage({ params }: { params: { token: string } 
                     telling them their writing did not matter. */}
                 <p
                   style={{
-                    fontSize: 16,
+                    fontSize: 17,
                     lineHeight: 1.72,
                     color: BODY,
                     margin: 0,
@@ -146,7 +146,7 @@ export default async function PitchPage({ params }: { params: { token: string } 
             ))}
         </div>
 
-        <footer style={{ marginTop: 60, paddingTop: 24, borderTop: `1px solid ${RULE}`, fontSize: 13.5, color: MUTED, lineHeight: 1.7 }}>
+        <footer style={{ marginTop: 60, paddingTop: 24, borderTop: `1px solid ${RULE}`, fontSize: 14.5, color: MUTED, lineHeight: 1.7 }}>
           Questions about any of this? Reply to the message this came from and{' '}
           {pitch.org.name} will pick it up.
         </footer>

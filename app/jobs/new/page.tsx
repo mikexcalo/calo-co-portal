@@ -67,7 +67,7 @@ export default function NewJobPage() {
     <Page title="New job" subtitle="A lead and a job are the same record. Start it wherever it is.">
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
 

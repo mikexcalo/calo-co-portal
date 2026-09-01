@@ -109,6 +109,9 @@ function specimenStyle(role: string | undefined): React.CSSProperties {
   if (/eyebrow|label/.test(r)) {
     return { fontSize: 13, letterSpacing: '0.17em', textTransform: 'uppercase', fontWeight: 600 };
   }
+  // Deliberately outside the portal's scale. A specimen shows a client's face
+  // at the size their brand uses it, and moving with our own UI would make it
+  // a picture of our decisions rather than theirs.
   return { fontSize: 17, lineHeight: 1.65, fontWeight: 400 };
 }
 
@@ -303,13 +306,13 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                   }}
                 />
                 <span style={{ minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: C.text }}>
+                  <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: C.text }}>
                     {copied === c.hex ? 'Copied' : c.name}
                   </span>
                   <span
                     style={{
                       display: 'block',
-                      fontSize: 11,
+                      fontSize: 12,
                       color: C.faint,
                       fontFamily: 'ui-monospace, monospace',
                     }}
@@ -317,7 +320,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                     {c.hex}{c.token ? ` · ${c.token}` : ''}
                   </span>
                   {c.role && (
-                    <span style={{ display: 'block', fontSize: 11, color: C.faint, marginTop: 2 }}>
+                    <span style={{ display: 'block', fontSize: 12, color: C.faint, marginTop: 2 }}>
                       {c.role}
                     </span>
                   )}
@@ -355,10 +358,10 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                     }}
                   >
                     <div>
-                      <span style={{ fontSize: 13.5, fontWeight: 600, color: C.text }}>
+                      <span style={{ fontSize: 14.5, fontWeight: 600, color: C.text }}>
                         {f.family}
                       </span>
-                      <span style={{ fontSize: 12, color: C.faint, marginLeft: 8 }}>
+                      <span style={{ fontSize: 13, color: C.faint, marginLeft: 8 }}>
                         {[f.role, f.weight, f.tracking].filter(Boolean).join(' · ')}
                       </span>
                     </div>
@@ -391,7 +394,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                           href={file.storage_path ? signed[file.storage_path] : file.url}
                           download
                           style={{
-                            fontSize: 11.5,
+                            fontSize: 12.5,
                             padding: '5px 10px',
                             borderRadius: 6,
                             border: `1px solid ${C.border}`,
@@ -406,7 +409,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                   )}
 
                   {!loadable && (
-                    <div style={{ fontSize: 11.5, color: C.faint, marginTop: 10, lineHeight: 1.55 }}>
+                    <div style={{ fontSize: 12.5, color: C.faint, marginTop: 10, lineHeight: 1.55 }}>
                       Shown in a substitute. The file is not hosted here.
                     </div>
                   )}
@@ -445,10 +448,10 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                       marginBottom: 10,
                     }}
                   >
-                    <div style={{ fontSize: 13.5, fontWeight: 600, color: C.text }}>
+                    <div style={{ fontSize: 14.5, fontWeight: 600, color: C.text }}>
                       {ASSET_LABEL[g] ?? g}
                     </div>
-                    <div style={{ fontSize: 11.5, color: C.faint }}>
+                    <div style={{ fontSize: 12.5, color: C.faint }}>
                       {items.length} {items.length === 1 ? 'file' : 'files'}
                       {cleared < items.length ? ` · ${items.length - cleared} not cleared` : ''}
                     </div>
@@ -486,7 +489,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                           <span
                             style={{
                               fontFamily: 'ui-monospace, monospace',
-                              fontSize: 9.5,
+                              fontSize: 10.5,
                               fontWeight: 700,
                               letterSpacing: '.04em',
                               color: C.faint,
@@ -502,7 +505,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                           </span>
                           <span
                             style={{
-                              fontSize: 12.5,
+                              fontSize: 13.5,
                               color: C.text,
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
@@ -514,13 +517,13 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                             {name}
                           </span>
                           {a.needs_approval && (
-                            <span style={{ fontSize: 10.5, color: C.amber, flexShrink: 0 }}>
+                            <span style={{ fontSize: 11.5, color: C.amber, flexShrink: 0 }}>
                               not cleared
                             </span>
                           )}
                           <span
                             style={{
-                              fontSize: 11,
+                              fontSize: 12,
                               color: C.faint,
                               flexShrink: 0,
                               fontVariantNumeric: 'tabular-nums',

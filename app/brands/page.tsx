@@ -87,7 +87,7 @@ export default function BrandsPage() {
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
 
@@ -134,7 +134,7 @@ export default function BrandsPage() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: 15.5, fontWeight: 600, color: C.text }}>
+                          <span style={{ fontSize: 16.5, fontWeight: 600, color: C.text }}>
                             {b.name}
                           </span>
                           {b.status === 'building' && <Pill tone="blue">In build</Pill>}
@@ -144,7 +144,7 @@ export default function BrandsPage() {
                             </Pill>
                           )}
                         </div>
-                        <div style={{ fontSize: 12, color: C.faint, marginTop: 3 }}>
+                        <div style={{ fontSize: 13, color: C.faint, marginTop: 3 }}>
                           {b.customer?.name ?? 'Your own brand'}
                           {b.kit?.fonts?.length ? ` · ${b.kit.fonts.map((f) => f.family).join(', ')}` : ''}
                         </div>

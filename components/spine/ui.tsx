@@ -90,7 +90,7 @@ export function Page({
             {title}
           </h1>
           {subtitle && (
-            <p style={{ fontSize: 13, color: C.faint, margin: '6px 0 0', maxWidth: 640 }}>
+            <p style={{ fontSize: 14, color: C.faint, margin: '6px 0 0', maxWidth: 640 }}>
               {subtitle}
             </p>
           )}
@@ -135,7 +135,7 @@ function PageTabs({ tabs, phone }: { tabs: readonly PageTab[]; phone: boolean })
               borderBottom: `2px solid ${active ? C.accent : 'transparent'}`,
               background: 'transparent',
               color: active ? C.text : C.dim,
-              fontSize: 13.5,
+              fontSize: 14.5,
               fontWeight: active ? 500 : 400,
               cursor: 'pointer',
               fontFamily: 'inherit',
@@ -177,12 +177,12 @@ function BackLink({ label, href }: { label: string; href: string }) {
         padding: 0,
         marginBottom: 7,
         color: C.faint,
-        fontSize: 12.5,
+        fontSize: 13.5,
         cursor: 'pointer',
         fontFamily: 'inherit',
       }}
     >
-      <span aria-hidden style={{ fontSize: 14, lineHeight: 1 }}>←</span>
+      <span aria-hidden style={{ fontSize: 15, lineHeight: 1 }}>←</span>
       {label}
     </button>
   );
@@ -214,7 +214,7 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div
       style={{
-        fontSize: 10,
+        fontSize: 11,
         textTransform: 'uppercase',
         letterSpacing: '0.08em',
         color: C.faint,
@@ -257,7 +257,7 @@ export function Button({
         ...styles[variant],
         padding: '9px 16px',
         borderRadius: radius.md,
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: 500,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.45 : 1,
@@ -322,7 +322,7 @@ export function Pill({ children, tone = 'neutral' }: { children: React.ReactNode
       style={{
         background: t.bg,
         color: t.fg,
-        fontSize: 10.5,
+        fontSize: 11.5,
         fontWeight: 600,
         padding: '3px 9px',
         borderRadius: 20,
@@ -354,13 +354,13 @@ export function Metric({
     : C.text;
   return (
     <Card style={{ padding: 16 }}>
-      <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.07em', color: C.faint, fontWeight: 600 }}>
+      <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em', color: C.faint, fontWeight: 600 }}>
         {label}
       </div>
       <div style={{ fontSize: 24, fontWeight: 500, color, marginTop: 8, letterSpacing: '-0.01em' }}>
         {value}
       </div>
-      {hint && <div style={{ fontSize: 11, color: C.faint, marginTop: 4 }}>{hint}</div>}
+      {hint && <div style={{ fontSize: 12, color: C.faint, marginTop: 4 }}>{hint}</div>}
     </Card>
   );
 }
@@ -374,7 +374,7 @@ export function Field({
 }) {
   return (
     <label style={{ display: 'block', marginBottom: 14 }}>
-      <div style={{ fontSize: 11.5, color: C.dim, marginBottom: 6, fontWeight: 500 }}>{label}</div>
+      <div style={{ fontSize: 12.5, color: C.dim, marginBottom: 6, fontWeight: 500 }}>{label}</div>
       {children}
     </label>
   );
@@ -387,7 +387,7 @@ export const inputStyle: React.CSSProperties = {
   borderRadius: 7,
   padding: '9px 11px',
   color: C.text,
-  fontSize: 13,
+  fontSize: 14,
   fontFamily: 'inherit',
   boxSizing: 'border-box',
 };
@@ -417,7 +417,7 @@ export function Empty({
       style={{
         padding: hero ? '28px 4px' : '2px 0',
         color: C.faint,
-        fontSize: 13,
+        fontSize: 14,
         lineHeight: 1.6,
         textAlign: hero ? 'center' : 'left',
       }}
@@ -472,7 +472,7 @@ export function Row({
           gap: 10,
           padding: '14px',
           borderBottom: `1px solid ${C.border}`,
-          fontSize: 13.5,
+          fontSize: 14.5,
           color: C.text,
           cursor: onClick ? 'pointer' : 'default',
         }}
@@ -486,7 +486,7 @@ export function Row({
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 14 }}>
               <span
                 style={{
-                  fontSize: 11,
+                  fontSize: 12,
                   textTransform: 'uppercase',
                   letterSpacing: '0.06em',
                   color: C.faint,
@@ -590,7 +590,7 @@ export function MobileAction({
         border: 'none',
         background: C.accent,
         color: '#fff',
-        fontSize: 15,
+        fontSize: 16,
         fontWeight: 600,
         fontFamily: 'inherit',
         boxShadow: '0 6px 20px rgba(0,0,0,.18)',

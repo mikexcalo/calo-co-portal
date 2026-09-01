@@ -89,14 +89,14 @@ export function Processing({
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: C.text }}>
+          <span style={{ fontSize: 15, fontWeight: 600, color: C.text }}>
             {copy.label}
             {count && count > 1 ? ` ${count} files` : ''}
           </span>
           {fileName && (
             <span
               style={{
-                fontSize: 12,
+                fontSize: 13,
                 color: C.faint,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -109,7 +109,7 @@ export function Processing({
           )}
         </div>
 
-        <div style={{ fontSize: 12.5, color: C.dim, marginTop: 2 }}>{copy.detail}</div>
+        <div style={{ fontSize: 13.5, color: C.dim, marginTop: 2 }}>{copy.detail}</div>
 
         {/* One segment per stage, so the position in the sequence is visible
             rather than implied. */}

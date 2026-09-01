@@ -39,7 +39,7 @@ export function DecisionButtons({ token, accent }: { token: string; accent: stri
   const input: React.CSSProperties = {
     width: '100%',
     padding: '11px 13px',
-    fontSize: 14,
+    fontSize: 15,
     border: '1px solid #d8d8d2',
     borderRadius: 8,
     boxSizing: 'border-box',
@@ -49,7 +49,7 @@ export function DecisionButtons({ token, accent }: { token: string; accent: stri
   if (mode === 'accepting') {
     return (
       <div>
-        <label style={{ display: 'block', fontSize: 13, color: '#444', marginBottom: 7 }}>
+        <label style={{ display: 'block', fontSize: 14, color: '#444', marginBottom: 7 }}>
           Type your name to accept this estimate
         </label>
         <input
@@ -59,14 +59,14 @@ export function DecisionButtons({ token, accent }: { token: string; accent: stri
           placeholder="Your full name"
           autoFocus
         />
-        {error && <div style={{ color: '#b91c1c', fontSize: 12.5, marginTop: 8 }}>{error}</div>}
+        {error && <div style={{ color: '#b91c1c', fontSize: 13.5, marginTop: 8 }}>{error}</div>}
         <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
           <button
             onClick={() => send('accepted')}
             disabled={busy || name.trim().length < 2}
             style={{
               background: accent, color: '#fff', border: 'none', borderRadius: 8,
-              padding: '12px 20px', fontSize: 14, fontWeight: 600,
+              padding: '12px 20px', fontSize: 15, fontWeight: 600,
               cursor: busy || name.trim().length < 2 ? 'not-allowed' : 'pointer',
               opacity: busy || name.trim().length < 2 ? 0.5 : 1, fontFamily: 'inherit',
             }}
@@ -77,7 +77,7 @@ export function DecisionButtons({ token, accent }: { token: string; accent: stri
             onClick={() => setMode('idle')}
             style={{
               background: 'transparent', border: '1px solid #d8d8d2', borderRadius: 8,
-              padding: '12px 18px', fontSize: 14, color: '#555', cursor: 'pointer',
+              padding: '12px 18px', fontSize: 15, color: '#555', cursor: 'pointer',
               fontFamily: 'inherit',
             }}
           >
@@ -91,7 +91,7 @@ export function DecisionButtons({ token, accent }: { token: string; accent: stri
   if (mode === 'declining') {
     return (
       <div>
-        <label style={{ display: 'block', fontSize: 13, color: '#444', marginBottom: 7 }}>
+        <label style={{ display: 'block', fontSize: 14, color: '#444', marginBottom: 7 }}>
           Anything you&apos;d like them to know? (optional)
         </label>
         <textarea
@@ -101,14 +101,14 @@ export function DecisionButtons({ token, accent }: { token: string; accent: stri
           placeholder="Going a different direction, timing doesn't work, over budget…"
           autoFocus
         />
-        {error && <div style={{ color: '#b91c1c', fontSize: 12.5, marginTop: 8 }}>{error}</div>}
+        {error && <div style={{ color: '#b91c1c', fontSize: 13.5, marginTop: 8 }}>{error}</div>}
         <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
           <button
             onClick={() => send('declined')}
             disabled={busy}
             style={{
               background: 'transparent', border: '1px solid #d8d8d2', borderRadius: 8,
-              padding: '12px 20px', fontSize: 14, color: '#555',
+              padding: '12px 20px', fontSize: 15, color: '#555',
               cursor: busy ? 'wait' : 'pointer', fontFamily: 'inherit',
             }}
           >
@@ -118,7 +118,7 @@ export function DecisionButtons({ token, accent }: { token: string; accent: stri
             onClick={() => setMode('idle')}
             style={{
               background: 'transparent', border: 'none', padding: '12px 8px',
-              fontSize: 14, color: '#777', cursor: 'pointer', fontFamily: 'inherit',
+              fontSize: 15, color: '#777', cursor: 'pointer', fontFamily: 'inherit',
             }}
           >
             Back
@@ -134,7 +134,7 @@ export function DecisionButtons({ token, accent }: { token: string; accent: stri
         onClick={() => setMode('accepting')}
         style={{
           background: accent, color: '#fff', border: 'none', borderRadius: 8,
-          padding: '13px 24px', fontSize: 14.5, fontWeight: 600, cursor: 'pointer',
+          padding: '13px 24px', fontSize: 15.5, fontWeight: 600, cursor: 'pointer',
           fontFamily: 'inherit',
         }}
       >
@@ -144,7 +144,7 @@ export function DecisionButtons({ token, accent }: { token: string; accent: stri
         onClick={() => setMode('declining')}
         style={{
           background: 'transparent', border: 'none', padding: '13px 10px',
-          fontSize: 13.5, color: '#777', cursor: 'pointer', fontFamily: 'inherit',
+          fontSize: 14.5, color: '#777', cursor: 'pointer', fontFamily: 'inherit',
         }}
       >
         No thanks

@@ -111,7 +111,7 @@ export default function PitchesPage() {
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
 
@@ -119,15 +119,15 @@ export default function PitchesPage() {
         <Card><Empty>Loading…</Empty></Card>
       ) : rows.length === 0 ? (
         <Card style={{ maxWidth: 620 }}>
-          <div style={{ fontSize: 16, fontWeight: 600, color: C.text, marginBottom: 8 }}>
+          <div style={{ fontSize: 17, fontWeight: 600, color: C.text, marginBottom: 8 }}>
             Stop attaching decks
           </div>
-          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 8px' }}>
+          <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.7, margin: '0 0 8px' }}>
             A PowerPoint lands in spam, opens with the fonts substituted, and freezes the moment
             you send it. The version being forwarded round their office is whatever was true that
             day.
           </p>
-          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 18px' }}>
+          <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.7, margin: '0 0 18px' }}>
             A link renders the same everywhere, stays correctable after you send it, and tells you
             when it was read.
           </p>
@@ -162,8 +162,8 @@ export default function PitchesPage() {
                     onClick={() => router.push(`/pitches/${p.id}`)}
                     style={{ cursor: 'pointer', minWidth: 0, flex: 1 }}
                   >
-                    <div style={{ fontSize: 15, fontWeight: 600, color: C.text }}>{p.title}</div>
-                    <div style={{ fontSize: 12, color: C.faint, marginTop: 3 }}>
+                    <div style={{ fontSize: 16, fontWeight: 600, color: C.text }}>{p.title}</div>
+                    <div style={{ fontSize: 13, color: C.faint, marginTop: 3 }}>
                       {p.recipient ? `For ${p.recipient} · ` : ''}
                       {p.published_at
                         ? p.views > 0

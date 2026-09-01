@@ -81,7 +81,7 @@ export default function JobsPage() {
     >
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 20 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
 
@@ -140,7 +140,7 @@ export default function JobsPage() {
                 >
                   <span
                     style={{
-                      fontSize: 10,
+                      fontSize: 11,
                       textTransform: 'uppercase',
                       letterSpacing: '0.07em',
                       color: C.faint,
@@ -149,7 +149,7 @@ export default function JobsPage() {
                   >
                     {JOB_STATUS_LABEL[status]}
                   </span>
-                  <span style={{ fontSize: 11, color: C.faint }}>{column.length}</span>
+                  <span style={{ fontSize: 12, color: C.faint }}>{column.length}</span>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -171,16 +171,16 @@ export default function JobsPage() {
                         {/* Name and customer only. A pipeline card is for
                             recognising a job at a glance and clicking it —
                             the money lives one click deeper, on the job. */}
-                        <div style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.35 }}>
+                        <div style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.35 }}>
                           {job.name}
                         </div>
                         {job.customer?.name && (
-                          <div style={{ fontSize: 11.5, color: C.faint, marginTop: 4 }}>
+                          <div style={{ fontSize: 12.5, color: C.faint, marginTop: 4 }}>
                             {job.customer.name}
                           </div>
                         )}
                         {pending > 0 && (
-                          <div style={{ fontSize: 11.5, color: C.amber, marginTop: 7 }}>
+                          <div style={{ fontSize: 12.5, color: C.amber, marginTop: 7 }}>
                             {money0(pending)} unbilled
                           </div>
                         )}
@@ -193,7 +193,7 @@ export default function JobsPage() {
                         border: `1px dashed ${C.border}`,
                         borderRadius: 9,
                         padding: 14,
-                        fontSize: 11.5,
+                        fontSize: 12.5,
                         color: C.faint,
                         textAlign: 'center',
                       }}
@@ -212,7 +212,7 @@ export default function JobsPage() {
         <div style={{ marginTop: 28 }}>
           <div
             style={{
-              fontSize: 10,
+              fontSize: 11,
               textTransform: 'uppercase',
               letterSpacing: '0.07em',
               color: C.faint,
@@ -234,7 +234,7 @@ export default function JobsPage() {
                     border: `1px solid ${C.border}`,
                     borderRadius: 7,
                     padding: '7px 12px',
-                    fontSize: 12,
+                    fontSize: 13,
                     color: C.dim,
                     cursor: 'pointer',
                     display: 'flex',

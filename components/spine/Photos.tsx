@@ -170,7 +170,7 @@ export function Photos({
       />
 
       {error && (
-        <div style={{ fontSize: 12.5, color: C.red, margin: '6px 0 10px', lineHeight: 1.55 }}>{error}</div>
+        <div style={{ fontSize: 13.5, color: C.red, margin: '6px 0 10px', lineHeight: 1.55 }}>{error}</div>
       )}
 
       {busy && uploading > 0 && (
@@ -272,12 +272,12 @@ export function Photos({
             onClick={(e) => e.stopPropagation()}
             style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}
           >
-            <span style={{ color: '#fff', fontSize: 12.5, opacity: 0.85 }}>{lightbox.file_name}</span>
+            <span style={{ color: '#fff', fontSize: 13.5, opacity: 0.85 }}>{lightbox.file_name}</span>
             <a
               href={lightbox.url}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: '#fff', fontSize: 12.5, textDecoration: 'underline' }}
+              style={{ color: '#fff', fontSize: 13.5, textDecoration: 'underline' }}
             >
               Open full size
             </a>
@@ -289,7 +289,7 @@ export function Photos({
                 color: '#fff',
                 borderRadius: 6,
                 padding: '5px 11px',
-                fontSize: 12.5,
+                fontSize: 13.5,
                 cursor: 'pointer',
                 fontFamily: 'inherit',
               }}

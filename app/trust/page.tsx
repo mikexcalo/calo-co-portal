@@ -71,7 +71,7 @@ export default function TrustPage() {
           <h1 style={{ fontSize: 27, fontWeight: 600, color: INK, letterSpacing: '-0.6px', margin: '20px 0 12px' }}>
             Security &amp; trust
           </h1>
-          <p style={{ fontSize: 15, color: DIM, lineHeight: 1.7, margin: 0 }}>
+          <p style={{ fontSize: 16, color: DIM, lineHeight: 1.7, margin: 0 }}>
             You are about to put your customers, your prices and your invoices into someone
             else&apos;s software. That is a real thing to hand over. Here is exactly how it is
             looked after.
@@ -100,7 +100,7 @@ export default function TrustPage() {
                     background: '#ECF6F0',
                     border: `1px solid ${GREEN}55`,
                     color: GREEN,
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: 700,
                     display: 'flex',
                     alignItems: 'center',
@@ -112,10 +112,10 @@ export default function TrustPage() {
                   ✓
                 </span>
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: TEXT, marginBottom: 5 }}>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: TEXT, marginBottom: 5 }}>
                     {f.title}
                   </div>
-                  <p style={{ fontSize: 13.5, color: DIM, lineHeight: 1.7, margin: 0 }}>{f.body}</p>
+                  <p style={{ fontSize: 14.5, color: DIM, lineHeight: 1.7, margin: 0 }}>{f.body}</p>
                 </div>
               </div>
             </div>
@@ -123,15 +123,15 @@ export default function TrustPage() {
         </div>
 
         <div style={{ marginTop: 34 }}>
-          <h2 style={{ fontSize: 17, fontWeight: 600, color: INK, margin: '0 0 8px' }}>
+          <h2 style={{ fontSize: 18, fontWeight: 600, color: INK, margin: '0 0 8px' }}>
             What you can do right now
           </h2>
-          <p style={{ fontSize: 13.5, color: DIM, lineHeight: 1.7, margin: '0 0 6px' }}>
+          <p style={{ fontSize: 14.5, color: DIM, lineHeight: 1.7, margin: '0 0 6px' }}>
             Turn on two-factor sign-in under <strong>Security</strong> once you are logged in.
             It takes two minutes and protects you against the most common way accounts are lost
             anywhere: a password reused on another site that later got breached.
           </p>
-          <p style={{ fontSize: 13.5, color: DIM, lineHeight: 1.7, margin: 0 }}>
+          <p style={{ fontSize: 14.5, color: DIM, lineHeight: 1.7, margin: 0 }}>
             Save the backup codes somewhere other than the phone you just set up. They are how
             you get back in if that phone is ever lost or replaced.
           </p>
@@ -142,7 +142,7 @@ export default function TrustPage() {
             marginTop: 34,
             paddingTop: 22,
             borderTop: `1px solid ${BORDER}`,
-            fontSize: 13,
+            fontSize: 14,
             color: FAINT,
             lineHeight: 1.7,
           }}
@@ -153,7 +153,7 @@ export default function TrustPage() {
           </a>
           . Security reports are welcome and always answered.
           <div style={{ marginTop: 14 }}>
-            <Link href="/login" style={{ color: ACCENT, textDecoration: 'none', fontSize: 13 }}>
+            <Link href="/login" style={{ color: ACCENT, textDecoration: 'none', fontSize: 14 }}>
               ← Back to sign in
             </Link>
           </div>

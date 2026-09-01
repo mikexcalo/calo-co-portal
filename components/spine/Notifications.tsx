@@ -139,7 +139,7 @@ export function Notifications() {
               borderRadius: 8,
               background: C.red,
               color: '#fff',
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
@@ -182,7 +182,7 @@ export function Notifications() {
                 background: C.panel,
               }}
             >
-              <span style={{ fontSize: 13, fontWeight: 500 }}>Notifications</span>
+              <span style={{ fontSize: 14, fontWeight: 500 }}>Notifications</span>
               {unread.length > 0 && (
                 <button
                   onClick={markAllRead}
@@ -190,7 +190,7 @@ export function Notifications() {
                     background: 'none',
                     border: 'none',
                     color: C.accent,
-                    fontSize: 11.5,
+                    fontSize: 12.5,
                     cursor: 'pointer',
                     fontFamily: 'inherit',
                   }}
@@ -201,7 +201,7 @@ export function Notifications() {
             </div>
 
             {items.length === 0 ? (
-              <div style={{ padding: 26, textAlign: 'center', color: C.faint, fontSize: 12.5 }}>
+              <div style={{ padding: 26, textAlign: 'center', color: C.faint, fontSize: 13.5 }}>
                 Nothing yet. Leads, payments and client requests show up here.
               </div>
             ) : (
@@ -225,7 +225,7 @@ export function Notifications() {
                   <span
                     style={{
                       color: TONE[n.kind],
-                      fontSize: 13,
+                      fontSize: 14,
                       lineHeight: '18px',
                       width: 16,
                       textAlign: 'center',
@@ -238,7 +238,7 @@ export function Notifications() {
                     <span
                       style={{
                         display: 'block',
-                        fontSize: 13,
+                        fontSize: 14,
                         color: C.text,
                         fontWeight: n.read_at ? 400 : 500,
                       }}
@@ -246,11 +246,11 @@ export function Notifications() {
                       {n.title}
                     </span>
                     {n.body && (
-                      <span style={{ display: 'block', fontSize: 12, color: C.dim, marginTop: 2 }}>
+                      <span style={{ display: 'block', fontSize: 13, color: C.dim, marginTop: 2 }}>
                         {n.body}
                       </span>
                     )}
-                    <span style={{ display: 'block', fontSize: 10.5, color: C.faint, marginTop: 4 }}>
+                    <span style={{ display: 'block', fontSize: 11.5, color: C.faint, marginTop: 4 }}>
                       {now ? ago(n.created_at, now) : ''}
                     </span>
                   </span>

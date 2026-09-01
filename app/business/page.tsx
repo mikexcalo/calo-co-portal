@@ -43,14 +43,14 @@ const TABS: Array<{ id: Tab; label: string }> = [
 
 function CopyRow({ value }: { value: string }) {
   const [copied, setCopied] = useState(false);
-  if (!value) return <div style={{ fontSize: 12, color: C.faint }}>Not available.</div>;
+  if (!value) return <div style={{ fontSize: 13, color: C.faint }}>Not available.</div>;
   return (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
       <input
         readOnly
         value={value}
         onFocus={(e) => e.currentTarget.select()}
-        style={{ ...inputStyle, fontSize: 11.5, fontFamily: 'ui-monospace, monospace' }}
+        style={{ ...inputStyle, fontSize: 12.5, fontFamily: 'ui-monospace, monospace' }}
       />
       <Button
         variant="ghost"
@@ -84,7 +84,7 @@ function SaveBar({
         {busy ? 'Saving…' : label}
       </Button>
       {saved && (
-        <span style={{ fontSize: 12.5, color: C.green, display: 'flex', alignItems: 'center', gap: 5 }}>
+        <span style={{ fontSize: 13.5, color: C.green, display: 'flex', alignItems: 'center', gap: 5 }}>
           <span aria-hidden>✓</span> Saved
         </span>
       )}
@@ -209,7 +209,7 @@ export default function BusinessPage() {
                 borderBottom: `2px solid ${on ? C.blue : 'transparent'}`,
                 color: on ? C.text : C.faint,
                 fontWeight: on ? 600 : 500,
-                fontSize: 13.5,
+                fontSize: 14.5,
                 padding: '8px 12px',
                 cursor: 'pointer',
                 fontFamily: 'inherit',
@@ -224,7 +224,7 @@ export default function BusinessPage() {
 
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
 
@@ -232,7 +232,7 @@ export default function BusinessPage() {
         <>
           {unset && (
             <Card style={{ borderColor: `${C.amber}55`, marginBottom: 16, maxWidth: 560 }}>
-              <div style={{ color: C.amber, fontSize: 13, lineHeight: 1.6 }}>
+              <div style={{ color: C.amber, fontSize: 14, lineHeight: 1.6 }}>
                 Your hourly rate is $0, so invoices will come out at zero. Set it before you bill anything real.
               </div>
             </Card>
@@ -266,7 +266,7 @@ export default function BusinessPage() {
                 placeholder="15"
               />
             </Field>
-            <div style={{ fontSize: 11.5, color: C.faint, margin: '-8px 0 14px' }}>
+            <div style={{ fontSize: 12.5, color: C.faint, margin: '-8px 0 14px' }}>
               Added to receipts when you bill them. A $100 receipt at 15% bills as $115.
             </div>
 
@@ -285,7 +285,7 @@ export default function BusinessPage() {
             <SaveBar onSave={() => save('rates')} busy={busy} saved={savedTab === 'rates'} />
           </Card>
 
-          <div style={{ fontSize: 12, color: C.faint, marginTop: 12, maxWidth: 560, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 13, color: C.faint, marginTop: 12, maxWidth: 560, lineHeight: 1.6 }}>
             These are the starting points for every new {vocab.job.toLowerCase()}. Change them on any individual {vocab.job.toLowerCase()} without affecting these.
           </div>
         </>
@@ -310,19 +310,19 @@ export default function BusinessPage() {
               borderRadius: 8,
               padding: '10px 13px',
               margin: '10px 0 16px',
-              fontSize: 12.5,
+              fontSize: 13.5,
               color: C.text,
               lineHeight: 1.5,
             }}
           >
-            <span aria-hidden style={{ fontSize: 14 }}>↳</span>
+            <span aria-hidden style={{ fontSize: 15 }}>↳</span>
             <span>
               These are <strong>{org.name}</strong>&apos;s payment details. They appear on
               invoices {org.name} sends, so their customers pay {org.name}.
             </span>
           </div>
 
-          <p style={{ fontSize: 13, color: C.dim, margin: '0 0 18px', lineHeight: 1.7 }}>
+          <p style={{ fontSize: 14, color: C.dim, margin: '0 0 18px', lineHeight: 1.7 }}>
             Everything you turn on appears on your invoices, cheapest first, so customers can choose. Card is the convenient option, not the only one. On a $19,000 invoice, card costs about $564 to receive money a bank transfer moves for $5.
           </p>
 
@@ -347,13 +347,13 @@ export default function BusinessPage() {
                       }}
                     >
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: 13.5, fontWeight: 600, color: C.text }}>
+                        <div style={{ fontSize: 14.5, fontWeight: 600, color: C.text }}>
                           {spec.label}
                         </div>
                         {m.handle ? (
                           <div
                             style={{
-                              fontSize: 12.5,
+                              fontSize: 13.5,
                               color: C.dim,
                               marginTop: 3,
                               overflow: 'hidden',
@@ -364,7 +364,7 @@ export default function BusinessPage() {
                             {m.handle}
                           </div>
                         ) : (
-                          <div style={{ fontSize: 12, color: C.faint, marginTop: 3 }}>
+                          <div style={{ fontSize: 13, color: C.faint, marginTop: 3 }}>
                             Nothing for the customer to copy. You&apos;ll arrange it directly.
                           </div>
                         )}
@@ -379,7 +379,7 @@ export default function BusinessPage() {
                 Edit payment methods
               </Button>
               {savedTab === 'payments' && (
-                <span style={{ fontSize: 12.5, color: C.green, marginLeft: 12 }}>✓ Saved</span>
+                <span style={{ fontSize: 13.5, color: C.green, marginLeft: 12 }}>✓ Saved</span>
               )}
             </>
           ) : (
@@ -419,14 +419,14 @@ export default function BusinessPage() {
                           )
                         }
                       />
-                      <span style={{ fontSize: 13.5, fontWeight: 500 }}>{spec.label}</span>
-                      <span style={{ fontSize: 11, color: C.faint, marginLeft: 'auto' }}>
+                      <span style={{ fontSize: 14.5, fontWeight: 500 }}>{spec.label}</span>
+                      <span style={{ fontSize: 12, color: C.faint, marginLeft: 'auto' }}>
                         {spec.costLabel}
                       </span>
                     </label>
 
                     {blocked && (
-                      <div style={{ fontSize: 11.5, color: C.amber, marginTop: 6, marginLeft: 26, lineHeight: 1.55 }}>
+                      <div style={{ fontSize: 12.5, color: C.amber, marginTop: 6, marginLeft: 26, lineHeight: 1.55 }}>
                         {stripeReason === 'not_your_account'
                           ? `Card payments aren't connected to ${org.name} yet. Turning this on would send your customers' card payments to somebody else's account, so it stays off until you have your own Stripe connected.`
                           : 'Needs a Stripe account connected first. Until then it would show customers a payment option that goes nowhere, so it stays off.'}
@@ -435,7 +435,7 @@ export default function BusinessPage() {
 
                     {m.enabled && !blocked && spec.handleLabel && (
                       <div style={{ marginTop: 10, marginLeft: 26 }}>
-                        <div style={{ fontSize: 12, color: C.dim, marginBottom: 5, fontWeight: 500 }}>
+                        <div style={{ fontSize: 13, color: C.dim, marginBottom: 5, fontWeight: 500 }}>
                           {spec.handleLabel}
                         </div>
                         <input
@@ -449,12 +449,12 @@ export default function BusinessPage() {
                           placeholder={spec.placeholder}
                         />
                         {warn && (
-                          <div style={{ fontSize: 11.5, color: C.red, marginTop: 5, lineHeight: 1.5 }}>
+                          <div style={{ fontSize: 12.5, color: C.red, marginTop: 5, lineHeight: 1.5 }}>
                             That looks like an account number. Don&apos;t put one here. This text appears on every invoice a customer sees, so write how to request the details instead.
                           </div>
                         )}
                         {spec.sensitive && !warn && (
-                          <div style={{ fontSize: 11, color: C.faint, marginTop: 5, lineHeight: 1.5 }}>
+                          <div style={{ fontSize: 12, color: C.faint, marginTop: 5, lineHeight: 1.5 }}>
                             Never put account or routing numbers here. This appears on
                             customer-facing invoices.
                           </div>
@@ -494,8 +494,8 @@ export default function BusinessPage() {
           <SectionLabel>Connect other things to this</SectionLabel>
 
           <div style={{ margin: '14px 0 18px' }}>
-            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Calendar</div>
-            <p style={{ fontSize: 12.5, color: C.dim, margin: '0 0 8px', lineHeight: 1.65 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Calendar</div>
+            <p style={{ fontSize: 13.5, color: C.dim, margin: '0 0 8px', lineHeight: 1.65 }}>
               Subscribe to this in Google or Apple Calendar and scheduled {vocab.jobPlural.toLowerCase()}{' '}
               appear alongside everything else. One-way and read-only — {vocab.jobPlural.toLowerCase()}{' '}
               with no dates don&apos;t show up.
@@ -504,8 +504,8 @@ export default function BusinessPage() {
           </div>
 
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Price list feed</div>
-            <p style={{ fontSize: 12.5, color: C.dim, margin: '0 0 8px', lineHeight: 1.65 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Price list feed</div>
+            <p style={{ fontSize: 13.5, color: C.dim, margin: '0 0 8px', lineHeight: 1.65 }}>
               For your website to pull live prices. Returns only items marked both{' '}
               <strong>on site</strong> and <strong>confirmed</strong>, so nothing unverified can
               reach a customer.
@@ -513,7 +513,7 @@ export default function BusinessPage() {
             <CopyRow value={org.price_feed_token ? `${origin}/api/public/prices/${org.price_feed_token}` : ''} />
           </div>
 
-          <div style={{ fontSize: 11.5, color: C.faint, marginTop: 16, lineHeight: 1.65 }}>
+          <div style={{ fontSize: 12.5, color: C.faint, marginTop: 16, lineHeight: 1.65 }}>
             Treat both links as private. Anyone holding one can read what it exposes — nothing
             more, and neither allows any changes.
           </div>

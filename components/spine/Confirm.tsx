@@ -66,9 +66,9 @@ export function Confirm({
           boxShadow: '0 20px 50px rgba(0,0,0,.18)',
         }}
       >
-        <div style={{ fontSize: 15, fontWeight: 600, color: C.text }}>{title}</div>
+        <div style={{ fontSize: 16, fontWeight: 600, color: C.text }}>{title}</div>
         {body && (
-          <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.55, margin: '10px 0 0' }}>
+          <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.55, margin: '10px 0 0' }}>
             {body}
           </p>
         )}

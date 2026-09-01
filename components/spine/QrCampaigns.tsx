@@ -145,7 +145,7 @@ export function QrCampaigns({
         </Button>
       </div>
 
-      <p style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.65, margin: '4px 0 12px', maxWidth: 560 }}>
+      <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.65, margin: '4px 0 12px', maxWidth: 560 }}>
         Make one code per place you print it. Each counts its own scans, so you find out whether
         the yard signs or the postcards brought the calls.
       </p>
@@ -179,7 +179,7 @@ export function QrCampaigns({
               style={inputStyle}
             />
           </Field>
-          {error && <div style={{ fontSize: 12, color: C.red, marginBottom: 10 }}>{error}</div>}
+          {error && <div style={{ fontSize: 13, color: C.red, marginBottom: 10 }}>{error}</div>}
           <Button onClick={create} disabled={busy || !label.trim()}>
             {busy ? 'Creating…' : 'Create and use it'}
           </Button>
@@ -215,8 +215,8 @@ export function QrCampaigns({
                 }}
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 600, color: C.text }}>{r.label}</div>
-                  <div style={{ fontSize: 11.5, color: C.faint, marginTop: 2 }}>
+                  <div style={{ fontSize: 14.5, fontWeight: 600, color: C.text }}>{r.label}</div>
+                  <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2 }}>
                     {r.medium ? `${r.medium} · ` : ''}
                     {r.last_scan_at ? `last scanned ${shortDate(r.last_scan_at)}` : 'not scanned yet'}
                   </div>
@@ -224,7 +224,7 @@ export function QrCampaigns({
                 <div style={{ textAlign: 'right' }}>
                   <div
                     style={{
-                      fontSize: 17,
+                      fontSize: 18,
                       fontWeight: 600,
                       color: r.scans > 0 ? C.text : C.faint,
                       fontVariantNumeric: 'tabular-nums',
@@ -233,7 +233,7 @@ export function QrCampaigns({
                   >
                     {r.scans}
                   </div>
-                  <div style={{ fontSize: 10, color: C.faint, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                  <div style={{ fontSize: 11, color: C.faint, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
                     {r.scans === 1 ? 'scan' : 'scans'}
                   </div>
                 </div>

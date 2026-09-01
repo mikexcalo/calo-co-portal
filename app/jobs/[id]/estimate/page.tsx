@@ -158,13 +158,13 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
     >
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
 
       {job && (
         <Card style={{ marginBottom: 16, borderColor: isTM ? `${C.blue}44` : C.border }}>
-          <div style={{ fontSize: 12.5, color: C.dim }}>
+          <div style={{ fontSize: 13.5, color: C.dim }}>
             {isTM ? (
               <>
                 This job is <strong style={{ color: C.text }}>time &amp; materials</strong> —
@@ -197,7 +197,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
             }}
           >
             <div>
-              <div style={{ fontSize: 10.5, color: C.faint, marginBottom: 4 }}>
+              <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 4 }}>
                 <select
                   value={line.kind}
                   onChange={(e) => update(i, { kind: e.target.value as LineKind })}
@@ -205,7 +205,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
                     background: 'transparent',
                     border: 'none',
                     color: C.faint,
-                    fontSize: 10.5,
+                    fontSize: 11.5,
                     fontFamily: 'inherit',
                     padding: 0,
                     cursor: 'pointer',
@@ -226,7 +226,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
             </div>
 
             <div>
-              <div style={{ fontSize: 10.5, color: C.faint, marginBottom: 4 }}>QTY</div>
+              <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 4 }}>QTY</div>
               <input
                 type="number"
                 step="0.25"
@@ -237,7 +237,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
             </div>
 
             <div>
-              <div style={{ fontSize: 10.5, color: C.faint, marginBottom: 4 }}>UNIT</div>
+              <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 4 }}>UNIT</div>
               <input
                 value={line.unit}
                 onChange={(e) => update(i, { unit: e.target.value })}
@@ -247,7 +247,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
             </div>
 
             <div>
-              <div style={{ fontSize: 10.5, color: C.faint, marginBottom: 4 }}>PRICE</div>
+              <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 4 }}>PRICE</div>
               <input
                 type="number"
                 step="0.01"
@@ -257,7 +257,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
               />
             </div>
 
-            <div style={{ fontSize: 13, paddingBottom: 9, textAlign: 'right' }}>
+            <div style={{ fontSize: 14, paddingBottom: 9, textAlign: 'right' }}>
               {money(lineTotal(line))}
             </div>
 
@@ -269,7 +269,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
                 border: 'none',
                 color: C.faint,
                 cursor: lines.length === 1 ? 'default' : 'pointer',
-                fontSize: 16,
+                fontSize: 17,
                 paddingBottom: 6,
                 opacity: lines.length === 1 ? 0.3 : 1,
               }}
@@ -314,7 +314,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
             borderTop: `1px solid ${C.border}`,
           }}
         >
-          <span style={{ fontSize: 12, color: C.faint }}>Total</span>
+          <span style={{ fontSize: 13, color: C.faint }}>Total</span>
           <span style={{ fontSize: 22, fontWeight: 500 }}>{money(total)}</span>
         </div>
       </Card>

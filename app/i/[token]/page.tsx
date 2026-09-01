@@ -78,14 +78,14 @@ export default async function PublicInvoice({ params }: { params: { token: strin
           <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <div>
               <div style={{ fontSize: 22, fontWeight: 600, color: '#111' }}>Invoice {invoice.number}</div>
-              <div style={{ fontSize: 13.5, color: '#555', marginTop: 4 }}>{job?.name}</div>
+              <div style={{ fontSize: 14.5, color: '#555', marginTop: 4 }}>{job?.name}</div>
               {job?.customer && (
-                <div style={{ fontSize: 13.5, color: '#555', marginTop: 2 }}>
+                <div style={{ fontSize: 14.5, color: '#555', marginTop: 2 }}>
                   For {job.customer.contact_name || job.customer.name}
                 </div>
               )}
             </div>
-            <div style={{ textAlign: 'right', fontSize: 12.5, color: '#666' }}>
+            <div style={{ textAlign: 'right', fontSize: 13.5, color: '#666' }}>
               <div style={{ fontWeight: 600, color: '#111' }}>{org?.name}</div>
               {invoice.issued_on && <div style={{ marginTop: 4 }}>Issued {fmtDate(invoice.issued_on)}</div>}
               {invoice.due_on && <div>Due {fmtDate(invoice.due_on)}</div>}
@@ -94,17 +94,17 @@ export default async function PublicInvoice({ params }: { params: { token: strin
         </div>
 
         {paid && (
-          <div style={{ margin: '22px 30px 0', padding: '12px 16px', borderRadius: 8, background: '#edf6f0', color: '#15803d', fontSize: 13.5 }}>
+          <div style={{ margin: '22px 30px 0', padding: '12px 16px', borderRadius: 8, background: '#edf6f0', color: '#15803d', fontSize: 14.5 }}>
             Paid in full{invoice.paid_at ? ` on ${fmtDate(invoice.paid_at)}` : ''}. Thank you.
           </div>
         )}
 
         <div style={{ padding: '26px 30px' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14.5 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #e4e4e0' }}>
-                <th style={{ textAlign: 'left', padding: '0 0 9px', fontSize: 10.5, letterSpacing: '.08em', textTransform: 'uppercase', color: '#777', fontWeight: 600 }}>Work</th>
-                <th style={{ textAlign: 'right', padding: '0 0 9px 10px', fontSize: 10.5, letterSpacing: '.08em', textTransform: 'uppercase', color: '#777', fontWeight: 600 }}>Amount</th>
+                <th style={{ textAlign: 'left', padding: '0 0 9px', fontSize: 11.5, letterSpacing: '.08em', textTransform: 'uppercase', color: '#777', fontWeight: 600 }}>Work</th>
+                <th style={{ textAlign: 'right', padding: '0 0 9px 10px', fontSize: 11.5, letterSpacing: '.08em', textTransform: 'uppercase', color: '#777', fontWeight: 600 }}>Amount</th>
               </tr>
             </thead>
             <tbody>
@@ -125,7 +125,7 @@ export default async function PublicInvoice({ params }: { params: { token: strin
           </table>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 18, alignItems: 'baseline', gap: 14 }}>
-            <span style={{ fontSize: 13, color: '#666' }}>{paid ? 'Total' : 'Amount due'}</span>
+            <span style={{ fontSize: 14, color: '#666' }}>{paid ? 'Total' : 'Amount due'}</span>
             <span style={{ fontSize: 26, fontWeight: 600, color: '#111' }}>
               {money(paid ? Number(invoice.total) : owed)}
             </span>
@@ -134,10 +134,10 @@ export default async function PublicInvoice({ params }: { params: { token: strin
 
         {!paid && accepted.length > 0 && (
           <div style={{ borderTop: '1px solid #e4e4e0', padding: '24px 30px 28px', background: '#fafaf8' }}>
-            <div style={{ fontSize: 15, fontWeight: 600, color: '#111', marginBottom: 4 }}>
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#111', marginBottom: 4 }}>
               How to pay
             </div>
-            <p style={{ fontSize: 12.5, color: '#666', margin: '0 0 16px' }}>
+            <p style={{ fontSize: 13.5, color: '#666', margin: '0 0 16px' }}>
               Any of these works. Please include invoice {invoice.number} so it can be matched up.
             </p>
 
@@ -147,13 +147,13 @@ export default async function PublicInvoice({ params }: { params: { token: strin
                 if (!spec) return null;
                 return (
                   <div key={m.id} style={{ border: '1px solid #e4e4e0', borderRadius: 8, padding: '13px 15px', background: '#fff' }}>
-                    <div style={{ fontSize: 13.5, fontWeight: 500, color: '#111' }}>{spec.label}</div>
-                    <div style={{ fontSize: 12.5, color: '#666', marginTop: 3 }}>{spec.customerHint}</div>
+                    <div style={{ fontSize: 14.5, fontWeight: 500, color: '#111' }}>{spec.label}</div>
+                    <div style={{ fontSize: 13.5, color: '#666', marginTop: 3 }}>{spec.customerHint}</div>
                     {m.handle && (() => {
                       const link = payLink(m.id, m.handle, owed, `Invoice ${invoice.number}`);
                       return (
                         <div style={{ marginTop: 8 }}>
-                          <div style={{ fontSize: 14, color: '#111', fontWeight: 500, wordBreak: 'break-word' }}>
+                          <div style={{ fontSize: 15, color: '#111', fontWeight: 500, wordBreak: 'break-word' }}>
                             {m.handle}
                           </div>
                           {link && (
@@ -168,7 +168,7 @@ export default async function PublicInvoice({ params }: { params: { token: strin
                                 borderRadius: 7,
                                 background: '#111',
                                 color: '#fff',
-                                fontSize: 13,
+                                fontSize: 14,
                                 fontWeight: 500,
                                 textDecoration: 'none',
                               }}
@@ -187,13 +187,13 @@ export default async function PublicInvoice({ params }: { params: { token: strin
         )}
 
         {!paid && accepted.length === 0 && (
-          <div style={{ borderTop: '1px solid #e4e4e0', padding: '20px 30px', background: '#fafaf8', fontSize: 13, color: '#666' }}>
+          <div style={{ borderTop: '1px solid #e4e4e0', padding: '20px 30px', background: '#fafaf8', fontSize: 14, color: '#666' }}>
             Reply to the email this came from to arrange payment.
           </div>
         )}
       </div>
 
-      <div style={{ maxWidth: 720, margin: '18px auto 0', textAlign: 'center', fontSize: 11.5, color: '#888' }}>
+      <div style={{ maxWidth: 720, margin: '18px auto 0', textAlign: 'center', fontSize: 12.5, color: '#888' }}>
         Questions? Reply to the email this came from.
       </div>
     </div>

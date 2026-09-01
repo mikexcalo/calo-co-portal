@@ -483,7 +483,7 @@ export default function Dashboard() {
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
 
@@ -502,7 +502,7 @@ export default function Dashboard() {
           <div style={{ ...DISPLAY, fontSize: 22, marginBottom: 6 }}>
             Let&apos;s get you set up
           </div>
-          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.65, margin: '0 0 18px' }}>
+          <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.65, margin: '0 0 18px' }}>
             Five things, in order. Each takes a minute. This list disappears once you&apos;re running.
           </p>
 
@@ -527,7 +527,7 @@ export default function Dashboard() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       style={{
-                        fontSize: 13.5,
+                        fontSize: 14.5,
                         fontWeight: next ? 600 : 500,
                         color: step.done ? C.faint : C.text,
                         textDecoration: step.done ? 'line-through' : 'none',
@@ -536,10 +536,10 @@ export default function Dashboard() {
                       {step.label}
                     </div>
                     {!step.done && (
-                      <div style={{ fontSize: 12, color: C.dim, marginTop: 2 }}>{step.why}</div>
+                      <div style={{ fontSize: 13, color: C.dim, marginTop: 2 }}>{step.why}</div>
                     )}
                   </div>
-                  {next && <span style={{ fontSize: 12.5, color: C.blue, fontWeight: 500 }}>Start →</span>}
+                  {next && <span style={{ fontSize: 13.5, color: C.blue, fontWeight: 500 }}>Start →</span>}
                 </div>
               );
             })}
@@ -582,7 +582,7 @@ export default function Dashboard() {
                         <div style={{ ...DISPLAY, fontSize: 18, color: C.text }}>
                           {a.title}
                         </div>
-                        <div style={{ fontSize: 12.5, color: C.dim, marginTop: 4 }}>
+                        <div style={{ fontSize: 13.5, color: C.dim, marginTop: 4 }}>
                           {a.detail}
                         </div>
                       </div>
@@ -598,10 +598,10 @@ export default function Dashboard() {
 
           {attention.length === 0 && (
             <Card style={{ marginBottom: 30, borderColor: C.green, background: C.greenSoft }}>
-              <div style={{ fontSize: 14, color: C.green, fontWeight: 500 }}>
+              <div style={{ fontSize: 15, color: C.green, fontWeight: 500 }}>
                 Nothing needs you right now.
               </div>
-              <div style={{ fontSize: 12.5, color: C.dim, marginTop: 4 }}>
+              <div style={{ fontSize: 13.5, color: C.dim, marginTop: 4 }}>
                 Everything billable is billed, every receipt is filed, nothing is expiring.
               </div>
             </Card>
@@ -653,7 +653,7 @@ export default function Dashboard() {
                       onClick={() => router.push(`/jobs/${j.id}`)}
                     >
                       <div>
-                        <span style={{ ...DISPLAY, fontSize: 15.5 }}>{j.name}</span>
+                        <span style={{ ...DISPLAY, fontSize: 16.5 }}>{j.name}</span>
                         <span style={{ marginLeft: 8 }}>
                           <Pill tone={j.status === 'active' ? 'blue' : 'neutral'}>
                             {JOB_STATUS_LABEL[j.status]}

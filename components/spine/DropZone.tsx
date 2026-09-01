@@ -97,7 +97,7 @@ export function DropZone({
           {busy ? busyLabel : dragging ? 'Drop it' : label}
         </div>
         {hint && !busy && (
-          <div style={{ fontSize: 11.5, color: C.faint, marginTop: 5, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 12.5, color: C.faint, marginTop: 5, lineHeight: 1.5 }}>
             {hint}
           </div>
         )}

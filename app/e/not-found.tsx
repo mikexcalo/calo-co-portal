@@ -19,7 +19,7 @@ export default function EstimateNotFound() {
         <div style={{ fontSize: 18, fontWeight: 600, color: '#111' }}>
           This link isn&apos;t working
         </div>
-        <p style={{ fontSize: 14, color: '#555', lineHeight: 1.65, marginTop: 10 }}>
+        <p style={{ fontSize: 15, color: '#555', lineHeight: 1.65, marginTop: 10 }}>
           It may have been replaced by a newer version, or the estimate may have already been
           decided. Reply to the email it came from and they&apos;ll send a fresh one.
         </p>

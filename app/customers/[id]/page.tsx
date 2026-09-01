@@ -306,7 +306,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
 
@@ -332,9 +332,9 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                 <div>
                   <SectionLabel>Next step</SectionLabel>
-                  <div style={{ fontSize: 14 }}>{customer.next_action}</div>
+                  <div style={{ fontSize: 15 }}>{customer.next_action}</div>
                   {customer.next_action_on && (
-                    <div style={{ fontSize: 12, color: C.dim, marginTop: 3 }}>
+                    <div style={{ fontSize: 13, color: C.dim, marginTop: 3 }}>
                       Due {shortDate(customer.next_action_on)}
                     </div>
                   )}
@@ -445,7 +445,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                   style={{
                     padding: '5px 11px',
                     borderRadius: 20,
-                    fontSize: 11.5,
+                    fontSize: 12.5,
                     border: `1px solid ${noteKind === k ? C.accent : C.border}`,
                     background: noteKind === k ? C.accentSoft : 'transparent',
                     color: noteKind === k ? C.text : C.dim,
@@ -465,7 +465,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                   style={{
                     padding: '5px 11px',
                     borderRadius: 20,
-                    fontSize: 11.5,
+                    fontSize: 12.5,
                     border: `1px solid ${noteDirection === d ? C.accent : C.border}`,
                     background: noteDirection === d ? C.accentSoft : 'transparent',
                     color: noteDirection === d ? C.text : C.dim,
@@ -478,13 +478,13 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               ))}
 
               <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
-                <span style={{ fontSize: 11.5, color: C.faint }}>When</span>
+                <span style={{ fontSize: 12.5, color: C.faint }}>When</span>
                 <input
                   type="date"
                   value={noteDate}
                   max={new Date().toISOString().slice(0, 10)}
                   onChange={(e) => setNoteDate(e.target.value)}
-                  style={{ ...inputStyle, width: 150, fontSize: 12, padding: '5px 8px' }}
+                  style={{ ...inputStyle, width: 150, fontSize: 13, padding: '5px 8px' }}
                 />
               </label>
             </div>
@@ -519,9 +519,9 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                 >
                   <div style={{ display: 'flex', gap: 9, alignItems: 'center', marginBottom: 5 }}>
                     <Pill tone={n.kind === 'system' ? 'neutral' : 'blue'}>{KIND_LABEL[n.kind]}</Pill>
-                    <span style={{ fontSize: 11.5, color: C.faint }}>{shortDate(n.happened_on)}</span>
+                    <span style={{ fontSize: 12.5, color: C.faint }}>{shortDate(n.happened_on)}</span>
                   </div>
-                  <div style={{ fontSize: 13, color: C.text, whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>
+                  <div style={{ fontSize: 14, color: C.text, whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>
                     {n.body}
                   </div>
                 </div>
@@ -535,11 +535,11 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
               <Avatar src={customer.avatar_url} name={customer.contact_name || customer.name} size={84} />
             </div>
-            <div style={{ fontSize: 15, fontWeight: 500 }}>
+            <div style={{ fontSize: 16, fontWeight: 500 }}>
               {customer.contact_name || customer.name}
             </div>
             {customer.contact_title && (
-              <div style={{ fontSize: 12, color: C.faint, marginTop: 2 }}>{customer.contact_title}</div>
+              <div style={{ fontSize: 13, color: C.faint, marginTop: 2 }}>{customer.contact_title}</div>
             )}
             <div style={{ marginTop: 10 }}>
               <Pill tone={customer.stage === 'active' ? 'green' : customer.stage === 'prospect' ? 'amber' : 'neutral'}>
@@ -549,7 +549,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
 
             <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {customer.email ? (
-                <a href={`mailto:${customer.email}`} style={{ fontSize: 12.5, color: C.accent, textDecoration: 'none' }}>
+                <a href={`mailto:${customer.email}`} style={{ fontSize: 13.5, color: C.accent, textDecoration: 'none' }}>
                   {customer.email}
                 </a>
               ) : (
@@ -569,7 +569,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                     onKeyDown={(e) => { if (e.key === 'Enter') saveQuickEmail(); }}
                     type="email"
                     placeholder="Add their email"
-                    style={{ ...inputStyle, fontSize: 12.5, padding: '6px 9px' }}
+                    style={{ ...inputStyle, fontSize: 13.5, padding: '6px 9px' }}
                   />
                   {quickEmail.trim() && (
                     <Button onClick={saveQuickEmail} disabled={busy}>Save</Button>
@@ -577,7 +577,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                 </div>
               )}
               {customer.phone && (
-                <a href={`tel:${customer.phone.replace(/[^\d+]/g, '')}`} style={{ fontSize: 12.5, color: C.dim, textDecoration: 'none' }}>
+                <a href={`tel:${customer.phone.replace(/[^\d+]/g, '')}`} style={{ fontSize: 13.5, color: C.dim, textDecoration: 'none' }}>
                   {customer.phone}
                 </a>
               )}
@@ -599,7 +599,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                     borderRadius: 7,
                     border: `1px solid ${C.border}`,
                     background: 'transparent',
-                    fontSize: 12.5,
+                    fontSize: 13.5,
                     fontWeight: 500,
                     color: C.dim,
                     textDecoration: 'none',
@@ -615,7 +615,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                 </a>
               )}
               {customer.address && (
-                <div style={{ fontSize: 12, color: C.faint }}>{customer.address}</div>
+                <div style={{ fontSize: 13, color: C.faint }}>{customer.address}</div>
               )}
             </div>
 
@@ -649,11 +649,11 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                     border: `1px solid ${C.amber}44`,
                   }}
                 >
-                  <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 3 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: C.text, marginBottom: 3 }}>
                     Waiting on {customer.contact_name?.split(' ')[0] ?? 'them'}
                     {days > 0 ? ` · ${days} ${days === 1 ? 'day' : 'days'}` : ''}
                   </div>
-                  <div style={{ fontSize: 12, color: C.dim, lineHeight: 1.55, marginBottom: 10 }}>
+                  <div style={{ fontSize: 13, color: C.dim, lineHeight: 1.55, marginBottom: 10 }}>
                     You reached out on {shortDate(customer.awaiting_reply_since)} and
                     haven&apos;t heard back. Logging anything they send clears this on its own.
                   </div>
@@ -678,7 +678,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             })()}
 
             {customer.last_contacted_on && (
-              <div style={{ fontSize: 11, color: C.faint, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.border}` }}>
+              <div style={{ fontSize: 12, color: C.faint, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.border}` }}>
                 Last contact {shortDate(customer.last_contacted_on)}
               </div>
             )}

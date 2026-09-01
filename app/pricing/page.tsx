@@ -239,21 +239,21 @@ export default function PricingPage() {
 
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
       {notice && (
         <Card style={{ borderColor: C.green, marginBottom: 16 }}>
-          <div style={{ color: C.green, fontSize: 13 }}>{notice}</div>
+          <div style={{ color: C.green, fontSize: 14 }}>{notice}</div>
         </Card>
       )}
 
       {!loading && items.some((i) => !i.confirmed) && (
         <Card style={{ marginBottom: 20, borderColor: C.amber, background: C.amberSoft }}>
-          <div style={{ fontSize: 13.5, fontWeight: 500, color: C.text, marginBottom: 6 }}>
+          <div style={{ fontSize: 14.5, fontWeight: 500, color: C.text, marginBottom: 6 }}>
             {items.filter((i) => !i.confirmed).length} prices need confirming
           </div>
-          <div style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.6 }}>
             These were read from a document or worked out from one job&apos;s totals. A rate
             that was right for one house can be wrong for the next. Access, ceiling height and
             wire runs all move it. <strong>Unconfirmed prices are kept out of estimates</strong>{' '}
@@ -265,7 +265,7 @@ export default function PricingPage() {
       {imported && (
         <Card style={{ marginBottom: 20, borderColor: C.amber }}>
           <SectionLabel>Check these before saving</SectionLabel>
-          <div style={{ fontSize: 12.5, color: C.dim, marginBottom: 14 }}>
+          <div style={{ fontSize: 13.5, color: C.dim, marginBottom: 14 }}>
             Read from your file. Anything wrong here becomes wrong on every estimate, so it&apos;s
             worth a look.
           </div>
@@ -302,7 +302,7 @@ export default function PricingPage() {
                     p!.map((x, j) => (j === i ? { ...x, kind: e.target.value as Draft['kind'] } : x))
                   )
                 }
-                style={{ ...inputStyle, padding: '8px 6px', fontSize: 11.5 }}
+                style={{ ...inputStyle, padding: '8px 6px', fontSize: 12.5 }}
               >
                 <option value="labor">Labor</option>
                 <option value="material">Material</option>
@@ -322,7 +322,7 @@ export default function PricingPage() {
               />
               <button
                 onClick={() => setImported((p) => p!.filter((_, j) => j !== i))}
-                style={{ background: 'none', border: 'none', color: C.faint, cursor: 'pointer', fontSize: 16 }}
+                style={{ background: 'none', border: 'none', color: C.faint, cursor: 'pointer', fontSize: 17 }}
               >
                 ×
               </button>
@@ -424,7 +424,7 @@ export default function PricingPage() {
                       )}
                     </div>
                     {i.source_note && !i.confirmed && (
-                      <div style={{ fontSize: 11, color: C.faint, marginTop: 3 }}>
+                      <div style={{ fontSize: 12, color: C.faint, marginTop: 3 }}>
                         {i.source_note}
                       </div>
                     )}
@@ -433,7 +433,7 @@ export default function PricingPage() {
                   <div style={{ color: i.confirmed ? C.text : C.faint }}>
                     {i.varies && !i.price_high ? (
                       <span title="Quote this per job">
-                        {money(i.unit_price)} <span style={{ fontSize: 10.5 }}>ref.</span>
+                        {money(i.unit_price)} <span style={{ fontSize: 11.5 }}>ref.</span>
                       </span>
                     ) : i.price_high ? (
                       `${money(i.unit_price)}–${money(i.price_high)}`
@@ -442,7 +442,7 @@ export default function PricingPage() {
                     )}
                   </div>
                   <div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: i.confirmed ? C.green : C.amber, cursor: 'pointer' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: i.confirmed ? C.green : C.amber, cursor: 'pointer' }}>
                       <input
                         type="checkbox"
                         checked={i.confirmed}
@@ -473,7 +473,7 @@ export default function PricingPage() {
       )}
 
       {items.length > 0 && (
-        <div style={{ fontSize: 11.5, color: C.faint, marginTop: 6, maxWidth: 640, lineHeight: 1.6 }}>
+        <div style={{ fontSize: 12.5, color: C.faint, marginTop: 6, maxWidth: 640, lineHeight: 1.6 }}>
           <strong>Confirm</strong> means someone who sets prices has stood behind the number.
           Only confirmed items appear when building an{' '}
           {vocab.estimate?.toLowerCase() ?? 'estimate'}. <strong>Varies by job</strong> marks

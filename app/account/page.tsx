@@ -166,12 +166,12 @@ export default function AccountPage() {
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
       {notice && (
         <Card style={{ borderColor: C.blue, marginBottom: 16 }}>
-          <div style={{ color: C.blue, fontSize: 13 }}>{notice}</div>
+          <div style={{ color: C.blue, fontSize: 14 }}>{notice}</div>
         </Card>
       )}
 
@@ -204,8 +204,8 @@ export default function AccountPage() {
               <Card>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                   <div>
-                    <div style={{ fontSize: 14.5, fontWeight: 500 }}>{r.engagement}</div>
-                    <div style={{ fontSize: 11.5, color: C.faint, marginTop: 3 }}>
+                    <div style={{ fontSize: 15.5, fontWeight: 500 }}>{r.engagement}</div>
+                    <div style={{ fontSize: 12.5, color: C.faint, marginTop: 3 }}>
                       {PERIOD_COPY[r.billing_period ?? 'none'] ?? PERIOD_COPY.none}
                       {r.last_billed_on ? ` · last billed ${shortDate(r.last_billed_on)}` : ''}
                     </div>
@@ -274,7 +274,7 @@ export default function AccountPage() {
                 ))}
               </Table>
             )}
-            <div style={{ fontSize: 11.5, color: C.faint, marginTop: 10, maxWidth: 620, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 12.5, color: C.faint, marginTop: 10, maxWidth: 620, lineHeight: 1.6 }}>
               Every billable hour appears here the day it&apos;s logged, before any invoice is
               raised. If something looks wrong, say so while it&apos;s fresh.
             </div>

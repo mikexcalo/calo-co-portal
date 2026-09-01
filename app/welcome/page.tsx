@@ -36,13 +36,13 @@ const field: React.CSSProperties = {
   border: `1px solid ${BORDER}`,
   borderRadius: 7,
   padding: '11px 13px',
-  fontSize: 14,
+  fontSize: 15,
   color: TEXT,
   fontFamily: 'inherit',
   boxSizing: 'border-box',
 };
 
-const label: React.CSSProperties = { fontSize: 12.5, color: DIM, marginBottom: 6, fontWeight: 500 };
+const label: React.CSSProperties = { fontSize: 13.5, color: DIM, marginBottom: 6, fontWeight: 500 };
 const optional = <span style={{ color: FAINT, fontWeight: 400 }}> · optional</span>;
 
 /**
@@ -248,7 +248,7 @@ export default function WelcomePage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f7f7f5', color: FAINT, fontSize: 13 }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f7f7f5', color: FAINT, fontSize: 14 }}>
         Loading…
       </div>
     );
@@ -272,7 +272,7 @@ export default function WelcomePage() {
         border: 'none',
         borderRadius: 7,
         padding: '12px',
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: 500,
         cursor: busy || disabled ? 'not-allowed' : 'pointer',
         opacity: busy || disabled ? 0.45 : 1,
@@ -280,7 +280,7 @@ export default function WelcomePage() {
       }}
     >
       {busy ? 'Saving…' : last ? 'Finish setup' : 'Next'}
-      {!busy && <span aria-hidden style={{ fontSize: 15 }}>→</span>}
+      {!busy && <span aria-hidden style={{ fontSize: 16 }}>→</span>}
     </button>
   );
 
@@ -291,14 +291,14 @@ export default function WelcomePage() {
           <div style={{ fontSize: 22, fontWeight: 600, color: INK, letterSpacing: '-0.3px' }}>
             Welcome to {PRODUCT}
           </div>
-          <div style={{ fontSize: 13.5, color: FAINT, marginTop: 6 }}>
+          <div style={{ fontSize: 14.5, color: FAINT, marginTop: 6 }}>
             Four quick questions and you&apos;re set up.
           </div>
           {/* Which business these answers land on. Without this, someone with
               access to more than one can fill the whole thing in for the
               wrong one and only find out from the sidebar afterwards. */}
           {org && (
-            <div style={{ fontSize: 12, color: DIM, marginTop: 10 }}>
+            <div style={{ fontSize: 13, color: DIM, marginTop: 10 }}>
               Setting up{' '}
               <strong style={{ color: TEXT }}>{org.name}</strong>
             </div>
@@ -312,12 +312,12 @@ export default function WelcomePage() {
         </div>
 
         <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 12, padding: 26 }}>
-          <div style={{ fontSize: 11, color: FAINT, textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 600 }}>
+          <div style={{ fontSize: 12, color: FAINT, textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 600 }}>
             Step {step + 1} of {STEPS}
           </div>
 
           {error && (
-            <div style={{ background: '#fbeded', border: `1px solid ${RED}33`, borderRadius: 7, padding: '10px 12px', fontSize: 12.5, color: RED, margin: '14px 0 0' }}>
+            <div style={{ background: '#fbeded', border: `1px solid ${RED}33`, borderRadius: 7, padding: '10px 12px', fontSize: 13.5, color: RED, margin: '14px 0 0' }}>
               {error}
             </div>
           )}
@@ -327,7 +327,7 @@ export default function WelcomePage() {
               <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
                 What should we call you?
               </h1>
-              <p style={{ fontSize: 13.5, color: DIM, margin: '0 0 18px', lineHeight: 1.6 }}>
+              <p style={{ fontSize: 14.5, color: DIM, margin: '0 0 18px', lineHeight: 1.6 }}>
                 Your full name. It appears on the work you log, so a customer reading an invoice
                 knows who did what.
               </p>
@@ -351,7 +351,7 @@ export default function WelcomePage() {
               <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
                 What&apos;s the name of your brand or business?
               </h1>
-              <p style={{ fontSize: 13.5, color: DIM, margin: '0 0 18px', lineHeight: 1.6 }}>
+              <p style={{ fontSize: 14.5, color: DIM, margin: '0 0 18px', lineHeight: 1.6 }}>
                 This appears on every estimate and invoice you send.
               </p>
               <label style={{ display: 'block', marginBottom: 14 }}>
@@ -367,7 +367,7 @@ export default function WelcomePage() {
                   style={field}
                   placeholder="hello@yourbusiness.com"
                 />
-                <div style={{ fontSize: 11.5, color: FAINT, marginTop: 5 }}>
+                <div style={{ fontSize: 12.5, color: FAINT, marginTop: 5 }}>
                   Where customers reply when they get an estimate or invoice.
                 </div>
               </label>
@@ -391,7 +391,7 @@ export default function WelcomePage() {
               <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
                 How do you charge?
               </h1>
-              <p style={{ fontSize: 13.5, color: DIM, margin: '0 0 18px', lineHeight: 1.6 }}>
+              <p style={{ fontSize: 14.5, color: DIM, margin: '0 0 18px', lineHeight: 1.6 }}>
                 So the right fields show up when you build an estimate. You can change any of
                 this per job.
               </p>
@@ -413,8 +413,8 @@ export default function WelcomePage() {
                         fontFamily: 'inherit',
                       }}
                     >
-                      <div style={{ fontSize: 14, fontWeight: on ? 600 : 500, color: TEXT }}>{b.label}</div>
-                      <div style={{ fontSize: 12, color: FAINT, marginTop: 2 }}>{b.hint}</div>
+                      <div style={{ fontSize: 15, fontWeight: on ? 600 : 500, color: TEXT }}>{b.label}</div>
+                      <div style={{ fontSize: 13, color: FAINT, marginTop: 2 }}>{b.hint}</div>
                     </button>
                   );
                 })}
@@ -424,7 +424,7 @@ export default function WelcomePage() {
                 <label style={{ display: 'block', marginBottom: 14 }}>
                   <div style={label}>Your hourly rate</div>
                   <div style={{ position: 'relative' }}>
-                    <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: FAINT, fontSize: 14, pointerEvents: 'none' }}>
+                    <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: FAINT, fontSize: 15, pointerEvents: 'none' }}>
                       $
                     </span>
                     <input
@@ -436,7 +436,7 @@ export default function WelcomePage() {
                     />
                   </div>
                   {!parseFloat(rate) && (
-                    <div style={{ fontSize: 11.5, color: AMBER, marginTop: 6, lineHeight: 1.55 }}>
+                    <div style={{ fontSize: 12.5, color: AMBER, marginTop: 6, lineHeight: 1.55 }}>
                       Leave this blank and hourly invoices come out at zero.
                     </div>
                   )}
@@ -460,7 +460,7 @@ export default function WelcomePage() {
                     style={{ ...field, paddingRight: 28 }}
                     placeholder="15"
                   />
-                  <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: FAINT, fontSize: 14 }}>%</span>
+                  <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: FAINT, fontSize: 15 }}>%</span>
                 </div>
               </Toggle>
 
@@ -478,7 +478,7 @@ export default function WelcomePage() {
                     style={{ ...field, paddingRight: 28 }}
                     placeholder="8.25"
                   />
-                  <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: FAINT, fontSize: 14 }}>%</span>
+                  <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: FAINT, fontSize: 15 }}>%</span>
                 </div>
               </Toggle>
 
@@ -494,7 +494,7 @@ export default function WelcomePage() {
               <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
                 How do you want to get paid?
               </h1>
-              <p style={{ fontSize: 13.5, color: DIM, margin: '0 0 6px', lineHeight: 1.6 }}>
+              <p style={{ fontSize: 14.5, color: DIM, margin: '0 0 6px', lineHeight: 1.6 }}>
                 Pick everything you accept. These appear on your invoices so customers know
                 where to send money.
               </p>
@@ -503,13 +503,13 @@ export default function WelcomePage() {
                   percentages next to every option buries the actual choice. */}
               <button
                 onClick={() => setFeesOpen((v) => !v)}
-                style={{ background: 'none', border: 'none', padding: 0, color: ACCENT, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 16 }}
+                style={{ background: 'none', border: 'none', padding: 0, color: ACCENT, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 16 }}
               >
                 {feesOpen ? 'Hide what each one costs' : 'What does each one cost me?'}
               </button>
 
               {feesOpen && (
-                <div style={{ background: '#f7f7f5', borderRadius: 8, padding: 13, marginBottom: 16, fontSize: 12, color: DIM, lineHeight: 1.7 }}>
+                <div style={{ background: '#f7f7f5', borderRadius: 8, padding: 13, marginBottom: 16, fontSize: 13, color: DIM, lineHeight: 1.7 }}>
                   {METHODS.map((m) => (
                     <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                       <span>{m.label}</span>
@@ -546,12 +546,12 @@ export default function WelcomePage() {
                             width: 26, height: 26, borderRadius: 6, flexShrink: 0,
                             background: badge.bg, color: badge.fg,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 13, fontWeight: 700,
+                            fontSize: 14, fontWeight: 700,
                           }}
                         >
                           {badge.ch}
                         </span>
-                        <span style={{ fontSize: 14, color: TEXT }}>{spec.label}</span>
+                        <span style={{ fontSize: 15, color: TEXT }}>{spec.label}</span>
                       </label>
 
                       {m.enabled && spec.handleLabel && (
@@ -565,7 +565,7 @@ export default function WelcomePage() {
                             autoFocus
                           />
                           {warn && (
-                            <div style={{ fontSize: 11.5, color: RED, marginTop: 5, lineHeight: 1.5 }}>
+                            <div style={{ fontSize: 12.5, color: RED, marginTop: 5, lineHeight: 1.5 }}>
                               That looks like an account number. Don&apos;t put one here, because this
                               text appears on invoices your customers can see.
                             </div>
@@ -582,7 +582,7 @@ export default function WelcomePage() {
                 {nextBtn()}
               </div>
 
-              <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${BORDER}`, fontSize: 11.5, color: FAINT, lineHeight: 1.7 }}>
+              <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${BORDER}`, fontSize: 12.5, color: FAINT, lineHeight: 1.7 }}>
                 <strong style={{ color: DIM }}>Your information stays yours.</strong> Everything
                 is encrypted in transit and at rest, and each business&apos;s data is walled off
                 at the database so nobody else can read it. {PRODUCT} never stores card numbers
@@ -597,7 +597,7 @@ export default function WelcomePage() {
           <button
             onClick={() => finish(true)}
             disabled={busy}
-            style={{ background: 'transparent', border: 'none', color: FAINT, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
+            style={{ background: 'transparent', border: 'none', color: FAINT, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit' }}
           >
             Skip for now. Anything missing will be waiting on the Today screen
           </button>
@@ -614,7 +614,7 @@ function BackBtn({ onClick }: { onClick: () => void }) {
       style={{
         display: 'flex', alignItems: 'center', gap: 6,
         background: 'transparent', border: `1px solid ${BORDER}`, borderRadius: 7,
-        padding: '11px 16px', fontSize: 14, color: DIM, cursor: 'pointer', fontFamily: 'inherit',
+        padding: '11px 16px', fontSize: 15, color: DIM, cursor: 'pointer', fontFamily: 'inherit',
       }}
     >
       <span aria-hidden>←</span> Back
@@ -637,8 +637,8 @@ function Toggle({
       <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, cursor: 'pointer' }}>
         <input type="checkbox" checked={on} onChange={(e) => onChange(e.target.checked)} style={{ marginTop: 3 }} />
         <span>
-          <span style={{ fontSize: 13.5, color: TEXT }}>{title}</span>
-          <span style={{ display: 'block', fontSize: 11.5, color: FAINT, marginTop: 1 }}>{hint}</span>
+          <span style={{ fontSize: 14.5, color: TEXT }}>{title}</span>
+          <span style={{ display: 'block', fontSize: 12.5, color: FAINT, marginTop: 1 }}>{hint}</span>
         </span>
       </label>
       {on && <div style={{ marginTop: 9, marginLeft: 26 }}>{children}</div>}

@@ -9,7 +9,7 @@ export default function Loading() {
         flex: 1,
         minHeight: '60vh',
         color: '#6b6b73',
-        fontSize: 13,
+        fontSize: 14,
       }}
     >
       Loading…

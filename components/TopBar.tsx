@@ -103,7 +103,7 @@ export default function TopBar() {
         fontFamily: 'inherit',
       }}
     >
-      <span style={{ fontSize: 13, color: C.faint }}>{title}</span>
+      <span style={{ fontSize: 14, color: C.faint }}>{title}</span>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         {siteUrl && (
@@ -120,7 +120,7 @@ export default function TopBar() {
               border: `1px solid ${C.border}`,
               borderRadius: 7,
               padding: '6px 11px',
-              fontSize: 12.5,
+              fontSize: 13.5,
               fontWeight: 500,
               color: C.dim,
               textDecoration: 'none',
@@ -152,7 +152,7 @@ export default function TopBar() {
             background: 'transparent',
             cursor: 'pointer',
             color: C.dim,
-            fontSize: 12.5,
+            fontSize: 13.5,
             fontWeight: 500,
             fontFamily: 'inherit',
           }}
@@ -224,7 +224,7 @@ function AccountMenu() {
     padding: '9px 12px',
     background: 'transparent',
     border: 'none',
-    fontSize: 13,
+    fontSize: 14,
     color: C.text,
     cursor: 'pointer',
     fontFamily: 'inherit',
@@ -242,7 +242,7 @@ function AccountMenu() {
           background: C.accent,
           border: 'none',
           color: '#fff',
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: 600,
           cursor: 'pointer',
           fontFamily: 'inherit',
@@ -276,10 +276,10 @@ function AccountMenu() {
             }}
           >
             <div style={{ padding: '9px 12px', borderBottom: `1px solid ${C.border}`, marginBottom: 4 }}>
-              <div style={{ fontSize: 10.5, color: C.faint, textTransform: 'uppercase', letterSpacing: '.07em', fontWeight: 600 }}>
+              <div style={{ fontSize: 11.5, color: C.faint, textTransform: 'uppercase', letterSpacing: '.07em', fontWeight: 600 }}>
                 Signed in as
               </div>
-              <div style={{ fontSize: 12.5, color: C.text, marginTop: 3, wordBreak: 'break-all' }}>
+              <div style={{ fontSize: 13.5, color: C.text, marginTop: 3, wordBreak: 'break-all' }}>
                 {email ?? '—'}
               </div>
             </div>

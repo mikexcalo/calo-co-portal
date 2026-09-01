@@ -232,7 +232,7 @@ export default function ExpensesPage() {
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
 
@@ -324,7 +324,7 @@ export default function ExpensesPage() {
           <Card>
             <div style={{ display: 'flex', gap: 30, flexWrap: 'wrap', alignItems: 'flex-start' }}>
               <div>
-                <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
+                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
                   This month
                 </div>
                 <div style={{ fontSize: 21, marginTop: 5, color: C.text, fontVariantNumeric: 'tabular-nums' }}>
@@ -332,7 +332,7 @@ export default function ExpensesPage() {
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
+                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
                   All time
                 </div>
                 <div style={{ fontSize: 21, marginTop: 5, color: C.text, fontVariantNumeric: 'tabular-nums' }}>
@@ -340,14 +340,14 @@ export default function ExpensesPage() {
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
+                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
                   Files read
                 </div>
                 <div style={{ fontSize: 21, marginTop: 5, color: C.text, fontVariantNumeric: 'tabular-nums' }}>
                   {ai.reads}
                 </div>
               </div>
-              <div style={{ flex: 1, minWidth: 230, fontSize: 11.5, color: C.faint, lineHeight: 1.6, alignSelf: 'center' }}>
+              <div style={{ flex: 1, minWidth: 230, fontSize: 12.5, color: C.faint, lineHeight: 1.6, alignSelf: 'center' }}>
                 Measured, not estimated. Only owners and admins see this, and it is not
                 charged to anyone — it is here so the numbers behind pricing come from real
                 usage rather than a guess.
@@ -397,7 +397,7 @@ export default function ExpensesPage() {
               <Row key={r.id} cols="1fr 110px 110px 110px 70px" labels={['Expense', 'How often', 'Amount', 'Per month', '']}>
                 <div>
                   <div style={{ fontWeight: 500 }}>{r.vendor}</div>
-                  <div style={{ fontSize: 11.5, color: C.faint, marginTop: 2 }}>
+                  <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2 }}>
                     {r.description || 'No description'} · from {shortDate(r.purchased_on)}
                   </div>
                 </div>
@@ -420,7 +420,7 @@ export default function ExpensesPage() {
           </Table>
 
           {oneOffTotal > 0 && (
-            <div style={{ fontSize: 12, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 13, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
               Plus {money(oneOffTotal)} in one-off costs, which the monthly figure above excludes.
             </div>
           )}

@@ -142,7 +142,7 @@ export function Links({
             </Button>
           </div>
           {error && (
-            <div style={{ fontSize: 12, color: C.red, marginTop: 8 }}>{error}</div>
+            <div style={{ fontSize: 13, color: C.red, marginTop: 8 }}>{error}</div>
           )}
         </Card>
       )}
@@ -179,7 +179,7 @@ export function Links({
               >
                 <div
                   style={{
-                    fontSize: 13.5,
+                    fontSize: 14.5,
                     color: C.text,
                     fontWeight: 500,
                     overflow: 'hidden',
@@ -191,7 +191,7 @@ export function Links({
                 </div>
                 <div
                   style={{
-                    fontSize: 11.5,
+                    fontSize: 12.5,
                     color: C.faint,
                     marginTop: 2,
                     overflow: 'hidden',

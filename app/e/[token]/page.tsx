@@ -107,15 +107,15 @@ export default async function PublicEstimate({ params }: { params: { token: stri
                 {job?.name}
               </div>
               {job?.address && (
-                <div style={{ fontSize: 13.5, color: '#555', marginTop: 4 }}>{job.address}</div>
+                <div style={{ fontSize: 14.5, color: '#555', marginTop: 4 }}>{job.address}</div>
               )}
               {job?.customer && (
-                <div style={{ fontSize: 13.5, color: '#555', marginTop: 2 }}>
+                <div style={{ fontSize: 14.5, color: '#555', marginTop: 2 }}>
                   Prepared for {job.customer.contact_name || job.customer.name}
                 </div>
               )}
             </div>
-            <div style={{ textAlign: 'right', fontSize: 12.5, color: '#666' }}>
+            <div style={{ textAlign: 'right', fontSize: 13.5, color: '#666' }}>
               <div style={{ fontWeight: 600, color: '#111' }}>{org?.name}</div>
               {estimate.valid_until && <div style={{ marginTop: 4 }}>Valid until {fmtDate(estimate.valid_until)}</div>}
               <div>Estimate #{estimate.version}</div>
@@ -131,7 +131,7 @@ export default async function PublicEstimate({ params }: { params: { token: stri
               borderRadius: 8,
               background: estimate.status === 'accepted' ? '#edf6f0' : '#f2f2ef',
               color: estimate.status === 'accepted' ? '#15803d' : '#555',
-              fontSize: 13.5,
+              fontSize: 14.5,
             }}
           >
             {estimate.status === 'accepted'
@@ -142,14 +142,14 @@ export default async function PublicEstimate({ params }: { params: { token: stri
 
         <div style={{ padding: '26px 30px' }}>
           {rows.length === 0 ? (
-            <div style={{ color: '#888', fontSize: 13 }}>No line items.</div>
+            <div style={{ color: '#888', fontSize: 14 }}>No line items.</div>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14.5 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #e4e4e0' }}>
-                  <th style={{ textAlign: 'left', padding: '0 0 9px', fontSize: 10.5, letterSpacing: '.08em', textTransform: 'uppercase', color: '#777', fontWeight: 600 }}>Work</th>
-                  <th style={{ textAlign: 'right', padding: '0 0 9px 10px', fontSize: 10.5, letterSpacing: '.08em', textTransform: 'uppercase', color: '#777', fontWeight: 600, whiteSpace: 'nowrap' }}>Qty</th>
-                  <th style={{ textAlign: 'right', padding: '0 0 9px 10px', fontSize: 10.5, letterSpacing: '.08em', textTransform: 'uppercase', color: '#777', fontWeight: 600 }}>Amount</th>
+                  <th style={{ textAlign: 'left', padding: '0 0 9px', fontSize: 11.5, letterSpacing: '.08em', textTransform: 'uppercase', color: '#777', fontWeight: 600 }}>Work</th>
+                  <th style={{ textAlign: 'right', padding: '0 0 9px 10px', fontSize: 11.5, letterSpacing: '.08em', textTransform: 'uppercase', color: '#777', fontWeight: 600, whiteSpace: 'nowrap' }}>Qty</th>
+                  <th style={{ textAlign: 'right', padding: '0 0 9px 10px', fontSize: 11.5, letterSpacing: '.08em', textTransform: 'uppercase', color: '#777', fontWeight: 600 }}>Amount</th>
                 </tr>
               </thead>
               <tbody>
@@ -169,14 +169,14 @@ export default async function PublicEstimate({ params }: { params: { token: stri
           )}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 18, alignItems: 'baseline', gap: 14 }}>
-            <span style={{ fontSize: 13, color: '#666' }}>Total</span>
+            <span style={{ fontSize: 14, color: '#666' }}>Total</span>
             <span style={{ fontSize: 24, fontWeight: 600, color: '#111' }}>
               {money(Number(estimate.total) || subtotal)}
             </span>
           </div>
 
           {isTM && (
-            <div style={{ marginTop: 16, padding: 13, background: '#f7f7f5', borderRadius: 8, fontSize: 12.5, color: '#555', lineHeight: 1.6 }}>
+            <div style={{ marginTop: 16, padding: 13, background: '#f7f7f5', borderRadius: 8, fontSize: 13.5, color: '#555', lineHeight: 1.6 }}>
               This is a <strong>time and materials</strong> estimate. It reflects the work
               expected; the final invoice is based on hours actually worked and materials
               actually used, and you&apos;ll be able to see both as the job goes.
@@ -184,7 +184,7 @@ export default async function PublicEstimate({ params }: { params: { token: stri
           )}
 
           {estimate.notes && (
-            <div style={{ marginTop: 16, fontSize: 13, color: '#444', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+            <div style={{ marginTop: 16, fontSize: 14, color: '#444', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
               {estimate.notes}
             </div>
           )}
@@ -197,7 +197,7 @@ export default async function PublicEstimate({ params }: { params: { token: stri
         )}
       </div>
 
-      <div style={{ maxWidth: 720, margin: '18px auto 0', textAlign: 'center', fontSize: 11.5, color: '#888' }}>
+      <div style={{ maxWidth: 720, margin: '18px auto 0', textAlign: 'center', fontSize: 12.5, color: '#888' }}>
         Questions about this estimate? Reply to the email it came from.
       </div>
     </div>

@@ -196,7 +196,7 @@ export default function ProfitLossPage() {
             border: `1px solid ${C.borderStrong}`,
             borderRadius: 6,
             padding: '9px 12px',
-            fontSize: 13,
+            fontSize: 14,
             color: C.text,
             fontFamily: 'inherit',
             cursor: 'pointer',
@@ -210,7 +210,7 @@ export default function ProfitLossPage() {
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
 
@@ -277,7 +277,7 @@ export default function ProfitLossPage() {
                 <div style={{ ...DISPLAY, fontSize: 18, color: C.text }}>
                   {money(scoped.unbilled)} of work you haven&apos;t billed
                 </div>
-                <div style={{ fontSize: 12.5, color: C.dim, marginTop: 4 }}>
+                <div style={{ fontSize: 13.5, color: C.dim, marginTop: 4 }}>
                   Hours logged and receipts filed that never made it onto an invoice. For most
                   contractors this is the biggest single leak.
                 </div>
@@ -298,7 +298,7 @@ export default function ProfitLossPage() {
                   </Row>
                 ))}
               </Card>
-              <div style={{ fontSize: 11.5, color: C.faint, marginTop: 8 }}>
+              <div style={{ fontSize: 12.5, color: C.faint, marginTop: 8 }}>
                 A negative margin is normal while a job is running. You spend before you
                 bill. It only matters once the job is complete.
               </div>
@@ -314,7 +314,7 @@ export default function ProfitLossPage() {
                     <div style={{ fontSize: 26, color: C.green, fontWeight: 500 }}>
                       {money0(recovery.recovered)}
                     </div>
-                    <div style={{ fontSize: 12, color: C.dim, marginTop: 3 }}>
+                    <div style={{ fontSize: 13, color: C.dim, marginTop: 3 }}>
                       billed after sitting more than three weeks
                     </div>
                   </div>
@@ -323,13 +323,13 @@ export default function ProfitLossPage() {
                       <div style={{ fontSize: 26, fontWeight: 500 }}>
                         {recovery.avgDays.toFixed(0)} days
                       </div>
-                      <div style={{ fontSize: 12, color: C.dim, marginTop: 3 }}>
+                      <div style={{ fontSize: 13, color: C.dim, marginTop: 3 }}>
                         average from work done to invoice sent
                       </div>
                     </div>
                   )}
                 </div>
-                <div style={{ fontSize: 11.5, color: C.faint, marginTop: 14, lineHeight: 1.65, maxWidth: 620 }}>
+                <div style={{ fontSize: 12.5, color: C.faint, marginTop: 14, lineHeight: 1.65, maxWidth: 620 }}>
                   {recovery.recoveredItems} item{recovery.recoveredItems === 1 ? '' : 's'} —
                   hours and receipts that were recorded, sat long enough to be at real risk of
                   being forgotten, and then got invoiced.{' '}
@@ -389,7 +389,7 @@ export default function ProfitLossPage() {
             </Table>
           )}
 
-          <div style={{ fontSize: 11.5, color: C.faint, marginTop: 14, maxWidth: 620, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 12.5, color: C.faint, marginTop: 14, maxWidth: 620, lineHeight: 1.6 }}>
             Revenue counts invoices issued in the period. Costs and margin are lifetime per job,
             so a job spanning two periods shows its full cost here. This is a management view,
             not a tax return. Your accountant will want the real books.

@@ -291,7 +291,7 @@ export default function IntelPage({ params }: { params: { id: string } }) {
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
           <label
             style={{
-              fontSize: 12.5,
+              fontSize: 13.5,
               color: C.blue,
               cursor: 'pointer',
               border: `1px solid ${C.border}`,
@@ -313,7 +313,7 @@ export default function IntelPage({ params }: { params: { id: string } }) {
               style={{ display: 'none' }}
             />
           </label>
-          <span style={{ fontSize: 12, color: C.faint }}>
+          <span style={{ fontSize: 13, color: C.faint }}>
             Photograph a page of handwriting or a whiteboard. It reads them.
           </span>
         </div>
@@ -324,7 +324,7 @@ export default function IntelPage({ params }: { params: { id: string } }) {
               <span
                 key={`${f.file.name}-${i}`}
                 style={{
-                  fontSize: 11.5,
+                  fontSize: 12.5,
                   color: C.dim,
                   background: C.panelAlt,
                   borderRadius: 6,
@@ -356,14 +356,14 @@ export default function IntelPage({ params }: { params: { id: string } }) {
           <Button onClick={save} disabled={saving || (body.trim().length < 40 && files.length === 0)}>
             {saving ? 'Saving…' : 'Keep it'}
           </Button>
-          <span style={{ fontSize: 12, color: C.faint }}>
+          <span style={{ fontSize: 13, color: C.faint }}>
             Kept as dropped. Reading it is the next step, and a separate one.
           </span>
         </div>
         {rejected.map((r) => (
-          <div key={r} style={{ fontSize: 12.5, color: C.amber, marginTop: 8 }}>{r}</div>
+          <div key={r} style={{ fontSize: 13.5, color: C.amber, marginTop: 8 }}>{r}</div>
         ))}
-        {error && <div style={{ fontSize: 12.5, color: C.red, marginTop: 10 }}>{error}</div>}
+        {error && <div style={{ fontSize: 13.5, color: C.red, marginTop: 10 }}>{error}</div>}
       </Card>
 
       {/* ---------------------------------------------------------------- */}
@@ -379,18 +379,18 @@ export default function IntelPage({ params }: { params: { id: string } }) {
               return (
                 <Card key={p.id}>
                   <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 8 }}>
-                    <span style={{ fontSize: 14.5, fontWeight: 600, color: C.text }}>{nameOf(p.id)}</span>
+                    <span style={{ fontSize: 15.5, fontWeight: 600, color: C.text }}>{nameOf(p.id)}</span>
                     <Pill tone={CONF_TONE[p.confidence]}>{p.confidence}</Pill>
-                    <span style={{ fontSize: 11.5, color: C.faint }}>{CONF_MEANS[p.confidence]}</span>
+                    <span style={{ fontSize: 12.5, color: C.faint }}>{CONF_MEANS[p.confidence]}</span>
                   </div>
 
-                  <div style={{ fontSize: 14, color: C.text, lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
+                  <div style={{ fontSize: 15, color: C.text, lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
                     {p.content}
                   </div>
 
                   <div
                     style={{
-                      fontSize: 12,
+                      fontSize: 13,
                       color: C.faint,
                       marginTop: 10,
                       paddingLeft: 11,
@@ -415,10 +415,10 @@ export default function IntelPage({ params }: { params: { id: string } }) {
             <div style={{ marginTop: 18 }}>
               <SectionLabel>Ask them next</SectionLabel>
               <Card>
-                <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13.5, color: C.dim, lineHeight: 1.75 }}>
+                <ul style={{ margin: 0, paddingLeft: 18, fontSize: 14.5, color: C.dim, lineHeight: 1.75 }}>
                   {result.missing.map((q, i) => <li key={i}>{q}</li>)}
                 </ul>
-                <p style={{ fontSize: 11.5, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
+                <p style={{ fontSize: 12.5, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
                   What this material does not answer. This is the agenda for the next call, and it
                   is usually worth more than the modules above.
                 </p>
@@ -437,8 +437,8 @@ export default function IntelPage({ params }: { params: { id: string } }) {
                     <Card key={key}>
                       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                         <div style={{ flex: 1, minWidth: 220 }}>
-                          <div style={{ fontSize: 13.5, color: C.text, lineHeight: 1.6 }}>{p.body}</div>
-                          <div style={{ fontSize: 11.5, color: C.faint, marginTop: 4 }}>
+                          <div style={{ fontSize: 14.5, color: C.text, lineHeight: 1.6 }}>{p.body}</div>
+                          <div style={{ fontSize: 12.5, color: C.faint, marginTop: 4 }}>
                             {[p.kind, p.attribution, p.source].filter(Boolean).join(' · ')}
                           </div>
                         </div>
@@ -450,7 +450,7 @@ export default function IntelPage({ params }: { params: { id: string } }) {
                   );
                 })}
               </div>
-              <p style={{ fontSize: 11.5, color: C.faint, marginTop: 8, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 12.5, color: C.faint, marginTop: 8, lineHeight: 1.6 }}>
                 Everything found this way is a placeholder until somebody clears it. Real needs an
                 attribution and written permission on file.
               </p>
@@ -469,13 +469,13 @@ export default function IntelPage({ params }: { params: { id: string } }) {
                       <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                         <span
                           style={{
-                            fontSize: 12.5, fontWeight: 600, color: C.red, background: C.redSoft,
+                            fontSize: 13.5, fontWeight: 600, color: C.red, background: C.redSoft,
                             padding: '3px 9px', borderRadius: 6, whiteSpace: 'nowrap',
                           }}
                         >
                           {r.term}
                         </span>
-                        <span style={{ fontSize: 12.5, color: C.dim, flex: 1, minWidth: 180 }}>{r.reason}</span>
+                        <span style={{ fontSize: 13.5, color: C.dim, flex: 1, minWidth: 180 }}>{r.reason}</span>
                         <Button onClick={() => acceptBanned(r, key)} disabled={done} variant="ghost">
                           {done ? 'Added' : 'Add to never list'}
                         </Button>
@@ -496,7 +496,7 @@ export default function IntelPage({ params }: { params: { id: string } }) {
                     <span
                       key={i}
                       style={{
-                        fontSize: 12.5, color: C.dim, background: C.panelAlt,
+                        fontSize: 13.5, color: C.dim, background: C.panelAlt,
                         padding: '4px 10px', borderRadius: 6,
                       }}
                     >
@@ -504,7 +504,7 @@ export default function IntelPage({ params }: { params: { id: string } }) {
                     </span>
                   ))}
                 </div>
-                <p style={{ fontSize: 11.5, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
+                <p style={{ fontSize: 12.5, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
                   Their own words, pulled straight through. Raw material for tone, which is worth
                   more than any description of a voice.
                 </p>
@@ -526,11 +526,11 @@ export default function IntelPage({ params }: { params: { id: string } }) {
                 <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                   <div style={{ flex: 1, minWidth: 220 }}>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 13.5, fontWeight: 600, color: C.text }}>
+                      <span style={{ fontSize: 14.5, fontWeight: 600, color: C.text }}>
                         {d.source || KINDS.find((k) => k.id === d.kind)?.label || d.kind}
                       </span>
                       {d.read_at ? <Pill tone="green">read</Pill> : <Pill>not read</Pill>}
-                      <span style={{ fontSize: 11.5, color: C.faint }}>
+                      <span style={{ fontSize: 12.5, color: C.faint }}>
                         {shortDate(d.created_at)} ·{' '}
                         {d.image_path
                           ? 'photograph'
@@ -539,7 +539,7 @@ export default function IntelPage({ params }: { params: { id: string } }) {
                     </div>
                     <div
                       style={{
-                        fontSize: 12.5, color: C.faint, marginTop: 6, lineHeight: 1.55,
+                        fontSize: 13.5, color: C.faint, marginTop: 6, lineHeight: 1.55,
                         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
                         overflow: 'hidden',
                       }}

@@ -23,10 +23,15 @@ export const C = {
   // white — below the 4.5:1 floor for body text and exactly the "I can't
   // read this" problem we already fixed twice. Structure and hue borrowed,
   // legibility kept.
-  dim: '#444952',   //  9.1:1    // 11.3:1
-  faint: '#646973', //  5.5:1  //  7.0:1 — well past the 4.5:1 floor, because passing
-                     //  a threshold and being comfortable to read are not
-                     //  the same thing.
+  // Darkened a step toward how Carta sets a dense interface: body copy close
+  // to black, and gray reserved for text that genuinely is secondary. Small
+  // gray text everywhere is the default look of an admin panel nobody chose
+  // to use, and it was the single thing making this read as a tool rather
+  // than a product.
+  dim: '#383D45',   // 10.9:1
+  faint: '#5B6069', //  6.3:1 — well past the 4.5:1 floor, because passing
+                    //  a threshold and being comfortable to read are not
+                    //  the same thing.
 
   border: '#E7E8EB',
   borderStrong: '#DFE0E5',

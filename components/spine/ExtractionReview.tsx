@@ -104,8 +104,8 @@ export function ExtractionReview({
         }}
       >
         <div style={{ padding: '18px 22px', borderBottom: `1px solid ${C.border}` }}>
-          <div style={{ fontSize: 16, fontWeight: 500 }}>Check what was read</div>
-          <div style={{ fontSize: 12, color: C.faint, marginTop: 3 }}>
+          <div style={{ fontSize: 17, fontWeight: 500 }}>Check what was read</div>
+          <div style={{ fontSize: 13, color: C.faint, marginTop: 3 }}>
             {fileName}
           </div>
         </div>
@@ -129,7 +129,7 @@ export function ExtractionReview({
                 alt="The document"
                 style={{ width: '100%', borderRadius: 4, display: 'block' }}
               />
-              <div style={{ fontSize: 10.5, color: C.faint, textAlign: 'center', marginTop: 6 }}>
+              <div style={{ fontSize: 11.5, color: C.faint, textAlign: 'center', marginTop: 6 }}>
                 What was read
               </div>
             </div>
@@ -143,7 +143,7 @@ export function ExtractionReview({
                   border: `1px solid ${C.amber}44`,
                   borderRadius: radius.md,
                   padding: 11,
-                  fontSize: 12.5,
+                  fontSize: 13.5,
                   color: C.amber,
                   marginBottom: 16,
                   lineHeight: 1.55,
@@ -228,7 +228,7 @@ export function ExtractionReview({
 
             {extracted?.line_items && extracted.line_items.length > 0 && (
               <div style={{ marginTop: 6, marginBottom: 14 }}>
-                <div style={{ fontSize: 11, color: C.faint, marginBottom: 6 }}>
+                <div style={{ fontSize: 12, color: C.faint, marginBottom: 6 }}>
                   Line items it also picked up
                 </div>
                 <div
@@ -236,7 +236,7 @@ export function ExtractionReview({
                     background: C.panelAlt,
                     borderRadius: radius.sm,
                     padding: '8px 10px',
-                    fontSize: 11.5,
+                    fontSize: 12.5,
                     color: C.dim,
                     maxHeight: 110,
                     overflowY: 'auto',
@@ -265,7 +265,7 @@ export function ExtractionReview({
             flexWrap: 'wrap',
           }}
         >
-          <div style={{ fontSize: 11.5, color: C.faint }}>
+          <div style={{ fontSize: 12.5, color: C.faint }}>
             {amountOk ? (
               <>Will be saved as <strong style={{ color: C.text }}>{money(amountNum)}</strong></>
             ) : (

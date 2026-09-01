@@ -192,12 +192,12 @@ export default function WebsitePage() {
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
       {notice && (
         <Card style={{ borderColor: C.green, marginBottom: 16 }}>
-          <div style={{ color: C.green, fontSize: 13 }}>{notice}</div>
+          <div style={{ color: C.green, fontSize: 14 }}>{notice}</div>
         </Card>
       )}
 
@@ -250,7 +250,7 @@ export default function WebsitePage() {
         <div style={{ marginBottom: 28 }}>
           <SectionLabel>Change these yourself</SectionLabel>
           <Card>
-            <div style={{ fontSize: 12.5, color: C.dim, marginBottom: 16 }}>
+            <div style={{ fontSize: 13.5, color: C.dim, marginBottom: 16 }}>
               These go live immediately. No approval, no waiting.
             </div>
             {content.map((c) => (
@@ -276,15 +276,15 @@ export default function WebsitePage() {
             return (
               <Card key={r.id}>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 14, fontWeight: 500, flex: 1, minWidth: 200 }}>
+                  <span style={{ fontSize: 15, fontWeight: 500, flex: 1, minWidth: 200 }}>
                     {r.title}
                   </span>
                   <Pill tone={s.tone}>{s.label}</Pill>
                 </div>
-                <div style={{ fontSize: 12.5, color: C.dim, marginTop: 8, whiteSpace: 'pre-wrap' }}>
+                <div style={{ fontSize: 13.5, color: C.dim, marginTop: 8, whiteSpace: 'pre-wrap' }}>
                   {r.body}
                 </div>
-                <div style={{ fontSize: 11, color: C.faint, marginTop: 8 }}>
+                <div style={{ fontSize: 12, color: C.faint, marginTop: 8 }}>
                   Sent {shortDate(r.submitted_at)}
                 </div>
                 {r.note_to_client && (
@@ -294,7 +294,7 @@ export default function WebsitePage() {
                       padding: 11,
                       borderRadius: 7,
                       background: C.accentSoft,
-                      fontSize: 12.5,
+                      fontSize: 13.5,
                       color: C.text,
                     }}
                   >
@@ -309,7 +309,7 @@ export default function WebsitePage() {
 
       {!loading && !site && (
         <Card style={{ marginTop: 20, borderColor: C.amber }}>
-          <div style={{ fontSize: 13, color: C.amber }}>
+          <div style={{ fontSize: 14, color: C.amber }}>
             No website is linked to this business yet, so requests won&apos;t reach anyone.
             Whoever manages your site needs to add it.
           </div>
@@ -333,7 +333,7 @@ function ContentField({
 
   return (
     <div style={{ marginBottom: 16 }}>
-      <div style={{ fontSize: 12, color: C.dim, marginBottom: 5, fontWeight: 500 }}>
+      <div style={{ fontSize: 13, color: C.dim, marginBottom: 5, fontWeight: 500 }}>
         {item.label}
       </div>
       <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
@@ -356,7 +356,7 @@ function ContentField({
         </Button>
       </div>
       {item.help && (
-        <div style={{ fontSize: 11.5, color: C.faint, marginTop: 4 }}>{item.help}</div>
+        <div style={{ fontSize: 12.5, color: C.faint, marginTop: 4 }}>{item.help}</div>
       )}
     </div>
   );

@@ -162,7 +162,7 @@ export default function PitchEditorPage({ params }: { params: { id: string } }) 
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16, maxWidth: 720 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
 
@@ -170,7 +170,7 @@ export default function PitchEditorPage({ params }: { params: { id: string } }) 
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 14.5, fontWeight: 600, color: C.text }}>
+              <span style={{ fontSize: 15.5, fontWeight: 600, color: C.text }}>
                 {isLive ? 'Live' : 'Draft'}
               </span>
               {isLive &&
@@ -180,7 +180,7 @@ export default function PitchEditorPage({ params }: { params: { id: string } }) 
                   <Pill tone="amber">Not opened yet</Pill>
                 ))}
             </div>
-            <div style={{ fontSize: 12.5, color: C.dim, marginTop: 4, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 13.5, color: C.dim, marginTop: 4, lineHeight: 1.6 }}>
               {isLive
                 ? pitch.views > 0
                   ? `Last read ${shortDate(pitch.last_viewed_at)}. Edits you save appear immediately for anyone holding the link.`
@@ -203,7 +203,7 @@ export default function PitchEditorPage({ params }: { params: { id: string } }) 
               readOnly
               value={url}
               onFocus={(e) => e.currentTarget.select()}
-              style={{ ...inputStyle, fontFamily: 'ui-monospace, monospace', fontSize: 12 }}
+              style={{ ...inputStyle, fontFamily: 'ui-monospace, monospace', fontSize: 13 }}
             />
             <Button
               variant="ghost"
@@ -227,7 +227,7 @@ export default function PitchEditorPage({ params }: { params: { id: string } }) 
           <input
             value={pitch.title}
             onChange={(e) => setPitch({ ...pitch, title: e.target.value })}
-            style={{ ...inputStyle, fontSize: 15, fontWeight: 600 }}
+            style={{ ...inputStyle, fontSize: 16, fontWeight: 600 }}
           />
         </Field>
         <Field label="Who it's for · optional">
@@ -238,7 +238,7 @@ export default function PitchEditorPage({ params }: { params: { id: string } }) 
             style={inputStyle}
           />
         </Field>
-        <div style={{ fontSize: 11.5, color: C.faint, marginTop: -6, lineHeight: 1.55 }}>
+        <div style={{ fontSize: 12.5, color: C.faint, marginTop: -6, lineHeight: 1.55 }}>
           Shown at the top of the page, so it doesn&apos;t read like a form letter.
         </div>
       </Card>
@@ -321,7 +321,7 @@ const arrowStyle = (disabled: boolean): React.CSSProperties => ({
   border: `1px solid ${C.border}`,
   background: 'transparent',
   color: disabled ? C.border : C.dim,
-  fontSize: 13,
+  fontSize: 14,
   cursor: disabled ? 'not-allowed' : 'pointer',
   fontFamily: 'inherit',
   lineHeight: 1,

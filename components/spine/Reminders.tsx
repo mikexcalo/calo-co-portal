@@ -143,7 +143,7 @@ export function Reminders({
                   style={{
                     padding: '5px 11px',
                     borderRadius: 20,
-                    fontSize: 11.5,
+                    fontSize: 12.5,
                     border: `1px solid ${on ? C.accent : C.border}`,
                     background: on ? C.accentSoft : 'transparent',
                     color: on ? C.text : C.dim,
@@ -160,10 +160,10 @@ export function Reminders({
               value={due}
               min={today}
               onChange={(e) => setDue(e.target.value)}
-              style={{ ...inputStyle, width: 150, fontSize: 12, padding: '5px 8px' }}
+              style={{ ...inputStyle, width: 150, fontSize: 13, padding: '5px 8px' }}
             />
           </div>
-          {error && <div style={{ fontSize: 12, color: C.red, marginBottom: 8 }}>{error}</div>}
+          {error && <div style={{ fontSize: 13, color: C.red, marginBottom: 8 }}>{error}</div>}
           <Button onClick={add} disabled={busy || !body.trim()}>
             {busy ? 'Saving…' : 'Remind me'}
           </Button>
@@ -199,8 +199,8 @@ export function Reminders({
                   <Check done={false} size={18} />
                 </button>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, color: C.text }}>{r.body}</div>
-                  <div style={{ fontSize: 11.5, color: late ? C.amber : C.faint, marginTop: 2 }}>
+                  <div style={{ fontSize: 14.5, color: C.text }}>{r.body}</div>
+                  <div style={{ fontSize: 12.5, color: late ? C.amber : C.faint, marginTop: 2 }}>
                     {late ? 'Overdue · ' : isToday ? 'Today · ' : ''}
                     {shortDate(r.due_on)}
                   </div>
@@ -220,7 +220,7 @@ export function Reminders({
               border: 'none',
               padding: 0,
               color: C.faint,
-              fontSize: 12,
+              fontSize: 13,
               cursor: 'pointer',
               fontFamily: 'inherit',
             }}
@@ -244,7 +244,7 @@ export function Reminders({
                   </button>
                   <span
                     style={{
-                      fontSize: 13,
+                      fontSize: 14,
                       color: C.faint,
                       textDecoration: 'line-through',
                     }}

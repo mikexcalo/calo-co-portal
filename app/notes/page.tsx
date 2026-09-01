@@ -177,7 +177,7 @@ export default function NotesPage() {
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16, maxWidth: 720 }}>
-          <div style={{ color: C.red, fontSize: 13, lineHeight: 1.6 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14, lineHeight: 1.6 }}>{error}</div>
         </Card>
       )}
 
@@ -235,7 +235,7 @@ export default function NotesPage() {
                 minHeight: 220,
                 resize: 'vertical',
                 lineHeight: 1.65,
-                fontSize: 13.5,
+                fontSize: 14.5,
               }}
             />
           </div>
@@ -244,7 +244,7 @@ export default function NotesPage() {
             <Button onClick={read} disabled={busy || raw.trim().length < 40}>
               {busy ? 'Reading…' : 'Read this'}
             </Button>
-            <span style={{ fontSize: 12, color: C.faint }}>
+            <span style={{ fontSize: 13, color: C.faint }}>
               Takes a few seconds. You&apos;ll check everything before it saves.
             </span>
           </div>
@@ -261,10 +261,10 @@ export default function NotesPage() {
           <input
             value={result.title}
             onChange={(e) => setResult({ ...result, title: e.target.value })}
-            style={{ ...inputStyle, fontSize: 15.5, fontWeight: 600, marginBottom: 12 }}
+            style={{ ...inputStyle, fontSize: 16.5, fontWeight: 600, marginBottom: 12 }}
           />
 
-          <div style={{ fontSize: 11.5, color: C.dim, fontWeight: 600, marginBottom: 5 }}>Summary</div>
+          <div style={{ fontSize: 12.5, color: C.dim, fontWeight: 600, marginBottom: 5 }}>Summary</div>
           <textarea
             value={result.summary}
             onChange={(e) => setResult({ ...result, summary: e.target.value })}
@@ -282,10 +282,10 @@ export default function NotesPage() {
                 marginBottom: 16,
               }}
             >
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: C.text, marginBottom: 5 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 600, color: C.text, marginBottom: 5 }}>
                 Not sure about these
               </div>
-              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: C.dim, lineHeight: 1.7 }}>
+              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13.5, color: C.dim, lineHeight: 1.7 }}>
                 {result.uncertain.map((u, i) => <li key={i}>{u}</li>)}
               </ul>
             </div>
@@ -293,11 +293,11 @@ export default function NotesPage() {
 
           {result.tasks.length > 0 && (
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11.5, color: C.dim, fontWeight: 600, marginBottom: 6 }}>
+              <div style={{ fontSize: 12.5, color: C.dim, fontWeight: 600, marginBottom: 6 }}>
                 Agreed ({result.tasks.length})
               </div>
               {result.tasks.map((t, i) => (
-                <div key={i} style={{ fontSize: 13.5, color: C.text, padding: '5px 0', lineHeight: 1.5 }}>
+                <div key={i} style={{ fontSize: 14.5, color: C.text, padding: '5px 0', lineHeight: 1.5 }}>
                   · {t.what}
                   {t.who && <span style={{ color: C.faint }}> — {t.who}</span>}
                   {t.due && <span style={{ marginLeft: 8 }}><Pill tone="amber">by {t.due}</Pill></span>}
@@ -308,15 +308,15 @@ export default function NotesPage() {
 
           {result.amounts.length > 0 && (
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11.5, color: C.dim, fontWeight: 600, marginBottom: 6 }}>
+              <div style={{ fontSize: 12.5, color: C.dim, fontWeight: 600, marginBottom: 6 }}>
                 Money mentioned
               </div>
               {result.amounts.map((a, i) => (
-                <div key={i} style={{ fontSize: 13.5, color: C.text, padding: '4px 0' }}>
+                <div key={i} style={{ fontSize: 14.5, color: C.text, padding: '4px 0' }}>
                   ${a.amount.toLocaleString()} — <span style={{ color: C.dim }}>{a.what}</span>
                 </div>
               ))}
-              <div style={{ fontSize: 11.5, color: C.faint, marginTop: 6, lineHeight: 1.55 }}>
+              <div style={{ fontSize: 12.5, color: C.faint, marginTop: 6, lineHeight: 1.55 }}>
                 Saved with the note, not as a quote. A number said out loud isn&apos;t an estimate until you build one.
               </div>
             </div>
@@ -324,11 +324,11 @@ export default function NotesPage() {
 
           {result.people.length > 0 && (
             <div style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 11.5, color: C.dim, fontWeight: 600, marginBottom: 6 }}>
+              <div style={{ fontSize: 12.5, color: C.dim, fontWeight: 600, marginBottom: 6 }}>
                 People mentioned
               </div>
               {result.people.map((p, i) => (
-                <div key={i} style={{ fontSize: 13.5, color: C.text, padding: '4px 0' }}>
+                <div key={i} style={{ fontSize: 14.5, color: C.text, padding: '4px 0' }}>
                   {p.name}
                   {p.role && <span style={{ color: C.faint }}>, {p.role}</span>}
                   {(p.email || p.phone) && (
@@ -345,7 +345,7 @@ export default function NotesPage() {
             </Button>
             <Button variant="ghost" onClick={() => setResult(null)}>Back to the text</Button>
           </div>
-          <div style={{ fontSize: 11.5, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 12.5, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
             We keep the original text below the summary. If anyone ever disputes what was agreed, the original is what counts.
           </div>
         </Card>
@@ -370,16 +370,16 @@ export default function NotesPage() {
                 <Card key={n.id}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                     <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{ fontSize: 14.5, fontWeight: 600, color: C.text }}>
+                      <div style={{ fontSize: 15.5, fontWeight: 600, color: C.text }}>
                         {n.title || 'Note'}
                       </div>
-                      <div style={{ fontSize: 12, color: C.faint, marginTop: 3 }}>
+                      <div style={{ fontSize: 13, color: C.faint, marginTop: 3 }}>
                         {who ? `${who} · ` : ''}{shortDate(n.happened_on || n.created_at)}
                       </div>
                     </div>
                     {n.source === 'transcript' && <Pill tone="blue">From a transcript</Pill>}
                   </div>
-                  <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: '10px 0 0', whiteSpace: 'pre-wrap' }}>
+                  <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.65, margin: '10px 0 0', whiteSpace: 'pre-wrap' }}>
                     {n.body.split('— — —')[0].trim().slice(0, 400)}
                     {n.body.length > 400 ? '…' : ''}
                   </p>

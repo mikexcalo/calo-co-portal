@@ -142,7 +142,7 @@ export function QrStudio({
               placeholder="https://www.mammothconstructiontx.com"
             />
           </Field>
-          <div style={{ fontSize: 11.5, color: C.faint, marginTop: -8 }}>
+          <div style={{ fontSize: 12.5, color: C.faint, marginTop: -8 }}>
             Anything a phone can open: a page, a phone number as{' '}
             <code>tel:512...</code>, an email as <code>mailto:...</code>.
           </div>
@@ -163,7 +163,7 @@ export function QrStudio({
               alignItems: 'center',
               gap: 8,
               marginTop: 16,
-              fontSize: 12.5,
+              fontSize: 13.5,
               color: C.dim,
               cursor: 'pointer',
             }}
@@ -188,7 +188,7 @@ export function QrStudio({
               <option key={s.px} value={s.px}>{s.label}</option>
             ))}
           </select>
-          <div style={{ fontSize: 11.5, color: C.faint, marginTop: 10, lineHeight: 1.55 }}>
+          <div style={{ fontSize: 12.5, color: C.faint, marginTop: 10, lineHeight: 1.55 }}>
             For a yard sign or truck door, use the largest. A QR code has to be about
             1cm wide for every 10cm of scanning distance.
           </div>
@@ -213,7 +213,7 @@ export function QrStudio({
           {campaign && (
             <div
               style={{
-                fontSize: 12,
+                fontSize: 13,
                 color: C.dim,
                 lineHeight: 1.55,
                 margin: '4px 0 12px',
@@ -282,7 +282,7 @@ export function QrStudio({
               borderRadius: radius.md,
               background: scannable ? (comfortable ? C.greenSoft : C.amberSoft) : C.redSoft,
               border: `1px solid ${scannable ? (comfortable ? C.green : C.amber) : C.red}44`,
-              fontSize: 12,
+              fontSize: 13,
               color: scannable ? (comfortable ? C.green : C.amber) : C.red,
               lineHeight: 1.55,
             }}
@@ -301,7 +301,7 @@ export function QrStudio({
           </div>
 
           {error && (
-            <div style={{ marginTop: 12, fontSize: 12, color: C.red }}>{error}</div>
+            <div style={{ marginTop: 12, fontSize: 13, color: C.red }}>{error}</div>
           )}
 
           <div style={{ marginTop: 14 }}>

@@ -165,7 +165,7 @@ export default function ImportCustomersPage() {
 
   const cell: React.CSSProperties = {
     ...inputStyle,
-    fontSize: 12.5,
+    fontSize: 13.5,
     padding: '7px 9px',
   };
 
@@ -176,7 +176,7 @@ export default function ImportCustomersPage() {
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16, maxWidth: 700 }}>
-          <div style={{ color: C.red, fontSize: 13, lineHeight: 1.6 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14, lineHeight: 1.6 }}>{error}</div>
         </Card>
       )}
 
@@ -210,10 +210,10 @@ export default function ImportCustomersPage() {
                 transition: 'background .15s, border-color .15s',
               }}
             >
-              <div style={{ fontSize: 15.5, fontWeight: 600, color: C.text, marginBottom: 6 }}>
+              <div style={{ fontSize: 16.5, fontWeight: 600, color: C.text, marginBottom: 6 }}>
                 Drop a CSV here
               </div>
-              <p style={{ fontSize: 13, color: C.dim, margin: '0 0 16px', lineHeight: 1.6 }}>
+              <p style={{ fontSize: 14, color: C.dim, margin: '0 0 16px', lineHeight: 1.6 }}>
                 One row per person. We&apos;ll match your columns whatever they&apos;re called.
               </p>
               <label>
@@ -233,7 +233,7 @@ export default function ImportCustomersPage() {
                     color: '#fff',
                     borderRadius: 7,
                     padding: '9px 18px',
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: 500,
                     cursor: 'pointer',
                   }}
@@ -246,7 +246,7 @@ export default function ImportCustomersPage() {
 
           <Card style={{ maxWidth: 700, marginTop: 14 }}>
             <SectionLabel>Or paste it</SectionLabel>
-            <p style={{ fontSize: 13, color: C.dim, margin: '8px 0 12px', lineHeight: 1.6 }}>
+            <p style={{ fontSize: 14, color: C.dim, margin: '8px 0 12px', lineHeight: 1.6 }}>
               Copy the cells straight from Excel, Numbers or Google Sheets and paste them below. No need to export a file.
             </p>
             <textarea
@@ -257,7 +257,7 @@ export default function ImportCustomersPage() {
               style={{
                 ...inputStyle,
                 fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                fontSize: 12.5,
+                fontSize: 13.5,
                 resize: 'vertical',
               }}
             />
@@ -278,11 +278,11 @@ export default function ImportCustomersPage() {
           <Card style={{ marginBottom: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
               <div>
-                <div style={{ fontSize: 15.5, fontWeight: 600, color: C.text }}>
+                <div style={{ fontSize: 16.5, fontWeight: 600, color: C.text }}>
                   Found {rows.length} {rows.length === 1 ? 'contact' : 'contacts'}
                   {sourceName ? ` in ${sourceName}` : ''}
                 </div>
-                <div style={{ fontSize: 12.5, color: C.dim, marginTop: 4, lineHeight: 1.6 }}>
+                <div style={{ fontSize: 13.5, color: C.dim, marginTop: 4, lineHeight: 1.6 }}>
                   Fix anything wrong right here, not back in the spreadsheet. Nothing saves until you press import.
                   {skippedCount > 0 && ` ${skippedCount} empty ${skippedCount === 1 ? 'row was' : 'rows were'} ignored.`}
                 </div>
@@ -303,7 +303,7 @@ export default function ImportCustomersPage() {
                   borderRadius: 8,
                   padding: '11px 13px',
                   marginTop: 14,
-                  fontSize: 12.5,
+                  fontSize: 13.5,
                   color: C.text,
                   lineHeight: 1.6,
                 }}
@@ -320,7 +320,7 @@ export default function ImportCustomersPage() {
                   borderRadius: 8,
                   padding: '11px 13px',
                   marginTop: 10,
-                  fontSize: 12.5,
+                  fontSize: 13.5,
                   color: C.text,
                   lineHeight: 1.6,
                 }}
@@ -341,7 +341,7 @@ export default function ImportCustomersPage() {
                       style={{
                         textAlign: 'left',
                         padding: '9px 12px',
-                        fontSize: 10,
+                        fontSize: 11,
                         textTransform: 'uppercase',
                         letterSpacing: '0.07em',
                         color: C.faint,
@@ -408,10 +408,10 @@ export default function ImportCustomersPage() {
 
       {stage === 'done' && (
         <Card style={{ maxWidth: 560 }}>
-          <div style={{ fontSize: 17, fontWeight: 600, color: C.text, marginBottom: 8 }}>
+          <div style={{ fontSize: 18, fontWeight: 600, color: C.text, marginBottom: 8 }}>
             {imported} {imported === 1 ? vocab.customer.toLowerCase() : vocab.customerPlural.toLowerCase()} imported
           </div>
-          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 18px' }}>
+          <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.7, margin: '0 0 18px' }}>
             They&apos;re in. You can attach {vocab.jobPlural.toLowerCase()} and invoices to them now.
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

@@ -69,13 +69,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               color: C.text,
               width: 36,
               height: 36,
-              fontSize: 15,
+              fontSize: 16,
               cursor: 'pointer',
             }}
           >
             ☰
           </button>
-          <span style={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.3px' }}>
+          <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.3px' }}>
             {PRODUCT}
           </span>
         </div>

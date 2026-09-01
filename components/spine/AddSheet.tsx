@@ -138,10 +138,10 @@ export function AddSheet({
                 {i.glyph}
               </span>
               <span>
-                <span style={{ display: 'block', fontSize: 15, fontWeight: 500, color: C.text }}>
+                <span style={{ display: 'block', fontSize: 16, fontWeight: 500, color: C.text }}>
                   {i.label}
                 </span>
-                <span style={{ display: 'block', fontSize: 12.5, color: C.faint, marginTop: 1 }}>
+                <span style={{ display: 'block', fontSize: 13.5, color: C.faint, marginTop: 1 }}>
                   {i.detail}
                 </span>
               </span>

@@ -103,7 +103,7 @@ export function BrandCard({ customerId }: { customerId: string }) {
                   >
                     {b.name}
                   </div>
-                  <div style={{ fontSize: 12, color: C.faint, marginTop: 4 }}>
+                  <div style={{ fontSize: 13, color: C.faint, marginTop: 4 }}>
                     {fonts.map((f) => f.family).join(' · ')}
                     {b.kit?.assets?.length ? ` · ${b.kit.assets.length} assets` : ''}
                   </div>

@@ -189,7 +189,7 @@ export default function BrandKitPage() {
     >
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
 
@@ -204,7 +204,7 @@ export default function BrandKitPage() {
               border: `1px solid ${tab === tb ? C.blue : C.border}`,
               background: tab === tb ? C.blueSoft : 'transparent',
               color: tab === tb ? C.text : C.dim,
-              fontSize: 13,
+              fontSize: 14,
               cursor: 'pointer',
               fontFamily: 'inherit',
             }}
@@ -241,7 +241,7 @@ export default function BrandKitPage() {
                 ))}
               </div>
             )}
-            <div style={{ fontSize: 11.5, color: C.faint, marginTop: 16 }}>
+            <div style={{ fontSize: 12.5, color: C.faint, marginTop: 16 }}>
               Click any color to copy its hex code.
             </div>
           </Card>
@@ -343,8 +343,8 @@ export default function BrandKitPage() {
                       cursor: 'pointer', fontFamily: 'inherit',
                     }}
                   >
-                    <div style={{ fontSize: 13, color: C.text }}>{s.name}</div>
-                    <div style={{ fontSize: 11.5, color: C.faint, marginTop: 2 }}>{s.note}</div>
+                    <div style={{ fontSize: 14, color: C.text }}>{s.name}</div>
+                    <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2 }}>{s.note}</div>
                   </button>
                 ))}
               </div>
@@ -372,7 +372,7 @@ export default function BrandKitPage() {
                   {copied === 'html' ? 'Copied' : 'Copy HTML'}
                 </Button>
               </div>
-              <div style={{ fontSize: 11.5, color: C.faint, marginTop: 10 }}>
+              <div style={{ fontSize: 12.5, color: C.faint, marginTop: 10 }}>
                 &quot;Copy signature&quot; puts the rendered version on your clipboard — that&apos;s
                 what mail clients want. &quot;Copy HTML&quot; gives you the source, for anything with
                 a code view.
@@ -387,7 +387,7 @@ export default function BrandKitPage() {
                     key={g.id}
                     onClick={() => setGuideId(g.id)}
                     style={{
-                      padding: '5px 10px', borderRadius: 20, fontSize: 11.5,
+                      padding: '5px 10px', borderRadius: 20, fontSize: 12.5,
                       border: `1px solid ${guideId === g.id ? C.blue : C.border}`,
                       background: guideId === g.id ? C.blueSoft : 'transparent',
                       color: guideId === g.id ? C.text : C.dim,
@@ -399,7 +399,7 @@ export default function BrandKitPage() {
                 ))}
               </div>
 
-              <ol style={{ margin: 0, paddingLeft: 20, fontSize: 12.5, color: C.dim, lineHeight: 1.7 }}>
+              <ol style={{ margin: 0, paddingLeft: 20, fontSize: 13.5, color: C.dim, lineHeight: 1.7 }}>
                 {guide.steps.map((s, i) => (
                   <li key={i} style={{ marginBottom: 4 }}>{s}</li>
                 ))}
@@ -410,7 +410,7 @@ export default function BrandKitPage() {
                   style={{
                     marginTop: 14, padding: 11, borderRadius: 7,
                     background: C.amberSoft, border: `1px solid ${C.amber}44`,
-                    fontSize: 12, color: C.amber, lineHeight: 1.55,
+                    fontSize: 13, color: C.amber, lineHeight: 1.55,
                   }}
                 >
                   {guide.gotcha}
@@ -477,7 +477,7 @@ function ColorTile({
               borderRadius: '50%',
               background: 'rgba(0,0,0,.6)',
               color: '#fff',
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 600,
             }}
           >
@@ -486,13 +486,13 @@ function ColorTile({
         )}
       </div>
 
-      <div style={{ fontSize: 13, color: C.text, fontWeight: 500 }}>{color.name}</div>
+      <div style={{ fontSize: 14, color: C.text, fontWeight: 500 }}>{color.name}</div>
       {color.role && (
-        <div style={{ fontSize: 10.5, color: C.faint, marginTop: 2 }}>{color.role}</div>
+        <div style={{ fontSize: 11.5, color: C.faint, marginTop: 2 }}>{color.role}</div>
       )}
       <div
         style={{
-          fontSize: 10.5,
+          fontSize: 11.5,
           color: C.faint,
           marginTop: 3,
           fontVariantNumeric: 'tabular-nums',
@@ -548,7 +548,7 @@ function LogosTab({
     <div style={{ maxWidth: 860 }}>
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
 
@@ -580,7 +580,7 @@ function LogosTab({
           />
           <Button onClick={addLogo} disabled={!adding.trim()}>Add</Button>
         </div>
-        <div style={{ fontSize: 11.5, color: C.faint, marginTop: 10, lineHeight: 1.6 }}>
+        <div style={{ fontSize: 12.5, color: C.faint, marginTop: 10, lineHeight: 1.6 }}>
           The file has to be publicly reachable and allow cross-origin reads, or the browser
           can&apos;t redraw it into other formats. Files served from your own sites work.
         </div>
@@ -648,10 +648,10 @@ function LogoCard({
 
       <div style={{ padding: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <span style={{ fontSize: 13.5, fontWeight: 500 }}>{variant.name}</span>
+          <span style={{ fontSize: 14.5, fontWeight: 500 }}>{variant.name}</span>
           <Pill tone="neutral">{variant.shape === 'icon' ? 'Mark only' : 'Full lockup'}</Pill>
         </div>
-        <div style={{ fontSize: 11.5, color: C.faint, lineHeight: 1.5, marginBottom: 12 }}>
+        <div style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.5, marginBottom: 12 }}>
           {variant.use}
         </div>
 
@@ -659,7 +659,7 @@ function LogoCard({
           <select
             value={format}
             onChange={(e) => setFormat(e.target.value as LogoFormat)}
-            style={{ ...inputStyle, padding: '6px 8px', fontSize: 12 }}
+            style={{ ...inputStyle, padding: '6px 8px', fontSize: 13 }}
           >
             <option value="png">PNG</option>
             <option value="jpg">JPG</option>
@@ -668,7 +668,7 @@ function LogoCard({
           <select
             value={size}
             onChange={(e) => setSize(Number(e.target.value))}
-            style={{ ...inputStyle, padding: '6px 8px', fontSize: 12 }}
+            style={{ ...inputStyle, padding: '6px 8px', fontSize: 13 }}
           >
             {LOGO_SIZES.map((s) => (
               <option key={s.label} value={s.px}>{s.label}</option>
@@ -676,7 +676,7 @@ function LogoCard({
           </select>
         </div>
 
-        <div style={{ fontSize: 10.5, color: C.faint, marginBottom: 10, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 10, lineHeight: 1.5 }}>
           {FORMAT_NOTES[format]}
         </div>
 

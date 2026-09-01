@@ -63,7 +63,7 @@ export function TutorialPanel() {
               {activePath ? activePath.name : `Learn ${PRODUCT}`}
             </div>
             {activePath && (
-              <div style={{ fontSize: 11.5, color: C.faint, marginTop: 2 }}>
+              <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2 }}>
                 {progressFor(activePath.id).done} of {progressFor(activePath.id).total} done
               </div>
             )}
@@ -90,12 +90,12 @@ export function TutorialPanel() {
               <AskBox />
 
               <div style={{
-                fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.09em',
+                fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '0.09em',
                 color: C.faint, fontWeight: 600, margin: '26px 0 10px',
               }}>
                 Or walk a whole process
               </div>
-              <p style={{ fontSize: 13, color: C.dim, marginTop: 0, lineHeight: 1.55 }}>
+              <p style={{ fontSize: 14, color: C.dim, marginTop: 0, lineHeight: 1.55 }}>
                 Each path runs end to end on your real data. Not a tour with tooltips.
               </p>
 
@@ -125,16 +125,16 @@ export function TutorialPanel() {
                           gap: 10,
                         }}
                       >
-                        <span style={{ fontFamily: SERIF, fontSize: 17, color: C.text }}>
+                        <span style={{ fontFamily: SERIF, fontSize: 18, color: C.text }}>
                           {p.name}
                         </span>
-                        <span style={{ fontSize: 11, color: C.faint, whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: 12, color: C.faint, whiteSpace: 'nowrap' }}>
                           {p.minutes} min
                         </span>
                       </div>
                       <p
                         style={{
-                          fontSize: 12.5,
+                          fontSize: 13.5,
                           color: C.dim,
                           margin: '7px 0 12px',
                           lineHeight: 1.5,
@@ -158,7 +158,7 @@ export function TutorialPanel() {
                           }}
                         />
                       </div>
-                      <div style={{ fontSize: 10.5, color: C.faint, marginTop: 6 }}>
+                      <div style={{ fontSize: 11.5, color: C.faint, marginTop: 6 }}>
                         {done}/{total} steps
                       </div>
                     </button>
@@ -168,7 +168,7 @@ export function TutorialPanel() {
             </>
           ) : (
             <>
-              <p style={{ fontSize: 13, color: C.dim, marginTop: 0, lineHeight: 1.55 }}>
+              <p style={{ fontSize: 14, color: C.dim, marginTop: 0, lineHeight: 1.55 }}>
                 {activePath.blurb}
               </p>
 
@@ -199,7 +199,7 @@ export function TutorialPanel() {
                           border: `1.5px solid ${isDone ? C.green : C.borderStrong}`,
                           background: isDone ? C.green : 'transparent',
                           color: '#fff',
-                          fontSize: 12,
+                          fontSize: 13,
                           lineHeight: 1,
                           cursor: 'pointer',
                           marginTop: 1,
@@ -211,7 +211,7 @@ export function TutorialPanel() {
                       <div style={{ flex: 1 }}>
                         <div
                           style={{
-                            fontSize: 14,
+                            fontSize: 15,
                             fontWeight: 500,
                             color: isDone ? C.faint : C.text,
                             textDecoration: isDone ? 'line-through' : 'none',
@@ -221,7 +221,7 @@ export function TutorialPanel() {
                         </div>
                         <p
                           style={{
-                            fontSize: 12.5,
+                            fontSize: 13.5,
                             color: C.dim,
                             margin: '6px 0 0',
                             lineHeight: 1.55,
@@ -233,7 +233,7 @@ export function TutorialPanel() {
                         {step.done && (
                           <div
                             style={{
-                              fontSize: 11.5,
+                              fontSize: 12.5,
                               color: C.green,
                               marginTop: 8,
                               background: C.greenSoft,
@@ -258,7 +258,7 @@ export function TutorialPanel() {
                                 border: `1px solid ${C.borderStrong}`,
                                 borderRadius: radius.md,
                                 padding: '6px 12px',
-                                fontSize: 12,
+                                fontSize: 13,
                                 color: C.text,
                                 cursor: 'pointer',
                                 fontFamily: 'inherit',
@@ -293,7 +293,7 @@ export function TutorialPanel() {
                 border: `1px solid ${C.borderStrong}`,
                 borderRadius: radius.md,
                 padding: '8px 14px',
-                fontSize: 12.5,
+                fontSize: 13.5,
                 color: C.text,
                 cursor: 'pointer',
                 fontFamily: 'inherit',
@@ -306,7 +306,7 @@ export function TutorialPanel() {
               style={{
                 background: 'transparent',
                 border: 'none',
-                fontSize: 12.5,
+                fontSize: 13.5,
                 color: C.faint,
                 cursor: 'pointer',
                 fontFamily: 'inherit',
@@ -357,13 +357,13 @@ function AskBox() {
           borderRadius: radius.md,
           padding: '11px 13px',
           color: C.text,
-          fontSize: 13.5,
+          fontSize: 14.5,
           fontFamily: 'inherit',
           boxSizing: 'border-box',
         }}
       />
 
-      <div style={{ fontSize: 11, color: C.faint, margin: '7px 2px 0' }}>
+      <div style={{ fontSize: 12, color: C.faint, margin: '7px 2px 0' }}>
         Answered from a built-in guide. Free, instant, and it never makes anything up.
       </div>
 
@@ -374,7 +374,7 @@ function AskBox() {
             padding: 14,
             borderRadius: radius.md,
             background: C.panelAlt,
-            fontSize: 12.5,
+            fontSize: 13.5,
             color: C.dim,
             lineHeight: 1.55,
           }}
@@ -387,7 +387,7 @@ function AskBox() {
           {!asking && (
             <div
               style={{
-                fontSize: 9.5,
+                fontSize: 10.5,
                 textTransform: 'uppercase',
                 letterSpacing: '0.09em',
                 color: C.faint,
@@ -418,7 +418,7 @@ function AskBox() {
                     background: 'transparent',
                     border: 'none',
                     color: C.text,
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: isOpen ? 500 : 400,
                     cursor: 'pointer',
                     fontFamily: 'inherit',
@@ -431,7 +431,7 @@ function AskBox() {
                   <div style={{ padding: '0 13px 13px' }}>
                     <div
                       style={{
-                        fontSize: 12.5,
+                        fontSize: 13.5,
                         color: C.dim,
                         lineHeight: 1.6,
                         whiteSpace: 'pre-wrap',
@@ -451,7 +451,7 @@ function AskBox() {
                           border: `1px solid ${C.borderStrong}`,
                           borderRadius: radius.md,
                           padding: '6px 12px',
-                          fontSize: 12,
+                          fontSize: 13,
                           color: C.text,
                           cursor: 'pointer',
                           fontFamily: 'inherit',

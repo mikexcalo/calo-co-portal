@@ -286,7 +286,7 @@ export default function FilesPage() {
 
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
 
@@ -298,7 +298,7 @@ export default function FilesPage() {
             return (
               <div
                 key={f.id}
-                style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 13, padding: '4px 0' }}
+                style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 14, padding: '4px 0' }}
               >
                 <span>{f.name}</span>
                 <span style={{ color: expired ? C.red : C.amber, fontWeight: 500 }}>
@@ -335,12 +335,12 @@ export default function FilesPage() {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontSize: 11.5, color: C.faint }}>
+                    <span style={{ fontSize: 12.5, color: C.faint }}>
                       {item.file.name} · {mb(item.file.size)}
                     </span>
                     <button
                       onClick={() => setStaged((p) => p.filter((_, j) => j !== i))}
-                      style={{ background: 'none', border: 'none', color: C.faint, cursor: 'pointer', fontSize: 16 }}
+                      style={{ background: 'none', border: 'none', color: C.faint, cursor: 'pointer', fontSize: 17 }}
                       title="Remove"
                     >×</button>
                   </div>
@@ -372,7 +372,7 @@ export default function FilesPage() {
                     />
                   </div>
                   {cat?.expires && !item.expires_on && (
-                    <div style={{ fontSize: 11, color: C.amber, marginTop: 5 }}>
+                    <div style={{ fontSize: 12, color: C.amber, marginTop: 5 }}>
                       {cat.label}s usually expire. Add a date and we&apos;ll warn you before it lapses.
                     </div>
                   )}
@@ -400,7 +400,7 @@ export default function FilesPage() {
                 the dividers you scan by. */}
             <div
               style={{
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: 600,
                 color: C.text,
                 marginBottom: 10,
@@ -412,7 +412,7 @@ export default function FilesPage() {
               }}
             >
               {c.label}
-              <span style={{ fontSize: 11.5, fontWeight: 400, color: C.faint }}>
+              <span style={{ fontSize: 12.5, fontWeight: 400, color: C.faint }}>
                 {grouped[c.id].length}
               </span>
             </div>
@@ -436,7 +436,7 @@ export default function FilesPage() {
                   >
                     <div style={{ flex: 1, minWidth: 200 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 13.5, fontWeight: 500 }}>{f.name}</span>
+                        <span style={{ fontSize: 14.5, fontWeight: 500 }}>{f.name}</span>
                         {f.expires_on && (
                           <Pill tone={expired ? 'red' : 'amber'}>
                             {expired ? 'Expired' : `Expires ${shortDate(f.expires_on)}`}
@@ -445,11 +445,11 @@ export default function FilesPage() {
                         {f.shared_with_client && <Pill tone="blue">Shared</Pill>}
                       </div>
                       {f.description && (
-                        <div style={{ fontSize: 11.5, color: C.faint, marginTop: 4, lineHeight: 1.5 }}>
+                        <div style={{ fontSize: 12.5, color: C.faint, marginTop: 4, lineHeight: 1.5 }}>
                           {f.description}
                         </div>
                       )}
-                      <div style={{ fontSize: 11, color: C.faint, marginTop: 4 }}>
+                      <div style={{ fontSize: 12, color: C.faint, marginTop: 4 }}>
                         {f.file_name} · {mb(f.size_bytes)}
                       </div>
                     </div>
@@ -470,7 +470,7 @@ export default function FilesPage() {
                           background: 'transparent',
                           color: C.faint,
                           cursor: 'pointer',
-                          fontSize: 13,
+                          fontSize: 14,
                           lineHeight: 1,
                           display: 'flex',
                           alignItems: 'center',

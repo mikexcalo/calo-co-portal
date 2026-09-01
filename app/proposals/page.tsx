@@ -104,7 +104,7 @@ export default function ProposalsPage() {
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
 
@@ -161,7 +161,7 @@ export default function ProposalsPage() {
                   </Row>
                 ))}
               </Table>
-              <div style={{ fontSize: 11.5, color: C.faint, marginTop: 8 }}>
+              <div style={{ fontSize: 12.5, color: C.faint, marginTop: 8 }}>
                 Nobody can accept a proposal they never received.
               </div>
             </div>
@@ -192,8 +192,8 @@ export default function ProposalsPage() {
                       }}
                     >
                       <div style={{ flex: 1, minWidth: 200 }}>
-                        <div style={{ fontSize: 14, fontWeight: 500 }}>{r.job?.name ?? '—'}</div>
-                        <div style={{ fontSize: 12, color: C.dim, marginTop: 3 }}>
+                        <div style={{ fontSize: 15, fontWeight: 500 }}>{r.job?.name ?? '—'}</div>
+                        <div style={{ fontSize: 13, color: C.dim, marginTop: 3 }}>
                           {r.job?.customer?.name ?? '—'}
                           {age != null && ` · sent ${age === 0 ? 'today' : `${age}d ago`}`}
                         </div>
@@ -204,7 +204,7 @@ export default function ProposalsPage() {
                       <Pill tone={opened ? 'blue' : 'neutral'}>
                         {opened ? 'Opened it' : 'Not opened'}
                       </Pill>
-                      <div style={{ fontSize: 15, minWidth: 90, textAlign: 'right' }}>
+                      <div style={{ fontSize: 16, minWidth: 90, textAlign: 'right' }}>
                         {money(r.total)}
                       </div>
                     </div>
@@ -250,13 +250,13 @@ export default function ProposalsPage() {
                 {lost
                   .filter((r) => r.decline_reason)
                   .map((r) => (
-                    <div key={r.id} style={{ fontSize: 12.5, color: C.dim, padding: '5px 0' }}>
+                    <div key={r.id} style={{ fontSize: 13.5, color: C.dim, padding: '5px 0' }}>
                       <strong style={{ color: C.text }}>{r.job?.name}</strong> —{' '}
                       {r.decline_reason}
                     </div>
                   ))}
               </Card>
-              <div style={{ fontSize: 11.5, color: C.faint, marginTop: 8 }}>
+              <div style={{ fontSize: 12.5, color: C.faint, marginTop: 8 }}>
                 The most useful thing on this page over time.
               </div>
             </div>

@@ -215,7 +215,7 @@ function LoginForm() {
     border: `1px solid ${BORDER}`,
     borderRadius: 7,
     padding: '11px 13px',
-    fontSize: 14,
+    fontSize: 15,
     color: TEXT,
     fontFamily: 'inherit',
     boxSizing: 'border-box',
@@ -238,7 +238,7 @@ function LoginForm() {
           <div style={{ fontSize: 22, fontWeight: 600, color: INK, letterSpacing: '-0.4px' }}>
             {PRODUCT}
           </div>
-          <div style={{ fontSize: 13, color: FAINT, marginTop: 6 }}>
+          <div style={{ fontSize: 14, color: FAINT, marginTop: 6 }}>
             Your workspace from {PROVIDER}
           </div>
         </div>
@@ -253,10 +253,10 @@ function LoginForm() {
         >
           {sent ? (
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 15, fontWeight: 500, color: TEXT, marginBottom: 8 }}>
+              <div style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 8 }}>
                 Check your email
               </div>
-              <p style={{ fontSize: 13, color: DIM, lineHeight: 1.6, margin: '0 0 12px' }}>
+              <p style={{ fontSize: 14, color: DIM, lineHeight: 1.6, margin: '0 0 12px' }}>
                 If there&apos;s an account for <strong>{email}</strong>, a link to set a new
                 password is on its way. It usually lands within a minute and expires in an hour.
               </p>
@@ -272,7 +272,7 @@ function LoginForm() {
               */}
               <p
                 style={{
-                  fontSize: 12.5,
+                  fontSize: 13.5,
                   color: DIM,
                   lineHeight: 1.6,
                   margin: 0,
@@ -296,7 +296,7 @@ function LoginForm() {
                     background: 'transparent',
                     border: 'none',
                     color: ACCENT,
-                    fontSize: 13,
+                    fontSize: 14,
                     cursor: 'pointer',
                     fontFamily: 'inherit',
                   }}
@@ -312,7 +312,7 @@ function LoginForm() {
                     background: 'transparent',
                     border: 'none',
                     color: DIM,
-                    fontSize: 13,
+                    fontSize: 14,
                     cursor: 'pointer',
                     fontFamily: 'inherit',
                   }}
@@ -323,10 +323,10 @@ function LoginForm() {
             </div>
           ) : mode === 'code' ? (
             <form onSubmit={useRecovery ? submitRecovery : submitCode}>
-              <div style={{ fontSize: 15, fontWeight: 500, color: TEXT, marginBottom: 4 }}>
+              <div style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 4 }}>
                 {useRecovery ? 'Use a backup code' : 'One more step'}
               </div>
-              <p style={{ fontSize: 12.5, color: FAINT, margin: '0 0 20px', lineHeight: 1.55 }}>
+              <p style={{ fontSize: 13.5, color: FAINT, margin: '0 0 20px', lineHeight: 1.55 }}>
                 {useRecovery
                   ? 'Enter one of the eight backup codes you saved during setup. It turns two-factor off so your password works on its own. Set it up again once you have your new phone.'
                   : `Open your authenticator app and enter the six-digit code it shows for ${PRODUCT}.`}
@@ -334,7 +334,7 @@ function LoginForm() {
 
               {useRecovery ? (
                 <label style={{ display: 'block', marginBottom: 14 }}>
-                  <div style={{ fontSize: 12, color: DIM, marginBottom: 6 }}>Backup code</div>
+                  <div style={{ fontSize: 13, color: DIM, marginBottom: 6 }}>Backup code</div>
                   <input
                     value={recovery}
                     onChange={(e) => setRecovery(e.target.value.toUpperCase())}
@@ -350,7 +350,7 @@ function LoginForm() {
                 </label>
               ) : (
                 <label style={{ display: 'block', marginBottom: 14 }}>
-                  <div style={{ fontSize: 12, color: DIM, marginBottom: 6 }}>Six-digit code</div>
+                  <div style={{ fontSize: 13, color: DIM, marginBottom: 6 }}>Six-digit code</div>
                   <input
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -377,7 +377,7 @@ function LoginForm() {
                     border: `1px solid ${RED}33`,
                     borderRadius: 7,
                     padding: '10px 12px',
-                    fontSize: 12.5,
+                    fontSize: 13.5,
                     color: RED,
                     marginBottom: 14,
                     lineHeight: 1.5,
@@ -397,7 +397,7 @@ function LoginForm() {
                   border: 'none',
                   borderRadius: 7,
                   padding: '12px',
-                  fontSize: 14,
+                  fontSize: 15,
                   fontWeight: 500,
                   cursor: loading ? 'wait' : 'pointer',
                   opacity: loading || (!useRecovery && code.length !== 6) ? 0.5 : 1,
@@ -419,7 +419,7 @@ function LoginForm() {
                   background: 'transparent',
                   border: 'none',
                   color: DIM,
-                  fontSize: 12.5,
+                  fontSize: 13.5,
                   cursor: 'pointer',
                   fontFamily: 'inherit',
                 }}
@@ -429,10 +429,10 @@ function LoginForm() {
             </form>
           ) : (
             <form onSubmit={mode === 'password' ? signIn : sendReset}>
-              <div style={{ fontSize: 15, fontWeight: 500, color: TEXT, marginBottom: 4 }}>
+              <div style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 4 }}>
                 {mode === 'password' ? 'Sign in' : 'Reset your password'}
               </div>
-              <p style={{ fontSize: 12.5, color: FAINT, margin: '0 0 20px', lineHeight: 1.5 }}>
+              <p style={{ fontSize: 13.5, color: FAINT, margin: '0 0 20px', lineHeight: 1.5 }}>
                 {mode === 'password'
                   ? 'Use the email your workspace was set up with.'
                   : "We'll email you a link to set a new one."}
@@ -455,7 +455,7 @@ function LoginForm() {
                       border: `1px solid ${BORDER}`,
                       borderRadius: 7,
                       padding: '11px',
-                      fontSize: 14,
+                      fontSize: 15,
                       fontWeight: 500,
                       cursor: loading ? 'wait' : 'pointer',
                       fontFamily: 'inherit',
@@ -482,14 +482,14 @@ function LoginForm() {
                     }}
                   >
                     <div style={{ flex: 1, height: 1, background: BORDER }} />
-                    <span style={{ fontSize: 11.5, color: FAINT }}>or use your email</span>
+                    <span style={{ fontSize: 12.5, color: FAINT }}>or use your email</span>
                     <div style={{ flex: 1, height: 1, background: BORDER }} />
                   </div>
                 </>
               )}
 
               <label style={{ display: 'block', marginBottom: 14 }}>
-                <div style={{ fontSize: 12, color: DIM, marginBottom: 6 }}>Email</div>
+                <div style={{ fontSize: 13, color: DIM, marginBottom: 6 }}>Email</div>
                 <input
                   type="email"
                   value={email}
@@ -504,7 +504,7 @@ function LoginForm() {
 
               {mode === 'password' && (
                 <label style={{ display: 'block', marginBottom: 14 }}>
-                  <div style={{ fontSize: 12, color: DIM, marginBottom: 6 }}>Password</div>
+                  <div style={{ fontSize: 13, color: DIM, marginBottom: 6 }}>Password</div>
                   <input
                     type="password"
                     value={password}
@@ -523,7 +523,7 @@ function LoginForm() {
                     border: `1px solid ${RED}33`,
                     borderRadius: 7,
                     padding: '10px 12px',
-                    fontSize: 12.5,
+                    fontSize: 13.5,
                     color: RED,
                     marginBottom: 14,
                     lineHeight: 1.5,
@@ -543,7 +543,7 @@ function LoginForm() {
                   border: 'none',
                   borderRadius: 7,
                   padding: '12px',
-                  fontSize: 14,
+                  fontSize: 15,
                   fontWeight: 500,
                   cursor: loading ? 'wait' : 'pointer',
                   opacity: loading ? 0.6 : 1,
@@ -569,7 +569,7 @@ function LoginForm() {
                   background: 'transparent',
                   border: 'none',
                   color: DIM,
-                  fontSize: 12.5,
+                  fontSize: 13.5,
                   cursor: 'pointer',
                   fontFamily: 'inherit',
                 }}
@@ -584,7 +584,7 @@ function LoginForm() {
           style={{
             textAlign: 'center',
             marginTop: 20,
-            fontSize: 12.5,
+            fontSize: 13.5,
             color: FAINT,
             lineHeight: 1.6,
           }}

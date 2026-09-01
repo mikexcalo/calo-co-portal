@@ -103,7 +103,7 @@ export function BottomBar({
     // spare, because this gets used with gloves on.
     minHeight: 56,
     padding: '6px 2px',
-    fontSize: 10.5,
+    fontSize: 11.5,
     fontWeight: 500,
     cursor: 'pointer',
     fontFamily: 'inherit',
@@ -154,7 +154,7 @@ export function BottomBar({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 17,
+            fontSize: 18,
             lineHeight: 1,
             fontWeight: 400,
           }}

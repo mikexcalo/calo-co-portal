@@ -215,12 +215,12 @@ export default function BillingPage() {
     <Page title="Billing" subtitle="Built from the hours you logged and the receipts you filed. Nothing retyped.">
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
       {notice && (
         <Card style={{ borderColor: `${C.green}55`, marginBottom: 16 }}>
-          <div style={{ color: C.green, fontSize: 13 }}>{notice}</div>
+          <div style={{ color: C.green, fontSize: 14 }}>{notice}</div>
         </Card>
       )}
 
@@ -293,12 +293,12 @@ export default function BillingPage() {
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img src={logo} alt="" style={{ height: 22, objectFit: 'contain' }} />
                       )}
-                      <span style={{ fontSize: 12, color: C.dim }}>
+                      <span style={{ fontSize: 13, color: C.dim }}>
                         {org?.name} · {inv.number}
                       </span>
                     </div>
                     {inv.period_start && (
-                      <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 10 }}>
+                      <div style={{ fontSize: 12.5, color: C.faint, marginBottom: 10 }}>
                         Work from {shortDate(inv.period_start)} to {shortDate(inv.period_end)}
                       </div>
                     )}
@@ -310,7 +310,7 @@ export default function BillingPage() {
                           display: 'grid',
                           gridTemplateColumns: '1fr 80px 90px 100px',
                           gap: 10,
-                          fontSize: 12.5,
+                          fontSize: 13.5,
                           padding: '5px 0',
                           color: C.dim,
                         }}
@@ -419,14 +419,14 @@ export default function BillingPage() {
                         )}
                       </div>
 
-                      <div style={{ fontSize: 13 }}>
+                      <div style={{ fontSize: 14 }}>
                         <span style={{ color: C.faint }}>Total </span>
                         <span style={{ fontWeight: 500 }}>{money(inv.total)}</span>
                       </div>
                     </div>
 
                     {inv.status !== 'void' && inv.status !== 'paid' && (
-                      <div style={{ fontSize: 11, color: C.faint, marginTop: 8 }}>
+                      <div style={{ fontSize: 12, color: C.faint, marginTop: 8 }}>
                         Voiding returns these hours and receipts to unbilled so they can be re-invoiced.
                       </div>
                     )}
@@ -441,7 +441,7 @@ export default function BillingPage() {
                           padding: 10,
                           borderRadius: 6,
                           background: C.amberSoft,
-                          fontSize: 11.5,
+                          fontSize: 12.5,
                           color: C.amber,
                           lineHeight: 1.6,
                         }}

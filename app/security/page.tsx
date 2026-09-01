@@ -241,30 +241,30 @@ export default function SecurityPage() {
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
         </Card>
       )}
       {notice && (
         <Card style={{ borderColor: C.blue, marginBottom: 16 }}>
-          <div style={{ color: C.blue, fontSize: 13 }}>{notice}</div>
+          <div style={{ color: C.blue, fontSize: 14 }}>{notice}</div>
         </Card>
       )}
 
       {loading ? (
-        <Card><div style={{ fontSize: 13, color: C.faint }}>Loading…</div></Card>
+        <Card><div style={{ fontSize: 14, color: C.faint }}>Loading…</div></Card>
       ) : stage === 'codes' ? (
         <Card>
           <SectionLabel>Step 3 of 3 — save your backup codes</SectionLabel>
-          <h2 style={{ fontSize: 17, fontWeight: 600, color: C.text, margin: '8px 0 10px' }}>
+          <h2 style={{ fontSize: 18, fontWeight: 600, color: C.text, margin: '8px 0 10px' }}>
             These are how you get in if you lose your phone
           </h2>
-          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 12px', maxWidth: 560 }}>
+          <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.7, margin: '0 0 12px', maxWidth: 560 }}>
             Your phone is now the only thing that can produce your sign-in codes. If it&apos;s lost, stolen, replaced or wiped, these eight codes get you back in.
           </p>
-          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 12px', maxWidth: 560 }}>
+          <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.7, margin: '0 0 12px', maxWidth: 560 }}>
             Enter one at sign-in and two-factor turns off, so your password works on its own. Set it up fresh on your new phone. Each code works once.
           </p>
-          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 16px', maxWidth: 560 }}>
+          <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.7, margin: '0 0 16px', maxWidth: 560 }}>
             Store them somewhere other than the phone you just set up. A password manager works, so does printing them and filing them with your business paperwork. They can&apos;t be looked up again, and no one at {PRODUCT} can retrieve them for you.
           </p>
 
@@ -285,7 +285,7 @@ export default function SecurityPage() {
                 key={c}
                 style={{
                   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                  fontSize: 13.5,
+                  fontSize: 14.5,
                   letterSpacing: '.06em',
                   color: C.text,
                 }}
@@ -309,7 +309,7 @@ export default function SecurityPage() {
             </Button>
           </div>
 
-          <p style={{ fontSize: 11.5, color: C.faint, marginTop: 14, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 12.5, color: C.faint, marginTop: 14, lineHeight: 1.6 }}>
             This is the only time these are shown on screen.
           </p>
         </Card>
@@ -317,13 +317,13 @@ export default function SecurityPage() {
         /* A finish line. Without one, the last thing someone sees is a wall of
            codes and no confirmation that any of it worked. */
         <Card>
-          <div style={{ fontSize: 17, fontWeight: 600, color: C.text, marginBottom: 10 }}>
+          <div style={{ fontSize: 18, fontWeight: 600, color: C.text, marginBottom: 10 }}>
             Two-factor is on. You&apos;re done.
           </div>
-          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 14px', maxWidth: 560 }}>
+          <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.7, margin: '0 0 14px', maxWidth: 560 }}>
             You&apos;re done. Next time you sign in, {PRODUCT} asks for your password as usual, then the six-digit code from your authenticator app.
           </p>
-          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 18px', maxWidth: 560 }}>
+          <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.7, margin: '0 0 18px', maxWidth: 560 }}>
             Your sign-in on this device keeps working. You won&apos;t be logged out.
           </p>
           <Button onClick={() => setStage('idle')}>Back to security settings</Button>
@@ -335,10 +335,10 @@ export default function SecurityPage() {
            a half-enrolled account. */
         <Card>
           <SectionLabel>Before you start</SectionLabel>
-          <h2 style={{ fontSize: 17, fontWeight: 600, color: C.text, margin: '8px 0 12px' }}>
+          <h2 style={{ fontSize: 18, fontWeight: 600, color: C.text, margin: '8px 0 12px' }}>
             What you&apos;re setting up
           </h2>
-          <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: '0 0 16px', maxWidth: 580 }}>
+          <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.7, margin: '0 0 16px', maxWidth: 580 }}>
             An <strong>authenticator app</strong> on your phone generates a six-digit code that changes every 30 seconds. From then on, signing in to {PRODUCT} takes your password and that code. Anyone who gets your password still can&apos;t get in, because they don&apos;t have your phone.
           </p>
 
@@ -352,21 +352,21 @@ export default function SecurityPage() {
               maxWidth: 580,
             }}
           >
-            <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 8 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: C.text, marginBottom: 8 }}>
               You&apos;ll need an authenticator app
             </div>
-            <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.7, margin: '0 0 8px' }}>
+            <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.7, margin: '0 0 8px' }}>
               You may already have one. iPhone and Android both build it into the password manager, and 1Password, Bitwarden and LastPass all do it too.
             </p>
-            <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.7, margin: 0 }}>
+            <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.7, margin: 0 }}>
               If not, search your app store for <strong>Google Authenticator</strong>. It&apos;s free, installs in a minute, and works on every other site that offers this.
             </p>
           </div>
 
-          <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 8 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: C.text, marginBottom: 8 }}>
             Three steps, about two minutes
           </div>
-          <ol style={{ margin: '0 0 20px', paddingLeft: 20, fontSize: 13.5, color: C.dim, lineHeight: 1.9, maxWidth: 580 }}>
+          <ol style={{ margin: '0 0 20px', paddingLeft: 20, fontSize: 14.5, color: C.dim, lineHeight: 1.9, maxWidth: 580 }}>
             <li>Point your authenticator app at a square barcode on the next screen.</li>
             <li>Type the six digits it starts showing, to prove it worked.</li>
             <li>Save eight backup codes — your way in if the phone is ever lost.</li>
@@ -382,7 +382,7 @@ export default function SecurityPage() {
       ) : stage === 'scan' && enrol ? (
         <Card>
           <SectionLabel>Step 1 of 3 — scan this</SectionLabel>
-          <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: '8px 0 14px', maxWidth: 560 }}>
+          <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.65, margin: '8px 0 14px', maxWidth: 560 }}>
             Open your authenticator app, choose to add an account, and point your camera at this square. It&apos;ll start showing a six-digit code for {PRODUCT}.
           </p>
 
@@ -414,7 +414,7 @@ export default function SecurityPage() {
               border: 'none',
               padding: 0,
               color: C.blue,
-              fontSize: 12.5,
+              fontSize: 13.5,
               cursor: 'pointer',
               fontFamily: 'inherit',
             }}
@@ -431,7 +431,7 @@ export default function SecurityPage() {
                 borderRadius: 7,
                 padding: '10px 12px',
                 fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                fontSize: 13,
+                fontSize: 14,
                 letterSpacing: '.08em',
                 wordBreak: 'break-all',
                 color: C.text,
@@ -443,7 +443,7 @@ export default function SecurityPage() {
 
           <div style={{ marginTop: 22 }}>
             <SectionLabel>Step 2 of 3 — prove it worked</SectionLabel>
-            <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: '8px 0 12px' }}>
+            <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.65, margin: '8px 0 12px' }}>
               Type the six digits your app is showing for {PRODUCT}. They change every 30 seconds, so use whatever is on screen.
             </p>
             <div style={{ maxWidth: 200 }}>
@@ -485,12 +485,12 @@ export default function SecurityPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
               <div style={{ maxWidth: 560 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                  <span style={{ fontSize: 15, fontWeight: 500, color: C.text }}>
+                  <span style={{ fontSize: 16, fontWeight: 500, color: C.text }}>
                     Two-factor sign-in
                   </span>
                   <Pill tone={enabled ? 'green' : 'amber'}>{enabled ? 'On' : 'Off'}</Pill>
                 </div>
-                <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.7, margin: 0 }}>
+                <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.7, margin: 0 }}>
                   {enabled
                     ? 'Signing in takes your password plus a six-digit code from your phone. Someone with your password still gets nowhere without it.'
                     : `Adds a second step when you sign in: after your password, ${PRODUCT} asks for a six-digit code that only your phone can produce. It means a stolen or guessed password is not enough on its own — which is how most business accounts are lost.`}
@@ -514,14 +514,14 @@ export default function SecurityPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
                   <div style={{ maxWidth: 560 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                      <span style={{ fontSize: 15, fontWeight: 500, color: C.text }}>
+                      <span style={{ fontSize: 16, fontWeight: 500, color: C.text }}>
                         Backup codes
                       </span>
                       <Pill tone={remaining === 0 ? 'red' : remaining <= 2 ? 'amber' : 'neutral'}>
                         {remaining} left
                       </Pill>
                     </div>
-                    <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: 0 }}>
+                    <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.65, margin: 0 }}>
                       {remaining === 0
                         ? 'None left. If your phone is lost or replaced now, there is no way back into this account. Generate a new set and save them.'
                         : 'Your way in if your phone is lost, stolen or replaced. Entering one at sign-in turns two-factor off so your password works alone. Each code works once.'}
@@ -534,7 +534,7 @@ export default function SecurityPage() {
                   </div>
                 </div>
                 {remaining > 0 && (
-                  <p style={{ fontSize: 11.5, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
+                  <p style={{ fontSize: 12.5, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
                     Generating a new set cancels the old one. Any codes you saved or printed before will stop working.
                   </p>
                 )}
@@ -571,10 +571,10 @@ export default function SecurityPage() {
                       {f.icon}
                     </span>
                     <div>
-                      <div style={{ fontSize: 13.5, fontWeight: 600, color: C.text, marginBottom: 4 }}>
+                      <div style={{ fontSize: 14.5, fontWeight: 600, color: C.text, marginBottom: 4 }}>
                         {f.title}
                       </div>
-                      <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.75, margin: 0, maxWidth: 560 }}>
+                      <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.75, margin: 0, maxWidth: 560 }}>
                         {f.body}
                       </p>
                     </div>

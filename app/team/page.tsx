@@ -118,9 +118,9 @@ export default function TeamPage() {
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 13 }}>{error}</div>
+          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
           {hint && (
-            <div style={{ color: C.dim, fontSize: 12, marginTop: 8, lineHeight: 1.55 }}>
+            <div style={{ color: C.dim, fontSize: 13, marginTop: 8, lineHeight: 1.55 }}>
               {hint}
             </div>
           )}
@@ -128,7 +128,7 @@ export default function TeamPage() {
       )}
       {notice && (
         <Card style={{ borderColor: C.green, marginBottom: 16 }}>
-          <div style={{ color: C.green, fontSize: 13 }}>{notice}</div>
+          <div style={{ color: C.green, fontSize: 14 }}>{notice}</div>
         </Card>
       )}
 
@@ -167,7 +167,7 @@ export default function TeamPage() {
           {busy ? 'Sending…' : 'Send invite'}
         </Button>
 
-        <div style={{ fontSize: 11.5, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
+        <div style={{ fontSize: 12.5, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
           They get an email to set their own password. You never see or handle it. They will
           only see <strong>{org?.name}</strong>, and no other business you belong to.
         </div>
@@ -185,7 +185,7 @@ export default function TeamPage() {
           </Row>
           {members.map((m) => (
             <Row key={m.user_id} cols="1fr 140px 130px">
-              <div style={{ fontFamily: 'monospace', fontSize: 11.5, color: C.dim }}>
+              <div style={{ fontFamily: 'monospace', fontSize: 12.5, color: C.dim }}>
                 {m.user_id.slice(0, 8)}…
               </div>
               <div><Pill tone={m.role === 'owner' ? 'blue' : 'neutral'}>{m.role}</Pill></div>
@@ -195,7 +195,7 @@ export default function TeamPage() {
         </Table>
       )}
 
-      <div style={{ fontSize: 11.5, color: C.faint, marginTop: 14, maxWidth: 620, lineHeight: 1.6 }}>
+      <div style={{ fontSize: 12.5, color: C.faint, marginTop: 14, maxWidth: 620, lineHeight: 1.6 }}>
         Emails aren&apos;t shown here. The members table stores only the user id, and reading
         the auth records needs admin access the browser deliberately doesn&apos;t have.
       </div>
