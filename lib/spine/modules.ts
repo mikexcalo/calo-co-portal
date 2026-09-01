@@ -223,7 +223,6 @@ export function navFor(
     {
       heading: 'The Work',
       items: [
-        { id: 'ask', label: 'Ask', href: '/ask', icon: 'search' },
         { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'yardSign' },
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
         { id: 'receipts', label: 'Receipts', href: '/documents', icon: 'quotes' },

@@ -83,6 +83,15 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) return NextResponse.json({ error: 'Answering is not configured yet.' }, { status: 500 });
 
+    /**
+     * Everything below has to return JSON, including when it fails.
+     *
+     * Without this the model call threw, Next returned an empty 500 body, and
+     * the browser reported "Unexpected end of JSON input", which tells the
+     * person nothing about what went wrong. A route the UI parses as JSON must
+     * never have a path that returns something else.
+     */
+    try {
     const client = new Anthropic({ apiKey });
     const msg = await client.messages.create({
       model: MODEL,
@@ -98,6 +107,13 @@ export async function POST(req: NextRequest) {
     costCents =
       (msg.usage.input_tokens / 1_000_000) * INPUT_PER_MTOK * 100 +
       (msg.usage.output_tokens / 1_000_000) * OUTPUT_PER_MTOK * 100;
+    } catch (e) {
+      console.error('[ask]', (e as Error).message);
+      return NextResponse.json(
+        { error: `Could not work out what you were asking: ${(e as Error).message}` },
+        { status: 502 }
+      );
+    }
   }
 
   const q = QUESTIONS.find((x) => x.id === id);

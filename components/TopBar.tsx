@@ -1,5 +1,6 @@
 'use client';
 
+import { CommandBar } from '@/components/spine/CommandBar';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
@@ -104,6 +105,12 @@ export default function TopBar() {
       }}
     >
       <span style={{ fontSize: 14, color: C.faint }}>{title}</span>
+
+      {/* Centered, because it is the way into everything rather than one more
+          control on the right. */}
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0 20px' }}>
+        <CommandBar />
+      </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         {siteUrl && (
