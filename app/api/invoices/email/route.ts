@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
 
     const { data: org } = await db
       .from('orgs')
-      .select('name')
+      .select('name, review_link')
       .eq('id', inv.org_id)
       .maybeSingle();
 
@@ -150,6 +150,7 @@ export async function POST(req: NextRequest) {
 ${inv.due_on ? `<p style="color:#666;font-size:13px;margin:0 0 18px;">Due ${inv.due_on}</p>` : ''}
 <p><a href="${link}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:13px 24px;border-radius:8px;font-weight:600;">View invoice</a></p>
 <p style="color:#666;font-size:13px;margin-top:22px;">That page shows every way you can pay, and you don't need an account to open it. Reply to this email with any questions.</p>
+${org?.review_link ? `<p style="color:#666;font-size:13px;margin-top:18px;">Once this one is wrapped up, a <a href="${org.review_link}" style="color:#666;">review</a> would genuinely help us.</p>` : ''}
 <p style="color:#666;font-size:13px;">${org?.name ?? ''}</p>
 </div>`,
       }),
