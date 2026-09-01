@@ -24,6 +24,7 @@ export type ModuleId =
   | 'client_requests' // agency-facing: the inbox of client requests
   | 'brand_kit'
   | 'brands'
+  | 'stories'
   | 'account'        // client-facing: what I owe my agency
   | 'pricing'
   | 'records'
@@ -71,6 +72,7 @@ const AGENCY: ModuleId[] = [
   'records',
   'brand_kit',
   'brands',
+  'stories',
   'client_requests',
   'team',
   'security',
@@ -109,6 +111,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/requests', 'client_requests'],
   ['/brand-kit', 'brand_kit'],
   ['/framework', 'brands'],
+  ['/stories', 'stories'],
   ['/brands', 'brands'],
   ['/business', 'business'],
   ['/team', 'team'],
@@ -248,6 +251,7 @@ export function navFor(
       items: [
         { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'megaphone' },
         { id: 'brands', label: 'Brand Framework', href: '/framework', icon: 'brandKit' },
+        { id: 'stories', label: 'Case Studies', href: '/stories', icon: 'megaphone' },
         { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
         { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'inbox' },
         { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },

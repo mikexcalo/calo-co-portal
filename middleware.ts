@@ -139,7 +139,8 @@ export const config = {
      * - /p/                     a pitch, read by whoever holds the link
      * - /e/                     the customer-facing estimate page
      * - /i/                     the customer-facing invoice page
+     * - /s/                     a published case study
      */
-    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|q/|p/|e/|i/).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|q/|p/|e/|i/|s/).*)',
   ],
 };
