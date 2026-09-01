@@ -22,7 +22,7 @@ export interface Violation {
   reason?: string;
   /** Character offset, so the caller can show it in place. */
   index: number;
-  /** The line it appears on, and enough either side to recognise it. */
+  /** The line it appears on, and enough either side to recognize it. */
   context: string;
 }
 

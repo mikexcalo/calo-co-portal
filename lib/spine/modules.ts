@@ -108,6 +108,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/website', 'website'],
   ['/requests', 'client_requests'],
   ['/brand-kit', 'brand_kit'],
+  ['/framework', 'brands'],
   ['/brands', 'brands'],
   ['/business', 'business'],
   ['/team', 'team'],
@@ -246,6 +247,7 @@ export function navFor(
       defaultOpen: false,
       items: [
         { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'megaphone' },
+        { id: 'brands', label: 'Brand Framework', href: '/framework', icon: 'brandKit' },
         { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
         { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'inbox' },
         { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },

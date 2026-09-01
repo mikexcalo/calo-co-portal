@@ -24,6 +24,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { checkCopy, shortSentencePairs, type Violation } from '@/lib/spine/guardrails';
+import { reconcile, type BrandModule } from '@/lib/spine/framework';
 import {
   Button,
   C,
@@ -34,17 +35,6 @@ import {
   SectionLabel,
   inputStyle,
 } from '@/components/spine/ui';
-
-interface Module {
-  id: string;
-  name: string;
-  note: string;
-  job: string;
-  how: string[];
-  failures: string[];
-  state: 'locked' | 'testing' | 'open';
-  content: string;
-}
 
 interface Proof {
   id: string;
@@ -59,7 +49,7 @@ interface Proof {
 interface Brand {
   id: string;
   name: string;
-  messaging: Module[];
+  messaging: BrandModule[];
   guardrails: { say?: string[]; never?: Array<{ term: string; reason?: string }> };
 }
 
@@ -88,19 +78,38 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
       supabase.from('brands').select('id, name, messaging, guardrails').eq('id', params.id).maybeSingle(),
       supabase.from('brand_proof').select('*').eq('brand_id', params.id).order('status'),
     ]);
-    if (b.data) setBrand(b.data as unknown as Brand);
+    if (b.data) {
+      const row = b.data as unknown as Brand;
+      // Brought up to the current framework on read. Written content always
+      // wins, so improving the standard never overwrites a decision.
+      setBrand({ ...row, messaging: reconcile(row.messaging ?? []) });
+    }
     if (p.data) setProof(p.data as Proof[]);
     setLoading(false);
   }, [params.id]);
 
   useEffect(() => { load(); }, [load]);
 
-  const saveModule = async (id: string, content: string, state?: Module['state']) => {
+  const saveModule = async (id: string, content: string, state?: BrandModule['state']) => {
     if (!brand) return;
     setBusy(true);
-    const next = brand.messaging.map((m) =>
-      m.id === id ? { ...m, content, state: state ?? m.state } : m
-    );
+    const next = brand.messaging.map((m) => {
+      if (m.id !== id) return m;
+      /**
+       * Touching the words makes it yours.
+       *
+       * A proposal you have read, edited and saved is no longer a proposal,
+       * and leaving the label on would train people to ignore it. The label
+       * only means something while it still marks unchecked work.
+       */
+      const stillProposed = m.source && content.trim() === m.content?.trim();
+      return {
+        ...m,
+        content,
+        state: state ?? m.state,
+        source: stillProposed ? m.source : undefined,
+      };
+    });
     const res = await supabase.from('brands').update({ messaging: next }).eq('id', brand.id);
     setBusy(false);
     if (!res.error) {
@@ -115,8 +124,13 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
     setRhythm(shortSentencePairs(checkText));
   };
 
-  if (loading) return <Page title="Messaging"><Card><Empty>Loading…</Empty></Card></Page>;
-  if (!brand) return <Page title="Messaging"><Card><Empty>Not found.</Empty></Card></Page>;
+  const tabs = [
+    { label: 'Framework', href: `/brands/${params.id}/messaging` },
+    { label: 'Intel', href: `/brands/${params.id}/intel` },
+  ];
+
+  if (loading) return <Page title="Framework" tabs={tabs}><Card><Empty>Loading…</Empty></Card></Page>;
+  if (!brand) return <Page title="Framework" tabs={tabs}><Card><Empty>Not found.</Empty></Card></Page>;
 
   const modules = brand.messaging ?? [];
   const locked = modules.filter((m) => m.state === 'locked').length;
@@ -127,7 +141,13 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
       back={{ label: brand.name, href: `/brands/${brand.id}` }}
       title="Brand and messaging"
       subtitle="Ten modules, in the order the decisions have to be made. Each one is an input to the next."
-      action={<Button variant="ghost" onClick={() => router.push(`/brands/${brand.id}`)}>Brand kit</Button>}
+      tabs={tabs}
+      action={
+        <>
+          <Button onClick={() => router.push(`/brands/${brand.id}/intel`)}>Drop intel</Button>
+          <Button variant="ghost" onClick={() => router.push(`/brands/${brand.id}`)}>Brand kit</Button>
+        </>
+      }
     >
       {/* The two things the framework can actually enforce, stated up front. */}
       <div
@@ -278,6 +298,7 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
                 </span>
                 <span style={{ fontSize: 15.5, fontWeight: 600, color: C.text }}>{m.name}</span>
                 <Pill tone={STATE_TONE[m.state]}>{m.state}</Pill>
+                {m.source && <Pill tone="blue">proposed</Pill>}
                 <span style={{ fontSize: 11.5, color: C.faint, marginLeft: 'auto' }}>{m.note}</span>
               </div>
 
@@ -307,6 +328,12 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
                     rows={7}
                     style={{ ...inputStyle, lineHeight: 1.65, resize: 'vertical', marginBottom: 10 }}
                   />
+
+                  {m.source && (
+                    <div style={{ fontSize: 12, color: C.blue, marginBottom: 10, lineHeight: 1.55 }}>
+                      {m.source}. Nobody has checked it against what was actually said yet.
+                    </div>
+                  )}
 
                   {m.state === 'locked' && (
                     <div style={{ fontSize: 12, color: C.amber, marginBottom: 10, lineHeight: 1.55 }}>
