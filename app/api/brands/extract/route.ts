@@ -177,7 +177,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Reading is not configured yet.' }, { status: 500 });
   }
 
-  let body: { text?: string; brand?: string; existing?: Array<{ id: string; content: string }> };
+  let body: {
+    text?: string;
+    brand?: string;
+    existing?: Array<{ id: string; content: string }>;
+    /** Photographed notes, whiteboards, screenshots. Base64, no data: prefix. */
+    images?: Array<{ media_type: string; data: string }>;
+  };
   try {
     body = await req.json();
   } catch {
@@ -185,11 +191,18 @@ export async function POST(req: NextRequest) {
   }
 
   const text = (body.text ?? '').trim();
-  if (text.length < 200) {
+  const images = (body.images ?? []).slice(0, 8);
+
+  // A photograph carries the length requirement on its own, so text-only is
+  // the only case that has to meet it.
+  if (!images.length && text.length < 200) {
     return NextResponse.json(
       { error: 'That is too short to build a framework from. Paste the whole call or note.' },
       { status: 400 }
     );
+  }
+  if (!images.length && !text) {
+    return NextResponse.json({ error: 'Nothing to read.' }, { status: 400 });
   }
   if (text.length > MAX_CHARS) {
     return NextResponse.json(
@@ -225,7 +238,29 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: 'user',
-          content: `${body.brand ? `This is material about ${body.brand}.\n\n` : ''}${context}${text}`,
+          content: [
+            /**
+             * Images before text, which is what the vision guidance asks for
+             * and matters here: the photograph is usually the whole drop, and
+             * the text is a one line note about where it came from.
+             */
+            ...images.map((img) => ({
+              type: 'image' as const,
+              source: {
+                type: 'base64' as const,
+                media_type: img.media_type as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
+                data: img.data,
+              },
+            })),
+            {
+              type: 'text' as const,
+              text: `${body.brand ? `This is material about ${body.brand}.\n\n` : ''}${context}${
+                images.length
+                  ? `${images.length} photographed ${images.length === 1 ? 'page' : 'pages'} above. Read the handwriting as carefully as you can. Where a word is genuinely illegible, say so in the basis rather than guessing at it.\n\n`
+                  : ''
+              }${text}`,
+            },
+          ],
         },
       ],
     });

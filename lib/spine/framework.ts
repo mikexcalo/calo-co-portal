@@ -27,6 +27,13 @@ export interface FrameworkModule {
   failures: string[];
   /** What to ask a client to fill this in. */
   asks: string[];
+  /**
+   * The templatizable half of the work: something to send, and something to
+   * say. Getting the raw material is a repeatable process and there is no
+   * reason to reinvent the wording every time. What you ask next, once they
+   * have answered, is the half that never templatizes.
+   */
+  script: { email: string; aloud: string };
 }
 
 /**
@@ -65,6 +72,10 @@ export const FRAMEWORK: FrameworkModule[] = [
       "What did people do before this existed?",
       "Why did the founders start it? The real reason, not the deck reason.",
     ],
+    script: {
+      aloud: "Forget the company for a second. What is true about your world that most people outside it get wrong?",
+      email: "Before I write anything, I need the part that is hard to get from a website.\n\nThree questions, and short answers are fine:\n\n1. What does your company actually do, in the words a customer would use? Not the polished version.\n2. What did people do before you existed, and why was that bad?\n3. Why did you start it? The real reason, not the deck reason.\n\nVoice memo, bullet points, whatever is fastest for you. I would rather have it rough than wait for it to be tidy.",
+    },
   },
   {
     id: "brand_promise",
@@ -86,6 +97,10 @@ export const FRAMEWORK: FrameworkModule[] = [
       "What does a customer get that they could hold you to?",
       "What would count as letting them down?",
     ],
+    script: {
+      aloud: "If a customer signed today and you let them down, what would that look like? That is usually the promise, said backwards.",
+      email: "One question this time, and it is the one that decides most of the copy:\n\nWhat does a customer get from you that they could hold you to? Something specific enough that you could fail at it.\n\nSecond half of the same question: what would letting them down actually look like?",
+    },
   },
   {
     id: "north_star",
@@ -106,6 +121,10 @@ export const FRAMEWORK: FrameworkModule[] = [
       "Where is this going in three years?",
       "What would have to be true for that to happen?",
     ],
+    script: {
+      aloud: "Three years out, if this went the way you want, what does the world look like? This one stays internal.",
+      email: "This one is internal, it never goes on the site.\n\nWhere is this going in three years? Not the revenue number, the state of the world you are trying to get to.\n\nAnd what would have to be true for that to happen?",
+    },
   },
   {
     id: "audience",
@@ -128,6 +147,10 @@ export const FRAMEWORK: FrameworkModule[] = [
       "Who is explicitly not the buyer?",
       "What are they doing today instead?",
     ],
+    script: {
+      aloud: "Describe the last person who bought. Their job, their day, and what finally made them pick up the phone.",
+      email: "I need to know exactly who we are writing to, because vague audience makes vague copy.\n\n1. Who buys this? Title, company size, and what their day actually looks like.\n2. Who is explicitly not the buyer? Naming who to turn away is as useful as naming who to chase.\n3. What are they doing today instead of using you?\n\nIf it helps, describe the last customer who signed rather than a type of person.",
+    },
   },
   {
     id: "positioning",
@@ -149,6 +172,10 @@ export const FRAMEWORK: FrameworkModule[] = [
       "What category do they put themselves in?",
       "What does this displace, and why does that alternative fail?",
     ],
+    script: {
+      aloud: "When someone asks what you do at a party, what category do you say? And what are people using instead of you right now?",
+      email: "Two questions that decide the headline:\n\n1. What category do you put yourself in? The words a buyer would search for, not a phrase we invent.\n2. What does buying you replace, and why does that alternative fail people?\n\nOn the second one, I am after the honest version. Usually it is a spreadsheet, a person, or nothing.",
+    },
   },
   {
     id: "tone",
@@ -171,6 +198,10 @@ export const FRAMEWORK: FrameworkModule[] = [
       "What words do they use that nobody else in the category uses?",
       "What kind of writing makes them cringe?",
     ],
+    script: {
+      aloud: "Send me something you have written that sounded like you. And something in your category that made you cringe.",
+      email: "This is the one people find hardest to answer directly, so here is the easy version:\n\n1. Send me two or three things you have written that sounded like you. An email to a customer is perfect, better than anything polished.\n2. Send me something in your industry that made you cringe.\n\nI will pull your voice out of the first and the rules out of the second. You do not have to describe your tone, I would rather hear it.",
+    },
   },
   {
     id: "pitch",
@@ -191,6 +222,10 @@ export const FRAMEWORK: FrameworkModule[] = [
       "If you had one sentence, what is it?",
       "What is the thirty second version?",
     ],
+    script: {
+      aloud: "You are in an elevator with someone who could buy. One sentence. Go.",
+      email: "Quick one:\n\nIf you had one sentence to explain this to someone who could buy, what is it? Do not polish it, I want your version.\n\nThen the thirty second version, as if they asked a follow up.",
+    },
   },
   {
     id: "pillars",
@@ -214,6 +249,10 @@ export const FRAMEWORK: FrameworkModule[] = [
     asks: [
       "What are the two or three things you say every single time?",
     ],
+    script: {
+      aloud: "What are the two or three things you find yourself saying on every single sales call?",
+      email: "What are the two or three things you say on every single call, without fail?\n\nTwo or three, not five. The point is what survives when you only have time for the important part.",
+    },
   },
   {
     id: "proof",
@@ -236,6 +275,10 @@ export const FRAMEWORK: FrameworkModule[] = [
       "Which numbers can you actually source?",
       "Which logos are you cleared to use in public?",
     ],
+    script: {
+      aloud: "Who would go on record with their name attached? And which numbers can you actually source?",
+      email: "Now the part that has to be real before anything goes public.\n\n1. Which customers would go on record, with their name and title attached?\n2. Which numbers can you actually source? A number nobody can trace does not go on the site.\n3. Which customer logos are you cleared to use in public? Cleared means somebody said yes, not that we assume they would.\n\nAnything you want but do not have yet, tell me anyway. I record it as a gap so we know what to go and collect.",
+    },
   },
   {
     id: "guardrails",
@@ -257,8 +300,24 @@ export const FRAMEWORK: FrameworkModule[] = [
       "Which words are banned, and why?",
       "What has gone out that you regretted afterwards?",
     ],
+    script: {
+      aloud: "Any words you never want to see us use? And has anything gone out that you regretted?",
+      email: "Last one, and it saves us a rewrite later.\n\n1. Which words or phrases do you never want to see us use, and why?\n2. Do you use any internal shorthand that should never reach a customer?\n3. Has anything gone out that you regretted afterwards?\n\nI turn these into a check that runs against every piece of copy, so it only has to be said once.",
+    },
   },
 ];
+
+/**
+ * The first send.
+ *
+ * Six modules' worth of questions in one email, because asking somebody ten
+ * separate times is how a discovery process dies. The per-module scripts are
+ * for chasing the gaps afterwards, which is where they earn their place.
+ *
+ * The voice memo line is not a nicety. People write in a register they think
+ * you want and speak in their own, and their own is the raw material.
+ */
+export const FIRST_EMAIL = "Subject: A few questions before I start writing\n\nHi [name],\n\nBefore I write anything, I need the part I cannot get from your website. Short answers are fine, and rough is better than late.\n\nThe company\n1. What does the company actually do, in the words a customer would use?\n2. What did people do before you existed, and why was that bad?\n3. Why did you start it? The real reason, not the deck reason.\n\nThe customer\n4. Who buys this? Title, company size, what their day looks like.\n5. Who is explicitly not the buyer?\n6. What are they doing today instead of using you?\n\nThe category\n7. What category do you put yourself in?\n8. What does buying you replace, and why does that alternative fail?\n\nHow you sound\n9. Send me two or three things you have written that sounded like you. A customer email is perfect.\n10. Send me something in your industry that made you cringe.\n\nA voice memo answering these is faster than typing and I get more out of it. Do not tidy it up.\n\n[your name]";
 
 /**
  * A new client starts empty, not pre-filled.

@@ -17,7 +17,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
-import { FRAMEWORK, blankFramework, progress, type BrandModule } from '@/lib/spine/framework';
+import { FIRST_EMAIL, FRAMEWORK, blankFramework, progress, type BrandModule } from '@/lib/spine/framework';
+import { buildDrops, sortFiles, type DropFile } from '@/lib/spine/intel';
 import {
   Button,
   C,
@@ -52,7 +53,11 @@ export default function FrameworkPage() {
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState('');
   const [customerId, setCustomerId] = useState('');
+  const [seed, setSeed] = useState('');
+  const [files, setFiles] = useState<DropFile[]>([]);
+  const [rejected, setRejected] = useState<string[]>([]);
   const [openModule, setOpenModule] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -89,12 +94,47 @@ export default function FrameworkPage() {
       .select('id')
       .single();
 
-    setBusy(false);
     if (res.error) {
+      setBusy(false);
       setError(res.error.message);
       return;
     }
-    router.push(`/brands/${res.data.id}/messaging`);
+
+    const brandId = res.data.id;
+
+    /**
+     * Anything you already have goes in with the same click.
+     *
+     * Making somebody create the client, land on an empty screen, and then go
+     * and find the transcript again is three steps where there should be one.
+     * Whatever is in your clipboard right now is the reason you are on this
+     * screen at all.
+     */
+    const hasSeed = seed.trim() || files.length;
+    if (hasSeed) {
+      const { drops, failed } = await buildDrops(supabase, brandId, {
+        text: seed,
+        kind: 'note',
+        files,
+      });
+      if (drops.length) {
+        await supabase.from('brand_intel').insert(
+          drops.map((d) => ({ ...d, org_id: org.data, brand_id: brandId }))
+        );
+      }
+      if (failed.length) setRejected(failed);
+    }
+
+    setBusy(false);
+    // Straight to intel when there is something to read, because the next
+    // thing you want is the reader, not an empty framework.
+    router.push(hasSeed ? `/brands/${brandId}/intel` : `/brands/${brandId}/messaging`);
+  };
+
+  const copy = (key: string, text: string) => {
+    navigator.clipboard?.writeText(text);
+    setCopied(key);
+    setTimeout(() => setCopied((c) => (c === key ? null : c)), 1600);
   };
 
   const rows = useMemo(
@@ -137,14 +177,95 @@ export default function FrameworkPage() {
               </select>
             </Field>
           </div>
-          <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Whatever you already have, in the same click. */}
+          <Field label="Anything you already know (optional)">
+            <textarea
+              value={seed}
+              onChange={(e) => setSeed(e.target.value)}
+              rows={4}
+              placeholder="Paste a call transcript, your notes, the email that started this, or the copy off their current site."
+              style={{ ...inputStyle, lineHeight: 1.6, resize: 'vertical' }}
+            />
+          </Field>
+
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
+            <label
+              style={{
+                fontSize: 12.5,
+                color: C.blue,
+                cursor: 'pointer',
+                border: `1px solid ${C.border}`,
+                borderRadius: 8,
+                padding: '7px 12px',
+              }}
+            >
+              Add photos or files
+              <input
+                type="file"
+                multiple
+                accept="image/*,text/*,.md,.vtt,.srt,.csv"
+                onChange={(e) => {
+                  const picked = Array.from(e.target.files ?? []);
+                  const { usable, rejected: no } = sortFiles(picked);
+                  setFiles((f) => [...f, ...usable]);
+                  setRejected(no);
+                }}
+                style={{ display: 'none' }}
+              />
+            </label>
+            <span style={{ fontSize: 12, color: C.faint }}>
+              Photograph your handwritten notes. It reads them.
+            </span>
+          </div>
+
+          {files.length > 0 && (
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 12 }}>
+              {files.map((f, i) => (
+                <span
+                  key={`${f.file.name}-${i}`}
+                  style={{
+                    fontSize: 11.5,
+                    color: C.dim,
+                    background: C.panelAlt,
+                    borderRadius: 6,
+                    padding: '4px 9px',
+                  }}
+                >
+                  {f.file.name}
+                  <button
+                    onClick={() => setFiles((cur) => cur.filter((_, j) => j !== i))}
+                    style={{
+                      border: 'none',
+                      background: 'none',
+                      color: C.faint,
+                      cursor: 'pointer',
+                      marginLeft: 6,
+                      fontFamily: 'inherit',
+                      padding: 0,
+                    }}
+                    aria-label={`Remove ${f.file.name}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <Button onClick={start} disabled={busy || !name.trim()}>
               {busy ? 'Starting…' : 'Start with the ten modules'}
             </Button>
             <span style={{ fontSize: 12, color: C.faint }}>
-              Starts empty. You fill it by dropping in what they tell you.
+              {seed.trim() || files.length
+                ? 'Kept as dropped. You choose what to read next.'
+                : 'Starts empty. You can drop things in at any point.'}
             </span>
           </div>
+
+          {rejected.map((r) => (
+            <div key={r} style={{ fontSize: 12.5, color: C.amber, marginTop: 8 }}>{r}</div>
+          ))}
           {error && <div style={{ fontSize: 12.5, color: C.red, marginTop: 10 }}>{error}</div>}
         </Card>
       )}
@@ -220,6 +341,43 @@ export default function FrameworkPage() {
       {/* The standard itself. Reference, and the discovery sheet you work
           from on a call. */}
       <div style={{ marginTop: 30 }}>
+        <SectionLabel>The first email</SectionLabel>
+        <Card>
+          <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: '0 0 12px', maxWidth: 640 }}>
+            Six modules&apos; worth of questions in one send. Asking somebody ten separate times is
+            how a discovery process dies, so this goes first and the per-module scripts below are
+            for chasing whatever comes back thin.
+          </p>
+          <pre
+            style={{
+              fontSize: 12.5,
+              lineHeight: 1.7,
+              color: C.dim,
+              background: C.panelAlt,
+              border: `1px solid ${C.border}`,
+              borderRadius: 8,
+              padding: '12px 14px',
+              margin: 0,
+              maxHeight: 220,
+              overflow: 'auto',
+              whiteSpace: 'pre-wrap',
+              fontFamily: 'inherit',
+            }}
+          >
+            {FIRST_EMAIL}
+          </pre>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 12, flexWrap: 'wrap' }}>
+            <Button onClick={() => copy('first', FIRST_EMAIL)}>
+              {copied === 'first' ? 'Copied' : 'Copy the email'}
+            </Button>
+            <span style={{ fontSize: 12, color: C.faint }}>
+              This is the science. What you ask after they answer is the other half.
+            </span>
+          </div>
+        </Card>
+      </div>
+
+      <div style={{ marginTop: 30 }}>
         <SectionLabel>The ten modules</SectionLabel>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {FRAMEWORK.map((m, i) => {
@@ -245,6 +403,42 @@ export default function FrameworkPage() {
                     <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: '0 0 14px', maxWidth: 640 }}>
                       {m.job}
                     </p>
+
+                    {/* Scripts first. The questions and the writing rules below
+                        are reference; this is the thing you actually do next. */}
+                    <div
+                      style={{
+                        border: `1px solid ${C.border}`,
+                        borderRadius: 8,
+                        padding: '12px 14px',
+                        marginBottom: 16,
+                        background: C.panelAlt,
+                      }}
+                    >
+                      <Head tone={C.blue}>Send this</Head>
+                      <pre
+                        style={{
+                          fontSize: 12.5,
+                          lineHeight: 1.7,
+                          color: C.dim,
+                          margin: '0 0 10px',
+                          whiteSpace: 'pre-wrap',
+                          fontFamily: 'inherit',
+                        }}
+                      >
+                        {m.script.email}
+                      </pre>
+                      <Button onClick={() => copy(m.id, m.script.email)} variant="ghost">
+                        {copied === m.id ? 'Copied' : 'Copy'}
+                      </Button>
+
+                      <div style={{ marginTop: 14 }}>
+                        <Head tone={C.faint}>Or say this</Head>
+                        <div style={{ fontSize: 13, color: C.text, lineHeight: 1.6, fontStyle: 'italic' }}>
+                          &ldquo;{m.script.aloud}&rdquo;
+                        </div>
+                      </div>
+                    </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
                       <div>
                         <Head tone={C.blue}>What to ask</Head>

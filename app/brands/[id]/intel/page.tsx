@@ -23,6 +23,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { reconcile, type BrandModule } from '@/lib/spine/framework';
+import { buildDrops, readImage, sortFiles, type DropFile } from '@/lib/spine/intel';
 import {
   Button,
   C,
@@ -42,6 +43,7 @@ interface Intel {
   title: string | null;
   body: string;
   source: string | null;
+  image_path: string | null;
   read_at: string | null;
   cost_cents: number | null;
   created_at: string;
@@ -86,6 +88,8 @@ export default function IntelPage({ params }: { params: { id: string } }) {
   const [body, setBody] = useState('');
   const [source, setSource] = useState('');
   const [kind, setKind] = useState('transcript');
+  const [files, setFiles] = useState<DropFile[]>([]);
+  const [rejected, setRejected] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   const [reading, setReading] = useState<string | null>(null);
@@ -114,21 +118,32 @@ export default function IntelPage({ params }: { params: { id: string } }) {
   useEffect(() => { load(); }, [load]);
 
   const save = async () => {
-    if (body.trim().length < 40 || !brand) return;
+    if (!brand) return;
+    if (body.trim().length < 40 && files.length === 0) return;
     setSaving(true);
     setError(null);
+    setRejected([]);
+
     const org = await supabase.rpc('current_org_id');
-    const res = await supabase.from('brand_intel').insert({
-      org_id: org.data,
-      brand_id: brand.id,
+    const { drops, failed } = await buildDrops(supabase, brand.id, {
+      text: body,
       kind,
-      body: body.trim(),
-      source: source.trim() || null,
+      source,
+      files,
     });
+
+    if (drops.length) {
+      const res = await supabase
+        .from('brand_intel')
+        .insert(drops.map((d) => ({ ...d, org_id: org.data, brand_id: brand.id })));
+      if (res.error) { setError(res.error.message); setSaving(false); return; }
+    }
+
     setSaving(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (failed.length) setRejected(failed);
     setBody('');
     setSource('');
+    setFiles([]);
     load();
   };
 
@@ -139,11 +154,30 @@ export default function IntelPage({ params }: { params: { id: string } }) {
     setTaken(new Set());
     setError(null);
     try {
+      /**
+       * A photographed drop is fetched back out of private storage and sent
+       * as an image. Signed for this request only, never a stored URL.
+       */
+      let images: Array<{ media_type: string; data: string }> = [];
+      if (drop.image_path) {
+        const signed = await supabase.storage
+          .from('client-assets')
+          .createSignedUrl(drop.image_path, 120);
+        if (!signed.data?.signedUrl) {
+          setError('Could not open that file.');
+          setReading(null);
+          return;
+        }
+        const blob = await (await fetch(signed.data.signedUrl)).blob();
+        images = [await readImage(new File([blob], 'page', { type: blob.type }))];
+      }
+
       const res = await fetch('/api/brands/extract', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: drop.body,
+          images,
           brand: brand.name,
           existing: brand.messaging
             .filter((m) => m.content?.trim())
@@ -254,14 +288,81 @@ export default function IntelPage({ params }: { params: { id: string } }) {
             />
           </Field>
         </div>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
+          <label
+            style={{
+              fontSize: 12.5,
+              color: C.blue,
+              cursor: 'pointer',
+              border: `1px solid ${C.border}`,
+              borderRadius: 8,
+              padding: '7px 12px',
+            }}
+          >
+            Add photos or files
+            <input
+              type="file"
+              multiple
+              accept="image/*,text/*,.md,.vtt,.srt,.csv"
+              onChange={(e) => {
+                const picked = Array.from(e.target.files ?? []);
+                const { usable, rejected: no } = sortFiles(picked);
+                setFiles((f) => [...f, ...usable]);
+                setRejected(no);
+              }}
+              style={{ display: 'none' }}
+            />
+          </label>
+          <span style={{ fontSize: 12, color: C.faint }}>
+            Photograph a page of handwriting or a whiteboard. It reads them.
+          </span>
+        </div>
+
+        {files.length > 0 && (
+          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 12 }}>
+            {files.map((f, i) => (
+              <span
+                key={`${f.file.name}-${i}`}
+                style={{
+                  fontSize: 11.5,
+                  color: C.dim,
+                  background: C.panelAlt,
+                  borderRadius: 6,
+                  padding: '4px 9px',
+                }}
+              >
+                {f.file.name}
+                <button
+                  onClick={() => setFiles((cur) => cur.filter((_, j) => j !== i))}
+                  style={{
+                    border: 'none',
+                    background: 'none',
+                    color: C.faint,
+                    cursor: 'pointer',
+                    marginLeft: 6,
+                    fontFamily: 'inherit',
+                    padding: 0,
+                  }}
+                  aria-label={`Remove ${f.file.name}`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-          <Button onClick={save} disabled={saving || body.trim().length < 40}>
+          <Button onClick={save} disabled={saving || (body.trim().length < 40 && files.length === 0)}>
             {saving ? 'Saving…' : 'Keep it'}
           </Button>
           <span style={{ fontSize: 12, color: C.faint }}>
-            Kept as written. Reading it is the next step, and a separate one.
+            Kept as dropped. Reading it is the next step, and a separate one.
           </span>
         </div>
+        {rejected.map((r) => (
+          <div key={r} style={{ fontSize: 12.5, color: C.amber, marginTop: 8 }}>{r}</div>
+        ))}
         {error && <div style={{ fontSize: 12.5, color: C.red, marginTop: 10 }}>{error}</div>}
       </Card>
 
@@ -430,7 +531,10 @@ export default function IntelPage({ params }: { params: { id: string } }) {
                       </span>
                       {d.read_at ? <Pill tone="green">read</Pill> : <Pill>not read</Pill>}
                       <span style={{ fontSize: 11.5, color: C.faint }}>
-                        {shortDate(d.created_at)} · {Math.round(d.body.length / 1000)}k characters
+                        {shortDate(d.created_at)} ·{' '}
+                        {d.image_path
+                          ? 'photograph'
+                          : `${Math.round(d.body.length / 1000)}k characters`}
                       </span>
                     </div>
                     <div
@@ -440,7 +544,9 @@ export default function IntelPage({ params }: { params: { id: string } }) {
                         overflow: 'hidden',
                       }}
                     >
-                      {d.body.slice(0, 300)}
+                      {d.image_path
+                        ? d.title ?? 'A photographed page. Read it to see what is on it.'
+                        : d.body.slice(0, 300)}
                     </div>
                   </div>
                   <Button

@@ -52,6 +52,34 @@ interface Asset {
   needs_approval?: boolean;
 }
 
+/**
+ * Filing order, and the names a person would use.
+ *
+ * The order is how often you reach for them, not alphabetical: the hero video
+ * and the site photography are what somebody is usually after, and the fonts
+ * and read-me files are what they scroll past. Groups not on this list keep
+ * their own name and sort to the end, so an unexpected category is filed
+ * rather than hidden.
+ */
+const ASSET_CANON = [
+  'Video',
+  'Photography',
+  'Customer logos',
+  'Integration logos',
+  'Fonts',
+  'Documents',
+];
+
+const ASSET_LABEL: Record<string, string> = {
+  Video: 'Hero video',
+  Photography: 'Site images and headshots',
+  'Customer logos': 'Customer logos',
+  'Integration logos': 'Integration logos',
+  Fonts: 'Typefaces',
+  Documents: 'Documents',
+  other: 'Everything else',
+};
+
 interface Brand {
   id: string;
   name: string;
@@ -101,7 +129,6 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
   const [brand, setBrand] = useState<Brand | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState<string | null>(null);
-  const [assetGroup, setAssetGroup] = useState('All');
   const [signed, setSigned] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
@@ -198,7 +225,10 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
     )
     .join('');
 
-  const shown = assetGroup === 'All' ? assets : (grouped[assetGroup] ?? []);
+  const ASSET_ORDER = [
+    ...ASSET_CANON.filter((g) => grouped[g]?.length),
+    ...Object.keys(grouped).filter((g) => !ASSET_CANON.includes(g)),
+  ];
 
   const copy = (hex: string) => {
     navigator.clipboard?.writeText(hex);
@@ -387,125 +417,122 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
         </div>
       )}
 
+      {/*
+        A content repository, filed by what a thing is for.
+        
+        This was a wall of thumbnails, and the thumbnails broke. Even when they
+        render, a 116px square of a logo on a cream background tells you less
+        than its name does, and forty of them is a wall you scan rather than
+        read. Filed and named, you find the file you came for.
+      */}
       {assets.length > 0 && (
         <div style={{ marginBottom: 26 }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: 12,
-              marginBottom: 10,
-              flexWrap: 'wrap',
-            }}
-          >
-            <SectionLabel>Assets ({assets.length})</SectionLabel>
-            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-              {['All', ...Object.keys(grouped)].map((g) => {
-                const on = assetGroup === g;
-                return (
-                  <button
-                    key={g}
-                    onClick={() => setAssetGroup(g)}
-                    style={{
-                      padding: '5px 11px',
-                      borderRadius: 20,
-                      fontSize: 11.5,
-                      border: `1px solid ${on ? C.accent : C.border}`,
-                      background: on ? C.accentSoft : 'transparent',
-                      color: on ? C.text : C.dim,
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                    }}
-                  >
-                    {g}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <SectionLabel>Assets ({assets.length})</SectionLabel>
 
-          {/*
-            A grid of what the files look like, not a list of what they are
-            called. Nobody recognizes a logo by its filename, and a column of
-            chips in stacked cards was several screens of scrolling to see
-            forty items that fit on one.
-          */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(116px, 1fr))',
-              gap: 8,
-            }}
-          >
-            {shown.map((a) => {
-              const isImage = (a.mime ?? '').startsWith('image/');
-              const isVideo = (a.mime ?? '').startsWith('video/');
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {ASSET_ORDER.filter((g) => grouped[g]?.length).map((g) => {
+              const items = grouped[g];
+              const cleared = items.filter((a) => !a.needs_approval).length;
               return (
-                <a
-                  key={a.path}
-                  href={a.storage_path ? signed[a.storage_path] : undefined}
-                  download
-                  title={`${a.name ?? a.path}${a.bytes ? ` · ${kb(a.bytes)}` : ''}`}
-                  style={{
-                    border: `1px solid ${a.needs_approval ? `${C.amber}66` : C.border}`,
-                    borderRadius: 8,
-                    overflow: 'hidden',
-                    background: C.panel,
-                    textDecoration: 'none',
-                    display: 'block',
-                  }}
-                >
+                <Card key={g}>
                   <div
                     style={{
-                      aspectRatio: '1 / 1',
-                      background: C.panelAlt,
                       display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      overflow: 'hidden',
+                      justifyContent: 'space-between',
+                      alignItems: 'baseline',
+                      gap: 12,
+                      flexWrap: 'wrap',
+                      marginBottom: 10,
                     }}
                   >
-                    {isImage ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={a.storage_path ? signed[a.storage_path] : undefined}
-                        alt={a.name ?? a.path}
-                        loading="lazy"
-                        style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 6 }}
-                      />
-                    ) : isVideo ? (
-                      <video
-                        src={a.storage_path ? signed[a.storage_path] : undefined}
-                        muted
-                        playsInline
-                        preload="metadata"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    ) : (
-                      <span style={{ fontSize: 11, color: C.faint, textAlign: 'center', padding: 8 }}>
-                        {(a.name ?? '').split('.').pop()?.toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ padding: '7px 8px' }}>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: C.text,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {a.name ?? a.path.split('/').pop()}
+                    <div style={{ fontSize: 13.5, fontWeight: 600, color: C.text }}>
+                      {ASSET_LABEL[g] ?? g}
                     </div>
-                    <div style={{ fontSize: 10, color: C.faint, marginTop: 1 }}>
-                      {kb(a.bytes)}
-                      {a.needs_approval ? ' · not cleared' : ''}
+                    <div style={{ fontSize: 11.5, color: C.faint }}>
+                      {items.length} {items.length === 1 ? 'file' : 'files'}
+                      {cleared < items.length ? ` · ${items.length - cleared} not cleared` : ''}
                     </div>
                   </div>
-                </a>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+                      gap: 2,
+                    }}
+                  >
+                    {items.map((a) => {
+                      const href = a.storage_path ? signed[a.storage_path] : undefined;
+                      const name = a.name ?? a.path.split('/').pop() ?? a.path;
+                      const ext = name.split('.').pop()?.toUpperCase() ?? '';
+                      return (
+                        <a
+                          key={a.path}
+                          href={href}
+                          download
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            padding: '7px 9px',
+                            borderRadius: 6,
+                            textDecoration: 'none',
+                            color: 'inherit',
+                            background: a.needs_approval ? C.amberSoft : 'transparent',
+                          }}
+                        >
+                          {/* The extension, because it is the one thing that
+                              tells you what you are about to open. */}
+                          <span
+                            style={{
+                              fontFamily: 'ui-monospace, monospace',
+                              fontSize: 9.5,
+                              fontWeight: 700,
+                              letterSpacing: '.04em',
+                              color: C.faint,
+                              background: C.panelAlt,
+                              borderRadius: 4,
+                              padding: '3px 5px',
+                              minWidth: 34,
+                              textAlign: 'center',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {ext}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: 12.5,
+                              color: C.text,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              flex: 1,
+                              minWidth: 0,
+                            }}
+                          >
+                            {name}
+                          </span>
+                          {a.needs_approval && (
+                            <span style={{ fontSize: 10.5, color: C.amber, flexShrink: 0 }}>
+                              not cleared
+                            </span>
+                          )}
+                          <span
+                            style={{
+                              fontSize: 11,
+                              color: C.faint,
+                              flexShrink: 0,
+                              fontVariantNumeric: 'tabular-nums',
+                            }}
+                          >
+                            {kb(a.bytes)}
+                          </span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                </Card>
               );
             })}
           </div>
