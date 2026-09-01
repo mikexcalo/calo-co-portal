@@ -21,6 +21,7 @@ import { Confirm } from './Confirm';
 interface Person {
   id: string;
   name: string;
+  avatar_url?: string | null;
   title: string | null;
   email: string | null;
   phone: string | null;
@@ -41,7 +42,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
   const load = useCallback(async () => {
     const res = await supabase
       .from('customer_contacts')
-      .select('id, name, title, email, phone, note, is_primary')
+      .select('id, name, title, email, phone, note, is_primary, avatar_url')
       .eq('customer_id', customerId)
       .order('is_primary', { ascending: false })
       .order('name');
@@ -176,6 +177,39 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
                 flexWrap: 'wrap',
               }}
             >
+              {/* A face makes a list of names scannable. Falls back to
+                  initials rather than a grey silhouette, which reads as a
+                  missing image rather than as somebody we simply have no
+                  photo of. */}
+              <span
+                aria-hidden
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: '50%',
+                  flexShrink: 0,
+                  overflow: 'hidden',
+                  background: C.accentSoft,
+                  color: C.accent,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+              >
+                {p.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={p.avatar_url}
+                    alt=""
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  p.name.split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('')
+                )}
+              </span>
+
               <div style={{ flex: 1, minWidth: 160 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 13.5, fontWeight: 600, color: C.text }}>{p.name}</span>

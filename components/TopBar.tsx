@@ -184,9 +184,19 @@ function AccountMenu() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
+  const [avatar, setAvatar] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setEmail(data?.user?.email ?? null));
+    supabase.auth.getUser().then(async ({ data }) => {
+      setEmail(data?.user?.email ?? null);
+      if (!data?.user) return;
+      const p = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', data.user.id)
+        .maybeSingle();
+      setAvatar(p.data?.avatar_url ?? null);
+    });
   }, []);
 
   const initials = (email ?? '?')
@@ -225,9 +235,16 @@ function AccountMenu() {
           fontWeight: 600,
           cursor: 'pointer',
           fontFamily: 'inherit',
+          overflow: 'hidden',
+          padding: 0,
         }}
       >
-        {initials}
+        {avatar ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          initials
+        )}
       </button>
 
       {open && (
