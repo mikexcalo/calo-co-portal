@@ -12,6 +12,7 @@
  * billed, because that's the most common and most expensive omission.
  */
 
+import { WeekAhead } from '@/components/spine/WeekAhead';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { listDocuments, listInvoices, listJobLedger, listJobs } from '@/lib/spine/db';
@@ -633,6 +634,8 @@ export default function Dashboard() {
           {activeJobs.length > 0 && (
             <div style={{ marginBottom: 30 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <WeekAhead />
+
                 <SectionLabel>In progress</SectionLabel>
                 <Button variant="ghost" onClick={() => router.push('/jobs')}>See all</Button>
               </div>

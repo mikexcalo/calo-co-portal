@@ -7,6 +7,7 @@
  * what's unbilled, and the one button that turns unbilled work into an invoice.
  */
 
+import { Schedule } from '@/components/spine/Schedule';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -390,6 +391,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
       {/* Labor */}
       <div style={{ marginBottom: 26 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {orgId && <Schedule orgId={orgId} jobId={jobId} />}
+
           <SectionLabel>Hours</SectionLabel>
           <Button variant="ghost" onClick={() => setShowTime((v) => !v)}>
             {showTime ? 'Cancel' : 'Log hours'}

@@ -85,6 +85,7 @@ export default function StoriesPage() {
   const [draft, setDraft] = useState<Partial<Story>>({});
   const [busy, setBusy] = useState(false);
   const [newClaim, setNewClaim] = useState('');
+  const [sourceDefault, setSourceDefault] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -104,6 +105,15 @@ export default function StoriesPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  // Whoever is signed in is the default attribution on anything they add.
+  useEffect(() => {
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return;
+      const p = await supabase.from('profiles').select('full_name').eq('id', data.user.id).maybeSingle();
+      setSourceDefault(p.data?.full_name || data.user.email || 'Recorded internally');
+    });
+  }, []);
 
   const save = async (id: string) => {
     setBusy(true);
@@ -129,9 +139,16 @@ export default function StoriesPage() {
       org_id: org.data,
       case_id: s.id,
       claim: newClaim.trim(),
-      // Always unsourced on arrival. Sourcing is a thing somebody does, not a
-      // default, and the database refuses 'sourced' without a source anyway.
-      status: 'unsourced',
+      /**
+       * You are the source until you say otherwise.
+       *
+       * Defaulting to unsourced treated your own numbers as suspect, which is
+       * backwards: you ran the work. The field is still here for the cases
+       * where a client or a report is the better attribution, and you can
+       * overwrite it in place.
+       */
+      source: sourceDefault,
+      status: 'sourced',
     });
     if (!res.error) { setNewClaim(''); load(); }
   };
@@ -155,21 +172,13 @@ export default function StoriesPage() {
   return (
     <Page
       title="Case studies"
-      subtitle="Written once, used for years. A pitch cites these; it does not contain them."
+      subtitle="Your past work, written up once so you can reuse it in pitches and on the site."
     >
       {unsourcedCount > 0 && (
-        <Card style={{ marginBottom: 22, borderColor: C.amber, background: C.amberSoft }}>
-          <div style={{ fontSize: 14, color: C.text, fontWeight: 500 }}>
-            {unsourcedCount} {unsourcedCount === 1 ? 'claim has' : 'claims have'} no source
-          </div>
-          <p style={{ fontSize: 13, color: C.dim, margin: '6px 0 0', lineHeight: 1.6, maxWidth: 620 }}>
-            A results sentence is the one a prospect repeats back to you in a meeting. If nobody
-            can say where the number came from, it is a gap dressed as a result, and this is the
-            most expensive place to have one. <strong style={{ color: C.text }}>Unsourced claims
-            do not appear on the published page.</strong> That is enforced in the database rather
-            than by this screen, so it holds even if somebody rewrites this screen.
-          </p>
-        </Card>
+        <div style={{ fontSize: 13.5, color: C.dim, marginBottom: 18 }}>
+          {unsourcedCount} {unsourcedCount === 1 ? 'claim needs' : 'claims need'} a source before
+          {unsourcedCount === 1 ? ' it shows' : ' they show'} on a published page.
+        </div>
       )}
 
       {stories.length === 0 ? (
