@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
-import { FIRST_EMAIL, FRAMEWORK, blankFramework, progress, type BrandModule } from '@/lib/spine/framework';
+import { FRAMEWORK, blankFramework, progress, type BrandModule } from '@/lib/spine/framework';
 import { buildDrops, sortFiles, type DropFile } from '@/lib/spine/intel';
 import {
   Button,
@@ -57,7 +57,6 @@ export default function FrameworkPage() {
   const [files, setFiles] = useState<DropFile[]>([]);
   const [rejected, setRejected] = useState<string[]>([]);
   const [openModule, setOpenModule] = useState<string | null>(null);
-  const [copied, setCopied] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -129,12 +128,6 @@ export default function FrameworkPage() {
     // Straight to intel when there is something to read, because the next
     // thing you want is the reader, not an empty framework.
     router.push(hasSeed ? `/brands/${brandId}/intel` : `/brands/${brandId}/messaging`);
-  };
-
-  const copy = (key: string, text: string) => {
-    navigator.clipboard?.writeText(text);
-    setCopied(key);
-    setTimeout(() => setCopied((c) => (c === key ? null : c)), 1600);
   };
 
   const rows = useMemo(
@@ -341,43 +334,6 @@ export default function FrameworkPage() {
       {/* The standard itself. Reference, and the discovery sheet you work
           from on a call. */}
       <div style={{ marginTop: 30 }}>
-        <SectionLabel>The first email</SectionLabel>
-        <Card>
-          <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.65, margin: '0 0 12px', maxWidth: 640 }}>
-            Six modules&apos; worth of questions in one send. Asking somebody ten separate times is
-            how a discovery process dies, so this goes first and the per-module scripts below are
-            for chasing whatever comes back thin.
-          </p>
-          <pre
-            style={{
-              fontSize: 13.5,
-              lineHeight: 1.7,
-              color: C.dim,
-              background: C.panelAlt,
-              border: `1px solid ${C.border}`,
-              borderRadius: 8,
-              padding: '12px 14px',
-              margin: 0,
-              maxHeight: 220,
-              overflow: 'auto',
-              whiteSpace: 'pre-wrap',
-              fontFamily: 'inherit',
-            }}
-          >
-            {FIRST_EMAIL}
-          </pre>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 12, flexWrap: 'wrap' }}>
-            <Button onClick={() => copy('first', FIRST_EMAIL)}>
-              {copied === 'first' ? 'Copied' : 'Copy the email'}
-            </Button>
-            <span style={{ fontSize: 13, color: C.faint }}>
-              This is the science. What you ask after they answer is the other half.
-            </span>
-          </div>
-        </Card>
-      </div>
-
-      <div style={{ marginTop: 30 }}>
         <SectionLabel>The ten modules</SectionLabel>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {FRAMEWORK.map((m, i) => {
@@ -394,7 +350,7 @@ export default function FrameworkPage() {
                   <span style={{ fontSize: 16, fontWeight: 600, color: C.text }}>{m.name}</span>
                   <Pill>{m.note}</Pill>
                   <span style={{ fontSize: 13, color: C.faint, marginLeft: 'auto' }}>
-                    {open ? 'Hide' : `${m.asks.length} questions`}
+                    {open ? 'Hide' : `${m.needs.length} inputs`}
                   </span>
                 </div>
 
@@ -404,46 +360,18 @@ export default function FrameworkPage() {
                       {m.job}
                     </p>
 
-                    {/* Scripts first. The questions and the writing rules below
-                        are reference; this is the thing you actually do next. */}
-                    <div
-                      style={{
-                        border: `1px solid ${C.border}`,
-                        borderRadius: 8,
-                        padding: '12px 14px',
-                        marginBottom: 16,
-                        background: C.panelAlt,
-                      }}
-                    >
-                      <Head tone={C.blue}>Send this</Head>
-                      <pre
-                        style={{
-                          fontSize: 13.5,
-                          lineHeight: 1.7,
-                          color: C.dim,
-                          margin: '0 0 10px',
-                          whiteSpace: 'pre-wrap',
-                          fontFamily: 'inherit',
-                        }}
-                      >
-                        {m.script.email}
-                      </pre>
-                      <Button onClick={() => copy(m.id, m.script.email)} variant="ghost">
-                        {copied === m.id ? 'Copied' : 'Copy'}
-                      </Button>
-
-                      <div style={{ marginTop: 14 }}>
-                        <Head tone={C.faint}>Or say this</Head>
-                        <div style={{ fontSize: 14, color: C.text, lineHeight: 1.6, fontStyle: 'italic' }}>
-                          &ldquo;{m.script.aloud}&rdquo;
-                        </div>
-                      </div>
+                    {/* What the module cannot be written without. Inputs, not
+                        wording: how you get somebody to hand these over is your
+                        job, and a script in somebody else's voice is worse than
+                        none. */}
+                    <div style={{ marginBottom: 18 }}>
+                      <Head tone={C.text}>Needs</Head>
+                      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 14, color: C.dim, lineHeight: 1.7 }}>
+                        {m.needs.map((n, i) => <li key={i}>{n}</li>)}
+                      </ul>
                     </div>
+
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-                      <div>
-                        <Head tone={C.blue}>What to ask</Head>
-                        <List items={m.asks} />
-                      </div>
                       <div>
                         <Head tone={C.faint}>How to write it</Head>
                         <List items={m.how} />

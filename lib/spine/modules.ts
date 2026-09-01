@@ -25,6 +25,7 @@ export type ModuleId =
   | 'brand_kit'
   | 'brands'
   | 'stories'
+  | 'ask'
   | 'account'        // client-facing: what I owe my agency
   | 'pricing'
   | 'records'
@@ -35,6 +36,7 @@ export type ModuleId =
   | 'business';
 
 const CONTRACTOR: ModuleId[] = [
+  'ask',
   'jobs',
   'customers',
   'receipts',
@@ -59,6 +61,7 @@ const CONTRACTOR: ModuleId[] = [
 ];
 
 const AGENCY: ModuleId[] = [
+  'ask',
   'jobs',
   'customers',
   'receipts',
@@ -110,6 +113,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/website', 'website'],
   ['/requests', 'client_requests'],
   ['/brand-kit', 'brand_kit'],
+  ['/ask', 'ask'],
   ['/framework', 'brands'],
   ['/stories', 'stories'],
   ['/brands', 'brands'],
@@ -134,7 +138,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
  * module turned off should never be able to strand someone halfway through
  * setting up two-factor.
  */
-const ALWAYS = ['/', '/login', '/welcome', '/security', '/trust', '/brands'];
+const ALWAYS = ['/', '/login', '/welcome', '/security', '/trust', '/brands', '/ask'];
 
 /**
  * Is this path reachable for this business? Returns false only for a route
@@ -219,6 +223,7 @@ export function navFor(
     {
       heading: 'The Work',
       items: [
+        { id: 'ask', label: 'Ask', href: '/ask', icon: 'search' },
         { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'yardSign' },
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
         { id: 'receipts', label: 'Receipts', href: '/documents', icon: 'quotes' },

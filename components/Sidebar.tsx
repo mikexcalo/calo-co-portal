@@ -152,6 +152,12 @@ const icons: Record<string, React.ReactNode> = {
     </svg>
   ),
   // Announcing something. Pitches go out to people who have not asked yet.
+  search: (
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="7.2" cy="7.2" r="4.6" />
+      <path d="M10.6 10.6 13.6 13.6" />
+    </svg>
+  ),
   megaphone: (
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M2.2 6.4v3.2a1 1 0 0 0 1 1h1.5l5.8 2.9V2.5L4.7 5.4H3.2a1 1 0 0 0-1 1z" />
