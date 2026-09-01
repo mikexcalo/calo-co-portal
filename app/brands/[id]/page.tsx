@@ -246,7 +246,12 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
       subtitle={brand.customer ? `Held for ${brand.customer.name}` : 'Your own brand'}
       action={
         <>
-          <Button onClick={() => router.push(`/brands/${brand.id}/messaging`)}>
+          {/* The answer to "can you send the design files". One click, one
+              zip, nothing to assemble by hand and nothing forgotten. */}
+          <Button onClick={() => { window.location.href = `/api/brands/${brand.id}/export`; }}>
+            Export kit
+          </Button>
+          <Button variant="ghost" onClick={() => router.push(`/brands/${brand.id}/messaging`)}>
             Messaging
           </Button>
           {brand.customer && (
