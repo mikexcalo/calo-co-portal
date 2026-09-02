@@ -171,7 +171,15 @@ export function Reminders({
       )}
 
       {open.length === 0 ? (
-        !adding && <Card><Empty>Nothing outstanding.</Empty></Card>
+        /**
+         * Nothing at all rather than a box saying nothing.
+         *
+         * A new client showed five of these stacked, each one well written and
+         * together demoralising: the first thing a new record told you was
+         * five times over that you had not done anything. The Add button above
+         * is the affordance; the empty box was only ever restating it.
+         */
+        null
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {open.map((r) => {

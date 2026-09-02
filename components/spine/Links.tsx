@@ -148,14 +148,9 @@ export function Links({
       )}
 
       {rows.length === 0 ? (
-        !adding && (
-          <Card>
-            <Empty>
-              Plans, permits, inspiration, a shared folder — anything you&apos;d otherwise leave
-              open in a tab.
-            </Empty>
-          </Card>
-        )
+        /* The Add button says what this is. A box repeating it is one more
+           thing telling a new record that it is empty. */
+        null
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {rows.map((l) => (

@@ -506,7 +506,10 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           )}
 
           {notes.length === 0 ? (
-            <Card><Empty>Nothing logged yet.</Empty></Card>
+            // History is the one place an empty state earns itself: a client
+            // with nothing logged is a client nobody has spoken to, which is
+            // worth saying out loud.
+            <Card><Empty>Nothing logged yet. Anything you say to them is worth thirty seconds here.</Empty></Card>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {notes.map((n) => (
@@ -584,7 +587,25 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                   {customer.phone}
                 </a>
               )}
-              {customer.website && (
+              {/* Search for this client, not for you. Only offered when they
+                have a site, because search work with nothing to point at is
+                not work anybody can start. */}
+            {customer.website && (
+              <button
+                onClick={() => router.push(`/seo?client=${params.id}`)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  gap: 7, marginTop: 6, padding: '6px 11px', borderRadius: 7,
+                  border: `1px solid ${C.border}`, background: 'transparent',
+                  fontSize: 13.5, fontWeight: 500, color: C.dim,
+                  cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+                }}
+              >
+                Their search setup
+              </button>
+            )}
+
+            {customer.website && (
                 /* A button rather than a line of small blue text. Opening a
                    client's site is something you do constantly while working
                    on it, and it should not look like a footnote. */
@@ -703,7 +724,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               </Button>
             </div>
             {jobs.length === 0 ? (
-              <Card><Empty>Nothing on the books for them yet.</Empty></Card>
+              null
             ) : (
               <Table>
                 {jobs.map((j) => (

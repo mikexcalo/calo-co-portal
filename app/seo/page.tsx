@@ -11,6 +11,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import {
@@ -28,6 +29,15 @@ const csv = (v: string) => v.split(',').map((x) => x.trim()).filter(Boolean);
 
 export default function SeoPage() {
   const { org } = useOrg();
+  /**
+   * Whose search this is.
+   *
+   * Absent means your own. Reached from a client record with ?client=, which
+   * keeps one screen rather than building a second copy of it that would then
+   * have to be kept in step.
+   */
+  const clientId = useSearchParams().get('client');
+  const [clientName, setClientName] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile>({});
   const [tasks, setTasks] = useState<Record<string, TaskRow['status']>>({});
   const [citations, setCitations] = useState<Citation[]>([]);
@@ -37,35 +47,49 @@ export default function SeoPage() {
   const [copied, setCopied] = useState<string | null>(null);
   const [openTask, setOpenTask] = useState<string | null>(null);
 
+  /**
+   * Null and "no client" are different filters.
+   *
+   * eq('customer_id', null) matches nothing in PostgREST, so your own profile
+   * would silently never load. is() is the one that means null.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const scope = useCallback((q: any) => (clientId ? q.eq('customer_id', clientId) : q.is('customer_id', null)), [clientId]);
+
   const load = useCallback(async () => {
     const o = await supabase.rpc('current_org_id');
     if (!o.data) { setLoading(false); return; }
 
+    if (clientId) {
+      const c = await supabase.from('customers').select('name').eq('id', clientId).maybeSingle();
+      setClientName(c.data?.name ?? null);
+    }
+
     const [p, t, c] = await Promise.all([
-      supabase.from('seo_profile').select('*').eq('org_id', o.data).maybeSingle(),
-      supabase.from('seo_tasks').select('key, status').eq('org_id', o.data),
-      supabase.from('seo_citations').select('*').eq('org_id', o.data).order('created_at'),
+      scope(supabase.from('seo_profile').select('*').eq('org_id', o.data)).maybeSingle(),
+      scope(supabase.from('seo_tasks').select('key, status').eq('org_id', o.data)),
+      scope(supabase.from('seo_citations').select('*').eq('org_id', o.data)).order('created_at'),
     ]);
 
     if (p.data) setProfile(p.data as Profile);
     else setEditing(true);   // nothing yet, so open on the form rather than an empty page
 
-    setTasks(Object.fromEntries((t.data ?? []).map((r) => [r.key, r.status])) as Record<string, TaskRow['status']>);
+    setTasks(Object.fromEntries(((t.data ?? []) as TaskRow[]).map((r) => [r.key, r.status])) as Record<string, TaskRow['status']>);
 
     // Seeded on first visit so the list is never empty and nobody has to think
     // of the directories themselves.
     if ((c.data ?? []).length === 0) {
       await supabase.from('seo_citations').insert(
-        DEFAULT_CITATIONS.map((d) => ({ org_id: o.data, name: d.name, url: d.url, note: d.note }))
+        DEFAULT_CITATIONS.map((d) => ({ org_id: o.data, customer_id: clientId, name: d.name, url: d.url, note: d.note }))
       );
-      const again = await supabase.from('seo_citations').select('*').eq('org_id', o.data).order('created_at');
+      const again = await scope(supabase.from('seo_citations').select('*').eq('org_id', o.data)).order('created_at');
       setCitations((again.data ?? []) as Citation[]);
     } else {
       setCitations((c.data ?? []) as Citation[]);
     }
 
     setLoading(false);
-  }, []);
+  }, [clientId, scope]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -73,7 +97,12 @@ export default function SeoPage() {
     const o = await supabase.rpc('current_org_id');
     if (!o.data) return;
     setBusy(true);
-    const res = await supabase.from('seo_profile').upsert({ ...profile, org_id: o.data, updated_at: new Date().toISOString() });
+    const res = await supabase
+      .from('seo_profile')
+      .upsert(
+        { ...profile, org_id: o.data, customer_id: clientId, updated_at: new Date().toISOString() },
+        { onConflict: 'org_id,customer_id' }
+      );
     setBusy(false);
     if (!res.error) setEditing(false);
   };
@@ -82,7 +111,7 @@ export default function SeoPage() {
     const o = await supabase.rpc('current_org_id');
     if (!o.data) return;
     setTasks((t) => ({ ...t, [key]: status }));
-    await supabase.from('seo_tasks').upsert({ org_id: o.data, key, status }, { onConflict: 'org_id,key' });
+    await supabase.from('seo_tasks').upsert({ org_id: o.data, customer_id: clientId, key, status }, { onConflict: 'org_id,customer_id,key' });
   };
 
   const setCitation = async (c: Citation, status: string) => {
@@ -117,7 +146,8 @@ export default function SeoPage() {
 
   return (
     <Page
-      title="Search"
+      back={clientId ? { label: clientName ?? 'Client', href: `/customers/${clientId}` } : undefined}
+      title={clientName ? `Search for ${clientName}` : 'Search'}
       subtitle="Four levers, three of them admin. This holds the state so it does not get abandoned halfway."
       action={<Button variant="ghost" onClick={() => setEditing((v) => !v)}>{editing ? 'Done' : 'Edit details'}</Button>}
     >

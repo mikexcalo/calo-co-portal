@@ -180,14 +180,8 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
       )}
 
       {rows.length === 0 ? (
-        !adding && (
-          <Card>
-            <Empty>
-              The office manager, the foreman, whoever actually answers. One name is rarely the
-              whole story.
-            </Empty>
-          </Card>
-        )
+        /* Same rule: the button is the affordance, the box was restating it. */
+        null
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {rows.map((p) => (

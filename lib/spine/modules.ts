@@ -374,7 +374,6 @@ export function navFor(
       defaultOpen: false,
       items: [
         { id: 'business', label: 'Workspaces', href: '/workspaces', icon: 'storefront' },
-        { id: 'business', label: 'Everything in here', href: '/whats-new', icon: 'book' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
