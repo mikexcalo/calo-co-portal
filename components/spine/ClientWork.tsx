@@ -33,79 +33,39 @@ export function ClientWork({ customerId }: { customerId: string }) {
   const router = useRouter();
   const [tiles, setTiles] = useState<Tile[]>([]);
 
+  /**
+   * One query, not ten.
+   *
+   * This fetched targets, brands, case studies, pitches, the ledger, invoices,
+   * search and reviews separately, then made an eleventh call for documents
+   * once the brand came back. At a third of a second each that is most of why
+   * the record took seconds to settle, and client_overview was built for
+   * exactly this and then not used.
+   */
   const load = useCallback(async () => {
-    const [targets, brands, stories, pitches, jobs, invoices, seo, reviews, notes] = await Promise.all([
-      supabase.from('targets').select('id, status', { count: 'exact', head: false }).eq('for_client_id', customerId),
-      supabase.from('brands').select('id').eq('customer_id', customerId),
-      supabase.from('case_studies').select('id').eq('customer_id', customerId),
-      supabase.from('pitches').select('id').eq('customer_id', customerId),
-      supabase.from('job_ledger').select('job_id, invoiced_total, collected, unbilled_labor, unbilled_cost').eq('customer_id', customerId),
-      supabase.from('job_invoices').select('total, amount_paid, status, job:jobs!inner(customer_id)').eq('job.customer_id', customerId),
-      supabase.from('seo_profile').select('id').eq('customer_id', customerId).maybeSingle(),
-      supabase.from('review_requests').select('id, clicked_at').eq('customer_id', customerId),
-      supabase.from('customer_notes').select('id').eq('customer_id', customerId),
-    ]);
+    const res = await supabase
+      .from('client_overview')
+      .select('*')
+      .eq('id', customerId)
+      .maybeSingle();
+    if (res.error || !res.data) return;
+    const o = res.data as Record<string, number | string | null>;
 
-    const t = targets.data ?? [];
-    const open = t.filter((x) => x.status !== 'won' && x.status !== 'passed').length;
-
-    const ledger = jobs.data ?? [];
-    const owed = (invoices.data ?? [])
-      .filter((i) => i.status !== 'void')
-      .reduce((sum, i) => sum + (Number(i.total) - Number(i.amount_paid)), 0);
-    const unbilled = ledger.reduce(
-      (sum, r) => sum + Number(r.unbilled_labor ?? 0) + Number(r.unbilled_cost ?? 0),
-      0
-    );
-
+    const n = (k: string) => Number(o[k] ?? 0);
     const next: Tile[] = [];
 
-    /**
-     * Money first, and only when there is money.
-     *
-     * A client who owes nothing should not be shown a zero: it reads as a
-     * problem that has been checked rather than a fact that does not apply.
-     */
-    if (owed > 0) next.push({ label: 'Owed to you', money: owed, href: '/billing', tone: 'amber' });
-    if (unbilled > 0) next.push({ label: 'Unbilled', money: unbilled, href: '/jobs', tone: 'amber' });
-    if (ledger.length) next.push({ label: 'Engagements', count: ledger.length, href: '/jobs' });
-
-    if (t.length) next.push({ label: 'Targets', count: t.length, href: `/targets?client=${customerId}`, hint: `${open} still open` });
-    if (brands.data?.length) {
-      next.push({ label: 'Brand', count: brands.data.length, href: `/brands/${brands.data[0].id}` });
-      /**
-       * Their documents, counted and linked.
-       *
-       * Four of John's were read, turned into targets and a task list, and
-       * then not stored anywhere he could find them. A count with a way in is
-       * the difference between material you have and material you had.
-       */
-      const docs = await supabase
-        .from('brand_intel')
-        .select('id')
-        .eq('brand_id', brands.data[0].id);
-      if (docs.data?.length) {
-        next.push({
-          label: 'Their documents',
-          count: docs.data.length,
-          href: `/brands/${brands.data[0].id}/intel`,
-        });
-      }
-    }
-    if (notes.data?.length) next.push({ label: 'Logged', count: notes.data.length, href: '#history' });
-    if (stories.data?.length) next.push({ label: 'Case studies', count: stories.data.length, href: '/stories' });
-    if (pitches.data?.length) next.push({ label: 'Pitches', count: pitches.data.length, href: '/pitches' });
-
-    const asked = reviews.data ?? [];
-    if (asked.length) {
-      next.push({
-        label: 'Reviews asked',
-        count: asked.length,
-        href: '/reviews',
-        hint: `${asked.filter((r) => r.clicked_at).length} followed`,
-      });
-    }
-    if (seo.data) next.push({ label: 'Search', count: 1, href: `/seo?client=${customerId}` });
+    // Money first, and only when there is money. A client owing nothing should
+    // not be shown a zero: a zero reads as a problem somebody checked.
+    if (n('owed') > 0) next.push({ label: 'Owed to you', money: n('owed'), href: '/billing', tone: 'amber' });
+    if (n('unbilled') > 0) next.push({ label: 'Unbilled', money: n('unbilled'), href: '/jobs', tone: 'amber' });
+    if (n('engagements')) next.push({ label: 'Engagements', count: n('engagements'), href: '/jobs' });
+    if (n('targets')) next.push({ label: 'Targets', count: n('targets'), href: `/targets?client=${customerId}`, hint: `${n('targets_open')} still open` });
+    if (n('brands')) next.push({ label: 'Brand', count: n('brands'), href: `/brands/${o.brand_id}` });
+    if (n('documents')) next.push({ label: 'Their documents', count: n('documents'), href: o.brand_id ? `/brands/${o.brand_id}/intel` : '#' });
+    if (n('case_studies')) next.push({ label: 'Case studies', count: n('case_studies'), href: '/stories' });
+    if (n('pitches')) next.push({ label: 'Pitches', count: n('pitches'), href: '/pitches' });
+    if (n('reviews_asked')) next.push({ label: 'Reviews asked', count: n('reviews_asked'), href: '/reviews', hint: `${n('reviews_followed')} followed` });
+    if (n('has_search')) next.push({ label: 'Search', count: 1, href: `/seo?client=${customerId}` });
 
     setTiles(next);
   }, [customerId]);

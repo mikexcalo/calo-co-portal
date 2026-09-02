@@ -122,6 +122,26 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
    * the log is the only thing to show and hiding it would leave a blank page.
    */
   const [showHistory, setShowHistory] = useState(false);
+  /**
+   * Views of one record, not a scroll.
+   *
+   * Eight sections stacked meant four screens of scrolling to reach the
+   * history, and every section I added made the one below it further away.
+   * They are not a sequence, they are four questions you ask at different
+   * times: where are we, what is the work, what did they give us, what
+   * happened.
+   *
+   * Local state rather than routes, because switching view on a record is not
+   * navigation and should not cost a page load or a history entry.
+   */
+  const [view, setView] = useState<'now' | 'work' | 'given' | 'history'>('now');
+  /**
+   * Counts on the tabs, from the one view that already has them.
+   *
+   * A tab that says nothing about what is behind it makes you click every tab
+   * to find out where anything is, which is the scroll again with extra steps.
+   */
+  const [counts, setCounts] = useState<{ given: number }>({ given: 0 });
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
 
@@ -432,28 +452,67 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           */}
           {/* Above everything. The first thing you read, and the only
               thing you could hand to somebody else. */}
-          <Brief customerId={params.id} clientName={customer.name} />
+          <div
+            style={{
+              display: 'flex',
+              gap: 2,
+              marginBottom: 20,
+              borderBottom: `1px solid ${C.border}`,
+            }}
+          >
+            {([
+              ['now', 'Where we are'],
+              ['work', 'The work'],
+              ['given', `What they gave us${counts.given ? ` (${counts.given})` : ''}`],
+              ['history', `History${notes.length ? ` (${notes.length})` : ''}`],
+            ] as const).map(([id, label]) => (
+              <button
+                key={id}
+                onClick={() => setView(id)}
+                style={{
+                  padding: '9px 14px',
+                  border: 'none',
+                  borderBottom: `2px solid ${view === id ? C.accent : 'transparent'}`,
+                  background: 'transparent',
+                  color: view === id ? C.text : C.dim,
+                  fontSize: 13.5,
+                  fontWeight: view === id ? 500 : 400,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  whiteSpace: 'nowrap',
+                  marginBottom: -1,
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
 
-          <ClientWork customerId={params.id} />
+          {view === 'now' && (
+            <>
+              <Brief customerId={params.id} clientName={customer.name} />
+              <ClientUpdate customerId={params.id} clientName={customer.name} />
+            </>
+          )}
 
-          <ClientUpdate customerId={params.id} clientName={customer.name} />
+          {view === 'work' && (
+            <>
+              <ClientWork customerId={params.id} />
+              <ClientAccess customerId={params.id} />
+              {orgId && <People orgId={orgId} customerId={params.id} />}
+            </>
+          )}
 
-          <ClientAccess customerId={params.id} />
+          {view === 'given' && (
+            <>
+              <Discovery customerId={params.id} />
+              <ClientDocs customerId={params.id} />
+            </>
+          )}
 
-          {/*
-            One section, two halves.
-            
-            The answers are what you came for; the documents are where they
-            happen to live. They were two headings for the same thing, which is
-            how a vocabulary gets to nineteen nouns.
-          */}
-          <Discovery customerId={params.id} />
-          <ClientDocs customerId={params.id} />
+          {view === 'history' && orgId && <Reminders orgId={orgId} customerId={params.id} />}
 
-          {orgId && <Reminders orgId={orgId} customerId={params.id} />}
-
-          {orgId && <People orgId={orgId} customerId={params.id} />}
-
+          {view === 'history' && (<>
           {/*
             Below the work, and folded.
             
@@ -611,6 +670,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               ))}
             </div>
           )}
+          </>)}
         </div>
 
         <div>
