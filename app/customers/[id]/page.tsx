@@ -30,7 +30,6 @@ import { BrandCard } from '@/components/spine/BrandCard';
 import { JOB_STATUS_LABEL } from '@/lib/spine/types';
 import type { JobStatus } from '@/lib/spine/types';
 import {
-  Avatar,
   Button,
   C,
   Card,
@@ -105,7 +104,6 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [quickEmail, setQuickEmail] = useState('');
   /**
    * The logging form starts folded.
    *
@@ -314,17 +312,6 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
     }
   };
 
-  const saveQuickEmail = async () => {
-    const email = quickEmail.trim();
-    if (!email || !customer) return;
-    setBusy(true);
-    const res = await supabase.from('customers').update({ email }).eq('id', customer.id);
-    setBusy(false);
-    if (!res.error) {
-      setCustomer({ ...customer, email });
-      setQuickEmail('');
-    }
-  };
 
   if (loading) return <Page title="Loading…"><Empty>Loading…</Empty></Page>;
   if (!customer) {
@@ -376,7 +363,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
            * wrong shape for it.
            */
           gridTemplateColumns:
-            phone || view === 'now' || view === 'given'
+            phone || view === 'given'
               ? '1fr'
               : 'minmax(0, 1.25fr) minmax(340px, 1fr)',
           gap: 22,
@@ -542,7 +529,6 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             <>
               <ClientWork customerId={params.id} />
               <ClientAccess customerId={params.id} />
-              {orgId && <People orgId={orgId} customerId={params.id} />}
             </>
           )}
 
@@ -716,7 +702,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           </>)}
         </div>
 
-        <div style={{ display: view === 'now' || view === 'given' ? 'none' : undefined }}>
+        <div style={{ display: view === 'given' ? 'none' : undefined }}>
           {/*
             The business, then whoever you talk to there.
             
@@ -724,56 +710,26 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             person. The client is the company, and most companies have more
             than one person in them: this is the main contact, not the client.
           */}
-          <Card style={{ marginBottom: 14 }}>
-            <div style={{ display: 'flex', gap: 11, alignItems: 'center' }}>
-              <Avatar src={customer.avatar_url} name={customer.contact_name || customer.name} size={34} />
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: 14.5, fontWeight: 500, color: C.text }}>
-                  {customer.contact_name || 'No contact named'}
-                </div>
-                <div style={{ fontSize: 12.5, color: C.faint }}>
-                  {[customer.contact_title, 'main contact'].filter(Boolean).join(' · ')}
-                </div>
-              </div>
-              <Pill tone={customer.stage === 'active' ? 'green' : customer.stage === 'prospect' ? 'amber' : 'neutral'}>
-                {customer.stage}
-              </Pill>
-            </div>
+          {/*
+            The people, not a person.
 
-            <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {customer.email ? (
-                <a href={`mailto:${customer.email}`} style={{ fontSize: 13.5, color: C.accent, textDecoration: 'none' }}>
-                  {customer.email}
-                </a>
-              ) : (
-                /**
-                 * Fixable where you notice it.
-                 *
-                 * The list said "no email, so you can't invoice them" and then
-                 * this page said nothing at all, with the actual field buried
-                 * behind a button labelled Edit. Being told about a gap in one
-                 * place and having to hunt for the fix in another is how a
-                 * warning becomes wallpaper.
-                 */
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                  <input
-                    value={quickEmail}
-                    onChange={(e) => setQuickEmail(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') saveQuickEmail(); }}
-                    type="email"
-                    placeholder="Add their email"
-                    style={{ ...inputStyle, fontSize: 13.5, padding: '6px 9px' }}
-                  />
-                  {quickEmail.trim() && (
-                    <Button onClick={saveQuickEmail} disabled={busy}>Save</Button>
-                  )}
-                </div>
-              )}
-              {customer.phone && (
-                <a href={`tel:${customer.phone.replace(/[^\d+]/g, '')}`} style={{ fontSize: 13.5, color: C.dim, textDecoration: 'none' }}>
-                  {customer.phone}
-                </a>
-              )}
+            This card led with one name copied off the company row, while the
+            real list of people sat behind the Work tab. One truth in two
+            places, and the shallow one was the one you saw first. The list
+            itself lives here now, where you look when you want to know who to
+            write to, and adding a second person is a button rather than a
+            schema change somebody has to ask for.
+          */}
+          <div style={{ marginBottom: 12 }}>
+            <Pill tone={customer.stage === 'active' ? 'green' : customer.stage === 'prospect' ? 'amber' : 'neutral'}>
+              {customer.stage}
+            </Pill>
+          </div>
+
+          {orgId && <People orgId={orgId} customerId={params.id} />}
+
+          <Card style={{ marginBottom: 14 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {/* Search for this client, not for you. Only offered when they
                 have a site, because search work with nothing to point at is
                 not work anybody can start. */}
