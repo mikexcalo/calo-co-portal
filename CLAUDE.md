@@ -47,8 +47,13 @@ Colors have meaning — never decorative:
 - Gray = neutral / structural
 
 ## Git Rules
-Always end with: git add -A && git commit -m "[message]" && git push origin main && git push origin master
+Always end with: git add -A && git commit -m "[message]" && git push origin main
 Never use --force.
+
+`master` is stale and holds nothing `main` does not. It cannot be deleted until
+GitHub's default branch is changed to `main` in the repo settings, which needs
+a human with repo admin. Until then, do not push to it: two branches that
+disagree is worse than one that is out of date.
 
 ## File Locations
 - Shared components: components/shared/PageLayout.tsx
