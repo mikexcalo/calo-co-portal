@@ -94,6 +94,9 @@ export interface Org {
   /** Null switches review requests off, which is the safe default. */
   review_link: string | null;
   review_delay_days: number;
+  /** What they pay for. Sets the default module list; modules overrides it. */
+  plan: 'core' | 'grow' | 'agency';
+  intake_token: string | null;
   price_feed_token: string | null;
   calendar_token: string | null;
   created_at: string;

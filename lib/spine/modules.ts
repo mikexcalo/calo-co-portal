@@ -88,10 +88,98 @@ const AGENCY: ModuleId[] = [
   'business',
 ];
 
+/**
+ * What each plan includes, on top of the business kind.
+ *
+ * Core is the spine: record the work, get paid, know whether the month made
+ * money. Everything in it costs nothing per customer to run, which is why it
+ * can be generous. Grow is the machinery that goes looking for work, and it is
+ * where the value tracks the size of the business rather than the software.
+ *
+ * A module missing from a plan is still reachable by flipping orgs.modules,
+ * which is deliberate: setting something up for a client before they pay for
+ * it should not require a deployment.
+ */
+const PLAN_MODULES: Record<string, ModuleId[]> = {
+  core: [
+    'jobs', 'customers', 'receipts', 'notes', 'billing', 'pl', 'expenses',
+    'records', 'business', 'security', 'reviews',
+  ],
+  grow: [
+    'jobs', 'customers', 'receipts', 'notes', 'billing', 'pl', 'expenses',
+    'records', 'business', 'security', 'reviews',
+    'seo', 'ask', 'pricing', 'client_requests', 'team', 'website',
+  ],
+  // The agency plan is this product's own workspace and gets everything its
+  // kind allows. Gating yourself is a way to forget a feature exists.
+  agency: [],
+};
+
+/**
+ * Capabilities that are not navigation.
+ *
+ * Optional line items live inside the estimate screen and the intake form is a
+ * public page, so neither has a sidebar row to hide. They still belong to a
+ * plan, so they are named here rather than being quietly available to
+ * everybody because nobody thought about where to put the check.
+ */
+export type Feature = 'optional_lines' | 'intake_form' | 'follow_ups' | 'ask';
+
+const PLAN_FEATURES: Record<string, Feature[]> = {
+  core: [],
+  grow: ['optional_lines', 'intake_form', 'follow_ups', 'ask'],
+  agency: ['optional_lines', 'intake_form', 'follow_ups', 'ask'],
+};
+
+/** Human names for every module, so a switchboard is readable. */
+export const MODULE_LABEL: Record<ModuleId, string> = {
+  jobs: 'Jobs and engagements',
+  customers: 'Clients',
+  receipts: 'Receipts',
+  notes: 'Notes',
+  pitches: 'Pitches',
+  proposals: 'Proposals',
+  billing: 'Invoices',
+  pl: 'Profit and loss',
+  expenses: 'Overheads',
+  pricing: 'Price book',
+  records: 'Records',
+  brand_kit: 'Brand kit',
+  brands: 'Brand framework',
+  stories: 'Case studies',
+  ask: 'Ask',
+  reviews: 'Reviews',
+  seo: 'Search',
+  client_requests: 'Requests',
+  website: 'Website',
+  team: 'Team',
+  security: 'Security',
+  business: 'Business settings',
+  account: 'Bills to you',
+};
+
+export function planAllows(org: Org | null, feature: Feature): boolean {
+  if (!org) return false;
+  const overrides = (org.modules ?? {}) as Record<string, boolean>;
+  // An explicit flag wins, so a feature can be handed to one client early.
+  if (typeof overrides[feature] === 'boolean') return overrides[feature];
+  return (PLAN_FEATURES[org.plan ?? 'core'] ?? []).includes(feature);
+}
+
 export function modulesFor(org: Org | null): Set<ModuleId> {
   if (!org) return new Set();
 
-  const base = org.kind === 'agency' ? AGENCY : CONTRACTOR;
+  const kindBase = org.kind === 'agency' ? AGENCY : CONTRACTOR;
+
+  /**
+   * The plan narrows what the kind allows; it never widens it.
+   *
+   * A contractor on the grow plan does not get Brand Framework, because that
+   * is not a thing contractors do. Plan and kind answer different questions:
+   * one is what they paid for, the other is what would make sense to them.
+   */
+  const allowed = PLAN_MODULES[org.plan ?? 'core'];
+  const base = allowed?.length ? kindBase.filter((m) => allowed.includes(m)) : kindBase;
   const overrides = (org.modules ?? {}) as Partial<Record<ModuleId, boolean>>;
 
   const out = new Set<ModuleId>(base);
@@ -146,7 +234,12 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
  * module turned off should never be able to strand someone halfway through
  * setting up two-factor.
  */
-const ALWAYS = ['/', '/login', '/welcome', '/security', '/trust', '/brands', '/ask'];
+/**
+ * /workspaces is reachable, not listed. It is the agency's own switchboard,
+ * and the row level policy already limits it to workspaces you belong to, so
+ * a client following the URL sees only their own.
+ */
+const ALWAYS = ['/', '/login', '/welcome', '/security', '/trust', '/brands', '/ask', '/workspaces'];
 
 /**
  * Is this path reachable for this business? Returns false only for a route

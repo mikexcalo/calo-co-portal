@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { createEstimate, getCurrentOrg, getJob } from '@/lib/spine/db';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
+import { planAllows } from '@/lib/spine/modules';
 import type { JobWithCustomer, LineKind } from '@/lib/spine/types';
 import {
   Button,
@@ -48,7 +49,8 @@ const blank = (kind: LineKind = 'labor'): DraftLine => ({
 
 export default function EstimatePage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const { vocab } = useOrg();
+  const { vocab, org } = useOrg();
+  const canOptional = planAllows(org, 'optional_lines');
   const [orgId, setOrgId] = useState<string | null>(null);
   const [job, setJob] = useState<JobWithCustomer | null>(null);
   const [lines, setLines] = useState<DraftLine[]>([blank('labor')]);
@@ -236,6 +238,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
                 {/* Beside the kind rather than in its own column: it is a
                     property of the line, and a whole column for a checkbox
                     would push the grid past a phone's width. */}
+                {canOptional && (
                 <label style={{ marginLeft: 12, cursor: 'pointer', color: line.optional ? C.blue : C.faint }}>
                   <input
                     type="checkbox"
@@ -245,6 +248,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
                   />
                   OPTIONAL
                 </label>
+                )}
               </div>
               <input
                 value={line.description}

@@ -141,7 +141,9 @@ export const config = {
      * - /i/                     the customer-facing invoice page
      * - /s/                     a published case study
      * - /r/                     a review link, followed by a customer
+     * - /new/                   the public enquiry form
+     * - /api/enquiry            that form posting
      */
-    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|q/|p/|e/|i/|s/|r/).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|q/|p/|e/|i/|s/|r/|new/|api/enquiry).*)',
   ],
 };

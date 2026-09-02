@@ -321,6 +321,26 @@ export default function BusinessPage() {
               </p>
             </div>
 
+            {/* The link a customer fills in. Shown here rather than on its own
+                screen because it is a thing you copy once and paste onto a
+                sign, not a thing you visit. */}
+            {org?.intake_token && (
+              <div style={{ marginTop: 22, paddingTop: 18, borderTop: `1px solid ${C.border}` }}>
+                <Field label="Your enquiry link">
+                  <input
+                    readOnly
+                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/new/${org.intake_token}`}
+                    onFocus={(e) => e.currentTarget.select()}
+                    style={inputStyle}
+                  />
+                </Field>
+                <p style={{ fontSize: 13, color: C.faint, marginTop: -6, lineHeight: 1.6, maxWidth: 560 }}>
+                  Put it on a yard sign, an email footer, or your website. Anyone who fills it in
+                  lands in your clients as a prospect with what they asked for written down.
+                </p>
+              </div>
+            )}
+
             {/* Reviews sit with the rates because both are things you set once
                 and then forget, not because they are the same kind of thing. */}
             <div style={{ marginTop: 22, paddingTop: 18, borderTop: `1px solid ${C.border}` }}>

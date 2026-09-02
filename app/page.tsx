@@ -12,6 +12,7 @@
  * billed, because that's the most common and most expensive omission.
  */
 
+import { FollowUps } from '@/components/spine/FollowUps';
 import { WeekAhead } from '@/components/spine/WeekAhead';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -634,6 +635,8 @@ export default function Dashboard() {
           {activeJobs.length > 0 && (
             <div style={{ marginBottom: 30 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <FollowUps />
+
                 <WeekAhead />
 
                 <SectionLabel>In progress</SectionLabel>
