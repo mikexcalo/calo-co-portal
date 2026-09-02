@@ -252,7 +252,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
  */
 const ALWAYS = [
   '/', '/login', '/welcome', '/security', '/trust', '/brands', '/ask', '/whats-new',
-  '/targets', '/seo', '/pricing', '/records',
+  '/targets', '/seo', '/pricing', '/records', '/requests',
 ];
 
 /**
@@ -397,7 +397,6 @@ export function navFor(
         // One row, two tabs. Being findable is one job, and reviews is the
         // part of it you glance at rather than live in.
         { id: 'seo', label: 'Being found', href: '/seo', icon: 'search' },
-        { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'inbox' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {

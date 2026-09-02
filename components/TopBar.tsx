@@ -104,11 +104,15 @@ export default function TopBar() {
         fontFamily: 'inherit',
       }}
     >
-      <span style={{ fontSize: 14, color: C.faint }}>{title}</span>
-
-      {/* Centered, because it is the way into everything rather than one more
-          control on the right. */}
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0 20px' }}>
+      {/*
+        The page name is gone and the search takes its place.
+        
+        Every screen already has its name in its own heading, at a size you can
+        read, so the small grey copy of it up here was telling you something
+        you were already looking at. The search is the way into everything and
+        now sits where your eye lands first.
+      */}
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
         <CommandBar />
       </div>
 

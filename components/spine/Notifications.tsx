@@ -64,13 +64,48 @@ export function Notifications() {
   /** Set after mount — a clock read during render disagrees with the server. */
   const [now, setNow] = useState<number | null>(null);
 
+  /**
+   * Requests come in here too.
+   *
+   * A client asking for a website change is a thing that arrived and needs
+   * answering, which is what everything else in this list is. Splitting them
+   * into two inboxes meant one of them was always the one you forgot, and it
+   * was never the one with the bell on it.
+   *
+   * They are never marked read by opening the tray, because unlike a
+   * notification a request is not finished until somebody does the work. It
+   * leaves this list when its status changes, and nowhere else.
+   */
   const load = useCallback(async () => {
-    const res = await supabase
-      .from('notifications')
-      .select('id, kind, title, body, href, read_at, created_at')
-      .order('created_at', { ascending: false })
-      .limit(30);
-    if (!res.error) setItems((res.data ?? []) as Notification[]);
+    const [notes, requests] = await Promise.all([
+      supabase
+        .from('notifications')
+        .select('id, kind, title, body, href, read_at, created_at')
+        .order('created_at', { ascending: false })
+        .limit(30),
+      supabase
+        .from('site_requests')
+        .select('id, title, detail, status, submitted_at')
+        .not('status', 'in', '("shipped","declined")')
+        .order('submitted_at', { ascending: false })
+        .limit(15),
+    ]);
+
+    const asNotifications: Notification[] = (requests.data ?? []).map((r) => ({
+      id: `req-${r.id}`,
+      kind: 'site_request',
+      title: r.title ?? 'A request',
+      body: r.detail ?? null,
+      href: '/requests',
+      // Never read. A request is open until the work is done.
+      read_at: null,
+      created_at: r.submitted_at ?? new Date().toISOString(),
+    })) as Notification[];
+
+    const merged = [...asNotifications, ...((notes.data ?? []) as Notification[])].sort(
+      (a, b) => (a.created_at < b.created_at ? 1 : -1)
+    );
+    setItems(merged);
   }, []);
 
   useEffect(() => {
@@ -86,9 +121,14 @@ export function Notifications() {
   const unread = items.filter((i) => !i.read_at);
 
   const markAllRead = async () => {
-    if (!unread.length) return;
-    const ids = unread.map((i) => i.id);
-    setItems((prev) => prev.map((i) => (i.read_at ? i : { ...i, read_at: new Date().toISOString() })));
+    // Requests are excluded: they are outstanding work, and dismissing them
+    // would be the product pretending something was handled.
+    const dismissible = unread.filter((i) => !i.id.startsWith('req-'));
+    if (!dismissible.length) return;
+    const ids = dismissible.map((i) => i.id);
+    setItems((prev) =>
+      prev.map((i) => (i.read_at || i.id.startsWith('req-') ? i : { ...i, read_at: new Date().toISOString() }))
+    );
     await supabase
       .from('notifications')
       .update({ read_at: new Date().toISOString() })
@@ -97,6 +137,7 @@ export function Notifications() {
 
   const openItem = async (n: Notification) => {
     setOpen(false);
+    if (n.id.startsWith('req-')) { router.push('/requests'); return; }
     if (!n.read_at) {
       setItems((prev) => prev.map((i) => (i.id === n.id ? { ...i, read_at: new Date().toISOString() } : i)));
       await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', n.id);
@@ -123,9 +164,12 @@ export function Notifications() {
           justifyContent: 'center',
         }}
       >
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M8 2a4 4 0 0 0-4 4v3l-1 2h10l-1-2V6a4 4 0 0 0-4-4z" />
-          <path d="M6.5 13a1.5 1.5 0 0 0 3 0" />
+        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          {/* An inbox rather than a bell. A bell says something happened; an
+              inbox says something is waiting, which is what this list is once
+              requests live in it. */}
+          <path d="M1.9 8.6h3.1l.9 1.7h4.2l.9-1.7h3.1" />
+          <path d="M3.4 3.1h9.2l1.5 5.5v3.5a1.2 1.2 0 0 1-1.2 1.2H2.9a1.2 1.2 0 0 1-1.2-1.2V8.6z" />
         </svg>
         {unread.length > 0 && (
           <span
@@ -202,7 +246,7 @@ export function Notifications() {
 
             {items.length === 0 ? (
               <div style={{ padding: 26, textAlign: 'center', color: C.faint, fontSize: 13.5 }}>
-                Nothing yet. Leads, payments and client requests show up here.
+                Nothing waiting. Leads, payments, schedule and client requests all land here.
               </div>
             ) : (
               items.map((n) => (
