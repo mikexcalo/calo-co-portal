@@ -78,6 +78,21 @@ const MOVEMENTS = [
 
 const CLAIM_TONE = { sourced: 'green', estimated: 'amber', unsourced: 'red' } as const;
 
+interface Draft {
+  title: string;
+  summary: string;
+  sector?: string | null;
+  roles: string[];
+  situation: string;
+  approach: string;
+  execution: string;
+  enablement: string;
+  outcome: string;
+  claims: Array<{ claim: string; where_from: string }>;
+  missing: string[];
+  client: string;
+}
+
 export default function StoriesPage() {
   const [stories, setStories] = useState<Story[]>([]);
   const [claims, setClaims] = useState<Record<string, Claim[]>>({});
@@ -88,6 +103,10 @@ export default function StoriesPage() {
   const [newClaim, setNewClaim] = useState('');
   const [sourceDefault, setSourceDefault] = useState('');
   const [error, setError] = useState<string | null>(null);
+  /** Clients with enough on file to write about. */
+  const [clients, setClients] = useState<Array<{ id: string; name: string }>>([]);
+  const [drafting, setDrafting] = useState(false);
+  const [proposed, setProposed] = useState<Draft | null>(null);
 
   const load = useCallback(async () => {
     const [s, c] = await Promise.all([
@@ -102,8 +121,87 @@ export default function StoriesPage() {
       }
       setClaims(byCase);
     }
+    const list = await supabase.from('customers').select('id, name').order('name');
+    if (list.data) setClients(list.data as Array<{ id: string; name: string }>);
+
     setLoading(false);
   }, []);
+
+  /**
+   * Draft from what is already recorded.
+   *
+   * The framework, the discovery answers and the engagement all describe the
+   * same piece of work from different angles. Writing a case study is mostly
+   * assembling them, which is an afternoon nobody has, which is why agencies
+   * with good work have thin portfolios.
+   */
+  const draftFrom = async (customerId: string) => {
+    setDrafting(true);
+    setError(null);
+    setProposed(null);
+    try {
+      const res = await fetch('/api/stories/draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerId }),
+      });
+      const text = await res.text();
+      let data: Draft & { error?: string } = {} as Draft;
+      try { data = text ? JSON.parse(text) : ({} as Draft); } catch { /* handled below */ }
+      if (!res.ok || !data.situation) setError(data.error ?? 'Could not draft that.');
+      else setProposed(data);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+    setDrafting(false);
+  };
+
+  /**
+   * Saved as a draft, with every claim unsourced.
+   *
+   * The database refuses to publish an unsourced claim, so the worst outcome of
+   * a generous draft is a case study that cannot reach a customer until
+   * somebody stands behind the numbers. That is the right worst case.
+   */
+  const keepDraft = async (customerId: string) => {
+    if (!proposed) return;
+    setBusy(true);
+    const org = await supabase.rpc('current_org_id');
+    const cs = await supabase
+      .from('case_studies')
+      .insert({
+        org_id: org.data,
+        customer_id: customerId,
+        client: proposed.client,
+        title: proposed.title,
+        summary: proposed.summary,
+        sector: proposed.sector ?? null,
+        roles: proposed.roles,
+        situation: proposed.situation,
+        approach: proposed.approach,
+        execution: proposed.execution,
+        enablement: proposed.enablement || null,
+        outcome: proposed.outcome || null,
+        status: 'draft',
+      })
+      .select('id')
+      .single();
+
+    if (!cs.error && proposed.claims.length) {
+      await supabase.from('case_study_claims').insert(
+        proposed.claims.map((c) => ({
+          org_id: org.data,
+          case_id: cs.data.id,
+          claim: c.claim,
+          status: 'unsourced',
+          source: null,
+        }))
+      );
+    }
+    setBusy(false);
+    setProposed(null);
+    load();
+  };
 
   useEffect(() => { load(); }, [load]);
 
@@ -181,6 +279,98 @@ export default function StoriesPage() {
           {unsourcedCount} {unsourcedCount === 1 ? 'claim needs' : 'claims need'} a source before
           {unsourcedCount === 1 ? ' it shows' : ' they show'} on a published page.
         </div>
+      )}
+
+      {/*
+        Draft one from work already recorded.
+        
+        The framework, the discovery answers and the engagement describe the
+        same work from three angles. Assembling them is the afternoon nobody
+        has, which is why agencies with good work have thin portfolios.
+      */}
+      {clients.length > 0 && !proposed && (
+        <Card style={{ marginBottom: 22 }}>
+          <div style={{ fontSize: 13.5, color: C.dim, marginBottom: 10, maxWidth: 620, lineHeight: 1.6 }}>
+            Write one from what is already on file. It uses their framework, what they told you,
+            and the engagement, and it will refuse if there is not enough to work from.
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {clients.map((cl) => (
+              <Button key={cl.id} variant="ghost" onClick={() => draftFrom(cl.id)} disabled={drafting}>
+                {drafting ? 'Writing…' : cl.name}
+              </Button>
+            ))}
+          </div>
+          {error && <div style={{ fontSize: 13, color: C.red, marginTop: 10 }}>{error}</div>}
+        </Card>
+      )}
+
+      {proposed && (
+        <Card style={{ marginBottom: 22 }}>
+          <div style={{ fontSize: 12, color: C.faint }}>{proposed.client}</div>
+          <div style={{ fontSize: 19, fontWeight: 600, color: C.text, marginTop: 2 }}>{proposed.title}</div>
+          <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.6, margin: '8px 0 16px', maxWidth: 660 }}>
+            {proposed.summary}
+          </p>
+
+          {([
+            ['The situation', proposed.situation],
+            ['The approach', proposed.approach],
+            ['What shipped', proposed.execution],
+            ['What the team got', proposed.enablement],
+            ['What happened', proposed.outcome],
+          ] as const).map(([label, body]) => (
+            <div key={label} style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.09em', color: C.faint, fontWeight: 600, marginBottom: 4 }}>
+                {label}
+              </div>
+              {body?.trim() ? (
+                <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, margin: 0, maxWidth: 680 }}>{body}</p>
+              ) : (
+                /* An empty movement is the honest answer more often than not,
+                   and saying so beats filling it. */
+                <p style={{ fontSize: 13.5, color: C.amber, margin: 0 }}>
+                  Nothing on file for this. Left empty rather than invented.
+                </p>
+              )}
+            </div>
+          ))}
+
+          {proposed.claims.length > 0 && (
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.09em', color: C.faint, fontWeight: 600, marginBottom: 6 }}>
+                Numbers it found
+              </div>
+              {proposed.claims.map((c, i) => (
+                <div key={i} style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.6, marginBottom: 4 }}>
+                  {c.claim} <span style={{ color: C.faint }}>({c.where_from})</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {proposed.missing.length > 0 && (
+            <div style={{ fontSize: 13, color: C.amber, marginBottom: 14, lineHeight: 1.6, maxWidth: 640 }}>
+              Before it can be published: {proposed.missing.join('. ')}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <Button
+              onClick={() => {
+                const match = clients.find((cl) => cl.name === proposed.client);
+                if (match) keepDraft(match.id);
+              }}
+              disabled={busy}
+            >
+              {busy ? 'Saving…' : 'Keep it as a draft'}
+            </Button>
+            <Button variant="ghost" onClick={() => setProposed(null)}>Discard</Button>
+            <span style={{ fontSize: 12.5, color: C.faint }}>
+              Every number saves as unsourced, and unsourced cannot be published.
+            </span>
+          </div>
+        </Card>
       )}
 
       {stories.length === 0 ? (
