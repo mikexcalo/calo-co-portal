@@ -314,7 +314,16 @@ export default function Sidebar() {
 
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem('nav.closed');
+      /**
+       * Versioned, so restructuring the nav resets the defaults once.
+       *
+       * Without this, a preference saved against the old group names survives
+       * a rename and the new defaults never apply: the groups meant to start
+       * folded stay open, and the sidebar somebody was told would be nine rows
+       * is sixteen. A stored choice about a nav that no longer exists is not a
+       * choice worth honoring.
+       */
+      const saved = window.localStorage.getItem('nav.closed.v2');
       if (saved) {
         setClosed(new Set(JSON.parse(saved) as string[]));
       } else {
@@ -336,7 +345,7 @@ export default function Sidebar() {
       if (next.has(heading)) next.delete(heading);
       else next.add(heading);
       try {
-        window.localStorage.setItem('nav.closed', JSON.stringify([...next]));
+        window.localStorage.setItem('nav.closed.v2', JSON.stringify([...next]));
       } catch {
         // Storage unavailable; the choice still applies for this session.
       }

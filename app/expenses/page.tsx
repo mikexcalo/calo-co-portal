@@ -34,6 +34,7 @@ import {
   money0,
   shortDate,
   today,
+  MONEY_TABS,
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
 import { PRODUCT } from '@/lib/brand';
@@ -224,6 +225,7 @@ export default function ExpensesPage() {
 
   return (
     <Page
+      tabs={MONEY_TABS}
       title="Overheads"
       subtitle="What it costs to keep the doors open, separate from any one job."
       action={

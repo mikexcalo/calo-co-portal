@@ -243,7 +243,17 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
  * and the row level policy already limits it to workspaces you belong to, so
  * a client following the URL sees only their own.
  */
-const ALWAYS = ['/', '/login', '/welcome', '/security', '/trust', '/brands', '/ask', '/whats-new'];
+/**
+ * Reachable without a sidebar row.
+ *
+ * Targets and Search are opened from a client, price list and records from
+ * Business. A route being unlisted is not a route being hidden: it means the
+ * place you reach it from is somewhere that already knows what you are doing.
+ */
+const ALWAYS = [
+  '/', '/login', '/welcome', '/security', '/trust', '/brands', '/ask', '/whats-new',
+  '/targets', '/seo', '/pricing', '/records',
+];
 
 /**
  * Is this path reachable for this business? Returns false only for a route
@@ -340,10 +350,24 @@ export function navFor(
    * What stays here is what you open without knowing which client it concerns:
    * the day, the people, the money, and the few lists you work down.
    */
+  /**
+   * One test decides whether something gets a row.
+   *
+   * Do you open it to find something out, or did you open it once so that
+   * something else would work? A price list is the second kind: you write it
+   * and from then on it feeds estimates. Records, receipts and your own rates
+   * are the same. Each of those had a row, which put the tax number typed in
+   * March at the same level as who owes you money.
+   *
+   * The second test is whose it is. Targets and Search are per client now, and
+   * a hundred and four seafood distributors are John's list, not yours. They
+   * belong on his record, reached by opening him, not by finding a feature in
+   * a sidebar that never mentions him.
+   *
+   * What survives is what you open without already knowing which client it
+   * concerns.
+   */
   const groups: NavGroup[] = [
-    // Today is rendered by the sidebar itself, above these groups. It is not
-    // listed here on purpose: it must not depend on a module being enabled,
-    // and adding it produced two of them.
     {
       heading: 'The work',
       items: [
@@ -358,20 +382,19 @@ export function navFor(
         { id: 'billing', label: 'Invoices', href: '/billing', icon: 'invoices' },
         { id: 'proposals', label: vocab.estimate + 's', href: '/proposals', icon: 'proposal' },
         { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
+        // Receipts is a tab inside this one: nobody browses receipts, they
+        // feed overheads and job costs.
         { id: 'expenses', label: 'Overheads', href: '/expenses', icon: 'wallet' },
-        { id: 'receipts', label: 'Receipts', href: '/documents', icon: 'financials' },
         { id: 'account', label: 'Bills to You', href: '/account', icon: 'incoming' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
-      heading: 'Find work',
-      // Folded by default: worth doing weekly, not worth a permanent five rows.
+      heading: 'Grow',
+      // Folded. Real work, not daily work.
       defaultOpen: false,
       items: [
-        { id: 'targets', label: 'Targets', href: '/targets', icon: 'crosshair' },
         { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'megaphone' },
         { id: 'reviews', label: 'Reviews', href: '/reviews', icon: 'star' },
-        { id: 'seo', label: 'Search', href: '/seo', icon: 'search' },
         { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'inbox' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
@@ -383,8 +406,17 @@ export function navFor(
         { id: 'stories', label: 'Case Studies', href: '/stories', icon: 'book' },
         { id: 'brand_kit', label: 'Kit and assets', href: '/brand-kit', icon: 'palette' },
         { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },
-        { id: 'pricing', label: 'Price book', href: '/pricing', icon: 'storefront' },
-        { id: 'records', label: 'Records', href: '/records', icon: 'folder' },
+      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
+    },
+    {
+      heading: 'Setup',
+      defaultOpen: false,
+      items: [
+        // One row. Price list, records and plans are tabs inside it, because
+        // all three are things you set and then leave.
+        { id: 'business', label: 'Business', href: '/business', icon: 'settings' },
+        { id: 'team', label: 'Team', href: '/team', icon: 'clients' },
+        { id: 'security', label: 'Security', href: '/security', icon: 'shield' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
   ];

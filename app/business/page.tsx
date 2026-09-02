@@ -32,6 +32,7 @@ import {
   Pill,
   SectionLabel,
   inputStyle,
+  SETUP_TABS,
 } from '@/components/spine/ui';
 
 type Tab = 'rates' | 'payments' | 'connections' | 'workspaces';
@@ -203,6 +204,7 @@ export default function BusinessPage() {
 
   return (
     <Page
+      tabs={SETUP_TABS}
       title={org.name}
       subtitle="Your rates, how you get paid, and what else plugs into this."
       action={

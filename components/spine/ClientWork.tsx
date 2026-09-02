@@ -69,7 +69,7 @@ export function ClientWork({ customerId }: { customerId: string }) {
     if (unbilled > 0) next.push({ label: 'Unbilled', money: unbilled, href: '/jobs', tone: 'amber' });
     if (ledger.length) next.push({ label: 'Engagements', count: ledger.length, href: '/jobs' });
 
-    if (t.length) next.push({ label: 'Targets', count: t.length, href: '/targets', hint: `${open} still open` });
+    if (t.length) next.push({ label: 'Targets', count: t.length, href: `/targets?client=${customerId}`, hint: `${open} still open` });
     if (brands.data?.length) next.push({ label: 'Brand', count: brands.data.length, href: `/brands/${brands.data[0].id}` });
     if (stories.data?.length) next.push({ label: 'Case studies', count: stories.data.length, href: '/stories' });
     if (pitches.data?.length) next.push({ label: 'Pitches', count: pitches.data.length, href: '/pitches' });

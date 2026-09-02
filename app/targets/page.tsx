@@ -13,6 +13,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, Empty, Metric, Page, Pill, inputStyle } from '@/components/spine/ui';
 
@@ -44,6 +45,16 @@ const toneFor = (s: Target['status']) => STATUS.find((x) => x.id === s)?.tone ??
 const labelFor = (s: Target['status']) => STATUS.find((x) => x.id === s)?.label ?? s;
 
 export default function TargetsPage() {
+  /**
+   * Whose list this is.
+   *
+   * Reached from a client record, because a hundred and four seafood
+   * distributors are that client's list and not yours. Without a client this
+   * shows everything, which is the view you want once for a sanity check and
+   * never again.
+   */
+  const clientId = useSearchParams().get('client');
+  const [clientName, setClientName] = useState<string | null>(null);
   const [rows, setRows] = useState<Target[]>([]);
   const [loading, setLoading] = useState(true);
   const [segment, setSegment] = useState<string>('all');
@@ -52,14 +63,22 @@ export default function TargetsPage() {
   const [open, setOpen] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const res = await supabase
+    let q = supabase
       .from('targets')
       .select('*, client:customers!targets_for_client_id_fkey(name)')
       .order('segment')
       .order('name');
+    if (clientId) q = q.eq('for_client_id', clientId);
+
+    const res = await q;
     if (!res.error) setRows((res.data ?? []) as Target[]);
+
+    if (clientId) {
+      const c = await supabase.from('customers').select('name').eq('id', clientId).maybeSingle();
+      setClientName(c.data?.name ?? null);
+    }
     setLoading(false);
-  }, []);
+  }, [clientId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -94,7 +113,8 @@ export default function TargetsPage() {
 
   return (
     <Page
-      title="Targets"
+      back={clientId ? { label: clientName ?? 'Client', href: `/customers/${clientId}` } : undefined}
+      title={clientName ? `Targets for ${clientName}` : 'Targets'}
       subtitle="Companies worth approaching. They become clients only once somebody answers."
     >
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 22 }}>
@@ -140,7 +160,7 @@ export default function TargetsPage() {
                 <div style={{ flex: 1, minWidth: 190 }}>
                   <div style={{ fontSize: 14.5, fontWeight: 500, color: C.text }}>{t.name}</div>
                   <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2 }}>
-                    {[t.client?.name, t.region, t.size ? `${t.size} units` : null]
+                    {[clientId ? null : t.client?.name, t.region, t.size ? `${t.size} units` : null]
                       .filter(Boolean)
                       .join(' · ')}
                   </div>

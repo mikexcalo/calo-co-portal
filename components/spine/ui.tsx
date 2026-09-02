@@ -158,9 +158,30 @@ function PageTabs({ tabs, phone }: { tabs: readonly PageTab[]; phone: boolean })
  * logo and a QR code for a yard sign are not reference material, they are what
  * you reach for when you are trying to get hired.
  */
-export const LIBRARY_TABS: readonly PageTab[] = [
-  { label: 'Price List', href: '/pricing' },
+/**
+ * Things you fill in once and then leave alone.
+ *
+ * A price list is not somewhere you go. You write it, and from then on it
+ * feeds estimates. Same for records and for what you charge. Each of these had
+ * a sidebar row, which put "the VAT number I typed in March" at the same level
+ * as "who owes me money".
+ *
+ * The test that sorts them: do you open this to find something out, or did you
+ * open it once so that something else would work? The second kind belongs
+ * behind a tab.
+ */
+export const SETUP_TABS: readonly PageTab[] = [
+  { label: 'Business', href: '/business' },
+  { label: 'Price list', href: '/pricing' },
   { label: 'Records', href: '/records' },
+];
+
+/**
+ * Receipts feed overheads and job costs. Nobody browses receipts.
+ */
+export const MONEY_TABS: readonly PageTab[] = [
+  { label: 'Overheads', href: '/expenses' },
+  { label: 'Receipts', href: '/documents' },
 ];
 
 function BackLink({ label, href }: { label: string; href: string }) {
