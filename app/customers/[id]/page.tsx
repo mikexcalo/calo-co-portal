@@ -18,6 +18,7 @@ import { useOrg } from '@/lib/spine/org';
 import { Links } from '@/components/spine/Links';
 import { Photos } from '@/components/spine/Photos';
 import { People } from '@/components/spine/People';
+import { ClientAccess } from '@/components/spine/ClientAccess';
 import { ClientWork } from '@/components/spine/ClientWork';
 import { Reminders } from '@/components/spine/Reminders';
 import { BrandCard } from '@/components/spine/BrandCard';
@@ -418,6 +419,8 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             instead of the last thing that was said.
           */}
           <ClientWork customerId={params.id} />
+
+          <ClientAccess customerId={params.id} />
 
           {orgId && <Reminders orgId={orgId} customerId={params.id} />}
 

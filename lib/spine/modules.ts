@@ -408,17 +408,10 @@ export function navFor(
         { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
-    {
-      heading: 'Setup',
-      defaultOpen: false,
-      items: [
-        // One row. Price list, records and plans are tabs inside it, because
-        // all three are things you set and then leave.
-        { id: 'business', label: 'Business', href: '/business', icon: 'settings' },
-        { id: 'team', label: 'Team', href: '/team', icon: 'clients' },
-        { id: 'security', label: 'Security', href: '/security', icon: 'shield' },
-      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
-    },
+    // No Setup group. Business, Team and Security live under the avatar, where
+    // this codebase already put them and already explained why: you configure
+    // them twice in the first week and then never again. Adding them back as a
+    // group was me re-deciding something that had been decided correctly.
   ];
 
   return groups.filter((g) => g.items.length > 0);

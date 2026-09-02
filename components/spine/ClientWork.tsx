@@ -34,7 +34,7 @@ export function ClientWork({ customerId }: { customerId: string }) {
   const [tiles, setTiles] = useState<Tile[]>([]);
 
   const load = useCallback(async () => {
-    const [targets, brands, stories, pitches, jobs, invoices, seo, reviews] = await Promise.all([
+    const [targets, brands, stories, pitches, jobs, invoices, seo, reviews, notes] = await Promise.all([
       supabase.from('targets').select('id, status', { count: 'exact', head: false }).eq('for_client_id', customerId),
       supabase.from('brands').select('id').eq('customer_id', customerId),
       supabase.from('case_studies').select('id').eq('customer_id', customerId),
@@ -43,6 +43,7 @@ export function ClientWork({ customerId }: { customerId: string }) {
       supabase.from('job_invoices').select('total, amount_paid, status, job:jobs!inner(customer_id)').eq('job.customer_id', customerId),
       supabase.from('seo_profile').select('id').eq('customer_id', customerId).maybeSingle(),
       supabase.from('review_requests').select('id, clicked_at').eq('customer_id', customerId),
+      supabase.from('customer_notes').select('id').eq('customer_id', customerId),
     ]);
 
     const t = targets.data ?? [];
@@ -70,7 +71,28 @@ export function ClientWork({ customerId }: { customerId: string }) {
     if (ledger.length) next.push({ label: 'Engagements', count: ledger.length, href: '/jobs' });
 
     if (t.length) next.push({ label: 'Targets', count: t.length, href: `/targets?client=${customerId}`, hint: `${open} still open` });
-    if (brands.data?.length) next.push({ label: 'Brand', count: brands.data.length, href: `/brands/${brands.data[0].id}` });
+    if (brands.data?.length) {
+      next.push({ label: 'Brand', count: brands.data.length, href: `/brands/${brands.data[0].id}` });
+      /**
+       * Their documents, counted and linked.
+       *
+       * Four of John's were read, turned into targets and a task list, and
+       * then not stored anywhere he could find them. A count with a way in is
+       * the difference between material you have and material you had.
+       */
+      const docs = await supabase
+        .from('brand_intel')
+        .select('id')
+        .eq('brand_id', brands.data[0].id);
+      if (docs.data?.length) {
+        next.push({
+          label: 'Their documents',
+          count: docs.data.length,
+          href: `/brands/${brands.data[0].id}/intel`,
+        });
+      }
+    }
+    if (notes.data?.length) next.push({ label: 'Logged', count: notes.data.length, href: '#history' });
     if (stories.data?.length) next.push({ label: 'Case studies', count: stories.data.length, href: '/stories' });
     if (pitches.data?.length) next.push({ label: 'Pitches', count: pitches.data.length, href: '/pitches' });
 
