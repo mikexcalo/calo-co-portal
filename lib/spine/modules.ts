@@ -28,6 +28,7 @@ export type ModuleId =
   | 'ask'
   | 'reviews'
   | 'seo'
+  | 'targets'
   | 'account'        // client-facing: what I owe my agency
   | 'pricing'
   | 'records'
@@ -68,6 +69,7 @@ const AGENCY: ModuleId[] = [
   'ask',
   'reviews',
   'seo',
+  'targets',
   'jobs',
   'customers',
   'receipts',
@@ -108,7 +110,7 @@ const PLAN_MODULES: Record<string, ModuleId[]> = {
   grow: [
     'jobs', 'customers', 'receipts', 'notes', 'billing', 'pl', 'expenses',
     'records', 'business', 'security', 'reviews',
-    'seo', 'ask', 'pricing', 'client_requests', 'team', 'website',
+    'seo', 'ask', 'pricing', 'client_requests', 'team', 'website', 'targets',
   ],
   // The agency plan is this product's own workspace and gets everything its
   // kind allows. Gating yourself is a way to forget a feature exists.
@@ -150,6 +152,7 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   ask: 'Ask',
   reviews: 'Reviews',
   seo: 'Search',
+  targets: 'Targets',
   client_requests: 'Requests',
   website: 'Website',
   team: 'Team',
@@ -210,6 +213,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/ask', 'ask'],
   ['/reviews', 'reviews'],
   ['/seo', 'seo'],
+  ['/targets', 'targets'],
   ['/framework', 'brands'],
   ['/stories', 'stories'],
   ['/brands', 'brands'],
@@ -239,7 +243,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
  * and the row level policy already limits it to workspaces you belong to, so
  * a client following the URL sees only their own.
  */
-const ALWAYS = ['/', '/login', '/welcome', '/security', '/trust', '/brands', '/ask', '/workspaces'];
+const ALWAYS = ['/', '/login', '/welcome', '/security', '/trust', '/brands', '/ask', '/workspaces', '/whats-new'];
 
 /**
  * Is this path reachable for this business? Returns false only for a route
@@ -349,18 +353,37 @@ export function navFor(
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
-      heading: 'Grow',
-      // Folded by default. Winning work matters, but not every day, and this
-      // is the section somebody can lose without losing the product.
+      heading: 'Find work',
+      /**
+       * Split out of the old Grow section, which had grown to eight rows
+       * covering two unrelated jobs. Finding work and building a brand are
+       * different days: one is a list you work down, the other is a decision
+       * you make once and live with.
+       */
       defaultOpen: false,
       items: [
+        { id: 'targets', label: 'Targets', href: '/targets', icon: 'crosshair' },
         { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'megaphone' },
-        { id: 'brands', label: 'Brand Framework', href: '/framework', icon: 'brandKit' },
-        { id: 'stories', label: 'Case Studies', href: '/stories', icon: 'megaphone' },
-        { id: 'brand_kit', label: 'Brand Kit', href: '/brand-kit', icon: 'brandKit' },
-        { id: 'reviews', label: 'Reviews', href: '/reviews', icon: 'megaphone' },
+        { id: 'reviews', label: 'Reviews', href: '/reviews', icon: 'star' },
         { id: 'seo', label: 'Search', href: '/seo', icon: 'search' },
         { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'inbox' },
+      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
+    },
+    {
+      heading: 'Running it',
+      defaultOpen: false,
+      items: [
+        { id: 'business', label: 'Workspaces', href: '/workspaces', icon: 'storefront' },
+        { id: 'business', label: 'Everything in here', href: '/whats-new', icon: 'book' },
+      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
+    },
+    {
+      heading: 'Brand',
+      defaultOpen: false,
+      items: [
+        { id: 'brands', label: 'Framework', href: '/framework', icon: 'brandKit' },
+        { id: 'stories', label: 'Case Studies', href: '/stories', icon: 'book' },
+        { id: 'brand_kit', label: 'Kit and assets', href: '/brand-kit', icon: 'palette' },
         { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },

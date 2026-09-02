@@ -158,6 +158,23 @@ const icons: Record<string, React.ReactNode> = {
       <path d="M10.6 10.6 13.6 13.6" />
     </svg>
   ),
+  crosshair: (
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="8" cy="8" r="5.6" /><circle cx="8" cy="8" r="1.6" />
+      <path d="M8 .9v2.2M8 12.9v2.2M.9 8h2.2M12.9 8h2.2" />
+    </svg>
+  ),
+  star: (
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 1.9l1.86 3.77 4.16.6-3.01 2.94.71 4.14L8 11.4l-3.72 1.95.71-4.14L1.98 6.27l4.16-.6z" />
+    </svg>
+  ),
+  book: (
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2.3 2.6h4.2c.9 0 1.5.6 1.5 1.5v9.3c0-.7-.6-1.2-1.5-1.2H2.3z" />
+      <path d="M13.7 2.6H9.5C8.6 2.6 8 3.2 8 4.1v9.3c0-.7.6-1.2 1.5-1.2h4.2z" />
+    </svg>
+  ),
   megaphone: (
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M2.2 6.4v3.2a1 1 0 0 0 1 1h1.5l5.8 2.9V2.5L4.7 5.4H3.2a1 1 0 0 0-1 1z" />
