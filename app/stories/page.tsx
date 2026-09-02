@@ -21,6 +21,7 @@
  *   nobody opens.
  */
 
+import { OutboundCheck } from '@/components/spine/OutboundCheck';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
 import {
@@ -348,6 +349,12 @@ export default function StoriesPage() {
               ))}
             </div>
           )}
+
+          <OutboundCheck
+            text={[proposed.summary, proposed.situation, proposed.approach, proposed.execution, proposed.enablement, proposed.outcome].filter(Boolean).join('\n\n')}
+            customerId={clients.find((cl) => cl.name === proposed.client)?.id ?? null}
+            label="in this draft"
+          />
 
           {proposed.missing.length > 0 && (
             <div style={{ fontSize: 13, color: C.amber, marginBottom: 14, lineHeight: 1.6, maxWidth: 640 }}>

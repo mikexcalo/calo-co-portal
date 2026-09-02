@@ -161,31 +161,91 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }
   }
 
-  // --- messaging ------------------------------------------------------------
-  const modules = (brand.messaging ?? []) as Array<{ name: string; state: string; content: string; note: string }>;
-  const written = modules.filter((m) => m.content?.trim());
-  if (written.length) {
-    const md = [
-      `# ${brand.name} messaging`,
-      '',
-      'Only modules with something written in them appear here. A module that is',
-      'missing has not been decided yet, which is different from being empty.',
-      '',
-      ...written.flatMap((m) => [
-        `## ${m.name}`,
-        `*${m.state}${m.note ? ` · ${m.note}` : ''}*`,
-        '',
-        m.content.trim(),
-        '',
-      ]),
-    ];
-    root.file('messaging.md', md.join('\n'));
-  }
-
-  // --- readme ---------------------------------------------------------------
   const guard = (brand.guardrails ?? {}) as { never?: Array<{ term: string; reason?: string }> };
   const banned = guard.never ?? [];
 
+  // --- messaging ------------------------------------------------------------
+  /**
+   * The framework as a document somebody is handed, not a dump of fields.
+   *
+   * It was ten headings and their contents, which is a database export with
+   * markdown syntax. What a client is handed has to say what each thing is for
+   * and what state it is in, because the whole argument of the framework is
+   * that a locked line and a line somebody is still testing are different
+   * things and look identical on a page.
+   */
+  const modules = (brand.messaging ?? []) as Array<{
+    id: string; name: string; note: string; job: string; state: string; content: string;
+  }>;
+  const written = modules.filter((m) => m.content?.trim());
+
+  if (written.length) {
+    const locked = written.filter((m) => m.state === 'locked');
+    const testing = written.filter((m) => m.state === 'testing');
+    const open = modules.filter((m) => !m.content?.trim());
+
+    const md: string[] = [
+      `# ${brand.name}`,
+      '',
+      'Brand and messaging platform.',
+      `Exported ${new Date().toISOString().slice(0, 10)}.`,
+      '',
+      '## How to read this',
+      '',
+      'Ten modules, in the order the decisions have to be made. Each is an input to',
+      'the next, so the order is not presentation: positioning cannot be written',
+      'before the audience is defined.',
+      '',
+      'Every module carries a state, and the state is the useful part:',
+      '',
+      '- **Locked** is decided. Changing it is a decision, not an edit.',
+      '- **Testing** is written and in front of people, not settled.',
+      '- **Open** has not been decided yet, which is different from being empty.',
+      '',
+      `Right now: ${locked.length} locked, ${testing.length} testing, ${open.length} still open.`,
+      '',
+    ];
+
+    for (const m of written) {
+      md.push(`## ${m.name}`);
+      md.push(`*${m.state}${m.note ? ` · ${m.note}` : ''}*`);
+      md.push('');
+      if (m.job) { md.push(`**What it does.** ${m.job}`); md.push(''); }
+      md.push(m.content.trim());
+      md.push('');
+    }
+
+    if (open.length) {
+      md.push('## Not decided yet');
+      md.push('');
+      md.push('Listed rather than omitted. A module missing from a document reads as an');
+      md.push('oversight; a module named as undecided reads as a decision nobody has made,');
+      md.push('which is what it is.');
+      md.push('');
+      for (const m of open) md.push(`- **${m.name}.** ${m.job}`);
+      md.push('');
+    }
+
+    /**
+     * The never list ships with the document.
+     *
+     * It is the only part anybody has to obey, and leaving it in the software
+     * means the person writing the next page never sees it.
+     */
+    if (banned.length) {
+      md.push('## Never say');
+      md.push('');
+      md.push('Each carries its reason. Rules with reasons survive; rules without them get');
+      md.push('relitigated every quarter by whoever is loudest.');
+      md.push('');
+      for (const b of banned) md.push(`- **${b.term}** ${b.reason ?? ''}`.trimEnd());
+      md.push('');
+    }
+
+    root.file('brand-and-messaging.md', md.join('\n'));
+  }
+
+  // --- readme ---------------------------------------------------------------
   const readme = [
     `# ${brand.name}`,
     '',
@@ -197,7 +257,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     '- `tokens.css` every color and typeface as CSS custom properties, with measured',
     '  contrast for each pairing in a comment at the bottom. Generated from the brand',
     '  kit, so do not edit it by hand: change the kit and export again.',
-    written.length ? '- `messaging.md` the decided parts of the messaging framework.' : '',
+    written.length ? '- `brand-and-messaging.md` the framework, with what each module is for and what state it is in.' : '',
     '- `fonts/` the faces we host and are able to pass on.',
     '- `assets/` filed by what each thing is for.',
     '',
