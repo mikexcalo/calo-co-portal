@@ -172,8 +172,8 @@ export default function NotesPage() {
 
   return (
     <Page
-      title="Notes"
-      subtitle="Paste a call transcript or your notes. We pull out what matters, you check it, then it saves."
+      title="Capture"
+      subtitle="Paste a transcript, an email, a page of notes. It gets read, filed against a client, and shows up on their record."
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16, maxWidth: 720 }}>

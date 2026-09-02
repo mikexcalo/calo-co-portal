@@ -138,7 +138,7 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   jobs: 'Jobs and engagements',
   customers: 'Clients',
   receipts: 'Receipts',
-  notes: 'Notes',
+  notes: 'Capture',
   pitches: 'Pitches',
   proposals: 'Proposals',
   billing: 'Invoices',
@@ -373,7 +373,7 @@ export function navFor(
       items: [
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
         { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'quotes' },
-        { id: 'notes', label: 'Notes', href: '/notes', icon: 'notes' },
+        { id: 'notes', label: 'Capture', href: '/notes', icon: 'notes' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {

@@ -544,7 +544,13 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           {notes.length === 0 ? (
             // The one empty state that earns itself: a client with nothing
             // logged is a client nobody has spoken to, which is worth saying.
-            <Card><Empty>Nothing logged yet. Anything you say to them is worth thirty seconds here.</Empty></Card>
+            <Card>
+              <Empty>
+                Nothing logged yet. History is for short things that happened: texted Mark, no
+                answer. Anything longer than a paragraph belongs in Capture, which files it as a
+                document with a summary above it.
+              </Empty>
+            </Card>
           ) : !showHistory ? (
             /* Folded. The most recent line is enough to know whether to open
                it, and it is the line you would have scrolled to anyway. */
