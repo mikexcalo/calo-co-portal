@@ -115,6 +115,16 @@ const SCHEMA = {
         'Distinctive words and constructions they actually use, drawn from their own speech. Raw material for tone, not a description of it.',
       items: { type: 'string' as const },
     },
+    summary: {
+      type: 'string' as const,
+      description:
+        'What this document is, in one sentence the person who wrote it would recognize as theirs. Not a description of its topic, a description of the artifact: whose it is, what kind of thing it is, roughly what it covers.',
+    },
+    takeaway: {
+      type: 'string' as const,
+      description:
+        'What it means for the work, in two or three sentences. Written for the person doing the work rather than for the client, so it can say the useful blunt thing.',
+    },
     missing: {
       type: 'array' as const,
       description:
@@ -122,7 +132,7 @@ const SCHEMA = {
       items: { type: 'string' as const },
     },
   },
-  required: ['modules', 'proof', 'banned', 'voice', 'missing'],
+  required: ['summary', 'takeaway', 'modules', 'proof', 'banned', 'voice', 'missing'],
 };
 
 /**
@@ -169,7 +179,9 @@ Follow each module's own rules on length and shape. A positioning statement is o
 
 No em-dashes. Use commas or full stops. American spelling throughout.
 
-The missing list is the most valuable thing you produce after the modules themselves. It is the agenda for the next call.`;
+The missing list is the most valuable thing you produce after the modules themselves. It is the agenda for the next call.
+
+The summary and the takeaway are what somebody reads before deciding whether to open the document at all. A thirty thousand word plan and a one page answer sheet look identical in a list; the summary is the only thing that tells them apart.`;
 
 export async function POST(req: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY;

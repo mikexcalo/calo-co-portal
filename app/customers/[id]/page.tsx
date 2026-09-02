@@ -18,6 +18,7 @@ import { useOrg } from '@/lib/spine/org';
 import { Links } from '@/components/spine/Links';
 import { Photos } from '@/components/spine/Photos';
 import { People } from '@/components/spine/People';
+import { Brief } from '@/components/spine/Brief';
 import { ClientAccess } from '@/components/spine/ClientAccess';
 import { ClientWork } from '@/components/spine/ClientWork';
 import { Reminders } from '@/components/spine/Reminders';
@@ -418,6 +419,10 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             opened a client record and was shown an empty picture gallery
             instead of the last thing that was said.
           */}
+          {/* Above everything. The first thing you read, and the only
+              thing you could hand to somebody else. */}
+          <Brief customerId={params.id} clientName={customer.name} />
+
           <ClientWork customerId={params.id} />
 
           <ClientAccess customerId={params.id} />

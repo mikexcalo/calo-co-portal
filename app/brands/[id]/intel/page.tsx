@@ -44,6 +44,8 @@ interface Intel {
   body: string;
   source: string | null;
   image_path: string | null;
+  summary: string | null;
+  takeaway: string | null;
   read_at: string | null;
   cost_cents: number | null;
   created_at: string;
@@ -57,6 +59,8 @@ interface Proposal {
 }
 
 interface Read {
+  summary?: string;
+  takeaway?: string;
   modules: Proposal[];
   proof: Array<{ kind: string; body: string; attribution?: string | null; source?: string | null }>;
   banned: Array<{ term: string; reason: string }>;
@@ -90,6 +94,8 @@ export default function IntelPage({ params }: { params: { id: string } }) {
   const [kind, setKind] = useState('transcript');
   const [files, setFiles] = useState<DropFile[]>([]);
   const [rejected, setRejected] = useState<string[]>([]);
+  /** Which document is open in full. */
+  const [showing, setShowing] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const [reading, setReading] = useState<string | null>(null);
@@ -189,7 +195,14 @@ export default function IntelPage({ params }: { params: { id: string } }) {
       setResult(data as Read);
       await supabase
         .from('brand_intel')
-        .update({ read_at: new Date().toISOString(), cost_cents: data.costCents ?? null })
+        .update({
+          read_at: new Date().toISOString(),
+          cost_cents: data.costCents ?? null,
+          // Written back only if absent, so a summary somebody edited by hand
+          // survives a re-read.
+          summary: drop.summary ?? data.summary ?? null,
+          takeaway: drop.takeaway ?? data.takeaway ?? null,
+        })
         .eq('id', drop.id);
       load();
     } catch (e) {
@@ -550,13 +563,33 @@ export default function IntelPage({ params }: { params: { id: string } }) {
                     </div>
                   </div>
                   <Button
+                    variant="ghost"
+                    onClick={() => setShowing(showing === d.id ? null : d.id)}
+                  >
+                    {showing === d.id ? 'Hide' : 'Read it'}
+                  </Button>
+                  <Button
                     onClick={() => read(d)}
                     disabled={reading !== null}
                     variant={d.read_at ? 'ghost' : 'primary'}
                   >
-                    {reading === d.id ? 'Reading…' : d.read_at ? 'Read again' : 'Read it'}
+                    {reading === d.id ? 'Working…' : d.read_at ? 'Extract again' : 'Extract'}
                   </Button>
                 </div>
+
+                {showing === d.id && !d.image_path && (
+                  <pre
+                    style={{
+                      marginTop: 14, padding: '14px 16px', background: C.panelAlt,
+                      border: `1px solid ${C.border}`, borderRadius: 8,
+                      fontSize: 13, lineHeight: 1.75, color: C.dim,
+                      whiteSpace: 'pre-wrap', fontFamily: 'inherit',
+                      maxHeight: '60vh', overflowY: 'auto', margin: '14px 0 0',
+                    }}
+                  >
+                    {d.body}
+                  </pre>
+                )}
               </Card>
             ))}
           </div>
