@@ -134,7 +134,17 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
    * Local state rather than routes, because switching view on a record is not
    * navigation and should not cost a page load or a history entry.
    */
-  const [view, setView] = useState<'now' | 'work' | 'given' | 'history'>('now');
+  /**
+   * Openable from a link, so a tile can point at a tab.
+   *
+   * Still local state rather than routing: switching view on a record is not
+   * navigation, and should not cost a page load. The query string is only read
+   * once, to honor where somebody was sent.
+   */
+  const [view, setView] = useState<'now' | 'work' | 'given' | 'history'>(
+    (typeof window !== 'undefined' &&
+      (new URLSearchParams(window.location.search).get('tab') as 'now' | 'work' | 'given' | 'history')) || 'now'
+  );
   /**
    * Counts on the tabs, from the one view that already has them.
    *
@@ -355,7 +365,19 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: phone ? '1fr' : 'minmax(0, 1.25fr) minmax(360px, 1fr)',
+          /**
+           * The second column only exists where it has something in it.
+           *
+           * The contact, the engagements and the brand are the work. On the
+           * brief and on the documents they were an empty rail down the right
+           * hand side while the reading column was squeezed into two thirds of
+           * the width, which is the wasted space: not too little content, the
+           * wrong shape for it.
+           */
+          gridTemplateColumns:
+            phone || view === 'now' || view === 'given'
+              ? '1fr'
+              : 'minmax(0, 1.25fr) minmax(340px, 1fr)',
           gap: 22,
           alignItems: 'start',
         }}
@@ -452,6 +474,13 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           */}
           {/* Above everything. The first thing you read, and the only
               thing you could hand to somebody else. */}
+          {/*
+            Four nouns, an icon each, and a count where there is one.
+            
+            The names were a sentence each and no two were the same shape, so
+            none of them told you what was behind it. Nouns are checkable: you
+            can be wrong about whether Documents holds documents.
+          */}
           <div
             style={{
               display: 'flex',
@@ -461,31 +490,50 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             }}
           >
             {([
-              ['now', 'Where we are'],
-              ['work', 'The work'],
-              ['given', `What they gave us${counts.given ? ` (${counts.given})` : ''}`],
-              ['history', `History${notes.length ? ` (${notes.length})` : ''}`],
-            ] as const).map(([id, label]) => (
-              <button
-                key={id}
-                onClick={() => setView(id)}
-                style={{
-                  padding: '9px 14px',
-                  border: 'none',
-                  borderBottom: `2px solid ${view === id ? C.accent : 'transparent'}`,
-                  background: 'transparent',
-                  color: view === id ? C.text : C.dim,
-                  fontSize: 13.5,
-                  fontWeight: view === id ? 500 : 400,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  whiteSpace: 'nowrap',
-                  marginBottom: -1,
-                }}
-              >
-                {label}
-              </button>
-            ))}
+              ['now', 'Brief', 'M3.6 2.2h6.1l3 3v8.6H3.6z M9.4 2.4v3.1h3.1'],
+              ['work', 'Work', 'M2.2 5.4h11.6v7.4H2.2z M5.8 5.2V3.6h4.4v1.6'],
+              ['given', 'Documents', 'M2.2 4.2h4l1.2 1.5h6.4v7.1H2.2z'],
+              ['history', 'Activity', 'M8 3.4v4.8l3 1.7 M8 1.9a6.1 6.1 0 100 12.2A6.1 6.1 0 008 1.9z'],
+            ] as const).map(([id, label, d]) => {
+              const on = view === id;
+              const count = id === 'given' ? counts.given : id === 'history' ? notes.length : 0;
+              return (
+                <button
+                  key={id}
+                  onClick={() => setView(id)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 7,
+                    padding: '9px 14px',
+                    border: 'none',
+                    borderBottom: `2px solid ${on ? C.accent : 'transparent'}`,
+                    background: 'transparent',
+                    color: on ? C.text : C.dim,
+                    fontSize: 13.5,
+                    fontWeight: on ? 500 : 400,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    whiteSpace: 'nowrap',
+                    marginBottom: -1,
+                  }}
+                >
+                  <svg
+                    width="15" height="15" viewBox="0 0 16 16" fill="none"
+                    stroke={on ? C.accent : C.faint} strokeWidth="1.5"
+                    strokeLinecap="round" strokeLinejoin="round"
+                  >
+                    <path d={d} />
+                  </svg>
+                  {label}
+                  {count > 0 && (
+                    <span style={{ fontSize: 11.5, color: C.faint, fontVariantNumeric: 'tabular-nums' }}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {view === 'now' && (
@@ -673,18 +721,25 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           </>)}
         </div>
 
-        <div>
-          <Card style={{ marginBottom: 14, textAlign: 'center' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
-              <Avatar src={customer.avatar_url} name={customer.contact_name || customer.name} size={84} />
-            </div>
-            <div style={{ fontSize: 16, fontWeight: 500 }}>
-              {customer.contact_name || customer.name}
-            </div>
-            {customer.contact_title && (
-              <div style={{ fontSize: 13, color: C.faint, marginTop: 2 }}>{customer.contact_title}</div>
-            )}
-            <div style={{ marginTop: 10 }}>
+        <div style={{ display: view === 'now' || view === 'given' ? 'none' : undefined }}>
+          {/*
+            The business, then whoever you talk to there.
+            
+            An 84px portrait above a name, centered, is a profile card for a
+            person. The client is the company, and most companies have more
+            than one person in them: this is the main contact, not the client.
+          */}
+          <Card style={{ marginBottom: 14 }}>
+            <div style={{ display: 'flex', gap: 11, alignItems: 'center' }}>
+              <Avatar src={customer.avatar_url} name={customer.contact_name || customer.name} size={34} />
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: 14.5, fontWeight: 500, color: C.text }}>
+                  {customer.contact_name || 'No contact named'}
+                </div>
+                <div style={{ fontSize: 12.5, color: C.faint }}>
+                  {[customer.contact_title, 'main contact'].filter(Boolean).join(' · ')}
+                </div>
+              </div>
               <Pill tone={customer.stage === 'active' ? 'green' : customer.stage === 'prospect' ? 'amber' : 'neutral'}>
                 {customer.stage}
               </Pill>

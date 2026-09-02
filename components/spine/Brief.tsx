@@ -134,13 +134,16 @@ export function Brief({ customerId, clientName }: { customerId: string; clientNa
             <Button onClick={save} disabled={busy}>{busy ? 'Saving…' : 'Save'}</Button>
           </>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
             {written.map((f) => (
               <div key={f.key}>
                 <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.09em', color: C.faint, fontWeight: 600, marginBottom: 4 }}>
                   {f.label}
                 </div>
-                <p style={{ fontSize: 14.5, color: C.text, lineHeight: 1.65, margin: 0, maxWidth: 640 }}>
+                {/* Capped at a readable measure. Full width is the right shape
+                    for the page and the wrong one for a paragraph: past about
+                    seventy characters the eye loses the line. */}
+                <p style={{ fontSize: 14.5, color: C.text, lineHeight: 1.65, margin: 0, maxWidth: '68ch' }}>
                   {brief[f.key]}
                 </p>
               </div>

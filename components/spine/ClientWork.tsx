@@ -61,7 +61,15 @@ export function ClientWork({ customerId }: { customerId: string }) {
     if (n('engagements')) next.push({ label: 'Engagements', count: n('engagements'), href: '/jobs' });
     if (n('targets')) next.push({ label: 'Targets', count: n('targets'), href: `/targets?client=${customerId}`, hint: `${n('targets_open')} still open` });
     if (n('brands')) next.push({ label: 'Brand', count: n('brands'), href: `/brands/${o.brand_id}` });
-    if (n('documents')) next.push({ label: 'Their documents', count: n('documents'), href: o.brand_id ? `/brands/${o.brand_id}/intel` : '#' });
+    /**
+     * Stays on the client.
+     *
+     * This used to jump to a screen headed Intel inside a brand, which is a
+     * different object with a different breadcrumb, and you arrived with no
+     * idea how you got there. The documents belong to the client, so the tile
+     * opens the client's own Documents tab.
+     */
+    if (n('documents')) next.push({ label: 'Documents', count: n('documents'), href: `?tab=given` });
     if (n('case_studies')) next.push({ label: 'Case studies', count: n('case_studies'), href: '/stories' });
     if (n('pitches')) next.push({ label: 'Pitches', count: n('pitches'), href: '/pitches' });
     if (n('reviews_asked')) next.push({ label: 'Reviews asked', count: n('reviews_asked'), href: '/reviews', hint: `${n('reviews_followed')} followed` });

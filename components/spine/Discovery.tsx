@@ -52,7 +52,14 @@ export function Discovery({ customerId }: { customerId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [subject, setSubject] = useState<string>('all');
   const [onlyFlagged, setOnlyFlagged] = useState(false);
-  const [open, setOpen] = useState(false);
+  /**
+   * Open by default.
+   *
+   * These are the learned information. Folding them to three flagged lines
+   * meant opening a client and being told there were eleven answers somewhere,
+   * which is the same as not having them.
+   */
+  const [open, setOpen] = useState(true);
 
   const load = useCallback(async () => {
     const res = await supabase
