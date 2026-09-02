@@ -18,6 +18,7 @@ import { useOrg } from '@/lib/spine/org';
 import { Links } from '@/components/spine/Links';
 import { Photos } from '@/components/spine/Photos';
 import { People } from '@/components/spine/People';
+import { ClientDocs } from '@/components/spine/ClientDocs';
 import { Brief } from '@/components/spine/Brief';
 import { ClientAccess } from '@/components/spine/ClientAccess';
 import { ClientWork } from '@/components/spine/ClientWork';
@@ -111,6 +112,14 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
    * thing you do occasionally; reading what happened is what you came for.
    */
   const [logging, setLogging] = useState(false);
+  /**
+   * Folded unless there is nothing else on the page.
+   *
+   * A client with a brief, work and documents does not need their whole
+   * timeline unrolled underneath it. A brand new client has nothing else, so
+   * the log is the only thing to show and hiding it would leave a blank page.
+   */
+  const [showHistory, setShowHistory] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
 
@@ -427,10 +436,20 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
 
           <ClientAccess customerId={params.id} />
 
+          <ClientDocs customerId={params.id} />
+
           {orgId && <Reminders orgId={orgId} customerId={params.id} />}
 
           {orgId && <People orgId={orgId} customerId={params.id} />}
 
+          {/*
+            Below the work, and folded.
+            
+            A timeline answers what happened, which you ask second. The brief
+            above answers where we are, which is what you opened the page for.
+            Leading with the timeline made every client look like a wall of
+            text with the answer buried in it.
+          */}
           <div
             style={{
               display: 'flex',
@@ -440,8 +459,17 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               marginBottom: 10,
             }}
           >
-            <SectionLabel>History</SectionLabel>
-            <Button variant="ghost" onClick={() => setLogging((v) => !v)}>
+            <button
+              onClick={() => setShowHistory((v) => !v)}
+              style={{
+                border: 'none', background: 'none', padding: 0, cursor: 'pointer',
+                fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6,
+              }}
+            >
+              <span style={{ fontSize: 10, color: C.faint }}>{showHistory ? '▼' : '▶'}</span>
+              <SectionLabel>History ({notes.length})</SectionLabel>
+            </button>
+            <Button variant="ghost" onClick={() => { setShowHistory(true); setLogging((v) => !v); }}>
               {logging ? 'Cancel' : 'Log something'}
             </Button>
           </div>
@@ -514,10 +542,33 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           )}
 
           {notes.length === 0 ? (
-            // History is the one place an empty state earns itself: a client
-            // with nothing logged is a client nobody has spoken to, which is
-            // worth saying out loud.
+            // The one empty state that earns itself: a client with nothing
+            // logged is a client nobody has spoken to, which is worth saying.
             <Card><Empty>Nothing logged yet. Anything you say to them is worth thirty seconds here.</Empty></Card>
+          ) : !showHistory ? (
+            /* Folded. The most recent line is enough to know whether to open
+               it, and it is the line you would have scrolled to anyway. */
+            <button
+              onClick={() => setShowHistory(true)}
+              style={{
+                width: '100%', textAlign: 'left', background: C.panel,
+                border: `1px solid ${C.border}`, borderRadius: 9, padding: '12px 14px',
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              <div style={{ fontSize: 12, color: C.faint, marginBottom: 3 }}>
+                {shortDate(notes[0].happened_on ?? notes[0].created_at)}
+              </div>
+              <div
+                style={{
+                  fontSize: 13.5, color: C.dim, lineHeight: 1.6,
+                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >
+                {notes[0].body}
+              </div>
+            </button>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {notes.map((n) => (
