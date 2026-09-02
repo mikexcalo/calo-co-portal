@@ -25,6 +25,14 @@ export function YourSetup() {
   const [state, setState] = useState<Record<string, Status>>({});
   const [open, setOpen] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  /**
+   * Folded by default.
+   *
+   * Seven cards on the screen you open every morning is a to-do list you did
+   * not write, sitting above the work you did. It is worth one line saying it
+   * is there, and nothing more until you decide to spend the afternoon on it.
+   */
+  const [showAll, setShowAll] = useState(false);
 
   const load = useCallback(async () => {
     const res = await supabase.from('setup_items').select('key, status');
@@ -50,9 +58,32 @@ export function YourSetup() {
 
   if (items.length === 0) return null;
 
+  if (!showAll) {
+    return (
+      <div style={{ marginBottom: 26 }}>
+        <button
+          onClick={() => setShowAll(true)}
+          style={{
+            width: '100%', textAlign: 'left', background: 'transparent',
+            border: `1px dashed ${C.border}`, borderRadius: 9, padding: '11px 14px',
+            cursor: 'pointer', fontFamily: 'inherit', fontSize: 13.5, color: C.dim,
+          }}
+        >
+          <span style={{ color: C.text }}>{items.length} things only you can switch on</span>
+          {' · '}
+          {items.slice(0, 3).map((i) => i.title.replace(/^(Add|Set|Claim|Invite|Upgrade|Change|Send) /, '')).join(', ')}
+          {items.length > 3 ? ', and more' : ''}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div style={{ marginBottom: 26 }}>
-      <SectionLabel>Yours to switch on ({items.length})</SectionLabel>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+        <SectionLabel>Yours to switch on ({items.length})</SectionLabel>
+        <Button variant="ghost" onClick={() => setShowAll(false)}>Hide</Button>
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {items.map((i) => {

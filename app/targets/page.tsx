@@ -63,12 +63,20 @@ export default function TargetsPage() {
   const [open, setOpen] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    /**
+     * Yours by default, theirs when you came from their record.
+     *
+     * Showing every client's list mixed together was a view nobody wanted: a
+     * hundred seafood distributors on top of your own three prospects, with no
+     * way to tell whose is whose except a small grey name. Without a client
+     * this is your own pipeline, which is the thing you would open this for.
+     */
     let q = supabase
       .from('targets')
       .select('*, client:customers!targets_for_client_id_fkey(name)')
       .order('segment')
       .order('name');
-    if (clientId) q = q.eq('for_client_id', clientId);
+    q = clientId ? q.eq('for_client_id', clientId) : q.is('for_client_id', null);
 
     const res = await q;
     if (!res.error) setRows((res.data ?? []) as Target[]);
@@ -114,8 +122,12 @@ export default function TargetsPage() {
   return (
     <Page
       back={clientId ? { label: clientName ?? 'Client', href: `/customers/${clientId}` } : undefined}
-      title={clientName ? `Targets for ${clientName}` : 'Targets'}
-      subtitle="Companies worth approaching. They become clients only once somebody answers."
+      title={clientName ? `Targets for ${clientName}` : 'Your pipeline'}
+      subtitle={
+        clientName
+          ? 'Companies worth approaching on their behalf. They become clients only once somebody answers.'
+          : 'Companies you want as clients. A client\u2019s own list lives on their record, not here.'
+      }
     >
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 22 }}>
         <Metric label="On the list" value={String(counts.researching ?? 0)} />

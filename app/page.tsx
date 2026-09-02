@@ -633,15 +633,24 @@ export default function Dashboard() {
             <Metric label="Collected" value={money0(collected)} tone="green" />
           </div>
 
+          {/*
+            Siblings, not children.
+            
+            These three were dropped inside the "In progress" heading row, which
+            is a flex line meant to hold a label and a button, and inside the
+            condition that there are active jobs. So they laid out sideways,
+            collided with the column beside them, and would have vanished
+            entirely the moment every job was finished.
+          */}
+          <YourSetup />
+
+          <FollowUps />
+
+          <WeekAhead />
+
           {activeJobs.length > 0 && (
             <div style={{ marginBottom: 30 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <YourSetup />
-
-                <FollowUps />
-
-                <WeekAhead />
-
                 <SectionLabel>In progress</SectionLabel>
                 <Button variant="ghost" onClick={() => router.push('/jobs')}>See all</Button>
               </div>

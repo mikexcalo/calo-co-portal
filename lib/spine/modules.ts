@@ -152,7 +152,7 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   ask: 'Ask',
   reviews: 'Reviews',
   seo: 'Being found',
-  targets: 'Targets',
+  targets: 'Pipeline',
   client_requests: 'Requests',
   website: 'Website',
   team: 'Team',
@@ -393,6 +393,8 @@ export function navFor(
       // Folded. Real work, not daily work.
       defaultOpen: false,
       items: [
+        // Your own pipeline. A client's list lives on their record.
+        { id: 'targets', label: 'Pipeline', href: '/targets', icon: 'crosshair' },
         { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'megaphone' },
         // One row, two tabs. Being findable is one job, and reviews is the
         // part of it you glance at rather than live in.
