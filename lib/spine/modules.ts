@@ -243,7 +243,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
  * and the row level policy already limits it to workspaces you belong to, so
  * a client following the URL sees only their own.
  */
-const ALWAYS = ['/', '/login', '/welcome', '/security', '/trust', '/brands', '/ask', '/workspaces', '/whats-new'];
+const ALWAYS = ['/', '/login', '/welcome', '/security', '/trust', '/brands', '/ask', '/whats-new'];
 
 /**
  * Is this path reachable for this business? Returns false only for a route
@@ -262,7 +262,8 @@ export function pathAllowed(org: Org | null, pathname: string): boolean {
 
 /** Nav grouping. Order and headings come from here so the sidebar reads. */
 export interface NavGroup {
-  heading: string;
+  /** Absent for the top group, which is one row and needs no label over it. */
+  heading?: string;
   items: Array<{ id: ModuleId; label: string; href: string; icon: string }>;
   /**
    * Whether the group starts open.
@@ -324,42 +325,49 @@ export function navFor(
    * Length is handled by folding a section you don't use, not by hiding
    * things you might.
    */
+  /**
+   * Short on purpose.
+   *
+   * The sidebar had grown to five groups and twenty rows, which is a list you
+   * scroll rather than scan, and scrolling a navigation is the point at which
+   * people stop using anything below the fold.
+   *
+   * Two things let it shrink. The command bar indexes everything and is one
+   * keystroke away, so the sidebar no longer has to be a map of every
+   * capability. And the client record became the hub, so most client work is
+   * reached by opening the client rather than by finding the feature.
+   *
+   * What stays here is what you open without knowing which client it concerns:
+   * the day, the people, the money, and the few lists you work down.
+   */
   const groups: NavGroup[] = [
     {
-      heading: 'The Work',
       items: [
-        { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'yardSign' },
+        { id: 'jobs', label: 'Today', href: '/', icon: 'dashboard' },
+      ] as NavGroup['items'],
+    },
+    {
+      heading: 'The work',
+      items: [
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
-        { id: 'receipts', label: 'Receipts', href: '/documents', icon: 'quotes' },
+        { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'quotes' },
         { id: 'notes', label: 'Notes', href: '/notes', icon: 'notes' },
-        ...(has('pricing') || has('records')
-          ? [{
-              id: (has('pricing') ? 'pricing' : 'records') as ModuleId,
-              label: 'Library',
-              href: has('pricing') ? '/pricing' : '/records',
-              icon: 'folder',
-            }]
-          : []),
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
       heading: 'Money',
       items: [
-        { id: 'proposals', label: `${vocab.estimate}s`, href: '/proposals', icon: 'proposal' },
         { id: 'billing', label: 'Invoices', href: '/billing', icon: 'invoices' },
-        { id: 'expenses', label: 'Overheads', href: '/expenses', icon: 'wallet' },
+        { id: 'proposals', label: vocab.estimate + 's', href: '/proposals', icon: 'proposal' },
         { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
+        { id: 'expenses', label: 'Overheads', href: '/expenses', icon: 'wallet' },
+        { id: 'receipts', label: 'Receipts', href: '/documents', icon: 'financials' },
         { id: 'account', label: 'Bills to You', href: '/account', icon: 'incoming' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
       heading: 'Find work',
-      /**
-       * Split out of the old Grow section, which had grown to eight rows
-       * covering two unrelated jobs. Finding work and building a brand are
-       * different days: one is a list you work down, the other is a decision
-       * you make once and live with.
-       */
+      // Folded by default: worth doing weekly, not worth a permanent five rows.
       defaultOpen: false,
       items: [
         { id: 'targets', label: 'Targets', href: '/targets', icon: 'crosshair' },
@@ -370,13 +378,6 @@ export function navFor(
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
-      heading: 'Running it',
-      defaultOpen: false,
-      items: [
-        { id: 'business', label: 'Workspaces', href: '/workspaces', icon: 'storefront' },
-      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
-    },
-    {
       heading: 'Brand',
       defaultOpen: false,
       items: [
@@ -384,6 +385,8 @@ export function navFor(
         { id: 'stories', label: 'Case Studies', href: '/stories', icon: 'book' },
         { id: 'brand_kit', label: 'Kit and assets', href: '/brand-kit', icon: 'palette' },
         { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },
+        { id: 'pricing', label: 'Price book', href: '/pricing', icon: 'storefront' },
+        { id: 'records', label: 'Records', href: '/records', icon: 'folder' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
   ];

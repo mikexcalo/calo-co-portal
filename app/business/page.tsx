@@ -13,6 +13,7 @@
  * underneath the thing being saved.
  */
 
+import { Workspaces } from '@/components/spine/Workspaces';
 import { useCallback, useEffect, useState } from 'react';
 import { updateOrg } from '@/lib/spine/db';
 import {
@@ -33,10 +34,18 @@ import {
   inputStyle,
 } from '@/components/spine/ui';
 
-type Tab = 'rates' | 'payments' | 'connections';
+type Tab = 'rates' | 'payments' | 'connections' | 'workspaces';
 
 const TABS: Array<{ id: Tab; label: string }> = [
   { id: 'rates', label: 'What you charge' },
+  /**
+   * Plans live here rather than in the sidebar.
+   *
+   * It was a top-level row, which put "what my clients pay for" at the same
+   * level as "today". It is a settings screen you touch when somebody upgrades,
+   * which is a handful of times a year.
+   */
+  { id: 'workspaces', label: 'Plans and access' },
   { id: 'payments', label: 'How you get paid' },
   { id: 'connections', label: 'Connections' },
 ];
@@ -575,6 +584,8 @@ export default function BusinessPage() {
           )}
         </Card>
       )}
+
+      {tab === 'workspaces' && <Workspaces />}
 
       {tab === 'connections' && (
         <Card style={{ maxWidth: 620 }}>

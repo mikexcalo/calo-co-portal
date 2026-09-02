@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { MODULE_LABEL, type ModuleId } from '@/lib/spine/modules';
-import { Button, C, Card, Empty, Page, Pill, SectionLabel } from '@/components/spine/ui';
+import { C, Card, Empty, Pill, SectionLabel } from '@/components/spine/ui';
 
 interface Workspace {
   id: string;
@@ -41,7 +41,7 @@ const FEATURES: Array<{ id: string; label: string; note: string }> = [
   { id: 'ask', label: 'Ask', note: 'Questions answered from their own data' },
 ];
 
-export default function WorkspacesPage() {
+export function Workspaces() {
   const [rows, setRows] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
@@ -85,13 +85,14 @@ export default function WorkspacesPage() {
     return v === true ? 'on' : v === false ? 'off' : 'plan';
   };
 
-  if (loading) return <Page title="Workspaces"><Card><Empty>Loading…</Empty></Card></Page>;
+  if (loading) return <Card><Empty>Loading…</Empty></Card>;
 
   return (
-    <Page
-      title="Workspaces"
-      subtitle="What each business is on, and what they can reach. Set something up before they pay, then hand it over."
-    >
+    <>
+      <p style={{ fontSize: 13.5, color: C.dim, margin: '0 0 18px', maxWidth: 640, lineHeight: 1.65 }}>
+        What each business is on and what they can reach. Set a module up before they pay for it,
+        then hand it over.
+      </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {rows.map((w) => (
           <Card key={w.id}>
@@ -149,7 +150,7 @@ export default function WorkspacesPage() {
         useful default, because a module forced off stays off through an upgrade, which is almost
         never what anybody meant.
       </p>
-    </Page>
+    </>
   );
 }
 

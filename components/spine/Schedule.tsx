@@ -19,6 +19,8 @@ import { Button, C, Card, Empty, Pill, SectionLabel, inputStyle, shortDate } fro
 interface Task {
   id: string;
   name: string;
+  /** Whose plate it is on. Only ours reaches your week and your reminders. */
+  owner: 'us' | 'client' | 'third_party';
   starts_on: string | null;
   ends_on: string | null;
   status: 'not_started' | 'in_progress' | 'done' | 'blocked';
@@ -34,7 +36,7 @@ const STATUS: Record<Task['status'], { label: string; tone: 'neutral' | 'blue' |
   blocked: { label: 'Blocked', tone: 'red' },
 };
 
-const blank = { name: '', starts_on: '', ends_on: '', assignee: '', depends_on: '' };
+const blank = { name: '', starts_on: '', ends_on: '', assignee: '', depends_on: '', owner: 'us' };
 
 export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
   const [rows, setRows] = useState<Task[]>([]);
@@ -46,7 +48,7 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
   const load = useCallback(async () => {
     const res = await supabase
       .from('job_tasks')
-      .select('id, name, starts_on, ends_on, status, assignee, depends_on, position')
+      .select('id, name, starts_on, ends_on, status, assignee, depends_on, position, owner')
       .eq('job_id', jobId)
       .order('position');
     if (!res.error) setRows((res.data ?? []) as Task[]);
@@ -65,6 +67,7 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
       starts_on: draft.starts_on || null,
       ends_on: draft.ends_on || null,
       assignee: draft.assignee.trim() || null,
+      owner: draft.owner,
       depends_on: draft.depends_on || null,
       position: rows.length + 1,
     });
@@ -139,6 +142,15 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
                 will, and demanding an account before a name can be written
                 down is how a schedule ends up half filled in. */}
             <select
+              value={draft.owner}
+              onChange={(e) => setDraft({ ...draft, owner: e.target.value })}
+              style={inputStyle}
+            >
+              <option value="us">On us</option>
+              <option value="client">On the client</option>
+              <option value="third_party">Someone else</option>
+            </select>
+            <select
               value={draft.depends_on}
               onChange={(e) => setDraft({ ...draft, depends_on: e.target.value })}
               style={inputStyle}
@@ -205,7 +217,13 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
                     ))}
                   </select>
 
-                  {late && <Pill tone="red">late</Pill>}
+                  {/* Not ours reads differently: the date still matters, but
+                      chasing it is a conversation rather than a task. */}
+                  {t.owner !== 'us' && (
+                    <Pill tone="neutral">{t.owner === 'client' ? 'their side' : 'third party'}</Pill>
+                  )}
+                  {late && t.owner === 'us' && <Pill tone="red">late</Pill>}
+                  {late && t.owner !== 'us' && <Pill tone="amber">waiting on them</Pill>}
 
                   <button
                     onClick={() => remove(t)}
@@ -223,8 +241,9 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
               </Card>
             );
           })}
-          <div style={{ fontSize: 12.5, color: C.faint, marginTop: 4 }}>
-            Move an end date and everything waiting on it moves with it.
+          <div style={{ fontSize: 12.5, color: C.faint, marginTop: 4, lineHeight: 1.6 }}>
+            Move an end date and everything waiting on it moves with it. Only steps on us reach
+            your week and your reminders; the rest are tracked here and nowhere else.
           </div>
         </div>
       )}

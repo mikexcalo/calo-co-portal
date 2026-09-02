@@ -319,7 +319,7 @@ export default function Sidebar() {
         setClosed(new Set(JSON.parse(saved) as string[]));
       } else {
         // First visit: honor the defaults the nav declares.
-        setClosed(new Set(groups.filter((g) => g.defaultOpen === false).map((g) => g.heading)));
+        setClosed(new Set(groups.filter((g) => g.defaultOpen === false).map((g) => g.heading).filter((h): h is string => Boolean(h))));
       }
     } catch {
       // A browser refusing storage is not a reason to render nothing.
@@ -398,7 +398,7 @@ export default function Sidebar() {
             <div key={g.heading || g.items[0]?.href} style={{ marginTop: g.heading ? 15 : 6 }}>
               {g.heading && (
                 <button
-                  onClick={() => toggleGroup(g.heading)}
+                  onClick={() => toggleGroup(g.heading as string)}
                   aria-expanded={!isClosed}
                   style={{
                     display: 'flex',
