@@ -18,6 +18,7 @@ import { useOrg } from '@/lib/spine/org';
 import { Links } from '@/components/spine/Links';
 import { Photos } from '@/components/spine/Photos';
 import { People } from '@/components/spine/People';
+import { Discovery } from '@/components/spine/Discovery';
 import { ClientDocs } from '@/components/spine/ClientDocs';
 import { Brief } from '@/components/spine/Brief';
 import { ClientAccess } from '@/components/spine/ClientAccess';
@@ -435,6 +436,10 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           <ClientWork customerId={params.id} />
 
           <ClientAccess customerId={params.id} />
+
+          {/* Above the documents: the answers are what you came for,
+              the document is where they happen to live. */}
+          <Discovery customerId={params.id} />
 
           <ClientDocs customerId={params.id} />
 

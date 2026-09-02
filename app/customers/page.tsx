@@ -51,6 +51,14 @@ interface Summary {
   invoiced: number;
   collected: number;
   owed: number;
+  /**
+   * The brief's stuck line, on the list.
+   *
+   * The one sentence per client that is worth reading without opening them.
+   * Everything else in a client list is a number you can get elsewhere; this
+   * is the only field that answers "which of these needs me".
+   */
+  brief: { stuck?: string; where?: string } | null;
   unbilled: number;
   last_note_on: string | null;
 }
@@ -100,6 +108,7 @@ export default function CustomersPage() {
         invoiced: num(r.invoiced),
         collected: num(r.collected),
         owed: num(r.owed),
+        brief: (r.brief ?? null) as { stuck?: string } | null,
         unbilled: num(r.unbilled),
       }))
     );
@@ -371,6 +380,29 @@ export default function CustomersPage() {
                         </a>
                       )}
                     </div>
+
+                    {/*
+                      The brief's stuck line, on the list.
+                      
+                      Everything else in a client list is a number you could get
+                      elsewhere. This is the only field that answers which of
+                      these needs you, and it is already written.
+                    */}
+                    {r.brief?.stuck && (
+                      <div
+                        style={{
+                          marginTop: 10,
+                          fontSize: 13.5,
+                          color: C.dim,
+                          lineHeight: 1.55,
+                          paddingLeft: 11,
+                          borderLeft: `2px solid ${C.borderStrong}`,
+                          maxWidth: 620,
+                        }}
+                      >
+                        {r.brief.stuck}
+                      </div>
+                    )}
 
                     {r.next_action && (
                       <div
