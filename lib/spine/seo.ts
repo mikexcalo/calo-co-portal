@@ -81,13 +81,25 @@ export const SEO_TASKS: SeoTask[] = [
     effort: 'an hour',
   },
   {
+    key: 'hide_address',
+    title: 'Hide the address if customers do not visit you',
+    why: 'A home office address on a public profile is a real cost and nobody warns you about it: it is on the internet permanently, it goes to every directory that scrapes Google, and it cannot be quietly taken back. Hiding it costs nothing in ranking as long as the service area is set.',
+    how: [
+      'In the profile, set it as a service-area business: you deliver to customers rather than receiving them.',
+      'Google still needs a real address to verify you, and still posts the card there. Verified and published are different things.',
+      'Name the towns instead. That is what near-me searches match against anyway.',
+    ],
+    applies: 'all',
+    effort: 'minutes',
+  },
+  {
     key: 'service_areas',
     title: 'Name the towns you actually serve',
     why: 'Near me searches match against a service area, not a guess. Listing towns you do not serve wastes calls; leaving out ones you do serve costs them.',
     how: [
       'List the towns you would genuinely drive to.',
       'Twenty is the Google limit and is more than most businesses need.',
-      'If you have a storefront customers visit, use the address instead of an area.',
+      'If you have a storefront customers visit, publish the address instead. A hidden address on a place people can walk into loses you the map pin.',
     ],
     applies: 'local',
     effort: 'minutes',
@@ -188,8 +200,12 @@ export const SEO_TASKS: SeoTask[] = [
  */
 export const SETUP_ORDER: Array<{ step: string; note: string }> = [
   {
+    step: 'Decide whether you are hiding your address',
+    note: 'If customers do not come to you, choose "I deliver goods and services to my customers" and Google hides the address while still using it to verify you. Most agencies, trades and consultants should do this. You still have to give Google an address; you are choosing not to publish it, which is a different thing and the part nobody explains.',
+  },
+  {
     step: 'Claim the Google Business Profile and start verification',
-    note: 'A postcard to the address, roughly a week. Everything else waits on it, so post it before you do anything else on this page.',
+    note: 'A postcard to the address you gave, roughly a week, whether or not it is published. Everything else waits on it, so start it before anything else here.',
   },
   {
     step: 'Set the primary category to the narrowest true one',
@@ -249,6 +265,15 @@ export interface Profile {
  *
  * The entire point is that it is copied rather than retyped, because retyping
  * is how Ste 4 and Suite 4 end up on different directories.
+ */
+/**
+ * The block, with or without a street.
+ *
+ * A service-area business has an address Google knows and the public does not,
+ * so emitting a directory block with an empty line where the street should be
+ * is worse than emitting one without it. Consistency is the whole point of
+ * this string, and a blank line is an inconsistency waiting to be filled in
+ * differently by two people.
  */
 export function napBlock(p: Profile): string {
   return [

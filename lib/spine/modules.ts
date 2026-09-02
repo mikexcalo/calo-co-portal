@@ -151,7 +151,7 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   stories: 'Case studies',
   ask: 'Ask',
   reviews: 'Reviews',
-  seo: 'Search',
+  seo: 'Being found',
   targets: 'Targets',
   client_requests: 'Requests',
   website: 'Website',
@@ -394,7 +394,9 @@ export function navFor(
       defaultOpen: false,
       items: [
         { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'megaphone' },
-        { id: 'reviews', label: 'Reviews', href: '/reviews', icon: 'star' },
+        // One row, two tabs. Being findable is one job, and reviews is the
+        // part of it you glance at rather than live in.
+        { id: 'seo', label: 'Being found', href: '/seo', icon: 'search' },
         { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'inbox' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },

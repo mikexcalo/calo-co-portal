@@ -177,6 +177,22 @@ export const SETUP_TABS: readonly PageTab[] = [
 ];
 
 /**
+ * Being findable, as one thing.
+ *
+ * Reviews, the search checklist and the directory list are three views of one
+ * job: whether somebody looking for this business finds it and believes it.
+ * They were three ideas that happened to ship on different days, and shipping
+ * order is not a reason to organize a product.
+ *
+ * Reviews in particular is not a place you live. It is a switch you set once
+ * and a queue you glance at, which is a tab.
+ */
+export const PRESENCE_TABS: readonly PageTab[] = [
+  { label: 'Setup', href: '/seo' },
+  { label: 'Reviews', href: '/reviews' },
+];
+
+/**
  * Receipts feed overheads and job costs. Nobody browses receipts.
  */
 export const MONEY_TABS: readonly PageTab[] = [

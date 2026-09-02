@@ -18,7 +18,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
-import { Button, C, Card, Empty, Metric, Page, Pill, SectionLabel, shortDate } from '@/components/spine/ui';
+import { Button, C, Card, Empty, Metric, Page, Pill, PRESENCE_TABS, SectionLabel, shortDate } from '@/components/spine/ui';
 
 interface Due {
   job_id: string;
@@ -86,7 +86,7 @@ export default function ReviewsPage() {
 
   if (!link) {
     return (
-      <Page title="Reviews" subtitle="Ask every finished job for a Google review.">
+      <Page tabs={PRESENCE_TABS} title="Reviews" subtitle="Ask every finished job for a Google review.">
         <Card>
           <div style={{ fontSize: 15, color: C.text, marginBottom: 8 }}>
             No review link set yet
@@ -104,6 +104,7 @@ export default function ReviewsPage() {
 
   return (
     <Page
+      tabs={PRESENCE_TABS}
       title="Reviews"
       subtitle="One ask per finished job, and never to somebody who still owes you money."
       action={

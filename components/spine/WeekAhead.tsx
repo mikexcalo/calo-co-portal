@@ -68,18 +68,27 @@ export function WeekAhead() {
   const todayIso = iso(today);
   const endIso = iso(days[6]);
 
-  // A step spanning several days appears on each of them, because it is work
-  // in progress on every one of those days, not only on the day it started.
-  const onDay = (d: string) =>
-    rows.filter(
-      (r) =>
-        !r.overdue &&
-        r.starts_on &&
-        r.starts_on <= d &&
-        (r.ends_on ?? r.starts_on) >= d
-    );
+  /**
+   * A step appears on the day it starts, and nowhere else.
+   *
+   * It used to appear on every day it spanned, on the reasoning that it is
+   * work in progress the whole time. In practice a fortnight-long step filled
+   * every row of the week with the same three lines, and a week view that
+   * repeats itself is one nobody reads. What you need from a week is what
+   * changes, and a step changes on the day it begins.
+   */
+  const onDay = (d: string) => rows.filter((r) => !r.overdue && r.starts_on === d);
 
-  const anything = late.length > 0 || rows.some((r) => r.starts_on && r.starts_on <= endIso && (r.ends_on ?? r.starts_on) >= todayIso);
+  // Started before this week and still going. Named once, quietly, rather than
+  // repeated down every column.
+  const carriedOver = rows.filter(
+    (r) => !r.overdue && r.starts_on && r.starts_on < todayIso && (r.ends_on ?? r.starts_on) >= todayIso
+  );
+
+  const anything =
+    late.length > 0 ||
+    carriedOver.length > 0 ||
+    rows.some((r) => r.starts_on && r.starts_on >= todayIso && r.starts_on <= endIso);
 
   if (!anything) {
     return (
@@ -115,6 +124,14 @@ export function WeekAhead() {
                 </span>
               </div>
             ))}
+          </div>
+        </Card>
+      )}
+
+      {carriedOver.length > 0 && (
+        <Card style={{ marginBottom: 8 }}>
+          <div style={{ fontSize: 12.5, color: C.faint }}>
+            Still running: {carriedOver.map((r) => r.name).join(', ')}
           </div>
         </Card>
       )}

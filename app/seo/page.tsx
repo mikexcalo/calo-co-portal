@@ -20,6 +20,7 @@ import {
 } from '@/lib/spine/seo';
 import {
   Button, C, Card, Empty, Field, Metric, Page, Pill, SectionLabel, inputStyle,
+  PRESENCE_TABS,
 } from '@/components/spine/ui';
 
 interface TaskRow { key: string; status: 'todo' | 'doing' | 'done' | 'skipped' }
@@ -146,8 +147,9 @@ export default function SeoPage() {
 
   return (
     <Page
+      tabs={PRESENCE_TABS}
       back={clientId ? { label: clientName ?? 'Client', href: `/customers/${clientId}` } : undefined}
-      title={clientName ? `Search for ${clientName}` : 'Search'}
+      title={clientName ? `Being found: ${clientName}` : 'Being found'}
       subtitle="Four levers, three of them admin. This holds the state so it does not get abandoned halfway."
       action={<Button variant="ghost" onClick={() => setEditing((v) => !v)}>{editing ? 'Done' : 'Edit details'}</Button>}
     >
@@ -182,7 +184,11 @@ export default function SeoPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
             <Field label="Business name, exactly"><input value={profile.legal_name ?? ''} onChange={(e) => setProfile({ ...profile, legal_name: e.target.value })} style={inputStyle} /></Field>
             <Field label="Phone, one number"><input value={profile.phone ?? ''} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} style={inputStyle} /></Field>
-            <Field label="Street"><input value={profile.street ?? ''} onChange={(e) => setProfile({ ...profile, street: e.target.value })} style={inputStyle} /></Field>
+            {/* Optional on purpose. A service-area business gives Google an
+                address and publishes none, and a required field here would
+                push people into publishing a home address they cannot take
+                back. */}
+            <Field label="Street (leave blank if you hide it)"><input value={profile.street ?? ''} onChange={(e) => setProfile({ ...profile, street: e.target.value })} placeholder="Not published" style={inputStyle} /></Field>
             <Field label="City"><input value={profile.city ?? ''} onChange={(e) => setProfile({ ...profile, city: e.target.value })} style={inputStyle} /></Field>
             <Field label="State"><input value={profile.region ?? ''} onChange={(e) => setProfile({ ...profile, region: e.target.value })} style={inputStyle} /></Field>
             <Field label="ZIP"><input value={profile.postcode ?? ''} onChange={(e) => setProfile({ ...profile, postcode: e.target.value })} style={inputStyle} /></Field>
