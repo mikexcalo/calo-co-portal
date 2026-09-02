@@ -12,6 +12,7 @@
  * billed, because that's the most common and most expensive omission.
  */
 
+import { Unresolved } from '@/components/spine/Unresolved';
 import { YourSetup } from '@/components/spine/YourSetup';
 import { FollowUps } from '@/components/spine/FollowUps';
 import { WeekAhead } from '@/components/spine/WeekAhead';
@@ -599,13 +600,22 @@ export default function Dashboard() {
             </div>
           )}
 
+          {/*
+            The all-clear now says what it actually checked.
+            
+            It read "nothing needs you right now" while a client was waiting and
+            a plan had nobody on it. Every check it ran had passed, and every
+            check it ran was about money. Claiming more than you measured is the
+            worst thing a status message can do, because it is believed.
+          */}
           {attention.length === 0 && (
-            <Card style={{ marginBottom: 30, borderColor: C.green, background: C.greenSoft }}>
+            <Card style={{ marginBottom: 22, borderColor: C.green, background: C.greenSoft }}>
               <div style={{ fontSize: 15, color: C.green, fontWeight: 500 }}>
-                Nothing needs you right now.
+                The money is clean.
               </div>
               <div style={{ fontSize: 13.5, color: C.dim, marginTop: 4 }}>
-                Everything billable is billed, every receipt is filed, nothing is expiring.
+                Everything billable is billed, every receipt is filed, nothing is expiring. Anything
+                else that is open is below.
               </div>
             </Card>
           )}
@@ -642,6 +652,8 @@ export default function Dashboard() {
             collided with the column beside them, and would have vanished
             entirely the moment every job was finished.
           */}
+          <Unresolved />
+
           <YourSetup />
 
           <FollowUps />
