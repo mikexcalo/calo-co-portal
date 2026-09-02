@@ -341,11 +341,9 @@ export function navFor(
    * the day, the people, the money, and the few lists you work down.
    */
   const groups: NavGroup[] = [
-    {
-      items: [
-        { id: 'jobs', label: 'Today', href: '/', icon: 'dashboard' },
-      ] as NavGroup['items'],
-    },
+    // Today is rendered by the sidebar itself, above these groups. It is not
+    // listed here on purpose: it must not depend on a module being enabled,
+    // and adding it produced two of them.
     {
       heading: 'The work',
       items: [
