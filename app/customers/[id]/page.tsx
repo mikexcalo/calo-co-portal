@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
+import { Glyph } from '@/components/spine/icons';
 import { getCurrentOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import { Links } from '@/components/spine/Links';
@@ -490,11 +491,11 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             }}
           >
             {([
-              ['now', 'Brief', 'M3.6 2.2h6.1l3 3v8.6H3.6z M9.4 2.4v3.1h3.1'],
-              ['work', 'Work', 'M2.2 5.4h11.6v7.4H2.2z M5.8 5.2V3.6h4.4v1.6'],
-              ['given', 'Documents', 'M2.2 4.2h4l1.2 1.5h6.4v7.1H2.2z'],
-              ['history', 'Activity', 'M8 3.4v4.8l3 1.7 M8 1.9a6.1 6.1 0 100 12.2A6.1 6.1 0 008 1.9z'],
-            ] as const).map(([id, label, d]) => {
+              ['now', 'Brief', 'brief'],
+              ['work', 'Work', 'work'],
+              ['given', 'Documents', 'documents'],
+              ['history', 'Activity', 'activity'],
+            ] as const).map(([id, label, icon]) => {
               const on = view === id;
               const count = id === 'given' ? counts.given : id === 'history' ? notes.length : 0;
               return (
@@ -518,13 +519,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                     marginBottom: -1,
                   }}
                 >
-                  <svg
-                    width="15" height="15" viewBox="0 0 16 16" fill="none"
-                    stroke={on ? C.accent : C.faint} strokeWidth="1.5"
-                    strokeLinecap="round" strokeLinejoin="round"
-                  >
-                    <path d={d} />
-                  </svg>
+                  <Glyph name={icon} color={on ? C.accent : C.faint} />
                   {label}
                   {count > 0 && (
                     <span style={{ fontSize: 11.5, color: C.faint, fontVariantNumeric: 'tabular-nums' }}>

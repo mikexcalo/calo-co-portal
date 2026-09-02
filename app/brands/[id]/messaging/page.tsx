@@ -34,6 +34,7 @@ import {
   Pill,
   SectionLabel,
   inputStyle,
+  brandTabs,
 } from '@/components/spine/ui';
 
 interface Proof {
@@ -124,10 +125,7 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
     setRhythm(shortSentencePairs(checkText));
   };
 
-  const tabs = [
-    { label: 'Framework', href: `/brands/${params.id}/messaging` },
-    { label: 'Intel', href: `/brands/${params.id}/intel` },
-  ];
+  const tabs = brandTabs(params.id);
 
   if (loading) return <Page title="Framework" tabs={tabs}><Card><Empty>Loading…</Empty></Card></Page>;
   if (!brand) return <Page title="Framework" tabs={tabs}><Card><Empty>Not found.</Empty></Card></Page>;

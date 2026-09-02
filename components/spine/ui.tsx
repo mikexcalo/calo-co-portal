@@ -12,6 +12,7 @@ import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { C, DISPLAY, SERIF, radius } from '@/lib/spine/tokens';
+import { Glyph, type IconName } from './icons';
 
 export { C, DISPLAY, SERIF, radius };
 
@@ -34,6 +35,8 @@ export function useIsPhone(): boolean {
 export interface PageTab {
   label: string;
   href: string;
+  /** Recognized rather than read. A four-tab strip of words is a paragraph. */
+  icon: IconName;
 }
 
 export function Page({
@@ -130,12 +133,15 @@ function PageTabs({ tabs, phone }: { tabs: readonly PageTab[]; phone: boolean })
             key={t.href}
             onClick={() => router.push(t.href)}
             style={{
-              padding: '9px 15px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 7,
+              padding: '9px 14px',
               border: 'none',
               borderBottom: `2px solid ${active ? C.accent : 'transparent'}`,
               background: 'transparent',
               color: active ? C.text : C.dim,
-              fontSize: 14.5,
+              fontSize: 13.5,
               fontWeight: active ? 500 : 400,
               cursor: 'pointer',
               fontFamily: 'inherit',
@@ -143,6 +149,7 @@ function PageTabs({ tabs, phone }: { tabs: readonly PageTab[]; phone: boolean })
               marginBottom: -1,
             }}
           >
+            <Glyph name={t.icon} color={active ? C.accent : C.faint} />
             {t.label}
           </button>
         );
@@ -171,9 +178,9 @@ function PageTabs({ tabs, phone }: { tabs: readonly PageTab[]; phone: boolean })
  * behind a tab.
  */
 export const SETUP_TABS: readonly PageTab[] = [
-  { label: 'Business', href: '/business' },
-  { label: 'Price list', href: '/pricing' },
-  { label: 'Records', href: '/records' },
+  { label: 'Business', href: '/business', icon: 'business' },
+  { label: 'Price list', href: '/pricing', icon: 'pricing' },
+  { label: 'Records', href: '/records', icon: 'records' },
 ];
 
 /**
@@ -188,8 +195,8 @@ export const SETUP_TABS: readonly PageTab[] = [
  * and a queue you glance at, which is a tab.
  */
 export const PRESENCE_TABS: readonly PageTab[] = [
-  { label: 'Setup', href: '/seo' },
-  { label: 'Reviews', href: '/reviews' },
+  { label: 'Search', href: '/seo', icon: 'search' },
+  { label: 'Reviews', href: '/reviews', icon: 'star' },
 ];
 
 /**
@@ -200,9 +207,9 @@ export const PRESENCE_TABS: readonly PageTab[] = [
  * Tuesday" at the same level as "did this month make money".
  */
 export const MONEY_TABS: readonly PageTab[] = [
-  { label: 'Profit & Loss', href: '/pl' },
-  { label: 'Overheads', href: '/expenses' },
-  { label: 'Receipts', href: '/documents' },
+  { label: 'Profit & Loss', href: '/pl', icon: 'chart' },
+  { label: 'Overheads', href: '/expenses', icon: 'card' },
+  { label: 'Receipts', href: '/documents', icon: 'receipt' },
 ];
 
 /**
@@ -213,10 +220,10 @@ export const MONEY_TABS: readonly PageTab[] = [
  * website is where all three land.
  */
 export const BRAND_TABS: readonly PageTab[] = [
-  { label: 'Framework', href: '/framework' },
-  { label: 'Case studies', href: '/stories' },
-  { label: 'Kit and assets', href: '/brand-kit' },
-  { label: 'Your website', href: '/website' },
+  { label: 'Framework', href: '/framework', icon: 'layers' },
+  { label: 'Case studies', href: '/stories', icon: 'book' },
+  { label: 'Kit and assets', href: '/brand-kit', icon: 'swatches' },
+  { label: 'Website', href: '/website', icon: 'globe' },
 ];
 
 /**
@@ -227,9 +234,25 @@ export const BRAND_TABS: readonly PageTab[] = [
  * somebody ends up with a pipeline nobody pitched and pitches with no pipeline
  * behind them.
  */
+/**
+ * A brand's two screens, built from its id.
+ *
+ * The only tab strip that cannot be a constant, and so the only one that was
+ * written out twice, on the two pages it appears on. Written twice is how the
+ * labels drifted apart everywhere else.
+ */
+export function brandTabs(id: string): readonly PageTab[] {
+  return [
+    { label: 'Framework', href: `/brands/${id}/messaging`, icon: 'layers' },
+    // Was "Intel", which reads as a spy word and told you nothing about the
+    // screen. It holds what the client gave us and what was read out of it.
+    { label: 'Source material', href: `/brands/${id}/intel`, icon: 'documents' },
+  ];
+}
+
 export const PIPELINE_TABS: readonly PageTab[] = [
-  { label: 'Targets', href: '/targets' },
-  { label: 'Pitches', href: '/pitches' },
+  { label: 'Targets', href: '/targets', icon: 'target' },
+  { label: 'Pitches', href: '/pitches', icon: 'send' },
 ];
 
 function BackLink({ label, href }: { label: string; href: string }) {

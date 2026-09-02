@@ -35,6 +35,7 @@ import {
   SectionLabel,
   inputStyle,
   shortDate,
+  brandTabs,
 } from '@/components/spine/ui';
 
 interface Intel {
@@ -260,21 +261,18 @@ export default function IntelPage({ params }: { params: { id: string } }) {
     if (!res.error) setTaken((t) => new Set(t).add(key));
   };
 
-  const tabs = [
-    { label: 'Framework', href: `/brands/${params.id}/messaging` },
-    { label: 'Intel', href: `/brands/${params.id}/intel` },
-  ];
+  const tabs = brandTabs(params.id);
 
-  if (loading) return <Page title="Intel" tabs={tabs}><Card><Empty>Loading…</Empty></Card></Page>;
-  if (!brand) return <Page title="Intel" tabs={tabs}><Card><Empty>Not found.</Empty></Card></Page>;
+  if (loading) return <Page title="Source material" tabs={tabs}><Card><Empty>Loading…</Empty></Card></Page>;
+  if (!brand) return <Page title="Source material" tabs={tabs}><Card><Empty>Not found.</Empty></Card></Page>;
 
   const nameOf = (id: string) => brand.messaging.find((m) => m.id === id)?.name ?? id;
 
   return (
     <Page
       back={{ label: brand.name, href: `/brands/${brand.id}` }}
-      title="Intel"
-      subtitle="Drop what you learn. A reader proposes the framework from it. You decide what sticks."
+      title="Source material"
+      subtitle="What they gave us, and what was read out of it. The framework is proposed from here; you decide what sticks."
       tabs={tabs}
     >
       {/* The drop box, first. This is what the page is for. */}

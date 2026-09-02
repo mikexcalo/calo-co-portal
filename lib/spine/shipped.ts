@@ -89,7 +89,7 @@ export const SHIPPED: Array<{ group: string; items: Shipped[] }> = [
       { name: 'Brand framework', where: 'Brand, Framework', href: '/framework',
         what: 'Ten modules in the order the decisions have to be made, with what each one needs.',
         sells: 'The engagement itself. The framework is the deliverable and the process at once.' },
-      { name: 'Intel drops', where: 'Inside any brand',
+      { name: 'Source material', where: 'Inside any brand',
         what: 'Paste a call or photograph handwritten notes and it proposes the framework from them.' },
       { name: 'Guardrail check', where: 'Inside any brand',
         what: 'Runs copy against that brand’s banned list. Free, so it can run on every draft.' },
