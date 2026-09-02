@@ -28,6 +28,8 @@ interface Target {
   status: 'researching' | 'approached' | 'talking' | 'won' | 'passed';
   next_step: string | null;
   last_touch: string | null;
+  /** Whose campaign this is. Null means it is your own list. */
+  client: { name: string } | null;
 }
 
 const STATUS: Array<{ id: Target['status']; label: string; tone: 'neutral' | 'blue' | 'amber' | 'green' | 'red' }> = [
@@ -50,7 +52,11 @@ export default function TargetsPage() {
   const [open, setOpen] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const res = await supabase.from('targets').select('*').order('segment').order('name');
+    const res = await supabase
+      .from('targets')
+      .select('*, client:customers!targets_for_client_id_fkey(name)')
+      .order('segment')
+      .order('name');
     if (!res.error) setRows((res.data ?? []) as Target[]);
     setLoading(false);
   }, []);
@@ -134,7 +140,9 @@ export default function TargetsPage() {
                 <div style={{ flex: 1, minWidth: 190 }}>
                   <div style={{ fontSize: 14.5, fontWeight: 500, color: C.text }}>{t.name}</div>
                   <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2 }}>
-                    {[t.region, t.size ? `${t.size} units` : null].filter(Boolean).join(' · ')}
+                    {[t.client?.name, t.region, t.size ? `${t.size} units` : null]
+                      .filter(Boolean)
+                      .join(' · ')}
                   </div>
                 </div>
                 {t.next_step && (

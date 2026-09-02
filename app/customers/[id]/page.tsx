@@ -18,6 +18,7 @@ import { useOrg } from '@/lib/spine/org';
 import { Links } from '@/components/spine/Links';
 import { Photos } from '@/components/spine/Photos';
 import { People } from '@/components/spine/People';
+import { ClientWork } from '@/components/spine/ClientWork';
 import { Reminders } from '@/components/spine/Reminders';
 import { BrandCard } from '@/components/spine/BrandCard';
 import { JOB_STATUS_LABEL } from '@/lib/spine/types';
@@ -416,6 +417,8 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             opened a client record and was shown an empty picture gallery
             instead of the last thing that was said.
           */}
+          <ClientWork customerId={params.id} />
+
           {orgId && <Reminders orgId={orgId} customerId={params.id} />}
 
           {orgId && <People orgId={orgId} customerId={params.id} />}
