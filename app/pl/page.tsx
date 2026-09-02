@@ -34,6 +34,7 @@ import {
   money,
   money0,
   hours as fmtHours,
+  MONEY_TABS,
 } from '@/components/spine/ui';
 
 type Period = 'all' | 'ytd' | 'quarter' | 'month';
@@ -228,6 +229,7 @@ export default function ProfitLossPage() {
 
   return (
     <Page
+      tabs={MONEY_TABS}
       title="Profit &amp; Loss"
       subtitle={`Built from logged hours, filed receipts and issued invoices${
         org ? ` for ${org.name}` : ''

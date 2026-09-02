@@ -23,6 +23,7 @@ import {
   Pill,
   SectionLabel,
   shortDate,
+  PIPELINE_TABS,
 } from '@/components/spine/ui';
 
 interface Pitch {
@@ -105,6 +106,7 @@ export default function PitchesPage() {
 
   return (
     <Page
+      tabs={PIPELINE_TABS}
       title="Pitches"
       subtitle="Send a link instead of a slide deck. You'll know when it gets read."
       action={<Button onClick={create} disabled={busy}>{busy ? 'Creating…' : 'New pitch'}</Button>}

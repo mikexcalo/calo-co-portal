@@ -253,6 +253,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
 const ALWAYS = [
   '/', '/login', '/welcome', '/security', '/trust', '/brands', '/ask', '/whats-new',
   '/targets', '/seo', '/pricing', '/records', '/requests',
+  '/notes', '/pitches', '/stories', '/brand-kit', '/website', '/expenses', '/documents',
 ];
 
 /**
@@ -367,13 +368,32 @@ export function navFor(
    * What survives is what you open without already knowing which client it
    * concerns.
    */
+  /**
+   * Nine rows, and every one of them is a place you go rather than a thing you
+   * file.
+   *
+   * The vocabulary was nineteen nouns for three clients, accumulated one
+   * defensible addition at a time. Nobody chose nineteen. What came out was not
+   * deleted, it was merged into the thing it belongs to:
+   *
+   *   Profit and loss holds overheads and receipts, because those are its
+   *   inputs and neither is somewhere you go.
+   *
+   *   Brand holds the framework, case studies, the kit and the website, which
+   *   were four rows describing four views of one job.
+   *
+   *   Pipeline holds targets and pitches, which were consecutive steps of the
+   *   same motion filed as if they were different subjects.
+   *
+   *   Capture stopped being a row at all. It is a verb, and it now lives as a
+   *   button on the client it files against.
+   */
   const groups: NavGroup[] = [
     {
       heading: 'The work',
       items: [
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
         { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'quotes' },
-        { id: 'notes', label: 'Capture', href: '/notes', icon: 'notes' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
@@ -381,40 +401,20 @@ export function navFor(
       items: [
         { id: 'billing', label: 'Invoices', href: '/billing', icon: 'invoices' },
         { id: 'proposals', label: vocab.estimate + 's', href: '/proposals', icon: 'proposal' },
+        // Overheads and receipts are tabs inside this one.
         { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
-        // Receipts is a tab inside this one: nobody browses receipts, they
-        // feed overheads and job costs.
-        { id: 'expenses', label: 'Overheads', href: '/expenses', icon: 'wallet' },
         { id: 'account', label: 'Bills to You', href: '/account', icon: 'incoming' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
       heading: 'Grow',
-      // Folded. Real work, not daily work.
       defaultOpen: false,
       items: [
-        // Your own pipeline. A client's list lives on their record.
         { id: 'targets', label: 'Pipeline', href: '/targets', icon: 'crosshair' },
-        { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'megaphone' },
-        // One row, two tabs. Being findable is one job, and reviews is the
-        // part of it you glance at rather than live in.
         { id: 'seo', label: 'Being found', href: '/seo', icon: 'search' },
+        { id: 'brands', label: 'Brand', href: '/framework', icon: 'brandKit' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
-    {
-      heading: 'Brand',
-      defaultOpen: false,
-      items: [
-        { id: 'brands', label: 'Framework', href: '/framework', icon: 'brandKit' },
-        { id: 'stories', label: 'Case Studies', href: '/stories', icon: 'book' },
-        { id: 'brand_kit', label: 'Kit and assets', href: '/brand-kit', icon: 'palette' },
-        { id: 'website', label: 'Your Website', href: '/website', icon: 'designStudio' },
-      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
-    },
-    // No Setup group. Business, Team and Security live under the avatar, where
-    // this codebase already put them and already explained why: you configure
-    // them twice in the first week and then never again. Adding them back as a
-    // group was me re-deciding something that had been decided correctly.
   ];
 
   return groups.filter((g) => g.items.length > 0);

@@ -193,11 +193,43 @@ export const PRESENCE_TABS: readonly PageTab[] = [
 ];
 
 /**
- * Receipts feed overheads and job costs. Nobody browses receipts.
+ * The money picture, as one thing.
+ *
+ * Profit and loss is the answer; overheads and receipts are two of its inputs.
+ * They were three sidebar rows, which put "the receipt I photographed on
+ * Tuesday" at the same level as "did this month make money".
  */
 export const MONEY_TABS: readonly PageTab[] = [
+  { label: 'Profit & Loss', href: '/pl' },
   { label: 'Overheads', href: '/expenses' },
   { label: 'Receipts', href: '/documents' },
+];
+
+/**
+ * Everything about how a brand looks, says and proves itself.
+ *
+ * Four rows for four views of one job. The framework decides what it says, the
+ * kit holds what it looks like, case studies are what it can prove, and the
+ * website is where all three land.
+ */
+export const BRAND_TABS: readonly PageTab[] = [
+  { label: 'Framework', href: '/framework' },
+  { label: 'Case studies', href: '/stories' },
+  { label: 'Kit and assets', href: '/brand-kit' },
+  { label: 'Your website', href: '/website' },
+];
+
+/**
+ * One funnel, not two rows.
+ *
+ * A target is a company you want. A pitch is what you send it. They were
+ * separate rows describing consecutive steps of the same motion, which is how
+ * somebody ends up with a pipeline nobody pitched and pitches with no pipeline
+ * behind them.
+ */
+export const PIPELINE_TABS: readonly PageTab[] = [
+  { label: 'Targets', href: '/targets' },
+  { label: 'Pitches', href: '/pitches' },
 ];
 
 function BackLink({ label, href }: { label: string; href: string }) {

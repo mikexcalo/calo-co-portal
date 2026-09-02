@@ -437,10 +437,14 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
 
           <ClientAccess customerId={params.id} />
 
-          {/* Above the documents: the answers are what you came for,
-              the document is where they happen to live. */}
+          {/*
+            One section, two halves.
+            
+            The answers are what you came for; the documents are where they
+            happen to live. They were two headings for the same thing, which is
+            how a vocabulary gets to nineteen nouns.
+          */}
           <Discovery customerId={params.id} />
-
           <ClientDocs customerId={params.id} />
 
           {orgId && <Reminders orgId={orgId} customerId={params.id} />}

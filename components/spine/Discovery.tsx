@@ -226,11 +226,11 @@ export function Discovery({ customerId }: { customerId: string }) {
           style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}
         >
           <span style={{ fontSize: 10, color: C.faint }}>{open ? '▼' : '▶'}</span>
-          <SectionLabel>What they told you ({rows.length})</SectionLabel>
+          <SectionLabel>What they gave you</SectionLabel>
         </button>
-        {flaggedCount > 0 && (
-          <span style={{ fontSize: 12.5, color: C.amber }}>{flaggedCount} worth revisiting</span>
-        )}
+        <span style={{ fontSize: 12.5, color: flaggedCount > 0 ? C.amber : C.faint }}>
+          {rows.length} answers{flaggedCount > 0 ? `, ${flaggedCount} worth revisiting` : ''}
+        </span>
       </div>
 
       {!open ? (

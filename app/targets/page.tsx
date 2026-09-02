@@ -15,7 +15,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import supabase from '@/lib/supabase';
-import { Button, C, Card, Empty, Metric, Page, Pill, inputStyle } from '@/components/spine/ui';
+import {
+  Button,
+  C,
+  Card,
+  Empty,
+  Metric,
+  PIPELINE_TABS,
+  Page,
+  Pill,
+  inputStyle,
+} from '@/components/spine/ui';
 
 interface Target {
   id: string;
@@ -121,6 +131,7 @@ export default function TargetsPage() {
 
   return (
     <Page
+      tabs={clientId ? undefined : PIPELINE_TABS}
       back={clientId ? { label: clientName ?? 'Client', href: `/customers/${clientId}` } : undefined}
       title={clientName ? `Targets for ${clientName}` : 'Your pipeline'}
       subtitle={

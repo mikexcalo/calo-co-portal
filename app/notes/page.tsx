@@ -14,6 +14,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { Processing } from '@/components/spine/Processing';
 import { useOrg } from '@/lib/spine/org';
@@ -59,7 +60,15 @@ export default function NotesPage() {
   const { org, vocab } = useOrg();
 
   const [raw, setRaw] = useState('');
-  const [customerId, setCustomerId] = useState('');
+  /**
+   * Pre-filled when you came from a client.
+   *
+   * Capture stopped being a sidebar row, so the way in is the button on a
+   * client record. Arriving with the client already chosen is the difference
+   * between one click and three.
+   */
+  const preset = useSearchParams().get('client');
+  const [customerId, setCustomerId] = useState(preset ?? '');
   const [customers, setCustomers] = useState<Array<{ id: string; name: string }>>([]);
   const [notes, setNotes] = useState<NoteRow[]>([]);
   const [result, setResult] = useState<Extracted | null>(null);

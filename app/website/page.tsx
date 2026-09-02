@@ -28,6 +28,7 @@ import {
   inputStyle,
   shortDate,
   useIsPhone,
+  BRAND_TABS,
 } from '@/components/spine/ui';
 
 interface Site {
@@ -178,6 +179,7 @@ export default function WebsitePage() {
 
   return (
     <Page
+      tabs={BRAND_TABS}
       title="Your website"
       subtitle={
         site

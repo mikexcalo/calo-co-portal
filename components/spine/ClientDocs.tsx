@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
-import { C, Card, Pill, SectionLabel, shortDate } from './ui';
+import { Button, C, Card, Pill, SectionLabel, shortDate } from './ui';
 
 interface Doc {
   id: string;
@@ -57,11 +57,24 @@ export function ClientDocs({ customerId }: { customerId: string }) {
     await supabase.from('brand_intel').update({ visibility }).eq('id', d.id);
   };
 
-  if (docs.length === 0) return null;
 
   return (
     <div style={{ marginBottom: 26 }}>
-      <SectionLabel>Documents ({docs.length})</SectionLabel>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+        <div style={{ fontSize: 12.5, color: C.faint }}>and {docs.length} document{docs.length === 1 ? '' : 's'} they sent</div>
+        {/* Capture was a sidebar row. It is a verb, and it files against a
+            client, so it belongs on the client rather than in a list of
+            places. */}
+        <Button variant="ghost" onClick={() => router.push(`/notes?client=${customerId}`)}>
+          Add something
+        </Button>
+      </div>
+
+      {docs.length === 0 && (
+        <div style={{ fontSize: 13, color: C.faint }}>
+          Nothing yet. Anything they send you goes here with a summary above it.
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {docs.map((d) => {
