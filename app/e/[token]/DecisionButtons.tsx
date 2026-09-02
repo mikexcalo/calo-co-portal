@@ -11,7 +11,20 @@
 
 import { useState } from 'react';
 
-export function DecisionButtons({ token, accent }: { token: string; accent: string }) {
+export function DecisionButtons({
+  token,
+  accent,
+  selected = [],
+}: {
+  token: string;
+  accent: string;
+  /**
+   * Optional lines the customer ticked. Sent with the acceptance rather than
+   * saved as they click, so a half-considered selection on a page somebody
+   * then closes never becomes a record of what they agreed to.
+   */
+  selected?: string[];
+}) {
   const [mode, setMode] = useState<'idle' | 'accepting' | 'declining'>('idle');
   const [name, setName] = useState('');
   const [reason, setReason] = useState('');
@@ -25,7 +38,7 @@ export function DecisionButtons({ token, accent }: { token: string; accent: stri
       const res = await fetch('/api/estimates/decide', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, decision, name, reason }),
+        body: JSON.stringify({ token, decision, name, reason, selected }),
       });
       const payload = await res.json();
       if (!res.ok) throw new Error(payload.error || 'Could not record that');

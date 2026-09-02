@@ -151,6 +151,8 @@ export interface Estimate {
   version: number;
   status: EstimateStatus;
   total: number;
+  /** The price with no optional lines taken. total is this plus any selected. */
+  base_total: number | null;
   valid_until: string | null;
   notes: string | null;
   sent_at: string | null;
@@ -174,6 +176,10 @@ export interface EstimateLine {
   unit_price: number;
   total: number;
   position: number;
+  /** Priced but not included until the customer ticks it. */
+  optional: boolean;
+  /** Null while undecided; true or false once they have answered. */
+  selected: boolean | null;
   created_at: string;
 }
 

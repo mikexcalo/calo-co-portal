@@ -30,6 +30,11 @@ interface DraftLine {
   qty: string;
   unit: string;
   unit_price: string;
+  /**
+   * Priced but not included. The customer ticks it or ignores it, and the
+   * total on the estimate is the base until they do.
+   */
+  optional: boolean;
 }
 
 const blank = (kind: LineKind = 'labor'): DraftLine => ({
@@ -38,6 +43,7 @@ const blank = (kind: LineKind = 'labor'): DraftLine => ({
   qty: '1',
   unit: kind === 'labor' ? 'hr' : '',
   unit_price: '',
+  optional: false,
 });
 
 export default function EstimatePage({ params }: { params: { id: string } }) {
@@ -103,6 +109,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
         kind: item.kind,
         description: item.name,
         qty: '1',
+        optional: false,
         unit: item.unit ?? '',
         unit_price: String(item.unit_price),
       },
@@ -135,6 +142,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
           unit: l.unit || null,
           unit_price: parseFloat(l.unit_price) || 0,
           total: Math.round(lineTotal(l) * 100) / 100,
+          optional: l.optional,
           position: i,
         })),
         {
@@ -225,6 +233,18 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
                   <option value="subcontractor">SUB</option>
                   <option value="other">OTHER</option>
                 </select>
+                {/* Beside the kind rather than in its own column: it is a
+                    property of the line, and a whole column for a checkbox
+                    would push the grid past a phone's width. */}
+                <label style={{ marginLeft: 12, cursor: 'pointer', color: line.optional ? C.blue : C.faint }}>
+                  <input
+                    type="checkbox"
+                    checked={line.optional}
+                    onChange={(e) => update(i, { optional: e.target.checked })}
+                    style={{ width: 12, height: 12, marginRight: 4, accentColor: C.accent, cursor: 'pointer' }}
+                  />
+                  OPTIONAL
+                </label>
               </div>
               <input
                 value={line.description}

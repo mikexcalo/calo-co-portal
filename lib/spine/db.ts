@@ -249,7 +249,7 @@ export async function getEstimateLines(estimateId: string): Promise<EstimateLine
 export async function createEstimate(
   orgId: string,
   jobId: string,
-  lines: Array<Omit<EstimateLine, 'id' | 'estimate_id' | 'created_at'>>,
+  lines: Array<Omit<EstimateLine, 'id' | 'estimate_id' | 'created_at' | 'selected'>>,
   /**
    * What the price covers, what it does not, and anything else the client
    * should read. Optional so existing callers are unaffected, but this is the

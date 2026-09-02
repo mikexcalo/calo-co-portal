@@ -11,7 +11,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
-import { DecisionButtons } from './DecisionButtons';
+import { AddOns } from './AddOns';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +24,7 @@ interface Line {
   unit_price: number;
   total: number;
   position: number;
+  optional: boolean;
 }
 
 const money = (n: number) =>
@@ -79,7 +80,11 @@ export default async function PublicEstimate({ params }: { params: { token: stri
     '#1a1a1a';
 
   const rows = (lines ?? []) as Line[];
-  const subtotal = rows.reduce((s, l) => s + Number(l.total), 0);
+  // Required work only. Optional lines are priced separately below so the
+  // headline number is what the job costs if they add nothing.
+  const required = rows.filter((l) => !l.optional);
+  const options = rows.filter((l) => l.optional);
+  const subtotal = required.reduce((s, l) => s + Number(l.total), 0);
 
   // Defensive: these are jsonb, and a hand-edited row could hold anything.
   // This page is public, so a bad value must render as nothing rather than
@@ -149,7 +154,7 @@ export default async function PublicEstimate({ params }: { params: { token: stri
         )}
 
         <div style={{ padding: '26px 30px' }}>
-          {rows.length === 0 ? (
+          {required.length === 0 ? (
             <div style={{ color: '#888', fontSize: 14 }}>No line items.</div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14.5 }}>
@@ -161,7 +166,7 @@ export default async function PublicEstimate({ params }: { params: { token: stri
                 </tr>
               </thead>
               <tbody>
-                {rows.map((l) => (
+                {required.map((l) => (
                   <tr key={l.id} style={{ borderBottom: '1px solid #f0f0ed' }}>
                     <td style={{ padding: '11px 0', color: '#222' }}>{l.description}</td>
                     <td style={{ padding: '11px 0 11px 10px', textAlign: 'right', color: '#666', whiteSpace: 'nowrap' }}>
@@ -241,11 +246,13 @@ export default async function PublicEstimate({ params }: { params: { token: stri
           )}
         </div>
 
-        {!decided && (
-          <div style={{ borderTop: '1px solid #e4e4e0', padding: '22px 30px 26px', background: '#fafaf8' }}>
-            <DecisionButtons token={params.token} accent={accent} />
-          </div>
-        )}
+        <AddOns
+          token={params.token}
+          accent={accent}
+          decided={decided}
+          baseTotal={Number(estimate.base_total ?? subtotal)}
+          options={options.map((l) => ({ id: l.id, description: l.description, total: Number(l.total) }))}
+        />
       </div>
 
       <div style={{ maxWidth: 720, margin: '18px auto 0', textAlign: 'center', fontSize: 12.5, color: '#888' }}>

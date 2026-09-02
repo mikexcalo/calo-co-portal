@@ -33,7 +33,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Server is not configured' }, { status: 500 });
   }
 
-  let body: { token?: string; decision?: string; name?: string; reason?: string };
+  let body: {
+    token?: string;
+    decision?: string;
+    name?: string;
+    reason?: string;
+    /** Ids of the optional lines they ticked. Never an amount. */
+    selected?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
@@ -54,7 +61,7 @@ export async function POST(req: NextRequest) {
   try {
     const { data: estimate, error } = await db
       .from('estimates')
-      .select('id, status, org_id, job_id, total, job:jobs(name, customer_id)')
+      .select('id, status, org_id, job_id, total, base_total, public_token, job:jobs(name, customer_id)')
       .eq('public_token', token)
       .maybeSingle();
 
@@ -69,6 +76,24 @@ export async function POST(req: NextRequest) {
     }
 
     const now = new Date().toISOString();
+
+    /**
+     * The selection is written before the decision, and the total is read back
+     * from the database afterwards.
+     *
+     * The browser sends which boxes were ticked, never what that came to. The
+     * total is recomputed from the lines by a trigger, so the figure recorded
+     * against the acceptance is the one the database worked out. This is the
+     * same rule the rest of the money already follows.
+     */
+    let acceptedTotal = Number(estimate.total);
+    if (decision === 'accepted') {
+      const ids = Array.isArray(body.selected)
+        ? (body.selected as unknown[]).filter((x): x is string => typeof x === 'string')
+        : [];
+      const sel = await db.rpc('accept_estimate_lines', { t: token, chosen: ids });
+      if (!sel.error && sel.data != null) acceptedTotal = Number(sel.data);
+    }
 
     const upd = await db
       .from('estimates')
@@ -99,7 +124,7 @@ export async function POST(req: NextRequest) {
           : `Estimate declined — ${job?.name ?? 'job'}`,
       body:
         decision === 'accepted'
-          ? `${body.name?.trim()} accepted $${Number(estimate.total).toFixed(2)}.`
+          ? `${body.name?.trim()} accepted $${acceptedTotal.toFixed(2)}.`
           : body.reason?.trim() || 'No reason given.',
       href: `/jobs/${estimate.job_id}`,
     });
@@ -112,7 +137,7 @@ export async function POST(req: NextRequest) {
         kind: 'system',
         body:
           decision === 'accepted'
-            ? `Accepted the estimate ($${Number(estimate.total).toFixed(2)})${body.name?.trim() ? ` — signed ${body.name.trim()}` : ''}.`
+            ? `Accepted the estimate ($${acceptedTotal.toFixed(2)})${body.name?.trim() ? ` — signed ${body.name.trim()}` : ''}.`
             : `Declined the estimate.${body.reason?.trim() ? ` Reason: ${body.reason.trim()}` : ''}`,
       });
     }
@@ -134,7 +159,7 @@ export async function POST(req: NextRequest) {
                 : `Estimate declined — ${job?.name ?? ''}`,
             html: `<div style="font-family:-apple-system,sans-serif;font-size:15px;line-height:1.6;">
 <p><strong>${job?.name ?? 'Job'}</strong> — ${decision}${body.name?.trim() ? ` by ${body.name.trim()}` : ''}.</p>
-${decision === 'accepted' ? `<p>$${Number(estimate.total).toFixed(2)}</p>` : ''}
+${decision === 'accepted' ? `<p>$${acceptedTotal.toFixed(2)}</p>` : ''}
 ${body.reason?.trim() ? `<p style="color:#555;">${body.reason.trim().replace(/</g, '&lt;')}</p>` : ''}
 </div>`,
           }),
