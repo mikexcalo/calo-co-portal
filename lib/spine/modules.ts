@@ -453,10 +453,9 @@ export function navFor(
     {
       heading: 'Money',
       items: [
-        // Its stages are lead, estimating, won, in progress, complete, and its
-        // numbers are unbilled and awaiting payment. That is a funnel with
-        // money on it, not a project management view, so it sits with money.
-        { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'quotes' },
+        // No row. It held one card, its stages are a funnel Proposals and
+        // Invoices already report, and the actual work lives on the client as
+        // the Plan. Reachable from a client, which is where you think of it.
         { id: 'billing', label: 'Invoices', href: '/billing', icon: 'invoices' },
         { id: 'proposals', label: vocab.estimate + 's', href: '/proposals', icon: 'proposal' },
         // Overheads and receipts are tabs inside this one.

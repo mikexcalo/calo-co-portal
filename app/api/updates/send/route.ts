@@ -34,6 +34,7 @@ const OUTPUT_PER_MTOK = 5.0;
 
 const SCHEMA = {
   type: 'object' as const,
+  additionalProperties: false,
   properties: {
     subject: {
       type: 'string' as const,

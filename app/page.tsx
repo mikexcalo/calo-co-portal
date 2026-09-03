@@ -657,6 +657,26 @@ export default function Dashboard() {
             collided with the column beside them, and would have vanished
             entirely the moment every job was finished.
           */}
+          {/*
+            Where a note starts.
+
+            One line rather than a button in the chrome: it is here because
+            Home is where you land, and it says the shortcut so the second time
+            you never come looking for it.
+          */}
+          <button
+            onClick={() => window.dispatchEvent(new Event('calo:drop-note'))}
+            style={{
+              width: '100%', textAlign: 'left', marginBottom: 22,
+              border: `1px dashed ${C.border}`, background: 'transparent',
+              borderRadius: 9, padding: '11px 14px', cursor: 'pointer',
+              fontFamily: 'inherit', fontSize: 13.5, color: C.dim,
+            }}
+          >
+            Drop a note — talk or paste, and it files itself
+            <span style={{ float: 'right', fontSize: 12, color: C.faint }}>⌘J</span>
+          </button>
+
           <Unresolved />
 
           <SoldNotLive />

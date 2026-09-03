@@ -38,6 +38,7 @@ const OUTPUT_PER_MTOK = 5.0;
 
 const SCHEMA = {
   type: 'object' as const,
+  additionalProperties: false,
   properties: {
     id: {
       type: ['string', 'null'] as const,

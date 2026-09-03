@@ -35,6 +35,7 @@ const OUTPUT_PER_MTOK = 5.0;
 
 const SCHEMA = {
   type: 'object' as const,
+  additionalProperties: false,
   properties: {
     name: {
       type: 'string' as const,
@@ -51,6 +52,7 @@ const SCHEMA = {
         'The work, one line per deliverable. Only what the material actually supports. Four to eight is usually right; twelve means you are padding.',
       items: {
         type: 'object' as const,
+        additionalProperties: false,
         properties: {
           description: { type: 'string' as const, description: 'The deliverable, as the client would describe it.' },
           qty: { type: 'number' as const, description: 'Hours if the basis is hourly, otherwise 1.' },

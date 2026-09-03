@@ -43,6 +43,7 @@ const MAX_CHARS = 90_000;
 
 const SCHEMA = {
   type: 'object' as const,
+  additionalProperties: false,
   properties: {
     modules: {
       type: 'array' as const,
@@ -50,6 +51,7 @@ const SCHEMA = {
         'Proposed content, only for modules the material actually supports. Leave a module out entirely rather than writing something thin for it.',
       items: {
         type: 'object' as const,
+        additionalProperties: false,
         properties: {
           id: {
             type: 'string' as const,
@@ -81,6 +83,7 @@ const SCHEMA = {
         'Quotes, numbers and customer names present in the material. Everything here is unverified by definition.',
       items: {
         type: 'object' as const,
+        additionalProperties: false,
         properties: {
           kind: { type: 'string' as const, enum: ['quote', 'stat', 'logo'] },
           body: { type: 'string' as const },
@@ -102,6 +105,7 @@ const SCHEMA = {
         'Words or phrases they said they dislike, or that they use for something internal that must not reach customers. Only where the material gives a reason.',
       items: {
         type: 'object' as const,
+        additionalProperties: false,
         properties: {
           term: { type: 'string' as const },
           reason: { type: 'string' as const },

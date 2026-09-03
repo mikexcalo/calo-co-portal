@@ -53,7 +53,16 @@ export function Unresolved() {
       .select('*')
       .order('urgency', { ascending: false })
       .order('age_days', { ascending: false });
-    if (!res.error) setRows((res.data ?? []) as Row[]);
+    /**
+     * Only what is yours to move.
+     *
+     * `unassigned` counted a client's own setup steps, and `findings` counted
+     * notes from their documents. Neither is a thing you do: John's plan being
+     * unassigned is John's problem, and a daily reminder of it is noise that
+     * teaches you to ignore the whole list.
+     */
+    const mine = ((res.data ?? []) as Row[]).filter((r) => r.kind === 'waiting');
+    if (!res.error) setRows(mine);
     setLoaded(true);
   }, []);
 

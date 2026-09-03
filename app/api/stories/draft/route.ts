@@ -37,6 +37,7 @@ const OUTPUT_PER_MTOK = 5.0;
 
 const SCHEMA = {
   type: 'object' as const,
+  additionalProperties: false,
   properties: {
     title: {
       type: 'string' as const,
@@ -80,6 +81,7 @@ const SCHEMA = {
         'Every number or result the material actually contains. Empty if there are none. Never invent one, and never round one up.',
       items: {
         type: 'object' as const,
+        additionalProperties: false,
         properties: {
           claim: { type: 'string' as const },
           where_from: {

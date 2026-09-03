@@ -62,6 +62,29 @@ export default function TopBar() {
   const [siteUrl, setSiteUrl] = useState<string | null>(null);
   const [dropping, setDropping] = useState(false);
 
+  /**
+   * Opened by keyboard and from Home, not by a blue button in the chrome.
+   *
+   * A note gets written a few times a day. A permanent primary-colored button
+   * next to the workspace name is the loudest thing on every screen, forever,
+   * for something that is not the loudest thing you do.
+   */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'j') {
+        e.preventDefault();
+        setDropping(true);
+      }
+    };
+    const onAsk = () => setDropping(true);
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('calo:drop-note', onAsk);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('calo:drop-note', onAsk);
+    };
+  }, []);
+
   useEffect(() => {
     if (!org) { setSiteUrl(null); return; }
     let canceled = false;
@@ -154,32 +177,6 @@ export default function TopBar() {
             Your site
           </a>
         )}
-        {/*
-          The most frequent thing, made the shortest thing.
-
-          Writing down what somebody just told you took six actions: Clients,
-          find them, open, land on Brief, find a dashed line, click. Six actions
-          is why it does not happen. One click from anywhere, and it works out
-          which client afterwards.
-        */}
-        <button
-          onClick={() => setDropping(true)}
-          title="Drop a note — talk or paste"
-          style={{
-            display: 'flex', alignItems: 'center', gap: 7,
-            background: C.accent, border: `1px solid ${C.accent}`,
-            borderRadius: 7, padding: '6px 11px', fontSize: 13.5, fontWeight: 500,
-            color: '#fff', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
-          }}
-        >
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M8 2.2v7.4" />
-            <path d="M5.2 6.9 8 9.7l2.8-2.8" />
-            <path d="M2.6 11.6v1.2a1 1 0 0 0 1 1h8.8a1 1 0 0 0 1-1v-1.2" />
-          </svg>
-          Drop a note
-        </button>
-
         <Notifications />
         {dropping && (
           <div

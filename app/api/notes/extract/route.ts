@@ -36,6 +36,7 @@ const MAX_CHARS = 60_000;
 
 const SCHEMA = {
   type: 'object' as const,
+  additionalProperties: false,
   properties: {
     title: {
       type: 'string' as const,
@@ -51,6 +52,7 @@ const SCHEMA = {
       description: 'People named, with any contact details actually stated. Never invent one.',
       items: {
         type: 'object' as const,
+        additionalProperties: false,
         properties: {
           name: { type: 'string' as const },
           role: { type: ['string', 'null'] as const, description: 'Their role, if stated.' },
@@ -65,6 +67,7 @@ const SCHEMA = {
       description: 'Things somebody committed to doing. Only what was actually agreed.',
       items: {
         type: 'object' as const,
+        additionalProperties: false,
         properties: {
           what: { type: 'string' as const },
           who: { type: ['string', 'null'] as const },
@@ -81,6 +84,7 @@ const SCHEMA = {
       description: 'Money discussed, with what it referred to. Empty if none was.',
       items: {
         type: 'object' as const,
+        additionalProperties: false,
         properties: {
           amount: { type: 'number' as const },
           what: { type: 'string' as const },
@@ -110,6 +114,7 @@ const SCHEMA = {
         'Changes to the standing description of this client. Only include a field if the note genuinely adds to or contradicts it. Silence about a field is not a reason to rewrite it. Most notes change nothing here, and an empty array is the correct answer.',
       items: {
         type: 'object' as const,
+        additionalProperties: false,
         properties: {
           field: {
             type: 'string' as const,

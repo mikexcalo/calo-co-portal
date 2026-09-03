@@ -184,23 +184,6 @@ export default function DigitalPage() {
             ))}
           </div>
 
-          <div style={{ marginTop: 26 }}>
-            <SectionLabel>What is not measured here</SectionLabel>
-            <Card>
-              <div style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.65, maxWidth: '66ch' }}>
-                Two things worth knowing rather than guessing at. The star rating on a Google
-                profile is not read into this screen, because doing so needs a paid Google API
-                key and there is no point charging you for a number that is one click away. And
-                which search terms actually find you comes from Search Console, which keeps no
-                history from before the day a site is verified.
-              </div>
-              <div style={{ marginTop: 12 }}>
-                <Button variant="ghost" onClick={() => router.push('/')}>
-                  Both are in Your tasks
-                </Button>
-              </div>
-            </Card>
-          </div>
         </>
       )}
     </Page>
