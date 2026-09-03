@@ -26,13 +26,19 @@ export function YourSetup() {
   const [open, setOpen] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   /**
-   * Folded by default.
+   * Shown, not folded.
    *
-   * Seven cards on the screen you open every morning is a to-do list you did
-   * not write, sitting above the work you did. It is worth one line saying it
-   * is there, and nothing more until you decide to spend the afternoon on it.
+   * This was one dashed line reading "9 things only you can switch on", on the
+   * reasoning that a to-do list you did not write should not sit above the work
+   * you did. That reasoning was wrong about whose list it is. These are the
+   * jobs nobody else can do, they are the reason Stripe and Search Console keep
+   * getting asked about, and a list you cannot see is a list you keep asking
+   * somebody to repeat.
+   *
+   * The compromise that keeps it from being a wall: every item shows its title
+   * and what it blocks, and the steps stay one click away.
    */
-  const [showAll, setShowAll] = useState(false);
+  const [showAll, setShowAll] = useState(true);
 
   const load = useCallback(async () => {
     const res = await supabase.from('setup_items').select('key, status');
@@ -69,9 +75,9 @@ export function YourSetup() {
             cursor: 'pointer', fontFamily: 'inherit', fontSize: 13.5, color: C.dim,
           }}
         >
-          <span style={{ color: C.text }}>{items.length} things only you can switch on</span>
+          <span style={{ color: C.text }}>Your tasks ({items.length})</span>
           {' · '}
-          {items.slice(0, 3).map((i) => i.title.replace(/^(Add|Set|Claim|Invite|Upgrade|Change|Send) /, '')).join(', ')}
+          {items.slice(0, 3).map((i) => i.title.replace(/^(Add|Set|Claim|Invite|Upgrade|Change|Send|Point|Verify|Redirect) /, '')).join(', ')}
           {items.length > 3 ? ', and more' : ''}
         </button>
       </div>
@@ -81,7 +87,9 @@ export function YourSetup() {
   return (
     <div style={{ marginBottom: 26 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-        <SectionLabel>Yours to switch on ({items.length})</SectionLabel>
+        {/* "Yours to switch on" described a switch. Half of these are a
+            morning's work with a registrar. They are tasks. */}
+        <SectionLabel>Your tasks ({items.length})</SectionLabel>
         <Button variant="ghost" onClick={() => setShowAll(false)}>Hide</Button>
       </div>
 
