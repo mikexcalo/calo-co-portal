@@ -10,6 +10,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ClientScope, useClientScope } from '@/components/spine/ClientScope';
 import { listJobs, listJobLedger } from '@/lib/spine/db';
 import { JOB_PIPELINE, JOB_STATUS_LABEL } from '@/lib/spine/types';
 import type { JobLedger, JobStatus, JobWithCustomer } from '@/lib/spine/types';
@@ -36,7 +37,8 @@ const TONE: Record<JobStatus, 'neutral' | 'blue' | 'green' | 'amber' | 'red'> = 
 
 export default function JobsPage() {
   const router = useRouter();
-  const [jobs, setJobs] = useState<JobWithCustomer[]>([]);
+  const clientScope = useClientScope();
+  const [jobs, setAllJobs] = useState<JobWithCustomer[]>([]);
   const [ledger, setLedger] = useState<Record<string, JobLedger>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +51,7 @@ export default function JobsPage() {
         // Two queries total, regardless of how many jobs exist.
         const [j, l] = await Promise.all([listJobs(), listJobLedger()]);
         if (canceled) return;
-        setJobs(j);
+        setAllJobs(j);
         setLedger(Object.fromEntries(l.map((row) => [row.job_id, row])));
       } catch (e) {
         if (!canceled) setError((e as Error).message);
@@ -63,7 +65,18 @@ export default function JobsPage() {
     };
   }, []);
 
-  const active = jobs.filter((j) => ['won', 'active'].includes(j.status));
+  /**
+   * Filtered here rather than in the query.
+   *
+   * Every row is already loaded and the whole page is two requests; refetching
+   * to narrow a list of this size would be slower than filtering it. The
+   * banner below says the narrowing happened, which is the part that must not
+   * be silent.
+   */
+  const shown = clientScope ? jobs.filter((j) => j.customer_id === clientScope) : jobs;
+  const scopedName = shown[0]?.customer?.name ?? null;
+
+  const active = shown.filter((j) => ['won', 'active'].includes(j.status));
   const unbilled = Object.values(ledger).reduce(
     (s, r) => s + r.unbilled_labor + r.unbilled_cost,
     0
@@ -79,6 +92,8 @@ export default function JobsPage() {
       subtitle="Every job from first call to final payment."
       action={<Button onClick={() => router.push('/jobs/new')}>New job</Button>}
     >
+      <ClientScope name={scopedName} count={shown.length} />
+
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 20 }}>
           <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
@@ -126,7 +141,7 @@ export default function JobsPage() {
           }}
         >
           {JOB_PIPELINE.map((status) => {
-            const column = jobs.filter((j) => j.status === status);
+            const column = shown.filter((j) => j.status === status);
             return (
               <div key={status}>
                 <div

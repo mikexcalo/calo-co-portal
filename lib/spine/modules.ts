@@ -446,7 +446,7 @@ export function navFor(
       heading: 'The work',
       items: [
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
-        { id: 'people', label: 'People', href: '/people', icon: 'clients' },
+        { id: 'people', label: 'People', href: '/people', icon: 'network' },
         { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'quotes' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },

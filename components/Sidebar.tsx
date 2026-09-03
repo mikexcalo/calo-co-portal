@@ -152,6 +152,34 @@ const icons: Record<string, React.ReactNode> = {
     </svg>
   ),
   // Announcing something. Pitches go out to people who have not asked yet.
+  /**
+   * Digital: a globe. The row asked for this and the set did not have it, so
+   * the module has been rendering with no icon at all since it was renamed.
+   */
+  globe: (
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="8" cy="8" r="5.8" />
+      <path d="M2.2 8h11.6" />
+      <path d="M8 2.2c1.5 1.7 2.3 3.7 2.3 5.8S9.5 12.1 8 13.8C6.5 12.1 5.7 10.1 5.7 8S6.5 3.9 8 2.2z" />
+    </svg>
+  ),
+  /**
+   * People: a network, not a second copy of the clients icon.
+   *
+   * People and Clients were both asking for `clients`, so two adjacent rows
+   * carried an identical glyph, which is worse than no icon: it says the two
+   * rows are the same kind of thing when the whole point is that one is
+   * companies and the other is humans. Nodes joined by lines, because that is
+   * what an address book is.
+   */
+  network: (
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="8" cy="3.2" r="1.7" />
+      <circle cx="3.4" cy="11.6" r="1.7" />
+      <circle cx="12.6" cy="11.6" r="1.7" />
+      <path d="M6.9 4.7 4.5 10.1M9.1 4.7l2.4 5.4M5.1 11.6h5.8" />
+    </svg>
+  ),
   search: (
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="7.2" cy="7.2" r="4.6" />

@@ -24,7 +24,16 @@ interface Tile {
   /** One or the other. Money formats differently and is never a count. */
   count?: number;
   money?: number;
-  href: string;
+  /**
+   * Optional, because some of these have nowhere honest to go yet.
+   *
+   * Case studies, pitches and reviews all linked to their global screen, none
+   * of which can filter by client, so the tile promised this client's two
+   * pitches and delivered everybody's. A count with no link is honest. A link
+   * to an unfiltered list is not, and it is worse than no tile because it
+   * costs a page load to discover.
+   */
+  href?: string;
   hint?: string;
   tone?: 'amber';
 }
@@ -56,9 +65,9 @@ export function ClientWork({ customerId }: { customerId: string }) {
 
     // Money first, and only when there is money. A client owing nothing should
     // not be shown a zero: a zero reads as a problem somebody checked.
-    if (n('owed') > 0) next.push({ label: 'Owed to you', money: n('owed'), href: '/billing', tone: 'amber' });
-    if (n('unbilled') > 0) next.push({ label: 'Unbilled', money: n('unbilled'), href: '/jobs', tone: 'amber' });
-    if (n('engagements')) next.push({ label: 'Engagements', count: n('engagements'), href: '/jobs' });
+    if (n('owed') > 0) next.push({ label: 'Owed to you', money: n('owed'), href: `/jobs?client=${customerId}`, tone: 'amber' });
+    if (n('unbilled') > 0) next.push({ label: 'Unbilled', money: n('unbilled'), href: `/jobs?client=${customerId}`, tone: 'amber' });
+    if (n('engagements')) next.push({ label: 'Engagements', count: n('engagements'), href: `/jobs?client=${customerId}` });
     if (n('targets')) next.push({ label: 'Targets', count: n('targets'), href: `/targets?client=${customerId}`, hint: `${n('targets_open')} still open` });
     if (n('brands')) next.push({ label: 'Brand', count: n('brands'), href: `/brands/${o.brand_id}` });
     /**
@@ -70,9 +79,9 @@ export function ClientWork({ customerId }: { customerId: string }) {
      * opens the client's own Documents tab.
      */
     if (n('documents')) next.push({ label: 'Documents', count: n('documents'), href: `?tab=given` });
-    if (n('case_studies')) next.push({ label: 'Case studies', count: n('case_studies'), href: '/stories' });
-    if (n('pitches')) next.push({ label: 'Pitches', count: n('pitches'), href: '/pitches' });
-    if (n('reviews_asked')) next.push({ label: 'Reviews asked', count: n('reviews_asked'), href: '/reviews', hint: `${n('reviews_followed')} followed` });
+    if (n('case_studies')) next.push({ label: 'Case studies', count: n('case_studies') });
+    if (n('pitches')) next.push({ label: 'Pitches', count: n('pitches') });
+    if (n('reviews_asked')) next.push({ label: 'Reviews asked', count: n('reviews_asked'), hint: `${n('reviews_followed')} followed` });
     if (n('has_search')) next.push({ label: 'Search', count: 1, href: `/seo?client=${customerId}` });
 
     setTiles(next);
@@ -90,7 +99,10 @@ export function ClientWork({ customerId }: { customerId: string }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8 }}>
         {tiles.map((t) => (
           <Card key={t.label}>
-            <div onClick={() => router.push(t.href)} style={{ cursor: 'pointer' }}>
+            <div
+              onClick={() => t.href && router.push(t.href)}
+              style={{ cursor: t.href ? 'pointer' : 'default' }}
+            >
               <div
                 style={{
                   fontSize: 22,

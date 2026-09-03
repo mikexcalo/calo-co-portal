@@ -609,16 +609,20 @@ export default function Dashboard() {
             check it ran was about money. Claiming more than you measured is the
             worst thing a status message can do, because it is believed.
           */}
+          {/*
+            One line, not a card.
+
+            This was a full-width green panel with a heading and two lines of
+            prose, and its entire message was that nothing is wrong. It sat
+            above the numbers that say the same thing more precisely, so it
+            cost a scroll and a read to learn nothing. Kept at all only because
+            silence is ambiguous: an empty dashboard could mean all clear or
+            could mean nothing loaded.
+          */}
           {attention.length === 0 && (
-            <Card style={{ marginBottom: 22, borderColor: C.green, background: C.greenSoft }}>
-              <div style={{ fontSize: 15, color: C.green, fontWeight: 500 }}>
-                The money is clean.
-              </div>
-              <div style={{ fontSize: 13.5, color: C.dim, marginTop: 4 }}>
-                Everything billable is billed, every receipt is filed, nothing is expiring. Anything
-                else that is open is below.
-              </div>
-            </Card>
+            <div style={{ fontSize: 12.5, color: C.faint, marginBottom: 18 }}>
+              Nothing billable unbilled, no receipts outstanding, nothing expiring.
+            </div>
           )}
 
           <div

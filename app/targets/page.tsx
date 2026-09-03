@@ -36,6 +36,7 @@ interface Target {
   note: string | null;
   website: string | null;
   contact_name: string | null;
+  contact_email: string | null;
   status: 'researching' | 'approached' | 'talking' | 'won' | 'passed';
   next_step: string | null;
   last_touch: string | null;
@@ -128,6 +129,18 @@ export default function TargetsPage() {
   const counts = Object.fromEntries(
     STATUS.map((s) => [s.id, rows.filter((r) => r.status === s.id).length])
   );
+
+  /**
+   * What makes this list unworkable, counted.
+   *
+   * 104 of the 107 targets here have no person on them and no next step. You
+   * do not approach a company, you email somebody who works there, so a row
+   * with a company name and a status is a bookmark rather than a prospect.
+   * Naming the gap is the difference between a list you scroll past and one
+   * you can act on.
+   */
+  const noPerson = rows.filter((r) => !r.contact_name && !r.contact_email).length;
+  const noNextStep = rows.filter((r) => !r.next_step && r.status !== 'won' && r.status !== 'passed').length;
 
   return (
     <Page
@@ -238,7 +251,32 @@ export default function TargetsPage() {
             </Card>
           );
         })}
-        {shown.length === 0 && <Card><Empty>Nothing matches that.</Empty></Card>}
+        {rows.length > 0 && (noPerson > 0 || noNextStep > 0) && (
+          <div
+            style={{
+              fontSize: 12.5, color: C.amber, marginBottom: 10,
+              padding: '8px 12px', borderRadius: 7,
+              background: C.amberSoft, border: `1px solid ${C.amber}44`,
+              lineHeight: 1.55,
+            }}
+          >
+            {noPerson > 0 && <>{noPerson} with nobody to contact. </>}
+            {noNextStep > 0 && <>{noNextStep} with no next step. </>}
+            Until a row has a name and a next move it is a bookmark, not a prospect.
+          </div>
+        )}
+
+        {shown.length === 0 && (
+          <Card>
+            <Empty>
+              {rows.length === 0
+                ? clientName
+                  ? `No targets for ${clientName} yet.`
+                  : 'Nothing in your pipeline. Every target on this platform right now belongs to a client, not to you.'
+                : 'Nothing matches that.'}
+            </Empty>
+          </Card>
+        )}
       </div>
     </Page>
   );
