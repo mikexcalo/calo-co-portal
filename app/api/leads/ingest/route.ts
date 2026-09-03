@@ -218,7 +218,13 @@ export async function POST(req: NextRequest) {
     if (resendKey) {
       try {
         const resend = new Resend(resendKey);
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nautilusapp.vercel.app';
+        // The request host, not another deployment. This was hardcoded to
+        // nautilusapp.vercel.app, which is a different project: a lead
+        // notification would have sent somebody to an app that does not hold
+        // their lead. Every other route in here already falls back to the host
+        // it was called on, which is the only default that cannot be stale.
+        const appUrl =
+          process.env.NEXT_PUBLIC_APP_URL || `https://${req.headers.get('host')}`;
 
         await resend.emails.send({
           // Verified sender for this deployment. onboarding@resend.dev is
