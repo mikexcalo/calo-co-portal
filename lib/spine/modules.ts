@@ -34,6 +34,7 @@ export type ModuleId =
   | 'records'
   | 'proposals'
   | 'people'         // the address book: everybody, not only clients
+  | 'traffic'        // who arrived at their site, and how far they got
   | 'team'
   | 'expenses'
   | 'security'
@@ -112,6 +113,7 @@ const PLAN_MODULES: Record<string, ModuleId[]> = {
     'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
     'records', 'business', 'security', 'reviews',
     'seo', 'ask', 'pricing', 'client_requests', 'team', 'website', 'targets',
+    'traffic',
   ],
   // The agency plan is this product's own workspace and gets everything its
   // kind allows. Gating yourself is a way to forget a feature exists.
@@ -139,6 +141,7 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   jobs: 'Jobs and engagements',
   customers: 'Clients',
   people: 'People',
+  traffic: 'Website traffic',
   receipts: 'Receipts',
   notes: 'Capture',
   pitches: 'Pitches',
@@ -185,15 +188,56 @@ export function modulesFor(org: Org | null): Set<ModuleId> {
    */
   const allowed = PLAN_MODULES[org.plan ?? 'core'];
   const base = allowed?.length ? kindBase.filter((m) => allowed.includes(m)) : kindBase;
-  const overrides = (org.modules ?? {}) as Partial<Record<ModuleId, boolean>>;
+  const overrides = (org.modules ?? {}) as Record<string, unknown>;
 
   const out = new Set<ModuleId>(base);
-  for (const [id, enabled] of Object.entries(overrides)) {
-    if (enabled) out.add(id as ModuleId);
-    else out.delete(id as ModuleId);
+  for (const [id, raw] of Object.entries(overrides)) {
+    const st = moduleState(raw);
+    // Only `live` grants access. `sold` and `building` are commercial facts
+    // about work in progress, and treating them as access is how a client gets
+    // shown a half-built screen they have already paid for.
+    if (st === 'live') out.add(id as ModuleId);
+    else if (st !== 'plan') out.delete(id as ModuleId);
   }
   return out;
 }
+
+/**
+ * What a module is to a particular client.
+ *
+ * Five states, because two of them are commercial rather than technical:
+ *
+ *   plan      follow the plan. Not a decision, an absence of one.
+ *   sold      they have agreed to pay for it. Nothing built yet.
+ *   building  being built. Still invisible to them.
+ *   live      switched on. They can see it.
+ *   off       deliberately denied, and stays denied through an upgrade.
+ *
+ * `sold` and `building` exist because the module is the product being sold.
+ * Without them the only way to record "Mammoth is paying me to build their
+ * traffic dashboard" is to switch it on early, which shows them an empty
+ * screen and makes the thing they bought look broken.
+ *
+ * Legacy booleans are read as live and off, so nothing written before this
+ * has to be migrated in the browser.
+ */
+export type ModuleState = 'plan' | 'sold' | 'building' | 'live' | 'off';
+
+export function moduleState(raw: unknown): ModuleState {
+  if (raw === true) return 'live';
+  if (raw === false) return 'off';
+  if (raw === 'sold' || raw === 'building' || raw === 'live' || raw === 'off') return raw;
+  return 'plan';
+}
+
+/** In the order somebody clicks through them while selling the thing. */
+export const MODULE_STATES: { id: ModuleState; label: string; note: string }[] = [
+  { id: 'plan', label: 'Follows plan', note: 'No decision made. Their plan decides.' },
+  { id: 'sold', label: 'Sold', note: 'They have agreed to pay. Nothing built yet.' },
+  { id: 'building', label: 'Building', note: 'Being built. They cannot see it.' },
+  { id: 'live', label: 'Live', note: 'Switched on. They can see it.' },
+  { id: 'off', label: 'Off', note: 'Denied, and stays denied through an upgrade.' },
+];
 
 /**
  * Which route belongs to which module. Used to catch the case where you're
@@ -203,6 +247,7 @@ export function modulesFor(org: Org | null): Set<ModuleId> {
 const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/jobs', 'jobs'],
   ['/customers', 'customers'],
+  ['/people', 'people'],
   ['/documents', 'receipts'],
   ['/notes', 'notes'],
   ['/pitches', 'pitches'],
@@ -210,6 +255,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/pl', 'pl'],
   ['/expenses', 'expenses'],
   ['/website', 'website'],
+  ['/traffic', 'traffic'],
   ['/requests', 'client_requests'],
   ['/brand-kit', 'brand_kit'],
   ['/ask', 'ask'],

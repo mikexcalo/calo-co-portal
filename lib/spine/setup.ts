@@ -29,16 +29,18 @@ export interface SetupItem {
 export const SETUP_ITEMS: SetupItem[] = [
   {
     key: 'old_wix_site',
-    title: 'Point the old Wix site at the new one',
+    title: 'Redirect mikecalo.co to calo.company',
     blocks:
-      'Searching your own name puts the Wix site above the new one. Two sites about the same person compete, and the older one wins on age and links, so the new site cannot get past it while both are up.',
+      'Searching your name puts mikecalo.co above calo.company. Two sites about the same person compete, and the Wix one wins on age and inbound links, so the new site cannot get past it while both are live. You own the domain, so this is winnable rather than a waiting game.',
     steps: [
-      'Work out which domain the Wix site answers on. If it is a yourname.wixsite.com address you cannot redirect it, so skip to the last step.',
-      'If it is a domain you own: in Wix, Settings then Domains, and disconnect the domain from the Wix site. Do not delete the domain.',
-      'At the registrar, point that domain at the new site. On Vercel that is Project, Settings, Domains, add it, and use the DNS records it prints.',
-      'Add a redirect so every old path lands somewhere real rather than on a 404. One rule sending everything to the homepage is fine to start; specific pages can come later.',
-      'Only after the redirect answers: in Wix, unpublish the old site. Unpublishing first strands the domain and both results disappear for a while.',
-      'If the old site is on a wixsite.com subdomain, unpublish it and add a Person block with sameAs to the new site instead. There is no redirect to be had.',
+      'Verify calo.company in Search Console first. It keeps no history from before verification, and having the before is the only way to know this worked.',
+      'In Wix: Settings, then Domains. Disconnect mikecalo.co from the Wix site. Do not delete the domain and do not unpublish yet.',
+      'At the registrar holding mikecalo.co, point it at Vercel. In the portal project: Settings, Domains, add mikecalo.co, and use the DNS records it prints.',
+      'Add a permanent redirect from mikecalo.co to calo.company. Permanent, not temporary: a 302 tells Google to keep the old URL indexed, which is the opposite of the point.',
+      'Check it with curl -I http://mikecalo.co and confirm a 301 and a location of calo.company. Do this before touching Wix again.',
+      'Only once the redirect answers: unpublish the Wix site. Unpublishing first strands the domain and both results drop off Google for a while.',
+      'Add a Person block to calo.company with sameAs pointing at your LinkedIn. LinkedIn currently outranks both sites, so it is the strongest signal you control.',
+      'Expect a few weeks. Google has to recrawl mikecalo.co to see the redirect before the ranking moves across.',
     ],
   },
   {

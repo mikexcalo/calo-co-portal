@@ -24,6 +24,7 @@ import { ClientDocs } from '@/components/spine/ClientDocs';
 import { Brief } from '@/components/spine/Brief';
 import { ClientUpdate } from '@/components/spine/ClientUpdate';
 import { ClientAccess } from '@/components/spine/ClientAccess';
+import { TheirSite } from '@/components/spine/TheirSite';
 import { ClientWork } from '@/components/spine/ClientWork';
 import { Reminders } from '@/components/spine/Reminders';
 import { BrandCard } from '@/components/spine/BrandCard';
@@ -529,6 +530,14 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             <>
               <ClientWork customerId={params.id} />
               <ClientAccess customerId={params.id} />
+              {orgId && (
+                <TheirSite
+                  customerId={params.id}
+                  clientName={customer.name}
+                  orgId={orgId}
+                  website={customer.website}
+                />
+              )}
             </>
           )}
 

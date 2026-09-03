@@ -14,6 +14,7 @@
 
 import { Unresolved } from '@/components/spine/Unresolved';
 import { YourSetup } from '@/components/spine/YourSetup';
+import { SoldNotLive } from '@/components/spine/SoldNotLive';
 import { FollowUps } from '@/components/spine/FollowUps';
 import { WeekAhead } from '@/components/spine/WeekAhead';
 import { useEffect, useState } from 'react';
@@ -654,6 +655,7 @@ export default function Dashboard() {
           */}
           <Unresolved />
 
+          <SoldNotLive />
           <YourSetup />
 
           <FollowUps />

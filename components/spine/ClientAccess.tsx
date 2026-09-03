@@ -25,13 +25,13 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
-import { MODULE_LABEL, type ModuleId } from '@/lib/spine/modules';
+import { MODULE_LABEL, MODULE_STATES, moduleState, type ModuleId, type ModuleState } from '@/lib/spine/modules';
 import { Button, C, Card, Pill, SectionLabel } from './ui';
 
 interface Access {
   workspace_id: string | null;
   plan: 'core' | 'grow' | 'agency';
-  modules: Record<string, boolean> | null;
+  modules: Record<string, unknown> | null;
   name: string;
   kind_hint: string | null;
 }
@@ -79,17 +79,24 @@ export function ClientAccess({ customerId }: { customerId: string }) {
   };
 
   /**
-   * Three states, not two.
+   * Five states, in the order you sell one.
    *
-   * Following the plan is different from being switched on, and the difference
-   * shows the moment somebody upgrades: a module left explicitly off stays off
-   * through the upgrade, which is almost never what anybody meant.
+   * Following the plan is different from being switched on, and both are
+   * different from having been paid for and not built yet. Without sold and
+   * building, the only way to record "they are paying me to build this" is to
+   * switch it on early, which hands them an empty screen and makes the thing
+   * they just bought look broken.
    */
   const cycle = async (key: string) => {
     const mods = { ...(row.modules ?? {}) };
-    if (!(key in mods)) mods[key] = true;
-    else if (mods[key] === true) mods[key] = false;
-    else delete mods[key];
+    const order = MODULE_STATES.map((m) => m.id);
+    const next = order[(order.indexOf(moduleState(mods[key])) + 1) % order.length];
+
+    // `plan` is the absence of a decision, so it is a deletion rather than a
+    // stored value. Anything else and an upgrade cannot tell "nobody chose"
+    // from "somebody chose the default".
+    if (next === 'plan') delete mods[key];
+    else mods[key] = next;
 
     setBusy(true);
     await supabase.from('customers').update({ modules: mods }).eq('id', customerId);
@@ -98,10 +105,7 @@ export function ClientAccess({ customerId }: { customerId: string }) {
     setRow({ ...row, modules: mods });
   };
 
-  const state = (key: string) => {
-    const v = (row.modules ?? {})[key];
-    return v === true ? 'on' : v === false ? 'off' : 'plan';
-  };
+  const state = (key: string): ModuleState => moduleState((row.modules ?? {})[key]);
 
   return (
     <div style={{ marginBottom: 26 }}>
@@ -168,10 +172,10 @@ export function ClientAccess({ customerId }: { customerId: string }) {
               <Grid items={FEATURES} state={state} onClick={cycle} />
             </div>
 
-            <p style={{ fontSize: 12.5, color: C.faint, marginTop: 14, lineHeight: 1.65, maxWidth: 620 }}>
-              Click to cycle: following the plan, forced on, forced off. Chosen here whether or not
-              they can log in, so setting something up before somebody pays is written down once
-              rather than redone at handover.
+            <p style={{ fontSize: 12.5, color: C.faint, marginTop: 14, lineHeight: 1.65, maxWidth: '64ch' }}>
+              Click to cycle through {MODULE_STATES.map((m) => m.label.toLowerCase()).join(', ')}.
+              Only live is visible to them: sold and building are what you have been paid for and
+              not delivered yet, so a client never opens a screen they bought and finds it empty.
             </p>
           </div>
         )}
@@ -186,15 +190,26 @@ function Grid({
   items, state, onClick,
 }: {
   items: Array<{ id: string; label: string }>;
-  state: (k: string) => 'on' | 'off' | 'plan';
+  state: (k: string) => ModuleState;
   onClick: (k: string) => void;
 }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(172px, 1fr))', gap: 5 }}>
       {items.map((i) => {
         const s = state(i.id);
-        const color = s === 'on' ? C.green : s === 'off' ? C.red : C.faint;
-        const bg = s === 'on' ? C.greenSoft : s === 'off' ? C.redSoft : 'transparent';
+        /* Amber for the two commercial states, because they are money owed to
+           you rather than a setting: something sold and not yet delivered is
+           the one thing on this screen with a deadline attached. */
+        const color =
+          s === 'live' ? C.green
+          : s === 'off' ? C.red
+          : s === 'sold' || s === 'building' ? C.amber
+          : C.faint;
+        const bg =
+          s === 'live' ? C.greenSoft
+          : s === 'off' ? C.redSoft
+          : s === 'sold' || s === 'building' ? C.amberSoft
+          : 'transparent';
         return (
           <button
             key={i.id}
@@ -209,7 +224,9 @@ function Grid({
             <span style={{ fontSize: 13, color: C.text, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {i.label}
             </span>
-            <span style={{ fontSize: 10.5, color: C.faint }}>{s === 'plan' ? 'plan' : s}</span>
+            <span style={{ fontSize: 10.5, color: s === 'plan' ? C.faint : color }}>
+              {s === 'plan' ? 'plan' : s}
+            </span>
           </button>
         );
       })}
