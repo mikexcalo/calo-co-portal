@@ -45,13 +45,30 @@ export function OrgSwitcher() {
             width: 7,
             height: 7,
             borderRadius: '50%',
-            background: org.kind === 'agency' ? C.blue : C.green,
+            background: org.is_demo ? C.amber : org.kind === 'agency' ? C.blue : C.green,
             flexShrink: 0,
           }}
         />
         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {org.name}
         </span>
+        {org.is_demo && (
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: '.04em',
+              textTransform: 'uppercase',
+              color: C.amber,
+              border: `1px solid ${C.amber}55`,
+              borderRadius: 4,
+              padding: '1px 5px',
+              flexShrink: 0,
+            }}
+          >
+            Demo
+          </span>
+        )}
         {!single && <span style={{ color: C.faint, fontSize: 11 }}>▾</span>}
       </button>
 
@@ -98,6 +115,9 @@ export function OrgSwitcher() {
                   textAlign: 'left',
                 }}
               >
+                {o.is_demo && (
+                  <span style={{ fontSize: 10, color: C.amber, flexShrink: 0 }}>DEMO</span>
+                )}
                 <span
                   style={{
                     width: 7,

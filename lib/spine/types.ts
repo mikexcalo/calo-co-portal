@@ -79,6 +79,14 @@ export interface Org {
   name: string;
   slug: string;
   kind: 'agency' | 'contractor';
+  /**
+   * Sample data, for showing people.
+   *
+   * The failure mode of a demo is forgetting you are in one: typing a real
+   * invoice into the fake business, or quoting fake numbers at a real client.
+   * So it is on the org and the interface says so on every screen.
+   */
+  is_demo?: boolean;
   default_labor_rate: number;
   default_material_markup_pct: number;
   tax_rate: number;
