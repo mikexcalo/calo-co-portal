@@ -75,8 +75,16 @@ begin
     left(nullif(utm ->> 'source', ''), 120),
     left(nullif(utm ->> 'medium', ''), 120),
     left(nullif(utm ->> 'campaign', ''), 120),
-    -- Address and agent, salted per site and per day, one way.
-    encode(digest(seed || '|' || s.id::text || '|' || current_date::text, 'sha256'), 'hex'),
+    /**
+     * Address and agent, salted per site and per day, one way.
+     *
+     * Built-in sha256 rather than pgcrypto's digest. pgcrypto is installed in
+     * the extensions schema, and this function pins search_path to public for
+     * the usual security-definer reasons, so digest() was not resolvable and
+     * every insert failed. sha256 has been core since Postgres 11 and needs no
+     * extension, which removes the dependency rather than widening the path.
+     */
+    encode(sha256(convert_to(seed || '|' || s.id::text || '|' || current_date::text, 'utf8')), 'hex'),
     case when dev in ('phone', 'tablet', 'desktop') then dev end,
     left(nullif(ctry, ''), 2),
     vw,
