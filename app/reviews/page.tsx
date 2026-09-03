@@ -18,6 +18,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
+import { useOrg } from '@/lib/spine/org';
 import { Button, C, Card, Empty, Metric, Page, Pill, DIGITAL_TABS, SectionLabel, shortDate } from '@/components/spine/ui';
 
 interface Due {
@@ -37,6 +38,7 @@ interface Sent {
 }
 
 export default function ReviewsPage() {
+  const { vocab } = useOrg();
   const router = useRouter();
   const [due, setDue] = useState<Due[]>([]);
   const [sent, setSent] = useState<Sent[]>([]);
@@ -86,7 +88,7 @@ export default function ReviewsPage() {
 
   if (!link) {
     return (
-      <Page tabs={DIGITAL_TABS} title="Reviews" subtitle="Ask every finished job for a Google review.">
+      <Page tabs={DIGITAL_TABS} title="Reviews" subtitle={`Ask every finished ${vocab.job.toLowerCase()} for a Google review.`}>
         <Card>
           <div style={{ fontSize: 15, color: C.text, marginBottom: 8 }}>
             No review link set yet
@@ -106,7 +108,7 @@ export default function ReviewsPage() {
     <Page
       tabs={DIGITAL_TABS}
       title="Reviews"
-      subtitle="One ask per finished job, and never to somebody who still owes you money."
+      subtitle={`One ask per finished ${vocab.job.toLowerCase()}, and never to somebody who still owes you money.`}
       action={
         due.length > 0 ? (
           <Button onClick={() => send()} disabled={busy}>

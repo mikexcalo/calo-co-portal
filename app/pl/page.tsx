@@ -423,7 +423,7 @@ export default function ProfitLossPage() {
                 ))}
               </Card>
               <div style={{ fontSize: 12.5, color: C.faint, marginTop: 8 }}>
-                A negative margin is normal while a job is running. You spend before you
+                A negative margin is normal while work is running. You spend before you
                 bill. It only matters once the job is complete.
               </div>
             </div>
@@ -515,7 +515,7 @@ export default function ProfitLossPage() {
 
           <div style={{ fontSize: 12.5, color: C.faint, marginTop: 14, maxWidth: 620, lineHeight: 1.6 }}>
             Revenue counts invoices issued in the period. Costs and margin are lifetime per job,
-            so a job spanning two periods shows its full cost here. This is a management view,
+            so {vocab.job.toLowerCase()}s spanning two periods show their full cost here. This is a management view,
             not a tax return. Your accountant will want the real books.
           </div>
         </>

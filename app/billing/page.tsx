@@ -242,7 +242,7 @@ export default function BillingPage() {
       ) : invoices.length === 0 ? (
         <Card>
           <Empty hero>
-            No invoices yet. Open a job with unbilled work and draft one from its actuals.
+            No invoices yet. Open {vocab.jobPlural.toLowerCase()} with unbilled work and draft one from what is on it.
           </Empty>
         </Card>
       ) : (
