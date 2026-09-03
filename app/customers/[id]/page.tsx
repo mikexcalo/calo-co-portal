@@ -25,6 +25,8 @@ import { Brief } from '@/components/spine/Brief';
 import { ClientUpdate } from '@/components/spine/ClientUpdate';
 import { ClientAccess } from '@/components/spine/ClientAccess';
 import { TheirSite } from '@/components/spine/TheirSite';
+import { Waiting } from '@/components/spine/Waiting';
+import { Plan } from '@/components/spine/Plan';
 import { ClientWork } from '@/components/spine/ClientWork';
 import { Reminders } from '@/components/spine/Reminders';
 import { BrandCard } from '@/components/spine/BrandCard';
@@ -228,17 +230,6 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
    * Deliberately does not log an inbound message. Recording a reply that never
    * came would be putting a lie in the record to silence a banner.
    */
-  const stopWaiting = async () => {
-    setBusy(true);
-    setError(null);
-    const res = await supabase
-      .from('customers')
-      .update({ awaiting_reply_since: null })
-      .eq('id', params.id);
-    setBusy(false);
-    if (res.error) { setError(res.error.message); return; }
-    await load();
-  };
 
   const addNote = async () => {
     if (!orgId || !noteBody.trim()) return;
@@ -547,6 +538,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
 
           {view === 'now' && (
             <>
+              <Waiting customerId={params.id} />
               <Brief customerId={params.id} clientName={customer.name} />
               <ClientUpdate customerId={params.id} clientName={customer.name} />
             </>
@@ -554,6 +546,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
 
           {view === 'work' && (
             <>
+              <Plan customerId={params.id} clientName={customer.name} />
               <ClientWork customerId={params.id} />
               <ClientAccess customerId={params.id} />
               {orgId && (
@@ -821,63 +814,17 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               )}
             </div>
 
-            {customer.awaiting_reply_since && (() => {
-              /**
-               * Say how long, then say what to do.
-               *
-               * "No reply since Aug 31" was a fact with no next step attached,
-               * and a date is harder to feel than a number of days. What
-               * somebody wants here is: how long has this been, and what are
-               * my options.
-               *
-               * Two buttons because there are exactly two honest answers.
-               * Chase them again, or accept that you are no longer waiting —
-               * which happens constantly and had no way to be recorded, so the
-               * warning would have sat there forever going stale.
-               */
-              const days = Math.max(
-                0,
-                Math.round(
-                  (Date.now() - new Date(customer.awaiting_reply_since).getTime()) / 86_400_000
-                )
-              );
-              return (
-                <div
-                  style={{
-                    marginTop: 14,
-                    padding: '12px 13px',
-                    borderRadius: 8,
-                    background: C.amberSoft,
-                    border: `1px solid ${C.amber}44`,
-                  }}
-                >
-                  <div style={{ fontSize: 14, fontWeight: 600, color: C.text, marginBottom: 3 }}>
-                    Waiting on {customer.contact_name?.split(' ')[0] ?? 'them'}
-                    {days > 0 ? ` · ${days} ${days === 1 ? 'day' : 'days'}` : ''}
-                  </div>
-                  <div style={{ fontSize: 13, color: C.dim, lineHeight: 1.55, marginBottom: 10 }}>
-                    You reached out on {shortDate(customer.awaiting_reply_since)} and
-                    haven&apos;t heard back. Logging anything they send clears this on its own.
-                  </div>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <Button
-                      onClick={() => {
-                        setNoteDirection('out');
-                        setNoteKind('text');
-                        setNoteDate(new Date().toISOString().slice(0, 10));
-                        noteRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        noteRef.current?.focus();
-                      }}
-                    >
-                      Chase them
-                    </Button>
-                    <Button variant="ghost" onClick={stopWaiting} disabled={busy}>
-                      Stop waiting
-                    </Button>
-                  </div>
-                </div>
-              );
-            })()}
+            {/*
+              Moved, and shrunk.
+
+              This was an amber card with a heading, two lines of prose and two
+              buttons: five lines of screen to say "waiting on John, twelve
+              days". It also could not say what the wait was for, so the one
+              piece of information worth having was the one it left out.
+
+              It is one line at the top of the record now, in Waiting, which
+              holds the reason as well as the clock.
+            */}
 
             {customer.last_contacted_on && (
               <div style={{ fontSize: 12, color: C.faint, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.border}` }}>

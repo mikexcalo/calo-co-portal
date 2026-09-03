@@ -24,17 +24,41 @@ import supabase from '@/lib/supabase';
 import { Button, C, Card, SectionLabel, inputStyle, shortDate } from './ui';
 
 interface BriefShape {
-  who?: string;
-  doing?: string;
-  where?: string;
-  stuck?: string;
+  opportunity?: string;
+  offer?: string;
+  buyers?: string;
+  edge?: string;
+  economics?: string;
+  gtm?: string;
+  constraints?: string;
+  ours?: string;
 }
 
+/**
+ * Eight questions a consultant is actually asked, in the order they get asked.
+ *
+ * The old four were who they are, what we are doing, where it has got to and
+ * what is stuck. Every one of those is a place to put background, and
+ * background is where specifics go to die: John wrote a clean summary of his
+ * own opportunity and what survived the shape was his age.
+ *
+ * The test each of these had to pass is whether you can be wrong about it.
+ * "Who they are" cannot be wrong. "How the money works" can, and being wrong
+ * about it costs money.
+ *
+ * They are also the unit a transcript updates. A named field can be changed on
+ * its own and left alone when a call says nothing about it. A prose blob can
+ * only be rewritten whole, which is why nobody ever rewrites one.
+ */
 const FIELDS: Array<{ key: keyof BriefShape; label: string; ask: string }> = [
-  { key: 'who', label: 'Who they are', ask: 'The business in two sentences, as you would describe it to somebody who has never heard of them.' },
-  { key: 'doing', label: 'What we are doing', ask: 'The engagement in a sentence. What they are paying for, or what you agreed to.' },
-  { key: 'where', label: 'Where it has got to', ask: 'The state of play. Rewrite this rather than adding to it.' },
-  { key: 'stuck', label: 'What is stuck', ask: 'What you are waiting on, and from whom. Blank is a fine answer.' },
+  { key: 'opportunity', label: 'The opportunity', ask: 'The thesis, ideally in their words. What they are building and why it can work.' },
+  { key: 'offer', label: 'What they sell', ask: 'The offer, and the structure behind it. Who invoices, who holds stock, who carries the risk.' },
+  { key: 'buyers', label: 'Who buys', ask: 'The segments, named. Which ones first and why those clear faster.' },
+  { key: 'edge', label: 'Why them', ask: 'What they have that the alternative does not. Specifics, not adjectives.' },
+  { key: 'economics', label: 'How the money works', ask: 'Rates, margins, what a unit of volume is worth. The number that sizes everything else.' },
+  { key: 'gtm', label: 'How it goes to market', ask: 'The motion and the sequence. What happens in the first ninety days.' },
+  { key: 'constraints', label: 'What they will not do', ask: 'Limits, hard rules and things they have refused. Usually where the work for us is.' },
+  { key: 'ours', label: 'What we are doing', ask: 'Our scope, and what is still unagreed.' },
 ];
 
 export function Brief({ customerId, clientName }: { customerId: string; clientName: string }) {
@@ -89,8 +113,8 @@ export function Brief({ customerId, clientName }: { customerId: string; clientNa
             fontSize: 13.5, color: C.faint, cursor: 'pointer', fontFamily: 'inherit',
           }}
         >
-          Write the brief for {clientName}. Four lines that mean nobody has to read the timeline
-          to know where this stands.
+          Build the picture of {clientName}. Eight questions a consultant gets asked, so nobody
+          has to read a timeline to answer one.
         </button>
       </div>
     );
