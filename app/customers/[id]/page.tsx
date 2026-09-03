@@ -31,6 +31,7 @@ import { BrandCard } from '@/components/spine/BrandCard';
 import { JOB_STATUS_LABEL } from '@/lib/spine/types';
 import type { JobStatus } from '@/lib/spine/types';
 import {
+  Avatar,
   Button,
   C,
   Card,
@@ -60,7 +61,7 @@ interface Customer {
   address: string | null;
   website: string | null;
   awaiting_reply_since?: string | null;
-  avatar_url: string | null;
+  logo_url: string | null;
   notes: string | null;
   stage: 'prospect' | 'active' | 'past' | 'lost';
   next_action: string | null;
@@ -284,7 +285,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           phone: draft.phone?.trim() || null,
           address: draft.address?.trim() || null,
           website: draft.website?.trim() || null,
-          avatar_url: draft.avatar_url?.trim() || null,
+          logo_url: draft.logo_url?.trim() || null,
           stage: draft.stage,
           next_action: draft.next_action?.trim() || null,
           next_action_on: draft.next_action_on || null,
@@ -328,7 +329,9 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
       back={{ label: vocab.customerPlural, href: '/customers' }}
       title={customer.name}
       subtitle={
-        [customer.contact_name, customer.contact_title].filter(Boolean).join(' · ') || undefined
+        [customer.website?.replace(/^https?:\/\//, '').replace(/\/$/, ''), customer.stage]
+          .filter(Boolean)
+          .join(' · ') || undefined
       }
       action={
         <>
@@ -337,6 +340,17 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
         </>
       }
     >
+      {customer.logo_url && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <Avatar src={customer.logo_url} name={customer.name} size={34} shape="company" />
+          <span style={{ fontSize: 12.5, color: C.faint }}>
+            {customer.website
+              ? customer.website.replace(/^https?:\/\//, '').replace(/\/$/, '')
+              : 'Their mark'}
+          </span>
+        </div>
+      )}
+
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
@@ -428,8 +442,16 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               <Field label="Website">
                 <input value={draft.website ?? ''} onChange={(e) => setDraft({ ...draft, website: e.target.value })} style={inputStyle} />
               </Field>
-              <Field label="Photo URL">
-                <input value={draft.avatar_url ?? ''} onChange={(e) => setDraft({ ...draft, avatar_url: e.target.value })} style={inputStyle} placeholder="https://…" />
+              {/* Their mark, not their face. Faces are on the people, in
+                  People, because a client is a company and a company does not
+                  have a head. */}
+              <Field label="Logo URL">
+                <input
+                  value={draft.logo_url ?? ''}
+                  onChange={(e) => setDraft({ ...draft, logo_url: e.target.value })}
+                  style={inputStyle}
+                  placeholder="https://…/logo.svg"
+                />
               </Field>
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12 }}>
                 <Field label="Next step">

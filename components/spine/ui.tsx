@@ -742,16 +742,32 @@ export const today = (): string => {
  * People recall a photo instantly and a row of text not at all, which is why
  * this is the largest element on a CRM row.
  */
+/**
+ * A circle is a person. A rounded square is a company.
+ *
+ * This started as one shape for both, and the result was Mark's face standing
+ * in for Mammoth Construction, which made the client look like a man rather
+ * than a business. The shapes now carry the distinction the product is built
+ * on: clients are companies, brands and concepts, and people are the humans
+ * behind them.
+ *
+ * Worth having as geometry rather than only as a label, because the shape is
+ * read before any text is, and it is the thing that stops a logo and a
+ * headshot from looking like the same kind of record.
+ */
 export function Avatar({
   src,
   name,
   size = 40,
+  shape = 'person',
 }: {
   src?: string | null;
   name?: string | null;
   size?: number;
+  shape?: 'person' | 'company';
 }) {
   const [failed, setFailed] = React.useState(false);
+  const radius = shape === 'company' ? Math.max(4, Math.round(size * 0.22)) : '50%';
 
   const initials = (name ?? '')
     .split(/\s+/)
@@ -770,11 +786,14 @@ export function Avatar({
         style={{
           width: size,
           height: size,
-          borderRadius: '50%',
-          objectFit: 'cover',
+          borderRadius: radius,
+          // A logo is usually drawn with its own breathing room and a
+          // transparent background, so cropping it to fill the box cuts the
+          // mark. Contain keeps the whole thing visible; a face wants cover.
+          objectFit: shape === 'company' ? 'contain' : 'cover',
           flexShrink: 0,
           border: `1px solid ${C.border}`,
-          background: C.panelAlt,
+          background: shape === 'company' ? C.panel : C.panelAlt,
         }}
       />
     );
@@ -786,7 +805,7 @@ export function Avatar({
       style={{
         width: size,
         height: size,
-        borderRadius: '50%',
+        borderRadius: radius,
         flexShrink: 0,
         background: C.panelAlt,
         border: `1px solid ${C.border}`,

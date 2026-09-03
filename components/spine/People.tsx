@@ -15,7 +15,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
-import { Button, C, Card, Empty, Pill, SectionLabel, inputStyle } from './ui';
+import { Avatar, Button, C, Card, Empty, Pill, SectionLabel, inputStyle } from './ui';
 import { Confirm } from './Confirm';
 
 interface Person {
@@ -198,38 +198,10 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
                 flexWrap: 'wrap',
               }}
             >
-              {/* A face makes a list of names scannable. Falls back to
-                  initials rather than a grey silhouette, which reads as a
-                  missing image rather than as somebody we simply have no
-                  photo of. */}
-              <span
-                aria-hidden
-                style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: '50%',
-                  flexShrink: 0,
-                  overflow: 'hidden',
-                  background: C.accentSoft,
-                  color: C.accent,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 13,
-                  fontWeight: 600,
-                }}
-              >
-                {p.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={p.avatar_url}
-                    alt=""
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  p.name.split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('')
-                )}
-              </span>
+              {/* A face makes a list of names scannable, and a circle says
+                  this is a human. Companies are rounded squares, which is how
+                  a logo and a headshot stop looking like the same record. */}
+              <Avatar src={p.avatar_url} name={p.name} size={34} />
 
               <div style={{ flex: 1, minWidth: 160 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

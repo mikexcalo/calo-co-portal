@@ -41,7 +41,7 @@ interface Summary {
   contact_title: string | null;
   email: string | null;
   phone: string | null;
-  avatar_url: string | null;
+  logo_url: string | null;
   stage: 'prospect' | 'active' | 'past' | 'lost';
   next_action: string | null;
   next_action_on: string | null;
@@ -333,7 +333,7 @@ export default function CustomersPage() {
                     have more than one person in them, which is the whole reason
                     contacts are a list.
                   */}
-                  <Avatar src={r.avatar_url} name={r.contact_name || r.name} size={26} />
+                  <Avatar src={r.logo_url} name={r.name} size={26} shape="company" />
 
                   <div style={{ flex: 1, minWidth: 200 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
