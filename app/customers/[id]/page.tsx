@@ -14,7 +14,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { Glyph } from '@/components/spine/icons';
-import { getCurrentOrg } from '@/lib/spine/db';
+import { brandAssetUrl, getCurrentOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import { Links } from '@/components/spine/Links';
 import { Photos } from '@/components/spine/Photos';
@@ -104,6 +104,8 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [jobs, setJobs] = useState<JobRow[]>([]);
   const [orgId, setOrgId] = useState<string | null>(null);
+  /** Resolved from the brand kit, or the override. A function, not a column. */
+  const [logoPath, setLogoPath] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   /**
@@ -181,9 +183,10 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
   const [draft, setDraft] = useState<Partial<Customer>>({});
 
   const load = useCallback(async () => {
-    const [o, c, n, j] = await Promise.all([
+    const [o, c, lg, n, j] = await Promise.all([
       getCurrentOrg(),
       supabase.from('customers').select('*').eq('id', params.id).maybeSingle(),
+      supabase.rpc('customer_logo_path', { cust: params.id }),
       supabase
         .from('customer_notes')
         .select('id, kind, body, happened_on, created_at')
@@ -197,6 +200,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
     if (c.error) throw new Error(c.error.message);
     setCustomer(c.data as Customer | null);
     setDraft((c.data ?? {}) as Partial<Customer>);
+    setLogoPath((lg.data as string | null) ?? null);
     if (!n.error) setNotes((n.data ?? []) as Note[]);
     if (!j.error) setJobs((j.data ?? []) as JobRow[]);
   }, [params.id]);
@@ -340,9 +344,9 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
         </>
       }
     >
-      {customer.logo_url && (
+      {logoPath && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-          <Avatar src={customer.logo_url} name={customer.name} size={34} shape="company" />
+          <Avatar src={brandAssetUrl(logoPath)} name={customer.name} size={34} shape="company" />
           <span style={{ fontSize: 12.5, color: C.faint }}>
             {customer.website
               ? customer.website.replace(/^https?:\/\//, '').replace(/\/$/, '')
@@ -450,7 +454,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                   value={draft.logo_url ?? ''}
                   onChange={(e) => setDraft({ ...draft, logo_url: e.target.value })}
                   style={inputStyle}
-                  placeholder="https://…/logo.svg"
+                  placeholder={logoPath && !draft.logo_url ? 'Using the brand kit' : 'https://…/logo.svg'}
                 />
               </Field>
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12 }}>

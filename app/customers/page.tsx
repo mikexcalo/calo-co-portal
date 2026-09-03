@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
+import { brandAssetUrl } from '@/lib/spine/db';
 import { createCustomer, getCurrentOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import {
@@ -41,7 +42,7 @@ interface Summary {
   contact_title: string | null;
   email: string | null;
   phone: string | null;
-  logo_url: string | null;
+  logo_path: string | null;
   stage: 'prospect' | 'active' | 'past' | 'lost';
   next_action: string | null;
   next_action_on: string | null;
@@ -333,7 +334,7 @@ export default function CustomersPage() {
                     have more than one person in them, which is the whole reason
                     contacts are a list.
                   */}
-                  <Avatar src={r.logo_url} name={r.name} size={26} shape="company" />
+                  <Avatar src={brandAssetUrl(r.logo_path)} name={r.name} size={26} shape="company" />
 
                   <div style={{ flex: 1, minWidth: 200 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>

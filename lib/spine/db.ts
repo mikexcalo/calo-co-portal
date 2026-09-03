@@ -940,3 +940,26 @@ function round2(n: number): number {
   const shifted = Math.round(Number(`${n}e2`));
   return Number(`${shifted}e-2`);
 }
+
+
+/**
+ * A stored brand asset, as something an img tag can use.
+ *
+ * The database answers with a storage path rather than a URL, because the URL
+ * contains the project host and that does not belong in a view: the same row
+ * has to survive a restore into a different project. This is the one place
+ * that turns a path into an address.
+ *
+ * Passes an absolute URL straight through, so an explicit logo_url pointing at
+ * somebody else's site works exactly as well as one held in the bucket.
+ */
+export function brandAssetUrl(path: string | null | undefined): string | null {
+  if (!path) return null;
+  if (/^https?:\/\//i.test(path)) return path;
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!base) return null;
+  return `${base}/storage/v1/object/public/brand-assets/${path
+    .split('/')
+    .map(encodeURIComponent)
+    .join('/')}`;
+}
