@@ -196,6 +196,7 @@ export const SETUP_TABS: readonly PageTab[] = [
  */
 export const PRESENCE_TABS: readonly PageTab[] = [
   { label: 'Search', href: '/seo', icon: 'search' },
+  { label: 'Traffic', href: '/traffic', icon: 'chart' },
   { label: 'Reviews', href: '/reviews', icon: 'star' },
 ];
 

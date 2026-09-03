@@ -33,6 +33,7 @@ export type ModuleId =
   | 'pricing'
   | 'records'
   | 'proposals'
+  | 'people'         // the address book: everybody, not only clients
   | 'team'
   | 'expenses'
   | 'security'
@@ -104,11 +105,11 @@ const AGENCY: ModuleId[] = [
  */
 const PLAN_MODULES: Record<string, ModuleId[]> = {
   core: [
-    'jobs', 'customers', 'receipts', 'notes', 'billing', 'pl', 'expenses',
+    'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
     'records', 'business', 'security', 'reviews',
   ],
   grow: [
-    'jobs', 'customers', 'receipts', 'notes', 'billing', 'pl', 'expenses',
+    'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
     'records', 'business', 'security', 'reviews',
     'seo', 'ask', 'pricing', 'client_requests', 'team', 'website', 'targets',
   ],
@@ -137,6 +138,7 @@ const PLAN_FEATURES: Record<string, Feature[]> = {
 export const MODULE_LABEL: Record<ModuleId, string> = {
   jobs: 'Jobs and engagements',
   customers: 'Clients',
+  people: 'People',
   receipts: 'Receipts',
   notes: 'Capture',
   pitches: 'Pitches',
@@ -393,6 +395,7 @@ export function navFor(
       heading: 'The work',
       items: [
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
+        { id: 'people', label: 'People', href: '/people', icon: 'clients' },
         { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'quotes' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },

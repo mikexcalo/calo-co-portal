@@ -28,6 +28,32 @@ export interface SetupItem {
 
 export const SETUP_ITEMS: SetupItem[] = [
   {
+    key: 'old_wix_site',
+    title: 'Point the old Wix site at the new one',
+    blocks:
+      'Searching your own name puts the Wix site above the new one. Two sites about the same person compete, and the older one wins on age and links, so the new site cannot get past it while both are up.',
+    steps: [
+      'Work out which domain the Wix site answers on. If it is a yourname.wixsite.com address you cannot redirect it, so skip to the last step.',
+      'If it is a domain you own: in Wix, Settings then Domains, and disconnect the domain from the Wix site. Do not delete the domain.',
+      'At the registrar, point that domain at the new site. On Vercel that is Project, Settings, Domains, add it, and use the DNS records it prints.',
+      'Add a redirect so every old path lands somewhere real rather than on a 404. One rule sending everything to the homepage is fine to start; specific pages can come later.',
+      'Only after the redirect answers: in Wix, unpublish the old site. Unpublishing first strands the domain and both results disappear for a while.',
+      'If the old site is on a wixsite.com subdomain, unpublish it and add a Person block with sameAs to the new site instead. There is no redirect to be had.',
+    ],
+  },
+  {
+    key: 'search_console',
+    title: 'Verify the site in Google Search Console',
+    blocks:
+      'No record of which searches find you, what position you hold, or what people clicked. It only keeps data from the day you verify, so every day this is off is a day that cannot be recovered later.',
+    steps: [
+      'search.google.com/search-console, add a property, and choose Domain rather than URL prefix so subdomains are covered.',
+      'Add the TXT record it gives you at your registrar. Verification usually lands within the hour.',
+      'Submit the sitemap once it verifies.',
+      'Do this before the Wix redirect, not after. Having both the before and after is how you can tell whether the redirect worked.',
+    ],
+  },
+  {
     key: 'invite_team',
     title: 'Invite the people who need a login',
     blocks: 'Nobody but you can see anything, which is fine until it is not.',

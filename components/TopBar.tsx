@@ -18,9 +18,11 @@ import { PRODUCT } from '@/lib/brand';
  * the kind of detail that makes software feel unfinished.
  */
 const titlesFor = (vocab: { jobPlural: string; customerPlural: string; estimate: string }) => ({
-  '/': 'Today',
+  '/': 'Needs you',
   '/jobs': vocab.jobPlural,
   '/customers': vocab.customerPlural,
+  '/people': 'People',
+  '/traffic': 'Traffic',
   '/documents': 'Receipts',
   '/billing': 'Invoices',
   '/pl': 'Profit & Loss',

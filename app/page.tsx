@@ -472,7 +472,7 @@ export default function Dashboard() {
 
   return (
     <Page
-      title="Today"
+      title="Needs you"
       subtitle={
         emptyApp
           ? `Nothing logged for ${org?.name ?? 'this business'} yet. Five minutes here and you're running.`
@@ -559,7 +559,7 @@ export default function Dashboard() {
         <>
           {attention.length > 0 && (
             <div style={{ marginBottom: 30 }}>
-              <SectionLabel>Needs you ({attention.length})</SectionLabel>
+              <SectionLabel>Wrong or waiting ({attention.length})</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {attention.map((a) => {
                   const accent =
