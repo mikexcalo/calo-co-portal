@@ -92,6 +92,47 @@ const SCHEMA = {
       type: ['string', 'null'] as const,
       description: 'ISO date this conversation took place, only if stated.',
     },
+    /**
+     * Proposed changes to the client model, never applied automatically.
+     *
+     * This is the half that was missing: a call could become a note and a
+     * task, and the eight fields describing the client stayed exactly as they
+     * were, so the brief drifted out of date while notes piled up underneath
+     * it.
+     *
+     * Proposals rather than writes, because a rambling five minutes about
+     * shipping costs must never be allowed to overwrite a paragraph somebody
+     * wrote carefully about the economics. The person accepts each one.
+     */
+    brief_updates: {
+      type: 'array' as const,
+      description:
+        'Changes to the standing description of this client. Only include a field if the note genuinely adds to or contradicts it. Silence about a field is not a reason to rewrite it. Most notes change nothing here, and an empty array is the correct answer.',
+      items: {
+        type: 'object' as const,
+        properties: {
+          field: {
+            type: 'string' as const,
+            enum: ['opportunity', 'offer', 'buyers', 'edge', 'economics', 'gtm', 'constraints', 'ours'],
+          },
+          text: {
+            type: 'string' as const,
+            description:
+              'The field rewritten in full, incorporating what the note adds. Not a diff and not an append: the whole field as it should now read.',
+          },
+          why: {
+            type: 'string' as const,
+            description: 'What in the note caused this, in one short sentence, so somebody can check you.',
+          },
+        },
+        required: ['field', 'text', 'why'],
+      },
+    },
+    waiting_on: {
+      type: ['string', 'null'] as const,
+      description:
+        'What you are now waiting on them for, in a few words, if the note establishes one. Null if nothing is outstanding.',
+    },
     uncertain: {
       type: 'array' as const,
       description:
@@ -99,7 +140,7 @@ const SCHEMA = {
       items: { type: 'string' as const },
     },
   },
-  required: ['title', 'summary', 'people', 'tasks', 'amounts', 'uncertain'],
+  required: ['title', 'summary', 'people', 'tasks', 'amounts', 'brief_updates', 'uncertain'],
 };
 
 const SYSTEM = `You pull the useful facts out of meeting notes, call transcripts and scribbled notes for a small business.
@@ -110,7 +151,14 @@ Rules that matter more than completeness:
 - Only record a task if somebody actually committed to it. "We should probably look at that sometime" is not a task.
 - Only record a date if it was stated or is unambiguous from context. "Next Tuesday" with no anchor date is not a date — put it in uncertain instead.
 - If audio was transcribed badly and you are guessing at a word that changes the meaning — a number, a name, an amount — put it in uncertain and leave the field empty.
-- Write the summary for the person who was in the room, six months later. Plain sentences, no headings, no bullet points, no throat-clearing.`;
+- Write the summary for the person who was in the room, six months later. Plain sentences, no headings, no bullet points, no throat-clearing.
+
+On brief_updates specifically:
+
+- The default is an empty array. Most calls do not change what a business is, who it sells to or how it makes money.
+- Only propose a field when the note adds something durable or contradicts what is there. A one-off scheduling detail is a note, not a change to the client model.
+- When you do propose one, write the field in full as it should now read, keeping everything still true from the current version. You are handed the current text; do not discard a paragraph because the note did not mention it.
+- Say plainly in the why field what was said that caused it. Somebody is going to check you against the transcript.`;
 
 export async function POST(req: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -118,7 +166,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Note reading is not configured yet.' }, { status: 500 });
   }
 
-  let body: { text?: string; context?: string };
+  let body: {
+    text?: string;
+    context?: string;
+    /**
+     * The eight fields as they currently read.
+     *
+     * Sent so a proposed rewrite keeps what is still true. Without it the
+     * model can only write what the call mentioned, which would quietly
+     * delete a paragraph about economics because today's call was about
+     * shipping.
+     */
+    brief?: Record<string, string>;
+  };
   try {
     body = await req.json();
   } catch {
@@ -152,7 +212,20 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: 'user',
-          content: `${body.context ? `This relates to: ${body.context}\n\n` : ''}${text}`,
+          content: [
+            body.context ? `This relates to: ${body.context}` : '',
+            body.brief && Object.keys(body.brief).length
+              ? `What is currently on file about this client. Keep anything still true when you rewrite a field:\n${Object.entries(
+                  body.brief
+                )
+                  .filter(([, v]) => v && String(v).trim())
+                  .map(([k, v]) => `[${k}]\n${v}`)
+                  .join('\n\n')}`
+              : '',
+            `The note:\n${text}`,
+          ]
+            .filter(Boolean)
+            .join('\n\n'),
         },
       ],
     });

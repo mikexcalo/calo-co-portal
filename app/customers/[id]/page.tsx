@@ -26,6 +26,7 @@ import { ClientUpdate } from '@/components/spine/ClientUpdate';
 import { ClientAccess } from '@/components/spine/ClientAccess';
 import { TheirSite } from '@/components/spine/TheirSite';
 import { Waiting } from '@/components/spine/Waiting';
+import { SayIt } from '@/components/spine/SayIt';
 import { Plan } from '@/components/spine/Plan';
 import { ClientWork } from '@/components/spine/ClientWork';
 import { Reminders } from '@/components/spine/Reminders';
@@ -539,6 +540,14 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           {view === 'now' && (
             <>
               <Waiting customerId={params.id} />
+              {orgId && (
+                <SayIt
+                  customerId={params.id}
+                  clientName={customer.name}
+                  orgId={orgId}
+                  onDone={load}
+                />
+              )}
               <Brief customerId={params.id} clientName={customer.name} />
               <ClientUpdate customerId={params.id} clientName={customer.name} />
             </>

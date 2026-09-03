@@ -25,7 +25,22 @@ export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: cors });
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { token: string } }) {
+/**
+ * Wrapped, because this is called from a page we do not control.
+ *
+ * A throw here surfaces as a broken price table on somebody's live website,
+ * and the stack trace goes to their visitors. 503 with the cors headers still
+ * attached is the only useful failure.
+ */
+export async function GET(req: NextRequest, ctx: { params: { token: string } }) {
+  try {
+    return await prices(ctx);
+  } catch {
+    return NextResponse.json({ error: 'Temporarily unavailable' }, { status: 503, headers: cors });
+  }
+}
+
+async function prices({ params }: { params: { token: string } }) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {

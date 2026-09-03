@@ -54,7 +54,25 @@ interface Font {
 
 const safe = (s: string) => s.replace(/[^\w.\- ]+/g, '-').trim();
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+/**
+ * Wrapped, because this one builds a zip in memory.
+ *
+ * Any single unreadable asset threw and the whole download failed with a stack
+ * trace instead of a file. A person clicking Export twice and getting nothing
+ * twice has no way to learn that one font is missing.
+ */
+export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
+  try {
+    return await buildExport(req, ctx);
+  } catch (e) {
+    return NextResponse.json(
+      { error: `Could not build the export: ${(e as Error).message}` },
+      { status: 500 }
+    );
+  }
+}
+
+async function buildExport(req: NextRequest, { params }: { params: { id: string } }) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anon) {

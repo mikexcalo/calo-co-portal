@@ -49,7 +49,23 @@ function fold(line: string): string {
   return parts.join('\r\n');
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { token: string } }) {
+/**
+ * Wrapped, because a calendar app is not a person.
+ *
+ * This feed is polled every few minutes, forever, by software that shows a
+ * failure as a permanently broken subscription with no explanation. An
+ * unhandled throw here also serves a stack trace to whoever holds the link,
+ * and the link is deliberately given to people with no account.
+ */
+export async function GET(req: NextRequest, ctx: { params: { token: string } }) {
+  try {
+    return await feed(ctx);
+  } catch {
+    return new NextResponse('Temporarily unavailable', { status: 503 });
+  }
+}
+
+async function feed({ params }: { params: { token: string } }) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return new NextResponse('Not configured', { status: 500 });
