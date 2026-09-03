@@ -423,7 +423,7 @@ export default function Sidebar() {
       </div>
 
       <div style={{ flex: 1, padding: '8px 8px 8px', overflowY: 'auto' }}>
-        {navBtn('Needs you', '/', 'dashboard')}
+        {navBtn('Home', '/', 'dashboard')}
 
         {groups.map((g) => {
           // A collapsed section that hides the page you are on would leave you

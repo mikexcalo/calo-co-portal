@@ -271,14 +271,20 @@ export default function PeoplePage() {
           </Empty>
         </Card>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-          {shown.map((p) => {
+        <Card>
+          {shown.map((p, idx) => {
             const k = kindOf(p.relationship);
             const open = openId === p.id;
             return (
-              <Card key={p.id}>
+              <div
+                key={p.id}
+                style={{
+                  padding: '9px 0',
+                  borderTop: idx === 0 ? 'none' : `1px solid ${C.border}`,
+                }}
+              >
                 <div style={{ display: 'flex', gap: 11, alignItems: 'center' }}>
-                  <Avatar src={p.avatar_url} name={p.name} size={30} />
+                  <Avatar src={p.avatar_url} name={p.name} size={26} />
 
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
@@ -391,10 +397,10 @@ export default function PeoplePage() {
                     </div>
                   </div>
                 )}
-              </Card>
+              </div>
             );
           })}
-        </div>
+        </Card>
       )}
     </Page>
   );

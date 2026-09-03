@@ -10,6 +10,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useOrg } from '@/lib/spine/org';
 import { ClientScope, useClientScope } from '@/components/spine/ClientScope';
 import { listJobs, listJobLedger } from '@/lib/spine/db';
 import { JOB_PIPELINE, JOB_STATUS_LABEL } from '@/lib/spine/types';
@@ -38,6 +39,7 @@ const TONE: Record<JobStatus, 'neutral' | 'blue' | 'green' | 'amber' | 'red'> = 
 export default function JobsPage() {
   const router = useRouter();
   const clientScope = useClientScope();
+  const { vocab } = useOrg();
   const [jobs, setAllJobs] = useState<JobWithCustomer[]>([]);
   const [ledger, setLedger] = useState<Record<string, JobLedger>>({});
   const [loading, setLoading] = useState(true);
@@ -77,6 +79,22 @@ export default function JobsPage() {
   const scopedName = shown[0]?.customer?.name ?? null;
 
   const active = shown.filter((j) => ['won', 'active'].includes(j.status));
+
+  /**
+   * Only the stages that hold something, plus the next one along.
+   *
+   * Five columns with four reading Empty is a board that spends most of its
+   * width telling you about work you do not have. The stage after the last
+   * occupied one stays, because that is where the next card goes and a board
+   * with nowhere to move to is not a pipeline.
+   */
+  const occupied = JOB_PIPELINE.filter((st) => shown.some((j) => j.status === st));
+  const lastIdx = occupied.length
+    ? Math.max(...occupied.map((st) => JOB_PIPELINE.indexOf(st)))
+    : -1;
+  const columns = JOB_PIPELINE.filter(
+    (st, i) => occupied.includes(st) || i === lastIdx + 1
+  );
   const unbilled = Object.values(ledger).reduce(
     (s, r) => s + r.unbilled_labor + r.unbilled_cost,
     0
@@ -88,9 +106,11 @@ export default function JobsPage() {
 
   return (
     <Page
-      title="Jobs"
-      subtitle="Every job from first call to final payment."
-      action={<Button onClick={() => router.push('/jobs/new')}>New job</Button>}
+      title={vocab.jobPlural}
+      subtitle={`Every ${vocab.job.toLowerCase()} from first call to final payment.`}
+      action={
+        <Button onClick={() => router.push('/jobs/new')}>New {vocab.job.toLowerCase()}</Button>
+      }
     >
       <ClientScope name={scopedName} count={shown.length} />
 
@@ -108,19 +128,31 @@ export default function JobsPage() {
           marginBottom: 26,
         }}
       >
-        <Metric label="Active jobs" value={String(active.length)} />
-        <Metric
-          label="Unbilled work"
-          value={money0(unbilled)}
-          tone={unbilled > 0 ? 'amber' : undefined}
-          hint="Hours and receipts not yet invoiced"
-        />
-        <Metric
-          label="Awaiting payment"
-          value={money0(outstanding)}
-          tone={outstanding > 0 ? 'blue' : undefined}
-          hint="Invoiced but not collected"
-        />
+        {/*
+          A zero is not a number worth a card.
+
+          Unbilled $0 and Awaiting payment $0 sat side by side taking a third of
+          the screen to report that nothing has happened. A metric earns its
+          space by changing; one pinned at zero is furniture. They appear the
+          moment there is money in them.
+        */}
+        <Metric label={`Active ${vocab.jobPlural.toLowerCase()}`} value={String(active.length)} />
+        {unbilled > 0 && (
+          <Metric
+            label="Unbilled work"
+            value={money0(unbilled)}
+            tone="amber"
+            hint="Hours and receipts not yet invoiced"
+          />
+        )}
+        {outstanding > 0 && (
+          <Metric
+            label="Awaiting payment"
+            value={money0(outstanding)}
+            tone="blue"
+            hint="Invoiced but not collected"
+          />
+        )}
       </div>
 
       {loading ? (
@@ -128,19 +160,20 @@ export default function JobsPage() {
       ) : jobs.length === 0 ? (
         <Card>
           <Empty hero>
-            No jobs yet. Create one, or let a lead come in from the site form.
+            No {vocab.jobPlural.toLowerCase()} yet. Create one, or let a lead come in from the
+            site form.
           </Empty>
         </Card>
       ) : (
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: `repeat(${JOB_PIPELINE.length}, minmax(190px, 1fr))`,
+            gridTemplateColumns: `repeat(${columns.length}, minmax(190px, 1fr))`,
             gap: 12,
             overflowX: 'auto',
           }}
         >
-          {JOB_PIPELINE.map((status) => {
+          {columns.map((status) => {
             const column = shown.filter((j) => j.status === status);
             return (
               <div key={status}>

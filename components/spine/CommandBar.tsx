@@ -45,7 +45,7 @@ interface Item {
 }
 
 const NAV: Item[] = [
-  { id: 'n-today', label: 'Needs you', href: '/', group: 'Go to' },
+  { id: 'n-today', label: 'Home', href: '/', group: 'Go to' },
   { id: 'n-jobs', label: 'Engagements', href: '/jobs', group: 'Go to' },
   { id: 'n-clients', label: 'Clients', href: '/customers', group: 'Go to' },
   { id: 'n-people', label: 'People', href: '/people', group: 'Go to' },

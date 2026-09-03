@@ -82,7 +82,7 @@ export function BottomBar({
   const router = useRouter();
 
   const items = [
-    { label: 'Needs you', href: '/', icon: ICON.today },
+    { label: 'Home', href: '/', icon: ICON.today },
     { label: vocab.jobPlural, href: '/jobs', icon: ICON.jobs },
     { label: vocab.customerPlural, href: '/customers', icon: ICON.people },
   ];

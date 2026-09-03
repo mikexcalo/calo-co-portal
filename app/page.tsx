@@ -473,7 +473,7 @@ export default function Dashboard() {
 
   return (
     <Page
-      title="Needs you"
+      title="Home"
       subtitle={
         emptyApp
           ? `Nothing logged for ${org?.name ?? 'this business'} yet. Five minutes here and you're running.`

@@ -8,6 +8,7 @@ import { useTutorial } from '@/lib/spine/tutorial';
 import { useOrg } from '@/lib/spine/org';
 import { C } from '@/components/spine/ui';
 import { Notifications } from '@/components/spine/Notifications';
+import { DropIt } from '@/components/spine/DropIt';
 import { PRODUCT } from '@/lib/brand';
 
 /**
@@ -18,7 +19,7 @@ import { PRODUCT } from '@/lib/brand';
  * the kind of detail that makes software feel unfinished.
  */
 const titlesFor = (vocab: { jobPlural: string; customerPlural: string; estimate: string }) => ({
-  '/': 'Needs you',
+  '/': 'Home',
   '/jobs': vocab.jobPlural,
   '/customers': vocab.customerPlural,
   '/people': 'People',
@@ -58,6 +59,7 @@ export default function TopBar() {
    * guess about which tab was the current one.
    */
   const [siteUrl, setSiteUrl] = useState<string | null>(null);
+  const [dropping, setDropping] = useState(false);
 
   useEffect(() => {
     if (!org) { setSiteUrl(null); return; }
@@ -151,7 +153,65 @@ export default function TopBar() {
             Your site
           </a>
         )}
+        {/*
+          The most frequent thing, made the shortest thing.
+
+          Writing down what somebody just told you took six actions: Clients,
+          find them, open, land on Brief, find a dashed line, click. Six actions
+          is why it does not happen. One click from anywhere, and it works out
+          which client afterwards.
+        */}
+        <button
+          onClick={() => setDropping(true)}
+          title="Drop a note — talk or paste"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 7,
+            background: C.accent, border: `1px solid ${C.accent}`,
+            borderRadius: 7, padding: '6px 11px', fontSize: 13.5, fontWeight: 500,
+            color: '#fff', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+          }}
+        >
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M8 2.2v7.4" />
+            <path d="M5.2 6.9 8 9.7l2.8-2.8" />
+            <path d="M2.6 11.6v1.2a1 1 0 0 0 1 1h8.8a1 1 0 0 0 1-1v-1.2" />
+          </svg>
+          Drop a note
+        </button>
+
         <Notifications />
+        {dropping && (
+          <div
+            onClick={() => setDropping(false)}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 60,
+              background: 'rgba(0,0,0,.35)',
+              display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+              paddingTop: '9vh',
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: 'min(680px, 92vw)', maxHeight: '80vh', overflowY: 'auto',
+                background: C.panel, border: `1px solid ${C.border}`,
+                borderRadius: 12, padding: 18,
+                boxShadow: '0 20px 60px rgba(0,0,0,.35)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <span style={{ fontSize: 15, fontWeight: 500, color: C.text }}>Drop a note</span>
+                <button
+                  onClick={() => setDropping(false)}
+                  style={{ background: 'transparent', border: 'none', color: C.faint, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  Close
+                </button>
+              </div>
+              <DropIt onClose={() => setDropping(false)} />
+            </div>
+          </div>
+        )}
         {/* Was a dark/light toggle. A theme switch doubled every color
             decision and taught nobody anything; guided paths do. */}
         <button

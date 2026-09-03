@@ -28,6 +28,20 @@ interface Row {
   urgency: number;
 }
 
+/**
+ * The verb, per kind of open thing.
+ *
+ * Three rows reading "16 steps planned and nobody assigned to any of them"
+ * state a fact and stop. Every one of them was already a link, and nothing on
+ * screen said so, so the list read as a wall of complaints rather than a queue.
+ * A row you can act on has to say what the act is.
+ */
+const DO: Record<string, string> = {
+  waiting: 'Chase it',
+  unassigned: 'Split the work',
+  findings: 'Use them',
+};
+
 export function Unresolved() {
   const router = useRouter();
   const [rows, setRows] = useState<Row[]>([]);
@@ -51,32 +65,32 @@ export function Unresolved() {
     <div style={{ marginBottom: 26 }}>
       <SectionLabel>Open ({rows.length})</SectionLabel>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <Card>
         {rows.map((r, i) => (
-          <Card key={`${r.kind}-${i}`}>
-            <div
-              onClick={() => router.push(r.href)}
-              style={{ display: 'flex', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', cursor: 'pointer' }}
-            >
-              {/* Urgency as a mark rather than a color wash. Three is somebody
-                  waiting on you or money not asked for; one is tidiness. */}
-              <span
-                style={{
-                  width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-                  background: r.urgency >= 3 ? C.amber : r.urgency === 2 ? C.borderStrong : C.border,
-                }}
-              />
-              <span style={{ fontSize: 14.5, color: C.text }}>{r.who}</span>
-              <span style={{ fontSize: 13.5, color: C.dim, flex: 1, minWidth: 200 }}>{r.what}</span>
-              {r.age_days > 0 && (
-                <span style={{ fontSize: 12, color: C.faint, fontVariantNumeric: 'tabular-nums' }}>
-                  {r.age_days}d
-                </span>
-              )}
-            </div>
-          </Card>
+          <div
+            key={`${r.kind}-${i}`}
+            onClick={() => router.push(r.href)}
+            style={{
+              display: 'flex', gap: 11, alignItems: 'center', flexWrap: 'wrap',
+              padding: '9px 0', cursor: 'pointer',
+              borderTop: i === 0 ? 'none' : `1px solid ${C.border}`,
+            }}
+          >
+            <span
+              style={{
+                width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+                background: r.urgency >= 2 ? C.amber : C.borderStrong,
+              }}
+            />
+            <span style={{ fontSize: 13.5, color: C.text, flexShrink: 0 }}>{r.who}</span>
+            <span style={{ fontSize: 13.5, color: C.dim, flex: 1, minWidth: 140 }}>{r.what}</span>
+            <span style={{ fontSize: 12, color: C.faint, flexShrink: 0 }}>{r.age_days}d</span>
+            <span style={{ fontSize: 12.5, color: C.accent, flexShrink: 0 }}>
+              {DO[r.kind] ?? 'Open'} →
+            </span>
+          </div>
         ))}
-      </div>
+      </Card>
     </div>
   );
 }
