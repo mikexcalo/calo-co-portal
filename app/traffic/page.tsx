@@ -24,7 +24,7 @@ import {
   Card,
   Empty,
   Page,
-  PRESENCE_TABS,
+  DIGITAL_TABS,
   SectionLabel,
 } from '@/components/spine/ui';
 
@@ -117,7 +117,7 @@ export default function TrafficPage() {
     <Page
       title="Traffic"
       subtitle="Who arrived, where from, and how far they got."
-      tabs={PRESENCE_TABS}
+      tabs={DIGITAL_TABS}
       action={
         sites.length > 1 ? (
           <select
@@ -135,7 +135,7 @@ export default function TrafficPage() {
     >
       {!site ? (
         <Card>
-          <Empty>No sites yet. Add one in Your website and it shows up here.</Empty>
+          <Empty>No sites yet. Add one on a client&apos;s record, or in Digital, and it shows up here.</Empty>
         </Card>
       ) : !site.analytics_on ? (
         /* The install, which is the only thing worth showing until it is on. */

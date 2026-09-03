@@ -20,7 +20,7 @@ import {
 } from '@/lib/spine/seo';
 import {
   Button, C, Card, Empty, Field, Metric, Page, Pill, SectionLabel, inputStyle,
-  PRESENCE_TABS,
+  DIGITAL_TABS,
 } from '@/components/spine/ui';
 
 interface TaskRow { key: string; status: 'todo' | 'doing' | 'done' | 'skipped' }
@@ -147,9 +147,9 @@ export default function SeoPage() {
 
   return (
     <Page
-      tabs={PRESENCE_TABS}
+      tabs={DIGITAL_TABS}
       back={clientId ? { label: clientName ?? 'Client', href: `/customers/${clientId}` } : undefined}
-      title={clientName ? `Being found: ${clientName}` : 'Being found'}
+      title={clientName ? `Search: ${clientName}` : 'Search'}
       subtitle="Four levers, three of them admin. This holds the state so it does not get abandoned halfway."
       action={<Button variant="ghost" onClick={() => setEditing((v) => !v)}>{editing ? 'Done' : 'Edit details'}</Button>}
     >

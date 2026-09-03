@@ -184,21 +184,24 @@ export const SETUP_TABS: readonly PageTab[] = [
 ];
 
 /**
- * Being findable, as one thing.
+ * Everything about being found online, as one thing.
  *
- * Reviews, the search checklist and the directory list are three views of one
- * job: whether somebody looking for this business finds it and believes it.
- * They were three ideas that happened to ship on different days, and shipping
- * order is not a reason to organize a product.
+ * Was PRESENCE_TABS under a row called "Being found", which named one of the
+ * four things behind it. Somebody looking for their visitor numbers does not
+ * think "being found", they think analytics, or website, or digital, so the
+ * search checklist was discoverable and the traffic screen was not.
  *
- * Reviews in particular is not a place you live. It is a switch you set once
- * and a queue you glance at, which is a tab.
+ * Overview first, because the row now leads somewhere that says what state all
+ * four are in. It used to open straight into the search checklist, which is
+ * one tab of four and the most tedious, so the module read as a chore.
  */
-export const PRESENCE_TABS: readonly PageTab[] = [
-  { label: 'Search', href: '/seo', icon: 'search' },
+export const DIGITAL_TABS: readonly PageTab[] = [
+  { label: 'Overview', href: '/digital', icon: 'globe' },
   { label: 'Traffic', href: '/traffic', icon: 'chart' },
+  { label: 'Search', href: '/seo', icon: 'search' },
   { label: 'Reviews', href: '/reviews', icon: 'star' },
 ];
+
 
 /**
  * The money picture, as one thing.

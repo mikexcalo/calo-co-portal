@@ -95,7 +95,7 @@ export const SETUP_ITEMS: SetupItem[] = [
       'Decide first whether to publish an address. If customers do not come to you, choose that you deliver to them and Google hides it.',
       'business.google.com, then claim or create.',
       'Verification is a postcard, about a week. Start it and do the rest while it is in the mail.',
-      'The full checklist and the generated address block are in Being found.',
+      'The full checklist and the generated address block are in Digital, under Search.',
     ],
   },
   {
