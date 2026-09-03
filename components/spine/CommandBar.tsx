@@ -49,6 +49,7 @@ const NAV: Item[] = [
   { id: 'n-jobs', label: 'Engagements', href: '/jobs', group: 'Go to' },
   { id: 'n-clients', label: 'Clients', href: '/customers', group: 'Go to' },
   { id: 'n-people', label: 'People', href: '/people', group: 'Go to' },
+  { id: 'n-access', label: 'Access — who is on what', href: '/access', group: 'Go to' },
   { id: 'n-digital', label: 'Digital', href: '/digital', group: 'Go to' },
   { id: 'n-traffic', label: 'Traffic and analytics', href: '/traffic', group: 'Go to' },
   { id: 'n-notes', label: 'Notes', href: '/notes', group: 'Go to' },

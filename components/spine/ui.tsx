@@ -195,6 +195,19 @@ export const SETUP_TABS: readonly PageTab[] = [
  * four are in. It used to open straight into the search checklist, which is
  * one tab of four and the most tedious, so the module read as a chore.
  */
+/**
+ * The client module, as three views of one subject.
+ *
+ * Clients are the companies, People are the humans in them, and Access is who
+ * is on what. Access was a tab on a single client's record, which could only
+ * ever show one row of an answer that is a grid.
+ */
+export const CLIENT_TABS: readonly PageTab[] = [
+  { label: 'Clients', href: '/customers', icon: 'business' },
+  { label: 'People', href: '/people', icon: 'brief' },
+  { label: 'Access', href: '/access', icon: 'layers' },
+];
+
 export const DIGITAL_TABS: readonly PageTab[] = [
   { label: 'Overview', href: '/digital', icon: 'globe' },
   { label: 'Traffic', href: '/traffic', icon: 'chart' },

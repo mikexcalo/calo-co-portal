@@ -23,6 +23,7 @@ const titlesFor = (vocab: { jobPlural: string; customerPlural: string; estimate:
   '/jobs': vocab.jobPlural,
   '/customers': vocab.customerPlural,
   '/people': 'People',
+  '/access': 'Access',
   '/digital': 'Digital',
   '/traffic': 'Digital',
   '/seo': 'Digital',

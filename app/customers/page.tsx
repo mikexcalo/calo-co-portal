@@ -33,6 +33,7 @@ import {
   money0,
   radius,
   shortDate,
+  CLIENT_TABS,
 } from '@/components/spine/ui';
 
 interface Summary {
@@ -192,6 +193,7 @@ export default function CustomersPage() {
 
   return (
     <Page
+      tabs={CLIENT_TABS}
       title={vocab.customerPlural}
       subtitle={`Everyone you work with, sorted by who needs you first. Totals come straight from their ${vocab.jobPlural.toLowerCase()}.`}
       action={
@@ -420,13 +422,7 @@ export default function CustomersPage() {
                       {r.owed > 0 && <Stat label="Owed" value={money(r.owed)} color={C.amber} />}
                       {r.unbilled > 0 && <Stat label="Unbilled" value={money(r.unbilled)} color={C.amber} />}
                     </div>
-                  ) : (
-                    r.waiting_on && (
-                      <div style={{ fontSize: 12.5, color: C.amber, maxWidth: 210, textAlign: 'right' }}>
-                        Waiting: {r.waiting_on}
-                      </div>
-                    )
-                  )}
+                  ) : null}
                 </div>
               </Card>
             );

@@ -31,6 +31,7 @@ import {
   Pill,
   Avatar,
   inputStyle,
+  CLIENT_TABS,
 } from '@/components/spine/ui';
 
 type Relationship = 'contact' | 'client' | 'prospect' | 'referrer' | 'freelancer' | 'partner';
@@ -167,6 +168,7 @@ export default function PeoplePage() {
 
   return (
     <Page
+      tabs={CLIENT_TABS}
       title="People"
       subtitle="Your network. Everyone you know, whether or not they pay you."
       action={
