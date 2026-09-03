@@ -168,7 +168,7 @@ export default function PeoplePage() {
   return (
     <Page
       title="People"
-      subtitle="The humans. Clients are the businesses; these are the people in them, plus everybody else worth knowing."
+      subtitle="Your network. Everyone you know, whether or not they pay you."
       action={
         <Button onClick={() => setAdding((v) => !v)}>
           {adding ? 'Cancel' : 'Add someone'}

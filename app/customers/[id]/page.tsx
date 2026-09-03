@@ -147,9 +147,10 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
    * navigation, and should not cost a page load. The query string is only read
    * once, to honor where somebody was sent.
    */
-  const [view, setView] = useState<'now' | 'work' | 'given' | 'history'>(
+  const [view, setView] = useState<'now' | 'work' | 'given' | 'history' | 'access'>(
     (typeof window !== 'undefined' &&
-      (new URLSearchParams(window.location.search).get('tab') as 'now' | 'work' | 'given' | 'history')) || 'now'
+      (new URLSearchParams(window.location.search).get('tab') as
+        | 'now' | 'work' | 'given' | 'history' | 'access')) || 'now'
   );
   /**
    * Counts on the tabs, from the one view that already has them.
@@ -374,7 +375,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
            * wrong shape for it.
            */
           gridTemplateColumns:
-            phone || view === 'given'
+            phone || view === 'given' || view === 'access'
               ? '1fr'
               : 'minmax(0, 1.25fr) minmax(340px, 1fr)',
           gap: 22,
@@ -501,6 +502,10 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               ['work', 'Work', 'work'],
               ['given', 'Documents', 'documents'],
               ['history', 'Activity', 'activity'],
+              // Was behind a button called "What they can reach", inside the
+              // Work tab, three scrolls down. Deciding what a client gets is
+              // not a footnote to the work: it is what you sell them.
+              ['access', 'Modules', 'layers'],
             ] as const).map(([id, label, icon]) => {
               const on = view === id;
               const count = id === 'given' ? counts.given : id === 'history' ? notes.length : 0;
@@ -557,6 +562,18 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             <>
               <Plan customerId={params.id} clientName={customer.name} />
               <ClientWork customerId={params.id} />
+            </>
+          )}
+
+          {view === 'given' && (
+            <>
+              <Discovery customerId={params.id} />
+              <ClientDocs customerId={params.id} />
+            </>
+          )}
+
+          {view === 'access' && (
+            <>
               <ClientAccess customerId={params.id} />
               {orgId && (
                 <TheirSite
@@ -566,13 +583,6 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                   website={customer.website}
                 />
               )}
-            </>
-          )}
-
-          {view === 'given' && (
-            <>
-              <Discovery customerId={params.id} />
-              <ClientDocs customerId={params.id} />
             </>
           )}
 
@@ -739,7 +749,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           </>)}
         </div>
 
-        <div style={{ display: view === 'given' ? 'none' : undefined }}>
+        <div style={{ display: view === 'given' || view === 'access' ? 'none' : undefined }}>
           {/*
             The business, then whoever you talk to there.
             

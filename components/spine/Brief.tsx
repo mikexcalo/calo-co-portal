@@ -21,7 +21,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
-import { Button, C, Card, SectionLabel, inputStyle, shortDate } from './ui';
+import { Button, C, Card, SectionLabel, inputStyle, shortDate, useIsPhone } from './ui';
 
 interface BriefShape {
   opportunity?: string;
@@ -65,6 +65,8 @@ export function Brief({ customerId, clientName }: { customerId: string; clientNa
   const [brief, setBrief] = useState<BriefShape>({});
   const [updated, setUpdated] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const phone = useIsPhone();
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
@@ -158,20 +160,65 @@ export function Brief({ customerId, clientName }: { customerId: string; clientNa
             <Button onClick={save} disabled={busy}>{busy ? 'Saving…' : 'Save'}</Button>
           </>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
-            {written.map((f) => (
-              <div key={f.key}>
-                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.09em', color: C.faint, fontWeight: 600, marginBottom: 4 }}>
-                  {f.label}
+          /**
+           * The first line, then the rest on demand.
+           *
+           * Eight fields written as full paragraphs is eight essays stacked on
+           * the screen you open to remind yourself who somebody is. Nobody
+           * reads that, which makes a well-researched brief exactly as useful
+           * as an empty one.
+           *
+           * So each field shows its opening sentence, which is where the point
+           * belongs anyway, and opens if you want the detail. Writing the
+           * first sentence as the answer is a discipline, not a summary trick:
+           * if the opening line of "how the money works" is not the number,
+           * the field is written wrong.
+           */
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {written.map((f, i) => {
+              const full = (brief[f.key] ?? '').trim();
+              // First sentence, or the first line if somebody wrote a list.
+              const head = (full.split(/\n/)[0].match(/^.*?[.?!](?=\s|$)/)?.[0] ?? full.split(/\n/)[0]).trim();
+              const hasMore = full.length > head.length + 2;
+              const isOpen = expanded.has(f.key);
+              return (
+                <div
+                  key={f.key}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: phone ? '1fr' : '160px minmax(0, 1fr)',
+                    gap: phone ? 2 : 16,
+                    padding: '10px 0',
+                    borderTop: i === 0 ? 'none' : `1px solid ${C.border}`,
+                  }}
+                >
+                  <div style={{ fontSize: 12.5, color: C.faint, paddingTop: 1 }}>{f.label}</div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 14, color: C.text, lineHeight: 1.6 }}>
+                      {isOpen ? full : head}
+                    </div>
+                    {hasMore && (
+                      <button
+                        onClick={() =>
+                          setExpanded((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(f.key)) next.delete(f.key);
+                            else next.add(f.key);
+                            return next;
+                          })
+                        }
+                        style={{
+                          background: 'transparent', border: 'none', padding: 0, marginTop: 3,
+                          color: C.accent, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
+                        }}
+                      >
+                        {isOpen ? 'Less' : 'More'}
+                      </button>
+                    )}
+                  </div>
                 </div>
-                {/* Capped at a readable measure. Full width is the right shape
-                    for the page and the wrong one for a paragraph: past about
-                    seventy characters the eye loses the line. */}
-                <p style={{ fontSize: 14.5, color: C.text, lineHeight: 1.65, margin: 0, maxWidth: '68ch' }}>
-                  {brief[f.key]}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </Card>

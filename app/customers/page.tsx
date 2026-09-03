@@ -43,6 +43,7 @@ interface Summary {
   email: string | null;
   phone: string | null;
   logo_path: string | null;
+  waiting_on: string | null;
   stage: 'prospect' | 'active' | 'past' | 'lost';
   next_action: string | null;
   next_action_on: string | null;
@@ -400,19 +401,32 @@ export default function CustomersPage() {
                     )}
                   </div>
 
-                  <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
-                    <Stat label="Invoiced" value={r.invoiced > 0 ? money(r.invoiced) : '—'} />
-                    <Stat
-                      label="Owed"
-                      value={r.owed > 0 ? money(r.owed) : '—'}
-                      color={r.owed > 0 ? C.amber : undefined}
-                    />
-                    <Stat
-                      label="Unbilled"
-                      value={r.unbilled > 0 ? money(r.unbilled) : '—'}
-                      color={r.unbilled > 0 ? C.amber : undefined}
-                    />
-                  </div>
+                  {/*
+                    Numbers only when there are numbers.
+
+                    Three columns reading Invoiced —, Owed —, Unbilled — took a
+                    third of every row to say nothing, on a screen where no
+                    money has moved yet. Headings for figures that do not exist
+                    are the most expensive whitespace in a product: they are
+                    read every single time and never once answer anything.
+
+                    When money exists it matters more than anything else on the
+                    row, so it stays. When it does not, the row shows what is
+                    actually true instead.
+                  */}
+                  {(r.invoiced > 0 || r.owed > 0 || r.unbilled > 0) ? (
+                    <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
+                      {r.invoiced > 0 && <Stat label="Invoiced" value={money(r.invoiced)} />}
+                      {r.owed > 0 && <Stat label="Owed" value={money(r.owed)} color={C.amber} />}
+                      {r.unbilled > 0 && <Stat label="Unbilled" value={money(r.unbilled)} color={C.amber} />}
+                    </div>
+                  ) : (
+                    r.waiting_on && (
+                      <div style={{ fontSize: 12.5, color: C.amber, maxWidth: 210, textAlign: 'right' }}>
+                        Waiting: {r.waiting_on}
+                      </div>
+                    )
+                  )}
                 </div>
               </Card>
             );
