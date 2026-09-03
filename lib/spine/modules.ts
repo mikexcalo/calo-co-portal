@@ -458,6 +458,7 @@ export function navFor(
         // the Plan. Reachable from a client, which is where you think of it.
         { id: 'billing', label: 'Invoices', href: '/billing', icon: 'invoices' },
         { id: 'proposals', label: vocab.estimate + 's', href: '/proposals', icon: 'proposal' },
+        { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'send' },
         // Overheads and receipts are tabs inside this one.
         { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
         { id: 'account', label: 'Bills to You', href: '/account', icon: 'incoming' },
@@ -467,7 +468,6 @@ export function navFor(
       heading: 'Grow',
       defaultOpen: false,
       items: [
-        { id: 'targets', label: 'Pipeline', href: '/targets', icon: 'crosshair' },
         { id: 'seo', label: 'Digital', href: '/digital', icon: 'globe' },
         { id: 'brands', label: 'Brand', href: '/framework', icon: 'brandKit' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],

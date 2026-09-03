@@ -119,16 +119,18 @@ export default function ProposalsPage() {
         <Metric
           label="Out for decision"
           value={money0(outValue)}
+          hideAtZero
           tone={outValue > 0 ? 'blue' : undefined}
           hint={`${out.length} waiting`}
         />
         <Metric
           label="Unsent drafts"
           value={money0(draftValue)}
+          hideAtZero
           tone={drafts.length ? 'amber' : undefined}
           hint={`${drafts.length} never sent`}
         />
-        <Metric label="Won" value={String(won.length)} tone="green" />
+        <Metric label="Won" value={String(won.length)} tone="green" hideAtZero />
         {winRate != null && (
           <Metric label="Win rate" value={`${winRate}%`} hint={`${decided} decided`} />
         )}

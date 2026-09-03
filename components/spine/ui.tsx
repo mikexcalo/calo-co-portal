@@ -267,8 +267,14 @@ export function brandTabs(id: string): readonly PageTab[] {
   ];
 }
 
+/**
+ * Kept for the two screens that still use it, minus the row it belonged to.
+ *
+ * Pipeline is no longer a module. Your own list was empty and all 107 targets
+ * belonged to a client, because companies you want are people at a stage and
+ * People already holds those. Targets survive on the client that owns them.
+ */
 export const PIPELINE_TABS: readonly PageTab[] = [
-  { label: 'Targets', href: '/targets', icon: 'target' },
   { label: 'Pitches', href: '/pitches', icon: 'send' },
 ];
 
@@ -444,17 +450,32 @@ export function Pill({ children, tone = 'neutral' }: { children: React.ReactNode
   );
 }
 
+/**
+ * A number, or nothing at all.
+ *
+ * A metric earns its place by changing. One pinned at zero is furniture: read
+ * every time somebody opens the screen, answering nothing, and crowding out
+ * the numbers that do move. Five cards reading $0 across the top of a page is
+ * the single most repeated mistake in this product.
+ *
+ * `zero` opts a card out when its value is nothing, so the row grows as the
+ * business does instead of standing at full width from day one.
+ */
 export function Metric({
   label,
   value,
   tone,
   hint,
+  hideAtZero,
 }: {
   label: string;
   value: string;
   tone?: 'green' | 'amber' | 'red' | 'blue';
   hint?: string;
+  /** Drop the card entirely when the value reads as nothing. */
+  hideAtZero?: boolean;
 }) {
+  if (hideAtZero && /^(\$?0(\.00)?|0|—|-)$/.test(value.trim())) return null;
   const color =
     tone === 'green' ? C.green
     : tone === 'amber' ? C.amber

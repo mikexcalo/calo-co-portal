@@ -180,6 +180,14 @@ const icons: Record<string, React.ReactNode> = {
       <path d="M6.9 4.7 4.5 10.1M9.1 4.7l2.4 5.4M5.1 11.6h5.8" />
     </svg>
   ),
+  // Pitches: a paper plane. Moved to Money when Pipeline was retired, and the
+  // sidebar set had no glyph for it.
+  send: (
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M13.9 2.5 7.3 9.1" />
+      <path d="M13.9 2.5 9.6 13.8 7.3 9.1 2.6 6.8z" />
+    </svg>
+  ),
   search: (
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="7.2" cy="7.2" r="4.6" />

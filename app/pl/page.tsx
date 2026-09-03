@@ -275,11 +275,13 @@ export default function ProfitLossPage() {
           >
             <Metric
               label="Revenue"
+              hideAtZero
               value={money0(scoped.revenue)}
               hint={`${scoped.count} invoice${scoped.count === 1 ? '' : 's'}`}
             />
             <Metric
               label="Costs"
+              hideAtZero
               value={money0(scoped.costs)}
               hint={
                 scoped.overhead > 0
@@ -289,18 +291,21 @@ export default function ProfitLossPage() {
             />
             <Metric
               label="Profit"
+              hideAtZero
               value={money0(scoped.profit)}
               tone={scoped.profit >= 0 ? 'green' : 'red'}
               hint={`${scoped.margin.toFixed(0)}% margin`}
             />
             <Metric
               label="Collected"
+              hideAtZero
               value={money0(scoped.collected)}
               tone="green"
               hint="Money actually in"
             />
             <Metric
               label="Owed to you"
+              hideAtZero
               value={money0(scoped.outstanding)}
               tone={scoped.outstanding > 0 ? 'amber' : undefined}
               hint="Invoiced, not paid"

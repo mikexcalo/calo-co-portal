@@ -232,9 +232,9 @@ export default function BillingPage() {
           marginBottom: 26,
         }}
       >
-        <Metric label="Outstanding" value={money0(outstanding)} tone={outstanding > 0 ? 'blue' : undefined} />
-        <Metric label="Collected" value={money0(collected)} tone="green" />
-        <Metric label="Drafts" value={String(drafts)} tone={drafts > 0 ? 'amber' : undefined} hint="Not sent yet" />
+        <Metric label="Outstanding" value={money0(outstanding)} tone={outstanding > 0 ? 'blue' : undefined} hideAtZero />
+        <Metric label="Collected" value={money0(collected)} tone="green" hideAtZero />
+        <Metric label="Drafts" value={String(drafts)} tone={drafts > 0 ? 'amber' : undefined} hint="Not sent yet" hideAtZero />
       </div>
 
       {loading ? (

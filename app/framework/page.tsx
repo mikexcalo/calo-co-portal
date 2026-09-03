@@ -58,6 +58,7 @@ export default function FrameworkPage() {
   const [files, setFiles] = useState<DropFile[]>([]);
   const [rejected, setRejected] = useState<string[]>([]);
   const [openModule, setOpenModule] = useState<string | null>(null);
+  const [showStandard, setShowStandard] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -333,10 +334,29 @@ export default function FrameworkPage() {
         )}
       </div>
 
-      {/* The standard itself. Reference, and the discovery sheet you work
-          from on a call. */}
+      {/*
+        The standard, folded.
+
+        Ten expandable cards sat open beneath the client list on every visit.
+        It is reference material: read once, consulted occasionally, and it was
+        taking more of the screen than the thing the page is actually for,
+        which is which client needs what next.
+      */}
       <div style={{ marginTop: 30 }}>
-        <SectionLabel>The ten modules</SectionLabel>
+        <button
+          onClick={() => setShowStandard((v) => !v)}
+          style={{
+            width: '100%', textAlign: 'left', background: 'transparent',
+            border: `1px dashed ${C.border}`, borderRadius: 9, padding: '10px 13px',
+            cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, color: C.dim,
+          }}
+        >
+          The ten modules, and what each one needs
+          <span style={{ float: 'right', color: C.faint }}>{showStandard ? 'Hide' : 'Read'}</span>
+        </button>
+      </div>
+
+      <div style={{ marginTop: 12, display: showStandard ? undefined : 'none' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {FRAMEWORK.map((m, i) => {
             const open = openModule === m.id;

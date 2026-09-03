@@ -21,7 +21,6 @@ import {
   Card,
   Empty,
   Metric,
-  PIPELINE_TABS,
   Page,
   Pill,
   inputStyle,
@@ -144,7 +143,6 @@ export default function TargetsPage() {
 
   return (
     <Page
-      tabs={clientId ? undefined : PIPELINE_TABS}
       back={clientId ? { label: clientName ?? 'Client', href: `/customers/${clientId}` } : undefined}
       title={clientName ? `Targets for ${clientName}` : 'Your pipeline'}
       subtitle={
@@ -154,10 +152,10 @@ export default function TargetsPage() {
       }
     >
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 22 }}>
-        <Metric label="On the list" value={String(counts.researching ?? 0)} />
-        <Metric label="Approached" value={String(counts.approached ?? 0)} />
-        <Metric label="Talking" value={String(counts.talking ?? 0)} tone={counts.talking ? 'amber' : undefined} />
-        <Metric label="Won" value={String(counts.won ?? 0)} tone={counts.won ? 'green' : undefined} />
+        <Metric hideAtZero label="On the list" value={String(counts.researching ?? 0)} />
+        <Metric hideAtZero label="Approached" value={String(counts.approached ?? 0)} />
+        <Metric hideAtZero label="Talking" value={String(counts.talking ?? 0)} tone={counts.talking ? 'amber' : undefined} />
+        <Metric hideAtZero label="Won" value={String(counts.won ?? 0)} tone={counts.won ? 'green' : undefined} />
       </div>
 
       <Card style={{ marginBottom: 16 }}>
