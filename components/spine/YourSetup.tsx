@@ -20,6 +20,42 @@ import { Button, C, Card, SectionLabel } from './ui';
 
 type Status = 'todo' | 'doing' | 'done' | 'skipped';
 
+/**
+ * A step that can contain a link, written as [label](url).
+ *
+ * Steps were plain sentences telling you to go to Search Console or the Vercel
+ * domain settings, and then you went and found them yourself. A step that
+ * names a place should take you there: the whole point of writing the task
+ * down was to stop the looking-up costing more than the task.
+ *
+ * Deliberately the smallest possible syntax rather than a markdown library. It
+ * handles one thing, and anything it does not recognise renders as the plain
+ * text it already was.
+ */
+function StepText({ text }: { text: string }) {
+  const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g);
+  return (
+    <>
+      {parts.map((part, i) => {
+        const m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+        if (!m) return <span key={i}>{part}</span>;
+        return (
+          <a
+            key={i}
+            href={m[2]}
+            target="_blank"
+            rel="noreferrer noopener"
+            onClick={(e) => e.stopPropagation()}
+            style={{ color: C.accent, textDecoration: 'none' }}
+          >
+            {m[1]} ↗
+          </a>
+        );
+      })}
+    </>
+  );
+}
+
 export function YourSetup() {
   const { org } = useOrg();
   const [state, setState] = useState<Record<string, Status>>({});
@@ -176,7 +212,7 @@ export function YourSetup() {
                               textDecoration: on ? 'line-through' : undefined,
                             }}
                           >
-                            {s}
+                            <StepText text={s} />
                           </span>
                         </label>
                       );

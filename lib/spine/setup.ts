@@ -29,18 +29,20 @@ export interface SetupItem {
 export const SETUP_ITEMS: SetupItem[] = [
   {
     key: 'old_wix_site',
-    title: 'Retire mikecalo.co and win your own name on calo.company',
+    title: 'Retire mikecalo.co, and see what people actually search',
     blocks:
-      'The domain lapses on 27 September rather than being redirected, so the old result goes and hands nothing across.\n\nCheck the premise before spending months on this. A search for Mike Calo run without your account returns an actor on IMDb, an Irish basketball player, a college pitcher, a Design Labs president and two data broker pages, and neither of your sites is in the top ten. Your LinkedIn is. The number two spot you see is probably personalisation: you are signed in, in Portland, and you visit your own site. Run it in an incognito window and find out.\n\nNothing is technically wrong. robots.txt allows everything, the sitemap lists both pages, the founder page is linked from the home page, the title reads Mike Calo and the name appears ten times. This is an authority problem, not a configuration one.',
+      'The domain lapses on 27 September rather than being redirected, so the old result goes and hands nothing across.\n\nCheck the premise first. A search for Mike Calo run without your account returns an actor on IMDb, an Irish basketball player, a college pitcher and two data broker pages, and neither of your sites is in the top ten. Your LinkedIn is. The number two spot you see is probably your own history.\n\nNothing is technically wrong: robots.txt allows everything, the sitemap lists both pages, the founder page is linked from the home page and its title reads Mike Calo. This is an authority problem on a two page domain, not a configuration one.',
     steps: [
-      'Search your name in an incognito window. Everything below is worth more or less depending on whether a stranger already sees you.',
+      'Ten seconds, and it decides whether the rest matters: open a private window and [search your name](https://www.google.com/search?q=mike+calo). If mikecalo.co is not there, it was never competing with anybody but you.',
+      'Verify calo.company. Open [Search Console](https://search.google.com/search-console), Add property, choose Domain, and type calo.company. Everything below needs this and it keeps no history from before the day you do it.',
+      'Google gives you a TXT record. Put it in [Vercel DNS for calo.company](https://vercel.com/mikexcalo-7384s-projects/~/domains/calo.company) as Type TXT, Name @, Value the string it gave you. The nameservers are already Vercel\u2019s, so this takes a minute.',
+      'Back in Search Console, press Verify, then submit sitemap.xml under Sitemaps. It already exists and lists both pages.',
+      'Use URL Inspection on [the founder page](https://calo.company/mike-calo) and press Request Indexing. This is the payoff: it tells you whether Google knows that page exists, which neither of us currently knows.',
+      'Unpublish the Wix site. [Wix domains](https://manage.wix.com/account/domains), or in the editor the menu is Site then Unpublish. Two minutes, and worth it because a live outdated site with your name on it is a liability, not because it moves rankings.',
       'Nothing to renew. Auto renew is already off on both the domain and the plan, so doing nothing is the whole action.',
-      'While you still own it, verify mikecalo.co in Search Console and use the Removals tool. About a day, rather than the weeks Google takes to notice a dead domain, and only possible while it is yours.',
-      'Unpublish the Wix site. In the editor the menu is Site, then Unpublish. If Studio hides it, disconnecting the domain in Settings, Domains does the same job for anybody searching.',
-      'Verify calo.company in Search Console. It keeps no history from before the day you verify.',
-      'Add Person structured data to calo.company/mike-calo, with sameAs pointing at linkedin.com/in/mikecalo. The page carries two JSON-LD blocks and both describe the company, one an FAQ about CALO&CO, so nothing tells Google the page is about a person. This is the highest value thing on the list.',
-      'Link calo.company from your LinkedIn profile. LinkedIn already ranks for your name and the new domain has almost nothing pointing at it. With sameAs on one end and a link on the other, Google can treat the profile and the page as one person and lend the site what the profile has.',
-      'Expect months, and expect LinkedIn to stay above you. That is fine: it is yours, and a page one that reads LinkedIn then calo.company is a win.',
+      'Add Person structured data to the founder page with sameAs pointing at [your LinkedIn](https://www.linkedin.com/in/mikecalo/). The page carries two JSON-LD blocks and both describe the company. This is the highest value item here.',
+      'Link calo.company from that LinkedIn profile. Schema on one end, a link on the other, is what lets Google treat the profile and the page as one person and lend the new domain what the profile already has.',
+      'Skip the Removals tool on mikecalo.co unless the private window proved it is really competing. It means verifying a domain you are abandoning to speed up something that disappears by itself in three weeks.',
     ],
   },
   {
@@ -49,7 +51,7 @@ export const SETUP_ITEMS: SetupItem[] = [
     blocks:
       'No record of which searches find you, what position you hold, or what people clicked. It only keeps data from the day you verify, so every day this is off is a day that cannot be recovered later.',
     steps: [
-      'search.google.com/search-console, add a property, and choose Domain rather than URL prefix so subdomains are covered.',
+      'Open [Search Console](https://search.google.com/search-console), add a property, and choose Domain rather than URL prefix so subdomains are covered.',
       'Add the TXT record it gives you at your registrar. Verification usually lands within the hour.',
       'Submit the sitemap once it verifies.',
       'Do this before the Wix redirect, not after. Having both the before and after is how you can tell whether the redirect worked.',
@@ -71,7 +73,7 @@ export const SETUP_ITEMS: SetupItem[] = [
     blocks: 'Free projects pause after a week of no activity, and daily backups only exist on Pro. Neither matters until somebody depends on this.',
     cost: '$25 a month',
     steps: [
-      'supabase.com, the project, then Settings and Billing.',
+      'Open [the Supabase project](https://supabase.com/dashboard/project/qwncdybiluseypcovitd/settings/billing).',
       'Upgrade to Pro. It covers every workspace in here, not one each.',
       'Do it the morning somebody else starts using this rather than before.',
     ],
@@ -81,9 +83,9 @@ export const SETUP_ITEMS: SetupItem[] = [
     title: 'Add Stripe keys',
     blocks: 'Invoices can be sent but not paid by card. Everything else about billing already works.',
     steps: [
-      'dashboard.stripe.com, Developers, API keys.',
+      'Open [Stripe API keys](https://dashboard.stripe.com/apikeys).',
       'Copy the secret key and the publishable key.',
-      'Add them in Vercel as STRIPE_SECRET_KEY and NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, then redeploy.',
+      'Add them in [Vercel environment variables](https://vercel.com/mikexcalo-7384s-projects/calo-co-portal/settings/environment-variables) as STRIPE_SECRET_KEY and NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, then redeploy.',
       'One account pays one business. If a client needs card payments into their own account, that is Stripe Connect and a separate piece of work.',
     ],
   },
@@ -93,7 +95,7 @@ export const SETUP_ITEMS: SetupItem[] = [
     blocks: 'You do not appear in map results, and the profile can be edited by anybody until it is claimed.',
     steps: [
       'Decide first whether to publish an address. If customers do not come to you, choose that you deliver to them and Google hides it.',
-      'business.google.com, then claim or create.',
+      'Open [Google Business Profile](https://business.google.com/), then claim or create.',
       'Verification is a postcard, about a week. Start it and do the rest while it is in the mail.',
       'The full checklist and the generated address block are in Digital, under Search.',
     ],
@@ -114,7 +116,7 @@ export const SETUP_ITEMS: SetupItem[] = [
     title: 'Send email from your own domain',
     blocks: 'Estimates and invoices arrive from a shared address, which lands in spam more often and reads as somebody else’s software.',
     steps: [
-      'resend.com, Domains, add your domain.',
+      'Open [Resend domains](https://resend.com/domains) and add your domain.',
       'Add the DNS records it gives you. SPF, DKIM and DMARC all three, because two out of three still gets filtered.',
       'Set MAIL_FROM in Vercel to the address you want on the envelope.',
     ],
@@ -124,7 +126,7 @@ export const SETUP_ITEMS: SetupItem[] = [
     title: 'Change the GitHub default branch to main',
     blocks: 'A stale master branch cannot be deleted while it is the default. Nothing breaks; it is untidiness with a sharp edge.',
     steps: [
-      'github.com, the repo, Settings, Branches.',
+      'Open [the repo branch settings](https://github.com/mikexcalo/calo-co-portal/settings/branches).',
       'Change the default from master to main.',
       'Then master can be deleted and there is one branch again.',
     ],
