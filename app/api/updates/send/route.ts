@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anon) return NextResponse.json({ error: 'Not configured.' }, { status: 500 });
 
-  let body: { customerId?: string; send?: boolean; subject?: string; text?: string };
+  let body: { customerId?: string; send?: boolean; subject?: string; text?: string; to?: string };
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'Invalid request' }, { status: 400 }); }
   if (!body.customerId) return NextResponse.json({ error: 'Pick a client.' }, { status: 400 });
 
@@ -100,26 +100,89 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
   if (!customer) return NextResponse.json({ error: 'Client not found.' }, { status: 404 });
 
+  /**
+   * Who it could go to, as people.
+   *
+   * An update is written to a person, not to a company. The company record has
+   * an email on it because somebody had to type one somewhere, but the name
+   * next to it is the one who reads it, and the two were never shown together.
+   */
+  const { data: contactRows } = await supabase
+    .from('customer_contacts')
+    .select('name, title, email, is_primary')
+    .eq('customer_id', customer.id)
+    .not('email', 'is', null)
+    .order('is_primary', { ascending: false })
+    .order('name');
+
+  const people: Array<{ name: string; title: string | null; email: string }> = [];
+  (contactRows ?? []).forEach((c) => {
+    if (c.email) people.push({ name: c.name, title: c.title ?? null, email: c.email });
+  });
+  // The address on the company record, only if no person already claims it.
+  if (customer.email && !people.some((p) => p.email.toLowerCase() === customer.email!.toLowerCase())) {
+    people.push({
+      name: customer.contact_name ?? customer.name,
+      title: customer.contact_name ? null : 'on the company record',
+      email: customer.email,
+    });
+  }
+
+  const from = process.env.MAIL_FROM || 'CALO&CO <onboarding@resend.dev>';
+
   // ---- sending an already-reviewed draft -----------------------------------
   if (body.send) {
-    if (!customer.email) return NextResponse.json({ error: 'No email on file for them.' }, { status: 400 });
+    /**
+     * The address has to be one already on file against this client.
+     *
+     * The recipient arrives from the browser so it can be picked, and a field
+     * that both arrives from the browser and gets mailed is a way to send mail
+     * from your domain to anybody at all. It gets checked against the people
+     * on the record instead of trusted.
+     */
+    const to = (body.to ?? '').trim().toLowerCase();
+    const target = people.find((p) => p.email.toLowerCase() === to);
+    if (!target) {
+      return NextResponse.json(
+        { error: people.length ? 'Pick somebody on this client to send to.' : 'Nobody on this client has an email on file.' },
+        { status: 400 }
+      );
+    }
+
     const resendKey = process.env.RESEND_API_KEY;
+    if (!resendKey) {
+      return NextResponse.json({ error: 'Email is not connected, so nothing would actually go out.' }, { status: 500 });
+    }
+
     const { data: org } = await supabase.from('orgs').select('name').eq('id', customer.org_id).maybeSingle();
 
-    if (resendKey) {
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: process.env.MAIL_FROM || 'CALO&CO <onboarding@resend.dev>',
-          to: customer.email,
-          subject: body.subject ?? `Update on ${customer.name}`,
-          html: `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.7;color:#111;max-width:520px;">${
-            (body.text ?? '').split('\n\n').map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('')
-          }<p style="color:#666;font-size:13px;">${org?.name ?? ''}</p></div>`,
-        }),
-      });
-      if (!res.ok) return NextResponse.json({ error: 'Could not send that.' }, { status: 502 });
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from,
+        to: target.email,
+        subject: body.subject ?? `Update on ${customer.name}`,
+        html: `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.7;color:#111;max-width:520px;">${
+          (body.text ?? '').split('\n\n').map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('')
+        }<p style="color:#666;font-size:13px;">${org?.name ?? ''}</p></div>`,
+      }),
+    });
+
+    /**
+     * The reason comes back, not just the failure.
+     *
+     * "Could not send that" covers a wrong key, an unverified domain and a
+     * bounced address identically, and the fix for each is different. The one
+     * that will actually happen first: the fallback from address is Resend's
+     * shared test domain, which only delivers to the account owner.
+     */
+    if (!res.ok) {
+      const detail = await res.json().catch(() => null) as { message?: string } | null;
+      return NextResponse.json(
+        { error: detail?.message ?? `The mail service refused it (${res.status}).` },
+        { status: 502 }
+      );
     }
 
     /**
@@ -134,11 +197,11 @@ export async function POST(req: NextRequest) {
       customer_id: customer.id,
       kind: 'email',
       direction: 'out',
-      body: `Sent an update: ${body.subject}\n\n${body.text}`,
+      body: `Emailed ${target.name} at ${target.email}: ${body.subject}\n\n${body.text}`,
       happened_on: new Date().toISOString().slice(0, 10),
     });
 
-    return NextResponse.json({ sent: true, emailed: Boolean(resendKey) });
+    return NextResponse.json({ sent: true, to: target.email, name: target.name });
   }
 
   // ---- drafting ------------------------------------------------------------
@@ -154,6 +217,27 @@ export async function POST(req: NextRequest) {
     supabase.from('job_invoices').select('number, total, amount_paid, issued_on, job:jobs!inner(customer_id)')
       .eq('job.customer_id', customer.id).limit(5),
   ]);
+
+  /**
+   * Nothing recorded means nothing to write, and it has to say so here.
+   *
+   * Handed an empty brief and no history the model does the reasonable thing
+   * and writes back asking for the project details, which arrives looking
+   * exactly like a finished draft with a send button under it. Subject line:
+   * "Unable to draft email - no project details provided". One wrong click
+   * from going to a client.
+   */
+  const brief = (customer.brief ?? {}) as Record<string, unknown>;
+  const briefWritten = Object.values(brief).some((v) => typeof v === 'string' && v.trim().length > 20);
+  if (!briefWritten && !notes?.length && !tasks?.length && !invoices?.length) {
+    return NextResponse.json(
+      {
+        error:
+          `There is nothing recorded against ${customer.name} to write from. Fill in the brief, or drop a note about the last conversation, and it will have something to say.`,
+      },
+      { status: 400 }
+    );
+  }
 
   const material = [
     `Where things stand, from our own brief:\n${JSON.stringify(customer.brief ?? {}, null, 2)}`,
@@ -188,7 +272,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       ...draft,
-      to: customer.email,
+      people,
+      from,
+      // The shared test domain only delivers to the Resend account owner, so
+      // the screen has to say that before the send rather than after it.
+      testDomain: !process.env.MAIL_FROM,
       costCents: Math.round(costCents * 100) / 100,
     });
   } catch (e) {
