@@ -33,6 +33,7 @@ import {
   money0,
   radius,
   shortDate,
+  CLIENT_TABS,
 } from '@/components/spine/ui';
 
 interface Summary {
@@ -192,6 +193,7 @@ export default function CustomersPage() {
 
   return (
     <Page
+      tabs={CLIENT_TABS}
       title={vocab.customerPlural}
       subtitle={`Everyone you work with, sorted by who needs you first. Totals come straight from their ${vocab.jobPlural.toLowerCase()}.`}
       action={

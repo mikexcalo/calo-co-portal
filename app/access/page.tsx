@@ -33,7 +33,7 @@ import {
   type ModuleId,
   type ModuleState,
 } from '@/lib/spine/modules';
-import { C, Card, Empty, Page, SectionLabel } from '@/components/spine/ui';
+import { CLIENT_TABS, C, Card, Empty, Page, SectionLabel } from '@/components/spine/ui';
 
 interface Row {
   id: string;
@@ -110,9 +110,9 @@ export default function AccessPage() {
 
   return (
     <Page
+      tabs={CLIENT_TABS}
       title="Access"
       subtitle="Who is on what. Click a cell to move it along."
-      back={{ label: 'Clients', href: '/customers' }}
     >
       {!loaded ? (
         <Empty>Loading…</Empty>

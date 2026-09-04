@@ -85,6 +85,8 @@ interface Brand {
   name: string;
   site_url: string | null;
   status: string;
+  /** Which folder in storage holds this brand's files. Was hardcoded. */
+  asset_prefix: string | null;
   kit: {
     colors?: Color[];
     fonts?: Font[];
@@ -137,7 +139,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
   const load = useCallback(async () => {
     const res = await supabase
       .from('brands')
-      .select('id, name, site_url, status, kit, open_items, customer:customers(id, name)')
+      .select('id, name, site_url, status, kit, open_items, asset_prefix, customer:customers(id, name)')
       .eq('id', params.id)
       .maybeSingle();
     if (res.data) {
@@ -177,7 +179,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
     let cancelled = false;
     supabase.storage
       .from('client-assets')
-      .createSignedUrls(paths.map((p) => `colette/${p}`), 3600)
+      .createSignedUrls(paths.map((p) => `${brand?.asset_prefix ?? 'colette'}/${p}`), 3600)
       .then(({ data }) => {
         if (cancelled || !data) return;
         const map: Record<string, string> = {};
