@@ -29,18 +29,21 @@ export interface SetupItem {
 export const SETUP_ITEMS: SetupItem[] = [
   {
     key: 'old_wix_site',
-    title: 'Redirect mikecalo.co to calo.company',
+    title: 'Keep mikecalo.co, then redirect it to calo.company',
     blocks:
-      'Searching your name puts mikecalo.co above calo.company. Two sites about the same person compete, and the Wix one wins on age and inbound links, so the new site cannot get past it while both are live. You own the domain, so this is winnable rather than a waiting game.',
+      'The domain registration expires 27 September with auto renew off. Wix says plainly that after that the site goes down and the domain enters redemption at a hundred dollars to recover, and if it drops entirely somebody else can register your own name. Everything else here needs the domain alive, because you cannot redirect one you do not own.\n\nAfter that: searching your name puts mikecalo.co above calo.company, and the Wix site wins on age and inbound links, so the new site cannot get past it while both are live.',
     steps: [
-      'Verify calo.company in Search Console first. It keeps no history from before verification, and having the before is the only way to know this worked.',
-      'In Wix: Settings, then Domains. Disconnect mikecalo.co from the Wix site. Do not delete the domain and do not unpublish yet.',
-      'At the registrar holding mikecalo.co, point it at Vercel. In the portal project: Settings, Domains, add mikecalo.co, and use the DNS records it prints.',
+      'Extend the domain registration in Wix today. Settings, Domains, then Extend Registration in the yellow box. A .co is roughly twenty five to forty dollars a year and it is your own name.',
+      'Do not confuse the two warnings. The domain registration expires 27 September and you must keep it. The Premium plan expires 28 September and you should let it lapse, but only after the redirect works. Wix keeps serving DNS for domains registered with them without a Premium plan.',
+      'Verify calo.company in Search Console. It keeps no history from before verification, and having the before is the only way to know this worked.',
+      'In Vercel, open the portal project, Settings, Domains, and add mikecalo.co. It prints the exact A record and CNAME to use.',
+      'Back in Wix: Settings, Domains, the three dots next to mikecalo.co, then the DNS or Advanced settings. Put Vercel\u2019s records in there. Do not disconnect the domain first, because disconnecting can take away the panel you need.',
+      'Wait for DNS to take. Usually minutes, occasionally a few hours.',
       'Add a permanent redirect from mikecalo.co to calo.company. Permanent, not temporary: a 302 tells Google to keep the old URL indexed, which is the opposite of the point.',
       'Check it with curl -I http://mikecalo.co and confirm a 301 and a location of calo.company. Do this before touching Wix again.',
-      'Only once the redirect answers: unpublish the Wix site. Unpublishing first strands the domain and both results drop off Google for a while.',
+      'Only once the redirect answers: unpublish the Wix site, and let Premium lapse. Unpublishing first strands the domain and both results drop off Google for a while.',
       'Add a Person block to calo.company with sameAs pointing at your LinkedIn. LinkedIn currently outranks both sites, so it is the strongest signal you control.',
-      'Expect a few weeks. Google has to recrawl mikecalo.co to see the redirect before the ranking moves across.',
+      'Expect a few weeks. Google has to recrawl mikecalo.co to see the redirect before the ranking moves across, which is another reason the domain has to stay alive.',
     ],
   },
   {
