@@ -143,8 +143,35 @@ export default function TopBar() {
         you were already looking at. The search is the way into everything and
         now sits where your eye lands first.
       */}
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 8 }}>
         <CommandBar />
+
+        {/*
+          Beside the search, not opposite it.
+
+          Search and this are the two things you reach for without deciding to,
+          so they sit together at the left where the eye lands. It was on the
+          right in primary blue, which made the loudest element on every screen
+          a thing used a few times a day; and before that it was six clicks
+          deep on one tab of one client, which meant it did not happen at all.
+        */}
+        <button
+          onClick={() => setDropping(true)}
+          title="Drop a note — talk or paste  (⌘J)"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
+            background: 'transparent', border: `1px solid ${C.border}`,
+            borderRadius: 7, padding: '6px 11px', fontSize: 13.5, fontWeight: 500,
+            color: C.dim, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+          }}
+        >
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M8 2.2v7.4" />
+            <path d="m5.2 6.9 2.8 2.8 2.8-2.8" />
+            <path d="M2.6 11.6v1.2a1 1 0 0 0 1 1h8.8a1 1 0 0 0 1-1v-1.2" />
+          </svg>
+          Drop a note
+        </button>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
