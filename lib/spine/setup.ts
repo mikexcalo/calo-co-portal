@@ -29,21 +29,18 @@ export interface SetupItem {
 export const SETUP_ITEMS: SetupItem[] = [
   {
     key: 'old_wix_site',
-    title: 'Keep mikecalo.co, then redirect it to calo.company',
+    title: 'Retire mikecalo.co and win your own name on calo.company',
     blocks:
-      'The domain registration expires 27 September with auto renew off. Wix says plainly that after that the site goes down and the domain enters redemption at a hundred dollars to recover, and if it drops entirely somebody else can register your own name. Everything else here needs the domain alive, because you cannot redirect one you do not own.\n\nAfter that: searching your name puts mikecalo.co above calo.company, and the Wix site wins on age and inbound links, so the new site cannot get past it while both are live.',
+      'Searching your name puts mikecalo.co above calo.company. You have chosen to let the domain lapse on 27 September rather than redirect it, which means the old result goes away on its own but hands nothing to the new site. Everything after that is making calo.company rank for Mike Calo from its own strength.\n\nOne consequence worth knowing rather than discovering: once it lapses, anybody can register mikecalo.co, and the name is yours.',
     steps: [
-      'Extend the domain registration in Wix today. Settings, Domains, then Extend Registration in the yellow box. A .co is roughly twenty five to forty dollars a year and it is your own name.',
-      'Do not confuse the two warnings. The domain registration expires 27 September and you must keep it. The Premium plan expires 28 September and you should let it lapse, but only after the redirect works. Wix keeps serving DNS for domains registered with them without a Premium plan.',
-      'Verify calo.company in Search Console. It keeps no history from before verification, and having the before is the only way to know this worked.',
-      'In Vercel, open the portal project, Settings, Domains, and add mikecalo.co. It prints the exact A record and CNAME to use.',
-      'Back in Wix: Settings, Domains, the three dots next to mikecalo.co, then the DNS or Advanced settings. Put Vercel\u2019s records in there. Do not disconnect the domain first, because disconnecting can take away the panel you need.',
-      'Wait for DNS to take. Usually minutes, occasionally a few hours.',
-      'Add a permanent redirect from mikecalo.co to calo.company. Permanent, not temporary: a 302 tells Google to keep the old URL indexed, which is the opposite of the point.',
-      'Check it with curl -I http://mikecalo.co and confirm a 301 and a location of calo.company. Do this before touching Wix again.',
-      'Only once the redirect answers: unpublish the Wix site, and let Premium lapse. Unpublishing first strands the domain and both results drop off Google for a while.',
-      'Add a Person block to calo.company with sameAs pointing at your LinkedIn. LinkedIn currently outranks both sites, so it is the strongest signal you control.',
-      'Expect a few weeks. Google has to recrawl mikecalo.co to see the redirect before the ranking moves across, which is another reason the domain has to stay alive.',
+      'Nothing to renew. Auto renew is already off on both the domain and the Premium plan, so doing nothing is the whole action.',
+      'While you still own it, verify mikecalo.co in Search Console and use the Removals tool on it. That takes the old result out of Google in about a day instead of the weeks it takes Google to notice a dead domain. This only works while the domain is still yours.',
+      'Unpublish the Wix site now rather than waiting for the plan to expire. A site that returns nothing drops out faster than one that keeps answering.',
+      'Verify calo.company in Search Console if you have not. Everything below is measured there, and it keeps no history from before the day you verify.',
+      'Put your name in the title of the calo.company home page. Not CALO&CO alone: the query is Mike Calo, and the page has to contain the thing being searched for.',
+      'Give yourself a page. An about or founder page that is genuinely about Mike Calo, with the work history, is what ranks for a person. A company home page rarely does.',
+      'Add a Person block to calo.company with sameAs pointing at your LinkedIn, and link calo.company from your LinkedIn profile. LinkedIn already outranks both sites for your name, so it is the strongest signal you control, and it is now the only inherited authority you have.',
+      'Expect this to be slower than a redirect would have been. You are building name authority from nothing rather than moving it across, so think months and keep the Search Console position graph as the measure.',
     ],
   },
   {
