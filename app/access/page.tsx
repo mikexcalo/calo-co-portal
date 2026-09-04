@@ -77,21 +77,35 @@ export default function AccessPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [pick, setPick] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    /**
+     * The plan lives on customers, not on the summary view.
+     *
+     * Asking the view for a column it does not have fails the whole select,
+     * and an empty result is indistinguishable from having no clients, so the
+     * screen read "No clients yet" to somebody with three. Hence the error
+     * below: a query that breaks now says it broke.
+     */
     const [sum, full] = await Promise.all([
-      supabase.from('customer_summary').select('customer_id, name, plan, logo_path').order('name'),
-      supabase.from('customers').select('id, modules, workspace_id'),
+      supabase.from('customer_summary').select('customer_id, name, logo_path').order('name'),
+      supabase.from('customers').select('id, plan, modules, workspace_id'),
     ]);
+    if (sum.error || full.error) {
+      setError((sum.error ?? full.error)?.message ?? 'Could not read your clients.');
+      setLoaded(true);
+      return;
+    }
     const mods = new Map(
-      ((full.data ?? []) as Array<{ id: string; modules: Record<string, unknown> | null; workspace_id: string | null }>)
+      ((full.data ?? []) as Array<{ id: string; plan: string | null; modules: Record<string, unknown> | null; workspace_id: string | null }>)
         .map((c) => [c.id, c])
     );
-    const merged: Row[] = ((sum.data ?? []) as Array<{ customer_id: string; name: string; plan: string | null; logo_path: string | null }>)
+    const merged: Row[] = ((sum.data ?? []) as Array<{ customer_id: string; name: string; logo_path: string | null }>)
       .map((b) => ({
         id: b.customer_id,
         name: b.name,
-        plan: b.plan,
+        plan: mods.get(b.customer_id)?.plan ?? null,
         logo: b.logo_path,
         modules: mods.get(b.customer_id)?.modules ?? {},
         workspace_id: mods.get(b.customer_id)?.workspace_id ?? null,
@@ -131,6 +145,12 @@ export default function AccessPage() {
     <Page title="Access" subtitle="What each client can open." tabs={CLIENT_TABS}>
       {!loaded ? (
         <Empty>Loading…</Empty>
+      ) : error ? (
+        <Card>
+          <div style={{ fontSize: 13.5, color: C.red, lineHeight: 1.6 }}>
+            Could not read your clients, so this is not an empty account. {error}
+          </div>
+        </Card>
       ) : rows.length === 0 ? (
         <Card><Empty>No clients yet.</Empty></Card>
       ) : (
