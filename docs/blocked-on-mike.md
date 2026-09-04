@@ -21,7 +21,11 @@ one; asking a contractor to install an authenticator before he has seen the
 product is a good way to lose him.
 
 ### 0. Verify calo.company for email — 2026-08-27
-Blocks: Mark's invite arriving and not looking like phishing.
+Blocks: Mark's invite arriving and not looking like phishing. Also blocks every
+client update email, which is the bigger one now — raised again 2026-09-04 when
+you asked whether the Colette update actually sends. It builds and drafts, and
+the send stops at Resend because the fallback address only reaches your own
+inbox. The screen now says so before you click rather than after.
 
 DNS for calo.company is on **Vercel**, with no MX or SPF records today, so
 nothing conflicts.
