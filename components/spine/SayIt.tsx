@@ -87,7 +87,21 @@ export function SayIt({
       });
       const json = await res.json();
       if (!res.ok) { setError(json.error ?? 'Could not read that.'); return; }
-      setRead(json as Read);
+      /**
+       * The reading is nested, and both panels read the top level.
+       *
+       * The route answers { extracted, model, costCents }. Reading json
+       * directly made every field undefined, so the review screen rendered
+       * blank and the filed note literally began with the word "undefined"
+       * twice. Tolerant of both shapes so a future change to either side
+       * cannot silently do this again.
+       */
+      const read = (json.extracted ?? json) as Read;
+      if (!read?.summary && !read?.title) {
+        setError('The reader came back with nothing usable. The note is still yours to paste in.');
+        return;
+      }
+      setRead(read);
     } catch {
       setError('Could not reach the reader. The note is still yours to paste in by hand.');
     } finally {
