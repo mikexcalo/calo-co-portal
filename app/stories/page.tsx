@@ -105,7 +105,9 @@ export default function StoriesPage() {
   const [sourceDefault, setSourceDefault] = useState('');
   const [error, setError] = useState<string | null>(null);
   /** Clients with enough on file to write about. */
-  const [clients, setClients] = useState<Array<{ id: string; name: string }>>([]);
+  const [clients, setClients] = useState<
+    Array<{ id: string; name: string; ready: boolean; why: string }>
+  >([]);
   const [drafting, setDrafting] = useState(false);
   const [proposed, setProposed] = useState<Draft | null>(null);
 
@@ -122,8 +124,49 @@ export default function StoriesPage() {
       }
       setClaims(byCase);
     }
-    const list = await supabase.from('customers').select('id, name').order('name');
-    if (list.data) setClients(list.data as Array<{ id: string; name: string }>);
+    /**
+     * A case study needs work that happened, not a client that exists.
+     *
+     * Every client was offered, including one we have never delivered anything
+     * for, so the button promised something it could not do and spent a model
+     * call proving it. Readiness is checked here from the same material the
+     * writer reads: a finished engagement, or proof of a result on file.
+     */
+    const [list, jobsRes, proofRes] = await Promise.all([
+      supabase.from('customers').select('id, name').order('name'),
+      supabase.from('jobs').select('customer_id, status'),
+      supabase.from('brand_proof').select('brand_id, status, brands!inner(customer_id)'),
+    ]);
+
+    const finished = new Set(
+      ((jobsRes.data ?? []) as Array<{ customer_id: string | null; status: string }>)
+        .filter((j) => j.status === 'complete' && j.customer_id)
+        .map((j) => j.customer_id as string)
+    );
+    const hasProof = new Set(
+      ((proofRes.data ?? []) as unknown as Array<{ brands: Array<{ customer_id: string | null }> | { customer_id: string | null } | null }>)
+        .flatMap((p) => (Array.isArray(p.brands) ? p.brands : p.brands ? [p.brands] : []))
+        .map((b) => b.customer_id)
+        .filter(Boolean) as string[]
+    );
+
+    if (list.data) {
+      setClients(
+        (list.data as Array<{ id: string; name: string }>).map((c) => {
+          const done = finished.has(c.id);
+          const proof = hasProof.has(c.id);
+          return {
+            ...c,
+            ready: done || proof,
+            why: done
+              ? ''
+              : proof
+                ? ''
+                : 'nothing delivered yet',
+          };
+        })
+      );
+    }
 
     setLoading(false);
   }, []);
@@ -159,11 +202,22 @@ export default function StoriesPage() {
        * over" costs an evening to diagnose.
        */
       if (!res.ok || !data.situation) {
+        /**
+         * The refusal is the answer, so print it.
+         *
+         * The writer is told to leave the prose empty and put the gap in
+         * `missing` rather than invent a result, which is the right behaviour
+         * and the whole reason this is trustworthy. The page then discarded
+         * that field and said "the draft came back empty", which reads as a
+         * bug when it is the tool working exactly as designed.
+         */
         setError(
           data.error ??
-            (parsed
-              ? 'The draft came back empty. Nothing was saved.'
-              : `The server returned ${res.status} and not JSON: ${text.slice(0, 200)}`)
+            (data.missing?.length
+              ? `Not enough recorded to write from. It needs: ${data.missing.join('; ')}`
+              : parsed
+                ? 'The draft came back empty and said nothing about why.'
+                : `The server returned ${res.status} and not JSON: ${text.slice(0, 200)}`)
         );
       }
       else setProposed(data);
@@ -312,11 +366,26 @@ export default function StoriesPage() {
             and the engagement, and it will refuse if there is not enough to work from.
           </div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {clients.map((cl) => (
-              <Button key={cl.id} variant="ghost" onClick={() => draftFrom(cl.id)} disabled={drafting}>
-                {drafting ? 'Writing…' : cl.name}
-              </Button>
-            ))}
+            {clients.map((cl) =>
+              cl.ready ? (
+                <Button key={cl.id} variant="ghost" onClick={() => draftFrom(cl.id)} disabled={drafting}>
+                  {drafting ? 'Writing…' : cl.name}
+                </Button>
+              ) : (
+                /* Named, not hidden. Knowing a client is not ready is useful;
+                   silently dropping them looks like they are missing. */
+                <span
+                  key={cl.id}
+                  title="A case study needs a finished engagement or a recorded result"
+                  style={{
+                    fontSize: 13, color: C.faint, padding: '7px 12px',
+                    border: `1px dashed ${C.border}`, borderRadius: 7,
+                  }}
+                >
+                  {cl.name} · {cl.why}
+                </span>
+              )
+            )}
           </div>
           {error && <div style={{ fontSize: 13, color: C.red, marginTop: 10 }}>{error}</div>}
         </Card>
