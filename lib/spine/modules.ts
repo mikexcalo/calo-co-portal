@@ -469,6 +469,7 @@ export function navFor(
       defaultOpen: false,
       items: [
         { id: 'seo', label: 'Digital', href: '/digital', icon: 'globe' },
+        { id: 'brands', label: 'Brand', href: '/framework', icon: 'brandKit' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
   ];

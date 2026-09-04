@@ -25,6 +25,7 @@ import { Brief } from '@/components/spine/Brief';
 import { ClientUpdate } from '@/components/spine/ClientUpdate';
 import { TheirSite } from '@/components/spine/TheirSite';
 import { Waiting } from '@/components/spine/Waiting';
+import { ClientBrandFiles } from '@/components/spine/ClientBrandFiles';
 import { SayIt } from '@/components/spine/SayIt';
 import { Plan } from '@/components/spine/Plan';
 import { ClientWork } from '@/components/spine/ClientWork';
@@ -146,10 +147,10 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
    * navigation, and should not cost a page load. The query string is only read
    * once, to honor where somebody was sent.
    */
-  const [view, setView] = useState<'now' | 'work' | 'given' | 'history'>(
+  const [view, setView] = useState<'now' | 'work' | 'given' | 'history' | 'brand'>(
     (typeof window !== 'undefined' &&
       (new URLSearchParams(window.location.search).get('tab') as
-        | 'now' | 'work' | 'given' | 'history')) || 'now'
+        | 'now' | 'work' | 'given' | 'history' | 'brand')) || 'now'
   );
   /**
    * Counts on the tabs, from the one view that already has them.
@@ -374,7 +375,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
            * wrong shape for it.
            */
           gridTemplateColumns:
-            phone || view === 'given'
+            phone || view === 'given' || view === 'brand'
               ? '1fr'
               : 'minmax(0, 1.25fr) minmax(340px, 1fr)',
           gap: 22,
@@ -500,6 +501,9 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               ['now', 'Brief', 'brief'],
               ['work', 'Work', 'work'],
               ['given', 'Documents', 'documents'],
+              // A client's brand belongs to that client. The module in the
+              // sidebar is your own; this is theirs.
+              ['brand', 'Brand', 'swatches'],
               ['history', 'Activity', 'activity'],
             ] as const).map(([id, label, icon]) => {
               const on = view === id;
@@ -572,6 +576,13 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             <>
               <Discovery customerId={params.id} />
               <ClientDocs customerId={params.id} />
+            </>
+          )}
+
+          {view === 'brand' && (
+            <>
+              <BrandCard customerId={params.id} />
+              <ClientBrandFiles customerId={params.id} />
             </>
           )}
 
@@ -738,7 +749,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           </>)}
         </div>
 
-        <div style={{ display: view === 'given' ? 'none' : undefined }}>
+        <div style={{ display: view === 'given' || view === 'brand' ? 'none' : undefined }}>
           {/*
             The business, then whoever you talk to there.
             
@@ -870,7 +881,6 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             )}
           </div>
 
-          <BrandCard customerId={params.id} />
 
           {orgId && <Links orgId={orgId} customerId={params.id} />}
 

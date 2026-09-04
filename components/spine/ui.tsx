@@ -205,10 +205,6 @@ export const SETUP_TABS: readonly PageTab[] = [
 export const CLIENT_TABS: readonly PageTab[] = [
   { label: 'Clients', href: '/customers', icon: 'business' },
   { label: 'Access', href: '/access', icon: 'layers' },
-  // Brand was a row under Grow, which put "the ten module framework for your
-  // clients" beside search and analytics. Every brand belongs to a client and
-  // the framework screen is a list of clients, so it lives here.
-  { label: 'Brand', href: '/framework', icon: 'layers' },
 ];
 
 export const DIGITAL_TABS: readonly PageTab[] = [
