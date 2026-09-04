@@ -23,6 +23,8 @@ type Status = 'todo' | 'doing' | 'done' | 'skipped';
 export function YourSetup() {
   const { org } = useOrg();
   const [state, setState] = useState<Record<string, Status>>({});
+  /** Which steps are ticked, per item. */
+  const [ticks, setTicks] = useState<Record<string, number[]>>({});
   const [open, setOpen] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   /**
@@ -41,9 +43,14 @@ export function YourSetup() {
   const [showAll, setShowAll] = useState(true);
 
   const load = useCallback(async () => {
-    const res = await supabase.from('setup_items').select('key, status');
+    const res = await supabase.from('setup_items').select('key, status, steps_done');
     if (!res.error) {
       setState(Object.fromEntries((res.data ?? []).map((r) => [r.key, r.status as Status])));
+      setTicks(
+        Object.fromEntries(
+          (res.data ?? []).map((r) => [r.key, ((r as { steps_done?: number[] }).steps_done ?? [])])
+        )
+      );
     }
     setLoaded(true);
   }, []);
@@ -54,6 +61,28 @@ export function YourSetup() {
     if (!org) return;
     setState((s) => ({ ...s, [key]: status }));
     await supabase.from('setup_items').upsert({ org_id: org.id, key, status }, { onConflict: 'org_id,key' });
+  };
+
+  /**
+   * Ticking a step, and noticing when that was the last one.
+   *
+   * The whole item is marked done automatically when every step is ticked,
+   * because asking somebody to tick nine boxes and then press Done as well is
+   * asking them to say the same thing twice.
+   */
+  const tick = async (key: string, index: number, total: number) => {
+    if (!org) return;
+    const now = ticks[key] ?? [];
+    const next = now.includes(index) ? now.filter((n) => n !== index) : [...now, index];
+    setTicks((t) => ({ ...t, [key]: next }));
+
+    const finished = next.length === total;
+    if (finished) setState((st) => ({ ...st, [key]: 'done' }));
+
+    await supabase.from('setup_items').upsert(
+      { org_id: org.id, key, steps_done: next, status: finished ? 'done' : 'todo' },
+      { onConflict: 'org_id,key' }
+    );
   };
 
   if (!loaded || !org) return null;
@@ -104,6 +133,11 @@ export function YourSetup() {
               >
                 <span style={{ fontSize: 14.5, color: C.text, flex: 1, minWidth: 200 }}>{i.title}</span>
                 {i.cost && <span style={{ fontSize: 12.5, color: C.faint }}>{i.cost}</span>}
+                {(ticks[i.key]?.length ?? 0) > 0 && (
+                  <span style={{ fontSize: 12, color: C.amber }}>
+                    {ticks[i.key].length} of {i.steps.length}
+                  </span>
+                )}
                 <span style={{ fontSize: 12, color: C.blue }}>{isOpen ? 'Hide' : 'How'}</span>
               </div>
 
@@ -115,9 +149,39 @@ export function YourSetup() {
 
               {isOpen && (
                 <div style={{ marginTop: 12 }}>
-                  <ol style={{ margin: 0, paddingLeft: 18, fontSize: 13.5, color: C.dim, lineHeight: 1.75 }}>
-                    {i.steps.map((s, n) => <li key={n}>{s}</li>)}
-                  </ol>
+                  {/* One line, one tick. Reading nine steps to work out where
+                      you were is why a task like this gets abandoned halfway. */}
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {i.steps.map((s, n) => {
+                      const on = (ticks[i.key] ?? []).includes(n);
+                      return (
+                        <label
+                          key={n}
+                          style={{
+                            display: 'flex', gap: 10, alignItems: 'flex-start',
+                            padding: '7px 0', cursor: 'pointer',
+                            borderTop: n === 0 ? 'none' : `1px solid ${C.border}`,
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={on}
+                            onChange={() => tick(i.key, n, i.steps.length)}
+                            style={{ marginTop: 3, flexShrink: 0, cursor: 'pointer' }}
+                          />
+                          <span
+                            style={{
+                              fontSize: 13.5, lineHeight: 1.6,
+                              color: on ? C.faint : C.dim,
+                              textDecoration: on ? 'line-through' : undefined,
+                            }}
+                          >
+                            {s}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
                   <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
                     <Button onClick={() => set(i.key, 'done')}>Done</Button>
                     <Button variant="ghost" onClick={() => set(i.key, 'skipped')}>Not doing this</Button>
