@@ -78,7 +78,7 @@ const EXTRACTION_SCHEMA = {
       description: 'Why review is needed. Null when needs_review is false.',
     },
   },
-  required: ['kind', 'vendor', 'purchased_on', 'amount', 'summary', 'needs_review'],
+  required: ['kind', 'vendor', 'purchased_on', 'amount', 'tax', 'category', 'line_items', 'summary', 'needs_review', 'review_reason'],
   additionalProperties: false,
 };
 

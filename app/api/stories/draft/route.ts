@@ -98,7 +98,7 @@ const SCHEMA = {
       items: { type: 'string' as const },
     },
   },
-  required: ['title', 'summary', 'roles', 'situation', 'approach', 'execution', 'enablement', 'outcome', 'claims', 'missing'],
+  required: ['title', 'summary', 'sector', 'roles', 'situation', 'approach', 'execution', 'enablement', 'outcome', 'claims', 'missing'],
 };
 
 const SYSTEM = `You write case studies from an agency's own records of a piece of work.
@@ -118,6 +118,20 @@ The approach is one structural move, not a list of things you did. "Reorganized 
 No em-dashes. American spelling. No marketing register: this is read by somebody deciding whether to hire, and the writing that wins there sounds like a person who did the work.`;
 
 export async function POST(req: NextRequest) {
+  try {
+    return await draft(req);
+  } catch (e) {
+    // A message, always, and JSON always. Silence here is what made this
+    // impossible to diagnose from the screen.
+    console.error('[stories/draft]', e);
+    return NextResponse.json(
+      { error: `Could not draft that: ${(e as Error).message || 'unknown failure'}` },
+      { status: 500 }
+    );
+  }
+}
+
+async function draft(req: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anon) return NextResponse.json({ error: 'Not configured.' }, { status: 500 });

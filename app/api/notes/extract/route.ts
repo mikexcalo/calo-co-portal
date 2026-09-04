@@ -59,7 +59,7 @@ const SCHEMA = {
           email: { type: ['string', 'null'] as const },
           phone: { type: ['string', 'null'] as const },
         },
-        required: ['name'],
+        required: ['name', 'role', 'email', 'phone'],
       },
     },
     tasks: {
@@ -76,7 +76,7 @@ const SCHEMA = {
             description: 'ISO date, only if a specific date was stated or is unambiguous.',
           },
         },
-        required: ['what'],
+        required: ['what', 'who', 'due'],
       },
     },
     amounts: {
@@ -145,7 +145,7 @@ const SCHEMA = {
       items: { type: 'string' as const },
     },
   },
-  required: ['title', 'summary', 'people', 'tasks', 'amounts', 'brief_updates', 'uncertain'],
+  required: ['title', 'summary', 'people', 'tasks', 'amounts', 'happened_on', 'brief_updates', 'waiting_on', 'uncertain'],
 };
 
 const SYSTEM = `You pull the useful facts out of meeting notes, call transcripts and scribbled notes for a small business.

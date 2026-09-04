@@ -148,8 +148,24 @@ export default function StoriesPage() {
       });
       const text = await res.text();
       let data: Draft & { error?: string } = {} as Draft;
-      try { data = text ? JSON.parse(text) : ({} as Draft); } catch { /* handled below */ }
-      if (!res.ok || !data.situation) setError(data.error ?? 'Could not draft that.');
+      let parsed = true;
+      try { data = text ? JSON.parse(text) : ({} as Draft); } catch { parsed = false; }
+      /**
+       * Say what actually came back.
+       *
+       * This showed "Could not draft that." for any failure, including ones
+       * where the server sent an HTML error page rather than JSON. A message
+       * that cannot distinguish "nothing to write from" from "the server fell
+       * over" costs an evening to diagnose.
+       */
+      if (!res.ok || !data.situation) {
+        setError(
+          data.error ??
+            (parsed
+              ? 'The draft came back empty. Nothing was saved.'
+              : `The server returned ${res.status} and not JSON: ${text.slice(0, 200)}`)
+        );
+      }
       else setProposed(data);
     } catch (e) {
       setError((e as Error).message);

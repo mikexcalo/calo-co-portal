@@ -49,7 +49,7 @@ const SCHEMA = {
             enum: ['labor', 'material', 'subcontractor', 'other'],
           },
         },
-        required: ['name', 'unit_price', 'kind'],
+        required: ['name', 'description', 'unit', 'unit_price', 'kind', 'category'],
         additionalProperties: false,
       },
     },
@@ -58,7 +58,7 @@ const SCHEMA = {
       description: 'Anything ambiguous a human should check.',
     },
   },
-  required: ['items'],
+  required: ['items', 'notes'],
   additionalProperties: false,
 };
 

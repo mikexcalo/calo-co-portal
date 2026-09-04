@@ -67,7 +67,7 @@ const SCHEMA = {
             description: 'The thing they said that this line answers. Quoted briefly.',
           },
         },
-        required: ['description', 'qty', 'optional', 'basis'],
+        required: ['description', 'qty', 'unit', 'optional', 'basis'],
       },
     },
     scope_in: {

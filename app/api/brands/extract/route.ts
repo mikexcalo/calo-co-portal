@@ -96,7 +96,7 @@ const SCHEMA = {
             description: 'Where a number came from, if stated. Null otherwise.',
           },
         },
-        required: ['kind', 'body'],
+        required: ['kind', 'body', 'attribution', 'source'],
       },
     },
     banned: {
