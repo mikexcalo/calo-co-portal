@@ -491,10 +491,15 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           */}
           <div
             style={{
-              display: 'flex',
-              gap: 2,
+              display: 'inline-flex',
+              gap: 3,
               marginBottom: 20,
-              borderBottom: `1px solid ${C.border}`,
+              padding: 3,
+              borderRadius: 10,
+              background: C.panelAlt,
+              border: `1px solid ${C.border}`,
+              maxWidth: '100%',
+              overflowX: 'auto',
             }}
           >
             {([
@@ -516,17 +521,17 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 7,
-                    padding: '9px 14px',
-                    border: 'none',
-                    borderBottom: `2px solid ${on ? C.accent : 'transparent'}`,
-                    background: 'transparent',
+                    padding: '7px 13px',
+                    borderRadius: 8,
+                    border: `1px solid ${on ? C.border : 'transparent'}`,
+                    background: on ? C.panel : 'transparent',
+                    boxShadow: on ? '0 1px 2px rgba(0,0,0,.06)' : 'none',
                     color: on ? C.text : C.dim,
                     fontSize: 13.5,
-                    fontWeight: on ? 500 : 400,
+                    fontWeight: on ? 600 : 400,
                     cursor: 'pointer',
                     fontFamily: 'inherit',
                     whiteSpace: 'nowrap',
-                    marginBottom: -1,
                   }}
                 >
                   <Glyph name={icon} color={on ? C.accent : C.faint} />

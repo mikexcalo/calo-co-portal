@@ -117,11 +117,15 @@ function PageTabs({ tabs, phone }: { tabs: readonly PageTab[]; phone: boolean })
   return (
     <div
       style={{
-        display: 'flex',
-        gap: 2,
+        display: 'inline-flex',
+        gap: 3,
         marginBottom: 24,
-        borderBottom: `1px solid ${C.border}`,
+        padding: 3,
+        borderRadius: 10,
+        background: C.panelAlt,
+        border: `1px solid ${C.border}`,
         overflowX: phone ? 'auto' : 'visible',
+        maxWidth: '100%',
       }}
     >
       {tabs.map((t) => {
@@ -136,17 +140,17 @@ function PageTabs({ tabs, phone }: { tabs: readonly PageTab[]; phone: boolean })
               display: 'flex',
               alignItems: 'center',
               gap: 7,
-              padding: '9px 14px',
-              border: 'none',
-              borderBottom: `2px solid ${active ? C.accent : 'transparent'}`,
-              background: 'transparent',
+              padding: '7px 13px',
+              borderRadius: 8,
+              border: `1px solid ${active ? C.border : 'transparent'}`,
+              background: active ? C.panel : 'transparent',
+              boxShadow: active ? '0 1px 2px rgba(0,0,0,.06)' : 'none',
               color: active ? C.text : C.dim,
               fontSize: 13.5,
-              fontWeight: active ? 500 : 400,
+              fontWeight: active ? 600 : 400,
               cursor: 'pointer',
               fontFamily: 'inherit',
               whiteSpace: 'nowrap',
-              marginBottom: -1,
             }}
           >
             <Glyph name={t.icon} color={active ? C.accent : C.faint} />
@@ -460,6 +464,63 @@ export function Pill({ children, tone = 'neutral' }: { children: React.ReactNode
  * `zero` opts a card out when its value is nothing, so the row grows as the
  * business does instead of standing at full width from day one.
  */
+/**
+ * A switch. On or off, and it looks like the thing it is.
+ *
+ * Access was a grid of identical grey dots that cycled through five states on
+ * click. Nothing about a dot says it is pressable, nothing says which way it is
+ * pointing, and fourteen columns of them scrolled off the side of the screen.
+ * You cannot read a switchboard you have to hover to understand.
+ */
+export function Switch({
+  on,
+  onChange,
+  disabled,
+  tone = 'green',
+}: {
+  on: boolean;
+  onChange: (next: boolean) => void;
+  disabled?: boolean;
+  tone?: 'green' | 'amber';
+}) {
+  const active = tone === 'amber' ? C.amber : C.green;
+  return (
+    <button
+      role="switch"
+      aria-checked={on}
+      disabled={disabled}
+      onClick={() => onChange(!on)}
+      style={{
+        width: 38,
+        height: 22,
+        flexShrink: 0,
+        borderRadius: 11,
+        border: `1px solid ${on ? active : C.borderStrong}`,
+        background: on ? active : C.panelAlt,
+        position: 'relative',
+        cursor: disabled ? 'default' : 'pointer',
+        padding: 0,
+        opacity: disabled ? 0.4 : 1,
+        transition: 'background .15s, border-color .15s',
+      }}
+    >
+      <span
+        style={{
+          position: 'absolute',
+          top: 2,
+          left: on ? 18 : 2,
+          width: 16,
+          height: 16,
+          borderRadius: '50%',
+          background: '#fff',
+          boxShadow: '0 1px 2px rgba(0,0,0,.25)',
+          transition: 'left .15s',
+        }}
+      />
+    </button>
+  );
+}
+
 export function Metric({
   label,
   value,
