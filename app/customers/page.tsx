@@ -18,7 +18,9 @@ import supabase from '@/lib/supabase';
 import { brandAssetUrl } from '@/lib/spine/db';
 import { createCustomer, getCurrentOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
-import { STAGE, isClient, type Stage } from '@/lib/spine/stage';
+import { STAGE, isClient, daysSince, type Stage } from '@/lib/spine/stage';
+import { BulkAction, BulkBar, RecordTable, type Column } from '@/components/spine/RecordTable';
+import { SavedViews, type View } from '@/components/spine/SavedViews';
 import {
   Avatar,
   Button,
@@ -38,6 +40,8 @@ import {
 } from '@/components/spine/ui';
 
 interface Summary {
+  /** Same value as customer_id. The shared table keys every list on `id`. */
+  id: string;
   customer_id: string;
   name: string;
   contact_name: string | null;
@@ -91,6 +95,10 @@ export default function CustomersPage() {
   const [adding, setAdding] = useState(false);
   const [q, setQ] = useState('');
   const [stageFilter, setStageFilter] = useState<'all' | 'won' | 'past'>('all');
+  const [view, setView] = useState<string | null>(null);
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [bulkTag, setBulkTag] = useState(false);
+  const [tagWord, setTagWord] = useState('');
   const [today, setToday] = useState<string | null>(null);
 
   const [form, setForm] = useState({ name: '', contact_name: '', contact_title: '', email: '', phone: '', address: '' });
@@ -115,6 +123,8 @@ export default function CustomersPage() {
     setRows(
       (res.data ?? []).map((r: Record<string, unknown>) => ({
         ...(r as unknown as Summary),
+        // The table keys on id; this view names it customer_id.
+        id: String(r.customer_id),
         tags: tagsById.get(String(r.customer_id)) ?? [],
         jobs: num(r.jobs),
         open_jobs: num(r.open_jobs),
@@ -205,6 +215,129 @@ export default function CustomersPage() {
       );
     });
   }, [rows, q, stageFilter, brandFilter, brands]);
+
+  const applyView = (v: View | null) => {
+    setView(v?.id ?? null);
+    const f = (v?.filters ?? {}) as { q?: string; stageFilter?: 'all' | 'won' | 'past'; brandFilter?: string };
+    setQ(f.q ?? '');
+    setStageFilter(f.stageFilter ?? 'all');
+    setBrandFilter(f.brandFilter ?? 'all');
+  };
+
+  /** Adds a tag to many without wiping the ones each already had. */
+  const addTag = async (ids: string[], word: string) => {
+    const w = word.trim();
+    if (!w) return;
+    const out = await Promise.all(
+      rows
+        .filter((r) => ids.includes(r.id) && !(r.tags ?? []).includes(w))
+        .map((r) => supabase.from('customers').update({ tags: [...(r.tags ?? []), w] }).eq('id', r.id))
+    );
+    const bad = out.find((o) => o.error);
+    if (bad?.error) setError(bad.error.message);
+    setTagWord('');
+    setBulkTag(false);
+    setPicked(new Set());
+    load();
+  };
+
+  const moveStage = async (ids: string[], next: Stage) => {
+    setRows((prev) => prev.map((r) => (ids.includes(r.id) ? { ...r, stage: next } : r)));
+    setPicked(new Set());
+    const res = await supabase
+      .from('customers')
+      .update({ stage: next, stage_why: null, stage_changed_on: new Date().toISOString().slice(0, 10) })
+      .in('id', ids);
+    if (res.error) { setError(res.error.message); load(); }
+  };
+
+  /**
+   * What a client row is for.
+   *
+   * Different columns from Pipeline on purpose: the question here is not how
+   * far along they are, it is whether they owe you anything and whether you
+   * owe them a reply. Same table, same grammar, different facts.
+   */
+  const columns: Column<Summary>[] = [
+    {
+      key: 'name',
+      label: vocab.customer,
+      width: 'minmax(170px, 1.8fr)',
+      sortBy: (r) => r.name.toLowerCase(),
+      render: (r) => (
+        <span style={{ display: 'flex', gap: 8, alignItems: 'center', minWidth: 0 }}>
+          <Avatar src={brandAssetUrl(r.logo_path)} name={r.name} size={19} shape="company" />
+          <span style={{ fontSize: 13.5, color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {r.name}
+          </span>
+          {r.stage === 'past' && <Pill tone="neutral">past</Pill>}
+        </span>
+      ),
+    },
+    {
+      key: 'who',
+      label: 'Who',
+      width: 'minmax(120px, 1.2fr)',
+      render: (r) => (
+        <span style={{ fontSize: 12.5, color: r.contact_name ? C.dim : C.amber, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+          {r.contact_name ?? (r.email ? r.email : 'nobody on file')}
+        </span>
+      ),
+    },
+    {
+      key: 'next',
+      label: 'Next step',
+      width: 'minmax(140px, 1.6fr)',
+      render: (r) => {
+        const overdue = Boolean(today && r.next_action_on && r.next_action_on <= today);
+        return (
+          <span style={{ fontSize: 12.5, color: overdue ? C.amber : r.next_action ? C.dim : C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+            {r.next_action ?? '—'}
+            {r.next_action_on && ` · ${shortDate(r.next_action_on)}`}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'work',
+      label: 'Open',
+      width: '64px',
+      align: 'right',
+      sortBy: (r) => -r.open_jobs,
+      render: (r) => (
+        <span style={{ fontSize: 12.5, color: r.open_jobs ? C.dim : C.faint, fontVariantNumeric: 'tabular-nums' }}>
+          {r.open_jobs || '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'owed',
+      label: 'Owed',
+      width: '92px',
+      align: 'right',
+      sortBy: (r) => -r.owed,
+      render: (r) => (
+        <span style={{ fontSize: 13, color: r.owed > 0 ? C.amber : C.faint, fontVariantNumeric: 'tabular-nums' }}>
+          {r.owed > 0 ? money0(r.owed) : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'last',
+      label: 'Last',
+      width: '70px',
+      align: 'right',
+      sortBy: (r) => daysSince(r.last_contacted_on) ?? 99_999,
+      render: (r) => {
+        const d = daysSince(r.last_contacted_on);
+        return (
+          <span style={{ fontSize: 11.5, color: C.faint, fontVariantNumeric: 'tabular-nums' }}>
+            {d === null ? 'never' : d === 0 ? 'today' : `${d}d`}
+          </span>
+        );
+      },
+    },
+  ];
 
   // The three things a CRM should shout about.
   const dueNow = today ? rows.filter((r) => r.next_action_on && r.next_action_on <= today) : [];
@@ -324,130 +457,63 @@ export default function CustomersPage() {
 
       {loading ? (
         <Empty>Loading…</Empty>
-      ) : filtered.length === 0 ? (
-        <Card>
-          <Empty>
-            {rows.length === 0
-              ? `No ${vocab.customerPlural.toLowerCase()} yet.`
-              : 'Nothing matches.'}
-          </Empty>
-        </Card>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {filtered.map((r) => {
-            const overdue = today && r.next_action_on && r.next_action_on <= today;
-            return (
-              <Card
-                key={r.customer_id}
-                style={{
-                  padding: 16,
-                  cursor: 'pointer',
-                  borderColor: overdue ? C.amber : C.border,
+        <>
+          <SavedViews
+            screen="clients"
+            orgId={orgId}
+            current={{ q, stageFilter, brandFilter }}
+            active={view}
+            onApply={applyView}
+          />
+
+          {/*
+            The same table Pipeline uses.
+
+            This was a stack of cards: 120px a row, a 17px bold name, email and
+            phone as links, a Next box. Readable at three clients, unusable at
+            thirty, and it silently said a client matters seven times more than
+            a prospect, which stops being true the moment a prospect is worth
+            more than a client.
+          */}
+          <RecordTable
+            rows={filtered}
+            columns={columns}
+            selected={picked}
+            onSelect={setPicked}
+            onOpen={(r) => router.push(`/customers/${r.id}`)}
+            empty={rows.length === 0 ? `No ${vocab.customerPlural.toLowerCase()} yet.` : 'Nothing matches.'}
+          />
+
+          <div style={{ fontSize: 12, color: C.faint, marginTop: 10 }}>
+            {filtered.length} of {rows.filter((r) => isClient(r.stage)).length}. Tick rows to work
+            several at once; shift-click for a run.
+          </div>
+
+          <BulkBar count={picked.size} onClear={() => setPicked(new Set())}>
+            {bulkTag ? (
+              <input
+                value={tagWord}
+                onChange={(e) => setTagWord(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') addTag(Array.from(picked), tagWord);
+                  if (e.key === 'Escape') { setBulkTag(false); setTagWord(''); }
                 }}
-              >
-                <div
-                  onClick={() => router.push(`/customers/${r.customer_id}`)}
-                  style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}
-                >
-                  {/*
-                    Small, and beside the name rather than leading it.
-                    
-                    A 46px face next to a 16px company name reads as though the
-                    client is the person. It is the business, and most of these
-                    have more than one person in them, which is the whole reason
-                    contacts are a list.
-                  */}
-                  <Avatar src={brandAssetUrl(r.logo_path)} name={r.name} size={26} shape="company" />
-
-                  <div style={{ flex: 1, minWidth: 200 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em' }}>{r.name}</span>
-                      <Pill tone={STAGE_TONE[r.stage] ?? 'neutral'}>{STAGE[r.stage]?.label ?? r.stage}</Pill>
-                      {r.open_jobs > 0 && (
-                        <Pill tone="blue">
-                          {r.open_jobs} open {r.open_jobs === 1 ? vocab.job.toLowerCase() : vocab.jobPlural.toLowerCase()}
-                        </Pill>
-                      )}
-                    </div>
-
-                    {r.contact_name && (
-                      <div style={{ fontSize: 13.5, color: C.dim, marginTop: 3 }}>
-                        {r.contact_name}
-                        {r.contact_title && <span style={{ color: C.faint }}> · {r.contact_title}</span>}
-                      </div>
-                    )}
-
-                    <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 7, fontSize: 13 }}>
-                      {r.email ? (
-                        <a
-                          href={`mailto:${r.email}`}
-                          onClick={(e) => e.stopPropagation()}
-                          style={{ color: C.accent, textDecoration: 'none' }}
-                        >
-                          {r.email}
-                        </a>
-                      ) : (
-                        /* Says what it costs and where to fix it, in one line.
-                           A warning that only announces a problem trains people
-                           to read past it. */
-                        <span style={{ color: C.amber }}>
-                          No email, so you can&apos;t invoice them. Open them to add one
-                        </span>
-                      )}
-                      {r.phone && (
-                        <a
-                          href={`tel:${r.phone.replace(/[^\d+]/g, '')}`}
-                          onClick={(e) => e.stopPropagation()}
-                          style={{ color: C.dim, textDecoration: 'none' }}
-                        >
-                          {r.phone}
-                        </a>
-                      )}
-                    </div>
-
-                    {r.next_action && (
-                      <div
-                        style={{
-                          marginTop: 10,
-                          fontSize: 13.5,
-                          color: overdue ? C.amber : C.dim,
-                          background: overdue ? C.amberSoft : C.panelAlt,
-                          padding: '6px 10px',
-                          borderRadius: radius.sm,
-                          display: 'inline-block',
-                        }}
-                      >
-                        <strong style={{ fontWeight: 600 }}>Next:</strong> {r.next_action}
-                        {r.next_action_on && ` · ${shortDate(r.next_action_on)}`}
-                      </div>
-                    )}
-                  </div>
-
-                  {/*
-                    Numbers only when there are numbers.
-
-                    Three columns reading Invoiced —, Owed —, Unbilled — took a
-                    third of every row to say nothing, on a screen where no
-                    money has moved yet. Headings for figures that do not exist
-                    are the most expensive whitespace in a product: they are
-                    read every single time and never once answer anything.
-
-                    When money exists it matters more than anything else on the
-                    row, so it stays. When it does not, the row shows what is
-                    actually true instead.
-                  */}
-                  {(r.invoiced > 0 || r.owed > 0 || r.unbilled > 0) ? (
-                    <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
-                      {r.invoiced > 0 && <Stat label="Invoiced" value={money(r.invoiced)} />}
-                      {r.owed > 0 && <Stat label="Owed" value={money(r.owed)} color={C.amber} />}
-                      {r.unbilled > 0 && <Stat label="Unbilled" value={money(r.unbilled)} color={C.amber} />}
-                    </div>
-                  ) : null}
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+                placeholder="Tag them…"
+                autoFocus
+                style={{
+                  border: '1px solid rgba(255,255,255,.3)', background: 'transparent',
+                  borderRadius: 999, padding: '4px 12px', fontSize: 12.5,
+                  color: C.panel, fontFamily: 'inherit', width: 150, outline: 'none',
+                }}
+              />
+            ) : (
+              <BulkAction onClick={() => setBulkTag(true)}>Tag</BulkAction>
+            )}
+            <BulkAction onClick={() => moveStage(Array.from(picked), 'past')}>Mark past</BulkAction>
+            <BulkAction onClick={() => moveStage(Array.from(picked), 'talking')}>Back to pipeline</BulkAction>
+          </BulkBar>
+        </>
       )}
     </Page>
   );
