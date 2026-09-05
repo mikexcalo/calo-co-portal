@@ -26,12 +26,15 @@ import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import {
+  MODULE_ICON,
+  MODULE_KIND,
   MODULE_LABEL,
   moduleState,
   modulesFor,
   type ModuleId,
   type ModuleState,
 } from '@/lib/spine/modules';
+import { NAV_ICONS } from '@/components/Sidebar';
 import { Avatar, CLIENT_TABS, C, Card, Empty, Page, SectionLabel, Switch } from '@/components/spine/ui';
 import { brandAssetUrl } from '@/lib/spine/db';
 
@@ -196,7 +199,9 @@ export default function AccessPage() {
           {client && (
             <>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
-                <SectionLabel>{client.name} · {client.plan} plan</SectionLabel>
+                {/* No plans exist yet, so printing "core plan" beside every client
+                    stated a commercial fact that is not true. */}
+                <SectionLabel>{client.name}</SectionLabel>
                 <button
                   onClick={() => router.push(`/customers/${client.id}`)}
                   style={{
@@ -208,9 +213,19 @@ export default function AccessPage() {
                 </button>
               </div>
 
+              {(['place', 'capability'] as const).map((kind) => {
+                const inKind = modules.filter((m) => (MODULE_KIND[m] ?? 'place') === kind);
+                if (inKind.length === 0) return null;
+                return (
+                <div key={kind} style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 12, color: C.faint, marginBottom: 6, lineHeight: 1.5 }}>
+                    {kind === 'place'
+                      ? `Modules · ${inKind.length}. Each one puts a row in their sidebar.`
+                      : `Features · ${inKind.length}. These change what a screen they already have can do, and add nothing to the sidebar.`}
+                  </div>
               <Card>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {modules.map((m, i) => {
+                  {inKind.map((m, i) => {
                     const st = moduleState((client.modules ?? {})[m]);
                     const live = st === 'live';
                     const selling = st === 'sold' || st === 'building';
@@ -223,6 +238,11 @@ export default function AccessPage() {
                           borderTop: i === 0 ? 'none' : `1px solid ${C.border}`,
                         }}
                       >
+                        {/* The same mark the sidebar uses, so a row here and
+                            the row they will see are the same object. */}
+                        <span style={{ color: C.faint, flexShrink: 0, display: 'flex' }}>
+                          {NAV_ICONS[MODULE_ICON[m]] ?? null}
+                        </span>
                         <div style={{ minWidth: 0, flex: 1 }}>
                           <div style={{ fontSize: 14, color: C.text }}>{MODULE_LABEL[m]}</div>
                           <div style={{ fontSize: 12.5, color: C.faint }}>
@@ -251,6 +271,9 @@ export default function AccessPage() {
                   })}
                 </div>
               </Card>
+                </div>
+                );
+              })}
 
               <div style={{ fontSize: 12.5, color: C.faint, marginTop: 10, lineHeight: 1.6, maxWidth: '64ch' }}>
                 On means they can open it. Off means they cannot, and stays off through a plan

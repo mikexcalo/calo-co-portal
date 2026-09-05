@@ -575,7 +575,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               gap: 3,
               marginBottom: 20,
               padding: 3,
-              borderRadius: 10,
+              borderRadius: 999,
               background: C.panelAlt,
               border: `1px solid ${C.border}`,
               maxWidth: '100%',

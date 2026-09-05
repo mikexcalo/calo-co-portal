@@ -123,7 +123,14 @@ function PageTabs({ tabs, phone }: { tabs: readonly PageTab[]; phone: boolean })
         gap: 3,
         marginBottom: 24,
         padding: 3,
-        borderRadius: 10,
+        /**
+         * A pill inside a rounded rectangle is two shapes disagreeing.
+         *
+         * The tray was drawn before the buttons were, so it kept a 10px corner
+         * while the thing sitting in it went fully round. At three pixels of
+         * padding the mismatch is visible on every screen with tabs.
+         */
+        borderRadius: 999,
         background: C.panelAlt,
         border: `1px solid ${C.border}`,
         overflowX: phone ? 'auto' : 'visible',

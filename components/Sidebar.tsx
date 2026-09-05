@@ -24,7 +24,12 @@ import { PRODUCT } from '@/lib/brand';
  * nearest generic glyph — a yard sign for jobs, a hard hat for customers, a
  * receipt for documents, a folder for files.
  */
-const icons: Record<string, React.ReactNode> = {
+/**
+ * Exported, because Access shows the same list of modules and was drawing
+ * twenty rows of identical text. A row there and the row a client will see in
+ * their own sidebar should be recognisably the same object.
+ */
+export const NAV_ICONS: Record<string, React.ReactNode> = {
   dashboard: (
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M2 6.6 8 2l6 4.6" /><path d="M3.4 7.6V13a.8.8 0 0 0 .8.8h7.6a.8.8 0 0 0 .8-.8V7.6" />
@@ -325,7 +330,7 @@ export default function Sidebar() {
             color: active ? C.accent : C.dim,
           }}
         >
-          {icons[iconKey]}
+          {NAV_ICONS[iconKey]}
         </span>
         {label}
       </button>

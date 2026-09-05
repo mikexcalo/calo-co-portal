@@ -143,6 +143,95 @@ const PLAN_FEATURES: Record<string, Feature[]> = {
   agency: ['optional_lines', 'intake_form', 'follow_ups', 'ask'],
 };
 
+
+/**
+ * Which sidebar glyph belongs to each thing you can switch on.
+ *
+ * Access listed twenty rows of identical text, so the only way to find the one
+ * you meant was to read every label. These are the same marks the sidebar
+ * uses, so a row here and the row a client will see are recognisably the same
+ * object.
+ */
+export const MODULE_ICON: Record<ModuleId, string> = {
+  customers: 'clients',
+  people: 'network',
+  jobs: 'quotes',
+  targets: 'crosshair',
+  market: 'book',
+  billing: 'invoices',
+  proposals: 'proposal',
+  pitches: 'send',
+  pl: 'chart',
+  account: 'incoming',
+  seo: 'globe',
+  expenses: 'wallet',
+  receipts: 'folder',
+  notes: 'notes',
+  reviews: 'star',
+  traffic: 'chart',
+  website: 'storefront',
+  client_requests: 'inbox',
+  brand_kit: 'brandKit',
+  brands: 'palette',
+  stories: 'book',
+  catalog: 'quotes',
+  ask: 'search',
+  pricing: 'financials',
+  records: 'folder',
+  team: 'network',
+  security: 'shield',
+  business: 'settings',
+};
+
+/**
+ * A place, or a capability.
+ *
+ * Twenty switches read as one flat list of equivalent things, and they are not.
+ * Most put a row in somebody's sidebar. A few change what an existing screen
+ * can do and add no navigation at all, so switching one on and then looking
+ * for it in the nav finds nothing. Saying which is which is the difference
+ * between a switchboard you can reason about and a wall of toggles.
+ */
+export type ModuleKind = 'place' | 'capability';
+
+export const MODULE_KIND: Record<ModuleId, ModuleKind> = {
+  // Places: they appear in the sidebar, or as a tab of something that does.
+  customers: 'place',
+  people: 'place',
+  jobs: 'place',
+  targets: 'place',
+  market: 'place',
+  billing: 'place',
+  proposals: 'place',
+  pitches: 'place',
+  pl: 'place',
+  account: 'place',
+  seo: 'place',
+  brand_kit: 'place',
+  brands: 'place',
+  stories: 'place',
+  website: 'place',
+  client_requests: 'place',
+  traffic: 'place',
+  team: 'place',
+  security: 'place',
+  business: 'place',
+  records: 'place',
+  pricing: 'place',
+  expenses: 'place',
+  receipts: 'place',
+
+  // Capabilities: they change what an existing screen can do.
+  // Catalog is a tab that only appears on a client record. Capture is a button
+  // in the top bar. Ask is a question box rather than a destination. Switching
+  // any of them on adds nothing to the sidebar, which is exactly why they were
+  // confusing to find sitting in the same list as Invoices.
+  catalog: 'capability',
+  notes: 'capability',
+  ask: 'capability',
+  reviews: 'capability',
+};
+
 /** Human names for every module, so a switchboard is readable. */
 export const MODULE_LABEL: Record<ModuleId, string> = {
   jobs: 'Jobs and engagements',
@@ -510,7 +599,16 @@ export function navFor(
          */
         { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'send' },
         { id: 'seo', label: 'Digital', href: '/digital', icon: 'globe' },
-        { id: 'brands', label: 'Brand', href: '/framework', icon: 'brandKit' },
+        /**
+         * Brand opens on yours.
+         *
+         * The row pointed at /framework, so clicking Brand in your own
+         * workspace showed a grid of three clients and their progress through
+         * a ten step method. Whatever that page is, it is not your brand. Your
+         * logos, colours, type and voice are in the kit, so that is where the
+         * word goes.
+         */
+        { id: 'brands', label: 'Brand', href: '/brand-kit', icon: 'brandKit' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
   ];
