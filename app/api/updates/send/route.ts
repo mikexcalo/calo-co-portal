@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
 
   const { data: customer } = await supabase
     .from('customers')
-    .select('id, org_id, name, contact_name, email, brief')
+    .select('id, org_id, name, contact_name, email, brief, reply_key')
     .eq('id', body.customerId)
     .maybeSingle();
   if (!customer) return NextResponse.json({ error: 'Client not found.' }, { status: 404 });
@@ -129,6 +129,9 @@ export async function POST(req: NextRequest) {
   }
 
   const from = process.env.MAIL_FROM || 'CALO&CO <onboarding@resend.dev>';
+  // e.g. in.calo.company. Absent until the MX record exists, and everything
+  // about replies is skipped rather than half-configured until it does.
+  const replyDomain = process.env.MAIL_INBOUND_DOMAIN || null;
 
   // ---- sending an already-reviewed draft -----------------------------------
   if (body.send) {
@@ -162,6 +165,21 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         from,
         to: target.email,
+        /**
+         * Where their reply goes.
+         *
+         * Without this a reply lands in a mailbox the portal cannot see, so
+         * sending worked and nothing ever came back: the stage could reach
+         * Reached and never Talking. With it, they hit reply in whatever mail
+         * app they already use and it files itself against this company.
+         *
+         * Only set when the receiving subdomain exists. Pointing Reply-To at a
+         * domain with no MX would bounce their reply, which is worse than not
+         * capturing it.
+         */
+        ...(replyDomain && customer.reply_key
+          ? { reply_to: `reply+${customer.reply_key}@${replyDomain}` }
+          : {}),
         subject: body.subject ?? `Update on ${customer.name}`,
         html: `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.7;color:#111;max-width:520px;">${
           (body.text ?? '').split('\n\n').map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('')
