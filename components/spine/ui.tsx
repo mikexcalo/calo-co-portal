@@ -192,6 +192,8 @@ function PageTabs({ tabs, phone }: { tabs: readonly PageTab[]; phone: boolean })
  */
 export const SETUP_TABS: readonly PageTab[] = [
   { label: 'Business', href: '/business', icon: 'business' },
+  // Yours, the same way Access is theirs.
+  { label: 'What you see', href: '/what-you-see', icon: 'layers' },
   { label: 'Price list', href: '/pricing', icon: 'pricing' },
   { label: 'Records', href: '/records', icon: 'records' },
 ];

@@ -94,12 +94,18 @@ export const NAV_ICONS: Record<string, React.ReactNode> = {
     </svg>
   ),
   // Paint swatches.
+  /**
+   * Brand: three swatches fanned out, the way you hold paint chips.
+   *
+   * It was a two-by-two grid with a dot in one corner, which is the glyph
+   * every product uses for "apps" or "dashboard" and said nothing about
+   * colour, type or a mark. This is the one object that only ever means brand.
+   */
   brandKit: (
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="1.7" y="1.7" width="5.6" height="5.6" rx="1" />
-      <rect x="8.7" y="1.7" width="5.6" height="5.6" rx="1" />
-      <rect x="1.7" y="8.7" width="5.6" height="5.6" rx="1" />
-      <circle cx="11.5" cy="11.5" r="2.8" />
+      <rect x="1.6" y="4.4" width="4" height="9.8" rx="1.3" />
+      <rect x="6.4" y="2.4" width="4" height="11.8" rx="1.3" />
+      <path d="M11.6 5.1l2.5.9a1.3 1.3 0 0 1 .8 1.7l-2.3 6.1" />
     </svg>
   ),
   // A signed document — a proposal awaiting a decision.

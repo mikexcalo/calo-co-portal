@@ -15,6 +15,7 @@ import supabase from '@/lib/supabase';
 import { getCurrentOrg, updateOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import { modulesFor } from '@/lib/spine/modules';
+import { BrandMessage } from '@/components/spine/BrandMessage';
 import { QrStudio } from '@/components/spine/QrStudio';
 import {
   EMPTY_SIGNATURE,
@@ -279,6 +280,13 @@ export default function BrandKitPage() {
               placeholder="How this brand sounds. Plain, direct, no jargon…"
             />
           </Card>
+
+          {/* Voice is how you sound. This is what you claim, which nothing in
+              the kit held, and which every pitch and home page is written out
+              of. */}
+          <div style={{ marginTop: 18 }}>
+            <BrandMessage orgId={org?.id ?? null} orgName={org?.name ?? 'your brand'} />
+          </div>
         </div>
       ) : tab === 'qr' ? (
         <QrStudio

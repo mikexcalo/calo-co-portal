@@ -26,15 +26,12 @@ import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import {
-  MODULE_ICON,
-  MODULE_KIND,
-  MODULE_LABEL,
   moduleState,
   modulesFor,
   type ModuleId,
   type ModuleState,
 } from '@/lib/spine/modules';
-import { NAV_ICONS } from '@/components/Sidebar';
+import { ModuleSwitchboard } from '@/components/spine/ModuleSwitchboard';
 import { Avatar, CLIENT_TABS, C, Card, Empty, Page, SectionLabel, Switch } from '@/components/spine/ui';
 import { brandAssetUrl } from '@/lib/spine/db';
 
@@ -213,67 +210,14 @@ export default function AccessPage() {
                 </button>
               </div>
 
-              {(['place', 'capability'] as const).map((kind) => {
-                const inKind = modules.filter((m) => (MODULE_KIND[m] ?? 'place') === kind);
-                if (inKind.length === 0) return null;
-                return (
-                <div key={kind} style={{ marginBottom: 16 }}>
-                  <div style={{ fontSize: 12, color: C.faint, marginBottom: 6, lineHeight: 1.5 }}>
-                    {kind === 'place'
-                      ? `Modules · ${inKind.length}. Each one puts a row in their sidebar.`
-                      : `Features · ${inKind.length}. These change what a screen they already have can do, and add nothing to the sidebar.`}
-                  </div>
-              <Card>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {inKind.map((m, i) => {
-                    const st = moduleState((client.modules ?? {})[m]);
-                    const live = st === 'live';
-                    const selling = st === 'sold' || st === 'building';
-                    return (
-                      <div
-                        key={m}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 12,
-                          padding: '10px 0', flexWrap: 'wrap',
-                          borderTop: i === 0 ? 'none' : `1px solid ${C.border}`,
-                        }}
-                      >
-                        {/* The same mark the sidebar uses, so a row here and
-                            the row they will see are the same object. */}
-                        <span style={{ color: C.faint, flexShrink: 0, display: 'flex' }}>
-                          {NAV_ICONS[MODULE_ICON[m]] ?? null}
-                        </span>
-                        <div style={{ minWidth: 0, flex: 1 }}>
-                          <div style={{ fontSize: 14, color: C.text }}>{MODULE_LABEL[m]}</div>
-                          <div style={{ fontSize: 12.5, color: C.faint }}>
-                            {WHAT[m] ?? ''}{st === 'plan' ? ' · follows their plan' : ''}
-                          </div>
-                        </div>
-
-                        {!live && (
-                          <button
-                            onClick={() => write(client, m, selling ? null : 'sold')}
-                            style={{
-                              fontSize: 11.5, padding: '2px 10px', borderRadius: 999,
-                              cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
-                              border: `1px solid ${selling ? C.amber : C.border}`,
-                              background: selling ? C.amberSoft : 'transparent',
-                              color: selling ? C.amber : C.faint,
-                            }}
-                          >
-                            {selling ? 'sold, not built' : 'mark sold'}
-                          </button>
-                        )}
-
-                        <Switch on={live} onChange={(next) => write(client, m, next ? 'live' : 'off')} />
-                      </div>
-                    );
-                  })}
-                </div>
-              </Card>
-                </div>
-                );
-              })}
+              <ModuleSwitchboard
+                modules={modules}
+                state={(client.modules ?? {}) as Record<string, unknown>}
+                what={WHAT}
+                showSold
+                onChange={(m, next) => write(client, m, next)}
+                onSell={(m, selling) => write(client, m, selling ? null : 'sold')}
+              />
 
               <div style={{ fontSize: 12.5, color: C.faint, marginTop: 10, lineHeight: 1.6, maxWidth: '64ch' }}>
                 On means they can open it. Off means they cannot, and stays off through a plan

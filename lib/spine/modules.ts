@@ -194,6 +194,52 @@ export const MODULE_ICON: Record<ModuleId, string> = {
  */
 export type ModuleKind = 'place' | 'capability';
 
+/**
+ * Which part of the sidebar a module lands in.
+ *
+ * Access listed everything in one column, so reading it meant holding the
+ * sidebar's grouping in your head and mapping each row onto it. Same headings,
+ * same order, so the switchboard and the thing it controls are laid out the
+ * same way.
+ */
+export type NavSection = 'The work' | 'Money' | 'Grow' | 'Setup';
+
+export const MODULE_SECTION: Record<ModuleId, NavSection> = {
+  customers: 'The work',
+  people: 'The work',
+  jobs: 'The work',
+  targets: 'The work',
+  market: 'The work',
+  catalog: 'The work',
+  notes: 'The work',
+  client_requests: 'The work',
+
+  billing: 'Money',
+  proposals: 'Money',
+  pl: 'Money',
+  account: 'Money',
+  expenses: 'Money',
+  receipts: 'Money',
+  pricing: 'Money',
+
+  pitches: 'Grow',
+  seo: 'Grow',
+  traffic: 'Grow',
+  reviews: 'Grow',
+  brands: 'Grow',
+  brand_kit: 'Grow',
+  stories: 'Grow',
+  website: 'Grow',
+  ask: 'Grow',
+
+  team: 'Setup',
+  security: 'Setup',
+  business: 'Setup',
+  records: 'Setup',
+};
+
+export const NAV_SECTIONS: NavSection[] = ['The work', 'Money', 'Grow', 'Setup'];
+
 export const MODULE_KIND: Record<ModuleId, ModuleKind> = {
   // Places: they appear in the sidebar, or as a tab of something that does.
   customers: 'place',
@@ -367,6 +413,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/stories', 'stories'],
   ['/brands', 'brands'],
   ['/business', 'business'],
+  ['/what-you-see', 'business'],
   ['/team', 'team'],
   ['/pricing', 'pricing'],
   ['/records', 'records'],
