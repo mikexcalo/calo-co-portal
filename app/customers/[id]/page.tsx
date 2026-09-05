@@ -394,14 +394,11 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
         </>
       }
     >
+      {/* The mark alone. The domain was printed beside it and again in the
+          subtitle two lines above, which is one fact said twice. */}
       {logoPath && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-          <Avatar src={brandAssetUrl(logoPath)} name={customer.name} size={34} shape="company" />
-          <span style={{ fontSize: 12.5, color: C.faint }}>
-            {customer.website
-              ? customer.website.replace(/^https?:\/\//, '').replace(/\/$/, '')
-              : 'Their mark'}
-          </span>
+        <div style={{ marginBottom: 14 }}>
+          <Avatar src={brandAssetUrl(logoPath)} name={customer.name} size={32} shape="company" />
         </div>
       )}
 
@@ -876,82 +873,67 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
 
           {orgId && <People orgId={orgId} customerId={params.id} />}
 
-          <Card style={{ marginBottom: 14 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {/* Search for this client, not for you. Only offered when they
-                have a site, because search work with nothing to point at is
-                not work anybody can start. */}
-            {customer.website && (
-              <button
-                onClick={() => router.push(`/seo?client=${params.id}`)}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  gap: 7, marginTop: 6, padding: '6px 11px', borderRadius: 999,
-                  border: `1px solid ${C.border}`, background: 'transparent',
-                  fontSize: 13.5, fontWeight: 500, color: C.dim,
-                  cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
-                }}
-              >
-                Their search setup
-              </button>
-            )}
+          {/*
+            One line, not a stack of bars.
 
-            {customer.website && (
-                /* A button rather than a line of small blue text. Opening a
-                   client's site is something you do constantly while working
-                   on it, and it should not look like a footnote. */
-                <a
-                  href={customer.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 7,
-                    marginTop: 6,
-                    padding: '6px 11px',
-                    borderRadius: 7,
-                    border: `1px solid ${C.border}`,
-                    background: 'transparent',
-                    fontSize: 13.5,
-                    fontWeight: 500,
-                    color: C.dim,
-                    textDecoration: 'none',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <circle cx="8" cy="8" r="6.3" />
-                    <path d="M1.7 8h12.6" />
-                    <path d="M8 1.7a10 10 0 0 1 0 12.6 10 10 0 0 1 0-12.6" />
-                  </svg>
-                  Open {customer.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
-                </a>
-              )}
-              {customer.address && (
-                <div style={{ fontSize: 13, color: C.faint }}>{customer.address}</div>
-              )}
-            </div>
+            This was a card holding two full-width buttons stacked vertically:
+            "Their search setup" and "Open askcolette.ai", each stretched across
+            the whole rail with the domain already printed twice above them, in
+            the subtitle and beside the logo. Three copies of one fact and two
+            controls given the visual weight of a primary action for something
+            you glance at.
 
-            {/*
-              Moved, and shrunk.
-
-              This was an amber card with a heading, two lines of prose and two
-              buttons: five lines of screen to say "waiting on John, twelve
-              days". It also could not say what the wait was for, so the one
-              piece of information worth having was the one it left out.
-
-              It is one line at the top of the record now, in Waiting, which
-              holds the reason as well as the clock.
-            */}
-
-            {customer.last_contacted_on && (
-              <div style={{ fontSize: 12, color: C.faint, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.border}` }}>
-                Last contact {shortDate(customer.last_contacted_on)}
+            Links, on one row, in the order you reach for them.
+          */}
+          {(customer.website || customer.address) && (
+            <Card style={{ marginBottom: 14 }}>
+              <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+                {customer.website && (
+                  <a
+                    href={customer.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      fontSize: 13, color: C.accent, textDecoration: 'none',
+                    }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <circle cx="8" cy="8" r="6.3" />
+                      <path d="M1.7 8h12.6" />
+                      <path d="M8 1.7a10 10 0 0 1 0 12.6 10 10 0 0 1 0-12.6" />
+                    </svg>
+                    Their site
+                  </a>
+                )}
+                {customer.website && (
+                  <button
+                    onClick={() => router.push(`/seo?client=${params.id}`)}
+                    style={{
+                      background: 'transparent', border: 'none', padding: 0,
+                      fontSize: 13, color: C.accent, cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    Search setup
+                  </button>
+                )}
+                {customer.address && (
+                  <span style={{ fontSize: 12.5, color: C.faint, flex: 1, minWidth: 120 }}>
+                    {customer.address}
+                  </span>
+                )}
               </div>
-            )}
-          </Card>
+            </Card>
+          )}
+
+          {/* Its own line, because a client with no website still has a last
+              contact date and it was about to hide inside a card that only
+              renders when there is a site or an address. */}
+          {customer.last_contacted_on && (
+            <div style={{ fontSize: 12, color: C.faint, marginBottom: 14 }}>
+              Last contact {shortDate(customer.last_contacted_on)}
+            </div>
+          )}
 
           {/*
             The work comes before the filing.
@@ -973,9 +955,37 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             ) : (
               <Table>
                 {jobs.map((j) => (
-                  <Row key={j.id} cols="1fr 90px" onClick={() => router.push(`/jobs/${j.id}`)}>
+                  <Row key={j.id} cols="1fr 118px" onClick={() => router.push(`/jobs/${j.id}`)}>
                     <div>{j.name}</div>
-                    <div><Pill tone="neutral">{JOB_STATUS_LABEL[j.status]}</Pill></div>
+                    {/*
+                      The status is editable here, where it is wrong.
+
+                      Colette's read Complete while the website was still being
+                      built, and correcting it meant opening the engagement,
+                      finding the control, and coming back. A status you can see
+                      and cannot change is a status that stays wrong, which is
+                      how a record stops being trusted.
+                    */}
+                    <select
+                      value={j.status}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={async (e) => {
+                        const next = e.target.value as JobRow['status'];
+                        setJobs((prev) => prev.map((x) => (x.id === j.id ? { ...x, status: next } : x)));
+                        const res = await supabase.from('jobs').update({ status: next }).eq('id', j.id);
+                        if (res.error) { setError(res.error.message); load(); }
+                      }}
+                      style={{
+                        background: C.panelAlt, color: C.dim,
+                        border: `1px solid ${C.border}`, borderRadius: 999,
+                        padding: '2px 8px', fontSize: 12, fontFamily: 'inherit',
+                        cursor: 'pointer', width: '100%',
+                      }}
+                    >
+                      {(Object.keys(JOB_STATUS_LABEL) as Array<keyof typeof JOB_STATUS_LABEL>).map((k) => (
+                        <option key={k} value={k}>{JOB_STATUS_LABEL[k]}</option>
+                      ))}
+                    </select>
                   </Row>
                 ))}
               </Table>

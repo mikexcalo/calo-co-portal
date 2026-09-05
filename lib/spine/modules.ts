@@ -455,6 +455,17 @@ export function navFor(
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
         { id: 'people', label: 'People', href: '/people', icon: 'network' },
         /**
+         * Engagements gets its row back.
+         *
+         * It was removed on the reasoning that it held one card and its work
+         * really lives on the client as the Plan. Both true, and it left the
+         * screen reachable and unreachable at once: opening an engagement from
+         * a client record, or pressing All engagements once there, lands you on
+         * a page with no back link and no row in the sidebar to return by. A
+         * dead end inside your own product.
+         */
+        { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'quotes' },
+        /**
          * Pipeline is work, not growth.
          *
          * It had no row at all and was reached from a client, on the reasoning

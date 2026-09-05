@@ -33,6 +33,7 @@ import {
   inputStyle,
 } from '@/components/spine/ui';
 import { RecordTable, type Column } from '@/components/spine/RecordTable';
+import { daysSince } from '@/lib/spine/stage';
 
 type Relationship = 'contact' | 'client' | 'prospect' | 'referrer' | 'freelancer' | 'partner';
 
@@ -51,7 +52,7 @@ interface Person {
   last_spoke_on: string | null;
   customer_id: string | null;
   avatar_url: string | null;
-  customers: { name: string } | null;
+  customers: { name: string; last_contacted_on: string | null } | null;
 }
 
 /**
@@ -71,6 +72,20 @@ const KINDS: { key: Relationship; label: string; tone: 'blue' | 'green' | 'amber
 ];
 
 const kindOf = (k: Relationship) => KINDS.find((x) => x.key === k) ?? KINDS[0];
+
+/**
+ * When you last had contact with this person, from either side.
+ *
+ * Their own logged call, or the last time anything went to or from the company
+ * they work at, whichever is more recent.
+ */
+const spokeOn = (p: Person): string | null => {
+  const mine = p.last_spoke_on ?? null;
+  const theirs = p.customers?.last_contacted_on ?? null;
+  if (!mine) return theirs;
+  if (!theirs) return mine;
+  return mine > theirs ? mine : theirs;
+};
 
 const blank = {
   name: '',
@@ -169,15 +184,34 @@ export default function PeoplePage() {
     },
     {
       key: 'spoke',
+      /**
+       * Contact with their company counts as contact with them.
+       *
+       * This read last_spoke_on, a field only the "Spoke today" button ever
+       * writes, so Luis showed "never" on the same day John emailed him and
+       * the email was filed against Pacific Empress. A person is not a
+       * separate relationship from the company they work at, and a date that
+       * says never when you emailed them this morning is worse than no column.
+       *
+       * Their own date still wins when it is later: a call you logged against
+       * the person is more specific than mail sent to the company.
+       */
       label: 'Spoke',
-      width: '78px',
+      width: '86px',
       align: 'right',
-      sortBy: (p) => p.last_spoke_on ?? '',
-      render: (p) => (
-        <span style={{ fontSize: 11.5, color: C.faint, fontVariantNumeric: 'tabular-nums' }}>
-          {p.last_spoke_on ?? 'never'}
-        </span>
-      ),
+      sortBy: (p) => spokeOn(p) ?? '',
+      render: (p) => {
+        const when = spokeOn(p);
+        const d = daysSince(when);
+        return (
+          <span
+            style={{ fontSize: 11.5, color: C.faint, fontVariantNumeric: 'tabular-nums' }}
+            title={when ? `Last contact ${when}` : 'Nothing recorded'}
+          >
+            {d === null ? 'never' : d === 0 ? 'today' : `${d}d ago`}
+          </span>
+        );
+      },
     },
   ];
 
@@ -185,7 +219,7 @@ export default function PeoplePage() {
     const res = await supabase
       .from('customer_contacts')
       .select(
-        'id, name, title, company, website, email, phone, note, relationship, met_how, met_on, last_spoke_on, customer_id, avatar_url, customers(name)'
+        'id, name, title, company, website, email, phone, note, relationship, met_how, met_on, last_spoke_on, customer_id, avatar_url, customers(name, last_contacted_on)'
       )
       .order('name');
     if (!res.error) setRows((res.data ?? []) as unknown as Person[]);
