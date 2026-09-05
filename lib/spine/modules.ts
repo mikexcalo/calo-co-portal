@@ -422,6 +422,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/requests', 'client_requests'],
   ['/brand-kit', 'brand_kit'],
   ['/messaging', 'brand_kit'],
+  ['/card', 'brand_kit'],
   ['/ask', 'ask'],
   ['/reviews', 'reviews'],
   ['/seo', 'seo'],
