@@ -385,7 +385,7 @@ export default function PipelinePage() {
   return (
     <Page
       title="Pipeline"
-      subtitle={`Everybody you want. They become ${vocab.customerPlural.toLowerCase()} the moment one is marked won.`}
+      subtitle="Everybody you want, before they are anybody you have."
       action={!adding ? <Button onClick={() => setAdding(true)}>Add a company</Button> : undefined}
     >
       {error && <div style={{ fontSize: 13, color: C.red, marginBottom: 12 }}>{error}</div>}

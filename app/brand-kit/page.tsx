@@ -92,6 +92,39 @@ export default function BrandKitPage() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [editingColors, setEditingColors] = useState(false);
+
+  /**
+   * Type, as a file you can hand over.
+   *
+   * This is a content store as much as a dashboard, and a designer asking what
+   * fonts a brand uses should get an answer they can keep rather than a screen
+   * they screenshot. Plain text on purpose: it opens anywhere, pastes into an
+   * email, and does not need this product to read it.
+   */
+  const downloadType = useCallback(() => {
+    const name = org?.name ?? 'brand';
+    const body = [
+      `${name} — type`,
+      new Date().toISOString().slice(0, 10),
+      '',
+      'WEBSITE',
+      `  Headings   ${brand.fontHeading || 'not set'}`,
+      `  Body       ${brand.fontBody || 'not set'}`,
+      '',
+      'PLATFORM',
+      ...PLATFORM_TYPE.map(([role, face, use]) => `  ${role.padEnd(10)} ${face.padEnd(12)} ${use}`),
+      '',
+      'COLORS',
+      ...brand.colors.map((c) => `  ${c.hex}  ${c.name}${c.role ? ` — ${c.role}` : ''}`),
+      '',
+    ].join('\n');
+    const url = URL.createObjectURL(new Blob([body], { type: 'text/plain' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-type.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [org, brand]);
   const [siteUrl, setSiteUrl] = useState('');
 
   // Default the QR target to this business's own site, since that's what a
@@ -177,7 +210,7 @@ export default function BrandKitPage() {
     <Page
       tabs={BRAND_TABS}
             title="Brand Kit"
-      subtitle={org ? `${org.name} — assets, and the tools that use them.` : undefined}
+      subtitle="Your logos, colors, type and voice."
       action={
         <>
           {saved && <Pill tone="green">Saved</Pill>}
@@ -260,39 +293,42 @@ export default function BrandKitPage() {
               kit. Editing is behind a toggle so the normal state stays a clean
               wall of swatches you click to copy.
             */}
-            <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginTop: 16, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 12.5, color: C.faint, flex: 1, minWidth: 180 }}>
-                {editingColors
-                  ? 'Change a name, a role or a hex. Nothing saves until you press save.'
-                  : 'Click any color to copy its hex code.'}
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 16 }}>
+              <span style={{ fontSize: 12.5, color: C.faint, flex: 1 }}>
+                {editingColors ? 'Nothing saves until you save.' : 'Click a color to copy it.'}
               </span>
               {editingColors && (
                 <button
                   onClick={() =>
-                    setBrand((b) => ({
-                      ...b,
-                      colors: [...b.colors, { name: 'New', role: '', hex: '#000000' }],
-                    }))
+                    setBrand((b) => ({ ...b, colors: [...b.colors, { name: 'New', role: '', hex: '#000000' }] }))
                   }
                   style={{ background: 'transparent', border: 'none', padding: 0, color: C.blue, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
                 >
-                  Add a color
+                  Add
                 </button>
               )}
-              <button
+              <IconButton
+                label={editingColors ? 'Done' : 'Edit'}
+                active={editingColors}
                 onClick={() => setEditingColors((v) => !v)}
-                style={{ background: 'transparent', border: 'none', padding: 0, color: C.blue, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
-              >
-                {editingColors ? 'Done editing' : 'Edit colors'}
-              </button>
+              />
             </div>
           </Card>
 
           <Card>
-            <SectionLabel>Typography — the website</SectionLabel>
-            <div style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.6, marginBottom: 12, maxWidth: '62ch' }}>
-              What calo.company sets its type in. Read off the live page: it loads Geist, Geist Mono,
-              IBM Plex Sans Condensed and Sacramento from Google, plus one self-hosted face.
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+              <SectionLabel>Type</SectionLabel>
+              <span style={{ flex: 1 }} />
+              <button
+                onClick={downloadType}
+                style={{ background: 'transparent', border: 'none', padding: 0, color: C.blue, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                Download
+              </button>
+            </div>
+
+            <div style={{ fontSize: 11, color: C.faint, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>
+              Website
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Field label="Headings">
@@ -313,39 +349,28 @@ export default function BrandKitPage() {
               </Field>
             </div>
 
-            {/*
-              A real problem found by reading the live page rather than the
-              stylesheet's intentions.
-            */}
             <div
               style={{
-                fontSize: 12.5, color: C.amber, lineHeight: 1.6, marginTop: 14,
+                fontSize: 12.5, color: C.amber, lineHeight: 1.6, marginTop: 12,
                 padding: '9px 12px', borderRadius: 8,
                 background: C.amberSoft, border: `1px solid ${C.amber}44`,
               }}
             >
-              <strong style={{ fontWeight: 600 }}>Your headline font is not loading.</strong> The site
-              declares Ancizar Serif for every heading and never fetches it, so visitors have been
-              seeing the Georgia fallback. Either add it to the Google Fonts link on the site, or
-              change the declaration to a face you are actually loading.
+              <strong style={{ fontWeight: 600 }}>Ancizar Serif never loads.</strong> The site asks for
+              it and never fetches it, so headings fall back to Georgia. Add it to the fonts link, or
+              name a face you do load.
             </div>
 
-            <div style={{ marginTop: 18, paddingTop: 16, borderTop: `1px solid ${C.border}` }}>
-              <SectionLabel>Typography — this platform</SectionLabel>
-              <div style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.6, marginBottom: 12, maxWidth: '62ch' }}>
-                Not editable, because it is the software rather than the brand. Here so the two can be
-                compared: today they share only Geist Mono, and that is the least visible of them.
+            <div style={{ marginTop: 18, paddingTop: 14, borderTop: `1px solid ${C.border}` }}>
+              <div style={{ fontSize: 11, color: C.faint, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>
+                Platform
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-                {[
-                  ['Headings', 'Figtree', 'Titles, section labels, the sidebar'],
-                  ['Body', 'Inter', 'Paragraphs, tables, forms'],
-                  ['Figures', 'Geist Mono', 'Money and anything in a column'],
-                ].map(([role, face, use]) => (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+                {PLATFORM_TYPE.map(([role, face, use]) => (
                   <div key={role} style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: '9px 11px' }}>
                     <div style={{ fontSize: 11, color: C.faint, textTransform: 'uppercase', letterSpacing: '.06em' }}>{role}</div>
                     <div style={{ fontSize: 15, color: C.text, marginTop: 3 }}>{face}</div>
-                    <div style={{ fontSize: 12, color: C.faint, marginTop: 2, lineHeight: 1.5 }}>{use}</div>
+                    <div style={{ fontSize: 12, color: C.faint, marginTop: 2 }}>{use}</div>
                   </div>
                 ))}
               </div>
@@ -533,6 +558,58 @@ export default function BrandKitPage() {
  * the palette as a palette. Read-only on purpose: a brand kit is a reference,
  * and letting anyone retype the brand color is how a brand drifts.
  */
+
+/** The platform's own faces. Not editable: it is software, not brand. */
+const PLATFORM_TYPE: [string, string, string][] = [
+  ['Headings', 'Figtree', 'Titles and nav'],
+  ['Body', 'Inter', 'Text and tables'],
+  ['Figures', 'Geist Mono', 'Money'],
+];
+
+/**
+ * A pencil, not the word "edit colors".
+ *
+ * A sentence pretending to be a control reads as instructions, and instructions
+ * next to a wall of swatches is one more thing to parse. An icon that turns
+ * solid when it is on says the same thing in no words.
+ */
+function IconButton({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      style={{
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        width: 30, height: 30, borderRadius: 999,
+        border: `1px solid ${active ? C.accent : C.border}`,
+        background: active ? C.accent : 'transparent',
+        color: active ? '#fff' : C.dim,
+        cursor: 'pointer', fontFamily: 'inherit', padding: 0,
+      }}
+    >
+      {active ? (
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 8.4l3.2 3.2L13 4.8" />
+        </svg>
+      ) : (
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M11.3 2.4a1.7 1.7 0 0 1 2.3 2.3L5.5 12.9l-3.1.8.8-3.1z" />
+          <path d="M10.2 3.5l2.3 2.3" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 function ColorTile({
   color,
   copied,

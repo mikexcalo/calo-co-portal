@@ -18,7 +18,7 @@ export default function MessagingPage() {
   return (
     <Page
       title="Messaging"
-      subtitle="What you claim, who it is for, and where the edges are. Everything you send is written out of this."
+      subtitle="What you claim, and where the edges are."
       tabs={BRAND_TABS}
     >
       {loading || !org ? (

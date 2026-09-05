@@ -96,7 +96,7 @@ export default function WhatYouSeePage() {
   return (
     <Page
       title="What you see"
-      subtitle="Switch off anything you are not using yet. Nothing is deleted, and it comes back the moment you want it."
+      subtitle="Switch off what you are not using. Nothing is deleted."
       tabs={SETUP_TABS}
     >
       {error && (

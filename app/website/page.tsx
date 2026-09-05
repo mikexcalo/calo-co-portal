@@ -129,7 +129,7 @@ export default function WebsitePage() {
   return (
     <Page
       title="Your website"
-      subtitle="The site as the sections it is made of. Edit the words, look at it on a real link, publish when you are happy."
+      subtitle="Your site, section by section."
       tabs={SITE_TABS}
       action={
         <>

@@ -21,6 +21,7 @@ export type ModuleId =
   | 'billing'
   | 'pl'
   | 'website'        // client-facing: ask my agency for a site change
+  | 'site'           // your own site, built from sections
   | 'client_requests' // agency-facing: the inbox of client requests
   | 'brand_kit'
   | 'brands'
@@ -43,6 +44,7 @@ export type ModuleId =
   | 'business';
 
 const CONTRACTOR: ModuleId[] = [
+  'site',
   'ask',
   'targets',
   'reviews',
@@ -73,6 +75,7 @@ const CONTRACTOR: ModuleId[] = [
 ];
 
 const AGENCY: ModuleId[] = [
+  'site',
   'ask',
   'reviews',
   'seo',
@@ -114,7 +117,7 @@ const AGENCY: ModuleId[] = [
 const PLAN_MODULES: Record<string, ModuleId[]> = {
   core: [
     'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
-    'records', 'business', 'security', 'reviews', 'targets',
+    'records', 'business', 'security', 'reviews', 'targets', 'site',
   ],
   grow: [
     'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
@@ -169,7 +172,8 @@ export const MODULE_ICON: Record<ModuleId, string> = {
   notes: 'notes',
   reviews: 'star',
   traffic: 'chart',
-  website: 'storefront',
+  website: 'inbox',
+  site: 'storefront',
   client_requests: 'inbox',
   brand_kit: 'brandKit',
   brands: 'palette',
@@ -230,6 +234,7 @@ export const MODULE_SECTION: Record<ModuleId, NavSection> = {
   brand_kit: 'Grow',
   stories: 'Grow',
   website: 'Grow',
+  site: 'Grow',
   ask: 'Grow',
 
   team: 'Setup',
@@ -257,6 +262,7 @@ export const MODULE_KIND: Record<ModuleId, ModuleKind> = {
   brands: 'place',
   stories: 'place',
   website: 'place',
+  site: 'place',
   client_requests: 'place',
   traffic: 'place',
   team: 'place',
@@ -303,7 +309,8 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   catalog: 'What they sell',
   market: 'Market',
   client_requests: 'Requests',
-  website: 'Website',
+  website: 'Site requests',
+  site: 'Website',
   team: 'Team',
   security: 'Security',
   business: 'Business settings',
@@ -399,7 +406,8 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/billing', 'billing'],
   ['/pl', 'pl'],
   ['/expenses', 'expenses'],
-  ['/website', 'website'],
+  ['/website', 'site'],
+  ['/site-requests', 'website'],
   ['/traffic', 'traffic'],
   ['/digital', 'seo'],
   ['/requests', 'client_requests'],
@@ -652,7 +660,7 @@ export function navFor(
          * which made it a view of your identity; it is the place the site
          * itself is built and tuned, so it is its own row.
          */
-        { id: 'website', label: 'Website', href: '/website', icon: 'storefront' },
+        { id: 'site', label: 'Website', href: '/website', icon: 'storefront' },
         /**
          * Brand opens on yours.
          *
