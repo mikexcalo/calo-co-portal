@@ -61,10 +61,22 @@ export async function middleware(request: NextRequest) {
   // /trust is readable signed out on purpose — the person who needs
   // convincing hasn't got an account yet.
   const isPublic =
-    path.startsWith('/login') || path.startsWith('/welcome') || path.startsWith('/trust');
+    path.startsWith('/login') ||
+    path.startsWith('/welcome') ||
+    path.startsWith('/trust') ||
+    // A site preview is a link you send to somebody who has no account. That
+    // is the entire point of it, so it cannot sit behind a session.
+    path.startsWith('/preview/');
 
   // Not logged in → redirect to /login (unless already there)
-  if (!user && !path.startsWith('/login') && !path.startsWith('/trust')) {
+  // Deliberately not `!isPublic`: /welcome is in that list for a different
+  // reason and has always redirected a signed-out visitor to the login screen.
+  if (
+    !user &&
+    !path.startsWith('/login') &&
+    !path.startsWith('/trust') &&
+    !path.startsWith('/preview/')
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
