@@ -22,6 +22,15 @@ import { SiteSection } from '@/components/site/SiteSection';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+/**
+ * Next caches fetches inside server components, and the Supabase client uses
+ * fetch. `dynamic` only promises the route is not statically built; the reads
+ * underneath it were still being served from the first response, so the page
+ * kept showing content that had been replaced hours earlier while reporting a
+ * cache MISS at the edge. A preview that shows yesterday's draft is worse than
+ * no preview.
+ */
+export const fetchCache = 'force-no-store';
 
 interface Row {
   id: string;
@@ -48,7 +57,12 @@ export default async function PreviewPage({ params }: { params: { token: string 
    * token is the only thing that grants access and it grants access to exactly
    * one site.
    */
-  const db = createClient(url, service, { auth: { persistSession: false } });
+  const db = createClient(url, service, {
+    auth: { persistSession: false },
+    // Belt as well as braces: every read here is uncached at the client too,
+    // so this cannot come back if the route config changes.
+    global: { fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }) },
+  });
 
   const { data: org } = await db
     .from('orgs')
