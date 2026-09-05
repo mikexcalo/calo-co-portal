@@ -89,7 +89,9 @@ export function Page({
       >
         <div>
           {back && <BackLink {...back} />}
-          <h1 style={{ fontSize: phone ? 19 : 21, fontWeight: 500, margin: 0, color: C.text }}>
+          {/* Figtree. Every heading in the product runs through here or
+              through SectionLabel, so the face is set in two places. */}
+          <h1 style={{ ...DISPLAY, fontSize: phone ? 20 : 23, margin: 0, color: C.text }}>
             {title}
           </h1>
           {subtitle && (
@@ -332,6 +334,7 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div
       style={{
+        fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
         fontSize: 11,
         textTransform: 'uppercase',
         letterSpacing: '0.08em',
@@ -402,7 +405,14 @@ export function Button({
 
 const PILL_TONE = {
   neutral: { bg: C.panelAlt, fg: C.dim },
-  blue: { bg: C.blueSoft, fg: C.blue },
+  /**
+   * Informational, and no longer blue.
+   *
+   * This pill said "3 open engagements" in the brand's blue, which put the
+   * same visual weight on a neutral count as on money being overdue. It is
+   * grey now, which is what it always meant.
+   */
+  blue: { bg: C.panelAlt, fg: C.dim },
   green: { bg: C.greenSoft, fg: C.green },
   amber: { bg: C.amberSoft, fg: C.amber },
   red: { bg: C.redSoft, fg: C.red },
@@ -558,7 +568,7 @@ export function Metric({
       <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em', color: C.faint, fontWeight: 600 }}>
         {label}
       </div>
-      <div style={{ fontSize: 24, fontWeight: 500, color, marginTop: 8, letterSpacing: '-0.01em' }}>
+      <div style={{ ...DISPLAY, fontSize: 25, color, marginTop: 8 }}>
         {value}
       </div>
       {hint && <div style={{ fontSize: 12, color: C.faint, marginTop: 4 }}>{hint}</div>}

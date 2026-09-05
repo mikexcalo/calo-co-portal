@@ -5,13 +5,27 @@ import './globals.css';
  * Geist Mono for figures, so columns of money line up and a reference code
  * cannot be mistaken for prose.
  */
-import { Inter } from 'next/font/google';
+import { Figtree, Inter } from 'next/font/google';
 import { GeistMono } from 'geist/font/mono';
 
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-sans',
+});
+
+/**
+ * Figtree, for anything that titles something.
+ *
+ * Headings were Inter at a heavier weight, which is a legitimate way to build
+ * an interface and made every screen sound the same. Only the weights actually
+ * used, so nothing is downloaded to sit unread.
+ */
+const figtree = Figtree({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['500', '600', '700'],
+  variable: '--font-display',
 });
 import { ThemeProvider } from '@/lib/theme';
 import { AppShell } from '@/components/AppShell';
@@ -50,7 +64,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={inter.className}>
+    <html lang="en" className={`${inter.className} ${inter.variable} ${figtree.variable}`}>
       <body
         style={{
           margin: 0,

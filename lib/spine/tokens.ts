@@ -3,10 +3,9 @@ import type React from 'react';
 /**
  * Design tokens.
  *
- * Light. Plain and functional on purpose — the visual direction is a later
- * pass, and the parked Carta palette lives in docs/design-directions.md.
- * This is meant to be legible and unremarkable so the plumbing can be judged
- * without paint in the way.
+ * Greyscale, deliberately. This product holds other people's brands, so it has
+ * no brand color of its own on screen: color means state, or it belongs to a
+ * client. See the note on accent below.
  */
 
 export const C = {
@@ -37,14 +36,31 @@ export const C = {
   borderStrong: '#DFE0E5',
 
   /**
-   * CALO&CO's own call-to-action blue, taken from calo.company rather than
-   * approximated. The previous value was a generic framework blue that looked
-   * close and was not the brand.
+   * There is no accent color.
    *
-   * 4.66:1 with white text, which clears the 4.5 floor for buttons and links.
+   * The platform was carrying CALO&CO's own blue on every button, every link,
+   * every active tab, in an app whose entire job is holding other people's
+   * brands. Colette's green, Mammoth's ochre and a seafood importer's identity
+   * all sat inside a blue frame that belonged to none of them, and the frame
+   * was the loudest thing on the screen.
+   *
+   * So the interface is greyscale, and color is reserved for two things only.
+   *
+   * MEANING. Green is settled, amber needs you, red is wrong. Three words,
+   * never decoration, so a colored thing on a grey screen is always worth
+   * looking at.
+   *
+   * THE CLIENT. Their logo, their swatches, their photographs. The only
+   * decorative color in the product comes from what has been put into it,
+   * which is the correct relationship: the software is the frame and the
+   * client is the picture.
+   *
+   * Prominence replaces hue as the interactive signal. Body copy is grey,
+   * actions are near-black, and the contrast between them does the work a
+   * blue used to do. 15.9:1 on white, which no accent color ever manages.
    */
-  accent: '#006AFF',
-  accentSoft: '#E8F1FF',
+  accent: '#141414',
+  accentSoft: '#F1F1F2',
 
   green: '#15803D',
   greenSoft: '#ECF6F0',
@@ -53,16 +69,11 @@ export const C = {
   red: '#B91C1C',
   redSoft: '#FCEDED',
   /**
-   * The same blue, darkened for text.
-   *
-   * #006AFF is right on a white button and wrong as small text on a pale blue
-   * panel, where it measures 4.1:1 against the 4.5 floor. Rather than wash the
-   * panel out until the maths passes, the fill stays exactly the brand blue
-   * and the writing sits a few steps darker. Nobody reads the two as different
-   * colors; everybody can read the second one.
+   * Inline actions: the same ink, named separately because it is used as text
+   * rather than as a fill and the two may want to diverge later.
    */
-  blue: '#0052C9',
-  blueSoft: '#E8F1FF',
+  blue: '#141414',
+  blueSoft: '#F1F1F2',
 } as const;
 
 /**
@@ -73,7 +84,23 @@ export const C = {
  * emphasis comes from -0.02em and 600, not from a second typeface.
  */
 export const SERIF = 'inherit';
+
+/**
+ * Figtree for anything that titles something.
+ *
+ * One grotesque carried the whole hierarchy, with weight and tracking doing
+ * the work a second face normally does. That is a reasonable way to build an
+ * interface and it left every screen sounding the same. Figtree has more
+ * character in its terminals and a rounder bowl than Inter, so a heading now
+ * announces itself as a heading rather than as bolder body copy.
+ *
+ * Headings only. Inter keeps the paragraphs, the tables and every number,
+ * because it is the better face for dense data and because two display faces
+ * fighting over a table is how a product starts to look designed rather than
+ * made.
+ */
 export const DISPLAY: React.CSSProperties = {
+  fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
   fontWeight: 600,
   letterSpacing: '-0.021em',
 };

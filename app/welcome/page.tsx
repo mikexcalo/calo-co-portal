@@ -26,7 +26,7 @@ const BORDER = '#e4e4e0';
 const TEXT = '#1a1a1a';
 const DIM = '#363634';
 const FAINT = '#55554f';
-const ACCENT = '#006AFF';
+const ACCENT = '#141414';
 const AMBER = '#b45309';
 const RED = '#b91c1c';
 

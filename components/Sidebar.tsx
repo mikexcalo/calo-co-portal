@@ -415,8 +415,10 @@ export default function Sidebar() {
         <span
           onClick={() => router.push('/')}
           style={{
+            // The wordmark is a heading, so it takes the heading face.
+            fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
             fontSize: 16.5,
-            fontWeight: 600,
+            fontWeight: 700,
             color: C.text,
             letterSpacing: '-0.3px',
             cursor: 'pointer',
