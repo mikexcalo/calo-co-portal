@@ -272,6 +272,7 @@ export const BRAND_TABS: readonly PageTab[] = [
 /** The website module's own strip. */
 export const SITE_TABS: readonly PageTab[] = [
   { label: 'Sections', href: '/website', icon: 'layers' },
+  { label: 'Build queue', href: '/website/queue', icon: 'send' },
   { label: 'Search', href: '/seo', icon: 'search' },
   { label: 'Traffic', href: '/traffic', icon: 'chart' },
 ];

@@ -41,6 +41,7 @@ export default function WebsitePage() {
   const [busy, setBusy] = useState(false);
   const [showHow, setShowHow] = useState(true);
   const [adding, setAdding] = useState(false);
+  const [pushed, setPushed] = useState(0);
 
   const load = useCallback(async () => {
     const res = await supabase
@@ -72,18 +73,46 @@ export default function WebsitePage() {
     await supabase.from('site_sections').update({ variant }).eq('id', row.id);
   };
 
-  /** Publishing is a copy. draft goes to content and stops existing. */
+  /**
+   * Publishing copies the draft, and pushes it out to be built.
+   *
+   * The copy is bookkeeping inside this platform. calo.company is a different
+   * repository on a different deployment, so nothing here reaches the live site
+   * on its own. The request carries both versions of every field, which is the
+   * difference between a handoff somebody can act on and a ticket that costs a
+   * conversation first.
+   */
   const publish = async (ids: string[]) => {
+    if (!org) return;
     setBusy(true);
     const now = new Date().toISOString();
     const targets = rows.filter((r) => ids.includes(r.id) && r.draft);
+
     for (const r of targets) {
+      const before = r.content ?? {};
+      const after = r.draft ?? {};
+      const changed = Array.from(new Set([...Object.keys(before), ...Object.keys(after)]))
+        .filter((k) => (before[k] ?? '') !== (after[k] ?? ''));
+
+      await supabase.from('site_change_requests').insert({
+        org_id: org.id,
+        section_id: r.id,
+        kind: r.kind,
+        variant: r.variant,
+        before,
+        after,
+        changed,
+      });
+
       await supabase
         .from('site_sections')
-        .update({ content: r.draft, draft: null, published_at: now })
+        .update({ content: after, draft: null, published_at: now })
         .eq('id', r.id);
     }
+
     setBusy(false);
+    setPushed(targets.length);
+    setTimeout(() => setPushed(0), 6000);
     load();
   };
 
@@ -140,7 +169,7 @@ export default function WebsitePage() {
           )}
           {pending > 0 && (
             <Button onClick={() => publish(rows.filter((r) => r.draft).map((r) => r.id))} disabled={busy}>
-              {busy ? 'Publishing…' : `Publish ${pending}`}
+              {busy ? 'Sending…' : `Send ${pending} to build`}
             </Button>
           )}
         </>
@@ -343,7 +372,7 @@ export default function WebsitePage() {
 
                       <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 14, flexWrap: 'wrap' }}>
                         <Button onClick={() => publish([row.id])} disabled={busy || !row.draft}>
-                          {row.draft ? 'Publish this section' : 'Nothing to publish'}
+                          {row.draft ? 'Send this to build' : 'Nothing to send'}
                         </Button>
                         {row.draft && (
                           <button onClick={() => discard(row)}

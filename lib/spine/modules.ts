@@ -407,6 +407,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/pl', 'pl'],
   ['/expenses', 'expenses'],
   ['/website', 'site'],
+  ['/website/queue', 'site'],
   ['/site-requests', 'website'],
   ['/traffic', 'traffic'],
   ['/digital', 'seo'],
