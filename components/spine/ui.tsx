@@ -264,6 +264,9 @@ export const MONEY_TABS: readonly PageTab[] = [
  */
 export const BRAND_TABS: readonly PageTab[] = [
   { label: 'Kit and assets', href: '/brand-kit', icon: 'swatches' },
+  // What you claim, as opposed to how you sound. Its own tab because
+  // everything you send is written out of it.
+  { label: 'Messaging', href: '/messaging', icon: 'brief' },
   { label: 'Website', href: '/website', icon: 'globe' },
 ];
 

@@ -404,6 +404,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/digital', 'seo'],
   ['/requests', 'client_requests'],
   ['/brand-kit', 'brand_kit'],
+  ['/messaging', 'brand_kit'],
   ['/ask', 'ask'],
   ['/reviews', 'reviews'],
   ['/seo', 'seo'],

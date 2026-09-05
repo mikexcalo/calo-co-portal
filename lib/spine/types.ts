@@ -96,6 +96,8 @@ export interface Org {
   payment_methods: unknown[];
   onboarded_at: string | null;
   billing_style: string | null;
+  /** In the preview URL. Random, so a link can be revoked by changing it. */
+  site_preview_token?: string | null;
   /** How the money works, in their own words, when no rate column can hold it. */
   billing_note?: string | null;
   /** Null means nobody has chosen one, which is not the same as choosing zero. */

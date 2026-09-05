@@ -1,365 +1,394 @@
 'use client';
 
 /**
- * Client-facing: ask your agency for a website change.
+ * Your site, as the sections it is made of.
  *
- * This is the side Mammoth sees. They don't triage requests, they raise them —
- * and they can see exactly where each one stands, which is the thing that
- * actually stops the "any update on that?" email.
+ * Editing calo.company means opening a code editor, finding a string,
+ * deploying and hoping. Doing that for a fourth and fifth client site means
+ * doing it four and five times, because nothing from the last one was reusable.
  *
- * Anything editable without a build lives here too, so most requests never
- * need to be requests.
+ * The unit here is a whole section, never an element inside one. You edit the
+ * words and pick between two or three cuts of the section; you never touch
+ * padding or type size. That constraint is the product — it is what keeps
+ * every site looking like you made it, and it is precisely what a page builder
+ * gives away in exchange for a canvas nobody needs.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
-import { getCurrentOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
-import { modulesFor } from '@/lib/spine/modules';
-import {
-  Button,
-  C,
-  Card,
-  Empty,
-  Field,
-  Page,
-  Pill,
-  SectionLabel,
-  inputStyle,
-  shortDate,
-  useIsPhone,
-  BRAND_TABS,
-} from '@/components/spine/ui';
+import { HOW_IT_WORKS, SECTIONS, specFor, type SectionSpec } from '@/lib/spine/sections';
+import { BRAND_TABS, Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/components/spine/ui';
 
-interface Site {
+interface Row {
   id: string;
-  name: string;
-  url: string | null;
-  managed_by_org_id: string | null;
-}
-
-interface Content {
-  id: string;
-  key: string;
-  label: string;
-  value: string | null;
   kind: string;
-  help: string | null;
+  variant: string;
+  content: Record<string, string>;
+  draft: Record<string, string> | null;
+  sort: number;
+  live: boolean;
+  published_at: string | null;
 }
-
-interface Request {
-  id: string;
-  title: string;
-  body: string;
-  kind: string;
-  urgency: string;
-  status: string;
-  note_to_client: string | null;
-  submitted_at: string;
-}
-
-const STATUS_COPY: Record<string, { label: string; tone: 'neutral' | 'amber' | 'blue' | 'green' }> = {
-  submitted: { label: 'Sent, waiting on review', tone: 'amber' },
-  needs_info: { label: 'They asked a question', tone: 'amber' },
-  approved: { label: 'Approved', tone: 'blue' },
-  building: { label: 'Being built', tone: 'blue' },
-  shipped: { label: 'Live', tone: 'green' },
-  declined: { label: 'Not doing this one', tone: 'neutral' },
-};
 
 export default function WebsitePage() {
-  const phone = useIsPhone();
-  const { org } = useOrg();
-  const mods = modulesFor(org);
-  const [site, setSite] = useState<Site | null>(null);
-  const [content, setContent] = useState<Content[]>([]);
-  const [requests, setRequests] = useState<Request[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
+  const { org, refresh } = useOrg();
+  const [rows, setRows] = useState<Row[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [asking, setAsking] = useState(false);
-
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
-  const [kind, setKind] = useState('change');
-  const [urgency, setUrgency] = useState('normal');
+  const [open, setOpen] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [showHow, setShowHow] = useState(true);
+  const [adding, setAdding] = useState(false);
 
   const load = useCallback(async () => {
-    const [s, r] = await Promise.all([
-      supabase.from('client_sites').select('*').limit(1).maybeSingle(),
-      supabase.from('site_requests').select('*').order('submitted_at', { ascending: false }),
-    ]);
-    if (s.error) throw new Error(s.error.message);
-    if (r.error) throw new Error(r.error.message);
-
-    setSite((s.data as Site) ?? null);
-    setRequests((r.data ?? []) as Request[]);
-
-    if (s.data) {
-      const c = await supabase
-        .from('site_content')
-        .select('*')
-        .eq('site_id', (s.data as Site).id)
-        .order('position');
-      if (!c.error) setContent((c.data ?? []) as Content[]);
-    }
+    const res = await supabase
+      .from('site_sections')
+      .select('id, kind, variant, content, draft, sort, live, published_at')
+      .is('customer_id', null)
+      .order('sort');
+    if (res.error) setError(res.error.message);
+    else setRows((res.data ?? []) as Row[]);
+    setLoaded(true);
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        await getCurrentOrg();
-        await load();
-      } catch (e) {
-        setError((e as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
-  const saveContent = async (c: Content, value: string) => {
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await supabase.from('site_content').update({ value }).eq('id', c.id);
-      if (res.error) throw new Error(res.error.message);
-      setContent((prev) => prev.map((x) => (x.id === c.id ? { ...x, value } : x)));
-      setNotice(`${c.label} updated. It's live on the site now.`);
-      setTimeout(() => setNotice(null), 4000);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
+  const pending = useMemo(() => rows.filter((r) => r.draft !== null).length, [rows]);
+  const previewUrl = org?.site_preview_token
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/preview/${org.site_preview_token}`
+    : null;
+
+  /** Editing writes to draft only. The published copy is never touched here. */
+  const edit = async (row: Row, key: string, value: string) => {
+    const next = { ...(row.draft ?? row.content), [key]: value };
+    setRows((p) => p.map((r) => (r.id === row.id ? { ...r, draft: next } : r)));
+    await supabase.from('site_sections').update({ draft: next }).eq('id', row.id);
   };
 
-  const submit = async () => {
+  const setVariant = async (row: Row, variant: string) => {
+    setRows((p) => p.map((r) => (r.id === row.id ? { ...r, variant } : r)));
+    await supabase.from('site_sections').update({ variant }).eq('id', row.id);
+  };
+
+  /** Publishing is a copy. draft goes to content and stops existing. */
+  const publish = async (ids: string[]) => {
     setBusy(true);
-    setError(null);
-    try {
-      if (!org) throw new Error('No business selected.');
-      const { data: auth } = await supabase.auth.getUser();
-
-      const res = await supabase.from('site_requests').insert({
-        org_id: org.id,
-        site_id: site?.id ?? null,
-        title: title.trim(),
-        body: body.trim(),
-        kind,
-        urgency,
-        requested_by: auth?.user?.id ?? null,
-        requester_email: auth?.user?.email ?? null,
-      });
-      if (res.error) throw new Error(res.error.message);
-
-      // Tell the agency that manages this site. Best-effort — the request is
-      // already saved, and a failed announcement must not lose it.
-      if (site?.managed_by_org_id) {
-        await supabase.from('notifications').insert({
-          org_id: site.managed_by_org_id,
-          kind: 'site_request',
-          title: `${org.name}: ${title.trim()}`,
-          body: body.trim().slice(0, 120),
-          href: '/requests',
-        });
-      }
-
-      setTitle(''); setBody(''); setKind('change'); setUrgency('normal');
-      setAsking(false);
-      setNotice('Sent. You can track it below.');
-      await load();
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
+    const now = new Date().toISOString();
+    const targets = rows.filter((r) => ids.includes(r.id) && r.draft);
+    for (const r of targets) {
+      await supabase
+        .from('site_sections')
+        .update({ content: r.draft, draft: null, published_at: now })
+        .eq('id', r.id);
     }
+    setBusy(false);
+    load();
+  };
+
+  const discard = async (row: Row) => {
+    setRows((p) => p.map((r) => (r.id === row.id ? { ...r, draft: null } : r)));
+    await supabase.from('site_sections').update({ draft: null }).eq('id', row.id);
+  };
+
+  const toggleLive = async (row: Row) => {
+    const next = !row.live;
+    setRows((p) => p.map((r) => (r.id === row.id ? { ...r, live: next } : r)));
+    await supabase.from('site_sections').update({ live: next }).eq('id', row.id);
+  };
+
+  const add = async (spec: SectionSpec) => {
+    if (!org) return;
+    setBusy(true);
+    const res = await supabase.from('site_sections').insert({
+      org_id: org.id,
+      kind: spec.kind,
+      variant: spec.variants[0].id,
+      content: {},
+      sort: rows.length,
+    });
+    setBusy(false);
+    setAdding(false);
+    if (res.error) { setError(res.error.message); return; }
+    load();
+  };
+
+  const move = async (row: Row, dir: -1 | 1) => {
+    const i = rows.findIndex((r) => r.id === row.id);
+    const j = i + dir;
+    if (j < 0 || j >= rows.length) return;
+    const reordered = [...rows];
+    [reordered[i], reordered[j]] = [reordered[j], reordered[i]];
+    setRows(reordered.map((r, n) => ({ ...r, sort: n })));
+    await Promise.all(
+      reordered.map((r, n) => supabase.from('site_sections').update({ sort: n }).eq('id', r.id))
+    );
   };
 
   return (
     <Page
-      tabs={BRAND_TABS}
       title="Your website"
-      subtitle={
-        site
-          ? `${site.name}${site.url ? ` — ${site.url}` : ''}`
-          : 'Edit what you can yourself, and ask for anything else.'
-      }
+      subtitle="The site as the sections it is made of. Edit the words, look at it on a real link, publish when you are happy."
+      tabs={BRAND_TABS}
       action={
-        <Button onClick={() => setAsking((v) => !v)}>
-          {asking ? 'Cancel' : 'Request a change'}
-        </Button>
+        <>
+          {previewUrl && (
+            <Button variant="ghost" onClick={() => window.open(previewUrl, '_blank')}>
+              Preview
+            </Button>
+          )}
+          {pending > 0 && (
+            <Button onClick={() => publish(rows.filter((r) => r.draft).map((r) => r.id))} disabled={busy}>
+              {busy ? 'Publishing…' : `Publish ${pending}`}
+            </Button>
+          )}
+        </>
       }
     >
-      {error && (
-        <Card style={{ borderColor: C.red, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
-        </Card>
-      )}
-      {notice && (
-        <Card style={{ borderColor: C.green, marginBottom: 16 }}>
-          <div style={{ color: C.green, fontSize: 14 }}>{notice}</div>
-        </Card>
-      )}
+      {error && <div style={{ fontSize: 13, color: C.red, marginBottom: 12 }}>{error}</div>}
 
-      {asking && (
-        <Card style={{ marginBottom: 22, maxWidth: 640 }}>
-          <Field label="What needs changing?">
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              style={inputStyle}
-              placeholder="Add a photo gallery to the Projects page"
-              autoFocus
-            />
-          </Field>
-          <Field label="Tell them everything they need to know">
-            <textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              style={{ ...inputStyle, minHeight: 120, resize: 'vertical', lineHeight: 1.55 }}
-              placeholder="Which page, what it should say, and anything you'd send along: photos, wording, a link to an example you like."
-            />
-          </Field>
-          <div style={{ display: 'grid', gridTemplateColumns: phone ? '1fr' : '1fr 1fr', gap: 12 }}>
-            <Field label="Type">
-              <select value={kind} onChange={(e) => setKind(e.target.value)} style={inputStyle}>
-                <option value="copy">Wording</option>
-                <option value="image">Photos</option>
-                <option value="change">Change something</option>
-                <option value="new_feature">Something new</option>
-                <option value="bug">Something's broken</option>
-                <option value="other">Other</option>
-              </select>
-            </Field>
-            <Field label="How soon">
-              <select value={urgency} onChange={(e) => setUrgency(e.target.value)} style={inputStyle}>
-                <option value="whenever">Whenever</option>
-                <option value="normal">Normal</option>
-                <option value="urgent">Urgent</option>
-              </select>
-            </Field>
-          </div>
-          <Button onClick={submit} disabled={busy || !title.trim() || !body.trim()}>
-            {busy ? 'Sending…' : 'Send request'}
-          </Button>
-        </Card>
-      )}
-
-      {/* Self-serve first — every field here is a request nobody has to work. */}
-      {content.length > 0 && (
-        <div style={{ marginBottom: 28 }}>
-          <SectionLabel>Change these yourself</SectionLabel>
-          <Card>
-            <div style={{ fontSize: 13.5, color: C.dim, marginBottom: 16 }}>
-              These go live immediately. No approval, no waiting.
-            </div>
-            {content.map((c) => (
-              <ContentField key={c.id} item={c} busy={busy} onSave={saveContent} />
-            ))}
-          </Card>
+      {/*
+        How it works, in the product.
+        
+        A tool that needs explaining and does not explain itself is a tool you
+        use once. Folded after the first read, because instructions you have
+        absorbed become furniture.
+      */}
+      <Card style={{ marginBottom: 16 }}>
+        <div
+          onClick={() => setShowHow((v) => !v)}
+          style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+        >
+          <span
+            style={{
+              fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
+              fontSize: 14, fontWeight: 600, color: C.text, flex: 1,
+            }}
+          >
+            How this works
+          </span>
+          <span style={{ fontSize: 12, color: C.blue }}>{showHow ? 'Hide' : 'Read'}</span>
         </div>
-      )}
 
-      <SectionLabel>Your requests</SectionLabel>
-      {loading ? (
-        <Empty>Loading…</Empty>
-      ) : requests.length === 0 ? (
-        <Card>
-          <Empty>
-            Nothing requested yet. Anything you can&apos;t change above, ask for it.
-          </Empty>
-        </Card>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {requests.map((r) => {
-            const s = STATUS_COPY[r.status] ?? { label: r.status, tone: 'neutral' as const };
-            return (
-              <Card key={r.id}>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 15, fontWeight: 500, flex: 1, minWidth: 200 }}>
-                    {r.title}
-                  </span>
-                  <Pill tone={s.tone}>{s.label}</Pill>
-                </div>
-                <div style={{ fontSize: 13.5, color: C.dim, marginTop: 8, whiteSpace: 'pre-wrap' }}>
-                  {r.body}
-                </div>
-                <div style={{ fontSize: 12, color: C.faint, marginTop: 8 }}>
-                  Sent {shortDate(r.submitted_at)}
-                </div>
-                {r.note_to_client && (
-                  <div
-                    style={{
-                      marginTop: 12,
-                      padding: 11,
-                      borderRadius: 7,
-                      background: C.accentSoft,
-                      fontSize: 13.5,
-                      color: C.text,
-                    }}
-                  >
-                    <strong style={{ fontWeight: 600 }}>Reply:</strong> {r.note_to_client}
+        {showHow && (
+          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {HOW_IT_WORKS.map((s, i) => (
+              <div key={s.step} style={{ display: 'flex', gap: 12 }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
+                    fontSize: 12, fontWeight: 700, color: C.faint,
+                    width: 18, flexShrink: 0, fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
+                  {i + 1}
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13.5, color: C.text, fontWeight: 500 }}>{s.step}</div>
+                  <div style={{ fontSize: 13, color: C.faint, lineHeight: 1.6, marginTop: 2, maxWidth: '68ch' }}>
+                    {s.detail}
                   </div>
-                )}
-              </Card>
-            );
-          })}
-        </div>
-      )}
-
-      {!loading && !site && (
-        <Card style={{ marginTop: 20, borderColor: C.amber }}>
-          <div style={{ fontSize: 14, color: C.amber }}>
-            No website is linked to this business yet, so requests won&apos;t reach anyone.
-            Whoever manages your site needs to add it.
+                </div>
+              </div>
+            ))}
+            {previewUrl && (
+              <div style={{ fontSize: 12.5, color: C.faint, borderTop: `1px solid ${C.border}`, paddingTop: 10 }}>
+                Your preview link, which needs no login so you can send it:{' '}
+                <a href={previewUrl} target="_blank" rel="noreferrer noopener" style={{ color: C.blue }}>
+                  {previewUrl.replace(/^https?:\/\//, '')}
+                </a>
+              </div>
+            )}
           </div>
-        </Card>
+        )}
+      </Card>
+
+      {!loaded ? (
+        <Empty>Loading…</Empty>
+      ) : (
+        <>
+          {pending > 0 && (
+            <div
+              style={{
+                fontSize: 12.5, color: C.amber, marginBottom: 12, lineHeight: 1.6,
+                padding: '8px 12px', borderRadius: 8,
+                background: C.amberSoft, border: `1px solid ${C.amber}44`,
+              }}
+            >
+              {pending} section{pending === 1 ? '' : 's'} edited and not published. The live site
+              still shows the old words.
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {rows.map((row, i) => {
+              const spec = specFor(row.kind);
+              const isOpen = open === row.id;
+              const data = row.draft ?? row.content;
+              return (
+                <Card key={row.id}>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <span
+                      style={{
+                        fontSize: 11.5, color: C.faint, width: 16,
+                        fontVariantNumeric: 'tabular-nums', flexShrink: 0,
+                      }}
+                    >
+                      {i + 1}
+                    </span>
+                    <span
+                      onClick={() => setOpen(isOpen ? null : row.id)}
+                      style={{
+                        fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
+                        fontSize: 14.5, fontWeight: 600, color: row.live ? C.text : C.faint,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {spec?.label ?? row.kind}
+                    </span>
+                    <span style={{ fontSize: 12, color: C.faint }}>
+                      {spec?.variants.find((v) => v.id === row.variant)?.label ?? row.variant}
+                    </span>
+                    {row.draft && (
+                      <span
+                        style={{
+                          fontSize: 11, color: C.amber, border: `1px solid ${C.amber}55`,
+                          borderRadius: 999, padding: '1px 9px',
+                        }}
+                      >
+                        edited
+                      </span>
+                    )}
+                    {!row.live && (
+                      <span style={{ fontSize: 11.5, color: C.faint }}>hidden</span>
+                    )}
+                    <span style={{ flex: 1 }} />
+                    <button onClick={() => move(row, -1)} disabled={i === 0}
+                      style={{ background: 'transparent', border: 'none', color: i === 0 ? C.border : C.faint, cursor: 'pointer', fontSize: 13, padding: 0 }}>↑</button>
+                    <button onClick={() => move(row, 1)} disabled={i === rows.length - 1}
+                      style={{ background: 'transparent', border: 'none', color: i === rows.length - 1 ? C.border : C.faint, cursor: 'pointer', fontSize: 13, padding: 0 }}>↓</button>
+                    <button
+                      onClick={() => setOpen(isOpen ? null : row.id)}
+                      style={{ background: 'transparent', border: 'none', padding: 0, color: C.blue, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
+                    >
+                      {isOpen ? 'Close' : 'Edit'}
+                    </button>
+                  </div>
+
+                  {isOpen && spec && (
+                    <div style={{ marginTop: 14 }}>
+                      <div style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.6, marginBottom: 12, maxWidth: '68ch' }}>
+                        {spec.purpose}
+                      </div>
+
+                      <SectionLabel>Which cut</SectionLabel>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+                        {spec.variants.map((v) => {
+                          const on = row.variant === v.id;
+                          return (
+                            <button
+                              key={v.id}
+                              onClick={() => setVariant(row, v.id)}
+                              title={v.when}
+                              style={{
+                                border: `1px solid ${on ? C.accent : C.border}`,
+                                background: on ? C.accentSoft : 'transparent',
+                                color: on ? C.text : C.faint,
+                                borderRadius: 999, padding: '4px 12px', fontSize: 12.5,
+                                cursor: 'pointer', fontFamily: 'inherit',
+                              }}
+                            >
+                              {v.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div style={{ fontSize: 12, color: C.faint, marginTop: -8, marginBottom: 14 }}>
+                        {spec.variants.find((v) => v.id === row.variant)?.when}
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {spec.fields.map((f) => (
+                          <div key={f.key}>
+                            <div style={{ fontSize: 12.5, color: C.dim, fontWeight: 500 }}>{f.label}</div>
+                            {f.hint && (
+                              <div style={{ fontSize: 12, color: C.faint, margin: '1px 0 5px', lineHeight: 1.5 }}>
+                                {f.hint}
+                              </div>
+                            )}
+                            {f.kind === 'line' || f.kind === 'url' ? (
+                              <input
+                                value={data[f.key] ?? ''}
+                                onChange={(e) => edit(row, f.key, e.target.value)}
+                                style={inputStyle}
+                              />
+                            ) : (
+                              <textarea
+                                value={data[f.key] ?? ''}
+                                onChange={(e) => edit(row, f.key, e.target.value)}
+                                rows={f.kind === 'list' ? 5 : 3}
+                                style={{ ...inputStyle, lineHeight: 1.6, resize: 'vertical' }}
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 14, flexWrap: 'wrap' }}>
+                        <Button onClick={() => publish([row.id])} disabled={busy || !row.draft}>
+                          {row.draft ? 'Publish this section' : 'Nothing to publish'}
+                        </Button>
+                        {row.draft && (
+                          <button onClick={() => discard(row)}
+                            style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>
+                            Throw the edit away
+                          </button>
+                        )}
+                        <span style={{ flex: 1 }} />
+                        <button onClick={() => toggleLive(row)}
+                          style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>
+                          {row.live ? 'Hide from the site' : 'Put back on the site'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </Card>
+              );
+            })}
+          </div>
+
+          <div style={{ marginTop: 14 }}>
+            {adding ? (
+              <Card>
+                <SectionLabel>Add a section</SectionLabel>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {SECTIONS.map((s) => (
+                    <button
+                      key={s.kind}
+                      onClick={() => add(s)}
+                      style={{
+                        textAlign: 'left', background: 'transparent',
+                        border: `1px solid ${C.border}`, borderRadius: 10,
+                        padding: '9px 12px', cursor: 'pointer', fontFamily: 'inherit',
+                      }}
+                    >
+                      <div style={{ fontSize: 13.5, color: C.text, fontWeight: 500 }}>{s.label}</div>
+                      <div style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.5, marginTop: 2 }}>
+                        {s.purpose}
+                      </div>
+                    </button>
+                  ))}
+                  <div>
+                    <Button variant="ghost" onClick={() => setAdding(false)}>Cancel</Button>
+                  </div>
+                </div>
+              </Card>
+            ) : (
+              <Button variant="ghost" onClick={() => setAdding(true)}>Add a section</Button>
+            )}
+          </div>
+        </>
       )}
     </Page>
-  );
-}
-
-function ContentField({
-  item,
-  busy,
-  onSave,
-}: {
-  item: Content;
-  busy: boolean;
-  onSave: (c: Content, value: string) => void;
-}) {
-  const [value, setValue] = useState(item.value ?? '');
-  const dirty = value !== (item.value ?? '');
-
-  return (
-    <div style={{ marginBottom: 16 }}>
-      <div style={{ fontSize: 13, color: C.dim, marginBottom: 5, fontWeight: 500 }}>
-        {item.label}
-      </div>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-        {item.kind === 'longtext' ? (
-          <textarea
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }}
-          />
-        ) : (
-          <input
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            style={inputStyle}
-            type={item.kind === 'email' ? 'email' : item.kind === 'phone' ? 'tel' : 'text'}
-          />
-        )}
-        <Button onClick={() => onSave(item, value)} disabled={busy || !dirty}>
-          Save
-        </Button>
-      </div>
-      {item.help && (
-        <div style={{ fontSize: 12.5, color: C.faint, marginTop: 4 }}>{item.help}</div>
-      )}
-    </div>
   );
 }
