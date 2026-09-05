@@ -290,7 +290,7 @@ export default function CustomersPage() {
               onClick={() => setStageFilter(s)}
               style={{
                 padding: '6px 12px',
-                borderRadius: 20,
+                borderRadius: 999,
                 fontSize: 13,
                 border: `1px solid ${stageFilter === s ? C.accent : C.border}`,
                 background: stageFilter === s ? C.accentSoft : 'transparent',

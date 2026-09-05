@@ -304,7 +304,7 @@ export default function BusinessPage() {
                         border: `1px solid ${on ? C.accent : C.border}`,
                         background: on ? C.accentSoft : 'transparent',
                         color: on ? C.text : C.dim,
-                        borderRadius: 8, padding: '7px 13px', fontSize: 13.5,
+                        borderRadius: 999, padding: '6px 14px', fontSize: 13.5,
                         cursor: 'pointer', fontFamily: 'inherit',
                       }}
                     >

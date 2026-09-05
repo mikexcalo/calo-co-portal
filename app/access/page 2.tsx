@@ -61,8 +61,6 @@ const WHAT: Partial<Record<ModuleId, string>> = {
   seo: 'The search checklist',
   traffic: 'Who arrived at their site',
   targets: 'Companies they want',
-  catalog: 'A product list on each of their clients, priced',
-  market: 'Their reference library, shared across every client',
   website: 'Ask us for a site change',
   client_requests: 'Their requests, for you to triage',
   brand_kit: 'Their logos, colors and type',
@@ -178,7 +176,7 @@ export default function AccessPage() {
                   onClick={() => setPick(r.id)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '5px 12px 5px 6px', borderRadius: 999,
+                    padding: '6px 12px 6px 7px', borderRadius: 8,
                     border: `1px solid ${on ? C.accent : C.border}`,
                     background: on ? C.accentSoft : 'transparent',
                     color: on ? C.text : C.dim,
@@ -234,7 +232,7 @@ export default function AccessPage() {
                           <button
                             onClick={() => write(client, m, selling ? null : 'sold')}
                             style={{
-                              fontSize: 11.5, padding: '2px 10px', borderRadius: 999,
+                              fontSize: 11.5, padding: '3px 9px', borderRadius: 6,
                               cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
                               border: `1px solid ${selling ? C.amber : C.border}`,
                               background: selling ? C.amberSoft : 'transparent',

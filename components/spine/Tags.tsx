@@ -66,7 +66,7 @@ export function Tags({
             display: 'inline-flex', alignItems: 'center', gap: 5,
             fontSize: 12, color: C.dim,
             border: `1px solid ${C.border}`, background: C.panelAlt,
-            borderRadius: 6, padding: '3px 8px',
+            borderRadius: 999, padding: '2px 9px',
           }}
         >
           {t}
@@ -100,7 +100,7 @@ export function Tags({
             placeholder={tags.length ? 'add' : 'add a tag'}
             style={{
               border: `1px dashed ${C.border}`, background: 'transparent',
-              borderRadius: 6, padding: '3px 8px', fontSize: 12,
+              borderRadius: 999, padding: '2px 9px', fontSize: 12,
               color: C.text, fontFamily: 'inherit', width: tags.length ? 62 : 92,
               outline: 'none',
             }}

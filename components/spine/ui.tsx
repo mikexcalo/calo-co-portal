@@ -141,7 +141,7 @@ function PageTabs({ tabs, phone }: { tabs: readonly PageTab[]; phone: boolean })
               alignItems: 'center',
               gap: 7,
               padding: '7px 13px',
-              borderRadius: 8,
+              borderRadius: 999,
               border: `1px solid ${active ? C.border : 'transparent'}`,
               background: active ? C.panel : 'transparent',
               boxShadow: active ? '0 1px 2px rgba(0,0,0,.06)' : 'none',
@@ -373,10 +373,21 @@ export function Button({
       disabled={disabled}
       style={{
         ...styles[variant],
-        padding: '9px 16px',
-        borderRadius: radius.md,
-        fontSize: 14,
+        /**
+         * A pill, and a thin one.
+         *
+         * Rounded rectangles read as software chrome; a fully rounded end reads
+         * as something to press, which is the whole job. Thin because a button
+         * at nine pixels of vertical padding with a full radius stops looking
+         * like a pill and starts looking like a lozenge, and because these sit
+         * beside 13.5px text everywhere and were quietly the heaviest thing on
+         * most screens.
+         */
+        padding: '6px 15px',
+        borderRadius: 999,
+        fontSize: 13.5,
         fontWeight: 500,
+        lineHeight: 1.45,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.45 : 1,
         fontFamily: 'inherit',
