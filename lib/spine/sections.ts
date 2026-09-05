@@ -179,6 +179,11 @@ export const HOW_IT_WORKS: { step: string; detail: string }[] = [
       'Preview opens a genuine web page at its own address. Open it on your phone, send it to a client, sleep on it. It shows drafts; the live site does not.',
   },
   {
+    step: 'They can comment on it, with no account',
+    detail:
+      'Anybody holding that link can hover a section and leave a note. It arrives attached to the block they were looking at and appears in this screen inside that section, next to the fields they meant. No sign-in, no invitation, nothing to install. This is the fastest way to run a review with a client.',
+  },
+  {
     step: 'Publish when you are happy',
     detail:
       'Publishing copies the draft over the published version. One section at a time or the whole page at once, and it is reversible until you overwrite it again.',

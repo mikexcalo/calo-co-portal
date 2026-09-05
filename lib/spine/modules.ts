@@ -22,6 +22,7 @@ export type ModuleId =
   | 'pl'
   | 'website'        // client-facing: ask my agency for a site change
   | 'site'           // your own site, built from sections
+  | 'learn'          // what the product does, and how
   | 'client_requests' // agency-facing: the inbox of client requests
   | 'brand_kit'
   | 'brands'
@@ -44,6 +45,7 @@ export type ModuleId =
   | 'business';
 
 const CONTRACTOR: ModuleId[] = [
+  'learn',
   'site',
   'ask',
   'targets',
@@ -75,6 +77,7 @@ const CONTRACTOR: ModuleId[] = [
 ];
 
 const AGENCY: ModuleId[] = [
+  'learn',
   'site',
   'ask',
   'reviews',
@@ -117,7 +120,7 @@ const AGENCY: ModuleId[] = [
 const PLAN_MODULES: Record<string, ModuleId[]> = {
   core: [
     'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
-    'records', 'business', 'security', 'reviews', 'targets', 'site',
+    'records', 'business', 'security', 'reviews', 'targets', 'site', 'learn',
   ],
   grow: [
     'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
@@ -174,6 +177,7 @@ export const MODULE_ICON: Record<ModuleId, string> = {
   traffic: 'chart',
   website: 'inbox',
   site: 'storefront',
+  learn: 'book',
   client_requests: 'inbox',
   brand_kit: 'brandKit',
   brands: 'palette',
@@ -235,6 +239,7 @@ export const MODULE_SECTION: Record<ModuleId, NavSection> = {
   stories: 'Grow',
   website: 'Grow',
   site: 'Grow',
+  learn: 'Setup',
   ask: 'Grow',
 
   team: 'Setup',
@@ -263,6 +268,7 @@ export const MODULE_KIND: Record<ModuleId, ModuleKind> = {
   stories: 'place',
   website: 'place',
   site: 'place',
+  learn: 'place',
   client_requests: 'place',
   traffic: 'place',
   team: 'place',
@@ -311,6 +317,7 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   client_requests: 'Requests',
   website: 'Site requests',
   site: 'Website',
+  learn: 'Learn',
   team: 'Team',
   security: 'Security',
   business: 'Business settings',
@@ -406,6 +413,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/billing', 'billing'],
   ['/pl', 'pl'],
   ['/expenses', 'expenses'],
+  ['/learn', 'learn'],
   ['/website', 'site'],
   ['/website/queue', 'site'],
   ['/site-requests', 'website'],
@@ -672,6 +680,15 @@ export function navFor(
          * word goes.
          */
         { id: 'brands', label: 'Brand', href: '/brand-kit', icon: 'brandKit' },
+        /**
+         * Learn is a module, not a help panel.
+         *
+         * A feature nobody was told about is a feature nobody uses, and the
+         * same explanation kept being typed into a chat window and scrolling
+         * away. This is also what a client is handed the day they get a login:
+         * training and enablement are one problem seen from two sides.
+         */
+        { id: 'learn', label: 'Learn', href: '/learn', icon: 'book' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
   ];

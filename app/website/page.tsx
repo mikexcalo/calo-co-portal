@@ -51,6 +51,7 @@ export default function WebsitePage() {
   const [adding, setAdding] = useState(false);
   const [pushed, setPushed] = useState(0);
   const [notes, setNotes] = useState<Note[]>([]);
+  const [copied, setCopied] = useState(false);
 
   const load = useCallback(async () => {
     const res = await supabase
@@ -245,9 +246,20 @@ export default function WebsitePage() {
               </div>
             ))}
             {previewUrl && (
-              <div style={{ fontSize: 12.5, color: C.faint, borderTop: `1px solid ${C.border}`, paddingTop: 10 }}>
-                Your preview link, which needs no login so you can send it:{' '}
-                <a href={previewUrl} target="_blank" rel="noreferrer noopener" style={{ color: C.blue }}>
+              <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 12 }}>
+                <div style={{ fontSize: 13, color: C.text, fontWeight: 500, marginBottom: 4 }}>
+                  Send this to a client. They can comment on it.
+                </div>
+                <div style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.6, maxWidth: '66ch' }}>
+                  No login, works on a phone. They hover any section and leave a note, and it comes
+                  back attached to that section, right above the fields they were talking about.
+                </div>
+                <a
+                  href={previewUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  style={{ display: 'inline-block', marginTop: 8, fontSize: 12.5, color: C.blue }}
+                >
                   {previewUrl.replace(/^https?:\/\//, '')}
                 </a>
               </div>
@@ -260,6 +272,28 @@ export default function WebsitePage() {
         <Empty>Loading…</Empty>
       ) : (
         <>
+          {previewUrl && notes.length === 0 && (
+            <div
+              style={{
+                display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap',
+                fontSize: 12.5, color: C.dim, marginBottom: 12, lineHeight: 1.6,
+                padding: '9px 12px', borderRadius: 8,
+                background: C.panelAlt, border: `1px solid ${C.border}`,
+              }}
+            >
+              <span style={{ flex: 1, minWidth: 240 }}>
+                Clients can comment on the preview. No account needed, and notes land on the section
+                they are about.
+              </span>
+              <button
+                onClick={() => { navigator.clipboard.writeText(previewUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                style={{ background: 'transparent', border: 'none', padding: 0, color: copied ? C.green : C.blue, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                {copied ? 'Link copied' : 'Copy the link'}
+              </button>
+            </div>
+          )}
+
           {notes.length > 0 && (
             <div
               style={{
