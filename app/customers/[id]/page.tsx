@@ -19,6 +19,7 @@ import { useOrg } from '@/lib/spine/org';
 import { modulesFor } from '@/lib/spine/modules';
 import { StageBar } from '@/components/spine/StageBar';
 import { Tags } from '@/components/spine/Tags';
+import { Enrich } from '@/components/spine/Enrich';
 import type { Stage } from '@/lib/spine/stage';
 import { Links } from '@/components/spine/Links';
 import { Photos } from '@/components/spine/Photos';
@@ -545,6 +546,12 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             busy={stageBusy}
             onChange={setStage}
           />
+
+          {/* Only offered when there is nothing to lose. A company with a
+              website on file has already been filled in by somebody. */}
+          {!customer.website && (
+            <Enrich customerId={params.id} currentName={customer.name} onSaved={load} />
+          )}
 
           {/* Tags under it, because what a company is and where it stands are
               the two things you want before anything else on the page. */}

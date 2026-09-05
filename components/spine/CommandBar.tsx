@@ -101,18 +101,87 @@ export function CommandBar() {
    * clients this becomes a server-side search, and that is a good problem.
    */
   const load = useCallback(async () => {
-    const [cust, jobs, brands, stories] = await Promise.all([
-      supabase.from('customers').select('id, name, email, stage').limit(500),
+    const [cust, jobs, brands, stories, people, notes] = await Promise.all([
+      supabase.from('customers').select('id, name, email, stage, tags').limit(500),
       supabase.from('jobs').select('id, name, status').limit(500),
       supabase.from('brands').select('id, name, kit').limit(100),
       supabase.from('case_studies').select('id, client, title').limit(200),
+      /**
+       * People, which were not indexed at all.
+       *
+       * Typing a person's name is the most common thing anybody does in a CRM
+       * and it returned nothing, because this searched companies, engagements,
+       * brands and case studies and no humans. Somebody looking for Luis had
+       * to remember which company he belonged to first, which is backwards:
+       * the person is the thing you remember and the company is what you are
+       * trying to look up.
+       */
+      supabase
+        .from('customer_contacts')
+        .select('id, name, title, email, customer_id, customers(name)')
+        .limit(500),
+      // Notes, by their first line. The body is what holds the answer to
+      // "what did they say about pricing", and none of it was findable.
+      supabase
+        .from('customer_notes')
+        .select('id, body, happened_on, customer_id, customers(name)')
+        .order('happened_on', { ascending: false })
+        .limit(300),
     ]);
 
     const next: Item[] = [...NAV];
 
     for (const c of cust.data ?? []) {
-      next.push({ id: `c-${c.id}`, label: c.name, hint: c.email ?? c.stage, href: `/customers/${c.id}`, group: 'Clients' });
+      // Tags in the hint, so typing "Connecticut" or "seafood" finds every
+      // company carrying it without going near a filter screen.
+      const tags = ((c as { tags?: string[] | null }).tags ?? []).join(' · ');
+      next.push({
+        id: `c-${c.id}`,
+        label: c.name,
+        hint: [c.stage, c.email, tags].filter(Boolean).join(' · '),
+        href: `/customers/${c.id}`,
+        group: 'Clients',
+      });
     }
+    /**
+     * The embedded company comes back as an array.
+     *
+     * PostgREST types a joined relation as a list even when the foreign key
+     * guarantees one row, so this reads the first rather than casting past the
+     * type and finding undefined at runtime.
+     */
+    const firstName = (rel: { name: string }[] | { name: string } | null) =>
+      Array.isArray(rel) ? rel[0]?.name : rel?.name;
+
+    for (const p of (people.data ?? []) as Array<{
+      id: string; name: string; title: string | null; email: string | null;
+      customer_id: string | null; customers: { name: string }[] | null;
+    }>) {
+      next.push({
+        id: `p-${p.id}`,
+        label: p.name,
+        hint: [p.title, firstName(p.customers), p.email].filter(Boolean).join(' · ') || 'Person',
+        href: p.customer_id ? `/customers/${p.customer_id}` : '/people',
+        group: 'People',
+      });
+    }
+
+    for (const n of (notes.data ?? []) as Array<{
+      id: string; body: string; happened_on: string | null;
+      customer_id: string | null; customers: { name: string }[] | null;
+    }>) {
+      // The first line is the title the reader gave it; the rest is the hint,
+      // so a search for a word buried in the body still matches the item.
+      const [first, ...rest] = n.body.split('\n');
+      next.push({
+        id: `n-${n.id}`,
+        label: first.slice(0, 90) || 'Note',
+        hint: [firstName(n.customers), n.happened_on, rest.join(' ').slice(0, 160)].filter(Boolean).join(' · '),
+        href: n.customer_id ? `/customers/${n.customer_id}?tab=history` : '/notes',
+        group: 'Notes',
+      });
+    }
+
     for (const j of jobs.data ?? []) {
       next.push({ id: `j-${j.id}`, label: j.name, hint: j.status, href: `/jobs/${j.id}`, group: 'Engagements' });
     }
