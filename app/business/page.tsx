@@ -115,6 +115,15 @@ export default function BusinessPage() {
   const [reviewLink, setReviewLink] = useState('');
   const [reviewDelay, setReviewDelay] = useState('1');
   const [name, setName] = useState('');
+  /**
+   * How this business charges, asked before anything is asked about rates.
+   *
+   * The screen went straight to a default hourly rate, which quietly asserts
+   * that everybody sells hours. John sells other people's seafood on
+   * commission and there is no hour anywhere in his business.
+   */
+  const [style, setStyle] = useState<string>('');
+  const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedTab, setSavedTab] = useState<Tab | null>(null);
@@ -145,6 +154,8 @@ export default function BusinessPage() {
   const hydrate = useCallback(() => {
     if (!org) return;
     setName(org.name);
+    setStyle(org.billing_style ?? '');
+    setNote(org.billing_note ?? '');
     setRate(String(org.default_labor_rate ?? 0));
     setMarkup(String(org.default_material_markup_pct ?? 0));
     setTax(String(org.tax_rate ?? 0));
@@ -172,6 +183,8 @@ export default function BusinessPage() {
     try {
       await updateOrg(org.id, {
         name: name.trim() || org.name,
+        billing_style: style || null,
+        billing_note: note.trim() || null,
         default_labor_rate: parseFloat(rate) || 0,
         default_material_markup_pct: parseFloat(markup) || 0,
         tax_rate: parseFloat(tax) || 0,
@@ -255,10 +268,14 @@ export default function BusinessPage() {
 
       {tab === 'rates' && (
         <>
-          {unset && (
+          {/* Only alarming if hours are actually what gets billed. A
+              commission agent with a zero hourly rate is correct. */}
+          {unset && (style === 'hourly' || style === 'both' || style === '') && (
             <Card style={{ borderColor: `${C.amber}55`, marginBottom: 16, maxWidth: 560 }}>
               <div style={{ color: C.amber, fontSize: 14, lineHeight: 1.6 }}>
-                Your hourly rate is $0, so invoices will come out at zero. Set it before you bill anything real.
+                {style === ''
+                  ? 'Say how you charge below. Everything about money follows from it, and until it is set this assumes hours.'
+                  : 'Your hourly rate is $0, so invoices will come out at zero. Set it before you bill anything real.'}
               </div>
             </Card>
           )}
@@ -268,17 +285,73 @@ export default function BusinessPage() {
               <input value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} />
             </Field>
 
-            <Field label="Default hourly rate ($)">
-              <input
-                type="number"
-                step="1"
-                min="0"
-                value={rate}
-                onChange={(e) => setRate(e.target.value)}
-                style={inputStyle}
-                placeholder="85"
-              />
+            <Field label="How you charge">
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {([
+                  ['hourly', 'By the hour'],
+                  ['fixed', 'By the project'],
+                  ['both', 'Both'],
+                  ['retainer', 'On retainer'],
+                  ['commission', 'On commission'],
+                ] as const).map(([id, label]) => {
+                  const on = style === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setStyle(id)}
+                      style={{
+                        border: `1px solid ${on ? C.accent : C.border}`,
+                        background: on ? C.accentSoft : 'transparent',
+                        color: on ? C.text : C.dim,
+                        borderRadius: 8, padding: '7px 13px', fontSize: 13.5,
+                        cursor: 'pointer', fontFamily: 'inherit',
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
             </Field>
+
+            {/* Hours only get a rate if hours are what gets sold. */}
+            {(style === 'hourly' || style === 'both' || style === '') && (
+              <Field label="Default hourly rate ($)">
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={rate}
+                  onChange={(e) => setRate(e.target.value)}
+                  style={inputStyle}
+                  placeholder="85"
+                />
+              </Field>
+            )}
+
+            {/* The arrangement no rate column can hold. John's commission is
+                five percent on accounts he originates and two to three on
+                house accounts handed to him, which is a sentence rather than
+                a number, and forcing it into a field loses the condition that
+                makes it true. */}
+            {(style === 'commission' || style === 'retainer' || style === 'fixed') && (
+              <Field label="How the money actually works">
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  rows={4}
+                  placeholder={
+                    style === 'commission'
+                      ? 'The rates, and what changes them. 5% on accounts you originate, 2 to 3% on house accounts handed to you.'
+                      : style === 'retainer'
+                        ? 'What the monthly covers, and what sits outside it.'
+                        : 'How you price a project, and what moves the number.'
+                  }
+                  style={{ ...inputStyle, lineHeight: 1.6, resize: 'vertical' }}
+                />
+              </Field>
+            )}
 
             <Field label="Material markup (%)">
               <input

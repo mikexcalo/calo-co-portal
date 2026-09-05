@@ -96,6 +96,8 @@ export interface Org {
   payment_methods: unknown[];
   onboarded_at: string | null;
   billing_style: string | null;
+  /** How the money works, in their own words, when no rate column can hold it. */
+  billing_note?: string | null;
   /** Null means nobody has chosen one, which is not the same as choosing zero. */
   tax_set_aside_pct: number | null;
   tax_set_aside_note: string | null;

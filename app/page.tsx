@@ -427,44 +427,74 @@ export default function Dashboard() {
   attention.sort((a, b) => b.weight - a.weight);
 
   /**
-   * The five things that have to be true before this app can do its job, each
-   * checked against real data rather than a "seen it" flag. Someone who set
-   * their rate during signup arrives with step one already ticked, which is
-   * both accurate and encouraging.
+   * What has to be true before this can work, checked against real data.
+   *
+   * This was five fixed steps and the first was "set your hourly rate", which
+   * is wrong for anybody who does not sell hours. John is paid commission, at
+   * five percent on accounts he originates and two to three on house accounts
+   * handed to him, and being asked for an hourly rate on his first screen tells
+   * him plainly that the software was built for somebody else.
+   *
+   * The other half of the mistake was what counted as setup. Create your first
+   * engagement and send your first proposal are not setup, they are work, and
+   * a checklist that will not go away until you have sold something is a
+   * checklist that nags you about your business rather than about your account.
+   *
+   * So: only the things that make the account correct, and the money step is
+   * whichever one is true for how this business actually charges.
    */
-  const chargesFixed = org?.billing_style === 'fixed' || org?.billing_style === 'retainer';
+  const style = org?.billing_style ?? null;
+  const rateStep =
+    style === 'commission'
+      ? {
+          label: 'Write down how your commission works',
+          why: 'Rates that change with how the account was won are a sentence, not a number.',
+          done: Boolean(org?.billing_note?.trim()),
+          href: '/business',
+        }
+      : style === 'retainer'
+        ? {
+            label: 'Confirm your retainer',
+            why: 'So the monthly invoice raises itself at the right number.',
+            done: Boolean(org?.billing_note?.trim()) || Number(org?.default_labor_rate ?? 0) > 0,
+            href: '/business',
+          }
+        : style === 'fixed'
+          ? {
+              label: 'Confirm you price by the project',
+              why: 'So nothing tries to multiply hours by a rate you never set.',
+              done: true,
+              href: '/business',
+            }
+          : {
+              label: style === null ? 'Say how you charge' : 'Set your hourly rate',
+              why:
+                style === null
+                  ? 'Hourly, by the project, on retainer, or on commission. Everything about money follows from this.'
+                  : 'Hours get multiplied by it, so at zero every invoice comes out at zero.',
+              done: style !== null && Number(org?.default_labor_rate ?? 0) > 0,
+              href: '/business',
+            };
+
   const firstRun = [
     {
-      label: chargesFixed ? 'Confirm how you charge' : 'Set your hourly rate',
-      why: chargesFixed
-        ? 'So estimates and invoices start from the right numbers.'
-        : 'Without it, every invoice comes out at zero.',
-      done: chargesFixed || Number(org?.default_labor_rate ?? 0) > 0,
+      label: 'Check your business details',
+      why: 'The name, the email and the phone number that appear on everything you send.',
+      done: Boolean(org?.name),
       href: '/business',
     },
+    rateStep,
     {
       label: 'Say how you want to be paid',
-      why: 'Customers see these on every invoice, so they know where to send money.',
+      why: 'These appear on every invoice, so people know where to send the money.',
       done: Array.isArray(org?.payment_methods) && (org?.payment_methods as unknown[]).length > 0,
       href: '/business',
     },
     {
       label: `Add your first ${vocab.customer.toLowerCase()}`,
-      why: 'Name, phone, email. Whatever you have is enough.',
+      why: 'A name is enough. Everything else can be filled in as you learn it.',
       done: signals.customerCount > 0,
       href: '/customers',
-    },
-    {
-      label: `Create your first ${vocab.job.toLowerCase()}`,
-      why: 'Hours, receipts and invoices all hang off it.',
-      done: jobs.length > 0,
-      href: '/jobs/new',
-    },
-    {
-      label: `Send your first ${vocab.estimate.toLowerCase()}`,
-      why: 'Customers get a web page they can accept in one click.',
-      done: signals.draftEstimates > 0 || invoices.length > 0,
-      href: jobs.length > 0 ? `/jobs/${jobs[0].id}/estimate` : '/jobs/new',
     },
   ];
 
@@ -476,7 +506,7 @@ export default function Dashboard() {
       title="Home"
       subtitle={
         emptyApp
-          ? `Nothing logged for ${org?.name ?? 'this business'} yet. Five minutes here and you're running.`
+          ? `Nothing logged for ${org?.name ?? 'this business'} yet. A few minutes here and you're running.`
           : `Everything ${org?.name ?? 'this business'} needs you to deal with, most costly first.`
       }
       action={
@@ -508,7 +538,7 @@ export default function Dashboard() {
             Let&apos;s get you set up
           </div>
           <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.65, margin: '0 0 18px' }}>
-            Five things, in order. Each takes a minute. This list disappears once you&apos;re running.
+            Four things, and they are all about your account rather than your work. This list goes away on its own.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
