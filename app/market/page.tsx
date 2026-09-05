@@ -19,9 +19,14 @@
  * squid until anchor distribution", which no rating column carries and which is
  * the part a distributor is paying for.
  *
- * So: documents, with a subject, a source and a date the data is from. The
- * tables inside keep the alignment they were written with, which is why the
- * body is monospaced rather than reflowed into prose.
+ * So: documents, with a subject, a source and a date the data is from, stored
+ * as plain text and rendered as markdown. That is the wheel every tool of this
+ * kind already settled on for the same problem: nothing becomes a schema, the
+ * next document does not have to fit the shape of the last one, and a table
+ * still reads as a table.
+ *
+ * The first version showed the raw text in a monospace box, which kept the
+ * alignment and made the most valuable material in the product unreadable.
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -29,8 +34,9 @@ import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/components/spine/ui';
 import { Glyph } from '@/components/spine/icons';
+import { Doc, CopyDoc } from '@/components/spine/Doc';
 
-interface Doc {
+interface RefDoc {
   id: string;
   title: string;
   subject: string | null;
@@ -43,7 +49,7 @@ const blank = { title: '', subject: '', source: '', as_of: '', body: '' };
 
 export default function MarketPage() {
   const { org } = useOrg();
-  const [docs, setDocs] = useState<Doc[]>([]);
+  const [docs, setDocs] = useState<RefDoc[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<string | null>(null);
@@ -58,7 +64,7 @@ export default function MarketPage() {
       .order('subject')
       .order('title');
     if (res.error) setError(res.error.message);
-    else setDocs((res.data ?? []) as Doc[]);
+    else setDocs((res.data ?? []) as RefDoc[]);
     setLoaded(true);
   }, []);
 
@@ -81,7 +87,7 @@ export default function MarketPage() {
 
   /** Grouped by subject, in the order they come back. */
   const groups = useMemo(() => {
-    const out = new Map<string, Doc[]>();
+    const out = new Map<string, RefDoc[]>();
     shown.forEach((d) => {
       const g = d.subject?.trim() || 'General';
       out.set(g, [...(out.get(g) ?? []), d]);
@@ -148,7 +154,7 @@ export default function MarketPage() {
               value={draft.body}
               onChange={(e) => setDraft({ ...draft, body: e.target.value })}
               rows={14}
-              placeholder="Paste it in. Tables keep their alignment, so paste them as they are rather than reflowing them into sentences."
+              placeholder="Paste it in. Markdown: ## for a heading, | for a table, - for a list. Anything else reads as a paragraph."
               style={{
                 ...inputStyle,
                 fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
@@ -219,21 +225,24 @@ export default function MarketPage() {
                           {d.as_of && (
                             <span style={{ fontSize: 12, color: C.faint }}>{d.as_of}</span>
                           )}
+                          <CopyDoc source={d.body} />
                           <span style={{ fontSize: 12, color: C.blue }}>{isOpen ? 'Close' : 'Read'}</span>
                         </div>
 
+                        {/*
+                          Read, not stared at.
+
+                          This was the raw text in a monospace box, which kept
+                          the alignment of a table nobody could scan and made
+                          the most valuable material in the product unreadable
+                          and unusable. Same text in the database; it is
+                          rendered now, and the source is what Copy puts on the
+                          clipboard so a number can be quoted at a buyer.
+                        */}
                         {isOpen && (
-                          <pre
-                            style={{
-                              marginTop: 12, marginBottom: 0,
-                              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                              fontSize: 12.5, lineHeight: 1.7, color: C.dim,
-                              whiteSpace: 'pre', overflowX: 'auto',
-                              background: C.panelAlt, borderRadius: 8, padding: '12px 14px',
-                            }}
-                          >
-                            {d.body}
-                          </pre>
+                          <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.border}` }}>
+                            <Doc source={d.body} />
+                          </div>
                         )}
                       </Card>
                     );

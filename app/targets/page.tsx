@@ -42,6 +42,35 @@ interface Row {
 const COLUMNS = LANE.filter((s) => OPEN_STAGES.includes(s.id));
 const RANK: Record<string, number> = { proposed: 4, talking: 3, reached: 2, noticed: 1 };
 
+/**
+ * The order John already decided, written in his own next steps.
+ *
+ * His notes say "Shortlist #2. Approach first." and "Shortlist #7", which is a
+ * ranking he made deliberately and which an alphabetical list buried among
+ * ninety-two companies he has no intention of calling this month. Reading it
+ * back costs one regular expression and is the difference between a database
+ * and a morning's work.
+ */
+const shortlist = (next: string | null): number | null => {
+  const m = next?.match(/shortlist\s*#?\s*(\d+)/i);
+  return m ? Number(m[1]) : null;
+};
+
+/**
+ * What advancing a stage actually means, said in words and recorded as one.
+ *
+ * Moving a card without writing down what happened is the lie that makes every
+ * pipeline stale: the stage says Reached and nothing anywhere says you emailed
+ * them. Every step logs the contact that justifies it, which is also what
+ * every product worth copying does after a call.
+ */
+const STEP: Record<string, { label: string; note: string; direction: 'in' | 'out' }> = {
+  reached:  { label: 'Logged outreach',  note: 'Reached out to them.',                direction: 'out' },
+  talking:  { label: 'They replied',     note: 'They came back. A conversation now.', direction: 'in'  },
+  proposed: { label: 'Sent a number',    note: 'Put a number in front of them.',      direction: 'out' },
+  won:      { label: 'Won',              note: 'They said yes.',                      direction: 'in'  },
+};
+
 const tone = (s: Stage) =>
   s === 'proposed' ? C.green : s === 'talking' ? C.accent : s === 'reached' ? C.amber : C.faint;
 
@@ -54,7 +83,14 @@ export default function PipelinePage() {
 
   const [q, setQ] = useState('');
   const [tag, setTag] = useState<string | null>(null);
-  const [only, setOnly] = useState<Stage | 'all'>('all');
+  /**
+   * Opens on the work, not on the database.
+   *
+   * A hundred and five rows sorted alphabetically is a table. What a person
+   * needs at nine in the morning is the dozen they meant to call, which is what
+   * every CRM worth copying opens with and what this one buried.
+   */
+  const [only, setOnly] = useState<Stage | 'all' | 'work'>('work');
   const [view, setView] = useState<string | null>(null);
   const [showTags, setShowTags] = useState(false);
 
@@ -92,17 +128,31 @@ export default function PipelinePage() {
     const t = q.trim().toLowerCase();
     return rows
       .filter((r) => {
-        if (only !== 'all' && r.stage !== only) return false;
+        // The worklist: anything with a next step written on it, anything
+        // already in conversation, and anything going quiet.
+        if (only === 'work') {
+          if (!r.next_action && r.stage === 'noticed' && !stale(r.stage, r.last_contacted_on)) return false;
+        } else if (only !== 'all' && r.stage !== only) return false;
         if (tag && !(r.tags ?? []).includes(tag)) return false;
         if (!t) return true;
         return `${r.name} ${(r.tags ?? []).join(' ')} ${r.next_action ?? ''}`.toLowerCase().includes(t);
       })
-      .sort(
-        (a, b) =>
+      .sort((a, b) => {
+        // His own shortlist first, in his own order, then the ones furthest
+        // along, then whoever has gone quietest.
+        const sa = shortlist(a.next_action);
+        const sb = shortlist(b.next_action);
+        if (sa !== null || sb !== null) {
+          if (sa === null) return 1;
+          if (sb === null) return -1;
+          if (sa !== sb) return sa - sb;
+        }
+        return (
           (RANK[b.stage] ?? 0) - (RANK[a.stage] ?? 0) ||
           (daysSince(b.last_contacted_on) ?? -1) - (daysSince(a.last_contacted_on) ?? -1) ||
           a.name.localeCompare(b.name)
-      );
+        );
+      });
   }, [rows, q, tag, only]);
 
   const quiet = useMemo(
@@ -120,17 +170,46 @@ export default function PipelinePage() {
     return c;
   }, [rows]);
 
-  const move = async (ids: string[], next: Stage) => {
+  const move = async (ids: string[], next: Stage, log = false) => {
+    const today = new Date().toISOString().slice(0, 10);
     setRows((prev) =>
       OPEN_STAGES.includes(next)
-        ? prev.map((r) => (ids.includes(r.id) ? { ...r, stage: next } : r))
+        ? prev.map((r) => (ids.includes(r.id) ? { ...r, stage: next, last_contacted_on: log ? today : r.last_contacted_on } : r))
         : prev.filter((r) => !ids.includes(r.id))
     );
     setPicked(new Set());
     setBulkStage(false);
+
+    /**
+     * The contact that justifies the move, written down.
+     *
+     * A stage that says Reached with nothing anywhere saying you contacted
+     * them is how a board stops being believed. The note goes in first because
+     * filing one already nudges the stage by itself, and the explicit write
+     * below then settles it either way.
+     */
+    const step = STEP[next];
+    if (log && step && org) {
+      await supabase.from('customer_notes').insert(
+        ids.map((id) => ({
+          org_id: org.id,
+          customer_id: id,
+          kind: 'note',
+          direction: step.direction,
+          body: step.note,
+          happened_on: today,
+        }))
+      );
+    }
+
     const res = await supabase
       .from('customers')
-      .update({ stage: next, stage_why: null, stage_changed_on: new Date().toISOString().slice(0, 10) })
+      .update({
+        stage: next,
+        stage_why: log && step ? `${step.label} on ${today}` : null,
+        stage_changed_on: today,
+        ...(log ? { last_contacted_on: today } : {}),
+      })
       .in('id', ids);
     if (res.error) { setError(res.error.message); load(); }
   };
@@ -221,11 +300,27 @@ export default function PipelinePage() {
       key: 'next',
       label: 'Next step',
       width: 'minmax(140px, 1.6fr)',
-      render: (r) => (
-        <span style={{ fontSize: 12.5, color: r.next_action ? C.dim : C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
-          {r.next_action ?? '—'}
-        </span>
-      ),
+      render: (r) => {
+        const n = shortlist(r.next_action);
+        return (
+          <span style={{ display: 'flex', gap: 7, alignItems: 'baseline', minWidth: 0 }}>
+            {n !== null && (
+              <span
+                style={{
+                  fontSize: 11, fontWeight: 700, color: C.accent,
+                  fontVariantNumeric: 'tabular-nums', flexShrink: 0,
+                }}
+                title={`Shortlist ${n}`}
+              >
+                #{n}
+              </span>
+            )}
+            <span style={{ fontSize: 12.5, color: r.next_action ? C.dim : C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {r.next_action?.replace(/shortlist\s*#?\s*\d+\.?\s*/i, '') || '—'}
+            </span>
+          </span>
+        );
+      },
     },
     {
       key: 'stage',
@@ -234,8 +329,12 @@ export default function PipelinePage() {
       sortBy: (r) => -(RANK[r.stage] ?? 0),
       render: (r) => (
         <button
-          onClick={(e) => { e.stopPropagation(); move([r.id], nextOf(r.stage)); }}
-          title={`Move to ${STAGE[nextOf(r.stage)].label}`}
+          onClick={(e) => { e.stopPropagation(); move([r.id], nextOf(r.stage), true); }}
+          title={
+            STEP[nextOf(r.stage)]
+              ? `${STEP[nextOf(r.stage)].label}. Files a note and moves them to ${STAGE[nextOf(r.stage)].label}.`
+              : `Move to ${STAGE[nextOf(r.stage)].label}`
+          }
           style={{
             border: `1px solid ${tone(r.stage)}55`, background: 'transparent', color: tone(r.stage),
             borderRadius: 999, padding: '2px 10px', fontSize: 11.5,
@@ -354,6 +453,12 @@ export default function PipelinePage() {
           />
 
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
+            {chip(
+              'To work',
+              only === 'work',
+              () => setOnly('work'),
+              rows.filter((r) => r.next_action || r.stage !== 'noticed' || stale(r.stage, r.last_contacted_on)).length
+            )}
             {chip('All', only === 'all', () => setOnly('all'), rows.length)}
             {COLUMNS.map((c) => chip(c.label, only === c.id, () => setOnly(c.id), counts[c.id] ?? 0))}
             <span style={{ flex: 1 }} />
@@ -396,7 +501,11 @@ export default function PipelinePage() {
           />
 
           <div style={{ fontSize: 12, color: C.faint, marginTop: 10 }}>
-            {shown.length} of {rows.length}. Tick rows to work several at once; shift-click for a run.
+            {shown.length} of {rows.length}.{' '}
+            {only === 'work'
+              ? 'The ones you named a next step for, plus anything in conversation or going quiet.'
+              : 'Everything, alphabetical below the shortlist.'}{' '}
+            Pressing a stage files a note saying what happened.
           </div>
 
           <BulkBar count={picked.size} onClear={() => setPicked(new Set())}>
