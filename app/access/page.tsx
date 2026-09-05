@@ -61,6 +61,8 @@ const WHAT: Partial<Record<ModuleId, string>> = {
   seo: 'The search checklist',
   traffic: 'Who arrived at their site',
   targets: 'Companies they want',
+  catalog: 'A product list on each of their clients, priced',
+  market: 'Their reference library, shared across every client',
   website: 'Ask us for a site change',
   client_requests: 'Their requests, for you to triage',
   brand_kit: 'Their logos, colors and type',

@@ -10,12 +10,13 @@
  * is complete without anyone remembering to write "invoice paid" by hand.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { Glyph } from '@/components/spine/icons';
 import { brandAssetUrl, getCurrentOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
+import { modulesFor } from '@/lib/spine/modules';
 import { Links } from '@/components/spine/Links';
 import { Photos } from '@/components/spine/Photos';
 import { People } from '@/components/spine/People';
@@ -26,6 +27,7 @@ import { ClientUpdate } from '@/components/spine/ClientUpdate';
 import { TheirSite } from '@/components/spine/TheirSite';
 import { Waiting } from '@/components/spine/Waiting';
 import { ClientBrandFiles } from '@/components/spine/ClientBrandFiles';
+import { ClientCatalog } from '@/components/spine/ClientCatalog';
 import { SayIt } from '@/components/spine/SayIt';
 import { Plan } from '@/components/spine/Plan';
 import { ClientWork } from '@/components/spine/ClientWork';
@@ -102,6 +104,15 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
   const phone = useIsPhone();
   const router = useRouter();
   const { vocab, org } = useOrg();
+  /**
+   * Does this business sell a list of things?
+   *
+   * Read from the business's own modules rather than the client's, because it
+   * is a fact about how the business works. John sells other people's seafood,
+   * so every principal on his list has a product list. An agency selling hours
+   * has none of them, and should not carry the tab.
+   */
+  const hasCatalog = useMemo(() => modulesFor(org).has('catalog'), [org]);
 
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -147,10 +158,10 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
    * navigation, and should not cost a page load. The query string is only read
    * once, to honor where somebody was sent.
    */
-  const [view, setView] = useState<'now' | 'work' | 'given' | 'history' | 'brand'>(
+  const [view, setView] = useState<'now' | 'work' | 'given' | 'history' | 'brand' | 'catalog'>(
     (typeof window !== 'undefined' &&
       (new URLSearchParams(window.location.search).get('tab') as
-        | 'now' | 'work' | 'given' | 'history' | 'brand')) || 'now'
+        | 'now' | 'work' | 'given' | 'history' | 'brand' | 'catalog')) || 'now'
   );
   /**
    * Counts on the tabs, from the one view that already has them.
@@ -375,7 +386,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
            * wrong shape for it.
            */
           gridTemplateColumns:
-            phone || view === 'given' || view === 'brand'
+            phone || view === 'given' || view === 'brand' || view === 'catalog'
               ? '1fr'
               : 'minmax(0, 1.25fr) minmax(340px, 1fr)',
           gap: 22,
@@ -505,6 +516,16 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             {([
               ['now', 'Brief', 'brief'],
               ['work', 'Work', 'work'],
+              /**
+               * Only for businesses that sell a list of things.
+               *
+               * A tab strip is not free. Every business gets Brief and Work
+               * and nobody has to be told what they are; a Catalog tab on a
+               * client who sells services is a tab that opens empty forever,
+               * which teaches people the strip is full of dead ends. Switched
+               * on per business in Access, off everywhere else.
+               */
+              ...(hasCatalog ? [['catalog', 'Catalog', 'pricing'] as const] : []),
               ['given', 'Documents', 'documents'],
               // A client's brand belongs to that client. The module in the
               // sidebar is your own; this is theirs.
@@ -589,6 +610,14 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               <BrandCard customerId={params.id} />
               <ClientBrandFiles customerId={params.id} />
             </>
+          )}
+
+          {view === 'catalog' && orgId && (
+            <ClientCatalog
+              customerId={params.id}
+              orgId={orgId}
+              clientName={customer.name}
+            />
           )}
 
           {view === 'history' && orgId && <Reminders orgId={orgId} customerId={params.id} />}
@@ -754,7 +783,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           </>)}
         </div>
 
-        <div style={{ display: view === 'given' || view === 'brand' ? 'none' : undefined }}>
+        <div style={{ display: view === 'given' || view === 'brand' || view === 'catalog' ? 'none' : undefined }}>
           {/*
             The business, then whoever you talk to there.
             

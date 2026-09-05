@@ -29,6 +29,8 @@ export type ModuleId =
   | 'reviews'
   | 'seo'
   | 'targets'
+  | 'catalog'       // what a client sells, priced. Lives on the client record.
+  | 'market'        // what the market wants. Belongs to the business, not a client.
   | 'account'        // client-facing: what I owe my agency
   | 'pricing'
   | 'records'
@@ -42,6 +44,7 @@ export type ModuleId =
 
 const CONTRACTOR: ModuleId[] = [
   'ask',
+  'targets',
   'reviews',
   'seo',
   'traffic',
@@ -111,7 +114,7 @@ const AGENCY: ModuleId[] = [
 const PLAN_MODULES: Record<string, ModuleId[]> = {
   core: [
     'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
-    'records', 'business', 'security', 'reviews',
+    'records', 'business', 'security', 'reviews', 'targets',
   ],
   grow: [
     'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
@@ -162,6 +165,8 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   reviews: 'Reviews',
   seo: 'Digital presence',
   targets: 'Pipeline',
+  catalog: 'What they sell',
+  market: 'Market',
   client_requests: 'Requests',
   website: 'Website',
   team: 'Team',
@@ -268,6 +273,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/reviews', 'reviews'],
   ['/seo', 'seo'],
   ['/targets', 'targets'],
+  ['/market', 'market'],
   ['/framework', 'brands'],
   ['/stories', 'stories'],
   ['/brands', 'brands'],
@@ -306,7 +312,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
  */
 const ALWAYS = [
   '/', '/login', '/welcome', '/security', '/trust', '/brands', '/ask', '/whats-new',
-  '/targets', '/seo', '/pricing', '/records', '/requests',
+  '/seo', '/pricing', '/records', '/requests',
   '/notes', '/pitches', '/stories', '/brand-kit', '/website', '/expenses', '/documents',
 ];
 
@@ -448,6 +454,22 @@ export function navFor(
       items: [
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
         { id: 'people', label: 'People', href: '/people', icon: 'network' },
+        /**
+         * Pipeline is work, not growth.
+         *
+         * It had no row at all and was reached from a client, on the reasoning
+         * that a hundred and four distributors are John's list rather than
+         * yours. True, and it stopped being the point the day John got his own
+         * workspace: in there they are simply his pipeline, and a list you work
+         * down every morning cannot only be reachable through somebody else's
+         * record.
+         */
+        { id: 'targets', label: 'Pipeline', href: '/targets', icon: 'crosshair' },
+        /**
+         * Reference, read while working rather than filed after it. The row
+         * only appears for a business that has something in it.
+         */
+        { id: 'market', label: 'Market', href: '/market', icon: 'book' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
