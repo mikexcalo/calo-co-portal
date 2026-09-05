@@ -62,12 +62,29 @@ export const C = {
   accent: '#141414',
   accentSoft: '#F1F1F2',
 
-  green: '#15803D',
-  greenSoft: '#ECF6F0',
-  amber: '#B45309',
-  amberSoft: '#FDF4E8',
-  red: '#B91C1C',
-  redSoft: '#FCEDED',
+  /**
+   * The three that still mean something, at the vibrancy the blue had.
+   *
+   * They were muted and earthy next to a saturated brand blue, so removing the
+   * blue left an interface where the only colours left looked washed. Each is
+   * now the most saturated value in its hue that still clears 4.5:1 on white,
+   * which is what #006AFF managed at 4.66:1. Found by searching the hue band
+   * rather than picked by eye.
+   *
+   * The hues are held apart on purpose: amber near 35 degrees and red near 4,
+   * so an overdue invoice and one merely needing attention are never the same
+   * colour at a glance.
+   *
+   * Amber is the one that cannot fully match. A vivid amber is inherently
+   * light, so anything saturated enough to sit beside the red fails as small
+   * text on white. It gets as close as legibility allows and no further.
+   */
+  green: '#008738',      // 4.64:1
+  greenSoft: '#EBF5EF',
+  amber: '#B26200',      // 4.53:1
+  amberSoft: '#F9F2EB',
+  red: '#E01B1B',        // 4.84:1
+  redSoft: '#FDEDED',
   /**
    * Inline actions: the same ink, named separately because it is used as text
    * rather than as a fill and the two may want to diverge later.

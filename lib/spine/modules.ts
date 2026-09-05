@@ -491,7 +491,6 @@ export function navFor(
         // the Plan. Reachable from a client, which is where you think of it.
         { id: 'billing', label: 'Invoices', href: '/billing', icon: 'invoices' },
         { id: 'proposals', label: vocab.estimate + 's', href: '/proposals', icon: 'proposal' },
-        { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'send' },
         // Overheads and receipts are tabs inside this one.
         { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
         { id: 'account', label: 'Bills to You', href: '/account', icon: 'incoming' },
@@ -501,6 +500,15 @@ export function navFor(
       heading: 'Grow',
       defaultOpen: false,
       items: [
+        /**
+         * A pitch is how you win work, not how you get paid for it.
+         *
+         * It sat under Money next to Invoices and Profit and Loss, which put
+         * the thing you send a stranger in the same group as the thing you
+         * send a client who already owes you. Grow is where the work comes
+         * from: the pipeline, the digital presence, the brand.
+         */
+        { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'send' },
         { id: 'seo', label: 'Digital', href: '/digital', icon: 'globe' },
         { id: 'brands', label: 'Brand', href: '/framework', icon: 'brandKit' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],

@@ -33,9 +33,11 @@ export function OrgSwitcher() {
           border: `1px solid ${C.border}`,
           background: C.panelAlt,
           color: C.text,
+          // The workspace name sits at the top of the sidebar and names the
+          // business you are inside, so it takes the heading face too.
+          fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
           fontSize: 14,
           fontWeight: 500,
-          fontFamily: 'inherit',
           cursor: single ? 'default' : 'pointer',
           textAlign: 'left',
         }}

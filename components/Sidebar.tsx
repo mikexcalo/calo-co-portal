@@ -301,13 +301,15 @@ export default function Sidebar() {
            * rather than scan. Density is a function of how much is in the list,
            * not a house style you can copy across.
            */
+          // Figtree. Every row here names a place, and naming things is what
+          // the display face is for.
+          fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
           fontSize: 14,
           color: C.text,
           fontWeight: 500,
           letterSpacing: '-0.005em',
           background: active ? C.accentSoft : 'transparent',
           cursor: 'pointer',
-          fontFamily: 'inherit',
           textAlign: 'left',
         }}
       >
@@ -454,6 +456,7 @@ export default function Sidebar() {
                     width: '100%',
                     background: 'transparent',
                     border: 'none',
+                    fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
                     fontSize: 10,
                     textTransform: 'uppercase',
                     letterSpacing: '0.09em',
@@ -461,7 +464,6 @@ export default function Sidebar() {
                     fontWeight: 600,
                     padding: '0 12px 5px',
                     cursor: 'pointer',
-                    fontFamily: 'inherit',
                     textAlign: 'left',
                   }}
                 >
