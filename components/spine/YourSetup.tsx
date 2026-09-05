@@ -17,6 +17,7 @@ import supabase from '@/lib/supabase';
 import { SETUP_ITEMS } from '@/lib/spine/setup';
 import { useOrg } from '@/lib/spine/org';
 import { Button, C, Card, SectionLabel } from './ui';
+import { Glyph } from './icons';
 
 type Status = 'todo' | 'doing' | 'done' | 'skipped';
 
@@ -123,9 +124,16 @@ export function YourSetup() {
 
   if (!loaded || !org) return null;
 
-  const items = SETUP_ITEMS.filter(
-    (i) => (!i.appliesTo || i.appliesTo === org.kind) && (state[i.key] ?? 'todo') !== 'done' && state[i.key] !== 'skipped'
-  );
+  /**
+   * Urgent first, then the order they were written.
+   *
+   * The written order is roughly what depends on what, so it is worth keeping.
+   * The one exception is something already built and sitting broken, which
+   * belongs at the top no matter where it sits in the sequence.
+   */
+  const items = SETUP_ITEMS
+    .filter((i) => (!i.appliesTo || i.appliesTo === org.kind) && (state[i.key] ?? 'todo') !== 'done' && state[i.key] !== 'skipped')
+    .sort((a, b) => Number(Boolean(b.urgent)) - Number(Boolean(a.urgent)));
 
   if (items.length === 0) return null;
 
@@ -165,9 +173,23 @@ export function YourSetup() {
             <Card key={i.key}>
               <div
                 onClick={() => setOpen(isOpen ? null : i.key)}
-                style={{ display: 'flex', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', cursor: 'pointer' }}
+                style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', cursor: 'pointer' }}
               >
+                {/* Recognized rather than read. Nine identical lines of text
+                    is a paragraph you parse; nine marks is a list you scan. */}
+                <Glyph name={i.icon} size={16} color={i.urgent ? C.red : C.faint} />
                 <span style={{ fontSize: 14.5, color: C.text, flex: 1, minWidth: 200 }}>{i.title}</span>
+                {i.urgent && (
+                  <span
+                    style={{
+                      fontSize: 10.5, fontWeight: 600, letterSpacing: '.06em',
+                      textTransform: 'uppercase', color: C.red,
+                      border: `1px solid ${C.red}55`, borderRadius: 5, padding: '2px 7px',
+                    }}
+                  >
+                    Urgent
+                  </span>
+                )}
                 {i.cost && <span style={{ fontSize: 12.5, color: C.faint }}>{i.cost}</span>}
                 {(ticks[i.key]?.length ?? 0) > 0 && (
                   <span style={{ fontSize: 12, color: C.amber }}>
@@ -177,14 +199,20 @@ export function YourSetup() {
                 <span style={{ fontSize: 12, color: C.blue }}>{isOpen ? 'Hide' : 'How'}</span>
               </div>
 
-              {/* The consequence, always visible. An item nobody can name a
-                  cost for should not be nagging anybody. */}
-              <div style={{ fontSize: 12.5, color: C.faint, marginTop: 4, lineHeight: 1.55, maxWidth: 640 }}>
+              {/* Why it matters, always visible and written out in full. An
+                  item nobody can name a cost for should not be nagging
+                  anybody, and a one-line cost is usually a guess dressed up. */}
+              <div
+                style={{
+                  fontSize: 12.5, color: C.faint, marginTop: 6, lineHeight: 1.6,
+                  maxWidth: 640, whiteSpace: 'pre-line', paddingLeft: 26,
+                }}
+              >
                 {i.blocks}
               </div>
 
               {isOpen && (
-                <div style={{ marginTop: 12 }}>
+                <div style={{ marginTop: 12, paddingLeft: 26 }}>
                   {/* One line, one tick. Reading nine steps to work out where
                       you were is why a task like this gets abandoned halfway. */}
                   <div style={{ display: 'flex', flexDirection: 'column' }}>

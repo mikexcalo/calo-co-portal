@@ -35,7 +35,9 @@ export type IconName =
   | 'swatches'
   | 'globe'
   | 'target'
-  | 'send';
+  | 'send'
+  | 'people'
+  | 'mail';
 
 const PATHS: Record<IconName, ReactNode> = {
   // A page with writing on it. The standing answer to where we are.
@@ -145,6 +147,23 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <path d="M13.9 2.5L7.3 9.1" />
       <path d="M13.9 2.5l-4.3 11.3-2.3-4.7-4.7-2.3z" />
+    </>
+  ),
+  // Two of them, one behind. Somebody else getting a login.
+  people: (
+    <>
+      <circle cx="6.2" cy="5.6" r="2.5" />
+      <path d="M1.9 13.4c0-2.4 1.9-4 4.3-4s4.3 1.6 4.3 4" />
+      <path d="M10.8 3.5a2.5 2.5 0 010 4.2" />
+      <path d="M12.1 9.9c1.3.5 2 1.8 2 3.5" />
+    </>
+  ),
+  // An envelope. Mail leaving the building, as opposed to send, which is a
+  // pitch going out.
+  mail: (
+    <>
+      <path d="M2.2 3.9h11.6v8.2H2.2z" />
+      <path d="M2.2 4.4L8 8.9l5.8-4.5" />
     </>
   ),
 };
