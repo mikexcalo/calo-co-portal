@@ -648,6 +648,12 @@ export function navFor(
         { id: 'pitches', label: 'Pitches', href: '/pitches', icon: 'send' },
         { id: 'seo', label: 'Digital', href: '/digital', icon: 'globe' },
         /**
+         * A module is a row in this sidebar. Website was a tab under Brand,
+         * which made it a view of your identity; it is the place the site
+         * itself is built and tuned, so it is its own row.
+         */
+        { id: 'website', label: 'Website', href: '/website', icon: 'storefront' },
+        /**
          * Brand opens on yours.
          *
          * The row pointed at /framework, so clicking Brand in your own

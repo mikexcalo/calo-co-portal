@@ -91,6 +91,7 @@ export default function BrandKitPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [editingColors, setEditingColors] = useState(false);
   const [siteUrl, setSiteUrl] = useState('');
 
   // Default the QR target to this business's own site, since that's what a
@@ -239,24 +240,67 @@ export default function BrandKitPage() {
                     color={c}
                     copied={copied === c.hex}
                     onCopy={() => copyText(c.hex, c.hex)}
+                    editing={editingColors}
+                    onChange={(patch) =>
+                      setBrand((b) => ({
+                        ...b,
+                        colors: b.colors.map((x, n) => (n === i ? { ...x, ...patch } : x)),
+                      }))
+                    }
+                    onRemove={() =>
+                      setBrand((b) => ({ ...b, colors: b.colors.filter((_, n) => n !== i) }))
+                    }
                   />
                 ))}
               </div>
             )}
-            <div style={{ fontSize: 12.5, color: C.faint, marginTop: 16 }}>
-              Click any color to copy its hex code.
+
+            {/*
+              A kit you can read and cannot change is a reference card, not a
+              kit. Editing is behind a toggle so the normal state stays a clean
+              wall of swatches you click to copy.
+            */}
+            <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginTop: 16, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 12.5, color: C.faint, flex: 1, minWidth: 180 }}>
+                {editingColors
+                  ? 'Change a name, a role or a hex. Nothing saves until you press save.'
+                  : 'Click any color to copy its hex code.'}
+              </span>
+              {editingColors && (
+                <button
+                  onClick={() =>
+                    setBrand((b) => ({
+                      ...b,
+                      colors: [...b.colors, { name: 'New', role: '', hex: '#000000' }],
+                    }))
+                  }
+                  style={{ background: 'transparent', border: 'none', padding: 0, color: C.blue, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  Add a color
+                </button>
+              )}
+              <button
+                onClick={() => setEditingColors((v) => !v)}
+                style={{ background: 'transparent', border: 'none', padding: 0, color: C.blue, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                {editingColors ? 'Done editing' : 'Edit colors'}
+              </button>
             </div>
           </Card>
 
           <Card>
-            <SectionLabel>Typography</SectionLabel>
+            <SectionLabel>Typography — the website</SectionLabel>
+            <div style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.6, marginBottom: 12, maxWidth: '62ch' }}>
+              What calo.company sets its type in. Read off the live page: it loads Geist, Geist Mono,
+              IBM Plex Sans Condensed and Sacramento from Google, plus one self-hosted face.
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Field label="Headings">
                 <input
                   value={brand.fontHeading}
                   onChange={(e) => setBrand((b) => ({ ...b, fontHeading: e.target.value }))}
                   style={inputStyle}
-                  placeholder="Nib Pro"
+                  placeholder="Ancizar Serif"
                 />
               </Field>
               <Field label="Body">
@@ -267,6 +311,44 @@ export default function BrandKitPage() {
                   placeholder="Geist"
                 />
               </Field>
+            </div>
+
+            {/*
+              A real problem found by reading the live page rather than the
+              stylesheet's intentions.
+            */}
+            <div
+              style={{
+                fontSize: 12.5, color: C.amber, lineHeight: 1.6, marginTop: 14,
+                padding: '9px 12px', borderRadius: 8,
+                background: C.amberSoft, border: `1px solid ${C.amber}44`,
+              }}
+            >
+              <strong style={{ fontWeight: 600 }}>Your headline font is not loading.</strong> The site
+              declares Ancizar Serif for every heading and never fetches it, so visitors have been
+              seeing the Georgia fallback. Either add it to the Google Fonts link on the site, or
+              change the declaration to a face you are actually loading.
+            </div>
+
+            <div style={{ marginTop: 18, paddingTop: 16, borderTop: `1px solid ${C.border}` }}>
+              <SectionLabel>Typography — this platform</SectionLabel>
+              <div style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.6, marginBottom: 12, maxWidth: '62ch' }}>
+                Not editable, because it is the software rather than the brand. Here so the two can be
+                compared: today they share only Geist Mono, and that is the least visible of them.
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
+                {[
+                  ['Headings', 'Figtree', 'Titles, section labels, the sidebar'],
+                  ['Body', 'Inter', 'Paragraphs, tables, forms'],
+                  ['Figures', 'Geist Mono', 'Money and anything in a column'],
+                ].map(([role, face, use]) => (
+                  <div key={role} style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: '9px 11px' }}>
+                    <div style={{ fontSize: 11, color: C.faint, textTransform: 'uppercase', letterSpacing: '.06em' }}>{role}</div>
+                    <div style={{ fontSize: 15, color: C.text, marginTop: 3 }}>{face}</div>
+                    <div style={{ fontSize: 12, color: C.faint, marginTop: 2, lineHeight: 1.5 }}>{use}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </Card>
 
@@ -279,6 +361,23 @@ export default function BrandKitPage() {
               placeholder="How this brand sounds. Plain, direct, no jargon…"
             />
           </Card>
+
+          {/*
+            Save is at the bottom as well as the top.
+            
+            This page is three screens long and the only save was in the header,
+            so editing the voice box meant scrolling back past everything to
+            keep it. A save you have to go looking for is a save people forget.
+          */}
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <Button onClick={() => save({ brand })} disabled={busy || !org}>
+              {busy ? 'Saving…' : 'Save'}
+            </Button>
+            {saved && <Pill tone="green">Saved</Pill>}
+            <span style={{ fontSize: 12.5, color: C.faint }}>
+              Colors, type and voice are all saved together.
+            </span>
+          </div>
 
         </div>
       ) : tab === 'qr' ? (
@@ -438,11 +537,76 @@ function ColorTile({
   color,
   copied,
   onCopy,
+  editing = false,
+  onChange,
+  onRemove,
 }: {
   color: BrandColor;
   copied: boolean;
   onCopy: () => void;
+  editing?: boolean;
+  onChange?: (patch: Partial<BrandColor>) => void;
+  onRemove?: () => void;
 }) {
+  /**
+   * Two tiles, not one with a mode flag threaded through it.
+   *
+   * A swatch you click to copy and a swatch you type into want different
+   * markup: one is a button, the other holds three inputs and a native colour
+   * picker. Forcing both through one tree is where a click-to-copy that
+   * silently focuses a field comes from.
+   */
+  if (editing && onChange) {
+    return (
+      <div style={{ textAlign: 'center' }}>
+        <label
+          style={{
+            display: 'block', width: 76, height: 76, borderRadius: '50%',
+            background: color.hex, border: `1px solid ${C.borderStrong}`,
+            margin: '0 auto 11px', cursor: 'pointer', position: 'relative',
+            boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.04)',
+          }}
+          title="Pick a color"
+        >
+          <input
+            type="color"
+            value={/^#[0-9a-f]{6}$/i.test(color.hex) ? color.hex : '#000000'}
+            onChange={(e) => onChange({ hex: e.target.value.toUpperCase() })}
+            style={{ opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }}
+          />
+        </label>
+        <input
+          value={color.name}
+          onChange={(e) => onChange({ name: e.target.value })}
+          placeholder="Name"
+          style={{ ...inputStyle, textAlign: 'center', fontSize: 12.5, padding: '3px 6px', marginBottom: 4 }}
+        />
+        <input
+          value={color.role ?? ''}
+          onChange={(e) => onChange({ role: e.target.value })}
+          placeholder="What it is for"
+          style={{ ...inputStyle, textAlign: 'center', fontSize: 11.5, padding: '3px 6px', marginBottom: 4 }}
+        />
+        <input
+          value={color.hex}
+          onChange={(e) => onChange({ hex: e.target.value })}
+          style={{
+            ...inputStyle, textAlign: 'center', fontSize: 11.5, padding: '3px 6px',
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+          }}
+        />
+        {onRemove && (
+          <button
+            onClick={onRemove}
+            style={{ background: 'transparent', border: 'none', padding: '5px 0 0', color: C.faint, fontSize: 11.5, cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            Remove
+          </button>
+        )}
+      </div>
+    );
+  }
+
   return (
     <button
       onClick={onCopy}

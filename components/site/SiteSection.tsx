@@ -209,6 +209,44 @@ export function SiteSection({
     );
   }
 
+  /* ------------------------------------------------------------ principles */
+  if (kind === 'principles') {
+    const items = lines(d('items'));
+    const grid = variant !== 'list';
+    return (
+      <section style={{ background: '#FAFAFB', borderTop: `1px solid ${LINE}`, fontFamily: BODY }}>
+        <div style={{ ...wrap, padding: '72px 24px' }}>
+          {d('heading') && (
+            <h2 style={{ fontFamily: DISPLAY, fontSize: 'clamp(26px,3.4vw,38px)', margin: 0, color: INK, letterSpacing: '-0.015em', maxWidth: '20ch' }}>
+              {d('heading')}
+            </h2>
+          )}
+          {d('intro') && (
+            <p style={{ fontSize: 16.5, color: MUTED, lineHeight: 1.6, margin: '14px 0 0' }}>{d('intro')}</p>
+          )}
+          <div
+            style={{
+              display: 'grid', marginTop: 34, gap: 26,
+              gridTemplateColumns: grid ? 'repeat(auto-fit, minmax(230px, 1fr))' : '1fr',
+            }}
+          >
+            {items.map((it, i) => {
+              const [title, ...rest] = it.split('·').map((x) => x.trim());
+              return (
+                <div key={i}>
+                  <div style={{ fontFamily: DISPLAY, fontSize: 19, color: INK }}>{title}</div>
+                  {rest.length > 0 && (
+                    <div style={{ fontSize: 15, color: MUTED, lineHeight: 1.65, marginTop: 8 }}>{rest.join(' · ')}</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   /* --------------------------------------------------------------- contact */
   if (kind === 'contact') {
     return (

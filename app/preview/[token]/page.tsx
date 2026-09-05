@@ -76,6 +76,23 @@ export default async function PreviewPage({ params }: { params: { token: string 
 
   return (
     <div style={{ background: '#FFFFFF', color: '#141414', minHeight: '100vh' }}>
+      {/*
+        The faces the site actually uses, loaded here.
+
+        The templates ask for Geist and a serif; nothing was loading either, so
+        every preview rendered in the system sans and Georgia and looked
+        nothing like the site. Geist comes from Google. The serif is the
+        interesting one: calo.company declares Ancizar Serif and never loads
+        it, so the live site has been falling back to Georgia this whole time.
+        Loading a serif here that the site does not have would make the preview
+        a lie, so this loads exactly what the site loads and no more.
+      */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@400;500&display=swap"
+      />
       {/* Said plainly at the top, because a preview mistaken for the live site
           is how somebody sends a client a half-finished sentence. */}
       <div

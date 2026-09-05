@@ -116,6 +116,21 @@ export const SECTIONS: SectionSpec[] = [
     ],
   },
   {
+    kind: 'principles',
+    label: 'How you work',
+    purpose:
+      'The four things that stay constant whatever the project. This is the section that answers "what is it like to work with you", which is the question people ask each other about you when you are not in the room.',
+    variants: [
+      { id: 'grid', label: 'Grid', when: 'Four short ones of equal weight.' },
+      { id: 'list', label: 'Listed', when: 'Each needs a couple of sentences.' },
+    ],
+    fields: [
+      { key: 'heading', label: 'Heading', kind: 'line' },
+      { key: 'intro', label: 'Intro', kind: 'text' },
+      { key: 'items', label: 'The principles', kind: 'list', hint: 'One per line, "Title · what it means in practice".' },
+    ],
+  },
+  {
     kind: 'contact',
     label: 'How to start',
     purpose:

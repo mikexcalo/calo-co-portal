@@ -18,7 +18,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { HOW_IT_WORKS, SECTIONS, specFor, type SectionSpec } from '@/lib/spine/sections';
-import { BRAND_TABS, Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/components/spine/ui';
+import { SectionThumb } from '@/components/site/SectionThumb';
+import { SITE_TABS, Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/components/spine/ui';
 
 interface Row {
   id: string;
@@ -129,7 +130,7 @@ export default function WebsitePage() {
     <Page
       title="Your website"
       subtitle="The site as the sections it is made of. Edit the words, look at it on a real link, publish when you are happy."
-      tabs={BRAND_TABS}
+      tabs={SITE_TABS}
       action={
         <>
           {previewUrl && (
@@ -227,7 +228,7 @@ export default function WebsitePage() {
               const data = row.draft ?? row.content;
               return (
                 <Card key={row.id}>
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                     <span
                       style={{
                         fontSize: 11.5, color: C.faint, width: 16,
@@ -236,6 +237,8 @@ export default function WebsitePage() {
                     >
                       {i + 1}
                     </span>
+                    {/* What shape this is, without opening it. */}
+                    <SectionThumb kind={row.kind} variant={row.variant} />
                     <span
                       onClick={() => setOpen(isOpen ? null : row.id)}
                       style={{
@@ -291,13 +294,17 @@ export default function WebsitePage() {
                               onClick={() => setVariant(row, v.id)}
                               title={v.when}
                               style={{
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
                                 border: `1px solid ${on ? C.accent : C.border}`,
                                 background: on ? C.accentSoft : 'transparent',
                                 color: on ? C.text : C.faint,
-                                borderRadius: 999, padding: '4px 12px', fontSize: 12.5,
+                                borderRadius: 10, padding: '8px 10px', fontSize: 12.5,
                                 cursor: 'pointer', fontFamily: 'inherit',
                               }}
                             >
+                              {/* Choosing between two cuts by name is guessing.
+                                  The shape is the whole difference. */}
+                              <SectionThumb kind={row.kind} variant={v.id} />
                               {v.label}
                             </button>
                           );
@@ -372,9 +379,14 @@ export default function WebsitePage() {
                         padding: '9px 12px', cursor: 'pointer', fontFamily: 'inherit',
                       }}
                     >
-                      <div style={{ fontSize: 13.5, color: C.text, fontWeight: 500 }}>{s.label}</div>
-                      <div style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.5, marginTop: 2 }}>
-                        {s.purpose}
+                      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                        <SectionThumb kind={s.kind} variant={s.variants[0].id} />
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 13.5, color: C.text, fontWeight: 500 }}>{s.label}</div>
+                          <div style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.5, marginTop: 2 }}>
+                            {s.purpose}
+                          </div>
+                        </div>
                       </div>
                     </button>
                   ))}

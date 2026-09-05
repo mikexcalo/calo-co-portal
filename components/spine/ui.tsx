@@ -267,7 +267,13 @@ export const BRAND_TABS: readonly PageTab[] = [
   // What you claim, as opposed to how you sound. Its own tab because
   // everything you send is written out of it.
   { label: 'Messaging', href: '/messaging', icon: 'brief' },
-  { label: 'Website', href: '/website', icon: 'globe' },
+];
+
+/** The website module's own strip. */
+export const SITE_TABS: readonly PageTab[] = [
+  { label: 'Sections', href: '/website', icon: 'layers' },
+  { label: 'Search', href: '/seo', icon: 'search' },
+  { label: 'Traffic', href: '/traffic', icon: 'chart' },
 ];
 
 /**
