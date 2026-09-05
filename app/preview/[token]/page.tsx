@@ -19,6 +19,8 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { SiteSection } from '@/components/site/SiteSection';
+import { PreviewNotes } from '@/components/site/PreviewNotes';
+import { specFor } from '@/lib/spine/sections';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -115,15 +117,75 @@ export default async function PreviewPage({ params }: { params: { token: string 
           padding: '7px 16px', textAlign: 'center', letterSpacing: '.01em',
         }}
       >
-        Preview of {org.name}
+        Preview of {org.name} — hover any section to leave a note
         {pending > 0
           ? ` — showing ${pending} unpublished ${pending === 1 ? 'edit' : 'edits'}`
           : ' — nothing unpublished, this is the live version'}
       </div>
 
+      {/*
+        Each section wrapped so a note can be left on it.
+
+        The button is invisible until the section is hovered, because a page
+        covered in comment affordances is a page nobody can judge the design
+        of, and judging the design is why the link was opened.
+      */}
       {rows.map((r) => (
-        <SiteSection key={r.id} kind={r.kind} variant={r.variant} data={r.draft ?? r.content} />
+        <div key={r.id} className="sec">
+          <SiteSection kind={r.kind} variant={r.variant} data={r.draft ?? r.content} />
+          <PreviewNotes
+            token={params.token}
+            sectionId={r.id}
+            label={specFor(r.kind)?.label ?? r.kind}
+          />
+        </div>
       ))}
+
+      <style>{`
+        .sec { position: relative; }
+        .note-anchor {
+          position: absolute; top: 12px; right: 16px; z-index: 5;
+          font-family: ui-sans-serif, system-ui, sans-serif;
+        }
+        .note-btn {
+          opacity: 0; transition: opacity .14s;
+          background: #141414; color: #fff; border: none;
+          border-radius: 999px; padding: 6px 14px;
+          font-size: 12.5px; cursor: pointer; font-family: inherit;
+          white-space: nowrap;
+        }
+        .sec:hover .note-btn, .note-btn:focus { opacity: 1; }
+        @media (hover: none) { .note-btn { opacity: .85; } }
+
+        .note-box {
+          width: 288px; background: #fff; border: 1px solid #E7E8EB;
+          border-radius: 12px; padding: 13px;
+          box-shadow: 0 8px 28px rgba(0,0,0,.14);
+        }
+        .note-head {
+          font-size: 11px; letter-spacing: .07em; text-transform: uppercase;
+          color: #8A9099; margin-bottom: 9px;
+        }
+        .note-input {
+          width: 100%; border: 1px solid #E7E8EB; border-radius: 8px;
+          padding: 7px 10px; font-size: 13.5px; font-family: inherit;
+          color: #141414; margin-bottom: 7px; box-sizing: border-box;
+          background: #fff;
+        }
+        .note-area { resize: vertical; line-height: 1.5; }
+        .note-actions { display: flex; gap: 10px; align-items: center; margin-top: 3px; }
+        .note-send {
+          background: #141414; color: #fff; border: none; border-radius: 999px;
+          padding: 6px 15px; font-size: 13px; cursor: pointer; font-family: inherit;
+        }
+        .note-send:disabled { opacity: .45; cursor: default; }
+        .note-cancel {
+          background: none; border: none; color: #8A9099;
+          font-size: 13px; cursor: pointer; font-family: inherit; padding: 0;
+        }
+        .note-error { font-size: 12.5px; color: #E01B1B; margin: 2px 0 6px; }
+        .note-done { font-size: 13.5px; color: #008738; padding: 4px 2px; }
+      `}</style>
     </div>
   );
 }

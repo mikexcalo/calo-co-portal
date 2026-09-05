@@ -21,6 +21,14 @@ import { HOW_IT_WORKS, SECTIONS, specFor, type SectionSpec } from '@/lib/spine/s
 import { SectionThumb } from '@/components/site/SectionThumb';
 import { SITE_TABS, Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/components/spine/ui';
 
+interface Note {
+  id: string;
+  section_id: string | null;
+  author: string | null;
+  body: string;
+  created_at: string;
+}
+
 interface Row {
   id: string;
   kind: string;
@@ -42,6 +50,7 @@ export default function WebsitePage() {
   const [showHow, setShowHow] = useState(true);
   const [adding, setAdding] = useState(false);
   const [pushed, setPushed] = useState(0);
+  const [notes, setNotes] = useState<Note[]>([]);
 
   const load = useCallback(async () => {
     const res = await supabase
@@ -51,8 +60,22 @@ export default function WebsitePage() {
       .order('sort');
     if (res.error) setError(res.error.message);
     else setRows((res.data ?? []) as Row[]);
+
+    // What anybody holding the preview link has said, unresolved only.
+    const fb = await supabase
+      .from('site_feedback')
+      .select('id, section_id, author, body, created_at')
+      .eq('resolved', false)
+      .order('created_at', { ascending: false });
+    if (!fb.error) setNotes((fb.data ?? []) as Note[]);
+
     setLoaded(true);
   }, []);
+
+  const clearNote = async (id: string) => {
+    setNotes((n) => n.filter((x) => x.id !== id));
+    await supabase.from('site_feedback').update({ resolved: true }).eq('id', id);
+  };
 
   useEffect(() => { load(); }, [load]);
 
@@ -237,6 +260,18 @@ export default function WebsitePage() {
         <Empty>Loading…</Empty>
       ) : (
         <>
+          {notes.length > 0 && (
+            <div
+              style={{
+                fontSize: 12.5, color: C.green, marginBottom: 12, lineHeight: 1.6,
+                padding: '8px 12px', borderRadius: 8,
+                background: C.greenSoft, border: `1px solid ${C.green}44`,
+              }}
+            >
+              {notes.length} note{notes.length === 1 ? '' : 's'} left on the preview.
+            </div>
+          )}
+
           {pending > 0 && (
             <div
               style={{
@@ -291,6 +326,17 @@ export default function WebsitePage() {
                         edited
                       </span>
                     )}
+                    {notes.filter((n) => n.section_id === row.id).length > 0 && (
+                      <span
+                        style={{
+                          fontSize: 11, color: C.green, border: `1px solid ${C.green}55`,
+                          borderRadius: 999, padding: '1px 9px',
+                        }}
+                      >
+                        {notes.filter((n) => n.section_id === row.id).length} note
+                        {notes.filter((n) => n.section_id === row.id).length === 1 ? '' : 's'}
+                      </span>
+                    )}
                     {!row.live && (
                       <span style={{ fontSize: 11.5, color: C.faint }}>hidden</span>
                     )}
@@ -309,6 +355,34 @@ export default function WebsitePage() {
 
                   {isOpen && spec && (
                     <div style={{ marginTop: 14 }}>
+                      {/* What somebody said about this block, next to the
+                          fields they were talking about. */}
+                      {notes.filter((n) => n.section_id === row.id).map((n) => (
+                        <div
+                          key={n.id}
+                          style={{
+                            border: `1px solid ${C.green}44`, background: C.greenSoft,
+                            borderRadius: 8, padding: '9px 11px', marginBottom: 8,
+                          }}
+                        >
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
+                            <span style={{ fontSize: 12.5, color: C.text, fontWeight: 500 }}>
+                              {n.author || 'Someone with the link'}
+                            </span>
+                            <span style={{ fontSize: 11.5, color: C.faint }}>{n.created_at.slice(0, 10)}</span>
+                            <span style={{ flex: 1 }} />
+                            <button
+                              onClick={() => clearNote(n.id)}
+                              style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}
+                            >
+                              Done
+                            </button>
+                          </div>
+                          <div style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.55, marginTop: 3, whiteSpace: 'pre-wrap' }}>
+                            {n.body}
+                          </div>
+                        </div>
+                      ))}
                       <div style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.6, marginBottom: 12, maxWidth: '68ch' }}>
                         {spec.purpose}
                       </div>
