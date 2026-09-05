@@ -32,6 +32,7 @@ import {
   Avatar,
   inputStyle,
 } from '@/components/spine/ui';
+import { RecordTable, type Column } from '@/components/spine/RecordTable';
 
 type Relationship = 'contact' | 'client' | 'prospect' | 'referrer' | 'freelancer' | 'partner';
 
@@ -95,6 +96,90 @@ export default function PeoplePage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+
+  const openPerson = useMemo(() => rows.find((r) => r.id === openId) ?? null, [rows, openId]);
+
+  /**
+   * A person's row, in the same grammar as a company's.
+   *
+   * Different facts, because the question about a human is who they are and
+   * where, not how far along they are. Last spoke earns a column because the
+   * only thing an address book is actually for is noticing who you have not
+   * called.
+   */
+  const columns: Column<Person>[] = [
+    {
+      key: 'name',
+      label: 'Name',
+      width: 'minmax(150px, 1.5fr)',
+      sortBy: (p) => p.name.toLowerCase(),
+      render: (p) => (
+        <span style={{ display: 'flex', gap: 8, alignItems: 'center', minWidth: 0 }}>
+          <Avatar src={p.avatar_url} name={p.name} size={19} />
+          <span style={{ fontSize: 13.5, color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {p.name}
+          </span>
+        </span>
+      ),
+    },
+    {
+      key: 'kind',
+      label: 'How you know them',
+      width: '132px',
+      sortBy: (p) => p.relationship,
+      render: (p) => <Pill tone={kindOf(p.relationship).tone}>{kindOf(p.relationship).label}</Pill>,
+    },
+    {
+      key: 'title',
+      label: 'What they do',
+      width: 'minmax(110px, 1.2fr)',
+      render: (p) => (
+        <span style={{ fontSize: 12.5, color: p.title ? C.dim : C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+          {p.title ?? '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'where',
+      label: 'Where',
+      width: 'minmax(110px, 1.2fr)',
+      sortBy: (p) => (p.customers?.name ?? p.company ?? '').toLowerCase(),
+      render: (p) => (
+        <span style={{ fontSize: 12.5, color: C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+          {p.customers?.name ?? p.company ?? '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'email',
+      label: 'Email',
+      width: 'minmax(120px, 1.3fr)',
+      render: (p) =>
+        p.email ? (
+          <a
+            href={`mailto:${p.email}`}
+            onClick={(e) => e.stopPropagation()}
+            style={{ fontSize: 12.5, color: C.accent, textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}
+          >
+            {p.email}
+          </a>
+        ) : (
+          <span style={{ fontSize: 12.5, color: C.faint }}>—</span>
+        ),
+    },
+    {
+      key: 'spoke',
+      label: 'Spoke',
+      width: '78px',
+      align: 'right',
+      sortBy: (p) => p.last_spoke_on ?? '',
+      render: (p) => (
+        <span style={{ fontSize: 11.5, color: C.faint, fontVariantNumeric: 'tabular-nums' }}>
+          {p.last_spoke_on ?? 'never'}
+        </span>
+      ),
+    },
+  ];
 
   const load = useCallback(async () => {
     const res = await supabase
@@ -262,145 +347,123 @@ export default function PeoplePage() {
 
       {!loaded ? (
         <Empty>Loading…</Empty>
-      ) : shown.length === 0 ? (
-        <Card>
-          <Empty>
-            {rows.length === 0
-              ? 'Nobody yet. Add the last person you had a good call with.'
-              : 'Nobody matches that.'}
-          </Empty>
-        </Card>
       ) : (
-        <Card>
-          {shown.map((p, idx) => {
-            const k = kindOf(p.relationship);
-            const open = openId === p.id;
+        <>
+          {/*
+            The same table Clients and Pipeline use.
+
+            This was the third list idiom in a product with two nouns: an
+            accordion whose rows expanded into a grid of text inputs, so
+            scanning and editing fought for the same space. The scanning half
+            is a table now, and the editing half moved below it, where a form
+            is allowed to look like a form.
+          */}
+          <RecordTable
+            rows={shown}
+            columns={columns}
+            onOpen={(p) => setOpenId(openId === p.id ? null : p.id)}
+            empty={
+              rows.length === 0
+                ? 'Nobody yet. Add the last person you had a good call with.'
+                : 'Nobody matches that.'
+            }
+          />
+
+          <div style={{ fontSize: 12, color: C.faint, marginTop: 10 }}>
+            {shown.length} of {rows.length}. Click somebody to fill them in.
+          </div>
+
+          {/* Whoever is open, below the list rather than inside it. */}
+          {openPerson && (() => {
+            const p = openPerson;
             return (
-              <div
-                key={p.id}
-                style={{
-                  padding: '9px 0',
-                  borderTop: idx === 0 ? 'none' : `1px solid ${C.border}`,
-                }}
-              >
-                <div style={{ display: 'flex', gap: 11, alignItems: 'center' }}>
+              <Card style={{ marginTop: 14 }}>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12 }}>
                   <Avatar src={p.avatar_url} name={p.name} size={26} />
-
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 14.5, fontWeight: 500, color: C.text }}>{p.name}</span>
-                      <Pill tone={k.tone}>{k.label}</Pill>
-                    </div>
-                    <div style={{ fontSize: 12.5, color: C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {[p.title, p.customers?.name ?? p.company].filter(Boolean).join(' · ') || 'No details yet'}
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: 11, flexShrink: 0, alignItems: 'center' }}>
-                    {p.website && (
-                      <a
-                        href={p.website.startsWith('http') ? p.website : `https://${p.website}`}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        style={{ fontSize: 12.5, color: C.dim, textDecoration: 'none' }}
-                      >
-                        Site
-                      </a>
-                    )}
-                    {p.email && (
-                      <a href={`mailto:${p.email}`} style={{ fontSize: 12.5, color: C.accent, textDecoration: 'none' }}>
-                        Email
-                      </a>
-                    )}
-                    <button
-                      onClick={() => setOpenId(open ? null : p.id)}
-                      style={{ background: 'transparent', border: 'none', padding: 0, color: C.dim, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
-                    >
-                      {open ? 'Close' : 'Open'}
-                    </button>
-                  </div>
+                  <span style={{ fontSize: 15, fontWeight: 500, color: C.text, flex: 1 }}>{p.name}</span>
+                  <button
+                    onClick={() => setOpenId(null)}
+                    style={{ background: 'transparent', border: 'none', padding: 0, color: C.dim, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
+                  >
+                    Close
+                  </button>
                 </div>
+          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 9 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
+              {([
+                ['title', 'What they do'],
+                ['company', 'Where they work'],
+                ['website', 'Website'],
+                ['email', 'Email'],
+                ['phone', 'Phone'],
+                ['met_how', 'How you met'],
+              ] as const).map(([field, ph]) => (
+                <input
+                  key={field}
+                  defaultValue={(p[field] as string | null) ?? ''}
+                  placeholder={ph}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim() || null;
+                    if (v !== (p[field] ?? null)) save(p.id, { [field]: v });
+                  }}
+                  style={{ ...inputStyle, fontSize: 13 }}
+                />
+              ))}
+            </div>
 
-                {/* The substance, folded. A list you scan should not make you
-                    read six paragraphs to find one name. */}
-                {open && (
-                  <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 9 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
-                      {([
-                        ['title', 'What they do'],
-                        ['company', 'Where they work'],
-                        ['website', 'Website'],
-                        ['email', 'Email'],
-                        ['phone', 'Phone'],
-                        ['met_how', 'How you met'],
-                      ] as const).map(([field, ph]) => (
-                        <input
-                          key={field}
-                          defaultValue={(p[field] as string | null) ?? ''}
-                          placeholder={ph}
-                          onBlur={(e) => {
-                            const v = e.target.value.trim() || null;
-                            if (v !== (p[field] ?? null)) save(p.id, { [field]: v });
-                          }}
-                          style={{ ...inputStyle, fontSize: 13 }}
-                        />
-                      ))}
-                    </div>
+            <textarea
+              defaultValue={p.note ?? ''}
+              placeholder="What you discussed."
+              rows={4}
+              onBlur={(e) => {
+                const v = e.target.value.trim() || null;
+                if (v !== (p.note ?? null)) save(p.id, { note: v });
+              }}
+              style={{ ...inputStyle, fontSize: 13, resize: 'vertical' }}
+            />
 
-                    <textarea
-                      defaultValue={p.note ?? ''}
-                      placeholder="What you discussed."
-                      rows={4}
-                      onBlur={(e) => {
-                        const v = e.target.value.trim() || null;
-                        if (v !== (p.note ?? null)) save(p.id, { note: v });
-                      }}
-                      style={{ ...inputStyle, fontSize: 13, resize: 'vertical' }}
-                    />
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {KINDS.map((kk) => (
+                <button
+                  key={kk.key}
+                  onClick={() => save(p.id, { relationship: kk.key })}
+                  style={{
+                    padding: '4px 9px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+                    border: `1px solid ${p.relationship === kk.key ? C.accent : C.border}`,
+                    background: p.relationship === kk.key ? C.accentSoft : 'transparent',
+                    color: p.relationship === kk.key ? C.accent : C.faint,
+                  }}
+                >
+                  {kk.label}
+                </button>
+              ))}
+            </div>
 
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      {KINDS.map((kk) => (
-                        <button
-                          key={kk.key}
-                          onClick={() => save(p.id, { relationship: kk.key })}
-                          style={{
-                            padding: '4px 9px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
-                            border: `1px solid ${p.relationship === kk.key ? C.accent : C.border}`,
-                            background: p.relationship === kk.key ? C.accentSoft : 'transparent',
-                            color: p.relationship === kk.key ? C.accent : C.faint,
-                          }}
-                        >
-                          {kk.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 12.5, color: C.faint }}>
-                        {p.last_spoke_on ? `Last spoke ${p.last_spoke_on}` : 'No call logged'}
-                        {p.met_on ? ` · met ${p.met_on}` : ''}
-                      </span>
-                      <button
-                        onClick={() => spokeToday(p.id)}
-                        style={{ background: 'transparent', border: 'none', padding: 0, color: C.accent, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
-                      >
-                        Spoke today
-                      </button>
-                      {p.customer_id && (
-                        <button
-                          onClick={() => router.push(`/customers/${p.customer_id}`)}
-                          style={{ background: 'transparent', border: 'none', padding: 0, color: C.accent, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', marginLeft: 'auto' }}
-                        >
-                          Open {p.customers?.name ?? 'the client'} →
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+            <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 12.5, color: C.faint }}>
+                {p.last_spoke_on ? `Last spoke ${p.last_spoke_on}` : 'No call logged'}
+                {p.met_on ? ` · met ${p.met_on}` : ''}
+              </span>
+              <button
+                onClick={() => spokeToday(p.id)}
+                style={{ background: 'transparent', border: 'none', padding: 0, color: C.accent, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                Spoke today
+              </button>
+              {p.customer_id && (
+                <button
+                  onClick={() => router.push(`/customers/${p.customer_id}`)}
+                  style={{ background: 'transparent', border: 'none', padding: 0, color: C.accent, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', marginLeft: 'auto' }}
+                >
+                  Open {p.customers?.name ?? 'the client'} →
+                </button>
+              )}
+            </div>
+          </div>
+              </Card>
             );
-          })}
-        </Card>
+          })()}
+        </>
       )}
     </Page>
   );

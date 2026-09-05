@@ -340,9 +340,19 @@ export default function CustomersPage() {
   ];
 
   // The three things a CRM should shout about.
-  const dueNow = today ? rows.filter((r) => r.next_action_on && r.next_action_on <= today) : [];
-  const owing = rows.filter((r) => r.owed > 0);
-  const noEmail = rows.filter((r) => !r.email);
+  /**
+   * Counted over clients, not over everybody.
+   *
+   * These read `rows`, which since the merge holds the whole pipeline too. So
+   * John's screen announced "104 No email, can't invoice" — a hundred and four
+   * distributors he has never contacted, who are not clients, and who nobody
+   * would invoice. A number that large and that red on an otherwise empty
+   * screen reads as a fault in the product rather than a fact about the data.
+   */
+  const clients = useMemo(() => rows.filter((r) => isClient(r.stage)), [rows]);
+  const dueNow = today ? clients.filter((r) => r.next_action_on && r.next_action_on <= today) : [];
+  const owing = clients.filter((r) => r.owed > 0);
+  const noEmail = clients.filter((r) => !r.email);
 
   return (
     <Page
@@ -482,12 +492,18 @@ export default function CustomersPage() {
             selected={picked}
             onSelect={setPicked}
             onOpen={(r) => router.push(`/customers/${r.id}`)}
-            empty={rows.length === 0 ? `No ${vocab.customerPlural.toLowerCase()} yet.` : 'Nothing matches.'}
+            empty={
+              clients.length > 0
+                ? 'Nothing matches.'
+                : rows.length > 0
+                  ? `Nobody has been marked won yet, so everyone is still in Pipeline. ${rows.length} there.`
+                  : `No ${vocab.customerPlural.toLowerCase()} yet.`
+            }
           />
 
           <div style={{ fontSize: 12, color: C.faint, marginTop: 10 }}>
-            {filtered.length} of {rows.filter((r) => isClient(r.stage)).length}. Tick rows to work
-            several at once; shift-click for a run.
+            {filtered.length} of {clients.length}. Tick rows to work several at once; shift-click
+            for a run.
           </div>
 
           <BulkBar count={picked.size} onClear={() => setPicked(new Set())}>
