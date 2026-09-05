@@ -59,13 +59,15 @@ export const SETUP_ITEMS: SetupItem[] = [
     icon: 'mail',
     urgent: true,
     blocks:
-      'Every client email in here is written, reviewed, and then refused at the door.\n\nThe update writer on each client drafts from the brief, the plan and the last three weeks of contact, and sending posts it to Resend as a real email. What is missing is a from address. Without one it falls back to the mail service’s shared testing address, which by design only ever delivers to your own inbox, so the Colette update you wrote came back "Could not send that" and Frank never received anything.\n\nThe same wall is in front of Mark’s invite, every estimate, and every invoice. It is the one item on this list where the feature is already built and waiting.\n\nAbout ten minutes, most of it waiting for DNS. You can prove it works first: open Demo, any client, and the update defaults to your own address, which is the one place the shared testing address does deliver.',
+      'Every client email in here is written, reviewed, and then refused at the door. And nothing a client sends back is ever seen.\n\nThe update writer on each client drafts from the brief, the plan and the last three weeks of contact, and sending posts it to Resend as a real email. What is missing is a from address. Without one it falls back to the mail service’s shared testing address, which by design only ever delivers to your own inbox, so the Colette update you wrote came back "Could not send that" and Frank never received anything.\n\nThe same wall is in front of Mark’s invite, every estimate, and every invoice. It is the one item on this list where the feature is already built and waiting.\n\nAbout ten minutes, most of it waiting for DNS. You can prove it works first: open Demo, any client, and the update defaults to your own address, which is the one place the shared testing address does deliver.',
     steps: [
       'Open [Resend domains](https://resend.com/domains), press Add domain, and type calo.company.',
       'It gives you three or four records. Paste them into [Vercel DNS for calo.company](https://vercel.com/mikexcalo-7384s-projects/~/domains/calo.company) exactly as shown. SPF, DKIM and DMARC all of them, because two out of three still gets filtered into spam.',
       'Wait for Resend to show the domain as verified. Usually minutes, occasionally an hour, and nothing else needs doing while it settles.',
-      'Tell me when it is green and I will set the from address to nautilus@calo.company. That is the last step and it is mine, not yours.',
-      'Then send yourself the Demo update again and watch it arrive from your own domain rather than a shared one.',
+      'While you are in that DNS panel, add one more: an MX record on the subdomain in.calo.company, pointing at Resend, priority 10. This is what lets a client reply and have it land back in here on its own. It must be the subdomain, never the root, or all mail for calo.company routes to Resend instead of your inbox.',
+      'In Resend, add in.calo.company under Receiving, then add a webhook for the email.received event pointing at https://calo-co-portal.vercel.app/api/mail/inbound.',
+      'Tell me when both are green. I set the from address, the inbound domain and the webhook secret. That is the last step and it is mine, not yours.',
+      'Then send yourself the Demo update again and watch it arrive from your own domain. Reply to it, and watch the reply file itself against the client and move them to Talking without you touching anything.',
     ],
   },
   {
