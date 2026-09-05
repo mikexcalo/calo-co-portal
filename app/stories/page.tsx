@@ -34,7 +34,7 @@ import {
   Pill,
   SectionLabel,
   inputStyle,
-  BRAND_TABS,
+  PITCH_TABS,
 } from '@/components/spine/ui';
 
 interface Claim {
@@ -341,7 +341,7 @@ export default function StoriesPage() {
 
   return (
     <Page
-      tabs={BRAND_TABS}
+      tabs={PITCH_TABS}
       title="Case studies"
       subtitle="Your past work, written up once so you can reuse it in pitches and on the site."
     >

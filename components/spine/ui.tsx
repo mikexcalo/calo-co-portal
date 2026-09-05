@@ -241,11 +241,33 @@ export const MONEY_TABS: readonly PageTab[] = [
  * kit holds what it looks like, case studies are what it can prove, and the
  * website is where all three land.
  */
+/**
+ * Brand is your brand. Nothing here belongs to a client.
+ *
+ * It used to hold four things and two of them were somebody else's. The
+ * framework is a method applied to a client, so it belongs on that client's
+ * record next to their kit, not in a grid of everybody at once. Case studies
+ * are proof of work you send to win more work, which is a sales object; they
+ * sit with Pitches now, which is what they get pasted into.
+ *
+ * What is left is the two things that actually are yours: your kit, and your
+ * site.
+ */
 export const BRAND_TABS: readonly PageTab[] = [
-  { label: 'Framework', href: '/framework', icon: 'layers' },
-  { label: 'Case studies', href: '/stories', icon: 'book' },
   { label: 'Kit and assets', href: '/brand-kit', icon: 'swatches' },
   { label: 'Website', href: '/website', icon: 'globe' },
+];
+
+/**
+ * A pitch and the proof that goes in it.
+ *
+ * Case studies were filed under Brand, beside the logo files, which said they
+ * were about identity. They are about evidence, and the only reason to keep
+ * them is to reuse them, which happens at the moment you write a pitch.
+ */
+export const PITCH_TABS: readonly PageTab[] = [
+  { label: 'Pitches', href: '/pitches', icon: 'send' },
+  { label: 'Case studies', href: '/stories', icon: 'book' },
 ];
 
 /**

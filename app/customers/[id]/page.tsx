@@ -678,6 +678,24 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             <>
               <BrandCard customerId={params.id} />
               <ClientBrandFiles customerId={params.id} />
+              {/*
+                The framework describes this client, so the door to it is here.
+
+                It was a tab of the Brand module, which put a grid of every
+                client at once inside the section about your own identity. The
+                method is applied to somebody; you open it from them.
+              */}
+              <button
+                onClick={() => router.push(`/framework?client=${params.id}`)}
+                style={{
+                  border: `1px dashed ${C.border}`, background: 'transparent',
+                  borderRadius: 10, padding: '10px 14px', width: '100%',
+                  textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit',
+                  fontSize: 13.5, color: C.dim,
+                }}
+              >
+                Where {customer.name} sits on the ten module framework
+              </button>
             </>
           )}
 

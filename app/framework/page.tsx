@@ -29,7 +29,6 @@ import {
   Pill,
   SectionLabel,
   inputStyle,
-  BRAND_TABS,
 } from '@/components/spine/ui';
 
 interface BrandRow {
@@ -143,7 +142,7 @@ export default function FrameworkPage() {
 
   return (
     <Page
-      tabs={BRAND_TABS}
+      back={{ label: 'Clients', href: '/customers' }}
       title="Brand framework"
       subtitle="One process, ten modules, every client. Each module is an input to the next, so the order is the method."
       action={
