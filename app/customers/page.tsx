@@ -18,6 +18,7 @@ import supabase from '@/lib/supabase';
 import { brandAssetUrl } from '@/lib/spine/db';
 import { createCustomer, getCurrentOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
+import { STAGE, isClient, type Stage } from '@/lib/spine/stage';
 import {
   Avatar,
   Button,
@@ -45,7 +46,9 @@ interface Summary {
   phone: string | null;
   logo_path: string | null;
   waiting_on: string | null;
-  stage: 'prospect' | 'active' | 'past' | 'lost';
+  stage: Stage;
+  /** Merged in from customers; the summary view does not carry it. */
+  tags?: string[];
   next_action: string | null;
   next_action_on: string | null;
   last_contacted_on: string | null;
@@ -64,12 +67,18 @@ const num = (v: unknown) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-const STAGE_TONE = {
-  prospect: 'amber',
-  active: 'green',
+/**
+ * This list is the people you have, not the people you want.
+ *
+ * Both used to live here, so a hundred and four companies nobody had spoken to
+ * sat in the same list as three paying clients and the word Clients meant
+ * neither. Pipeline is the same table read from the other end.
+ */
+const STAGE_TONE: Record<string, 'amber' | 'green' | 'neutral'> = {
+  won: 'green',
   past: 'neutral',
-  lost: 'neutral',
-} as const;
+  cold: 'neutral',
+};
 
 export default function CustomersPage() {
   const router = useRouter();
@@ -81,7 +90,7 @@ export default function CustomersPage() {
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [q, setQ] = useState('');
-  const [stageFilter, setStageFilter] = useState<'all' | Summary['stage']>('all');
+  const [stageFilter, setStageFilter] = useState<'all' | 'won' | 'past'>('all');
   const [today, setToday] = useState<string | null>(null);
 
   const [form, setForm] = useState({ name: '', contact_name: '', contact_title: '', email: '', phone: '', address: '' });
@@ -90,15 +99,23 @@ export default function CustomersPage() {
   useEffect(() => setToday(new Date().toISOString().slice(0, 10)), []);
 
   const load = useCallback(async () => {
-    const [o, res] = await Promise.all([
+    const [o, res, tg] = await Promise.all([
       getCurrentOrg(),
       supabase.from('customer_summary').select('*').order('name'),
+      // Tags live on customers and the summary view predates them. Replacing a
+      // view can only append columns, so they are merged here rather than the
+      // view being rebuilt for one field.
+      supabase.from('customers').select('id, tags'),
     ]);
     setOrgId(o?.id ?? null);
     if (res.error) throw new Error(res.error.message);
+    const tagsById = new Map(
+      ((tg.data ?? []) as Array<{ id: string; tags: string[] | null }>).map((t) => [t.id, t.tags ?? []])
+    );
     setRows(
       (res.data ?? []).map((r: Record<string, unknown>) => ({
         ...(r as unknown as Summary),
+        tags: tagsById.get(String(r.customer_id)) ?? [],
         jobs: num(r.jobs),
         open_jobs: num(r.open_jobs),
         invoiced: num(r.invoiced),
@@ -174,6 +191,9 @@ export default function CustomersPage() {
       brandFilter === 'all' ? null : brands.find((b) => b.id === brandFilter)?.customer_id ?? null;
 
     return rows.filter((r) => {
+      // Anything still being chased belongs to Pipeline, not here. A record
+      // does not move between lists when it converts; the window changes.
+      if (!isClient(r.stage)) return false;
       if (stageFilter !== 'all' && r.stage !== stageFilter) return false;
       if (brandFilter !== 'all' && r.customer_id !== brandClient) return false;
       if (!term) return true;
@@ -264,7 +284,7 @@ export default function CustomersPage() {
           style={{ ...inputStyle, maxWidth: 260, background: C.panel }}
         />
         <div style={{ display: 'flex', gap: 5 }}>
-          {(['all', 'prospect', 'active', 'past'] as const).map((s) => (
+          {(['all', 'won', 'past'] as const).map((s) => (
             <button
               key={s}
               onClick={() => setStageFilter(s)}
@@ -342,7 +362,7 @@ export default function CustomersPage() {
                   <div style={{ flex: 1, minWidth: 200 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em' }}>{r.name}</span>
-                      <Pill tone={STAGE_TONE[r.stage]}>{r.stage}</Pill>
+                      <Pill tone={STAGE_TONE[r.stage] ?? 'neutral'}>{STAGE[r.stage]?.label ?? r.stage}</Pill>
                       {r.open_jobs > 0 && (
                         <Pill tone="blue">
                           {r.open_jobs} open {r.open_jobs === 1 ? vocab.job.toLowerCase() : vocab.jobPlural.toLowerCase()}

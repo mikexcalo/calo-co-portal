@@ -68,7 +68,11 @@ export function ClientWork({ customerId }: { customerId: string }) {
     if (n('owed') > 0) next.push({ label: 'Owed to you', money: n('owed'), href: `/jobs?client=${customerId}`, tone: 'amber' });
     if (n('unbilled') > 0) next.push({ label: 'Unbilled', money: n('unbilled'), href: `/jobs?client=${customerId}`, tone: 'amber' });
     if (n('engagements')) next.push({ label: 'Engagements', count: n('engagements'), href: `/jobs?client=${customerId}` });
-    if (n('targets')) next.push({ label: 'Targets', count: n('targets'), href: `/targets?client=${customerId}`, hint: `${n('targets_open')} still open` });
+    // Targets on behalf of a client are gone: a company you want is now a
+    // record in the one lane, and John's hundred and four moved into his own
+    // workspace when he got one. The view still counts them and always says
+    // zero, which is correct and not worth a row.
+
     if (n('brands')) next.push({ label: 'Brand', count: n('brands'), href: `/brands/${o.brand_id}` });
     /**
      * Stays on the client.

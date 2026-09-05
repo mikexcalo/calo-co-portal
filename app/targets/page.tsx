@@ -1,281 +1,316 @@
 'use client';
 
 /**
- * Companies you are going after.
+ * Pipeline: everybody you want, before they are anybody you have.
  *
- * Kept apart from clients on purpose. A prospect is somebody in a
- * conversation; a target is a row on a list you are working through, and there
- * are two hundred of them. Mixing the two makes the list you open every day
- * useless, which is the whole reason the client screen is worth opening.
+ * This read from a separate table of targets, which meant a company you were
+ * chasing and a company you had signed were two different records with two
+ * different status words, and converting one to the other stranded every note
+ * taken during the chase on a row nobody opens again.
  *
- * Built to be worked down rather than admired. Filter to a segment, change a
- * status, write the next step, close the tab.
+ * Same table now. Pipeline is everything before Won; Clients is Won and Past.
+ * Nothing moves between lists when a deal closes; the window changes.
+ *
+ * WHAT THE COLUMNS ARE FOR
+ *
+ * Grouped by stage rather than listed, because the question is never "show me
+ * all hundred and four". It is which four am I letting go quiet, and a column
+ * with two cards in it answers that without being asked.
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
-import {
-  Button,
-  C,
-  Card,
-  Empty,
-  Metric,
-  Page,
-  Pill,
-  inputStyle,
-} from '@/components/spine/ui';
+import { useOrg } from '@/lib/spine/org';
+import { LANE, OPEN_STAGES, daysSince, stale, type Stage } from '@/lib/spine/stage';
+import { Avatar, Button, C, Card, Empty, Page, inputStyle } from '@/components/spine/ui';
+import { Tags } from '@/components/spine/Tags';
+import { brandAssetUrl } from '@/lib/spine/db';
 
-interface Target {
+interface Row {
   id: string;
   name: string;
-  segment: string | null;
-  region: string | null;
-  size: number | null;
-  note: string | null;
+  stage: Stage;
+  tags: string[] | null;
+  next_action: string | null;
+  last_contacted_on: string | null;
+  logo_url: string | null;
   website: string | null;
-  contact_name: string | null;
-  contact_email: string | null;
-  status: 'researching' | 'approached' | 'talking' | 'won' | 'passed';
-  next_step: string | null;
-  last_touch: string | null;
-  /** Whose campaign this is. Null means it is your own list. */
-  client: { name: string } | null;
 }
 
-const STATUS: Array<{ id: Target['status']; label: string; tone: 'neutral' | 'blue' | 'amber' | 'green' | 'red' }> = [
-  { id: 'researching', label: 'On the list', tone: 'neutral' },
-  { id: 'approached', label: 'Approached', tone: 'blue' },
-  { id: 'talking', label: 'Talking', tone: 'amber' },
-  { id: 'won', label: 'Won', tone: 'green' },
-  { id: 'passed', label: 'Passed', tone: 'red' },
-];
+/** The four open stages, in order, minus won which is the other list. */
+const COLUMNS = LANE.filter((s) => OPEN_STAGES.includes(s.id));
 
-const toneFor = (s: Target['status']) => STATUS.find((x) => x.id === s)?.tone ?? 'neutral';
-const labelFor = (s: Target['status']) => STATUS.find((x) => x.id === s)?.label ?? s;
-
-export default function TargetsPage() {
-  /**
-   * Whose list this is.
-   *
-   * Reached from a client record, because a hundred and four seafood
-   * distributors are that client's list and not yours. Without a client this
-   * shows everything, which is the view you want once for a sanity check and
-   * never again.
-   */
-  const clientId = useSearchParams().get('client');
-  const [clientName, setClientName] = useState<string | null>(null);
-  const [rows, setRows] = useState<Target[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [segment, setSegment] = useState<string>('all');
-  const [status, setStatus] = useState<string>('open');
-  const [search, setSearch] = useState('');
-  const [open, setOpen] = useState<string | null>(null);
+export default function PipelinePage() {
+  const router = useRouter();
+  const { org, vocab } = useOrg();
+  const [rows, setRows] = useState<Row[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [q, setQ] = useState('');
+  const [tag, setTag] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [name, setName] = useState('');
+  const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    /**
-     * Yours by default, theirs when you came from their record.
-     *
-     * Showing every client's list mixed together was a view nobody wanted: a
-     * hundred seafood distributors on top of your own three prospects, with no
-     * way to tell whose is whose except a small grey name. Without a client
-     * this is your own pipeline, which is the thing you would open this for.
-     */
-    let q = supabase
-      .from('targets')
-      .select('*, client:customers!targets_for_client_id_fkey(name)')
-      .order('segment')
+    const res = await supabase
+      .from('customers')
+      .select('id, name, stage, tags, next_action, last_contacted_on, logo_url, website')
+      .in('stage', OPEN_STAGES)
       .order('name');
-    q = clientId ? q.eq('for_client_id', clientId) : q.is('for_client_id', null);
-
-    const res = await q;
-    if (!res.error) setRows((res.data ?? []) as Target[]);
-
-    if (clientId) {
-      const c = await supabase.from('customers').select('name').eq('id', clientId).maybeSingle();
-      setClientName(c.data?.name ?? null);
-    }
-    setLoading(false);
-  }, [clientId]);
+    if (res.error) setError(res.error.message);
+    else setRows((res.data ?? []) as Row[]);
+    setLoaded(true);
+  }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  const patch = async (t: Target, changes: Partial<Target>) => {
-    setRows((r) => r.map((x) => (x.id === t.id ? { ...x, ...changes } : x)));
-    await supabase.from('targets').update(changes).eq('id', t.id);
-  };
-
-  const segments = useMemo(
-    () => Array.from(new Set(rows.map((r) => r.segment).filter(Boolean))) as string[],
-    [rows]
-  );
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    rows.forEach((r) => (r.tags ?? []).forEach((t) => set.add(t)));
+    return Array.from(set).sort();
+  }, [rows]);
 
   const shown = useMemo(() => {
-    const needle = search.trim().toLowerCase();
+    const t = q.trim().toLowerCase();
     return rows.filter((r) => {
-      if (segment !== 'all' && r.segment !== segment) return false;
-      // "Open" is the default because a list you are working through should
-      // not show you the ones you already closed.
-      if (status === 'open' && (r.status === 'won' || r.status === 'passed')) return false;
-      if (status !== 'open' && status !== 'all' && r.status !== status) return false;
-      if (needle && !`${r.name} ${r.region ?? ''} ${r.note ?? ''}`.toLowerCase().includes(needle)) return false;
-      return true;
+      if (tag && !(r.tags ?? []).includes(tag)) return false;
+      if (!t) return true;
+      return `${r.name} ${(r.tags ?? []).join(' ')}`.toLowerCase().includes(t);
     });
-  }, [rows, segment, status, search]);
-
-  if (loading) return <Page title="Targets"><Card><Empty>Loading…</Empty></Card></Page>;
-
-  const counts = Object.fromEntries(
-    STATUS.map((s) => [s.id, rows.filter((r) => r.status === s.id).length])
-  );
+  }, [rows, q, tag]);
 
   /**
-   * What makes this list unworkable, counted.
+   * The ones going quiet, named before the board.
    *
-   * 104 of the 107 targets here have no person on them and no next step. You
-   * do not approach a company, you email somebody who works there, so a row
-   * with a company name and a status is a bookmark rather than a prospect.
-   * Naming the gap is the difference between a list you scroll past and one
-   * you can act on.
+   * A hundred and four cards is not information. Four of them that have sat
+   * untouched past the point where a reply was likely is the only thing on this
+   * screen anybody can act on this morning.
    */
-  const noPerson = rows.filter((r) => !r.contact_name && !r.contact_email).length;
-  const noNextStep = rows.filter((r) => !r.next_step && r.status !== 'won' && r.status !== 'passed').length;
+  const quiet = useMemo(
+    () =>
+      shown
+        .map((r) => ({ r, days: stale(r.stage, r.last_contacted_on) }))
+        .filter((x) => x.days !== null)
+        .sort((a, b) => (b.days ?? 0) - (a.days ?? 0)),
+    [shown]
+  );
+
+  const move = async (row: Row, next: Stage) => {
+    setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, stage: next } : r)));
+    const res = await supabase
+      .from('customers')
+      .update({ stage: next, stage_why: null, stage_changed_on: new Date().toISOString().slice(0, 10) })
+      .eq('id', row.id);
+    if (res.error) { setError(res.error.message); load(); }
+    // Leaving the open stages means it belongs to the other list now.
+    if (!OPEN_STAGES.includes(next)) load();
+  };
+
+  const add = async () => {
+    if (!org || !name.trim()) return;
+    setBusy(true);
+    const res = await supabase
+      .from('customers')
+      .insert({ org_id: org.id, name: name.trim(), stage: 'noticed' })
+      .select('id')
+      .maybeSingle();
+    setBusy(false);
+    if (res.error) { setError(res.error.message); return; }
+    setName('');
+    setAdding(false);
+    load();
+  };
 
   return (
     <Page
-      back={clientId ? { label: clientName ?? 'Client', href: `/customers/${clientId}` } : undefined}
-      title={clientName ? `Targets for ${clientName}` : 'Your pipeline'}
-      subtitle={
-        clientName
-          ? 'Companies worth approaching on their behalf. They become clients only once somebody answers.'
-          : 'Companies you want as clients. A client\u2019s own list lives on their record, not here.'
-      }
+      title="Pipeline"
+      subtitle={`Everybody you want. They become ${vocab.customerPlural.toLowerCase()} the moment you mark one won.`}
+      action={!adding ? <Button onClick={() => setAdding(true)}>Add a company</Button> : undefined}
     >
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 22 }}>
-        <Metric hideAtZero label="On the list" value={String(counts.researching ?? 0)} />
-        <Metric hideAtZero label="Approached" value={String(counts.approached ?? 0)} />
-        <Metric hideAtZero label="Talking" value={String(counts.talking ?? 0)} tone={counts.talking ? 'amber' : undefined} />
-        <Metric hideAtZero label="Won" value={String(counts.won ?? 0)} tone={counts.won ? 'green' : undefined} />
-      </div>
+      {error && <div style={{ fontSize: 13, color: C.red, marginBottom: 12 }}>{error}</div>}
 
-      <Card style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search"
-            style={{ ...inputStyle, flex: '1 1 200px' }}
-          />
-          <select value={segment} onChange={(e) => setSegment(e.target.value)} style={{ ...inputStyle, width: 240 }}>
-            <option value="all">Every segment</option>
-            {segments.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <select value={status} onChange={(e) => setStatus(e.target.value)} style={{ ...inputStyle, width: 150 }}>
-            <option value="open">Still open</option>
-            <option value="all">Everything</option>
-            {STATUS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-          </select>
-        </div>
-      </Card>
+      {adding && (
+        <Card>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') add(); }}
+              placeholder="Company name. Everything else can wait."
+              autoFocus
+              style={{ ...inputStyle, flex: '1 1 240px' }}
+            />
+            <Button onClick={add} disabled={busy || !name.trim()}>Add</Button>
+            <Button variant="ghost" onClick={() => { setAdding(false); setName(''); }}>Cancel</Button>
+          </div>
+        </Card>
+      )}
 
-      <div style={{ fontSize: 12.5, color: C.faint, marginBottom: 8 }}>
-        {shown.length} of {rows.length}
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {shown.map((t) => {
-          const isOpen = open === t.id;
-          return (
-            <Card key={t.id}>
-              <div
-                onClick={() => setOpen(isOpen ? null : t.id)}
-                style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', cursor: 'pointer' }}
-              >
-                <div style={{ flex: 1, minWidth: 190 }}>
-                  <div style={{ fontSize: 14.5, fontWeight: 500, color: C.text }}>{t.name}</div>
-                  <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2 }}>
-                    {[clientId ? null : t.client?.name, t.region, t.size ? `${t.size} units` : null]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </div>
-                </div>
-                {t.next_step && (
-                  <span style={{ fontSize: 12.5, color: C.blue, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {t.next_step}
-                  </span>
-                )}
-                <Pill tone={toneFor(t.status)}>{labelFor(t.status)}</Pill>
+      {!loaded ? (
+        <Empty>Loading…</Empty>
+      ) : rows.length === 0 ? (
+        <Card>
+          <Empty>
+            Nobody in the pipeline. Add a company you want and it starts at Noticed, then moves
+            itself the first time you write to them.
+          </Empty>
+        </Card>
+      ) : (
+        <>
+          {quiet.length > 0 && (
+            <Card style={{ marginBottom: 14, borderColor: `${C.amber}55` }}>
+              <div style={{ fontSize: 12.5, color: C.amber, marginBottom: 8 }}>
+                Going quiet ({quiet.length})
               </div>
-
-              {isOpen && (
-                <div style={{ marginTop: 14 }}>
-                  {t.note && (
-                    <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.65, margin: '0 0 14px', maxWidth: 660 }}>
-                      {t.note}
-                    </p>
-                  )}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
-                    <select
-                      value={t.status}
-                      onChange={(e) => patch(t, {
-                        status: e.target.value as Target['status'],
-                        // Changing the state is contact, so the date follows
-                        // rather than asking somebody to keep two records.
-                        last_touch: new Date().toISOString().slice(0, 10),
-                      })}
-                      style={inputStyle}
-                    >
-                      {/* Won is set from the client record, because it needs a
-                          customer behind it and the database enforces that. */}
-                      {STATUS.filter((s) => s.id !== 'won').map((s) => (
-                        <option key={s.id} value={s.id}>{s.label}</option>
-                      ))}
-                    </select>
-                    <input
-                      defaultValue={t.contact_name ?? ''}
-                      onBlur={(e) => patch(t, { contact_name: e.target.value || null })}
-                      placeholder="Who you know there"
-                      style={inputStyle}
-                    />
-                    <input
-                      defaultValue={t.next_step ?? ''}
-                      onBlur={(e) => patch(t, { next_step: e.target.value || null })}
-                      placeholder="Next step"
-                      style={inputStyle}
-                    />
-                  </div>
-                </div>
-              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {quiet.slice(0, 5).map(({ r, days }) => (
+                  <button
+                    key={r.id}
+                    onClick={() => router.push(`/customers/${r.id}`)}
+                    style={{
+                      display: 'flex', gap: 10, alignItems: 'baseline', textAlign: 'left',
+                      background: 'transparent', border: 'none', padding: 0,
+                      cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    <span style={{ fontSize: 13.5, color: C.text }}>{r.name}</span>
+                    <span style={{ fontSize: 12.5, color: C.faint, flex: 1 }}>
+                      {days} days since you last spoke, and they are at {r.stage}.
+                    </span>
+                  </button>
+                ))}
+              </div>
             </Card>
-          );
-        })}
-        {rows.length > 0 && (noPerson > 0 || noNextStep > 0) && (
+          )}
+
+          <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', alignItems: 'center', marginBottom: 14 }}>
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search by name or tag"
+              style={{ ...inputStyle, maxWidth: 240 }}
+            />
+            {allTags.length > 0 && (
+              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                {allTags.slice(0, 12).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTag(tag === t ? null : t)}
+                    style={{
+                      border: `1px solid ${tag === t ? C.accent : C.border}`,
+                      background: tag === t ? C.accentSoft : 'transparent',
+                      color: tag === t ? C.text : C.faint,
+                      borderRadius: 6, padding: '3px 9px', fontSize: 12,
+                      cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div
             style={{
-              fontSize: 12.5, color: C.amber, marginBottom: 10,
-              padding: '8px 12px', borderRadius: 7,
-              background: C.amberSoft, border: `1px solid ${C.amber}44`,
-              lineHeight: 1.55,
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: 12,
+              alignItems: 'start',
             }}
           >
-            {noPerson > 0 && <>{noPerson} with nobody to contact. </>}
-            {noNextStep > 0 && <>{noNextStep} with no next step. </>}
-            Until a row has a name and a next move it is a bookmark, not a prospect.
-          </div>
-        )}
+            {COLUMNS.map((col) => {
+              const cards = shown.filter((r) => r.stage === col.id);
+              return (
+                <div key={col.id}>
+                  <div
+                    style={{
+                      display: 'flex', gap: 7, alignItems: 'baseline',
+                      marginBottom: 8, paddingBottom: 6,
+                      borderBottom: `2px solid ${col.tone === 'amber' ? C.amber : C.border}`,
+                    }}
+                  >
+                    <span style={{ fontSize: 12.5, color: C.dim, fontWeight: 500 }}>{col.label}</span>
+                    <span style={{ fontSize: 12, color: C.faint, fontVariantNumeric: 'tabular-nums' }}>
+                      {cards.length}
+                    </span>
+                  </div>
 
-        {shown.length === 0 && (
-          <Card>
-            <Empty>
-              {rows.length === 0
-                ? clientName
-                  ? `No targets for ${clientName} yet.`
-                  : 'Nothing in your pipeline. Every target on this platform right now belongs to a client, not to you.'
-                : 'Nothing matches that.'}
-            </Empty>
-          </Card>
-        )}
-      </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                    {cards.length === 0 && (
+                      <div style={{ fontSize: 12, color: C.faint, padding: '6px 0' }}>Nobody here.</div>
+                    )}
+                    {cards.map((r) => {
+                      const quietDays = stale(r.stage, r.last_contacted_on);
+                      const seen = daysSince(r.last_contacted_on);
+                      return (
+                        <Card key={r.id} style={{ padding: '10px 12px' }}>
+                          <button
+                            onClick={() => router.push(`/customers/${r.id}`)}
+                            style={{
+                              display: 'flex', gap: 8, alignItems: 'center', width: '100%',
+                              textAlign: 'left', background: 'transparent', border: 'none',
+                              padding: 0, cursor: 'pointer', fontFamily: 'inherit',
+                            }}
+                          >
+                            <Avatar src={brandAssetUrl(r.logo_url)} name={r.name} size={20} shape="company" />
+                            <span style={{ fontSize: 13.5, color: C.text, lineHeight: 1.35 }}>{r.name}</span>
+                          </button>
+
+                          {(r.tags ?? []).length > 0 && (
+                            <div style={{ marginTop: 6 }}>
+                              <Tags tags={(r.tags ?? []).slice(0, 3)} editable={false} />
+                            </div>
+                          )}
+
+                          {r.next_action && (
+                            <div style={{ fontSize: 12, color: C.dim, marginTop: 6, lineHeight: 1.45 }}>
+                              {r.next_action}
+                            </div>
+                          )}
+
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 7, flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: 11.5, color: quietDays ? C.amber : C.faint }}>
+                              {seen === null ? 'never spoken' : seen === 0 ? 'today' : `${seen}d ago`}
+                            </span>
+                            <span style={{ flex: 1 }} />
+                            {/* One step forward, which is the only move
+                                anybody makes from a board. Anything else is a
+                                decision, and decisions belong on the record. */}
+                            {col.id !== 'proposed' ? (
+                              <button
+                                onClick={() => move(r, COLUMNS[COLUMNS.findIndex((c) => c.id === col.id) + 1].id)}
+                                style={{
+                                  background: 'transparent', border: 'none', padding: 0,
+                                  color: C.blue, fontSize: 11.5, cursor: 'pointer', fontFamily: 'inherit',
+                                }}
+                              >
+                                → {COLUMNS[COLUMNS.findIndex((c) => c.id === col.id) + 1].label}
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => move(r, 'won')}
+                                style={{
+                                  background: 'transparent', border: 'none', padding: 0,
+                                  color: C.green, fontSize: 11.5, cursor: 'pointer', fontFamily: 'inherit',
+                                }}
+                              >
+                                Won
+                              </button>
+                            )}
+                          </div>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
     </Page>
   );
 }

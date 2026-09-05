@@ -17,6 +17,9 @@ import { Glyph } from '@/components/spine/icons';
 import { brandAssetUrl, getCurrentOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import { modulesFor } from '@/lib/spine/modules';
+import { StageBar } from '@/components/spine/StageBar';
+import { Tags } from '@/components/spine/Tags';
+import type { Stage } from '@/lib/spine/stage';
 import { Links } from '@/components/spine/Links';
 import { Photos } from '@/components/spine/Photos';
 import { People } from '@/components/spine/People';
@@ -68,7 +71,9 @@ interface Customer {
   awaiting_reply_since?: string | null;
   logo_url: string | null;
   notes: string | null;
-  stage: 'prospect' | 'active' | 'past' | 'lost';
+  stage: Stage;
+  tags?: string[] | null;
+  stage_why?: string | null;
   next_action: string | null;
   next_action_on: string | null;
   last_contacted_on: string | null;
@@ -113,6 +118,9 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
    * has none of them, and should not carry the tab.
    */
   const hasCatalog = useMemo(() => modulesFor(org).has('catalog'), [org]);
+  const [stageBusy, setStageBusy] = useState(false);
+  /** Every tag already in use here, so the vocabulary converges by itself. */
+  const [knownTags, setKnownTags] = useState<string[]>([]);
 
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -198,7 +206,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
   const [draft, setDraft] = useState<Partial<Customer>>({});
 
   const load = useCallback(async () => {
-    const [o, c, lg, n, j] = await Promise.all([
+    const [o, c, lg, n, j, tg] = await Promise.all([
       getCurrentOrg(),
       supabase.from('customers').select('*').eq('id', params.id).maybeSingle(),
       supabase.rpc('customer_logo_path', { cust: params.id }),
@@ -209,6 +217,10 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
         .order('happened_on', { ascending: false })
         .order('created_at', { ascending: false }),
       supabase.from('jobs').select('id, name, status').eq('customer_id', params.id),
+      // Every tag in use, for the suggestion list. Free text splits into
+      // Northeast, northeast and North East unless what already exists is
+      // offered, and then the filter finds a third of them.
+      supabase.from('customers').select('tags'),
     ]);
 
     setOrgId(o?.id ?? null);
@@ -218,7 +230,41 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
     setLogoPath((lg.data as string | null) ?? null);
     if (!n.error) setNotes((n.data ?? []) as Note[]);
     if (!j.error) setJobs((j.data ?? []) as JobRow[]);
+    if (!tg.error) {
+      const all = new Set<string>();
+      ((tg.data ?? []) as Array<{ tags: string[] | null }>).forEach((r) =>
+        (r.tags ?? []).forEach((t) => all.add(t))
+      );
+      setKnownTags(Array.from(all).sort());
+    }
   }, [params.id]);
+
+  /**
+   * Moving the stage by hand.
+   *
+   * Clears the reason, because a reason describes the move that put it there
+   * and leaving "they replied on 5 September" underneath a stage you set
+   * yourself is a caption that lies about who decided.
+   */
+  const setStage = async (next: Stage) => {
+    if (!customer) return;
+    setStageBusy(true);
+    setCustomer({ ...customer, stage: next, stage_why: null });
+    const res = await supabase
+      .from('customers')
+      .update({ stage: next, stage_why: null, stage_changed_on: new Date().toISOString().slice(0, 10) })
+      .eq('id', params.id);
+    setStageBusy(false);
+    if (res.error) { setError(res.error.message); load(); }
+  };
+
+  const saveTags = async (next: string[]) => {
+    if (!customer) return;
+    setCustomer({ ...customer, tags: next });
+    const res = await supabase.from('customers').update({ tags: next }).eq('id', params.id);
+    if (res.error) { setError(res.error.message); load(); }
+    else setKnownTags((k) => Array.from(new Set([...k, ...next])).sort());
+  };
 
   useEffect(() => {
     (async () => {
@@ -294,7 +340,6 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           address: draft.address?.trim() || null,
           website: draft.website?.trim() || null,
           logo_url: draft.logo_url?.trim() || null,
-          stage: draft.stage,
           next_action: draft.next_action?.trim() || null,
           next_action_on: draft.next_action_on || null,
         })
@@ -419,17 +464,12 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                 <Field label={vocab.customer === 'Client' ? 'Company' : 'Name'}>
                   <input value={draft.name ?? ''} onChange={(e) => setDraft({ ...draft, name: e.target.value })} style={inputStyle} />
                 </Field>
-                <Field label="Stage">
-                  <select
-                    value={draft.stage ?? 'active'}
-                    onChange={(e) => setDraft({ ...draft, stage: e.target.value as Customer['stage'] })}
-                    style={inputStyle}
-                  >
-                    <option value="prospect">Prospect</option>
-                    <option value="active">Active</option>
-                    <option value="past">Past</option>
-                    <option value="lost">Lost</option>
-                  </select>
+                {/* No stage here. It is a bar at the top of this record now,
+                    and two controls for one field is how they disagree: this
+                    panel would happily save "active", a word the lane no
+                    longer has. */}
+                <Field label="Website">
+                  <input value={draft.website ?? ''} onChange={(e) => setDraft({ ...draft, website: e.target.value })} style={inputStyle} placeholder="https://" />
                 </Field>
                 <Field label="Contact person">
                   <input value={draft.contact_name ?? ''} onChange={(e) => setDraft({ ...draft, contact_name: e.target.value })} style={inputStyle} />
@@ -491,6 +531,31 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             opened a client record and was shown an empty picture gallery
             instead of the last thing that was said.
           */}
+          {/*
+            Where this one stands, above the tabs.
+
+            It was a small grey pill in the right rail reading the raw word
+            "prospect", and it changed through a dropdown inside an edit panel.
+            A stage nobody can see is a stage nobody updates, and a pipeline
+            that is not updated is out of date by the second week.
+          */}
+          <StageBar
+            stage={customer.stage}
+            why={customer.stage_why}
+            busy={stageBusy}
+            onChange={setStage}
+          />
+
+          {/* Tags under it, because what a company is and where it stands are
+              the two things you want before anything else on the page. */}
+          <div style={{ marginBottom: 18 }}>
+            <Tags
+              tags={customer.tags ?? []}
+              known={knownTags}
+              onChange={saveTags}
+            />
+          </div>
+
           {/* Above everything. The first thing you read, and the only
               thing you could hand to somebody else. */}
           {/*
@@ -801,11 +866,6 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             write to, and adding a second person is a button rather than a
             schema change somebody has to ask for.
           */}
-          <div style={{ marginBottom: 12 }}>
-            <Pill tone={customer.stage === 'active' ? 'green' : customer.stage === 'prospect' ? 'amber' : 'neutral'}>
-              {customer.stage}
-            </Pill>
-          </div>
 
           {orgId && <People orgId={orgId} customerId={params.id} />}
 
