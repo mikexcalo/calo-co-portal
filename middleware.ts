@@ -157,11 +157,13 @@ export const config = {
      * - /api/enquiry            that form posting
      * - /t.js                   the tracker, loaded by somebody else's site
      * - /api/track              that tracker reporting an event
+     * - /api/preview/           a note left on a preview by somebody with no
+     *                           account, which is the entire point of it
      *
      * The last two have to be here or the whole feature is inert: a script tag
      * on a public page cannot carry a session, so auth would 307 both the
      * script and every event it tries to send to /login.
      */
-    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|q/|p/|e/|i/|s/|r/|new/|api/enquiry|t\\.js|api/track).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|q/|p/|e/|i/|s/|r/|new/|api/enquiry|t\\.js|api/track|api/preview/).*)',
   ],
 };
