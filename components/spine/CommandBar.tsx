@@ -316,7 +316,7 @@ export function CommandBar() {
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
           border: `1px solid ${C.border}`, background: C.panel,
-          borderRadius: 8, padding: '6px 10px', cursor: 'pointer',
+          borderRadius: 999, padding: '6px 10px', cursor: 'pointer',
           color: C.faint, fontFamily: 'inherit', fontSize: 13.5,
           // On a phone the label and the shortcut are both dead weight: there
           // is no keyboard to press and no room for the words.

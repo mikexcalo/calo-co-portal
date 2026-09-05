@@ -111,7 +111,7 @@ export default function AskPage() {
                 style={{
                   border: `1px solid ${C.border}`,
                   background: 'transparent',
-                  borderRadius: 20,
+                  borderRadius: 999,
                   padding: '7px 14px',
                   fontSize: 13.5,
                   color: C.dim,

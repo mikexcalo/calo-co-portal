@@ -65,7 +65,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             style={{
               background: 'transparent',
               border: `1px solid ${C.border}`,
-              borderRadius: 7,
+              borderRadius: 999,
               color: C.text,
               width: 36,
               height: 36,

@@ -202,7 +202,7 @@ export default function BrandKitPage() {
             onClick={() => setTab(tb)}
             style={{
               padding: '8px 14px',
-              borderRadius: 7,
+              borderRadius: 999,
               border: `1px solid ${tab === tb ? C.blue : C.border}`,
               background: tab === tb ? C.blueSoft : 'transparent',
               color: tab === tb ? C.text : C.dim,
@@ -339,7 +339,7 @@ export default function BrandKitPage() {
                     key={s.id}
                     onClick={() => setStyle(s.id)}
                     style={{
-                      textAlign: 'left', padding: '10px 12px', borderRadius: 7,
+                      textAlign: 'left', padding: '10px 12px', borderRadius: 999,
                       border: `1px solid ${style === s.id ? C.blue : C.border}`,
                       background: style === s.id ? C.blueSoft : 'transparent',
                       cursor: 'pointer', fontFamily: 'inherit',
@@ -389,7 +389,7 @@ export default function BrandKitPage() {
                     key={g.id}
                     onClick={() => setGuideId(g.id)}
                     style={{
-                      padding: '5px 10px', borderRadius: 20, fontSize: 12.5,
+                      padding: '5px 10px', borderRadius: 999, fontSize: 12.5,
                       border: `1px solid ${guideId === g.id ? C.blue : C.border}`,
                       background: guideId === g.id ? C.blueSoft : 'transparent',
                       color: guideId === g.id ? C.text : C.dim,

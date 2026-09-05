@@ -141,7 +141,7 @@ export function SayIt({
         onClick={() => setOpen(true)}
         style={{
           border: `1px dashed ${C.border}`, background: 'transparent', width: '100%',
-          borderRadius: 9, padding: '10px 13px', marginBottom: 14, textAlign: 'left',
+          borderRadius: 10, padding: '10px 13px', marginBottom: 14, textAlign: 'left',
           fontSize: 13, color: C.faint, cursor: 'pointer', fontFamily: 'inherit',
         }}
       >

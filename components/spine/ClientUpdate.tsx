@@ -103,7 +103,7 @@ export function ClientUpdate({ customerId, clientName }: { customerId: string; c
           onClick={write}
           disabled={busy}
           style={{
-            border: `1px dashed ${C.border}`, background: 'transparent', borderRadius: 9,
+            border: `1px dashed ${C.border}`, background: 'transparent', borderRadius: 10,
             padding: '11px 14px', width: '100%', textAlign: 'left', cursor: 'pointer',
             fontFamily: 'inherit', fontSize: 13.5, color: C.dim,
           }}

@@ -283,7 +283,7 @@ export default function Sidebar() {
           width: '100%',
           padding: '6px 12px',
           margin: '1px 0',
-          borderRadius: radius.md,
+          borderRadius: 999,
           border: 'none',
           /**
            * Darker and evenly weighted, but not larger.

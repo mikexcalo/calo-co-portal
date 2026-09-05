@@ -229,7 +229,7 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
                     onClick={() => remove(t)}
                     aria-label={`Remove ${t.name}`}
                     style={{
-                      width: 26, height: 26, borderRadius: 6,
+                      width: 26, height: 26, borderRadius: 999,
                       border: `1px solid ${C.border}`, background: 'transparent',
                       color: C.faint, fontSize: 14, lineHeight: 1, cursor: 'pointer',
                       fontFamily: 'inherit',

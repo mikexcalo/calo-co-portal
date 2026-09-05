@@ -145,7 +145,7 @@ export function Plan({ customerId, clientName }: { customerId: string; clientNam
               key={k}
               onClick={() => setFilter(k as Owner | 'all')}
               style={{
-                padding: '5px 10px', borderRadius: 6, fontSize: 12.5, cursor: 'pointer',
+                padding: '5px 10px', borderRadius: 999, fontSize: 12.5, cursor: 'pointer',
                 fontFamily: 'inherit',
                 border: `1px solid ${on ? C.accent : C.border}`,
                 background: on ? C.accentSoft : 'transparent',

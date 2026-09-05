@@ -122,7 +122,7 @@ export function Tags({
                   style={{
                     display: 'block', width: '100%', textAlign: 'left',
                     background: 'transparent', border: 'none', cursor: 'pointer',
-                    padding: '6px 8px', borderRadius: 6,
+                    padding: '6px 8px', borderRadius: 999,
                     fontSize: 12.5, color: C.dim, fontFamily: 'inherit',
                   }}
                 >

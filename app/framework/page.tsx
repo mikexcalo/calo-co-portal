@@ -347,7 +347,7 @@ export default function FrameworkPage() {
           onClick={() => setShowStandard((v) => !v)}
           style={{
             width: '100%', textAlign: 'left', background: 'transparent',
-            border: `1px dashed ${C.border}`, borderRadius: 9, padding: '10px 13px',
+            border: `1px dashed ${C.border}`, borderRadius: 10, padding: '10px 13px',
             cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, color: C.dim,
           }}
         >

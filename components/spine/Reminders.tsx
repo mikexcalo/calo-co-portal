@@ -142,7 +142,7 @@ export function Reminders({
                   onClick={() => setDue(value)}
                   style={{
                     padding: '5px 11px',
-                    borderRadius: 20,
+                    borderRadius: 999,
                     fontSize: 12.5,
                     border: `1px solid ${on ? C.accent : C.border}`,
                     background: on ? C.accentSoft : 'transparent',

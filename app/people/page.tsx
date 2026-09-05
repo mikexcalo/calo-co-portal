@@ -277,7 +277,7 @@ export default function PeoplePage() {
                 key={k.key}
                 onClick={() => setDraft({ ...draft, relationship: k.key })}
                 style={{
-                  padding: '5px 10px', borderRadius: 6, fontSize: 12.5, cursor: 'pointer',
+                  padding: '5px 10px', borderRadius: 999, fontSize: 12.5, cursor: 'pointer',
                   fontFamily: 'inherit',
                   border: `1px solid ${draft.relationship === k.key ? C.accent : C.border}`,
                   background: draft.relationship === k.key ? C.accentSoft : 'transparent',
@@ -320,7 +320,7 @@ export default function PeoplePage() {
           <button
             onClick={() => setFilter('all')}
             style={{
-              padding: '6px 10px', borderRadius: 6, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
+              padding: '6px 10px', borderRadius: 999, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
               border: `1px solid ${filter === 'all' ? C.accent : C.border}`,
               background: filter === 'all' ? C.accentSoft : 'transparent',
               color: filter === 'all' ? C.accent : C.dim,
@@ -333,7 +333,7 @@ export default function PeoplePage() {
               key={k.key}
               onClick={() => setFilter(k.key)}
               style={{
-                padding: '6px 10px', borderRadius: 6, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
+                padding: '6px 10px', borderRadius: 999, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
                 border: `1px solid ${filter === k.key ? C.accent : C.border}`,
                 background: filter === k.key ? C.accentSoft : 'transparent',
                 color: filter === k.key ? C.accent : C.dim,
@@ -428,7 +428,7 @@ export default function PeoplePage() {
                   key={kk.key}
                   onClick={() => save(p.id, { relationship: kk.key })}
                   style={{
-                    padding: '4px 9px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+                    padding: '4px 9px', borderRadius: 999, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
                     border: `1px solid ${p.relationship === kk.key ? C.accent : C.border}`,
                     background: p.relationship === kk.key ? C.accentSoft : 'transparent',
                     color: p.relationship === kk.key ? C.accent : C.faint,

@@ -111,7 +111,7 @@ export function Brief({ customerId, clientName }: { customerId: string; clientNa
           onClick={() => setEditing(true)}
           style={{
             border: `1px dashed ${C.border}`, background: 'transparent',
-            borderRadius: 9, padding: '11px 14px', width: '100%', textAlign: 'left',
+            borderRadius: 10, padding: '11px 14px', width: '100%', textAlign: 'left',
             fontSize: 13.5, color: C.faint, cursor: 'pointer', fontFamily: 'inherit',
           }}
         >

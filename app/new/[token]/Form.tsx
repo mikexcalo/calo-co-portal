@@ -70,7 +70,7 @@ export function Form({ token, business }: { token: string; business: string }) {
               style={{
                 width: '100%', padding: '14px', fontSize: 16, fontWeight: 600,
                 background: name.trim() ? INK : '#C9CDD3', color: '#fff', border: 'none',
-                borderRadius: 9, cursor: name.trim() ? 'pointer' : 'default', fontFamily: 'inherit',
+                borderRadius: 999, cursor: name.trim() ? 'pointer' : 'default', fontFamily: 'inherit',
               }}
             >
               {busy ? 'Sending…' : 'Send'}

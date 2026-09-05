@@ -115,7 +115,7 @@ export function AddSheet({
                 textAlign: 'left',
                 background: 'transparent',
                 border: 'none',
-                borderRadius: radius.md,
+                borderRadius: 999,
                 padding: '14px 12px',
                 cursor: 'pointer',
                 fontFamily: 'inherit',

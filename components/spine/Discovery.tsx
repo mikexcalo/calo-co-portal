@@ -268,7 +268,7 @@ export function Discovery({ customerId }: { customerId: string }) {
                   border: `1px solid ${subject === s ? C.accent : C.border}`,
                   background: subject === s ? C.accentSoft : 'transparent',
                   color: subject === s ? C.text : C.dim,
-                  borderRadius: 20, padding: '5px 12px', fontSize: 12.5,
+                  borderRadius: 999, padding: '5px 12px', fontSize: 12.5,
                   cursor: 'pointer', fontFamily: 'inherit',
                 }}
               >
@@ -286,7 +286,7 @@ export function Discovery({ customerId }: { customerId: string }) {
                 border: `1px solid ${onlyFlagged ? C.amber : C.border}`,
                 background: onlyFlagged ? C.amberSoft : 'transparent',
                 color: onlyFlagged ? C.text : C.dim,
-                borderRadius: 20, padding: '5px 12px', fontSize: 12.5,
+                borderRadius: 999, padding: '5px 12px', fontSize: 12.5,
                 cursor: 'pointer', fontFamily: 'inherit', marginLeft: 'auto',
               }}
             >

@@ -270,7 +270,7 @@ export default function WelcomePage() {
         background: INK,
         color: '#fff',
         border: 'none',
-        borderRadius: 7,
+        borderRadius: 999,
         padding: '12px',
         fontSize: 15,
         fontWeight: 500,
@@ -406,7 +406,7 @@ export default function WelcomePage() {
                       style={{
                         textAlign: 'left',
                         padding: '12px 14px',
-                        borderRadius: 8,
+                        borderRadius: 999,
                         border: `1px solid ${on ? ACCENT : BORDER}`,
                         background: on ? '#E8F1FF' : '#fff',
                         cursor: 'pointer',
@@ -613,7 +613,7 @@ function BackBtn({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: 6,
-        background: 'transparent', border: `1px solid ${BORDER}`, borderRadius: 7,
+        background: 'transparent', border: `1px solid ${BORDER}`, borderRadius: 999,
         padding: '11px 16px', fontSize: 15, color: DIM, cursor: 'pointer', fontFamily: 'inherit',
       }}
     >

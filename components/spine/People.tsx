@@ -279,7 +279,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
                     marginLeft: 4,
                     width: 26,
                     height: 26,
-                    borderRadius: 6,
+                    borderRadius: 999,
                     border: `1px solid ${C.border}`,
                     background: 'transparent',
                     color: C.faint,

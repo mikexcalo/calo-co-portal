@@ -154,7 +154,7 @@ export function Notifications() {
           position: 'relative',
           width: 32,
           height: 32,
-          borderRadius: radius.md,
+          borderRadius: 999,
           border: `1px solid ${C.border}`,
           background: 'transparent',
           color: C.dim,

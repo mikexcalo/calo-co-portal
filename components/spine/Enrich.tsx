@@ -90,7 +90,7 @@ export function Enrich({
         onClick={() => setOpen(true)}
         style={{
           border: `1px dashed ${C.border}`, background: 'transparent', width: '100%',
-          borderRadius: 999, padding: '7px 14px', marginBottom: 12, textAlign: 'left',
+          borderRadius: 10, padding: '7px 14px', marginBottom: 12, textAlign: 'left',
           fontSize: 13, color: C.faint, cursor: 'pointer', fontFamily: 'inherit',
         }}
       >

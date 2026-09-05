@@ -161,7 +161,7 @@ export default function TopBar() {
           style={{
             display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
             background: 'transparent', border: `1px solid ${C.border}`,
-            borderRadius: 7, padding: '6px 11px', fontSize: 13.5, fontWeight: 500,
+            borderRadius: 999, padding: '6px 11px', fontSize: 13.5, fontWeight: 500,
             color: C.dim, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
           }}
         >
@@ -248,7 +248,7 @@ export default function TopBar() {
             gap: 7,
             height: 32,
             padding: '0 12px',
-            borderRadius: 7,
+            borderRadius: 999,
             border: `1px solid ${C.border}`,
             background: 'transparent',
             cursor: 'pointer',

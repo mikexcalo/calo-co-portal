@@ -465,7 +465,7 @@ export default function FilesPage() {
                         style={{
                           width: 26,
                           height: 26,
-                          borderRadius: 6,
+                          borderRadius: 999,
                           border: `1px solid ${C.border}`,
                           background: 'transparent',
                           color: C.faint,

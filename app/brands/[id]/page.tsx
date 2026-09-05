@@ -294,7 +294,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                   alignItems: 'center',
                   gap: 11,
                   border: `1px solid ${C.border}`,
-                  borderRadius: 8,
+                  borderRadius: 999,
                   padding: 10,
                   background: C.panel,
                   cursor: 'pointer',

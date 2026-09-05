@@ -216,7 +216,7 @@ function Grid({
             onClick={() => onClick(i.id)}
             style={{
               display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left',
-              border: `1px solid ${C.border}`, background: bg, borderRadius: 7,
+              border: `1px solid ${C.border}`, background: bg, borderRadius: 999,
               padding: '8px 10px', cursor: 'pointer', fontFamily: 'inherit',
             }}
           >

@@ -699,7 +699,7 @@ export default function Dashboard() {
             style={{
               width: '100%', textAlign: 'left', marginBottom: 22,
               border: `1px dashed ${C.border}`, background: 'transparent',
-              borderRadius: 9, padding: '11px 14px', cursor: 'pointer',
+              borderRadius: 10, padding: '11px 14px', cursor: 'pointer',
               fontFamily: 'inherit', fontSize: 13.5, color: C.dim,
             }}
           >

@@ -78,7 +78,7 @@ export function DecisionButtons({
             onClick={() => send('accepted')}
             disabled={busy || name.trim().length < 2}
             style={{
-              background: accent, color: '#fff', border: 'none', borderRadius: 8,
+              background: accent, color: '#fff', border: 'none', borderRadius: 999,
               padding: '12px 20px', fontSize: 15, fontWeight: 600,
               cursor: busy || name.trim().length < 2 ? 'not-allowed' : 'pointer',
               opacity: busy || name.trim().length < 2 ? 0.5 : 1, fontFamily: 'inherit',
@@ -89,7 +89,7 @@ export function DecisionButtons({
           <button
             onClick={() => setMode('idle')}
             style={{
-              background: 'transparent', border: '1px solid #d8d8d2', borderRadius: 8,
+              background: 'transparent', border: '1px solid #d8d8d2', borderRadius: 999,
               padding: '12px 18px', fontSize: 15, color: '#555', cursor: 'pointer',
               fontFamily: 'inherit',
             }}
@@ -120,7 +120,7 @@ export function DecisionButtons({
             onClick={() => send('declined')}
             disabled={busy}
             style={{
-              background: 'transparent', border: '1px solid #d8d8d2', borderRadius: 8,
+              background: 'transparent', border: '1px solid #d8d8d2', borderRadius: 999,
               padding: '12px 20px', fontSize: 15, color: '#555',
               cursor: busy ? 'wait' : 'pointer', fontFamily: 'inherit',
             }}
@@ -146,7 +146,7 @@ export function DecisionButtons({
       <button
         onClick={() => setMode('accepting')}
         style={{
-          background: accent, color: '#fff', border: 'none', borderRadius: 8,
+          background: accent, color: '#fff', border: 'none', borderRadius: 999,
           padding: '13px 24px', fontSize: 15.5, fontWeight: 600, cursor: 'pointer',
           fontFamily: 'inherit',
         }}

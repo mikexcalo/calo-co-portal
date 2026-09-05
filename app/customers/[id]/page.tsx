@@ -736,7 +736,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                   onClick={() => setNoteKind(k)}
                   style={{
                     padding: '5px 11px',
-                    borderRadius: 20,
+                    borderRadius: 999,
                     fontSize: 12.5,
                     border: `1px solid ${noteKind === k ? C.accent : C.border}`,
                     background: noteKind === k ? C.accentSoft : 'transparent',
@@ -756,7 +756,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                   onClick={() => setNoteDirection(d)}
                   style={{
                     padding: '5px 11px',
-                    borderRadius: 20,
+                    borderRadius: 999,
                     fontSize: 12.5,
                     border: `1px solid ${noteDirection === d ? C.accent : C.border}`,
                     background: noteDirection === d ? C.accentSoft : 'transparent',
@@ -811,7 +811,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               onClick={() => setShowHistory(true)}
               style={{
                 width: '100%', textAlign: 'left', background: C.panel,
-                border: `1px solid ${C.border}`, borderRadius: 9, padding: '12px 14px',
+                border: `1px solid ${C.border}`, borderRadius: 999, padding: '12px 14px',
                 cursor: 'pointer', fontFamily: 'inherit',
               }}
             >
@@ -886,7 +886,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                 onClick={() => router.push(`/seo?client=${params.id}`)}
                 style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  gap: 7, marginTop: 6, padding: '6px 11px', borderRadius: 7,
+                  gap: 7, marginTop: 6, padding: '6px 11px', borderRadius: 999,
                   border: `1px solid ${C.border}`, background: 'transparent',
                   fontSize: 13.5, fontWeight: 500, color: C.dim,
                   cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',

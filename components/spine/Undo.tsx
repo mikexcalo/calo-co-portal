@@ -93,7 +93,7 @@ export function UndoBar({
           background: 'transparent',
           border: '1px solid rgba(255,255,255,.35)',
           color: '#fff',
-          borderRadius: radius.md,
+          borderRadius: 999,
           padding: '5px 13px',
           fontSize: 13.5,
           fontWeight: 600,

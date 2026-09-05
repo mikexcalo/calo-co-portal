@@ -144,7 +144,7 @@ export function YourSetup() {
           onClick={() => setShowAll(true)}
           style={{
             width: '100%', textAlign: 'left', background: 'transparent',
-            border: `1px dashed ${C.border}`, borderRadius: 9, padding: '11px 14px',
+            border: `1px dashed ${C.border}`, borderRadius: 10, padding: '11px 14px',
             cursor: 'pointer', fontFamily: 'inherit', fontSize: 13.5, color: C.dim,
           }}
         >

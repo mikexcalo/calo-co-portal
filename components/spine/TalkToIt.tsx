@@ -145,7 +145,7 @@ export function TalkToIt({
           onClick={listening ? stop : start}
           style={{
             display: 'flex', alignItems: 'center', gap: 7,
-            padding: '7px 13px', borderRadius: 7, cursor: 'pointer', fontFamily: 'inherit',
+            padding: '7px 13px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
             fontSize: 13.5, fontWeight: 500,
             border: `1px solid ${listening ? C.red : C.border}`,
             background: listening ? C.redSoft : 'transparent',
