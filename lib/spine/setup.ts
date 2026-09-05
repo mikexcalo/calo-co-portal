@@ -39,6 +39,21 @@ export interface SetupItem {
 
 export const SETUP_ITEMS: SetupItem[] = [
   {
+    key: 'test_send',
+    title: 'Send yourself a real update from Demo',
+    icon: 'send',
+    urgent: true,
+    blocks:
+      'Two minutes, and it settles whether email works at all.\n\nEverything about the update writer is built and none of it has ever been proved end to end. The mail service’s shared address only delivers to the inbox that owns the account, which is yours, so Demo is the one place a send can complete today. Every demo address is a reserved .example domain that can never receive anything, so a real one was added.\n\nIf it arrives, the feature works and the only thing missing is the domain below. If it does not, something else is wrong and it is worth knowing that before you point a client at it.',
+    steps: [
+      'Switch the workspace to Demo, top left.',
+      'Open any client. Foldwork has a brief and three tasks on it, so it has the most to write from.',
+      'Press the line that offers to draft an email. To will already say Mike Calo (you) with your own address next to it.',
+      'Read what it wrote, then press Email Mike Calo.',
+      'Check your inbox, and spam, because a shared sending address often lands there. That is exactly the problem the domain below fixes.',
+    ],
+  },
+  {
     key: 'email_domain',
     title: 'Verify calo.company so email can actually leave',
     icon: 'mail',
