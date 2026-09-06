@@ -58,6 +58,17 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
+
+  /**
+   * The card host is entirely public.
+   *
+   * Middleware runs before the rewrites in next.config, so on
+   * card.calo.company it sees /mike rather than /c/mike and bounced a stranger
+   * with a phone camera to a sign-in screen. Checked by host rather than by
+   * path, because every path on that host is a card.
+   */
+  const host = request.headers.get('host') ?? '';
+  if (host === 'card.calo.company') return NextResponse.next();
   // /trust is readable signed out on purpose — the person who needs
   // convincing hasn't got an account yet.
   const isPublic =
