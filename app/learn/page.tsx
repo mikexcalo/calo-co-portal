@@ -15,6 +15,8 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LEARN_AREAS, LESSONS } from '@/lib/spine/learn';
+import { TOURS } from '@/lib/spine/tours';
+import { startTour } from '@/components/spine/TourRunner';
 import { Button, C, Card, Empty, Page, inputStyle } from '@/components/spine/ui';
 
 export default function LearnPage() {
@@ -50,6 +52,39 @@ export default function LearnPage() {
 
   return (
     <Page title="Learn" subtitle="What this can do, and how.">
+      {/*
+        Walkthroughs first.
+
+        Reading about a screen is a poor second to standing on it. These take
+        you through the real product with your own data, and they are timed, so
+        "how long does onboarding take" has a measured answer.
+      */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 22 }}>
+        {TOURS.map((t) => (
+          <Card key={t.id}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
+                    fontSize: 15, fontWeight: 600, color: C.text,
+                  }}
+                >
+                  {t.title}
+                </div>
+                <div style={{ fontSize: 13, color: C.faint, marginTop: 2, lineHeight: 1.55 }}>
+                  {t.summary}
+                </div>
+                <div style={{ fontSize: 12, color: C.faint, marginTop: 4 }}>
+                  {t.steps.length} steps · for {t.who.toLowerCase()}
+                </div>
+              </div>
+              <Button onClick={() => startTour(t.id)}>Walk me through it</Button>
+            </div>
+          </Card>
+        ))}
+      </div>
+
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 }}>
         {chip('All', area === 'all', () => setArea('all'))}
         {LEARN_AREAS.map((a) => chip(a, area === a, () => setArea(a)))}

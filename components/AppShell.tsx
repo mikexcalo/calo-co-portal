@@ -1,5 +1,6 @@
 'use client';
 
+import { TourRunner } from '@/components/spine/TourRunner';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
@@ -126,6 +127,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
       <TutorialPanel />
+          {/* A tour walks across screens, so its dock lives above all of them. */}
+      <TourRunner />
     </div>
   );
 }
