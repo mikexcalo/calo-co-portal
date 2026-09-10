@@ -34,7 +34,8 @@ interface Member {
 }
 
 export default function TeamPage() {
-  const { org } = useOrg();
+  const { org, orgs } = useOrg();
+
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -44,6 +45,12 @@ export default function TeamPage() {
 
   const [email, setEmail] = useState('');
   const [link, setLink] = useState<string | null>(null);
+  const [targetOrg, setTargetOrg] = useState('');
+  // Defaults to where you are, so the common case needs no thought and the
+  // uncommon one needs a deliberate choice.
+  useEffect(() => {
+    if (org?.id && !targetOrg) setTargetOrg(org.id);
+  }, [org?.id, targetOrg]);
   const [copied, setCopied] = useState(false);
   const [name, setName] = useState('');
   const [role, setRole] = useState<'member' | 'admin' | 'owner'>('member');
@@ -89,7 +96,7 @@ export default function TeamPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ email, orgId: org.id, role, fullName: name }),
+        body: JSON.stringify({ email, orgId: targetOrg || org.id, role, fullName: name }),
       });
 
       const payload = await res.json();
@@ -172,13 +179,47 @@ export default function TeamPage() {
 
       <Card style={{ maxWidth: 560, marginBottom: 24 }}>
         <SectionLabel>Invite someone</SectionLabel>
+
+        {/*
+          Which business, said first and chosen rather than assumed.
+          
+          It invited into whichever workspace happened to be active and
+          mentioned that in a sentence underneath the button. One click on the
+          wrong day and a client's spouse has a login to the agency and every
+          client inside it. A destination this consequential is not a footnote.
+        */}
+        <Field label="Into which business">
+          <select
+            value={targetOrg}
+            onChange={(e) => setTargetOrg(e.target.value)}
+            style={{ ...inputStyle, cursor: 'pointer' }}
+          >
+            {(orgs ?? []).map((o) => (
+              <option key={o.id} value={o.id}>{o.name}</option>
+            ))}
+          </select>
+        </Field>
+
+        {targetOrg && targetOrg !== org?.id && (
+          <div
+            style={{
+              fontSize: 12.5, color: C.amber, lineHeight: 1.55,
+              padding: '8px 11px', borderRadius: 8, margin: '0 0 14px',
+              background: C.amberSoft, border: `1px solid ${C.amber}44`,
+            }}
+          >
+            Inviting into {(orgs ?? []).find((o) => o.id === targetOrg)?.name}, which is not the
+            workspace you are looking at.
+          </div>
+        )}
+
         <Field label="Email">
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             style={inputStyle}
-            placeholder="mark@mammothconstructiontx.com"
+            placeholder="them@theircompany.com"
           />
         </Field>
         <Field label="Name (optional)">
@@ -186,7 +227,7 @@ export default function TeamPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             style={inputStyle}
-            placeholder="Mark Mesedahl"
+            placeholder="Their name"
           />
         </Field>
         <Field label="Access">
@@ -207,7 +248,7 @@ export default function TeamPage() {
 
         <div style={{ fontSize: 12.5, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
           They get an email to set their own password. You never see or handle it. They will
-          only see <strong>{org?.name}</strong>, and no other business you belong to.
+          only see <strong>{(orgs ?? []).find((o) => o.id === targetOrg)?.name ?? org?.name}</strong>, and no other business you belong to.
         </div>
       </Card>
 
