@@ -30,6 +30,7 @@ const figtree = Figtree({
 import { ThemeProvider } from '@/lib/theme';
 import { AppShell } from '@/components/AppShell';
 import { OrgProvider } from '@/lib/spine/org';
+import { ViewAsProvider } from '@/lib/spine/viewas';
 import { TutorialProvider } from '@/lib/spine/tutorial';
 import { PRODUCT } from '@/lib/brand';
 
@@ -76,10 +77,12 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <OrgProvider>
+          <ViewAsProvider>
             <TutorialProvider>
               <AppShell>{children}</AppShell>
             </TutorialProvider>
-          </OrgProvider>
+          </ViewAsProvider>
+        </OrgProvider>
         </ThemeProvider>
       </body>
     </html>

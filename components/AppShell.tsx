@@ -1,6 +1,8 @@
 'use client';
 
 import { TourRunner } from '@/components/spine/TourRunner';
+import { ViewAsBar } from '@/components/spine/ViewAsBar';
+import { useViewAs } from '@/lib/spine/viewas';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
@@ -19,6 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const phone = useIsPhone();
   const { org, vocab, loading: orgLoading, orgs } = useOrg();
+  const { setMyRole } = useViewAs();
   const orgCount = orgs?.length ?? 0;
 
   /**
@@ -40,6 +43,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         .eq('id', auth.user.id)
         .maybeSingle();
       setMeOnboarded(Boolean(data?.full_name?.trim() && data?.role));
+      setMyRole(data?.role ?? null);
       setMeLoaded(true);
     })();
   }, []);
@@ -166,6 +170,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
       <TutorialPanel />
           {/* A tour walks across screens, so its dock lives above all of them. */}
+      {/* Fixed rather than sticky, so where it sits in the tree cannot
+          quietly stop it being visible. */}
+      <ViewAsBar />
       <TourRunner />
     </div>
   );

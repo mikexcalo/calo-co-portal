@@ -42,12 +42,24 @@ export interface SetupItem {
   cost?: string;
   /** Only shown when the business actually needs it. */
   appliesTo?: 'agency' | 'contractor';
+  /**
+   * Who this is actually for.
+   *
+   * Marcie opened Lakemere and was asked how she charges and how she wants to
+   * be paid. She charges nobody. This was the owner's list being shown to
+   * whoever happened to be standing there, which is the same mistake the
+   * welcome flow made before it branched.
+   *
+   * Absent means everybody.
+   */
+  forRoles?: string[];
 }
 
 export const SETUP_ITEMS: SetupItem[] = [
   {
     key: 'tester_brief',
     onlyOrg: 'lakemere',
+    forRoles: ['looking', 'delivery'],
     title: 'What we are actually asking you to do',
     icon: 'brief',
     urgent: true,
@@ -65,6 +77,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   },
   {
     key: 'test_send',
+    forRoles: ['owner', 'admin', 'finance'],
     title: 'Send yourself a real update',
     icon: 'send',
     urgent: true,
@@ -80,6 +93,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   },
   {
     key: 'email_domain',
+    forRoles: ['owner', 'admin', 'finance'],
     title: 'Let replies come back',
     icon: 'mail',
     urgent: true,
@@ -96,6 +110,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   },
   {
     key: 'old_wix_site',
+    forRoles: ['owner', 'admin'],
     title: 'Retire mikecalo.co, and see what people actually search',
     icon: 'globe',
     blocks:
@@ -115,6 +130,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   },
   {
     key: 'search_console',
+    forRoles: ['owner', 'admin'],
     title: 'Verify the site in Google Search Console',
     icon: 'search',
     blocks:
@@ -128,6 +144,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   },
   {
     key: 'invite_team',
+    forRoles: ['owner', 'admin'],
     title: 'Invite the people who need a login',
     icon: 'people',
     blocks:
@@ -140,6 +157,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   },
   {
     key: 'supabase_pro',
+    forRoles: ['owner'],
     title: 'Upgrade Supabase to Pro',
     icon: 'records',
     blocks:
@@ -153,6 +171,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   },
   {
     key: 'stripe',
+    forRoles: ['owner', 'admin', 'finance'],
     title: 'Add Stripe keys',
     icon: 'card',
     blocks:
@@ -166,6 +185,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   },
   {
     key: 'google_profile',
+    forRoles: ['owner', 'admin'],
     title: 'Claim the Google Business Profile',
     icon: 'target',
     blocks:
@@ -179,6 +199,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   },
   {
     key: 'review_link',
+    forRoles: ['owner', 'admin'],
     title: 'Set the review link',
     icon: 'star',
     blocks:
@@ -192,6 +213,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   },
   {
     key: 'default_branch',
+    forRoles: ['owner'],
     title: 'Change the GitHub default branch to main',
     icon: 'layers',
     blocks:

@@ -1,5 +1,6 @@
 'use client';
 
+import { useViewAs } from '@/lib/spine/viewas';
 import { CommandBar } from '@/components/spine/CommandBar';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -295,6 +296,7 @@ export default function TopBar() {
 function AccountMenu() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const { viewAs, setViewAs } = useViewAs();
   const [email, setEmail] = useState<string | null>(null);
   const [avatar, setAvatar] = useState<string | null>(null);
 
@@ -417,6 +419,41 @@ function AccountMenu() {
             >
               Security
             </button>
+            {/*
+              See it as somebody else.
+
+              Everything here bends to who is looking, and none of it could be
+              checked without their password. This changes what is rendered and
+              nothing else, so it answers what would they be shown rather than
+              what can they reach.
+            */}
+            <div style={{ height: 1, background: C.border, margin: '4px 0' }} />
+            <div style={{ padding: '4px 12px 5px', fontSize: 11, color: C.faint, textTransform: 'uppercase', letterSpacing: '.07em', fontWeight: 600 }}>
+              See it as
+            </div>
+            {([
+              ['owner', 'Somebody who owns it'],
+              ['admin', 'Somebody who runs the day to day'],
+              ['delivery', 'Somebody who does the work'],
+              ['looking', 'Somebody having a look'],
+            ] as const).map(([r, label]) => (
+              <button
+                key={r}
+                style={{ ...item, color: viewAs?.role === r ? C.accent : undefined }}
+                onClick={() => { setOpen(false); setViewAs({ role: r, label: label.toLowerCase() }); }}
+              >
+                {label}
+              </button>
+            ))}
+            {viewAs && (
+              <button
+                style={{ ...item, color: C.faint }}
+                onClick={() => { setOpen(false); setViewAs(null); }}
+              >
+                Back to my view
+              </button>
+            )}
+
             <div style={{ height: 1, background: C.border, margin: '4px 0' }} />
             <button
               style={{ ...item, color: C.red }}

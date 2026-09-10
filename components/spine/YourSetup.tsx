@@ -16,6 +16,7 @@ import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { SETUP_ITEMS } from '@/lib/spine/setup';
 import { useOrg } from '@/lib/spine/org';
+import { useViewAs } from '@/lib/spine/viewas';
 import { Button, C, Card, SectionLabel } from './ui';
 import { Glyph } from './icons';
 
@@ -59,6 +60,7 @@ function StepText({ text }: { text: string }) {
 
 export function YourSetup() {
   const { org } = useOrg();
+  const { effectiveRole } = useViewAs();
   const [state, setState] = useState<Record<string, Status>>({});
   /** Which steps are ticked, per item. */
   const [ticks, setTicks] = useState<Record<string, number[]>>({});
@@ -136,6 +138,8 @@ export function YourSetup() {
       (!i.appliesTo || i.appliesTo === org.kind) &&
       // Anything addressed to one workspace stays there.
       (!i.onlyOrg || i.onlyOrg === org.slug) &&
+      // Whoever is looking, really or in preview.
+      (!i.forRoles || !effectiveRole || i.forRoles.includes(effectiveRole)) &&
       (state[i.key] ?? 'todo') !== 'done' &&
       state[i.key] !== 'skipped')
     .sort((a, b) => Number(Boolean(b.urgent)) - Number(Boolean(a.urgent)));
