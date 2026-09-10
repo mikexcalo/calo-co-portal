@@ -2,7 +2,7 @@
 
 Things only you can do. I'll remind you as these come up.
 
-Last updated: 2026-08-30
+Last updated: 2026-09-10
 
 ---
 
@@ -20,7 +20,7 @@ Walk it once so you know what Mark will see. Do not require it of Mark on day
 one; asking a contractor to install an authenticator before he has seen the
 product is a good way to lose him.
 
-### 0a. Inbound mail, so replies come back — 2026-09-10
+### 0b. Inbound mail, so replies come back — 2026-09-10
 Sending already works. calo.company is verified with Resend: DKIM on
 resend._domainkey, SPF and the bounce MX on send.calo.company, and MAIL_FROM is
 set on the nautilus project. Everything this platform writes can leave.
@@ -59,7 +59,7 @@ nothing conflicts.
 The sending address does NOT need a real mailbox and does not need Google
 Workspace. Full detail in docs/email-setup.md.
 
-### 0b. Supabase Pro — $25/month
+### 0c. Supabase Pro — $25/month
 Blocks: nothing today, but this moved up the list on 2026-08-30.
 
 Three things it buys:
