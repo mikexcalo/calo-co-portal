@@ -18,6 +18,13 @@ import type { IconName } from '@/components/spine/icons';
 
 export interface SetupItem {
   key: string;
+  /**
+   * Only shown to one workspace.
+   *
+   * A tester's brief is not a task for everybody, and putting it in the shared
+   * list would mean every future client is told to go and break things.
+   */
+  onlyOrg?: string;
   title: string;
   /** What does not work until this is done. */
   blocks: string;
@@ -39,35 +46,52 @@ export interface SetupItem {
 
 export const SETUP_ITEMS: SetupItem[] = [
   {
+    key: 'tester_brief',
+    onlyOrg: 'lakemere',
+    title: 'What we are actually asking you to do',
+    icon: 'brief',
+    urgent: true,
+    blocks:
+      'This is a real workspace, not a demo. Nothing you type here reaches a customer, nothing sends, and nothing is precious. Break it.\n\nWhat is genuinely useful back is not a bug list. It is the moments where you knew what you wanted and could not find it, or where a screen told you something and you did not believe it. Those are the expensive problems and they are invisible from the inside.',
+    steps: [
+      'Run it as the business for twenty minutes. Add a couple of clients, put an engagement against one, raise an invoice. Do it the way you would if it were real, not the way you think it wants.',
+      'Say out loud what you expected before you click. Where the thing that happened is not the thing you expected, that gap is the finding.',
+      'Take the walkthrough in [Learn](/learn) and time yourself. It reports how long it took at the end. If it is longer than you would sit through, say so.',
+      'Turn things off in [Setup, What you see](/what-you-see). The sidebar starts with nine rows; decide which ones a services business would actually open and which are noise.',
+      'Find the places the words are wrong. Labels that read like software rather than like the job, headings that need reading twice, anything that made you pause.',
+      'Write it all down in [Capture](/notes) as you go, not afterwards. It files against the workspace and we read it. Afterwards is where the useful half gets forgotten.',
+      'Where you would rather build than describe, say so and we will get you the repo. It runs on Next.js and Supabase, and every pull request gets its own live URL, so you can put something real in front of us without touching anything live.',
+    ],
+  },
+  {
     key: 'test_send',
-    title: 'Send yourself a real update from Demo',
+    title: 'Send yourself a real update',
     icon: 'send',
     urgent: true,
     blocks:
-      'Two minutes, and it settles whether email works at all.\n\nEverything about the update writer is built and none of it has ever been proved end to end. The mail service’s shared address only delivers to the inbox that owns the account, which is yours, so Demo is the one place a send can complete today. Every demo address is a reserved .example domain that can never receive anything, so a real one was added.\n\nIf it arrives, the feature works and the only thing missing is the domain below. If it does not, something else is wrong and it is worth knowing that before you point a client at it.',
+      'Two minutes, and it settles whether the whole email path works.\n\ncalo.company is verified and the from address is set, so this should now arrive from your own domain rather than a shared one. Nothing about it has been proved end to end, and a feature nobody has watched work is a feature you should not point at a client.\n\nIf it lands, sending is done and only replies are missing. If it does not, that is worth knowing before Frank is the one who finds out.',
     steps: [
-      'Switch the workspace to Demo, top left.',
+      'Switch to Demo, top left, so nothing real is involved.',
       'Open any client. Foldwork has a brief and three tasks on it, so it has the most to write from.',
       'Press the line that offers to draft an email. To will already say Mike Calo (you) with your own address next to it.',
       'Read what it wrote, then press Email Mike Calo.',
-      'Check your inbox, and spam, because a shared sending address often lands there. That is exactly the problem the domain below fixes.',
+      'Check your inbox, and spam. Which folder it lands in tells you whether the DNS records are doing their job.',
     ],
   },
   {
     key: 'email_domain',
-    title: 'Verify calo.company so email can actually leave',
+    title: 'Let replies come back',
     icon: 'mail',
     urgent: true,
     blocks:
-      'Every client email in here is written, reviewed, and then refused at the door. And nothing a client sends back is ever seen.\n\nThe update writer on each client drafts from the brief, the plan and the last three weeks of contact, and sending posts it to Resend as a real email. What is missing is a from address. Without one it falls back to the mail service’s shared testing address, which by design only ever delivers to your own inbox, so the Colette update you wrote came back "Could not send that" and Frank never received anything.\n\nThe same wall is in front of Mark’s invite, every estimate, and every invoice. It is the one item on this list where the feature is already built and waiting.\n\nAbout ten minutes, most of it waiting for DNS. You can prove it works first: open Demo, any client, and the update defaults to your own address, which is the one place the shared testing address does deliver.',
+      'Sending already works. calo.company is verified with Resend: the DKIM record is on resend._domainkey, the SPF and bounce records are on send.calo.company, and the from address is set. Anything this platform writes can leave.\n\nWhat is missing is the other direction. Reply to one of those emails and it goes to whatever inbox the from address points at, and this platform never hears about it. So a client answering you cannot move them to Talking, cannot clear the waiting flag, and cannot appear on their record.\n\nOne DNS record and one webhook. The code for both has been sitting finished for days.',
     steps: [
-      'Open [Resend domains](https://resend.com/domains), press Add domain, and type calo.company.',
-      'It gives you three or four records. Paste them into [Vercel DNS for calo.company](https://vercel.com/mikexcalo-7384s-projects/~/domains/calo.company) exactly as shown. SPF, DKIM and DMARC all of them, because two out of three still gets filtered into spam.',
-      'Wait for Resend to show the domain as verified. Usually minutes, occasionally an hour, and nothing else needs doing while it settles.',
-      'While you are in that DNS panel, add one more: an MX record on the subdomain in.calo.company, pointing at Resend, priority 10. This is what lets a client reply and have it land back in here on its own. It must be the subdomain, never the root, or all mail for calo.company routes to Resend instead of your inbox.',
-      'In Resend, add in.calo.company under Receiving, then add a webhook for the email.received event pointing at https://calo-co-portal.vercel.app/api/mail/inbound.',
-      'Tell me when both are green. I set the from address, the inbound domain and the webhook secret. That is the last step and it is mine, not yours.',
-      'Then send yourself the Demo update again and watch it arrive from your own domain. Reply to it, and watch the reply file itself against the client and move them to Talking without you touching anything.',
+      'Prove sending first. Open any client, draft an update, and send it to yourself. If it arrives, everything below is the only thing left.',
+      'In [Resend](https://resend.com/domains), open Receiving and add the subdomain in.calo.company. It gives you one MX record.',
+      'Put that MX into [Vercel DNS](https://vercel.com/mikexcalo-7384s-projects/~/domains/calo.company). The subdomain, never the root: an MX on calo.company itself would send all your mail to Resend instead of your inbox.',
+      'Still in Resend, add a webhook for the email.received event pointing at https://nautilusapp.vercel.app/api/mail/inbound',
+      'Send me the webhook signing secret and tell me the MX is in. I set MAIL_INBOUND_DOMAIN and RESEND_WEBHOOK_SECRET, which is the last step and it is mine.',
+      'Then reply to your own test email and watch it file itself against the client and move them to Talking without you touching anything.',
     ],
   },
   {

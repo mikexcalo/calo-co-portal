@@ -132,7 +132,12 @@ export function YourSetup() {
    * belongs at the top no matter where it sits in the sequence.
    */
   const items = SETUP_ITEMS
-    .filter((i) => (!i.appliesTo || i.appliesTo === org.kind) && (state[i.key] ?? 'todo') !== 'done' && state[i.key] !== 'skipped')
+    .filter((i) =>
+      (!i.appliesTo || i.appliesTo === org.kind) &&
+      // Anything addressed to one workspace stays there.
+      (!i.onlyOrg || i.onlyOrg === org.slug) &&
+      (state[i.key] ?? 'todo') !== 'done' &&
+      state[i.key] !== 'skipped')
     .sort((a, b) => Number(Boolean(b.urgent)) - Number(Boolean(a.urgent)));
 
   if (items.length === 0) return null;
