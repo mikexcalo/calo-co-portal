@@ -384,17 +384,32 @@ function AccountMenu() {
                 {email ?? '—'}
               </div>
             </div>
+            {/*
+              Labelled, because "Business, Team, Security" under a photograph
+              reads as account settings for the person rather than the place
+              the whole business is configured. Somebody looking for Team was
+              looking under a face.
+            */}
+            <div style={{ padding: '4px 12px 5px', fontSize: 11, color: C.faint, textTransform: 'uppercase', letterSpacing: '.07em', fontWeight: 600 }}>
+              Setup
+            </div>
             <button
               style={item}
               onClick={() => { setOpen(false); router.push('/business'); }}
             >
-              Business
+              Business details
             </button>
             <button
               style={item}
               onClick={() => { setOpen(false); router.push('/team'); }}
             >
-              Team
+              Team and invites
+            </button>
+            <button
+              style={item}
+              onClick={() => { setOpen(false); router.push('/what-you-see'); }}
+            >
+              What you see
             </button>
             <button
               style={item}
