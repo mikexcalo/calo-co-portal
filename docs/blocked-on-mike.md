@@ -20,7 +20,27 @@ Walk it once so you know what Mark will see. Do not require it of Mark on day
 one; asking a contractor to install an authenticator before he has seen the
 product is a good way to lose him.
 
-### 0. Verify calo.company for email — 2026-08-27
+### 0a. Inbound mail, so replies come back — 2026-09-10
+Sending already works. calo.company is verified with Resend: DKIM on
+resend._domainkey, SPF and the bounce MX on send.calo.company, and MAIL_FROM is
+set on the nautilus project. Everything this platform writes can leave.
+
+Only the other direction is missing. Reply to one of those emails and it goes to
+whatever inbox the from address points at; the platform never hears about it. So
+a client answering you cannot move them to Talking, cannot clear the waiting
+flag, and never appears on their record.
+
+1. Resend → Receiving → add `in.calo.company`. It gives you one MX record.
+2. Put it in Vercel DNS. The subdomain, never the root.
+3. Resend → Webhooks → `email.received` →
+   `https://nautilusapp.vercel.app/api/mail/inbound`
+4. Send me the signing secret. I set MAIL_INBOUND_DOMAIN and
+   RESEND_WEBHOOK_SECRET.
+
+Does NOT block Marcie. Her login was created directly, not emailed. What it does
+block is the self-serve Team invite button, for everybody after her.
+
+### 0. Verify calo.company for email — 2026-08-27 — DONE, see 0a
 Blocks: Mark's invite arriving and not looking like phishing. Also blocks every
 client update email, which is the bigger one now — raised again 2026-09-04 when
 you asked whether the Colette update actually sends. It builds and drafts, and

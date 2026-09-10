@@ -67,7 +67,27 @@ const BILLING_STYLES = [
   { id: 'retainer', label: 'A monthly retainer', hint: 'Same amount each period, regardless of hours.' },
 ] as const;
 
-const STEPS = 4;
+const STEPS = 5;
+
+/**
+ * Who you are to this business.
+ *
+ * Every question after this one assumed the person answering owns the place:
+ * "your business", "what you charge", "the work you log". A bookkeeper, a
+ * creative director or somebody's wife having a look are all going to be sat
+ * in front of this, and being asked to set an hourly rate when you do not bill
+ * anybody is how a product tells you it was not built for you.
+ *
+ * The role is also the honest answer to what to show afterwards. Somebody who
+ * does not touch money should not open on a screen about money.
+ */
+const ROLES: { id: string; label: string; blurb: string; skipsMoney?: boolean }[] = [
+  { id: 'owner',    label: 'I own or run it',     blurb: 'The business is yours.' },
+  { id: 'admin',    label: 'I keep it running',   blurb: 'Scheduling, invoices, chasing, the day to day.' },
+  { id: 'delivery', label: 'I do the work',       blurb: 'On the tools, or on the creative.', skipsMoney: true },
+  { id: 'finance',  label: 'I handle the money',  blurb: 'Billing, receipts, what the month made.' },
+  { id: 'looking',  label: 'I am having a look',  blurb: 'Helping somebody out, or seeing whether this fits.', skipsMoney: true },
+];
 
 /**
  * Does this business already hold real work? Cheap head-count queries — we
@@ -100,6 +120,7 @@ export default function WelcomePage() {
   const [feesOpen, setFeesOpen] = useState(false);
 
   const [fullName, setFullName] = useState('');
+  const [role, setRole] = useState<string>('');
   const [bizName, setBizName] = useState('');
   const [bizEmail, setBizEmail] = useState('');
   const [address, setAddress] = useState('');
@@ -206,9 +227,16 @@ export default function WelcomePage() {
       setError(null);
       try {
         const { data: auth } = await supabase.auth.getUser();
-        if (auth?.user && fullName.trim()) {
+        if (auth?.user && (fullName.trim() || role)) {
+          // The role is on the person, not the business: two people in one
+          // workspace do different jobs and should not be told they do the same
+          // one.
           await supabase.from('profiles').upsert(
-            { id: auth.user.id, full_name: fullName.trim() },
+            {
+              id: auth.user.id,
+              ...(fullName.trim() ? { full_name: fullName.trim() } : {}),
+              ...(role ? { role } : {}),
+            },
             { onConflict: 'id' }
           );
         }
@@ -255,7 +283,17 @@ export default function WelcomePage() {
   }
 
   const needsRate = billingStyle === 'hourly' || billingStyle === 'both';
-  const last = step === STEPS - 1;
+  /**
+   * Somebody who does not bill anybody is not asked what they charge.
+   *
+   * The money steps stay in the flow for an owner, an admin or whoever handles
+   * the books, and are skipped for the person on the tools and for anybody
+   * just having a look. Being asked to set an hourly rate when you do not
+   * invoice is the clearest way a product can say it was not built for you.
+   */
+  const skipsMoney = ROLES.find((r) => r.id === role)?.skipsMoney ?? false;
+  const lastStep = skipsMoney ? 2 : STEPS - 1;
+  const last = step === lastStep;
 
   const nextBtn = (disabled?: boolean) => (
     <button
@@ -292,7 +330,7 @@ export default function WelcomePage() {
             Welcome to {PRODUCT}
           </div>
           <div style={{ fontSize: 14.5, color: FAINT, marginTop: 6 }}>
-            Four quick questions and you&apos;re set up.
+            Five quick questions and you&apos;re set up.
           </div>
           {/* Which business these answers land on. Without this, someone with
               access to more than one can fill the whole thing in for the
@@ -306,14 +344,14 @@ export default function WelcomePage() {
         </div>
 
         <div style={{ display: 'flex', gap: 6, marginBottom: 22 }}>
-          {Array.from({ length: STEPS }).map((_, i) => (
+          {Array.from({ length: skipsMoney ? 3 : STEPS }).map((_, i) => (
             <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= step ? ACCENT : BORDER }} />
           ))}
         </div>
 
         <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 12, padding: 26 }}>
           <div style={{ fontSize: 12, color: FAINT, textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 600 }}>
-            Step {step + 1} of {STEPS}
+            Step {step + 1} of {skipsMoney ? 3 : STEPS}
           </div>
 
           {error && (
@@ -328,8 +366,8 @@ export default function WelcomePage() {
                 What should we call you?
               </h1>
               <p style={{ fontSize: 14.5, color: DIM, margin: '0 0 18px', lineHeight: 1.6 }}>
-                Your full name. It appears on the work you log, so a customer reading an invoice
-                knows who did what.
+                It appears next to anything you record, so anybody reading it later knows who did
+                what.
               </p>
               <label style={{ display: 'block' }}>
                 <div style={label}>Full name</div>
@@ -349,7 +387,41 @@ export default function WelcomePage() {
           {step === 1 && (
             <>
               <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
-                What&apos;s the name of your brand or business?
+                What do you do here?
+              </h1>
+              <p style={{ fontSize: 14.5, color: DIM, margin: '0 0 18px', lineHeight: 1.6 }}>
+                So the rest of this asks you about your job rather than somebody else&apos;s.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {ROLES.map((r) => {
+                  const on = role === r.id;
+                  return (
+                    <button
+                      key={r.id}
+                      onClick={() => setRole(r.id)}
+                      style={{
+                        textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit',
+                        border: `1px solid ${on ? TEXT : '#E7E8EB'}`,
+                        background: on ? '#F4F5F6' : 'transparent',
+                        borderRadius: 10, padding: '11px 14px',
+                      }}
+                    >
+                      <div style={{ fontSize: 15, color: TEXT, fontWeight: on ? 600 : 500 }}>{r.label}</div>
+                      <div style={{ fontSize: 13, color: DIM, marginTop: 2 }}>{r.blurb}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 22 }}>{nextBtn(!role)}</div>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
+                {role === 'owner'
+                  ? "What's the name of your brand or business?"
+                  : 'Which business is this?'}
               </h1>
               <p style={{ fontSize: 14.5, color: DIM, margin: '0 0 18px', lineHeight: 1.6 }}>
                 This appears on every estimate and invoice you send.
@@ -386,7 +458,7 @@ export default function WelcomePage() {
             </>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <>
               <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
                 How do you charge?
@@ -489,7 +561,7 @@ export default function WelcomePage() {
             </>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <>
               <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
                 How do you want to get paid?
