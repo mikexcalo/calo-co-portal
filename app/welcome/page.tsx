@@ -67,7 +67,32 @@ const BILLING_STYLES = [
   { id: 'retainer', label: 'A monthly retainer', hint: 'Same amount each period, regardless of hours.' },
 ] as const;
 
-const STEPS = 5;
+/**
+ * Which questions each role actually gets asked.
+ *
+ * One fixed run of five was the problem: it asked everybody about pricing,
+ * payment handles and business details, whoever they were. Somebody on the
+ * tools does not set rates. Somebody having a look does not own the business.
+ * Being asked anyway is the clearest way a product tells you it was built for
+ * a different person.
+ *
+ * Named steps rather than numbered ones, because the moment the path branches,
+ * "step 3" stops meaning anything and the index becomes a bug waiting to
+ * happen.
+ */
+type StepKey = 'name' | 'role' | 'business' | 'charge' | 'pay' | 'craft' | 'goal';
+
+const PLANS: Record<string, StepKey[]> = {
+  owner:    ['name', 'role', 'business', 'charge', 'pay'],
+  admin:    ['name', 'role', 'business', 'charge', 'pay'],
+  finance:  ['name', 'role', 'business', 'charge', 'pay'],
+  // Does the work: never asked what to charge, asked what they actually do.
+  delivery: ['name', 'role', 'craft'],
+  // Having a look: asked the one thing worth knowing from a visitor.
+  looking:  ['name', 'role', 'goal'],
+};
+
+const DEFAULT_PLAN: StepKey[] = ['name', 'role'];
 
 /**
  * Who you are to this business.
@@ -121,6 +146,8 @@ export default function WelcomePage() {
 
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<string>('');
+  const [craft, setCraft] = useState('');
+  const [goal, setGoal] = useState('');
   const [bizName, setBizName] = useState('');
   const [bizEmail, setBizEmail] = useState('');
   const [address, setAddress] = useState('');
@@ -236,6 +263,8 @@ export default function WelcomePage() {
               id: auth.user.id,
               ...(fullName.trim() ? { full_name: fullName.trim() } : {}),
               ...(role ? { role } : {}),
+              ...(craft.trim() ? { craft: craft.trim() } : {}),
+              ...(goal.trim() ? { goal: goal.trim() } : {}),
             },
             { onConflict: 'id' }
           );
@@ -301,8 +330,24 @@ export default function WelcomePage() {
    * meant for their boss.
    */
   const alreadySetUp = Boolean(org?.onboarded_at);
-  const lastStep = alreadySetUp ? 1 : skipsMoney ? 2 : STEPS - 1;
-  const last = step === lastStep;
+
+  /**
+   * The run of questions this person gets.
+   *
+   * Business, charge and pay describe a business rather than a person, so
+   * somebody joining one that already exists never sees them however senior
+   * they are. Marcie opening Lakemere answers who she is and what she is
+   * hoping to work out, and is in.
+   */
+  const plan: StepKey[] = (() => {
+    const base = role ? (PLANS[role] ?? DEFAULT_PLAN) : DEFAULT_PLAN;
+    if (!alreadySetUp) return base;
+    return base.filter((k) => k !== 'business' && k !== 'charge' && k !== 'pay');
+  })();
+
+  const total = plan.length;
+  const key: StepKey = plan[Math.min(step, total - 1)] ?? 'name';
+  const last = step >= total - 1;
 
   const nextBtn = (disabled?: boolean) => (
     <button
@@ -339,7 +384,9 @@ export default function WelcomePage() {
             Welcome to {PRODUCT}
           </div>
           <div style={{ fontSize: 14.5, color: FAINT, marginTop: 6 }}>
-            {alreadySetUp ? 'Two questions and you are in.' : "Five quick questions and you're set up."}
+            {alreadySetUp
+              ? `${total} quick ${total === 1 ? 'question' : 'questions'} and you are in.`
+              : `${total} quick questions and you're set up.`}
           </div>
           {/* Which business these answers land on. Without this, someone with
               access to more than one can fill the whole thing in for the
@@ -353,14 +400,14 @@ export default function WelcomePage() {
         </div>
 
         <div style={{ display: 'flex', gap: 6, marginBottom: 22 }}>
-          {Array.from({ length: alreadySetUp ? 2 : skipsMoney ? 3 : STEPS }).map((_, i) => (
+          {Array.from({ length: total }).map((_, i) => (
             <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= step ? ACCENT : BORDER }} />
           ))}
         </div>
 
         <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 12, padding: 26 }}>
           <div style={{ fontSize: 12, color: FAINT, textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 600 }}>
-            Step {step + 1} of {alreadySetUp ? 2 : skipsMoney ? 3 : STEPS}
+            Step {step + 1} of {total}
           </div>
 
           {error && (
@@ -369,7 +416,7 @@ export default function WelcomePage() {
             </div>
           )}
 
-          {step === 0 && (
+          {key === 'name' && (
             <>
               <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
                 What should we call you?
@@ -393,7 +440,7 @@ export default function WelcomePage() {
             </>
           )}
 
-          {step === 1 && (
+          {key === 'role' && (
             <>
               <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
                 What do you do here?
@@ -425,7 +472,65 @@ export default function WelcomePage() {
             </>
           )}
 
-          {step === 2 && (
+          {/*
+            For somebody on the tools or on the creative.
+
+            They will never set a rate, so the useful thing to know is what
+            they actually do, which is what the vocabulary and the empty states
+            key off later.
+          */}
+          {key === 'craft' && (
+            <>
+              <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
+                What do you actually do?
+              </h1>
+              <p style={{ fontSize: 14.5, color: DIM, margin: '0 0 18px', lineHeight: 1.6 }}>
+                In your own words. It decides what this calls things and what it stops asking you.
+              </p>
+              <label style={{ display: 'block' }}>
+                <div style={label}>Your work</div>
+                <input
+                  value={craft}
+                  onChange={(e) => setCraft(e.target.value)}
+                  style={field}
+                  placeholder="Site carpentry. Or brand design, or plumbing."
+                  autoFocus
+                />
+              </label>
+              <div style={{ display: 'flex', gap: 8, marginTop: 22 }}>{nextBtn(false)}</div>
+            </>
+          )}
+
+          {/*
+            For somebody having a look.
+
+            The one thing worth knowing from a visitor is what they came to find
+            out, because it is also the thing that decides whether they come
+            back. Asked once, at the only moment they will answer honestly.
+          */}
+          {key === 'goal' && (
+            <>
+              <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
+                What are you hoping to work out?
+              </h1>
+              <p style={{ fontSize: 14.5, color: DIM, margin: '0 0 18px', lineHeight: 1.6 }}>
+                One line. It tells us what to show you first, and whether we managed it.
+              </p>
+              <label style={{ display: 'block' }}>
+                <div style={label}>What you are here for</div>
+                <input
+                  value={goal}
+                  onChange={(e) => setGoal(e.target.value)}
+                  style={field}
+                  placeholder="Whether this would actually save time on a small services business."
+                  autoFocus
+                />
+              </label>
+              <div style={{ display: 'flex', gap: 8, marginTop: 22 }}>{nextBtn(false)}</div>
+            </>
+          )}
+
+          {key === 'business' && (
             <>
               <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
                 {role === 'owner'
@@ -467,7 +572,7 @@ export default function WelcomePage() {
             </>
           )}
 
-          {step === 3 && (
+          {key === 'charge' && (
             <>
               <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
                 How do you charge?
@@ -570,7 +675,7 @@ export default function WelcomePage() {
             </>
           )}
 
-          {step === 4 && (
+          {key === 'pay' && (
             <>
               <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
                 How do you want to get paid?

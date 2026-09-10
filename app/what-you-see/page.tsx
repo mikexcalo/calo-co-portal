@@ -107,6 +107,15 @@ export default function WhatYouSeePage() {
 
       {!loaded || !org ? (
         <Empty>Loading…</Empty>
+      ) : org.self_serve_modules === false ? (
+        /* Said plainly rather than letting somebody flip a switch that silently
+           refuses. A control that does nothing is worse than one that is absent. */
+        <Card>
+          <div style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.6, maxWidth: '62ch' }}>
+            What this workspace can open is set by the agency that set it up. Ask them to switch
+            something on or off and it changes here.
+          </div>
+        </Card>
       ) : (
         <>
           {off > 0 && (
