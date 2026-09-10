@@ -24,6 +24,7 @@ import {
   Table,
   inputStyle,
   shortDate,
+  SETUP_TABS,
 } from '@/components/spine/ui';
 
 interface Member {
@@ -42,6 +43,8 @@ export default function TeamPage() {
   const [notice, setNotice] = useState<string | null>(null);
 
   const [email, setEmail] = useState('');
+  const [link, setLink] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [name, setName] = useState('');
   const [role, setRole] = useState<'member' | 'admin' | 'owner'>('member');
 
@@ -97,6 +100,8 @@ export default function TeamPage() {
       }
 
       setNotice(payload.message);
+      // Kept whichever way it went, so there is always something to send.
+      setLink(payload.link ?? null);
       setEmail('');
       setName('');
       await load();
@@ -109,6 +114,7 @@ export default function TeamPage() {
 
   return (
     <Page
+      tabs={SETUP_TABS}
       title="Team"
       subtitle={
         org
@@ -126,6 +132,38 @@ export default function TeamPage() {
           )}
         </Card>
       )}
+      {/*
+        The link, always, whether the email sent or not.
+
+        Getting somebody into this product used to mean asking for a link by
+        hand, because the invitation went out through Supabase's own mail,
+        which is rate limited and lands in spam. It goes from calo.company now,
+        and this sits here regardless so there is always something to paste
+        into a text message.
+      */}
+      {link && (
+        <Card style={{ marginBottom: 14 }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <div style={{ fontSize: 13, color: C.text, fontWeight: 500 }}>Their sign-in link</div>
+              <div style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.55, marginTop: 2 }}>
+                Works once, expires in about a day. They set their own password; nobody has one for
+                them.
+              </div>
+            </div>
+            <Button
+              onClick={async () => {
+                await navigator.clipboard.writeText(link);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2500);
+              }}
+            >
+              {copied ? 'Copied' : 'Copy link'}
+            </Button>
+          </div>
+        </Card>
+      )}
+
       {notice && (
         <Card style={{ borderColor: C.green, marginBottom: 16 }}>
           <div style={{ color: C.green, fontSize: 14 }}>{notice}</div>

@@ -98,26 +98,51 @@ export async function POST(req: NextRequest) {
     let userId = found?.id ?? null;
     let invited = false;
 
+    /**
+     * The invitation is sent by us, not by Supabase.
+     *
+     * inviteUserByEmail goes out through Supabase's built-in mail, which is
+     * rate limited to a handful an hour and arrives from a domain nobody
+     * recognises, so invitations either did not send or landed in spam. That
+     * is why getting somebody into this product has meant asking for a link by
+     * hand.
+     *
+     * calo.company is already verified with Resend, so the account is created
+     * here and the email goes out from the same domain as everything else.
+     */
+    const { data: targetOrg } = await admin.from('orgs').select('name').eq('id', orgId).maybeSingle();
+    const orgName = targetOrg?.name ?? 'the workspace';
+
+    let link: string | null = null;
+
     if (!userId) {
-      const { data: inviteData, error: inviteErr } =
-        await admin.auth.admin.inviteUserByEmail(email, {
-          redirectTo: `${req.nextUrl.origin}/auth/callback`,
-        });
-
-      if (inviteErr) {
-        // The most common cause by far is Supabase's built-in email being
-        // rate-limited or unconfigured. Say which, so it's fixable.
-        return NextResponse.json(
-          {
-            error: `Could not send the invite: ${inviteErr.message}`,
-            hint: 'Supabase\'s built-in email is heavily rate-limited. Configure SMTP under Authentication → Emails to send reliably.',
-          },
-          { status: 502 }
-        );
+      const { data: created, error: createErr } = await admin.auth.admin.createUser({
+        email,
+        email_confirm: true,
+        user_metadata: body.fullName?.trim() ? { full_name: body.fullName.trim() } : undefined,
+      });
+      if (createErr) {
+        return NextResponse.json({ error: `Could not create the account: ${createErr.message}` }, { status: 502 });
       }
-
-      userId = inviteData.user?.id ?? null;
+      userId = created.user?.id ?? null;
       invited = true;
+    }
+
+    /**
+     * One link, whether the person is new or already had an account.
+     *
+     * A recovery link signs them in and drops them on a screen where they set
+     * their own password, which is the same thing a new joiner and a returning
+     * one both need. No password is ever generated, written down, or passed
+     * through anybody.
+     */
+    {
+      const { data: gen } = await admin.auth.admin.generateLink({
+        type: 'recovery',
+        email,
+        options: { redirectTo: `${req.nextUrl.origin}/welcome` },
+      });
+      link = gen?.properties?.action_link ?? null;
     }
 
     if (!userId) {
@@ -166,12 +191,48 @@ export async function POST(req: NextRequest) {
 
     if (joinErr) throw new Error(joinErr.message);
 
+    /**
+     * Sent from our own domain, and handed back either way.
+     *
+     * If the mail service is having a bad day, the person inviting still has a
+     * link they can paste into a text message. An invitation that fails
+     * silently is how somebody ends up asking for one by hand.
+     */
+    let emailed = false;
+    const resendKey = process.env.RESEND_API_KEY;
+    const from = process.env.MAIL_FROM;
+
+    if (link && resendKey && from) {
+      const who = body.fullName?.trim() || email.split('@')[0];
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from,
+          to: email,
+          subject: `You have been added to ${orgName}`,
+          html: `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.65;color:#141414;max-width:520px;">
+            <p>Hi ${who},</p>
+            <p>You have been given access to <strong>${orgName}</strong>.</p>
+            <p>The button below signs you in and lets you set your own password. Nobody has one for you.</p>
+            <p style="margin:26px 0;">
+              <a href="${link}" style="background:#141414;color:#fff;padding:12px 24px;border-radius:999px;text-decoration:none;font-weight:500;display:inline-block;">Set your password</a>
+            </p>
+            <p style="color:#5B6069;font-size:13.5px;">This link works once and expires in about a day. If it has, ask for another.</p>
+          </div>`,
+        }),
+      });
+      emailed = res.ok;
+    }
+
     return NextResponse.json({
       ok: true,
-      invited,
-      message: invited
-        ? `Invite sent to ${email}. They'll get an email to set a password.`
-        : `${email} already had an account — they've been added to this business.`,
+      emailed,
+      // Always returned, so the screen can offer a copy button.
+      link,
+      message: emailed
+        ? `Sent to ${email}. They set their own password from the email.`
+        : `Account ready for ${email}, but the email did not send. Copy the link below and send it yourself.`,
     });
   } catch (e) {
     const msg = (e as Error).message;
