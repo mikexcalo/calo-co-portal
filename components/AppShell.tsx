@@ -7,6 +7,7 @@ import Sidebar from '@/components/Sidebar';
 import TopBar from '@/components/TopBar';
 import { useIsPhone, C } from '@/components/spine/ui';
 import { TutorialPanel } from '@/components/spine/TutorialPanel';
+import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { BottomBar } from '@/components/spine/BottomBar';
 import { AddSheet } from '@/components/spine/AddSheet';
@@ -17,7 +18,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const phone = useIsPhone();
-  const { org, vocab, loading: orgLoading } = useOrg();
+  const { org, vocab, loading: orgLoading, orgs } = useOrg();
+  const orgCount = orgs?.length ?? 0;
+
+  /**
+   * Has the person signed in ever introduced themselves?
+   *
+   * Read once rather than on every render, and `meLoaded` keeps the redirect
+   * from firing during the moment before the answer arrives, which would
+   * bounce an established user to setup on every page load.
+   */
+  const [meOnboarded, setMeOnboarded] = useState(false);
+  const [meLoaded, setMeLoaded] = useState(false);
+  useEffect(() => {
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth?.user) { setMeLoaded(false); return; }
+      const { data } = await supabase
+        .from('profiles')
+        .select('full_name, role')
+        .eq('id', auth.user.id)
+        .maybeSingle();
+      setMeOnboarded(Boolean(data?.full_name?.trim() && data?.role));
+      setMeLoaded(true);
+    })();
+  }, []);
   const [navOpen, setNavOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
 
@@ -31,15 +56,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isBarePage || orgLoading || !org) return;
 
-    // First login: the app cannot invoice without a rate or say how to pay
-    // without a method, so ask once before anything else.
-    if (!org.onboarded_at) {
+    /**
+     * Onboarding belongs to the person, not the workspace.
+     *
+     * The rule was "this business has no onboarded_at, so run setup". That is
+     * right for somebody opening their own account and wrong for an agency
+     * owner switching into a client: clicking into Lakemere threw up "Welcome
+     * to CALO&CO, setting up Lakemere Services", and there was no way out
+     * because the shell replaced the route on every render.
+     *
+     * Marking client workspaces as set up would have fixed that and broken the
+     * opposite case, because the person those workspaces are handed to has
+     * never answered anything either. So it asks whoever is signed in: have
+     * you told us your name and what you do here. Once, ever, whichever
+     * business they happen to be looking at.
+     */
+    if (meLoaded && !meOnboarded) {
       router.replace('/welcome');
       return;
     }
 
     if (!pathAllowed(org, pathname)) router.replace('/');
-  }, [org, orgLoading, pathname, isBarePage, router]);
+  }, [org, meLoaded, meOnboarded, orgLoading, pathname, isBarePage, router]);
 
   if (isBarePage) return <>{children}</>;
 

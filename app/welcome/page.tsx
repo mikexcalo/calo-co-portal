@@ -292,7 +292,16 @@ export default function WelcomePage() {
    * invoice is the clearest way a product can say it was not built for you.
    */
   const skipsMoney = ROLES.find((r) => r.id === role)?.skipsMoney ?? false;
-  const lastStep = skipsMoney ? 2 : STEPS - 1;
+  /**
+   * Somebody joining a business that already exists is not asked to set it up.
+   *
+   * Marcie opening Lakemere should answer who she is and what she does, and
+   * then be in. Being walked through naming a business that is already named,
+   * and pricing work she does not do, is how a tool tells somebody it was
+   * meant for their boss.
+   */
+  const alreadySetUp = Boolean(org?.onboarded_at);
+  const lastStep = alreadySetUp ? 1 : skipsMoney ? 2 : STEPS - 1;
   const last = step === lastStep;
 
   const nextBtn = (disabled?: boolean) => (
@@ -330,28 +339,28 @@ export default function WelcomePage() {
             Welcome to {PRODUCT}
           </div>
           <div style={{ fontSize: 14.5, color: FAINT, marginTop: 6 }}>
-            Five quick questions and you&apos;re set up.
+            {alreadySetUp ? 'Two questions and you are in.' : "Five quick questions and you're set up."}
           </div>
           {/* Which business these answers land on. Without this, someone with
               access to more than one can fill the whole thing in for the
               wrong one and only find out from the sidebar afterwards. */}
           {org && (
             <div style={{ fontSize: 13, color: DIM, marginTop: 10 }}>
-              Setting up{' '}
+              {alreadySetUp ? 'Joining' : 'Setting up'}{' '}
               <strong style={{ color: TEXT }}>{org.name}</strong>
             </div>
           )}
         </div>
 
         <div style={{ display: 'flex', gap: 6, marginBottom: 22 }}>
-          {Array.from({ length: skipsMoney ? 3 : STEPS }).map((_, i) => (
+          {Array.from({ length: alreadySetUp ? 2 : skipsMoney ? 3 : STEPS }).map((_, i) => (
             <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= step ? ACCENT : BORDER }} />
           ))}
         </div>
 
         <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 12, padding: 26 }}>
           <div style={{ fontSize: 12, color: FAINT, textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 600 }}>
-            Step {step + 1} of {skipsMoney ? 3 : STEPS}
+            Step {step + 1} of {alreadySetUp ? 2 : skipsMoney ? 3 : STEPS}
           </div>
 
           {error && (
