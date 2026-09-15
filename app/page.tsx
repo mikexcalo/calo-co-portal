@@ -13,6 +13,8 @@
  */
 
 import { Unresolved } from '@/components/spine/Unresolved';
+import { TellUs } from '@/components/spine/TellUs';
+import { FeedbackInbox } from '@/components/spine/FeedbackInbox';
 import { YourSetup } from '@/components/spine/YourSetup';
 import { SoldNotLive } from '@/components/spine/SoldNotLive';
 import { FollowUps } from '@/components/spine/FollowUps';
@@ -710,7 +712,14 @@ export default function Dashboard() {
           <Unresolved />
 
           <SoldNotLive />
+          {/* What other people have asked for, above your own tasks: somebody
+              waiting on you outranks a job you set yourself. */}
+          <FeedbackInbox currentOrgId={org?.id ?? null} />
+
           <YourSetup />
+
+          {/* And the way to send one, on the screen everybody opens first. */}
+          <TellUs />
 
           <FollowUps />
 
