@@ -40,7 +40,6 @@ const titlesFor = (vocab: { jobPlural: string; customerPlural: string; estimate:
   '/requests': 'Requests',
   '/pitches': 'Pitches',
   '/brand-kit': 'Brand Kit',
-  '/website': 'Your Website',
   '/security': 'Security',
   '/team': 'Team',
   '/business': 'Business',

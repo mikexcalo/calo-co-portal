@@ -687,7 +687,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                 method is applied to somebody; you open it from them.
               */}
               <button
-                onClick={() => router.push(`/framework?client=${params.id}`)}
+                onClick={() => router.push(`/brands`)}
                 style={{
                   border: `1px dashed ${C.border}`, background: 'transparent',
                   borderRadius: 10, padding: '10px 14px', width: '100%',

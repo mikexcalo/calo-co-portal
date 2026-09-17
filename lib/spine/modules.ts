@@ -23,7 +23,6 @@ export type ModuleId =
   | 'billing'
   | 'pl'
   | 'website'        // client-facing: ask my agency for a site change
-  | 'site'           // your own site, built from sections
   | 'learn'          // what the product does, and how
   | 'client_requests' // agency-facing: the inbox of client requests
   | 'brand_kit'
@@ -50,7 +49,6 @@ const CONTRACTOR: ModuleId[] = [
   'learn',
   'routes',
   'inbox',
-  'site',
   'ask',
   'targets',
   'reviews',
@@ -84,7 +82,6 @@ const AGENCY: ModuleId[] = [
   'learn',
   'routes',
   'inbox',
-  'site',
   'ask',
   'reviews',
   'seo',
@@ -126,7 +123,7 @@ const AGENCY: ModuleId[] = [
 const PLAN_MODULES: Record<string, ModuleId[]> = {
   core: [
     'inbox', 'routes', 'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
-    'records', 'business', 'security', 'reviews', 'targets', 'site', 'learn',
+    'records', 'business', 'security', 'reviews', 'targets', 'learn',
   ],
   grow: [
     'inbox', 'routes', 'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
@@ -165,8 +162,8 @@ const PLAN_FEATURES: Record<string, Feature[]> = {
  * object.
  */
 export const MODULE_ICON: Record<ModuleId, string> = {
-  routes: 'target',
-  inbox: 'inbox',
+  routes: 'yardSign',
+  inbox: 'notes',
   customers: 'clients',
   people: 'network',
   jobs: 'quotes',
@@ -184,9 +181,8 @@ export const MODULE_ICON: Record<ModuleId, string> = {
   reviews: 'star',
   traffic: 'chart',
   website: 'inbox',
-  site: 'storefront',
   learn: 'book',
-  client_requests: 'inbox',
+  client_requests: 'megaphone',
   brand_kit: 'brandKit',
   brands: 'palette',
   stories: 'book',
@@ -248,7 +244,6 @@ export const MODULE_SECTION: Record<ModuleId, NavSection> = {
   brand_kit: 'Grow',
   stories: 'Grow',
   website: 'Grow',
-  site: 'Grow',
   learn: 'Setup',
   ask: 'Grow',
 
@@ -279,7 +274,6 @@ export const MODULE_KIND: Record<ModuleId, ModuleKind> = {
   brands: 'place',
   stories: 'place',
   website: 'place',
-  site: 'place',
   learn: 'place',
   client_requests: 'place',
   traffic: 'place',
@@ -320,7 +314,7 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   pricing: 'Price list',
   records: 'Records',
   brand_kit: 'Brand',
-  brands: 'Framework',
+  brands: 'Client brands',
   stories: 'Case studies',
   ask: 'Ask',
   reviews: 'Reviews',
@@ -328,9 +322,8 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   targets: 'Pipeline',
   catalog: 'What they sell',
   market: 'Market',
-  client_requests: 'Requests',
+  client_requests: 'Client requests',
   website: 'Site requests',
-  site: 'Website',
   learn: 'Learn',
   team: 'Team',
   security: 'Security',
@@ -430,8 +423,6 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/pl', 'pl'],
   ['/expenses', 'expenses'],
   ['/learn', 'learn'],
-  ['/website', 'site'],
-  ['/website/queue', 'site'],
   ['/site-requests', 'website'],
   ['/traffic', 'traffic'],
   ['/digital', 'seo'],
@@ -535,11 +526,10 @@ export const MODULE_HREF: Record<ModuleId, string> = {
   seo: '/digital',
   traffic: '/traffic',
   reviews: '/reviews',
-  brands: '/framework',
+  brands: '/brands',
   brand_kit: '/brand-kit',
   stories: '/stories',
   website: '/site-requests',
-  site: '/website',
   ask: '/ask',
 
   learn: '/learn',
@@ -577,7 +567,6 @@ export const MODULE_TAB_PARENT: Partial<Record<ModuleId, ModuleId>> = {
   // The Brand row already points at the kit; a second row for the same page
   // under a different name is the exact duplication this map exists to stop.
   brands: 'brand_kit',
-  site:    'seo',
   website: 'seo',
 };
 
@@ -714,7 +703,7 @@ export function navFor(
          * dead end inside your own product.
          */
         { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'quotes' },
-        { id: 'routes', label: 'Route', href: '/routes', icon: 'target' },
+        { id: 'routes', label: 'Route', href: '/routes', icon: 'yardSign' },
         /**
          * Pipeline is work, not growth.
          *

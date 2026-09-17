@@ -64,6 +64,25 @@ export function Notifications() {
   const router = useRouter();
   const { switchOrg } = useOrg();
   const [items, setItems] = useState<Notification[]>([]);
+  /**
+   * Feedback ids are synthesised, so there is no row to mark read. Clicking one
+   * took you to the note and left the badge showing, which is how a bell stops
+   * meaning anything. Dismissed ones are remembered here; the note itself is
+   * still on Home until somebody answers it.
+   */
+  const [seen, setSeen] = useState<string[]>([]);
+
+  useEffect(() => {
+    try { setSeen(JSON.parse(localStorage.getItem('nautilus.seenNotes') ?? '[]') as string[]); } catch { /* ignore */ }
+  }, []);
+
+  const dismiss = (id: string) => {
+    setSeen((prev) => {
+      const next = Array.from(new Set([...prev, id])).slice(-200);
+      try { localStorage.setItem('nautilus.seenNotes', JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
   const [open, setOpen] = useState(false);
   /** Set after mount — a clock read during render disagrees with the server. */
   const [now, setNow] = useState<number | null>(null);
@@ -162,11 +181,12 @@ export function Notifications() {
     return () => clearInterval(t);
   }, [load]);
 
-  const unread = items.filter((i) => !i.read_at);
+  const unread = items.filter((i) => !i.read_at && !seen.includes(i.id));
 
   const markAllRead = async () => {
     // Requests are excluded: they are outstanding work, and dismissing them
     // would be the product pretending something was handled.
+    unread.filter((i) => i.id.startsWith('fb-')).forEach((i) => dismiss(i.id));
     const dismissible = unread.filter((i) => !i.id.startsWith('req-') && !i.id.startsWith('fb-'));
     if (!dismissible.length) return;
     const ids = dismissible.map((i) => i.id);
@@ -189,6 +209,7 @@ export function Notifications() {
      * push went to your own copy of Home — the click did nothing twice over.
      */
     if (n.id.startsWith('fb-')) {
+      dismiss(n.id);
       if (n.orgId) await switchOrg(n.orgId);
       router.push('/');
       router.refresh();

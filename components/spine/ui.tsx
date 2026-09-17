@@ -239,8 +239,6 @@ export const CLIENT_TABS: readonly PageTab[] = [
 
 export const DIGITAL_TABS: readonly PageTab[] = [
   { label: 'Overview', href: '/digital', icon: 'globe' },
-  { label: 'Website', href: '/website', icon: 'layers' },
-  { label: 'Waiting to go live', href: '/website/queue', icon: 'send' },
   { label: 'Site requests', href: '/site-requests', icon: 'brief' },
   { label: 'Search', href: '/seo', icon: 'search' },
   { label: 'Traffic', href: '/traffic', icon: 'chart' },
@@ -285,7 +283,6 @@ export const BRAND_TABS: readonly PageTab[] = [
   { label: 'Brand', href: '/brand-kit', icon: 'swatches' },
   // Framework had no row and no tab once Brand pointed at the kit, which left
   // a whole module reachable only by typing the URL.
-  { label: 'Framework', href: '/framework', icon: 'layers' },
   { label: 'Client brands', href: '/brands', icon: 'swatches' },
   // What you claim, as opposed to how you sound. Its own tab because
   // everything you send is written out of it.

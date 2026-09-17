@@ -58,7 +58,6 @@ const NAV: Item[] = [
   { id: 'n-pl', label: 'Profit and Loss', href: '/pl', group: 'Go to' },
   { id: 'n-overheads', label: 'Overheads', href: '/expenses', group: 'Go to' },
   { id: 'n-pitches', label: 'Pitches', href: '/pitches', group: 'Go to' },
-  { id: 'n-framework', label: 'Brand Framework', href: '/framework', group: 'Go to' },
   { id: 'n-stories', label: 'Case Studies', href: '/stories', group: 'Go to' },
   { id: 'n-brandkit', label: 'Brand Kit', href: '/brand-kit', group: 'Go to' },
   { id: 'n-business', label: 'Business settings', href: '/business', group: 'Go to' },

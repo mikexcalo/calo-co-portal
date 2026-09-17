@@ -86,33 +86,6 @@ export const TOURS: Tour[] = [
     who: 'You, before you send a client a link',
     summary: 'Edit sections, preview on a real link, collect comments, push the change out to be built.',
     steps: [
-      {
-        href: '/website',
-        title: 'The site is a list of sections',
-        body:
-          'Hero, then proof, then what you do. You edit the words and pick between two or three cuts of each section. You never set padding or type size, which is what keeps every site you ship looking like you made it.',
-        todo: 'Open a section and change one line. It saves as a draft, not live.',
-      },
-      {
-        href: '/website',
-        title: 'Preview is a real page',
-        body:
-          'The link needs no login and works on a phone. It shows your drafts, so it is the version you are proposing rather than the one that is live.',
-        todo: 'Open the preview link in another tab.',
-      },
-      {
-        href: '/website',
-        title: 'They can comment on it',
-        body:
-          'Anybody holding that link hovers a section and leaves a note. It comes back attached to that block and appears inside the section here, above the fields they were talking about. This is the part that replaces the email thread.',
-        todo: 'Leave yourself a note on the preview, then come back and find it.',
-      },
-      {
-        href: '/website/queue',
-        title: 'Send it out to be built',
-        body:
-          'Publishing files a request holding both versions of every field that changed. Somebody with the site checked out makes it real, and you watch it here.',
-      },
     ],
   },
 ];
