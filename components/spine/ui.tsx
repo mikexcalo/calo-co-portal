@@ -199,6 +199,7 @@ export const SETUP_TABS: readonly PageTab[] = [
   { label: 'Team', href: '/team', icon: 'people' },
   { label: 'Price list', href: '/pricing', icon: 'pricing' },
   { label: 'Records', href: '/records', icon: 'records' },
+  { label: 'Security', href: '/security', icon: 'activity' },
 ];
 
 /**
@@ -267,6 +268,9 @@ export const MONEY_TABS: readonly PageTab[] = [
  */
 export const BRAND_TABS: readonly PageTab[] = [
   { label: 'Kit and assets', href: '/brand-kit', icon: 'swatches' },
+  // Framework had no row and no tab once Brand pointed at the kit, which left
+  // a whole module reachable only by typing the URL.
+  { label: 'Framework', href: '/brands', icon: 'layers' },
   // What you claim, as opposed to how you sound. Its own tab because
   // everything you send is written out of it.
   { label: 'Messaging', href: '/messaging', icon: 'brief' },
@@ -277,8 +281,9 @@ export const BRAND_TABS: readonly PageTab[] = [
 export const SITE_TABS: readonly PageTab[] = [
   { label: 'Sections', href: '/website', icon: 'layers' },
   { label: 'Build queue', href: '/website/queue', icon: 'send' },
-  { label: 'Search', href: '/seo', icon: 'search' },
-  { label: 'Traffic', href: '/traffic', icon: 'chart' },
+  // Search and Traffic used to sit here as well as under Digital. Those pages
+  // render Digital's tab strip, so arriving from Website dropped you into a
+  // different family with no way back to the one you came from.
 ];
 
 /**
@@ -317,16 +322,6 @@ export function brandTabs(id: string): readonly PageTab[] {
   ];
 }
 
-/**
- * Kept for the two screens that still use it, minus the row it belonged to.
- *
- * Pipeline is no longer a module. Your own list was empty and all 107 targets
- * belonged to a client, because companies you want are people at a stage and
- * People already holds those. Targets survive on the client that owns them.
- */
-export const PIPELINE_TABS: readonly PageTab[] = [
-  { label: 'Pitches', href: '/pitches', icon: 'send' },
-];
 
 function BackLink({ label, href }: { label: string; href: string }) {
   const router = useRouter();

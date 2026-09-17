@@ -540,6 +540,33 @@ export const MODULE_HREF: Record<ModuleId, string> = {
   records: '/records',
 };
 
+/**
+ * Which modules are a tab of something else rather than a destination.
+ *
+ * A screen should be reachable one way. Traffic was a module with its own
+ * sidebar row AND a tab under Digital AND a tab under Website, so the same
+ * page had three parents and clicking it from one of them silently moved you
+ * into another family's tab strip. Price list was a row and a tab under
+ * Business. Receipts and Overheads were rows and tabs under Profit & Loss.
+ *
+ * Naming the parent here keeps them out of the sidebar without hiding them:
+ * the parent has the row, and its tabs are one click in.
+ */
+export const MODULE_TAB_PARENT: Partial<Record<ModuleId, ModuleId>> = {
+  receipts: 'pl',
+  expenses: 'pl',
+  traffic:  'seo',
+  reviews:  'seo',
+  stories:  'pitches',
+  pricing:  'business',
+  records:  'business',
+  team:     'business',
+  security: 'business',
+  // The Brand row already points at the kit; a second row for the same page
+  // under a different name is the exact duplication this map exists to stop.
+  brand_kit: 'brands',
+};
+
 export interface NavGroup {
   /** Absent for the top group, which is one row and needs no label over it. */
   heading?: string;
@@ -766,8 +793,14 @@ export function navFor(
    * in its own section whether or not anybody remembered to place it.
    */
   const placed = new Set(groups.flatMap((g) => g.items.map((i) => i.id)));
-  const missing = ([...on] as ModuleId[])
-    .filter((id) => MODULE_KIND[id] === 'place' && !placed.has(id) && MODULE_HREF[id]);
+  const missing = ([...on] as ModuleId[]).filter(
+    (id) =>
+      MODULE_KIND[id] === 'place' &&
+      !placed.has(id) &&
+      MODULE_HREF[id] &&
+      // A tab is reached through its parent, never as a second row of its own.
+      !MODULE_TAB_PARENT[id]
+  );
 
   for (const id of missing) {
     const heading = MODULE_SECTION[id];
