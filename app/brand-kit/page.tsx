@@ -16,6 +16,7 @@ import { getCurrentOrg, updateOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import { modulesFor } from '@/lib/spine/modules';
 import { QrStudio } from '@/components/spine/QrStudio';
+import { PaletteFromImage } from '@/components/spine/PaletteFromImage';
 import {
   EMPTY_SIGNATURE,
   INSTALL_GUIDES,
@@ -313,6 +314,25 @@ export default function BrandKitPage() {
                 onClick={() => setEditingColors((v) => !v)}
               />
             </div>
+          </Card>
+
+          {/*
+            The other direction. Colors above are ones you already know; this
+            is for the ones that arrived as a picture — a prospect's logo, a
+            screenshot of a sign, a PDF somebody exported.
+          */}
+          <Card>
+            <SectionLabel>Colors from a logo</SectionLabel>
+            <p style={{ fontSize: 12.5, color: C.faint, margin: '6px 0 12px' }}>
+              Drop an image and this reads the exact hexes out of it. Nothing is
+              uploaded and nothing is charged — it happens in your browser. What
+              you add lands in Colors above and keeps when you save.
+            </p>
+            <PaletteFromImage
+              onAdd={(cols) =>
+                setBrand((b) => ({ ...b, colors: [...b.colors, ...cols] }))
+              }
+            />
           </Card>
 
           <Card>

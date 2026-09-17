@@ -154,7 +154,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
             <input
               value={draft.title}
               onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-              placeholder="What they do"
+              placeholder="Title"
               style={{ ...inputStyle, flex: '1 1 160px' }}
             />
           </div>

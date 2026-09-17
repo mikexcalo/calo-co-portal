@@ -63,12 +63,12 @@ interface Person {
  * useful address book turns into a sales tool nobody updates.
  */
 const KINDS: { key: Relationship; label: string; tone: 'blue' | 'green' | 'amber' | 'neutral' }[] = [
-  { key: 'contact', label: 'Met them', tone: 'neutral' },
-  { key: 'client', label: 'At a client', tone: 'green' },
+  { key: 'contact', label: 'Just a contact', tone: 'neutral' },
+  { key: 'client', label: 'Works at a client', tone: 'green' },
   { key: 'prospect', label: 'Might buy', tone: 'amber' },
-  { key: 'referrer', label: 'Sends work', tone: 'blue' },
-  { key: 'freelancer', label: 'Could hire', tone: 'neutral' },
-  { key: 'partner', label: 'Could sell with', tone: 'blue' },
+  { key: 'referrer', label: 'Sends us work', tone: 'blue' },
+  { key: 'freelancer', label: 'Could work for us', tone: 'neutral' },
+  { key: 'partner', label: 'Could partner', tone: 'blue' },
 ];
 
 const kindOf = (k: Relationship) => KINDS.find((x) => x.key === k) ?? KINDS[0];
@@ -140,13 +140,13 @@ export default function PeoplePage() {
     {
       key: 'kind',
       label: 'How you know them',
-      width: '132px',
+      width: '158px',
       sortBy: (p) => p.relationship,
       render: (p) => <Pill tone={kindOf(p.relationship).tone}>{kindOf(p.relationship).label}</Pill>,
     },
     {
       key: 'title',
-      label: 'What they do',
+      label: 'Title',
       width: 'minmax(110px, 1.2fr)',
       render: (p) => (
         <span style={{ fontSize: 12.5, color: p.title ? C.dim : C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
@@ -298,7 +298,7 @@ export default function PeoplePage() {
         <Card style={{ marginBottom: 14 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8, marginBottom: 8 }}>
             <input autoFocus value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Name" style={inputStyle} />
-            <input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder="What they do" style={inputStyle} />
+            <input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder="Title" style={inputStyle} />
             <input value={draft.company} onChange={(e) => setDraft({ ...draft, company: e.target.value })} placeholder="Where they work" style={inputStyle} />
             <input value={draft.website} onChange={(e) => setDraft({ ...draft, website: e.target.value })} placeholder="Website" style={inputStyle} />
             <input value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} placeholder="Email" style={inputStyle} />
@@ -425,7 +425,7 @@ export default function PeoplePage() {
           <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 9 }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
               {([
-                ['title', 'What they do'],
+                ['title', 'Title'],
                 ['company', 'Where they work'],
                 ['website', 'Website'],
                 ['email', 'Email'],
