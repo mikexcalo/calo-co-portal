@@ -15,7 +15,6 @@
 import { Unresolved } from '@/components/spine/Unresolved';
 import { TellUs } from '@/components/spine/TellUs';
 import { FeedbackInbox } from '@/components/spine/FeedbackInbox';
-import { YourSetup } from '@/components/spine/YourSetup';
 import { SoldNotLive } from '@/components/spine/SoldNotLive';
 import { FollowUps } from '@/components/spine/FollowUps';
 import { WeekAhead } from '@/components/spine/WeekAhead';
@@ -829,7 +828,15 @@ export default function Dashboard() {
               waiting on you outranks a job you set yourself. */}
           <FeedbackInbox currentOrgId={org?.id ?? null} />
 
-          <YourSetup />
+          {/*
+            YourSetup is gone from here.
+            
+            It rendered eleven items like "change the GitHub default branch to
+            main" and "upgrade Supabase to Pro" — this product's own build
+            chores, shown on the home screen of a business that has nothing to
+            do with them. They live in docs/blocked-on-mike.md, which is where
+            a developer's to-do list belongs.
+          */}
 
           {/* And the way to send one, on the screen everybody opens first. */}
           <TellUs />

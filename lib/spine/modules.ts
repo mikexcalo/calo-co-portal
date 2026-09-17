@@ -13,6 +13,7 @@
 import type { Org } from './types';
 
 export type ModuleId =
+  | 'routes'         // the order to drive the day in
   | 'inbox'          // anything that arrived before its subject did
   | 'jobs'
   | 'customers'
@@ -47,6 +48,7 @@ export type ModuleId =
 
 const CONTRACTOR: ModuleId[] = [
   'learn',
+  'routes',
   'inbox',
   'site',
   'ask',
@@ -80,6 +82,7 @@ const CONTRACTOR: ModuleId[] = [
 
 const AGENCY: ModuleId[] = [
   'learn',
+  'routes',
   'inbox',
   'site',
   'ask',
@@ -122,11 +125,11 @@ const AGENCY: ModuleId[] = [
  */
 const PLAN_MODULES: Record<string, ModuleId[]> = {
   core: [
-    'inbox', 'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
+    'inbox', 'routes', 'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
     'records', 'business', 'security', 'reviews', 'targets', 'site', 'learn',
   ],
   grow: [
-    'inbox', 'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
+    'inbox', 'routes', 'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
     'records', 'business', 'security', 'reviews',
     'seo', 'ask', 'pricing', 'client_requests', 'team', 'website', 'targets',
     'traffic',
@@ -162,6 +165,7 @@ const PLAN_FEATURES: Record<string, Feature[]> = {
  * object.
  */
 export const MODULE_ICON: Record<ModuleId, string> = {
+  routes: 'target',
   inbox: 'inbox',
   customers: 'clients',
   people: 'network',
@@ -217,6 +221,7 @@ export type ModuleKind = 'place' | 'capability';
 export type NavSection = 'The work' | 'Money' | 'Grow' | 'Setup';
 
 export const MODULE_SECTION: Record<ModuleId, NavSection> = {
+  routes: 'The work',
   inbox: 'The work',
   customers: 'The work',
   people: 'The work',
@@ -257,6 +262,7 @@ export const NAV_SECTIONS: NavSection[] = ['The work', 'Money', 'Grow', 'Setup']
 
 export const MODULE_KIND: Record<ModuleId, ModuleKind> = {
   // Places: they appear in the sidebar, or as a tab of something that does.
+  routes: 'place',
   inbox: 'place',
   customers: 'place',
   people: 'place',
@@ -298,6 +304,7 @@ export const MODULE_KIND: Record<ModuleId, ModuleKind> = {
 
 /** Human names for every module, so a switchboard is readable. */
 export const MODULE_LABEL: Record<ModuleId, string> = {
+  routes: 'Route',
   inbox: 'Drops',
   jobs: 'Jobs and engagements',
   customers: 'Clients',
@@ -410,6 +417,7 @@ export const MODULE_STATES: { id: ModuleState; label: string; note: string }[] =
  * stranded on a screen that isn't in their nav.
  */
 const ROUTE_MODULE: Array<[string, ModuleId]> = [
+  ['/routes', 'routes'],
   ['/inbox', 'inbox'],
   ['/jobs', 'jobs'],
   ['/customers', 'customers'],
@@ -504,6 +512,7 @@ export function pathAllowed(org: Org | null, pathname: string): boolean {
  * Team, Security and Business settings ended up with no row in the sidebar.
  */
 export const MODULE_HREF: Record<ModuleId, string> = {
+  routes: '/routes',
   inbox: '/inbox',
   jobs: '/jobs',
   customers: '/customers',
@@ -705,6 +714,7 @@ export function navFor(
          * dead end inside your own product.
          */
         { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'quotes' },
+        { id: 'routes', label: 'Route', href: '/routes', icon: 'target' },
         /**
          * Pipeline is work, not growth.
          *
