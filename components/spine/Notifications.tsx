@@ -15,9 +15,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
+import { useOrg } from '@/lib/spine/org';
 import { C, radius } from './ui';
 
 interface Notification {
+  /** Only on feedback rows: the workspace the note was written in. */
+  orgId?: string | null;
   id: string;
   kind: 'lead' | 'invoice_paid' | 'invoice_overdue' | 'site_request' | 'document' | 'system';
   title: string;
@@ -59,6 +62,7 @@ function ago(iso: string, now: number): string {
 
 export function Notifications() {
   const router = useRouter();
+  const { switchOrg } = useOrg();
   const [items, setItems] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   /** Set after mount — a clock read during render disagrees with the server. */
@@ -99,8 +103,10 @@ export function Notifications() {
        */
       supabase
         .from('feedback')
-        .select('id, kind, body, page, status, created_at, orgs(name)')
-        .in('status', ['open', 'building'])
+        .select('id, org_id, kind, body, page, status, created_at, orgs(name)')
+        // Only unanswered. Saying "working on it" is an answer, and a bell
+        // that keeps ringing after you have replied is a bell you turn off.
+        .eq('status', 'open')
         .order('created_at', { ascending: false })
         .limit(15),
     ]);
@@ -123,12 +129,13 @@ export function Notifications() {
     };
     const asFeedback: Notification[] = (said.data ?? []).map((f) => {
       const row = f as unknown as {
-        id: string; kind: string; body: string; page: string | null;
+        id: string; org_id: string; kind: string; body: string; page: string | null;
         created_at: string; orgs: { name: string }[] | { name: string } | null;
       };
       const where = (Array.isArray(row.orgs) ? row.orgs[0]?.name : row.orgs?.name) ?? 'a workspace';
       return {
         id: `fb-${row.id}`,
+        orgId: row.org_id,
         kind: 'site_request',
         title: `${where} ${WORD[row.kind] ?? 'said something'}`,
         body: row.body,
@@ -160,11 +167,11 @@ export function Notifications() {
   const markAllRead = async () => {
     // Requests are excluded: they are outstanding work, and dismissing them
     // would be the product pretending something was handled.
-    const dismissible = unread.filter((i) => !i.id.startsWith('req-'));
+    const dismissible = unread.filter((i) => !i.id.startsWith('req-') && !i.id.startsWith('fb-'));
     if (!dismissible.length) return;
     const ids = dismissible.map((i) => i.id);
     setItems((prev) =>
-      prev.map((i) => (i.read_at || i.id.startsWith('req-') ? i : { ...i, read_at: new Date().toISOString() }))
+      prev.map((i) => (i.read_at || i.id.startsWith('req-') || i.id.startsWith('fb-') ? i : { ...i, read_at: new Date().toISOString() }))
     );
     await supabase
       .from('notifications')
@@ -175,6 +182,18 @@ export function Notifications() {
   const openItem = async (n: Notification) => {
     setOpen(false);
     if (n.id.startsWith('req-')) { router.push('/requests'); return; }
+    /**
+     * A note lives in the workspace it was written in.
+     *
+     * These ids are synthesised, so the update below matched no row and the
+     * push went to your own copy of Home — the click did nothing twice over.
+     */
+    if (n.id.startsWith('fb-')) {
+      if (n.orgId) await switchOrg(n.orgId);
+      router.push('/');
+      router.refresh();
+      return;
+    }
     if (!n.read_at) {
       setItems((prev) => prev.map((i) => (i.id === n.id ? { ...i, read_at: new Date().toISOString() } : i)));
       await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', n.id);

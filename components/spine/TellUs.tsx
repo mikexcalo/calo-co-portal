@@ -36,10 +36,16 @@ export function TellUs() {
 
   const load = useCallback(async () => {
     if (!org) return;
+    const { data: auth } = await supabase.auth.getUser();
+    const meId = auth?.user?.id;
+    if (!meId) { setMine([]); return; }
     const res = await supabase
       .from('feedback')
       .select('id, body, status, reply')
       .eq('org_id', org.id)
+      // Yours only. Everyone else's notes belong in Asked for, where there is
+      // something to answer them with.
+      .eq('author_id', meId)
       .order('created_at', { ascending: false })
       .limit(6);
     if (!res.error) setMine(res.data ?? []);

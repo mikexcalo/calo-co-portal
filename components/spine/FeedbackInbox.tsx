@@ -21,6 +21,7 @@ import { Button, C, Card, SectionLabel, inputStyle } from './ui';
 interface Row {
   id: string;
   org_id: string;
+  author_id: string | null;
   kind: string;
   body: string;
   page: string | null;
@@ -39,11 +40,16 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
   const [rows, setRows] = useState<Row[]>([]);
   const [open, setOpen] = useState<string | null>(null);
   const [reply, setReply] = useState('');
+  const [me, setMe] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setMe(data?.user?.id ?? null));
+  }, []);
 
   const load = useCallback(async () => {
     const res = await supabase
       .from('feedback')
-      .select('id, org_id, kind, body, page, status, reply, created_at, orgs(name)')
+      .select('id, org_id, author_id, kind, body, page, status, reply, created_at, orgs(name)')
       .in('status', ['open', 'building'])
       .order('created_at', { ascending: false })
       .limit(25);
@@ -53,12 +59,15 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
   useEffect(() => { load(); }, [load]);
 
   /**
-   * Yours is not news to you.
+   * Not mine, rather than not here.
    *
-   * A note you wrote yourself in this workspace is already on the screen
-   * underneath, in Tell us. What belongs here is what somebody else said.
+   * This filtered on workspace, which meant Go and look removed the reply box
+   * it had just sent you to use: switch into her workspace to see what she
+   * saw, and her note stops being "somebody else's" and disappears. Authorship
+   * is the thing that was actually meant — a note you wrote is not news to
+   * you no matter which workspace you are standing in.
    */
-  const others = rows.filter((r) => r.org_id !== currentOrgId);
+  const others = rows.filter((r) => r.author_id !== me);
   if (others.length === 0) return null;
 
   const orgName = (r: Row) => (Array.isArray(r.orgs) ? r.orgs[0]?.name : r.orgs?.name) ?? 'a workspace';
