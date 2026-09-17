@@ -286,12 +286,20 @@ export async function createEstimate(
 
   // Any prior estimate is now history, not a competing number.
   if (existing.length) {
-    await supabase
+    /**
+     * Checked, because the failure is invisible and expensive.
+     *
+     * If this does not land, the job keeps two estimates that both believe
+     * they are current, and the next invoice is built from whichever one is
+     * read first.
+     */
+    const superseded = await supabase
       .from('estimates')
       .update({ status: 'superseded' })
       .eq('job_id', jobId)
       .neq('id', estimate.id)
-      .in('status', ['draft', 'sent']);
+      .in('status', ['draft', 'sent'])
+    if (superseded.error) throw new Error(superseded.error.message);
   }
 
   return estimate;
@@ -649,7 +657,11 @@ export async function draftInvoiceFromActuals(
   ) as JobInvoice;
 
   const cleanup = async () => {
-    await supabase.from('job_invoices').delete().eq('id', invoice.id);
+    // Rollback. If even this fails there is nothing useful left to do — the
+    // caller is already handling the original failure — but an empty invoice
+    // left behind is worth knowing about.
+    const res = await supabase.from('job_invoices').delete().eq('id', invoice.id);
+    if (res.error) console.error('Could not roll back empty invoice', invoice.id, res.error.message);
   };
 
   try {
