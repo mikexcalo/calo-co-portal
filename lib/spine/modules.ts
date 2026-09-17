@@ -298,7 +298,7 @@ export const MODULE_KIND: Record<ModuleId, ModuleKind> = {
 
 /** Human names for every module, so a switchboard is readable. */
 export const MODULE_LABEL: Record<ModuleId, string> = {
-  inbox: 'Inbox',
+  inbox: 'Unfiled',
   jobs: 'Jobs and engagements',
   customers: 'Clients',
   people: 'People',
@@ -615,10 +615,6 @@ export function navFor(
     {
       heading: 'The work',
       items: [
-        // First in The work on purpose: it is where something goes when you do
-        // not yet know what it is, which is the moment you are most likely to
-        // give up and leave it in a downloads folder.
-        { id: 'inbox', label: 'Inbox', href: '/inbox', icon: 'inbox' },
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
         { id: 'people', label: 'People', href: '/people', icon: 'network' },
         /**
@@ -648,6 +644,15 @@ export function navFor(
          * only appears for a business that has something in it.
          */
         { id: 'market', label: 'Market', href: '/market', icon: 'book' },
+        /**
+         * Last, and called Unfiled rather than Inbox.
+         *
+         * Two things called Inbox — this and the bell — is one too many, and
+         * the bell already owns the word. Unfiled says what the row holds
+         * rather than what it resembles. It sits below the real work because
+         * it is a shelf, not a place you go to get something done.
+         */
+        { id: 'inbox', label: 'Unfiled', href: '/inbox', icon: 'inbox' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {

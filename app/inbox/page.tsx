@@ -54,8 +54,8 @@ export default function InboxPage() {
 
   return (
     <Page
-      title="Inbox"
-      subtitle="Drop anything here and decide later. Images get their colors read on the way in."
+      title="Unfiled"
+      subtitle="A shelf for things that arrived before you knew where they go — a logo, a screenshot, a link, a note to yourself. Say who it is about whenever you like, or never."
     >
       {!org?.id ? (
         <Empty>Pick a business first.</Empty>

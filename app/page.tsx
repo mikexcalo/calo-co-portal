@@ -96,6 +96,8 @@ export default function Dashboard() {
    * else. They were.
    */
   const [canSetUp, setCanSetUp] = useState<boolean | null>(null);
+  /** First name, for the top of the page. Nobody arrives at "Home". */
+  const [firstName, setFirstName] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   /** Computed after mount — never during render. That was the old bug. */
@@ -455,38 +457,6 @@ export default function Dashboard() {
    * So: only the things that make the account correct, and the money step is
    * whichever one is true for how this business actually charges.
    */
-  const style = org?.billing_style ?? null;
-  const rateStep =
-    style === 'commission'
-      ? {
-          label: 'Write down how your commission works',
-          why: 'Rates that change with how the account was won are a sentence, not a number.',
-          done: Boolean(org?.billing_note?.trim()),
-          href: '/business',
-        }
-      : style === 'retainer'
-        ? {
-            label: 'Confirm your retainer',
-            why: 'So the monthly invoice raises itself at the right number.',
-            done: Boolean(org?.billing_note?.trim()) || Number(org?.default_labor_rate ?? 0) > 0,
-            href: '/business',
-          }
-        : style === 'fixed'
-          ? {
-              label: 'Confirm you price by the project',
-              why: 'So nothing tries to multiply hours by a rate you never set.',
-              done: true,
-              href: '/business',
-            }
-          : {
-              label: style === null ? 'Say how you charge' : 'Set your hourly rate',
-              why:
-                style === null
-                  ? 'Hourly, by the project, on retainer, or on commission. Everything about money follows from this.'
-                  : 'Hours get multiplied by it, so at zero every invoice comes out at zero.',
-              done: style !== null && Number(org?.default_labor_rate ?? 0) > 0,
-              href: '/business',
-            };
 
   /**
    * What you came here to do, not what your account is missing.
@@ -553,7 +523,6 @@ export default function Dashboard() {
       done: Boolean(org?.name),
       href: '/business',
     },
-    rateStep,
     {
       label: 'Say how you want to be paid',
       why: 'These appear on every invoice, so people know where to send the money.',
@@ -571,6 +540,16 @@ export default function Dashboard() {
       if (!org?.id) { setCanSetUp(null); return; }
       const { data: auth } = await supabase.auth.getUser();
       if (!auth?.user) return;
+      const profile = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', auth.user.id)
+        .maybeSingle();
+      if (!canceled) {
+        const whole = (profile.data?.full_name ?? '').trim();
+        setFirstName(whole ? whole.split(/\s+/)[0] : '');
+      }
+
       const membership = await supabase
         .from('memberships')
         .select('role')
@@ -587,7 +566,14 @@ export default function Dashboard() {
 
   return (
     <Page
-      title="Home"
+      /**
+       * Their name, not the name of the screen.
+       *
+       * "Home" tells somebody who just signed in nothing they did not already
+       * know. Falls back to Home before the profile loads and for anyone who
+       * never set a name, so the title never flickers through a blank.
+       */
+      title={firstName ? `Hey, ${firstName}` : 'Home'}
       subtitle={
         emptyApp
           ? `Nothing logged for ${org?.name ?? 'this business'} yet. A few minutes here and you're running.`
