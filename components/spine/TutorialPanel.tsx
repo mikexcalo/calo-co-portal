@@ -1,8 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PATHS, useTutorial } from '@/lib/spine/tutorial';
+import supabase from '@/lib/supabase';
+import { useOrg } from '@/lib/spine/org';
 import { ANSWERS, search } from '@/lib/spine/answers';
 import { C, SERIF, radius, useIsPhone } from './ui';
 import { PRODUCT } from '@/lib/brand';
@@ -14,6 +16,32 @@ import { PRODUCT } from '@/lib/brand';
 export function TutorialPanel() {
   const router = useRouter();
   const phone = useIsPhone();
+  /**
+   * Whether these steps are this person's to do.
+   *
+   * A walkthrough that says "your rate" to somebody helping a friend out is
+   * not a small wording problem — it tells them they are in the wrong place.
+   */
+  const { org } = useOrg();
+  const [canSetUp, setCanSetUp] = useState(true);
+
+  useEffect(() => {
+    let off = false;
+    (async () => {
+      if (!org?.id) return;
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth?.user) return;
+      const m = await supabase
+        .from('memberships')
+        .select('role')
+        .eq('user_id', auth.user.id)
+        .eq('org_id', org.id)
+        .maybeSingle();
+      if (!off) setCanSetUp(['owner', 'admin'].includes(m.data?.role ?? ''));
+    })();
+    return () => { off = true; };
+  }, [org?.id]);
+
   const {
     open,
     closePanel,
@@ -173,7 +201,7 @@ export function TutorialPanel() {
               </p>
 
               <ol style={{ listStyle: 'none', padding: 0, margin: '18px 0 0' }}>
-                {activePath.steps.map((step, i) => {
+                {activePath.steps.filter((st) => canSetUp || !st.ownerOnly).map((step, i) => {
                   const key = `${activePath.id}:${step.id}`;
                   const isDone = !!completed[key];
                   return (
@@ -185,7 +213,7 @@ export function TutorialPanel() {
                         paddingBottom: 18,
                         marginBottom: 18,
                         borderBottom:
-                          i < activePath.steps.length - 1 ? `1px solid ${C.border}` : 'none',
+                          i < activePath.steps.filter((st) => canSetUp || !st.ownerOnly).length - 1 ? `1px solid ${C.border}` : 'none',
                       }}
                     >
                       <button

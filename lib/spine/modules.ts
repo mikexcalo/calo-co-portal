@@ -495,6 +495,51 @@ export function pathAllowed(org: Org | null, pathname: string): boolean {
 }
 
 /** Nav grouping. Order and headings come from here so the sidebar reads. */
+/**
+ * Where each module lives.
+ *
+ * Kept beside the section and label maps so a module cannot exist with a name,
+ * an icon and a home section but no way to get to it — which is exactly how
+ * Price list, Records, Receipts, Overheads, Reviews, Case studies, Traffic,
+ * Team, Security and Business settings ended up with no row in the sidebar.
+ */
+export const MODULE_HREF: Record<ModuleId, string> = {
+  inbox: '/inbox',
+  jobs: '/jobs',
+  customers: '/customers',
+  people: '/people',
+  targets: '/targets',
+  market: '/market',
+  catalog: '/customers',
+  notes: '/notes',
+  client_requests: '/requests',
+
+  billing: '/billing',
+  proposals: '/proposals',
+  pl: '/pl',
+  account: '/account',
+  expenses: '/expenses',
+  receipts: '/documents',
+  pricing: '/pricing',
+
+  pitches: '/pitches',
+  seo: '/digital',
+  traffic: '/traffic',
+  reviews: '/reviews',
+  brands: '/brands',
+  brand_kit: '/brand-kit',
+  stories: '/stories',
+  website: '/site-requests',
+  site: '/website',
+  ask: '/ask',
+
+  learn: '/learn',
+  team: '/team',
+  security: '/security',
+  business: '/business',
+  records: '/records',
+};
+
 export interface NavGroup {
   /** Absent for the top group, which is one row and needs no label over it. */
   heading?: string;
@@ -710,6 +755,37 @@ export function navFor(
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
   ];
+
+  /**
+   * Anything allowed and still missing gets a row.
+   *
+   * The curated groups above are the considered order, and they were also an
+   * allow-list by omission: a module could be switched on, have a label, an
+   * icon and a section, and still appear nowhere. Ten did. This closes the
+   * gap by construction, so the next module added cannot go missing — it lands
+   * in its own section whether or not anybody remembered to place it.
+   */
+  const placed = new Set(groups.flatMap((g) => g.items.map((i) => i.id)));
+  const missing = ([...on] as ModuleId[])
+    .filter((id) => MODULE_KIND[id] === 'place' && !placed.has(id) && MODULE_HREF[id]);
+
+  for (const id of missing) {
+    const heading = MODULE_SECTION[id];
+    let group = groups.find((g) => g.heading === heading);
+    if (!group) {
+      group = { heading, items: [], defaultOpen: heading !== 'Setup' };
+      groups.push(group);
+    }
+    group.items.push({
+      id,
+      label: MODULE_LABEL[id],
+      href: MODULE_HREF[id],
+      icon: MODULE_ICON[id],
+    });
+  }
+
+  // Setup last, whatever order it was created in.
+  groups.sort((a, b) => Number(a.heading === 'Setup') - Number(b.heading === 'Setup'));
 
   return groups.filter((g) => g.items.length > 0);
 }

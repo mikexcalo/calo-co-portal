@@ -16,6 +16,14 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 
 export interface PathStep {
   id: string;
+  /**
+   * Only for people who can change the business.
+   *
+   * "Set your hourly rate" was shown to Marcie, who helps Keith out and does
+   * not work for Lakemere. It is not her rate, it is not her decision, and the
+   * word "your" made the whole walkthrough read as somebody else's post.
+   */
+  ownerOnly?: boolean;
   title: string;
   /** What to actually do, in plain language. */
   body: string;
@@ -41,14 +49,8 @@ export const PATHS: LearningPath[] = [
     minutes: 20,
     steps: [
       {
-        id: 'password',
-        title: 'Set your password',
-        body:
-          'You got an invite email with a link. Follow it and pick a password. If you cannot find the email, check spam — and if it is not there, ask for another.',
-        done: 'You can sign in without the emailed link.',
-      },
-      {
         id: 'rate',
+        ownerOnly: true,
         title: 'Set your hourly rate and markup',
         body:
           'Your crew rate per hour, and the percentage you add to materials when billing them on. Both start at zero, which would make every invoice come out at zero.',
@@ -57,6 +59,7 @@ export const PATHS: LearningPath[] = [
       },
       {
         id: 'prices',
+        ownerOnly: true,
         title: 'Load your price list',
         body:
           'Drop in the price sheet you already have — a PDF or a photo works. It gets read into line items you check before saving. After that, building an estimate is picking from a list instead of typing.',

@@ -471,46 +471,61 @@ export default function Dashboard() {
    * Each row is a module. Rows for modules this business does not have are
    * not shown, so nothing here leads to a door that is locked.
    */
+  /**
+   * Short, or nothing.
+   *
+   * These read like a brochure: "photograph it and the amount, the supplier
+   * and the date are read off it" explains a pipeline to somebody who wanted
+   * to know where the button was. The label is the instruction. A hint only
+   * earns its place if it answers "what do I need before I start".
+   */
   const startHere = ([
+    {
+      module: 'inbox',
+      label: 'Drop in whatever you have',
+      why: 'Logos, receipts, spreadsheets, photos. Sort them later.',
+      done: false,
+      href: '/inbox',
+    },
     {
       module: 'customers',
       label: `Add your ${vocab.customerPlural.toLowerCase()}`,
-      why: 'A name is enough. Everything else can be filled in as you learn it.',
+      why: 'Names are enough.',
       done: signals.customerCount > 0,
       href: '/customers',
     },
     {
       module: 'jobs',
-      label: `Put in a ${vocab.job.toLowerCase()}`,
-      why: `Everything else hangs off this — hours, receipts, the invoice at the end.`,
+      label: `Add a ${vocab.job.toLowerCase()}`,
+      why: 'What you are working on, and who for.',
       done: jobs.length > 0,
       href: '/jobs/new',
     },
     {
       module: 'receipts',
-      label: 'File a receipt',
-      why: 'Photograph it and the amount, the supplier and the date are read off it.',
+      label: 'Add a receipt',
+      why: 'A photo or a PDF.',
       done: docs.length > 0,
       href: '/documents',
     },
     {
       module: 'pricing',
-      label: 'Build a price list',
-      why: 'The things you sell and what they cost, so estimates stop being arithmetic.',
+      label: 'Add your prices',
+      why: 'What you sell, and what it costs.',
       done: false,
       href: '/pricing',
     },
     {
       module: 'billing',
       label: 'Send an invoice',
-      why: 'Built from hours logged and receipts filed, so the numbers come from the work.',
+      why: 'Once a job has hours or receipts on it.',
       done: invoices.length > 0,
       href: '/billing',
     },
     {
       module: 'pl',
-      label: 'See whether the month made money',
-      why: 'The one screen that answers the question everybody actually has.',
+      label: 'See your profit',
+      why: '',
       done: false,
       href: '/pl',
     },
@@ -609,9 +624,8 @@ export default function Dashboard() {
             Start here
           </div>
           <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.65, margin: '0 0 18px' }}>
-            The things this is for. Open any one — nothing has to be done in
-            order, and none of it has to be finished. This list goes away on its
-            own once there is work in here.
+            Pick anything. Nothing has to be done in order, and this list goes
+            away once there is work in here.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -643,7 +657,7 @@ export default function Dashboard() {
                     >
                       {step.label}
                     </div>
-                    {!step.done && (
+                    {!step.done && step.why && (
                       <div style={{ fontSize: 13, color: C.dim, marginTop: 2 }}>{step.why}</div>
                     )}
                   </div>
