@@ -18,6 +18,7 @@ import supabase from '@/lib/supabase';
 import { brandAssetUrl } from '@/lib/spine/db';
 import { createCustomer, getCurrentOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
+import { FirstSteps } from '@/components/spine/FirstSteps';
 import { STAGE, isClient, daysSince, type Stage } from '@/lib/spine/stage';
 import { BulkAction, BulkBar, RecordTable, type Column } from '@/components/spine/RecordTable';
 import { SavedViews, type View } from '@/components/spine/SavedViews';
@@ -467,6 +468,19 @@ export default function CustomersPage() {
 
       {loading ? (
         <Empty>Loading…</Empty>
+      ) : rows.length === 0 ? (
+        <FirstSteps
+          copy={{
+            title: `No ${vocab.customerPlural.toLowerCase()} yet`,
+            blurb: `Everyone you work with lives here — the ones paying you now and the ones you are still talking to, in one list rather than two.`,
+            steps: [
+              'Add one by hand. A name is genuinely enough; the email, phone and address can be filled in as you learn them.',
+              'Or import a spreadsheet if you already keep the list somewhere else — the columns get matched up for you.',
+              `Once somebody is in here you can start a ${vocab.job.toLowerCase()} against them, and everything they owe you follows from that.`,
+            ],
+            action: { label: 'Import a list', href: '/customers/import' },
+          }}
+        />
       ) : (
         <>
           <SavedViews

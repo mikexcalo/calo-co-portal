@@ -33,6 +33,20 @@ interface Row {
 
 const TONE: Record<string, string> = { broken: 'red', confusing: 'amber', idea: 'faint' };
 
+/**
+ * The verb has to match what they said.
+ *
+ * Every note got "Built it", including "this screen confused me" — which
+ * answers a request nobody made and reads as though nothing was understood.
+ * Somebody reporting confusion wants to hear it was made clearer; somebody
+ * reporting a break wants to hear it was fixed.
+ */
+const DONE_LABEL: Record<string, string> = {
+  idea: 'Built it',
+  broken: 'Fixed it',
+  confusing: 'Made it clearer',
+};
+
 export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null }) {
   const router = useRouter();
   const { switchOrg } = useOrg();
@@ -128,12 +142,24 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
                     placeholder="Say something back. They see it where they wrote it."
                     style={inputStyle}
                   />
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 10, flexWrap: 'wrap' }}>
-                    <Button onClick={() => answer(r.id, 'done')}>Built it</Button>
-                    <button onClick={() => answer(r.id, 'building')}
-                      style={{ background: 'transparent', border: 'none', padding: 0, color: C.blue, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  {/*
+                    Three answers, three buttons that look like buttons.
+                    
+                    It was one pill and three pieces of text, so two of the
+                    four things you could do here did not read as clickable at
+                    all. Going to look is not an answer to her, so it sits
+                    apart from the three that are.
+                  */}
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 10, flexWrap: 'wrap' }}>
+                    <Button onClick={() => answer(r.id, 'done')}>
+                      {DONE_LABEL[r.kind] ?? 'Sorted it'}
+                    </Button>
+                    <Button variant="ghost" onClick={() => answer(r.id, 'building')}>
                       Working on it
-                    </button>
+                    </Button>
+                    <Button variant="ghost" onClick={() => answer(r.id, 'wont')}>
+                      Not doing it
+                    </Button>
                     <span style={{ flex: 1 }} />
                     <button
                       disabled={going === r.id}
@@ -162,10 +188,6 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
                       title={`Switch to ${orgName(r)} and open ${r.page || 'Home'}`}
                       style={{ background: 'transparent', border: 'none', padding: 0, color: C.blue, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>
                       {going === r.id ? 'Going…' : `Go and look${r.org_id !== currentOrgId ? ` in ${orgName(r)}` : ''}`}
-                    </button>
-                    <button onClick={() => answer(r.id, 'wont')}
-                      style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>
-                      Not doing it
                     </button>
                   </div>
                 </div>

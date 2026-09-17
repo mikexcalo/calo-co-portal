@@ -488,18 +488,70 @@ export default function Dashboard() {
               href: '/business',
             };
 
-  const firstRun = [
+  /**
+   * What you came here to do, not what your account is missing.
+   *
+   * This was four account chores, which is why Marcie — who cannot change
+   * Lakemere's settings and did not want to — read it as somebody else's
+   * homework and wrote in to say so. Everyone gets the doing list, because
+   * "add a client" is the same invitation whoever is holding the phone.
+   * Settings move below, and only for the people who own them.
+   *
+   * Each row is a module. Rows for modules this business does not have are
+   * not shown, so nothing here leads to a door that is locked.
+   */
+  const startHere = ([
+    {
+      module: 'customers',
+      label: `Add your ${vocab.customerPlural.toLowerCase()}`,
+      why: 'A name is enough. Everything else can be filled in as you learn it.',
+      done: signals.customerCount > 0,
+      href: '/customers',
+    },
+    {
+      module: 'jobs',
+      label: `Put in a ${vocab.job.toLowerCase()}`,
+      why: `Everything else hangs off this — hours, receipts, the invoice at the end.`,
+      done: jobs.length > 0,
+      href: '/jobs/new',
+    },
+    {
+      module: 'receipts',
+      label: 'File a receipt',
+      why: 'Photograph it and the amount, the supplier and the date are read off it.',
+      done: docs.length > 0,
+      href: '/documents',
+    },
+    {
+      module: 'pricing',
+      label: 'Build a price list',
+      why: 'The things you sell and what they cost, so estimates stop being arithmetic.',
+      done: false,
+      href: '/pricing',
+    },
+    {
+      module: 'billing',
+      label: 'Send an invoice',
+      why: 'Built from hours logged and receipts filed, so the numbers come from the work.',
+      done: invoices.length > 0,
+      href: '/billing',
+    },
+    {
+      module: 'pl',
+      label: 'See whether the month made money',
+      why: 'The one screen that answers the question everybody actually has.',
+      done: false,
+      href: '/pl',
+    },
+  ] as const).filter((row) => mods.has(row.module as never));
+
+  /** Account settings. Real, but nobody's first move, and only the owner's. */
+  const accountSetup = [
     {
       label: 'Check your business details',
       why: 'The name, the email and the phone number that appear on everything you send.',
       done: Boolean(org?.name),
       href: '/business',
-    },
-    {
-      label: `Add your first ${vocab.customer.toLowerCase()}`,
-      why: 'A name is enough. Everything else can be filled in as you learn it.',
-      done: signals.customerCount > 0,
-      href: '/customers',
     },
     rateStep,
     {
@@ -509,6 +561,8 @@ export default function Dashboard() {
       href: '/business',
     },
   ];
+
+  const firstRun = startHere;
 
   const busy = loading || orgLoading;
   useEffect(() => {
@@ -552,30 +606,7 @@ export default function Dashboard() {
         </Card>
       )}
 
-      {emptyApp && canSetUp === false ? (
-        /**
-         * What a guest sees instead.
-         *
-         * Somebody who cannot change the business does not need its setup
-         * list, and handing it to them reads as "do these four things" when
-         * none of them are theirs to do. Say where they are, say nothing is
-         * waiting on them, and point at the one control that is.
-         */
-        <Card style={{ maxWidth: 620 }}>
-          <div style={{ ...DISPLAY, fontSize: 22, marginBottom: 6 }}>
-            You&apos;re in {org?.name ?? 'this workspace'}
-          </div>
-          <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.65, margin: '0 0 6px' }}>
-            Nothing here is waiting on you. Setting the business up is the
-            owner&apos;s job and none of it needs doing before you can look around.
-          </p>
-          <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.65, margin: 0 }}>
-            The sidebar is the whole app — open anything. If something is
-            confusing or broken, say so at the bottom of this page and it comes
-            straight to us with the screen you were on.
-          </p>
-        </Card>
-      ) : emptyApp ? (
+      {emptyApp ? (
         /**
          * A checklist against real data, not a paragraph.
          *
@@ -588,10 +619,12 @@ export default function Dashboard() {
          */
         <Card style={{ maxWidth: 620 }}>
           <div style={{ ...DISPLAY, fontSize: 22, marginBottom: 6 }}>
-            Let&apos;s get you set up
+            Start here
           </div>
           <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.65, margin: '0 0 18px' }}>
-            None of this blocks you — add a customer and start working whenever you like. The money steps matter the first time you send an invoice, not before. This list goes away on its own.
+            The things this is for. Open any one — nothing has to be done in
+            order, and none of it has to be finished. This list goes away on its
+            own once there is work in here.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -632,6 +665,34 @@ export default function Dashboard() {
               );
             })}
           </div>
+
+          {/*
+            Settings, for the person who owns them.
+            
+            Below the work and visibly smaller, because "how you charge" is a
+            thing you answer once and never before you have seen what the
+            product is for. Anyone who cannot change it never sees it.
+          */}
+          {canSetUp && accountSetup.some((a) => !a.done) && (
+            <div style={{ marginTop: 22, paddingTop: 16, borderTop: `1px solid ${C.border}` }}>
+              <div style={{ fontSize: 12, letterSpacing: '.06em', textTransform: 'uppercase', color: C.faint, marginBottom: 4 }}>
+                Your account
+              </div>
+              <p style={{ fontSize: 13, color: C.faint, margin: '0 0 8px' }}>
+                Only needed by the time you send your first invoice.
+              </p>
+              {accountSetup.filter((a) => !a.done).map((a) => (
+                <div
+                  key={a.label}
+                  onClick={() => router.push(a.href)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', cursor: 'pointer' }}
+                >
+                  <span style={{ fontSize: 13.5, color: C.dim, flex: 1 }}>{a.label}</span>
+                  <span style={{ fontSize: 13, color: C.blue }}>Set it →</span>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div style={{ display: 'flex', gap: 8, marginTop: 18, flexWrap: 'wrap' }}>
             <Button variant="ghost" onClick={openPanel}>Walk me through it instead</Button>
