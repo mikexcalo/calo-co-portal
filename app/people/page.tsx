@@ -22,6 +22,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
+import { DropShelf } from '@/components/spine/DropShelf';
 import {
   Button,
   C,
@@ -476,6 +477,20 @@ export default function PeoplePage() {
                 </button>
               ))}
             </div>
+
+            {/*
+              Anything they sent you.
+              
+              A prospect's logo had nowhere to live: assets hang off clients,
+              and somebody you are only talking to is not one yet. It hangs off
+              the person instead, so the file arrives before the relationship
+              does.
+            */}
+            {org?.id && (
+              <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 14 }}>
+                <DropShelf orgId={org.id} target={{ person_id: p.id }} label="Files and notes" compact />
+              </div>
+            )}
 
             <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
               <span style={{ fontSize: 12.5, color: C.faint }}>

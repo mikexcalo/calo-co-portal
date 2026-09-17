@@ -13,6 +13,7 @@
 import type { Org } from './types';
 
 export type ModuleId =
+  | 'inbox'          // anything that arrived before its subject did
   | 'jobs'
   | 'customers'
   | 'receipts'
@@ -46,6 +47,7 @@ export type ModuleId =
 
 const CONTRACTOR: ModuleId[] = [
   'learn',
+  'inbox',
   'site',
   'ask',
   'targets',
@@ -78,6 +80,7 @@ const CONTRACTOR: ModuleId[] = [
 
 const AGENCY: ModuleId[] = [
   'learn',
+  'inbox',
   'site',
   'ask',
   'reviews',
@@ -119,11 +122,11 @@ const AGENCY: ModuleId[] = [
  */
 const PLAN_MODULES: Record<string, ModuleId[]> = {
   core: [
-    'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
+    'inbox', 'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
     'records', 'business', 'security', 'reviews', 'targets', 'site', 'learn',
   ],
   grow: [
-    'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
+    'inbox', 'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
     'records', 'business', 'security', 'reviews',
     'seo', 'ask', 'pricing', 'client_requests', 'team', 'website', 'targets',
     'traffic',
@@ -159,6 +162,7 @@ const PLAN_FEATURES: Record<string, Feature[]> = {
  * object.
  */
 export const MODULE_ICON: Record<ModuleId, string> = {
+  inbox: 'inbox',
   customers: 'clients',
   people: 'network',
   jobs: 'quotes',
@@ -213,6 +217,7 @@ export type ModuleKind = 'place' | 'capability';
 export type NavSection = 'The work' | 'Money' | 'Grow' | 'Setup';
 
 export const MODULE_SECTION: Record<ModuleId, NavSection> = {
+  inbox: 'The work',
   customers: 'The work',
   people: 'The work',
   jobs: 'The work',
@@ -252,6 +257,7 @@ export const NAV_SECTIONS: NavSection[] = ['The work', 'Money', 'Grow', 'Setup']
 
 export const MODULE_KIND: Record<ModuleId, ModuleKind> = {
   // Places: they appear in the sidebar, or as a tab of something that does.
+  inbox: 'place',
   customers: 'place',
   people: 'place',
   jobs: 'place',
@@ -292,6 +298,7 @@ export const MODULE_KIND: Record<ModuleId, ModuleKind> = {
 
 /** Human names for every module, so a switchboard is readable. */
 export const MODULE_LABEL: Record<ModuleId, string> = {
+  inbox: 'Inbox',
   jobs: 'Jobs and engagements',
   customers: 'Clients',
   people: 'People',
@@ -403,6 +410,7 @@ export const MODULE_STATES: { id: ModuleState; label: string; note: string }[] =
  * stranded on a screen that isn't in their nav.
  */
 const ROUTE_MODULE: Array<[string, ModuleId]> = [
+  ['/inbox', 'inbox'],
   ['/jobs', 'jobs'],
   ['/customers', 'customers'],
   ['/people', 'people'],
@@ -607,6 +615,10 @@ export function navFor(
     {
       heading: 'The work',
       items: [
+        // First in The work on purpose: it is where something goes when you do
+        // not yet know what it is, which is the moment you are most likely to
+        // give up and leave it in a downloads folder.
+        { id: 'inbox', label: 'Inbox', href: '/inbox', icon: 'inbox' },
         { id: 'customers', label: vocab.customerPlural, href: '/customers', icon: 'clients' },
         { id: 'people', label: 'People', href: '/people', icon: 'network' },
         /**
