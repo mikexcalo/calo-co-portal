@@ -48,6 +48,7 @@ import {
   useIsPhone,
   BRAND_TABS,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 type Tab = 'brand' | 'logos' | 'qr' | 'signature';
 
@@ -164,7 +165,7 @@ export default function BrandKitPage() {
         setSaved(true);
         setTimeout(() => setSaved(false), 2500);
       } catch (e) {
-        setError((e as Error).message);
+        setError(human((e as Error).message));
       } finally {
         setBusy(false);
       }

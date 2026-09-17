@@ -36,6 +36,7 @@ import {
   inputStyle,
   PITCH_TABS,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 interface Claim {
   id: string;
@@ -222,7 +223,7 @@ export default function StoriesPage() {
       }
       else setProposed(data);
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     }
     setDrafting(false);
   };
@@ -290,7 +291,7 @@ export default function StoriesPage() {
     setError(null);
     const res = await supabase.from('case_studies').update(draft).eq('id', id);
     setBusy(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
     setOpen(null);
     load();
   };
@@ -343,7 +344,7 @@ export default function StoriesPage() {
     <Page
       tabs={PITCH_TABS}
       title="Case studies"
-      subtitle="Your past work, written up once so you can reuse it in pitches and on the site."
+      subtitle="Your past work, written up."
     >
       {unsourcedCount > 0 && (
         <div style={{ fontSize: 13.5, color: C.dim, marginBottom: 18 }}>

@@ -6,6 +6,7 @@ import { createCustomer, createJob, getCurrentOrg, listCustomers } from '@/lib/s
 import type { BillingType, Consideration, Customer, JobStatus } from '@/lib/spine/types';
 import { CONSIDERATION_LABEL, JOB_STATUS_LABEL } from '@/lib/spine/types';
 import { Button, C, Card, Field, Page, inputStyle, useIsPhone } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 export default function NewJobPage() {
   const phone = useIsPhone();
@@ -34,7 +35,7 @@ export default function NewJobPage() {
         setOrgId(org?.id ?? null);
         setCustomers(c);
       } catch (e) {
-        setError((e as Error).message);
+        setError(human((e as Error).message));
       }
     })();
   }, []);
@@ -66,13 +67,13 @@ export default function NewJobPage() {
 
       router.push(`/jobs/${job.id}`);
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
       setBusy(false);
     }
   };
 
   return (
-    <Page title="New job" subtitle="A lead and a job are the same record. Start it wherever it is.">
+    <Page title="New job" subtitle="A new job, or a lead.">
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 14 }}>{error}</div>

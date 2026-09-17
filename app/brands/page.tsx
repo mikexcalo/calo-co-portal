@@ -28,6 +28,7 @@ import {
   Pill,
   SectionLabel,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 interface OpenItem { item: string; why?: string; severity?: string }
 
@@ -60,7 +61,7 @@ export default function BrandsPage() {
       .eq('org_id', org.id)
       .neq('status', 'archived')
       .order('name');
-    if (res.error) setError(res.error.message);
+    if (res.error) setError(human(res.error.message));
     else {
       setRows(
         (res.data ?? []).map((r: Record<string, unknown>) => ({
@@ -95,10 +96,7 @@ export default function BrandsPage() {
         <Card><Empty>Loading…</Empty></Card>
       ) : rows.length === 0 ? (
         <Card>
-          <Empty hero>
-            No client brands yet. When you build an identity for somebody, its colors, type and
-            voice rules live here rather than in a folder.
-          </Empty>
+          <Empty hero>No client brands yet. Build one and its colors, type and voice live here.</Empty>
         </Card>
       ) : (
         <>

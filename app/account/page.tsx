@@ -36,6 +36,7 @@ import {
   money0,
   shortDate,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 interface AccountRow {
   job_id: string;
@@ -122,7 +123,7 @@ export default function AccountPage() {
           }
         }
       } catch (e) {
-        setError((e as Error).message);
+        setError(human((e as Error).message));
       } finally {
         setLoading(false);
       }
@@ -149,7 +150,7 @@ export default function AccountPage() {
       if (payload.url) window.open(payload.url, '_blank', 'noopener');
       else setNotice(payload.message ?? 'No payment link available yet.');
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -179,10 +180,7 @@ export default function AccountPage() {
         <Empty>Loading…</Empty>
       ) : rows.length === 0 ? (
         <Card>
-          <Empty>
-            Nothing billed to you yet. When work is logged against your account it shows up
-            here as it happens — not as a surprise at the end of the month.
-          </Empty>
+          <Empty>Nothing billed to you yet.</Empty>
         </Card>
       ) : (
         <>

@@ -123,7 +123,7 @@ export default function DigitalPage() {
   return (
     <Page
       title="Digital"
-      subtitle="How the business is found online, and what happens when somebody arrives."
+      subtitle="How people find you online."
       tabs={DIGITAL_TABS}
     >
       {!panels ? (

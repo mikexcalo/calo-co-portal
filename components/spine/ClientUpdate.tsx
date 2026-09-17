@@ -17,6 +17,7 @@ import { useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, SectionLabel, inputStyle } from './ui';
 import { OutboundCheck } from './OutboundCheck';
+import { human } from '@/lib/spine/errors';
 
 interface Person { name: string; title: string | null; email: string }
 
@@ -64,7 +65,7 @@ export function ClientUpdate({ customerId, clientName }: { customerId: string; c
         setText([data.body, ...(data.asks ?? [])].join('\n\n'));
       }
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     }
     setBusy(false);
   };

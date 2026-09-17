@@ -18,6 +18,7 @@ import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, Empty, SectionLabel, inputStyle } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
+import { human } from '@/lib/spine/errors';
 
 interface LinkRow {
   id: string;
@@ -92,7 +93,7 @@ export function Links({
       title: title.trim() || nameFromUrl(clean),
     });
     setBusy(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
     setUrl('');
     setTitle('');
     setAdding(false);

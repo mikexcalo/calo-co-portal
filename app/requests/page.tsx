@@ -24,6 +24,7 @@ import {
   inputStyle,
   shortDate,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 type Status = 'submitted' | 'needs_info' | 'approved' | 'building' | 'shipped' | 'declined';
 
@@ -89,7 +90,7 @@ export default function RequestsPage() {
         await getCurrentOrg();
         await load();
       } catch (e) {
-        setError((e as Error).message);
+        setError(human((e as Error).message));
       } finally {
         setLoading(false);
       }
@@ -124,7 +125,7 @@ export default function RequestsPage() {
       setNotice(payload.note);
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -146,7 +147,7 @@ export default function RequestsPage() {
       if (res.error) throw new Error(res.error.message);
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -158,7 +159,7 @@ export default function RequestsPage() {
   return (
     <Page
       title="Site requests"
-      subtitle="Changes your clients have asked for. What you approve is what gets built."
+      subtitle="Changes your clients have asked for."
     >
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>

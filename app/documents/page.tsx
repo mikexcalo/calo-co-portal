@@ -57,6 +57,7 @@ import {
   useIsPhone,
   MONEY_TABS,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ACCEPTED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
@@ -103,7 +104,7 @@ export default function DocumentsPage() {
       try {
         await load();
       } catch (e) {
-        setError((e as Error).message);
+        setError(human((e as Error).message));
       } finally {
         setLoading(false);
       }
@@ -135,7 +136,7 @@ export default function DocumentsPage() {
         doc = await uploadDocument(orgId, file);
         setDocs((prev) => [doc, ...prev]);
       } catch (e) {
-        setError(`${file.name}: ${(e as Error).message}`);
+        setError(`${file.name}: ${human(e)}`);
         continue;
       }
 
@@ -184,7 +185,7 @@ export default function DocumentsPage() {
           status: 'failed',
           extraction_error: (e as Error).message,
         }).catch(() => {});
-        setError(`${file.name}: ${(e as Error).message}`);
+        setError(`${file.name}: ${human(e)}`);
       } finally {
         setWorking((w) => w.filter((id) => id !== doc.id));
       }
@@ -214,7 +215,7 @@ export default function DocumentsPage() {
       await updateDocument(doc.id, { job_id: jobId, status: 'filed' });
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     }
   };
 
@@ -235,7 +236,7 @@ export default function DocumentsPage() {
       await deleteDocument(doc);
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setConfirmingDelete(null);
     }
@@ -260,7 +261,7 @@ export default function DocumentsPage() {
         },
       });
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       if (entry.previewUrl) URL.revokeObjectURL(entry.previewUrl);
       setPending((q) => q.slice(1));
@@ -290,7 +291,7 @@ export default function DocumentsPage() {
     <Page
       tabs={MONEY_TABS}
       title="Receipts"
-      subtitle="Photograph a receipt and it becomes a job cost. You check what we read before anything saves."
+      subtitle="Receipts, filed against jobs."
       action={
         <Button onClick={() => fileRef.current?.click()}>Add documents</Button>
       }

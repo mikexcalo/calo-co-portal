@@ -36,6 +36,7 @@ import {
   hours as fmtHours,
   MONEY_TABS,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 type Period = 'all' | 'ytd' | 'quarter' | 'month';
 
@@ -120,7 +121,7 @@ export default function ProfitLossPage() {
         setLedger(l);
         setInvoices(inv);
       } catch (e) {
-        setError((e as Error).message);
+        setError(human((e as Error).message));
       } finally {
         setLoading(false);
       }

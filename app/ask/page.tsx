@@ -16,6 +16,7 @@
 import { useState } from 'react';
 import { QUESTIONS } from '@/lib/spine/questions';
 import { Button, C, Card, Page, inputStyle } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 export default function AskPage() {
   const [q, setQ] = useState('');
@@ -42,13 +43,13 @@ export default function AskPage() {
       else if (data.answer) { setAnswer(data.answer); setAsked(data.question); }
       else { setSuggestions(data.suggestions ?? []); }
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     }
     setBusy(false);
   };
 
   return (
-    <Page title="Ask" subtitle="A question about your own numbers, answered from what is logged.">
+    <Page title="Ask" subtitle="Ask about your own numbers.">
       <Card>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <input

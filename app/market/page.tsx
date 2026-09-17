@@ -35,6 +35,7 @@ import { useOrg } from '@/lib/spine/org';
 import { Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/components/spine/ui';
 import { Glyph } from '@/components/spine/icons';
 import { Doc, CopyDoc } from '@/components/spine/Doc';
+import { human } from '@/lib/spine/errors';
 
 interface RefDoc {
   id: string;
@@ -63,7 +64,7 @@ export default function MarketPage() {
       .select('id, title, subject, source, as_of, body')
       .order('subject')
       .order('title');
-    if (res.error) setError(res.error.message);
+    if (res.error) setError(human(res.error.message));
     else setDocs((res.data ?? []) as RefDoc[]);
     setLoaded(true);
   }, []);
@@ -107,7 +108,7 @@ export default function MarketPage() {
       body: draft.body,
     });
     setBusy(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
     setDraft(null);
     load();
   };
@@ -115,7 +116,7 @@ export default function MarketPage() {
   return (
     <Page
       title="Market"
-      subtitle="What the market wants, and where the judgment behind it came from."
+      subtitle="What the market wants."
       action={
         draft ? undefined : <Button onClick={() => setDraft({ ...blank })}>Add a document</Button>
       }
@@ -181,10 +182,7 @@ export default function MarketPage() {
         </Card>
       ) : docs.length === 0 ? (
         <Card>
-          <Empty>
-            Nothing filed yet. This is for the things that stay true across every client:
-            category shares, what sells where, which origins to avoid and why.
-          </Empty>
+          <Empty>Nothing filed yet. This is for what stays true across every client.</Empty>
         </Card>
       ) : (
         <>

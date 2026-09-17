@@ -38,6 +38,7 @@ import {
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
 import { PRODUCT } from '@/lib/brand';
+import { human } from '@/lib/spine/errors';
 
 interface Overhead {
   id: string;
@@ -120,7 +121,7 @@ export default function ExpensesPage() {
       .is('job_id', null)
       .order('purchased_on', { ascending: false });
 
-    if (res.error) setError(res.error.message);
+    if (res.error) setError(human(res.error.message));
     else
       setRows(
         (res.data ?? []).map((r: Record<string, unknown>) => ({
@@ -199,7 +200,7 @@ export default function ExpensesPage() {
     });
     setBusy(false);
     if (res.error) {
-      setError(res.error.message);
+      setError(human(res.error.message));
       return;
     }
     reset();
@@ -213,7 +214,7 @@ export default function ExpensesPage() {
     const res = await supabase.from('costs').delete().eq('id', confirmDelete.id);
     setBusy(false);
     setConfirmDelete(null);
-    if (res.error) setError(res.error.message);
+    if (res.error) setError(human(res.error.message));
     else await load();
   };
 
@@ -227,7 +228,7 @@ export default function ExpensesPage() {
     <Page
       tabs={MONEY_TABS}
       title="Overheads"
-      subtitle="What it costs to keep the doors open, separate from any one job."
+      subtitle="What it costs to keep the doors open."
       action={
         !adding ? <Button onClick={() => setAdding(true)}>Add an expense</Button> : undefined
       }
@@ -363,9 +364,7 @@ export default function ExpensesPage() {
         <Card><Empty>Loading…</Empty></Card>
       ) : rows.length === 0 ? (
         <Card>
-          <Empty>
-            Nothing recorded yet. Software subscriptions, insurance, fuel and anything else no single job caused belongs here. It&apos;s what makes Profit &amp; Loss show what the business made, not just what the work earned.
-          </Empty>
+          <Empty>Nothing recorded yet. Software, insurance, fuel — anything no single job caused.</Empty>
         </Card>
       ) : (
         <>

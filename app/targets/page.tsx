@@ -28,6 +28,7 @@ import { Avatar, Button, C, Card, Empty, Page, inputStyle } from '@/components/s
 import { BulkAction, BulkBar, RecordTable, type Column } from '@/components/spine/RecordTable';
 import { SavedViews, type View } from '@/components/spine/SavedViews';
 import { brandAssetUrl } from '@/lib/spine/db';
+import { human } from '@/lib/spine/errors';
 
 interface Row {
   id: string;
@@ -109,7 +110,7 @@ export default function PipelinePage() {
       .select('id, name, stage, tags, next_action, last_contacted_on, logo_url')
       .in('stage', OPEN_STAGES)
       .order('name');
-    if (res.error) setError(res.error.message);
+    if (res.error) setError(human(res.error.message));
     else setRows((res.data ?? []) as Row[]);
     setLoaded(true);
   }, []);
@@ -211,7 +212,7 @@ export default function PipelinePage() {
         ...(log ? { last_contacted_on: today } : {}),
       })
       .in('id', ids);
-    if (res.error) { setError(res.error.message); load(); }
+    if (res.error) { setError(human(res.error.message)); load(); }
   };
 
   /**
@@ -231,7 +232,7 @@ export default function PipelinePage() {
     const out = await Promise.all(updates);
     setBusy(false);
     const bad = out.find((o) => o.error);
-    if (bad?.error) setError(bad.error.message);
+    if (bad?.error) setError(human(bad.error.message));
     setTagWord('');
     setBulkTag(false);
     setPicked(new Set());
@@ -385,7 +386,7 @@ export default function PipelinePage() {
   return (
     <Page
       title="Pipeline"
-      subtitle="Everybody you want, before they are anybody you have."
+      subtitle="People and businesses you want to work with."
       action={!adding ? <Button onClick={() => setAdding(true)}>Add a company</Button> : undefined}
     >
       {error && <div style={{ fontSize: 13, color: C.red, marginBottom: 12 }}>{error}</div>}
@@ -411,10 +412,7 @@ export default function PipelinePage() {
         <Empty>Loading…</Empty>
       ) : rows.length === 0 ? (
         <Card>
-          <Empty>
-            Nobody in the pipeline. Add a company you want and it starts at Noticed, then moves
-            itself the first time you write to them.
-          </Empty>
+          <Empty>Nobody in the pipeline yet. Add a company you want to work with.</Empty>
         </Card>
       ) : (
         <>

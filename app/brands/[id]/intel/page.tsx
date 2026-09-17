@@ -37,6 +37,7 @@ import {
   shortDate,
   brandTabs,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 interface Intel {
   id: string;
@@ -143,7 +144,7 @@ export default function IntelPage({ params }: { params: { id: string } }) {
       const res = await supabase
         .from('brand_intel')
         .insert(drops.map((d) => ({ ...d, org_id: org.data, brand_id: brand.id })));
-      if (res.error) { setError(res.error.message); setSaving(false); return; }
+      if (res.error) { setError(human(res.error.message)); setSaving(false); return; }
     }
 
     setSaving(false);
@@ -207,7 +208,7 @@ export default function IntelPage({ params }: { params: { id: string } }) {
         .eq('id', drop.id);
       load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     }
     setReading(null);
   };
@@ -272,7 +273,7 @@ export default function IntelPage({ params }: { params: { id: string } }) {
     <Page
       back={{ label: brand.name, href: `/brands/${brand.id}` }}
       title="Source material"
-      subtitle="What they gave us, and what was read out of it. The framework is proposed from here; you decide what sticks."
+      subtitle="What they sent, and what was pulled out of it."
       tabs={tabs}
     >
       {/* The drop box, first. This is what the page is for. */}

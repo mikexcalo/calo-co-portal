@@ -30,6 +30,7 @@ import {
   useIsPhone,
   BRAND_TABS,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 interface Site {
   id: string;
@@ -112,7 +113,7 @@ export default function WebsitePage() {
         await getCurrentOrg();
         await load();
       } catch (e) {
-        setError((e as Error).message);
+        setError(human((e as Error).message));
       } finally {
         setLoading(false);
       }
@@ -129,7 +130,7 @@ export default function WebsitePage() {
       setNotice(`${c.label} updated. It's live on the site now.`);
       setTimeout(() => setNotice(null), 4000);
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -171,7 +172,7 @@ export default function WebsitePage() {
       setNotice('Sent. You can track it below.');
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }

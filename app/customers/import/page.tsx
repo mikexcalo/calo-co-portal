@@ -35,6 +35,7 @@ import {
   SectionLabel,
   inputStyle,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 type Stage = 'drop' | 'review' | 'done';
 
@@ -157,7 +158,7 @@ export default function ImportCustomersPage() {
       setImported(payload.length);
       setStage('done');
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -172,7 +173,7 @@ export default function ImportCustomersPage() {
   return (
     <Page
       title={`Import ${vocab.customerPlural.toLowerCase()}`}
-      subtitle="Bring in the list you already have. Nothing saves until you approve it."
+      subtitle="Bring in a list you already have."
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16, maxWidth: 700 }}>

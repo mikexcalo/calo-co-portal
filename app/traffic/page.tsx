@@ -116,7 +116,7 @@ export default function TrafficPage() {
   return (
     <Page
       title="Traffic"
-      subtitle="Who arrived, where from, and how far they got."
+      subtitle="Who visited your site, and where from."
       tabs={DIGITAL_TABS}
       action={
         sites.length > 1 ? (

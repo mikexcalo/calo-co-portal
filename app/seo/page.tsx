@@ -150,7 +150,7 @@ export default function SeoPage() {
       tabs={DIGITAL_TABS}
       back={clientId ? { label: clientName ?? 'Client', href: `/customers/${clientId}` } : undefined}
       title={clientName ? `Search: ${clientName}` : 'Search'}
-      subtitle="Four levers, three of them admin. This holds the state so it does not get abandoned halfway."
+      subtitle="Where you show up, and what still needs doing."
       action={<Button variant="ghost" onClick={() => setEditing((v) => !v)}>{editing ? 'Done' : 'Edit details'}</Button>}
     >
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12, marginBottom: 24 }}>

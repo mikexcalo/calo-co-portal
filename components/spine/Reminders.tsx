@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, Check, Empty, SectionLabel, inputStyle, shortDate } from './ui';
+import { human } from '@/lib/spine/errors';
 
 interface Reminder {
   id: string;
@@ -84,7 +85,7 @@ export function Reminders({
       created_by: auth?.user?.id ?? null,
     });
     setBusy(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
     setBody('');
     setDue(plus(1));
     setAdding(false);

@@ -20,6 +20,7 @@ import { useOrg } from '@/lib/spine/org';
 import { HOW_IT_WORKS, SECTIONS, specFor, type SectionSpec } from '@/lib/spine/sections';
 import { SectionThumb } from '@/components/site/SectionThumb';
 import { SITE_TABS, Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 interface Note {
   id: string;
@@ -59,7 +60,7 @@ export default function WebsitePage() {
       .select('id, kind, variant, content, draft, sort, live, published_at')
       .is('customer_id', null)
       .order('sort');
-    if (res.error) setError(res.error.message);
+    if (res.error) setError(human(res.error.message));
     else setRows((res.data ?? []) as Row[]);
 
     // What anybody holding the preview link has said, unresolved only.
@@ -163,7 +164,7 @@ export default function WebsitePage() {
     });
     setBusy(false);
     setAdding(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
     load();
   };
 

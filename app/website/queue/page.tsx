@@ -64,7 +64,7 @@ export default function QueuePage() {
   return (
     <Page
       title="Build queue"
-      subtitle="Edits pushed out to be made real on the site."
+      subtitle="Edits waiting to go live."
       tabs={SITE_TABS}
       action={
         <Button variant="ghost" onClick={() => setShowDone((v) => !v)}>

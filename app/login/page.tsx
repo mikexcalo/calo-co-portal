@@ -18,6 +18,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
 import { verifySignIn } from '@/lib/spine/mfa';
 import { PRODUCT, PROVIDER, SUPPORT_EMAIL } from '@/lib/brand';
+import { human } from '@/lib/spine/errors';
 
 const INK = '#111113';
 const PANEL = '#ffffff';
@@ -87,7 +88,7 @@ function LoginForm() {
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
     if (oauthError) {
-      setError(oauthError.message);
+      setError(human(oauthError.message));
       setLoading(false);
     }
     // On success the browser leaves for Google, so nothing to do here.
@@ -149,7 +150,7 @@ function LoginForm() {
       router.push('/');
       router.refresh();
     } catch (err) {
-      setError((err as Error).message);
+      setError(human((err as Error).message));
       setLoading(false);
     }
   };
@@ -202,7 +203,7 @@ function LoginForm() {
 
     setLoading(false);
     if (resetError) {
-      setError(resetError.message);
+      setError(human(resetError.message));
       return;
     }
     // Always report success — confirming which emails exist would leak them.

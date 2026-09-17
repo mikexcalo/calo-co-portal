@@ -108,7 +108,7 @@ export default function ReviewsPage() {
     <Page
       tabs={DIGITAL_TABS}
       title="Reviews"
-      subtitle={`One ask per finished ${vocab.job.toLowerCase()}, and never to somebody who still owes you money.`}
+      subtitle={`Never sent to anyone who still owes you money.`}
       action={
         due.length > 0 ? (
           <Button onClick={() => send()} disabled={busy}>

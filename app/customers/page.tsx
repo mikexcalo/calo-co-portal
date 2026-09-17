@@ -360,7 +360,7 @@ export default function CustomersPage() {
     <Page
       tabs={CLIENT_TABS}
       title={vocab.customerPlural}
-      subtitle={`Everyone you work with, sorted by who needs you first. Totals come straight from their ${vocab.jobPlural.toLowerCase()}.`}
+      subtitle={`Everyone you work with.`}
       action={
         <>
           <Button variant="ghost" onClick={() => router.push('/customers/import')}>

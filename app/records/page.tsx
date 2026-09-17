@@ -37,6 +37,7 @@ import {
   SETUP_TABS,
 } from '@/components/spine/ui';
 import { DropZone } from '@/components/spine/DropZone';
+import { human } from '@/lib/spine/errors';
 
 interface BusinessFile {
   id: string;
@@ -121,7 +122,7 @@ export default function FilesPage() {
       try {
         await load();
       } catch (e) {
-        setError((e as Error).message);
+        setError(human((e as Error).message));
       } finally {
         setLoading(false);
       }
@@ -224,7 +225,7 @@ export default function FilesPage() {
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (e) {
-      setError(`Could not download that file: ${(e as Error).message}`);
+      setError(human(e, 'That file could not be downloaded.'));
     }
   };
 
@@ -237,7 +238,7 @@ export default function FilesPage() {
       if (res.error) throw new Error(res.error.message);
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
       setConfirming(null);
@@ -262,7 +263,7 @@ export default function FilesPage() {
     <Page
       tabs={SETUP_TABS}
       title="Records"
-      subtitle="Insurance, licenses, contracts, manuals. The paperwork you need to find fast when somebody asks for it."
+      subtitle="Insurance, licenses, contracts, manuals."
       action={<Button onClick={() => fileRef.current?.click()}>Add a file</Button>}
     >
       <input

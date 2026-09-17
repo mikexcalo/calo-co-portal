@@ -45,7 +45,7 @@ export const PATHS: LearningPath[] = [
     id: 'first-week',
     name: 'Start here',
     blurb:
-      'Everything to do once, in order, to get set up. About twenty minutes, and then you never think about it again.',
+      'The things worth doing once. About twenty minutes.',
     minutes: 20,
     steps: [
       {
@@ -53,7 +53,7 @@ export const PATHS: LearningPath[] = [
         ownerOnly: true,
         title: 'Set your hourly rate and markup',
         body:
-          'Your crew rate per hour, and the percentage you add to materials when billing them on. Both start at zero, which would make every invoice come out at zero.',
+          'Your hourly rate and the percentage you add to materials. Both start at zero.',
         href: '/business',
         done: 'The orange warning on the dashboard is gone.',
       },
@@ -62,7 +62,7 @@ export const PATHS: LearningPath[] = [
         ownerOnly: true,
         title: 'Load your price list',
         body:
-          'Drop in the price sheet you already have — a PDF or a photo works. It gets read into line items you check before saving. After that, building an estimate is picking from a list instead of typing.',
+          'Drop in a price sheet you already have. A PDF or a photo works. Check the lines before saving.',
         href: '/pricing',
         done: 'Your standard items appear under Price list.',
       },
@@ -78,7 +78,7 @@ export const PATHS: LearningPath[] = [
         id: 'first-job',
         title: 'Create your first job',
         body:
-          'A real one you are working on now. Name it how you would say it out loud — "Gorshteyn bathroom" beats "Job 001". Pick time & materials unless you quoted a fixed number.',
+          'A real one you are working on. Name it how you would say it out loud.',
         href: '/jobs/new',
         done: 'It appears on the pipeline board.',
       },
@@ -86,7 +86,7 @@ export const PATHS: LearningPath[] = [
         id: 'log-day',
         title: 'Log a day of work',
         body:
-          'Open the job and put in a day you actually worked — hours, who did it, what got done. What you type here shows up on the invoice, so write it how a customer should read it.',
+          'Open the job and put in a day you worked — hours, who did it, what got done. This shows up on the invoice.',
         href: '/jobs',
         done: 'Unbilled goes up on the job.',
       },
@@ -94,7 +94,7 @@ export const PATHS: LearningPath[] = [
         id: 'receipt',
         title: 'Photograph a receipt',
         body:
-          'On your phone, open Receipts and use the button at the bottom — it opens the camera. Photograph a real receipt. It reads the vendor, date and total, shows you what it found, and keeps the photo for taxes.',
+          'On a phone, open Receipts and use the camera button. It reads the vendor, date and total. You check it before it saves.',
         href: '/documents',
         done: 'The receipt shows a vendor and an amount.',
       },
@@ -110,7 +110,7 @@ export const PATHS: LearningPath[] = [
         id: 'invoice',
         title: 'Build an invoice from it',
         body:
-          'Back on the job, hit the invoice button. Every hour and receipt you have not billed becomes invoice lines, with your markup already applied. You are approving an invoice, not writing one.',
+          'Back on the job, hit the invoice button. Unbilled hours and receipts become lines. You approve it before it sends.',
         href: '/jobs',
         done: 'A draft invoice exists with lines you recognize.',
       },
@@ -118,7 +118,7 @@ export const PATHS: LearningPath[] = [
         id: 'phone',
         title: 'Put it on your phone',
         body:
-          'Open the site on your phone and add it to your home screen — Share, then Add to Home Screen. That is where you will use it most: photographing receipts in the truck before they go through the wash.',
+          'Open the site on your phone and add it to your home screen. Share, then Add to Home Screen.',
         done: 'There is an icon on your home screen.',
       },
     ],
@@ -132,9 +132,10 @@ export const PATHS: LearningPath[] = [
     steps: [
       {
         id: 'rates',
+        ownerOnly: true,
         title: 'Set your rates',
         body:
-          'Before anything else, set the hourly rate and material markup for this business. They start at zero, which would make every invoice come out at zero.',
+          'Set the hourly rate and material markup for this business. They start at zero.',
         href: '/business',
         done: 'The orange warning banner disappears.',
       },
@@ -142,7 +143,7 @@ export const PATHS: LearningPath[] = [
         id: 'job',
         title: 'Create a job',
         body:
-          'Make a job for real work — a customer, an address, and whether it is time & materials or fixed price. A lead and a job are the same record, so start it at whatever stage it is really at.',
+          'Make a job for real work: a customer, an address, and whether it is time & materials or fixed price.',
         href: '/jobs/new',
         done: 'The job appears on the pipeline board.',
       },
@@ -150,7 +151,7 @@ export const PATHS: LearningPath[] = [
         id: 'estimate',
         title: 'Build an estimate',
         body:
-          'Price the work line by line. On a time & materials job this is a forecast — the invoice will come from what actually happens, not from this number.',
+          'Price the work line by line. On time & materials the invoice comes from what actually happens, not this number.',
         href: '/jobs',
         done: 'The job shows an estimate total.',
       },
@@ -166,7 +167,7 @@ export const PATHS: LearningPath[] = [
         id: 'receipt',
         title: 'Photograph a receipt',
         body:
-          'Open Receipts and add one — drag it in, or on a phone use the camera button. It gets read automatically: vendor, date, amount. You check what it read before anything is saved, and the photo itself is kept, which is what you need at tax time.',
+          'Open Receipts and add one. Drag it in, or use the camera on a phone. Check what it read before saving.',
         href: '/documents',
         done: 'The receipt shows a vendor and an amount.',
       },
@@ -174,7 +175,7 @@ export const PATHS: LearningPath[] = [
         id: 'file',
         title: 'File it to the job',
         body:
-          'Pick the job from the dropdown and file it. The receipt becomes a cost on that job, and the original stays attached to it.',
+          'Pick the job from the dropdown and file it. It becomes a cost on that job.',
         href: '/documents',
         done: 'It moves out of the inbox, and the job cost goes up.',
       },
@@ -182,7 +183,7 @@ export const PATHS: LearningPath[] = [
         id: 'invoice',
         title: 'Draft the invoice',
         body:
-          'Back on the job, hit the invoice button. Every unbilled hour and filed receipt is swept onto an invoice, with markup applied. You are approving an invoice, not typing one.',
+          'Back on the job, hit the invoice button. Unbilled hours and filed receipts are swept onto one invoice.',
         href: '/jobs',
         done: 'A draft invoice appears with lines traced back to their source.',
       },
@@ -190,7 +191,7 @@ export const PATHS: LearningPath[] = [
         id: 'send',
         title: 'Send it',
         body:
-          'Send for payment and the customer gets a payment page. When they pay, the invoice marks itself. Until Stripe is connected, mark it sent by hand — everything else still works.',
+          'Send it, and the customer gets a payment page. You can also mark it sent by hand.',
         href: '/billing',
         done: 'The invoice leaves draft.',
       },
@@ -200,14 +201,14 @@ export const PATHS: LearningPath[] = [
     id: 'paperwork',
     name: 'Taming the paperwork',
     blurb:
-      'You have a shoebox, a glovebox, and a folder of PDFs. This turns them into filed job costs.',
+      'Turning a pile of receipts into filed job costs.',
     minutes: 8,
     steps: [
       {
         id: 'dump',
         title: 'Dump everything in',
         body:
-          'Drag a pile in at once — receipts, supplier invoices, permits. Each is read once and never charged for again, and each stops for you to approve before it becomes a cost.',
+          'Drag a pile in at once. Each one stops for you to approve.',
         href: '/documents',
         done: 'They land in the inbox with vendor and amount filled in.',
       },
@@ -215,7 +216,7 @@ export const PATHS: LearningPath[] = [
         id: 'review',
         title: 'Check what needs eyes',
         body:
-          'Every document stops for your approval before anything is saved. Anything smudged is left blank rather than guessed — a missing number is safer than a wrong one, because a wrong one becomes a wrong invoice.',
+          'Nothing saves until you approve it. Anything unreadable is left blank rather than guessed.',
         href: '/documents',
         done: 'You know which ones to look at.',
       },
@@ -223,7 +224,7 @@ export const PATHS: LearningPath[] = [
         id: 'cost',
         title: 'Watch the cost',
         body:
-          'The page shows exactly what reading these has cost, in real money — about half a cent per document, once. Keeping them costs nothing after that.',
+          'The page shows what reading these has cost, in real money.',
         href: '/documents',
         done: 'The total is a number you can live with.',
       },
@@ -248,7 +249,7 @@ export const PATHS: LearningPath[] = [
         id: 'pl',
         title: 'Read the P&L',
         body:
-          'Revenue, costs and margin across a period. Every number is built from filed receipts and logged hours, so it is only as honest as your filing.',
+          'Revenue, costs and margin across a period.',
         href: '/pl',
         done: 'You can see whether the month made money.',
       },
@@ -264,7 +265,7 @@ export const PATHS: LearningPath[] = [
         id: 'unbilled',
         title: 'Find the money you forgot to bill',
         body:
-          'Unbilled work is hours and receipts that never made it onto an invoice. For most contractors this is the single biggest leak.',
+          'Hours and receipts that never made it onto an invoice.',
         href: '/jobs',
         done: 'Unbilled is at zero, or you know why it is not.',
       },
@@ -272,7 +273,7 @@ export const PATHS: LearningPath[] = [
         id: 'owed',
         title: 'Chase what is owed',
         body:
-          'Outstanding is invoiced money that has not arrived. Sorted by age, because a 90-day invoice needs a phone call, not another email.',
+          'Invoiced money that has not arrived, oldest first.',
         href: '/billing',
         done: 'You know who to call.',
       },
@@ -289,7 +290,7 @@ export const PATHS: LearningPath[] = [
         id: 'switch',
         title: 'Switch businesses',
         body:
-          'Use the switcher at the top of the sidebar. CALO&CO and Mammoth are separate books with separate data — the words change too, from Jobs to Engagements.',
+          'Use the switcher at the top of the sidebar. Each business is a separate set of books, and the words change with it.',
         done: 'The sidebar says Engagements.',
       },
       {

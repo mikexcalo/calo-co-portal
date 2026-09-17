@@ -30,6 +30,7 @@ import {
   inputStyle,
   shortDate,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 interface Person { name: string; role?: string | null; email?: string | null; phone?: string | null }
 interface Task { what: string; who?: string | null; due?: string | null }
@@ -112,7 +113,7 @@ export default function NotesPage() {
       setResult(payload.extracted as Extracted);
       setCost(payload.costCents ?? null);
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -164,7 +165,7 @@ export default function NotesPage() {
       setCost(null);
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -182,7 +183,7 @@ export default function NotesPage() {
   return (
     <Page
       title="Capture"
-      subtitle="Paste a transcript, an email, a page of notes. It gets read, filed against a client, and shows up on their record."
+      subtitle="Paste notes and file them against a client."
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16, maxWidth: 720 }}>

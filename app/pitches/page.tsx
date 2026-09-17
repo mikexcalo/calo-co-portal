@@ -25,6 +25,7 @@ import {
   shortDate,
   PITCH_TABS,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 interface Pitch {
   id: string;
@@ -58,7 +59,7 @@ export default function PitchesPage() {
       .eq('org_id', org.id)
       .eq('archived', false)
       .order('updated_at', { ascending: false });
-    if (res.error) setError(res.error.message);
+    if (res.error) setError(human(res.error.message));
     else setRows((res.data ?? []) as Pitch[]);
     setLoading(false);
   }, [org]);
@@ -89,7 +90,7 @@ export default function PitchesPage() {
       .select()
       .single();
     setBusy(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
     router.push(`/pitches/${res.data.id}`);
   };
 
@@ -108,7 +109,7 @@ export default function PitchesPage() {
     <Page
       tabs={PITCH_TABS}
       title="Pitches"
-      subtitle="Send a link instead of a slide deck. You'll know when it gets read."
+      subtitle="Pitches you have sent, and who opened them."
       action={<Button onClick={create} disabled={busy}>{busy ? 'Creating…' : 'New pitch'}</Button>}
     >
       {error && (

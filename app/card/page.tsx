@@ -17,6 +17,7 @@ import QRCode from 'qrcode';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { BRAND_TABS, Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 interface Link { label: string; url: string }
 interface CardRow {
@@ -54,7 +55,7 @@ export default function CardPage() {
       .select('id, slug, name, title, company, email, phone, website, photo_url, tagline, cta_label, cta_url, links, live, scans, last_scan')
       .limit(1)
       .maybeSingle();
-    if (res.error) setError(res.error.message);
+    if (res.error) setError(human(res.error.message));
     else setRow(res.data as CardRow | null);
     setLoaded(true);
   }, []);
@@ -92,7 +93,7 @@ export default function CardPage() {
     const { id, scans, last_scan, ...fields } = row;
     const res = await supabase.from('cards').update(fields).eq('id', id);
     setBusy(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };
@@ -107,7 +108,7 @@ export default function CardPage() {
       company: org.name,
     });
     setBusy(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
     load();
   };
 

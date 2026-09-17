@@ -30,6 +30,7 @@ import {
   SectionLabel,
   inputStyle,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 interface BrandRow {
   id: string;
@@ -96,7 +97,7 @@ export default function FrameworkPage() {
 
     if (res.error) {
       setBusy(false);
-      setError(res.error.message);
+      setError(human(res.error.message));
       return;
     }
 
@@ -144,7 +145,7 @@ export default function FrameworkPage() {
     <Page
       back={{ label: 'Clients', href: '/customers' }}
       title="Brand framework"
-      subtitle="One process, ten modules, every client. Each module is an input to the next, so the order is the method."
+      subtitle="The ten-part method, client by client."
       action={
         <Button onClick={() => setStarting((s) => !s)}>
           {starting ? 'Cancel' : 'Start a client'}
@@ -273,10 +274,7 @@ export default function FrameworkPage() {
           <Card><Empty>Loading…</Empty></Card>
         ) : rows.length === 0 ? (
           <Card>
-            <Empty>
-              Nobody yet. Start a client and the ten modules are created empty, ready for you to
-              drop a discovery call into.
-            </Empty>
+            <Empty>Nobody yet. Start a client and the ten modules are created empty.</Empty>
           </Card>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

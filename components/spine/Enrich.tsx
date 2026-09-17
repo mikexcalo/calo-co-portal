@@ -20,6 +20,7 @@
 import { useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, inputStyle } from './ui';
+import { human } from '@/lib/spine/errors';
 
 interface Found {
   website: string;
@@ -77,7 +78,7 @@ export function Enrich({
     if (take.phone && found.phone) patch.phone = found.phone;
     const res = await supabase.from('customers').update(patch).eq('id', customerId);
     setBusy(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
     setFound(null);
     setOpen(false);
     setDomain('');

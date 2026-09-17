@@ -10,6 +10,7 @@
  */
 
 import { useState } from 'react';
+import { human } from '@/lib/spine/errors';
 
 export function DecisionButtons({
   token,
@@ -44,7 +45,7 @@ export function DecisionButtons({
       if (!res.ok) throw new Error(payload.error || 'Could not record that');
       window.location.reload();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
       setBusy(false);
     }
   };

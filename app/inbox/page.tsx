@@ -55,7 +55,7 @@ export default function InboxPage() {
   return (
     <Page
       title="Unfiled"
-      subtitle="A shelf for things that arrived before you knew where they go — a logo, a screenshot, a link, a note to yourself. Say who it is about whenever you like, or never."
+      subtitle="Anything you have not filed yet."
     >
       {!org?.id ? (
         <Empty>Pick a business first.</Empty>

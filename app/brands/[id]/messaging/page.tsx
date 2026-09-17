@@ -138,7 +138,7 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
     <Page
       back={{ label: brand.name, href: `/brands/${brand.id}` }}
       title="Brand and messaging"
-      subtitle="Ten modules, in the order the decisions have to be made. Each one is an input to the next."
+      subtitle="How they talk about themselves."
       tabs={tabs}
       action={
         <>

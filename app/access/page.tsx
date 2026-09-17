@@ -34,6 +34,7 @@ import {
 import { ModuleSwitchboard } from '@/components/spine/ModuleSwitchboard';
 import { Avatar, CLIENT_TABS, C, Card, Empty, Page, SectionLabel, Switch } from '@/components/spine/ui';
 import { brandAssetUrl } from '@/lib/spine/db';
+import { human } from '@/lib/spine/errors';
 
 interface Row {
   id: string;
@@ -95,7 +96,7 @@ export default function AccessPage() {
       supabase.from('customers').select('id, plan, modules, workspace_id'),
     ]);
     if (sum.error || full.error) {
-      setError((sum.error ?? full.error)?.message ?? 'Could not read your clients.');
+      setError(human((sum.error ?? full.error)?.message ?? 'Could not read your clients.'));
       setLoaded(true);
       return;
     }

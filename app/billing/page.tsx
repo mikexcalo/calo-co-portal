@@ -213,7 +213,7 @@ export default function BillingPage() {
   const drafts = live.filter((i) => i.status === 'draft').length;
 
   return (
-    <Page title="Billing" subtitle="Built from the hours you logged and the receipts you filed. Nothing retyped.">
+    <Page title="Billing" subtitle="What you have invoiced, and what is still owed.">
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 14 }}>{error}</div>

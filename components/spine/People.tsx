@@ -17,6 +17,7 @@ import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Avatar, Button, C, Card, Empty, Pill, SectionLabel, inputStyle } from './ui';
 import { Confirm } from './Confirm';
+import { human } from '@/lib/spine/errors';
 
 interface Person {
   id: string;
@@ -71,7 +72,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
       is_primary: rows.length === 0,
     });
     setBusy(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
     setDraft(blank);
     setAdding(false);
     await load();
@@ -96,7 +97,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
       })
       .eq('id', p.id);
     setBusy(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
     setEditingId(null);
     await load();
   };

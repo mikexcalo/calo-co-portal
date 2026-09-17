@@ -220,7 +220,7 @@ export default function BusinessPage() {
     <Page
       tabs={SETUP_TABS}
       title={org.name}
-      subtitle="Your rates, how you get paid, and what else plugs into this."
+      subtitle="Rates, payment details and settings."
       action={
         <Pill tone={org.kind === 'agency' ? 'blue' : 'green'}>
           {org.kind === 'agency' ? 'Agency' : 'Contractor'}

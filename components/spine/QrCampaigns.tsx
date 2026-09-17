@@ -25,6 +25,7 @@ import {
   inputStyle,
   shortDate,
 } from './ui';
+import { human } from '@/lib/spine/errors';
 
 export interface Campaign {
   id: string;
@@ -128,7 +129,7 @@ export function QrCampaigns({
       .select()
       .single();
     setBusy(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
 
     setLabel('');
     setAdding(false);
@@ -189,10 +190,7 @@ export function QrCampaigns({
       {rows.length === 0 ? (
         !adding && (
           <Card>
-            <Empty>
-              No tracked codes yet. The plain code above works fine; a tracked one also tells you
-              how often it was scanned.
-            </Empty>
+            <Empty>No tracked codes yet. A tracked one tells you how often it was scanned.</Empty>
           </Card>
         )
       ) : (

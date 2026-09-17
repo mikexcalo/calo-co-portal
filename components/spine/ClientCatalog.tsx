@@ -26,6 +26,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, Empty, SectionLabel, inputStyle } from './ui';
+import { human } from '@/lib/spine/errors';
 
 interface Product {
   id: string;
@@ -72,7 +73,7 @@ export function ClientCatalog({
       .select('id, item, form, size, pack, price, unit, fob, origin, species, sells_to, note, sort')
       .eq('customer_id', customerId)
       .order('sort');
-    if (res.error) setError(res.error.message);
+    if (res.error) setError(human(res.error.message));
     else setRows((res.data ?? []) as Product[]);
     setLoaded(true);
   }, [customerId]);
@@ -106,7 +107,7 @@ export function ClientCatalog({
       sort: rows.length + 1,
     });
     setBusy(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
     setDraft(null);
     load();
   };
@@ -120,7 +121,7 @@ export function ClientCatalog({
     };
     const res = await supabase.from('client_products').update(patch).eq('id', id);
     setBusy(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
     setEditing(null);
     load();
   };
@@ -189,10 +190,7 @@ export function ClientCatalog({
 
       {rows.length === 0 ? (
         <Card>
-          <Empty>
-            Nothing listed yet. This is the price sheet: what they sell, in what cut and count,
-            packed how, at what price, good from where.
-          </Empty>
+          <Empty>Nothing listed yet. This is what they sell, and what it costs.</Empty>
         </Card>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

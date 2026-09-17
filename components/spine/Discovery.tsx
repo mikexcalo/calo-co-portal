@@ -18,6 +18,7 @@ import supabase from '@/lib/supabase';
 import { FRAMEWORK } from '@/lib/spine/framework';
 import { useRouter } from 'next/navigation';
 import { Button, C, Card, Pill, SectionLabel } from './ui';
+import { human } from '@/lib/spine/errors';
 
 interface Draft {
   name: string;
@@ -108,7 +109,7 @@ export function Discovery({ customerId }: { customerId: string }) {
 
     const res = await supabase.from('brands').update({ messaging: next }).eq('id', brandId);
     setBusy(null);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
     setDone((d) => ({ ...d, [r.id]: `Added to ${moduleName(r.informs)}` }));
   };
 
@@ -184,7 +185,7 @@ export function Discovery({ customerId }: { customerId: string }) {
 
       router.push(`/jobs/${job.data.id}`);
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
       setBusy(null);
     }
   };
@@ -204,7 +205,7 @@ export function Discovery({ customerId }: { customerId: string }) {
       if (!res.ok || !data.lines) { setError(data.error ?? 'Could not draft that.'); }
       else setDraft(data);
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     }
     setBusy(null);
   };

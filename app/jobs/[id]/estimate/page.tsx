@@ -24,6 +24,7 @@ import {
   inputStyle,
   money,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 interface DraftLine {
   kind: LineKind;
@@ -96,7 +97,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
           );
         }
       } catch (e) {
-        setError((e as Error).message);
+        setError(human((e as Error).message));
       }
     })();
   }, [params.id]);
@@ -158,7 +159,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
 
       router.push(`/jobs/${params.id}`);
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
       setBusy(false);
     }
   };

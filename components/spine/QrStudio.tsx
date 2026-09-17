@@ -17,6 +17,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import { Button, C, Card, Field, SectionLabel, inputStyle, radius } from './ui';
 import { QrCampaigns, type Campaign } from './QrCampaigns';
+import { human } from '@/lib/spine/errors';
 
 interface BrandColor {
   name: string;
@@ -100,7 +101,7 @@ export function QrStudio({
       el.style.width = '100%';
       el.style.height = '100%';
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     }
   }, [url, dark, light, transparent, defaultUrl]);
 
@@ -124,7 +125,7 @@ export function QrStudio({
       a.click();
       a.remove();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     }
   };
 

@@ -33,6 +33,7 @@ import {
   radius,
   shortDate,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 type Row_ = Estimate & {
   job: { id: string; name: string; customer: { name: string } | null } | null;
@@ -66,7 +67,7 @@ export default function ProposalsPage() {
       try {
         await load();
       } catch (e) {
-        setError((e as Error).message);
+        setError(human((e as Error).message));
       } finally {
         setLoading(false);
       }
@@ -100,7 +101,7 @@ export default function ProposalsPage() {
   return (
     <Page
       title={`${vocab.estimate}s`}
-      subtitle={`Everything quoted across every ${vocab.job.toLowerCase()}. Once accepted, they can be invoiced.`}
+      subtitle={`Everything you have quoted.`}
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>

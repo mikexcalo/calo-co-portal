@@ -35,6 +35,7 @@ import {
   SETUP_TABS,
 } from '@/components/spine/ui';
 import { DropZone } from '@/components/spine/DropZone';
+import { human } from '@/lib/spine/errors';
 
 interface PriceItem {
   id: string;
@@ -104,7 +105,7 @@ export default function PricingPage() {
       try {
         await load();
       } catch (e) {
-        setError((e as Error).message);
+        setError(human((e as Error).message));
       } finally {
         setLoading(false);
       }
@@ -139,7 +140,7 @@ export default function PricingPage() {
       setDraft({ name: '', description: '', unit: '', unit_price: 0, kind: 'labor', category: '' });
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -152,7 +153,7 @@ export default function PricingPage() {
       if (res.error) throw new Error(res.error.message);
       setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, ...patch } : i)));
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     }
   };
 
@@ -182,7 +183,7 @@ export default function PricingPage() {
         );
       }
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
       if (fileRef.current) fileRef.current.value = '';
@@ -199,7 +200,7 @@ export default function PricingPage() {
     <Page
       tabs={SETUP_TABS}
       title="Price list"
-      subtitle={`What you charge, in one place. Estimates and invoices pull from here, so the same number shows up everywhere.`}
+      subtitle={`What you charge.`}
       action={
         <>
           <Button variant="ghost" onClick={() => fileRef.current?.click()} disabled={busy}>

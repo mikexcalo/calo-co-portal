@@ -19,6 +19,7 @@ import supabase from '@/lib/supabase';
 import { Button, C, Card, Empty, SectionLabel } from './ui';
 import { Confirm } from './Confirm';
 import { Processing } from './Processing';
+import { human } from '@/lib/spine/errors';
 
 interface Photo {
   id: string;
@@ -60,7 +61,7 @@ export function Photos({
     if (jobId) q = q.eq('job_id', jobId);
 
     const res = await q;
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
 
     /**
      * Signed URLs rather than a public bucket. A photo of somebody's house
@@ -109,7 +110,7 @@ export function Photos({
         contentType: file.type || 'image/jpeg',
         upsert: false,
       });
-      if (up.error) { setError(up.error.message); break; }
+      if (up.error) { setError(human(up.error.message)); break; }
 
       const row = await supabase.from('documents').insert({
         org_id: orgId,
@@ -126,7 +127,7 @@ export function Photos({
       if (row.error) {
         // Don't leave the file orphaned in storage if the record failed.
         await supabase.storage.from('documents').remove([path]);
-        setError(row.error.message);
+        setError(human(row.error.message));
         break;
       }
       setUploading((n) => n - 1);

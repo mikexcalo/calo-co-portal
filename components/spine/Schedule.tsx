@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, Empty, Pill, SectionLabel, inputStyle, shortDate } from './ui';
+import { human } from '@/lib/spine/errors';
 
 interface Task {
   id: string;
@@ -72,7 +73,7 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
       position: rows.length + 1,
     });
     setBusy(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
     setDraft(blank);
     setAdding(false);
     load();
@@ -90,7 +91,7 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
     setBusy(true);
     const res = await supabase.from('job_tasks').update(changes).eq('id', t.id);
     setBusy(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
     load();
   };
 

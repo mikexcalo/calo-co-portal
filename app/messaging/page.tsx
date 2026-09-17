@@ -18,7 +18,7 @@ export default function MessagingPage() {
   return (
     <Page
       title="Messaging"
-      subtitle="What you claim, and where the edges are."
+      subtitle="What you say about yourself."
       tabs={BRAND_TABS}
     >
       {loading || !org ? (

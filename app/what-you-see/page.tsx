@@ -20,6 +20,7 @@ import { useOrg } from '@/lib/spine/org';
 import { modulesFor, type ModuleId, type ModuleState } from '@/lib/spine/modules';
 import { ModuleSwitchboard } from '@/components/spine/ModuleSwitchboard';
 import { C, Card, Empty, Page, SETUP_TABS } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 /** What each one is, to you rather than to a client. */
 const WHAT: Partial<Record<ModuleId, string>> = {
@@ -58,7 +59,7 @@ export default function WhatYouSeePage() {
   const load = useCallback(async () => {
     if (!org) return;
     const res = await supabase.from('orgs').select('modules').eq('id', org.id).maybeSingle();
-    if (res.error) setError(res.error.message);
+    if (res.error) setError(human(res.error.message));
     else setState(((res.data?.modules ?? {}) as Record<string, unknown>));
     setLoaded(true);
   }, [org]);
@@ -86,7 +87,7 @@ export default function WhatYouSeePage() {
     const mods = { ...state, [id]: next };
     setState(mods);
     const res = await supabase.from('orgs').update({ modules: mods }).eq('id', org.id);
-    if (res.error) { setError(res.error.message); load(); return; }
+    if (res.error) { setError(human(res.error.message)); load(); return; }
     // The sidebar reads the org, so it has to be told the org changed.
     await refresh();
   };
@@ -96,7 +97,7 @@ export default function WhatYouSeePage() {
   return (
     <Page
       title="What you see"
-      subtitle="Switch off what you are not using. Nothing is deleted."
+      subtitle="Turn modules on and off."
       tabs={SETUP_TABS}
     >
       {error && (

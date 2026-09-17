@@ -42,6 +42,7 @@ import {
   startEnrolment,
   type EnrolStart,
 } from '@/lib/spine/mfa';
+import { human } from '@/lib/spine/errors';
 
 type Stage = 'idle' | 'explain' | 'scan' | 'codes' | 'done';
 
@@ -150,7 +151,7 @@ export default function SecurityPage() {
 
   useEffect(() => {
     refresh().catch((e) => {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
       setLoading(false);
     });
   }, [refresh]);
@@ -175,7 +176,7 @@ export default function SecurityPage() {
       setCode('');
       setStage('scan');
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -192,7 +193,7 @@ export default function SecurityPage() {
       setStage('codes');
       await refresh();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -207,7 +208,7 @@ export default function SecurityPage() {
       setStage('codes');
       await refresh();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -223,7 +224,7 @@ export default function SecurityPage() {
       setNotice('Two-factor is off. Signing in now takes only your password.');
       await refresh();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -237,7 +238,7 @@ export default function SecurityPage() {
   return (
     <Page
       title="Security"
-      subtitle="How your account is protected, and how to get back in if you lose your phone."
+      subtitle="Sign-in, two-factor and backup codes."
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
