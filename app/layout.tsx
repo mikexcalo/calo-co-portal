@@ -29,6 +29,7 @@ const figtree = Figtree({
 });
 import { ThemeProvider } from '@/lib/theme';
 import { AppShell } from '@/components/AppShell';
+import { AccessPing } from '@/components/AccessPing';
 import { OrgProvider } from '@/lib/spine/org';
 import { ViewAsProvider } from '@/lib/spine/viewas';
 import { TutorialProvider } from '@/lib/spine/tutorial';
@@ -79,6 +80,7 @@ export default function RootLayout({
           <OrgProvider>
           <ViewAsProvider>
             <TutorialProvider>
+              <AccessPing />
               <AppShell>{children}</AppShell>
             </TutorialProvider>
           </ViewAsProvider>
