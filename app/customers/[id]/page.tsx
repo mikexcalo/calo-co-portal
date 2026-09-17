@@ -58,6 +58,7 @@ import {
   today as todayStr,
   useIsPhone,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 interface Customer {
   id: string;
@@ -256,14 +257,14 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
       .update({ stage: next, stage_why: null, stage_changed_on: new Date().toISOString().slice(0, 10) })
       .eq('id', params.id);
     setStageBusy(false);
-    if (res.error) { setError(res.error.message); load(); }
+    if (res.error) { setError(human(res.error.message)); load(); }
   };
 
   const saveTags = async (next: string[]) => {
     if (!customer) return;
     setCustomer({ ...customer, tags: next });
     const res = await supabase.from('customers').update({ tags: next }).eq('id', params.id);
-    if (res.error) { setError(res.error.message); load(); }
+    if (res.error) { setError(human(res.error.message)); load(); }
     else setKnownTags((k) => Array.from(new Set([...k, ...next])).sort());
   };
 
@@ -272,7 +273,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
       try {
         await load();
       } catch (e) {
-        setError((e as Error).message);
+        setError(human((e as Error).message));
       } finally {
         setLoading(false);
       }
@@ -320,7 +321,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
       setLogging(false);
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -349,7 +350,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
       setEditing(false);
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -991,7 +992,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                         const next = e.target.value as JobRow['status'];
                         setJobs((prev) => prev.map((x) => (x.id === j.id ? { ...x, status: next } : x)));
                         const res = await supabase.from('jobs').update({ status: next }).eq('id', j.id);
-                        if (res.error) { setError(res.error.message); load(); }
+                        if (res.error) { setError(human(res.error.message)); load(); }
                       }}
                       style={{
                         background: C.panelAlt, color: C.dim,

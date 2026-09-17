@@ -39,6 +39,7 @@ import {
   shortDate,
   CLIENT_TABS,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 interface Summary {
   /** Same value as customer_id. The shared table keys every list on `id`. */
@@ -142,7 +143,7 @@ export default function CustomersPage() {
       try {
         await load();
       } catch (e) {
-        setError((e as Error).message);
+        setError(human((e as Error).message));
       } finally {
         setLoading(false);
       }
@@ -166,7 +167,7 @@ export default function CustomersPage() {
       setAdding(false);
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -235,7 +236,7 @@ export default function CustomersPage() {
         .map((r) => supabase.from('customers').update({ tags: [...(r.tags ?? []), w] }).eq('id', r.id))
     );
     const bad = out.find((o) => o.error);
-    if (bad?.error) setError(bad.error.message);
+    if (bad?.error) setError(human(bad.error.message));
     setTagWord('');
     setBulkTag(false);
     setPicked(new Set());
@@ -249,7 +250,7 @@ export default function CustomersPage() {
       .from('customers')
       .update({ stage: next, stage_why: null, stage_changed_on: new Date().toISOString().slice(0, 10) })
       .in('id', ids);
-    if (res.error) { setError(res.error.message); load(); }
+    if (res.error) { setError(human(res.error.message)); load(); }
   };
 
   /**

@@ -65,6 +65,7 @@ import { Confirm } from '@/components/spine/Confirm';
 import { UndoBar, type UndoState } from '@/components/spine/Undo';
 import { useOrg } from '@/lib/spine/org';
 import { Reminders } from '@/components/spine/Reminders';
+import { human } from '@/lib/spine/errors';
 
 const STATUSES: JobStatus[] = [
   'lead',
@@ -130,7 +131,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
       try {
         await load();
       } catch (e) {
-        if (!canceled) setError((e as Error).message);
+        if (!canceled) setError(human((e as Error).message));
       } finally {
         if (!canceled) setLoading(false);
       }
@@ -149,7 +150,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
       await load();
       if (success) setNotice(success);
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -185,7 +186,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
       const inv = await invoiceFromEstimate(orgId, jobId);
       router.push(`/billing?invoice=${inv.id}`);
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
       setBusy(false);
     }
   };
@@ -208,7 +209,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
       }
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }

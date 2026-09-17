@@ -20,6 +20,7 @@ import { getCurrentOrg, updateOrg } from '@/lib/spine/db';
 import { METHODS, looksLikeAccountNumber, type PaymentMethod } from '@/lib/spine/payments';
 import type { Org } from '@/lib/spine/types';
 import { PRODUCT } from '@/lib/brand';
+import { human } from '@/lib/spine/errors';
 
 const INK = '#141414';
 const BORDER = '#e4e4e0';
@@ -241,7 +242,7 @@ export default function WelcomePage() {
           }
         }
       } catch (e) {
-        setError((e as Error).message);
+        setError(human((e as Error).message));
       } finally {
         setLoading(false);
       }
@@ -296,7 +297,7 @@ export default function WelcomePage() {
         }
         router.replace('/');
       } catch (e) {
-        setError((e as Error).message);
+        setError(human((e as Error).message));
         setBusy(false);
       }
     },

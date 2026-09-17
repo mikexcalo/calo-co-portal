@@ -34,6 +34,7 @@ import {
   inputStyle,
   SETUP_TABS,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 type Tab = 'rates' | 'payments' | 'connections' | 'workspaces';
 
@@ -203,7 +204,7 @@ export default function BusinessPage() {
       if (which === 'payments') setEditingPayments(false);
       setTimeout(() => setSavedTab(null), 4000);
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }

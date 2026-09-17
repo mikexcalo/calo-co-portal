@@ -46,6 +46,7 @@ import {
   radius,
   shortDate,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 interface Attention {
   key: string;
@@ -195,7 +196,7 @@ export default function Dashboard() {
           );
         }
       } catch (e) {
-        if (!canceled) setError((e as Error).message);
+        if (!canceled) setError(human((e as Error).message));
       } finally {
         if (!canceled) setLoading(false);
       }

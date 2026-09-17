@@ -26,6 +26,7 @@ import {
   Pill,
   money0,
 } from '@/components/spine/ui';
+import { human } from '@/lib/spine/errors';
 
 const TONE: Record<JobStatus, 'neutral' | 'blue' | 'green' | 'amber' | 'red'> = {
   lead: 'neutral',
@@ -57,7 +58,7 @@ export default function JobsPage() {
         setAllJobs(j);
         setLedger(Object.fromEntries(l.map((row) => [row.job_id, row])));
       } catch (e) {
-        if (!canceled) setError((e as Error).message);
+        if (!canceled) setError(human((e as Error).message));
       } finally {
         if (!canceled) setLoading(false);
       }

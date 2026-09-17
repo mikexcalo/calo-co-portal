@@ -35,6 +35,7 @@ import {
 } from '@/components/spine/ui';
 import { RecordTable, type Column } from '@/components/spine/RecordTable';
 import { daysSince } from '@/lib/spine/stage';
+import { human } from '@/lib/spine/errors';
 
 type Relationship = 'contact' | 'client' | 'proxy' | 'prospect' | 'referrer' | 'freelancer' | 'partner';
 
@@ -255,7 +256,7 @@ export default function PeoplePage() {
       is_primary: false,
     });
     setBusy(false);
-    if (res.error) { setError(res.error.message); return; }
+    if (res.error) { setError(human(res.error.message)); return; }
     setDraft(blank);
     setAdding(false);
     await load();

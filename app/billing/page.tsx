@@ -38,6 +38,7 @@ import {
   inputStyle,
 } from '@/components/spine/ui';
 import { METHODS } from '@/lib/spine/payments';
+import { human } from '@/lib/spine/errors';
 
 export default function BillingPage() {
   const router = useRouter();
@@ -65,7 +66,7 @@ export default function BillingPage() {
       try {
         await load();
       } catch (e) {
-        setError((e as Error).message);
+        setError(human((e as Error).message));
       } finally {
         setLoading(false);
       }
@@ -83,7 +84,7 @@ export default function BillingPage() {
         const l = await getInvoiceLines(id);
         setLines((prev) => ({ ...prev, [id]: l }));
       } catch (e) {
-        setError((e as Error).message);
+        setError(human((e as Error).message));
       }
     }
   };
@@ -95,7 +96,7 @@ export default function BillingPage() {
       await fn();
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -127,7 +128,7 @@ export default function BillingPage() {
       if (payload.link) window.open(payload.link, '_blank', 'noopener');
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -152,7 +153,7 @@ export default function BillingPage() {
       }
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -175,7 +176,7 @@ export default function BillingPage() {
       if (payload.link) await navigator.clipboard.writeText(payload.link).catch(() => {});
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -200,7 +201,7 @@ export default function BillingPage() {
       if (payload.hostedUrl) window.open(payload.hostedUrl, '_blank', 'noopener');
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(human((e as Error).message));
     } finally {
       setBusy(false);
     }

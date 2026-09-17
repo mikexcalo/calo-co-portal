@@ -16,6 +16,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { C } from '@/lib/spine/tokens';
+import { human } from '@/lib/spine/errors';
 import { DropZone } from './DropZone';
 import { extractPalette, SAMPLE_EDGE } from '@/lib/spine/palette';
 import {
@@ -43,25 +44,6 @@ interface Props {
 
 const isImage = (f: File) => f.type.startsWith('image/');
 
-/**
- * What went wrong, in words.
- *
- * Postgres said "Could not find the table 'public.drops' in the schema cache"
- * on somebody's screen, which names a table they have never heard of and
- * blames them for nothing they did. A person needs to know whether to try
- * again, wait, or tell someone.
- */
-function humanError(raw: unknown): string {
-  const msg = raw instanceof Error ? raw.message : String(raw ?? '');
-  if (/schema cache|does not exist|public\.drops/i.test(msg)) {
-    return 'This is not switched on yet — the database change behind it has not been applied. Nothing you did.';
-  }
-  if (/row-level security|permission/i.test(msg)) {
-    return 'You do not have access to save things here.';
-  }
-  if (/network|fetch/i.test(msg)) return 'No connection. Try again in a moment.';
-  return 'That did not save. Try again, and tell us if it keeps happening.';
-}
 const looksLikeUrl = (s: string) => /^https?:\/\/\S+$/i.test(s.trim());
 
 /** Palette on arrival, in the browser, for nothing. */
@@ -110,7 +92,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
       }));
       setUrls(next);
     } catch (e) {
-      setError(humanError(e));
+      setError(human(e));
     }
   }, [orgId, target?.person_id, target?.customer_id, target?.job_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -132,7 +114,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
       await load();
       onChange?.();
     } catch (e) {
-      setError(humanError(e));
+      setError(human(e));
     }
     setBusy(false);
   }, [orgId, target, load, onChange]);
@@ -151,7 +133,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
       await load();
       onChange?.();
     } catch (e) {
-      setError(humanError(e));
+      setError(human(e));
     }
     setBusy(false);
   }, [text, orgId, target, load, onChange]);
