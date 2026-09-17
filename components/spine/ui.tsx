@@ -267,7 +267,7 @@ export const MONEY_TABS: readonly PageTab[] = [
  * site.
  */
 export const BRAND_TABS: readonly PageTab[] = [
-  { label: 'Kit and assets', href: '/brand-kit', icon: 'swatches' },
+  { label: 'Brand', href: '/brand-kit', icon: 'swatches' },
   // Framework had no row and no tab once Brand pointed at the kit, which left
   // a whole module reachable only by typing the URL.
   { label: 'Framework', href: '/brands', icon: 'layers' },

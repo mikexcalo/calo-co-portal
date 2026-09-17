@@ -302,7 +302,7 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   jobs: 'Jobs and engagements',
   customers: 'Clients',
   people: 'People',
-  traffic: 'Website traffic',
+  traffic: 'Traffic',
   receipts: 'Receipts',
   notes: 'Capture',
   pitches: 'Pitches',
@@ -310,14 +310,14 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   billing: 'Invoices',
   pl: 'Profit and loss',
   expenses: 'Overheads',
-  pricing: 'Price book',
+  pricing: 'Price list',
   records: 'Records',
-  brand_kit: 'Brand kit',
-  brands: 'Brand framework',
+  brand_kit: 'Brand',
+  brands: 'Framework',
   stories: 'Case studies',
   ask: 'Ask',
   reviews: 'Reviews',
-  seo: 'Digital presence',
+  seo: 'Digital',
   targets: 'Pipeline',
   catalog: 'What they sell',
   market: 'Market',
@@ -564,7 +564,7 @@ export const MODULE_TAB_PARENT: Partial<Record<ModuleId, ModuleId>> = {
   security: 'business',
   // The Brand row already points at the kit; a second row for the same page
   // under a different name is the exact duplication this map exists to stop.
-  brand_kit: 'brands',
+  brands: 'brand_kit',
 };
 
 export interface NavGroup {
@@ -769,7 +769,7 @@ export function navFor(
          * logos, colours, type and voice are in the kit, so that is where the
          * word goes.
          */
-        { id: 'brands', label: 'Brand', href: '/brand-kit', icon: 'brandKit' },
+        { id: 'brand_kit', label: 'Brand', href: '/brand-kit', icon: 'brandKit' },
         /**
          * Learn is a module, not a help panel.
          *
