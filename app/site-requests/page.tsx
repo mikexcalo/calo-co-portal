@@ -29,6 +29,7 @@ import {
   shortDate,
   useIsPhone,
   BRAND_TABS,
+  DIGITAL_TABS,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 
@@ -180,7 +181,8 @@ export default function WebsitePage() {
 
   return (
     <Page
-            title="Site requests"
+      tabs={DIGITAL_TABS}
+      title="Site requests"
       subtitle={
         site
           ? `${site.name}${site.url ? ` — ${site.url}` : ''}`

@@ -197,7 +197,6 @@ export const SETUP_TABS: readonly PageTab[] = [
   // Was reachable only by typing the URL, which made inviting anybody a thing
   // you had to be told how to do.
   { label: 'Team', href: '/team', icon: 'people' },
-  { label: 'Price list', href: '/pricing', icon: 'pricing' },
   { label: 'Records', href: '/records', icon: 'records' },
   { label: 'Security', href: '/security', icon: 'activity' },
 ];
@@ -228,8 +227,11 @@ export const CLIENT_TABS: readonly PageTab[] = [
 
 export const DIGITAL_TABS: readonly PageTab[] = [
   { label: 'Overview', href: '/digital', icon: 'globe' },
-  { label: 'Traffic', href: '/traffic', icon: 'chart' },
+  { label: 'Website', href: '/website', icon: 'layers' },
+  { label: 'Waiting to go live', href: '/website/queue', icon: 'send' },
+  { label: 'Site requests', href: '/site-requests', icon: 'brief' },
   { label: 'Search', href: '/seo', icon: 'search' },
+  { label: 'Traffic', href: '/traffic', icon: 'chart' },
   { label: 'Reviews', href: '/reviews', icon: 'star' },
 ];
 
@@ -245,6 +247,7 @@ export const MONEY_TABS: readonly PageTab[] = [
   { label: 'Profit & Loss', href: '/pl', icon: 'chart' },
   { label: 'Overheads', href: '/expenses', icon: 'card' },
   { label: 'Receipts', href: '/documents', icon: 'receipt' },
+  { label: 'Price list', href: '/pricing', icon: 'pricing' },
 ];
 
 /**
@@ -270,21 +273,14 @@ export const BRAND_TABS: readonly PageTab[] = [
   { label: 'Brand', href: '/brand-kit', icon: 'swatches' },
   // Framework had no row and no tab once Brand pointed at the kit, which left
   // a whole module reachable only by typing the URL.
-  { label: 'Framework', href: '/brands', icon: 'layers' },
+  { label: 'Framework', href: '/framework', icon: 'layers' },
+  { label: 'Client brands', href: '/brands', icon: 'swatches' },
   // What you claim, as opposed to how you sound. Its own tab because
   // everything you send is written out of it.
   { label: 'Messaging', href: '/messaging', icon: 'brief' },
   { label: 'Card', href: '/card', icon: 'card' },
 ];
 
-/** The website module's own strip. */
-export const SITE_TABS: readonly PageTab[] = [
-  { label: 'Sections', href: '/website', icon: 'layers' },
-  { label: 'Build queue', href: '/website/queue', icon: 'send' },
-  // Search and Traffic used to sit here as well as under Digital. Those pages
-  // render Digital's tab strip, so arriving from Website dropped you into a
-  // different family with no way back to the one you came from.
-];
 
 /**
  * A pitch and the proof that goes in it.

@@ -298,7 +298,7 @@ export const MODULE_KIND: Record<ModuleId, ModuleKind> = {
 
 /** Human names for every module, so a switchboard is readable. */
 export const MODULE_LABEL: Record<ModuleId, string> = {
-  inbox: 'Unfiled',
+  inbox: 'Drops',
   jobs: 'Jobs and engagements',
   customers: 'Clients',
   people: 'People',
@@ -526,7 +526,7 @@ export const MODULE_HREF: Record<ModuleId, string> = {
   seo: '/digital',
   traffic: '/traffic',
   reviews: '/reviews',
-  brands: '/brands',
+  brands: '/framework',
   brand_kit: '/brand-kit',
   stories: '/stories',
   website: '/site-requests',
@@ -552,19 +552,24 @@ export const MODULE_HREF: Record<ModuleId, string> = {
  * Naming the parent here keeps them out of the sidebar without hiding them:
  * the parent has the row, and its tabs are one click in.
  */
+/** Reached from the top bar rather than the sidebar. */
+export const MODULE_IN_TOPBAR: ModuleId[] = ['learn'];
+
 export const MODULE_TAB_PARENT: Partial<Record<ModuleId, ModuleId>> = {
   receipts: 'pl',
   expenses: 'pl',
   traffic:  'seo',
   reviews:  'seo',
   stories:  'pitches',
-  pricing:  'business',
+  pricing:  'pl',
   records:  'business',
   team:     'business',
   security: 'business',
   // The Brand row already points at the kit; a second row for the same page
   // under a different name is the exact duplication this map exists to stop.
   brands: 'brand_kit',
+  site:    'seo',
+  website: 'seo',
 };
 
 export interface NavGroup {
@@ -724,7 +729,7 @@ export function navFor(
          * rather than what it resembles. It sits below the real work because
          * it is a shelf, not a place you go to get something done.
          */
-        { id: 'inbox', label: 'Unfiled', href: '/inbox', icon: 'inbox' },
+        { id: 'inbox', label: 'Drops', href: '/inbox', icon: 'inbox' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
@@ -759,7 +764,6 @@ export function navFor(
          * which made it a view of your identity; it is the place the site
          * itself is built and tuned, so it is its own row.
          */
-        { id: 'site', label: 'Website', href: '/website', icon: 'storefront' },
         /**
          * Brand opens on yours.
          *
@@ -778,7 +782,6 @@ export function navFor(
          * away. This is also what a client is handed the day they get a login:
          * training and enablement are one problem seen from two sides.
          */
-        { id: 'learn', label: 'Learn', href: '/learn', icon: 'book' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
   ];
@@ -799,7 +802,8 @@ export function navFor(
       !placed.has(id) &&
       MODULE_HREF[id] &&
       // A tab is reached through its parent, never as a second row of its own.
-      !MODULE_TAB_PARENT[id]
+      !MODULE_TAB_PARENT[id] &&
+      !MODULE_IN_TOPBAR.includes(id)
   );
 
   for (const id of missing) {

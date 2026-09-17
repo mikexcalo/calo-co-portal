@@ -19,7 +19,7 @@ import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { HOW_IT_WORKS, SECTIONS, specFor, type SectionSpec } from '@/lib/spine/sections';
 import { SectionThumb } from '@/components/site/SectionThumb';
-import { SITE_TABS, Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/components/spine/ui';
+import { DIGITAL_TABS, Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 
 interface Note {
@@ -184,7 +184,7 @@ export default function WebsitePage() {
     <Page
       title="Your website"
       subtitle="Your site, section by section."
-      tabs={SITE_TABS}
+      tabs={DIGITAL_TABS}
       action={
         <>
           {previewUrl && (

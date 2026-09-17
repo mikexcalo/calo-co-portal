@@ -12,7 +12,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { specFor } from '@/lib/spine/sections';
-import { SITE_TABS, Button, C, Card, Empty, Page } from '@/components/spine/ui';
+import { DIGITAL_TABS, Button, C, Card, Empty, Page } from '@/components/spine/ui';
 
 interface Req {
   id: string;
@@ -65,7 +65,7 @@ export default function QueuePage() {
     <Page
       title="Build queue"
       subtitle="Edits waiting to go live."
-      tabs={SITE_TABS}
+      tabs={DIGITAL_TABS}
       action={
         <Button variant="ghost" onClick={() => setShowDone((v) => !v)}>
           {showDone ? 'Hide finished' : 'Show finished'}
