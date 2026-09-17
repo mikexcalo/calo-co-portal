@@ -35,7 +35,7 @@ import {
 import { RecordTable, type Column } from '@/components/spine/RecordTable';
 import { daysSince } from '@/lib/spine/stage';
 
-type Relationship = 'contact' | 'client' | 'prospect' | 'referrer' | 'freelancer' | 'partner';
+type Relationship = 'contact' | 'client' | 'proxy' | 'prospect' | 'referrer' | 'freelancer' | 'partner';
 
 interface Person {
   id: string;
@@ -65,6 +65,10 @@ interface Person {
 const KINDS: { key: Relationship; label: string; tone: 'blue' | 'green' | 'amber' | 'neutral' }[] = [
   { key: 'contact', label: 'Just a contact', tone: 'neutral' },
   { key: 'client', label: 'Works at a client', tone: 'green' },
+  // Acts for a client, is not employed by one. A founder's wife testing the
+  // product, a bookkeeper, a consultant. Listen to them like the client; do
+  // not write to them like staff.
+  { key: 'proxy', label: 'Speaks for a client', tone: 'green' },
   { key: 'prospect', label: 'Might buy', tone: 'amber' },
   { key: 'referrer', label: 'Sends us work', tone: 'blue' },
   { key: 'freelancer', label: 'Could work for us', tone: 'neutral' },

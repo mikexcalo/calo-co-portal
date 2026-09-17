@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
+import { useOrg } from '@/lib/spine/org';
 import { Button, C, Card, SectionLabel, inputStyle } from './ui';
 
 interface Row {
@@ -33,6 +34,8 @@ const TONE: Record<string, string> = { broken: 'red', confusing: 'amber', idea: 
 
 export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null }) {
   const router = useRouter();
+  const { switchOrg } = useOrg();
+  const [going, setGoing] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [open, setOpen] = useState<string | null>(null);
   const [reply, setReply] = useState('');
@@ -123,12 +126,34 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
                       Working on it
                     </button>
                     <span style={{ flex: 1 }} />
-                    {r.page && (
-                      <button onClick={() => router.push(r.page as string)}
-                        style={{ background: 'transparent', border: 'none', padding: 0, color: C.blue, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>
-                        Go and look
-                      </button>
-                    )}
+                    <button
+                      disabled={going === r.id}
+                      onClick={async () => {
+                        setGoing(r.id);
+                        try {
+                          /**
+                           * Her screen, not your screen.
+                           *
+                           * This used to push the path and nothing else, so a
+                           * note written in Lakemere's workspace opened your
+                           * own copy of that path — and when the path was "/"
+                           * and you were already on Home, it did nothing at
+                           * all. The workspace is most of the answer to "what
+                           * was she looking at", so switch first and navigate
+                           * second.
+                           */
+                          if (r.org_id !== currentOrgId) await switchOrg(r.org_id);
+                          const path = r.page && r.page.startsWith('/') ? r.page : '/';
+                          router.push(path);
+                          router.refresh();
+                        } finally {
+                          setGoing(null);
+                        }
+                      }}
+                      title={`Switch to ${orgName(r)} and open ${r.page || 'Home'}`}
+                      style={{ background: 'transparent', border: 'none', padding: 0, color: C.blue, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      {going === r.id ? 'Going…' : `Go and look${r.org_id !== currentOrgId ? ` in ${orgName(r)}` : ''}`}
+                    </button>
                     <button onClick={() => answer(r.id, 'wont')}
                       style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>
                       Not doing it

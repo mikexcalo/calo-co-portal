@@ -86,6 +86,16 @@ export default function Dashboard() {
     goneQuiet: 0,
     remindersDue: 0,
   });
+  /**
+   * Whether this person is allowed to set the business up.
+   *
+   * Null until we know, so the checklist is never flashed at somebody it does
+   * not belong to. Marcie landed in Lakemere's workspace and was shown Keith's
+   * account chores — "say how you charge", "how you want to be paid" — which
+   * is why her first note said the tasks looked like they were for somebody
+   * else. They were.
+   */
+  const [canSetUp, setCanSetUp] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   /** Computed after mount — never during render. That was the old bug. */
@@ -485,6 +495,12 @@ export default function Dashboard() {
       done: Boolean(org?.name),
       href: '/business',
     },
+    {
+      label: `Add your first ${vocab.customer.toLowerCase()}`,
+      why: 'A name is enough. Everything else can be filled in as you learn it.',
+      done: signals.customerCount > 0,
+      href: '/customers',
+    },
     rateStep,
     {
       label: 'Say how you want to be paid',
@@ -492,15 +508,27 @@ export default function Dashboard() {
       done: Array.isArray(org?.payment_methods) && (org?.payment_methods as unknown[]).length > 0,
       href: '/business',
     },
-    {
-      label: `Add your first ${vocab.customer.toLowerCase()}`,
-      why: 'A name is enough. Everything else can be filled in as you learn it.',
-      done: signals.customerCount > 0,
-      href: '/customers',
-    },
   ];
 
   const busy = loading || orgLoading;
+  useEffect(() => {
+    let canceled = false;
+    (async () => {
+      if (!org?.id) { setCanSetUp(null); return; }
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth?.user) return;
+      const membership = await supabase
+        .from('memberships')
+        .select('role')
+        .eq('user_id', auth.user.id)
+        .eq('org_id', org.id)
+        .maybeSingle();
+      if (canceled) return;
+      setCanSetUp(['owner', 'admin'].includes(membership.data?.role ?? ''));
+    })();
+    return () => { canceled = true; };
+  }, [org?.id]);
+
   const emptyApp = !busy && jobs.length === 0 && invoices.length === 0 && docs.length === 0;
 
   return (
@@ -524,7 +552,30 @@ export default function Dashboard() {
         </Card>
       )}
 
-      {emptyApp ? (
+      {emptyApp && canSetUp === false ? (
+        /**
+         * What a guest sees instead.
+         *
+         * Somebody who cannot change the business does not need its setup
+         * list, and handing it to them reads as "do these four things" when
+         * none of them are theirs to do. Say where they are, say nothing is
+         * waiting on them, and point at the one control that is.
+         */
+        <Card style={{ maxWidth: 620 }}>
+          <div style={{ ...DISPLAY, fontSize: 22, marginBottom: 6 }}>
+            You&apos;re in {org?.name ?? 'this workspace'}
+          </div>
+          <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.65, margin: '0 0 6px' }}>
+            Nothing here is waiting on you. Setting the business up is the
+            owner&apos;s job and none of it needs doing before you can look around.
+          </p>
+          <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.65, margin: 0 }}>
+            The sidebar is the whole app — open anything. If something is
+            confusing or broken, say so at the bottom of this page and it comes
+            straight to us with the screen you were on.
+          </p>
+        </Card>
+      ) : emptyApp ? (
         /**
          * A checklist against real data, not a paragraph.
          *
@@ -540,7 +591,7 @@ export default function Dashboard() {
             Let&apos;s get you set up
           </div>
           <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.65, margin: '0 0 18px' }}>
-            Four things, and they are all about your account rather than your work. This list goes away on its own.
+            None of this blocks you — add a customer and start working whenever you like. The money steps matter the first time you send an invoice, not before. This list goes away on its own.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

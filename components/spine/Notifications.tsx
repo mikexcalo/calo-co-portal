@@ -77,7 +77,7 @@ export function Notifications() {
    * leaves this list when its status changes, and nowhere else.
    */
   const load = useCallback(async () => {
-    const [notes, requests] = await Promise.all([
+    const [notes, requests, said] = await Promise.all([
       supabase
         .from('notifications')
         .select('id, kind, title, body, href, read_at, created_at')
@@ -88,6 +88,20 @@ export function Notifications() {
         .select('id, title, detail, status, submitted_at')
         .not('status', 'in', '("shipped","declined")')
         .order('submitted_at', { ascending: false })
+        .limit(15),
+      /**
+       * What somebody said while using it.
+       *
+       * The tray promised "client requests all land here" and this was the one
+       * kind that did not. Marcie wrote that a screen was confusing and the
+       * bell stayed empty, which is the worst version of an alert: it taught
+       * its owner there was nothing to see.
+       */
+      supabase
+        .from('feedback')
+        .select('id, kind, body, page, status, created_at, orgs(name)')
+        .in('status', ['open', 'building'])
+        .order('created_at', { ascending: false })
         .limit(15),
     ]);
 
@@ -102,7 +116,30 @@ export function Notifications() {
       created_at: r.submitted_at ?? new Date().toISOString(),
     })) as Notification[];
 
-    const merged = [...asNotifications, ...((notes.data ?? []) as Notification[])].sort(
+    const WORD: Record<string, string> = {
+      broken: 'said something is broken',
+      confusing: 'found something confusing',
+      idea: 'asked for something',
+    };
+    const asFeedback: Notification[] = (said.data ?? []).map((f) => {
+      const row = f as unknown as {
+        id: string; kind: string; body: string; page: string | null;
+        created_at: string; orgs: { name: string }[] | { name: string } | null;
+      };
+      const where = (Array.isArray(row.orgs) ? row.orgs[0]?.name : row.orgs?.name) ?? 'a workspace';
+      return {
+        id: `fb-${row.id}`,
+        kind: 'site_request',
+        title: `${where} ${WORD[row.kind] ?? 'said something'}`,
+        body: row.body,
+        href: '/',
+        // Open until it is answered, same as a request.
+        read_at: null,
+        created_at: row.created_at,
+      } as Notification;
+    });
+
+    const merged = [...asFeedback, ...asNotifications, ...((notes.data ?? []) as Notification[])].sort(
       (a, b) => (a.created_at < b.created_at ? 1 : -1)
     );
     setItems(merged);
