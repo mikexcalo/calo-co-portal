@@ -23,6 +23,7 @@ import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { DropShelf } from '@/components/spine/DropShelf';
+import { InvitePerson } from '@/components/spine/InvitePerson';
 import {
   Button,
   C,
@@ -295,9 +296,12 @@ export default function PeoplePage() {
       title="People"
       subtitle="Everyone you know."
       action={
-        <Button onClick={() => setAdding((v) => !v)}>
-          {adding ? 'Cancel' : 'Add someone'}
-        </Button>
+        <>
+          {org?.id && <InvitePerson orgId={org.id} orgName={org.name} />}
+          <Button onClick={() => setAdding((v) => !v)}>
+            {adding ? 'Cancel' : 'Add someone'}
+          </Button>
+        </>
       }
     >
       {adding && (

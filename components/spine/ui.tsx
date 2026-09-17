@@ -13,6 +13,8 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import { C, DISPLAY, SERIF, radius } from '@/lib/spine/tokens';
 import { Glyph, type IconName } from './icons';
+import { useOrg } from '@/lib/spine/org';
+import { pathAllowed } from '@/lib/spine/modules';
 
 export { C, DISPLAY, SERIF, radius };
 
@@ -112,7 +114,17 @@ export function Page({
   );
 }
 
+/**
+ * Only the tabs this business can actually open.
+ *
+ * Digital listed Site requests to everybody, and an agency does not have that
+ * module — so clicking it was bounced home by pathAllowed and looked like a
+ * dead link. The sidebar has always filtered; the tab strips never did.
+ */
 function PageTabs({ tabs, phone }: { tabs: readonly PageTab[]; phone: boolean }) {
+  const { org } = useOrg();
+  tabs = tabs.filter((t) => pathAllowed(org, t.href));
+  if (tabs.length < 2) return null;
   const pathname = usePathname();
   const router = useRouter();
 

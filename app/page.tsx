@@ -15,6 +15,7 @@
 import { Unresolved } from '@/components/spine/Unresolved';
 import { TellUs } from '@/components/spine/TellUs';
 import { FeedbackInbox } from '@/components/spine/FeedbackInbox';
+import { YourSetup } from '@/components/spine/YourSetup';
 import { SoldNotLive } from '@/components/spine/SoldNotLive';
 import { FollowUps } from '@/components/spine/FollowUps';
 import { WeekAhead } from '@/components/spine/WeekAhead';
@@ -609,95 +610,74 @@ export default function Dashboard() {
 
       {emptyApp ? (
         /**
-         * A checklist against real data, not a paragraph.
+         * Not a checklist.
          *
-         * This screen is the first thing someone sees on an account with
-         * nothing in it, and the audience is people running a business off a
-         * phone and a shoebox. "Show me the paths" asks them to trust that
-         * something useful is behind a button. A list of five concrete things
-         * with three already ticked asks nothing — it shows where they are and
-         * what is next, and it disappears on its own once they are going.
+         * A column of empty checkboxes tells somebody they are behind before
+         * they have done anything, and every item reads as a chore somebody
+         * else assigned. This asks one question and answers it with the six
+         * things the product is actually for, as things you press rather than
+         * things you tick.
          */
-        <Card style={{ maxWidth: 620 }}>
-          <div style={{ ...DISPLAY, fontSize: 22, marginBottom: 6 }}>
-            Start here
-          </div>
-          <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.65, margin: '0 0 18px' }}>
-            Pick anything. Nothing has to be done in order, and this list goes
-            away once there is work in here.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {firstRun.map((step, i) => {
-              const next = firstRun.findIndex((x) => !x.done) === i;
-              return (
-                <div
-                  key={step.label}
-                  onClick={step.done ? undefined : () => router.push(step.href)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '12px 13px',
-                    borderRadius: radius.md,
-                    background: next ? C.blueSoft : 'transparent',
-                    cursor: step.done ? 'default' : 'pointer',
-                  }}
-                >
-                  <Check done={step.done} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 14.5,
-                        fontWeight: next ? 600 : 500,
-                        color: step.done ? C.faint : C.text,
-                        textDecoration: step.done ? 'line-through' : 'none',
-                      }}
-                    >
-                      {step.label}
-                    </div>
-                    {!step.done && step.why && (
-                      <div style={{ fontSize: 13, color: C.dim, marginTop: 2 }}>{step.why}</div>
-                    )}
-                  </div>
-                  {next && <span style={{ fontSize: 13.5, color: C.blue, fontWeight: 500 }}>Start →</span>}
-                </div>
-              );
-            })}
-          </div>
-
-          {/*
-            Settings, for the person who owns them.
-            
-            Below the work and visibly smaller, because "how you charge" is a
-            thing you answer once and never before you have seen what the
-            product is for. Anyone who cannot change it never sees it.
-          */}
-          {canSetUp && accountSetup.some((a) => !a.done) && (
-            <div style={{ marginTop: 22, paddingTop: 16, borderTop: `1px solid ${C.border}` }}>
-              <div style={{ fontSize: 12, letterSpacing: '.06em', textTransform: 'uppercase', color: C.faint, marginBottom: 4 }}>
-                Your account
-              </div>
-              <p style={{ fontSize: 13, color: C.faint, margin: '0 0 8px' }}>
-                Only needed by the time you send your first invoice.
-              </p>
-              {accountSetup.filter((a) => !a.done).map((a) => (
-                <div
-                  key={a.label}
-                  onClick={() => router.push(a.href)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', cursor: 'pointer' }}
-                >
-                  <span style={{ fontSize: 13.5, color: C.dim, flex: 1 }}>{a.label}</span>
-                  <span style={{ fontSize: 13, color: C.blue }}>Set it →</span>
-                </div>
-              ))}
+        <div style={{ display: 'grid', gap: 20, maxWidth: 840 }}>
+          <div>
+            <div style={{ ...DISPLAY, fontSize: 24, marginBottom: 6 }}>
+              What do you want to do first?
             </div>
-          )}
-
-          <div style={{ display: 'flex', gap: 8, marginTop: 18, flexWrap: 'wrap' }}>
-            <Button variant="ghost" onClick={openPanel}>Walk me through it instead</Button>
+            <p style={{ fontSize: 14.5, color: C.dim, margin: 0, maxWidth: '54ch' }}>
+              Nothing is set up in advance and nothing has to be done in order.
+              Pick whichever one you already have to hand.
+            </p>
           </div>
-        </Card>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+              gap: 12,
+            }}
+          >
+            {startHere.map((s) => (
+              <button
+                key={s.label}
+                onClick={() => router.push(s.href)}
+                style={{
+                  textAlign: 'left',
+                  background: C.panel,
+                  border: `1px solid ${C.border}`,
+                  borderRadius: radius.lg,
+                  padding: '16px 16px 18px',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
+                  minHeight: 104,
+                }}
+              >
+                <span style={{ fontSize: 15.5, fontWeight: 600, color: C.text }}>{s.label}</span>
+                {s.why && (
+                  <span style={{ fontSize: 13, color: C.faint, lineHeight: 1.5 }}>{s.why}</span>
+                )}
+                <span style={{ flex: 1 }} />
+                <span style={{ fontSize: 12.5, color: C.blue }}>
+                  {s.done ? 'Done — open it' : 'Open'} &rarr;
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Button variant="ghost" onClick={openPanel}>Walk me through it</Button>
+            {canSetUp && accountSetup.some((a) => !a.done) && (
+              <button
+                onClick={() => router.push('/business')}
+                style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                Account details, for when you invoice &rarr;
+              </button>
+            )}
+          </div>
+        </div>
       ) : busy ? (
         <Empty>Loading…</Empty>
       ) : (
@@ -829,14 +809,14 @@ export default function Dashboard() {
           <FeedbackInbox currentOrgId={org?.id ?? null} />
 
           {/*
-            YourSetup is gone from here.
+            Platform setup, for the business that runs the platform.
             
-            It rendered eleven items like "change the GitHub default branch to
-            main" and "upgrade Supabase to Pro" — this product's own build
-            chores, shown on the home screen of a business that has nothing to
-            do with them. They live in docs/blocked-on-mike.md, which is where
-            a developer's to-do list belongs.
+            These are real and they are Mike's — Stripe keys, Supabase Pro,
+            the search console. What was wrong was showing them inside
+            Lakemere, whose owner cannot do any of them and did not ask. The
+            agency workspace, and only its owners.
           */}
+          {org?.kind === 'agency' && canSetUp && <YourSetup />}
 
           {/* And the way to send one, on the screen everybody opens first. */}
           <TellUs />
