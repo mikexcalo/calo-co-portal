@@ -39,6 +39,7 @@ import {
 import { Confirm } from '@/components/spine/Confirm';
 import { PRODUCT } from '@/lib/brand';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Overhead {
   id: string;
@@ -186,7 +187,7 @@ export default function ExpensesPage() {
     if (!org || !vendor.trim() || !parseFloat(amount)) return;
     setBusy(true);
     setError(null);
-    const res = await supabase.from('costs').insert({
+    const res = await saveOrFail(supabase.from('costs').insert({
       org_id: org.id,
       job_id: null,
       kind: 'overhead',
@@ -197,7 +198,7 @@ export default function ExpensesPage() {
       recurrence,
       // Overheads are never billable — there is no customer who caused them.
       billable: false,
-    });
+    }));
     setBusy(false);
     if (res.error) {
       setError(human(res.error.message));
@@ -211,7 +212,7 @@ export default function ExpensesPage() {
   const remove = async () => {
     if (!confirmDelete) return;
     setBusy(true);
-    const res = await supabase.from('costs').delete().eq('id', confirmDelete.id);
+    const res = await saveOrFail(supabase.from('costs').delete().eq('id', confirmDelete.id));
     setBusy(false);
     setConfirmDelete(null);
     if (res.error) setError(human(res.error.message));

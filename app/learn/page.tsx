@@ -98,7 +98,7 @@ export default function LearnPage() {
       </div>
 
       {shown.length === 0 ? (
-        <Card><Empty>Nothing on that yet.</Empty></Card>
+        <Card><Empty>Nothing on that yet. Try another word, or browse the list.</Empty></Card>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
           {shown.map((l) => {

@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { C, radius } from './ui';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Notification {
   /** Only on feedback rows: the workspace the note was written in. */
@@ -193,10 +194,10 @@ export function Notifications() {
     setItems((prev) =>
       prev.map((i) => (i.read_at || i.id.startsWith('req-') || i.id.startsWith('fb-') ? i : { ...i, read_at: new Date().toISOString() }))
     );
-    await supabase
+    await saveOrFail(supabase
       .from('notifications')
       .update({ read_at: new Date().toISOString() })
-      .in('id', ids);
+      .in('id', ids));
   };
 
   const openItem = async (n: Notification) => {
@@ -217,7 +218,7 @@ export function Notifications() {
     }
     if (!n.read_at) {
       setItems((prev) => prev.map((i) => (i.id === n.id ? { ...i, read_at: new Date().toISOString() } : i)));
-      await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', n.id);
+      await saveOrFail(supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', n.id));
     }
     if (n.href) router.push(n.href);
   };

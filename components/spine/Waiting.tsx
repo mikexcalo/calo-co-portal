@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { C, inputStyle } from './ui';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 /** Whole days, floored. Same-day reads as today rather than 0 days. */
 function daysSince(iso: string): number {
@@ -50,7 +51,7 @@ export function Waiting({ customerId }: { customerId: string }) {
 
   const save = async (text: string | null) => {
     const clean = text?.trim() || null;
-    await supabase
+    await saveOrFail(supabase
       .from('customers')
       .update({
         waiting_on: clean,
@@ -59,7 +60,7 @@ export function Waiting({ customerId }: { customerId: string }) {
         // that ends up wrong.
         awaiting_reply_since: clean ? (since ?? new Date().toISOString().slice(0, 10)) : null,
       })
-      .eq('id', customerId);
+      .eq('id', customerId));
     setEditing(false);
     load();
   };

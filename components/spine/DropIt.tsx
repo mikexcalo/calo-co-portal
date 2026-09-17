@@ -23,6 +23,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, inputStyle } from './ui';
 import { TalkToIt } from './TalkToIt';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 const FIELD_LABEL: Record<string, string> = {
   opportunity: 'The opportunity',
@@ -133,13 +134,13 @@ export function DropIt({ onClose }: { onClose: () => void }) {
   const fileIt = async () => {
     if (!read || !orgId) return;
     setBusy(true);
-    await supabase.from('customer_notes').insert({
+    await saveOrFail(supabase.from('customer_notes').insert({
       org_id: orgId,
       customer_id: clientId || null,
       kind: 'note',
       body: `${read.title}\n\n${read.summary}\n\n---\n${text}`,
       happened_on: new Date().toISOString().slice(0, 10),
-    });
+    }));
     setBusy(false);
     setSaved(true);
   };
@@ -147,7 +148,7 @@ export function DropIt({ onClose }: { onClose: () => void }) {
   const accept = async (u: Update) => {
     if (!clientId) return;
     const next = { ...current, [u.field]: u.text };
-    await supabase.from('customers').update({ brief: next }).eq('id', clientId);
+    await saveOrFail(supabase.from('customers').update({ brief: next }).eq('id', clientId));
     setCurrent(next);
     setTaken((s) => new Set(s).add(u.field));
   };

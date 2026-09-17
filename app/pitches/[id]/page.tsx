@@ -30,6 +30,7 @@ import {
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Section { heading: string; body: string }
 
@@ -85,7 +86,7 @@ export default function PitchEditorPage({ params }: { params: { id: string } }) 
     setBusy(true);
     setError(null);
     const next = { ...pitch, ...patch };
-    const res = await supabase
+    const res = await saveOrFail(supabase
       .from('pitches')
       .update({
         title: next.title,
@@ -94,7 +95,7 @@ export default function PitchEditorPage({ params }: { params: { id: string } }) 
         public_token: next.public_token,
         published_at: next.published_at,
       })
-      .eq('id', pitch.id);
+      .eq('id', pitch.id));
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
     setPitch(next);

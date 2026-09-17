@@ -16,6 +16,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, Pill, SectionLabel, shortDate } from './ui';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Doc {
   id: string;
@@ -54,7 +55,7 @@ export function ClientDocs({ customerId }: { customerId: string }) {
 
   const setVisibility = async (d: Doc, visibility: Doc['visibility']) => {
     setDocs((rows) => rows.map((r) => (r.id === d.id ? { ...r, visibility } : r)));
-    await supabase.from('brand_intel').update({ visibility }).eq('id', d.id);
+    await saveOrFail(supabase.from('brand_intel').update({ visibility }).eq('id', d.id));
   };
 
 

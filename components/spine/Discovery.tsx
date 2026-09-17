@@ -19,6 +19,7 @@ import { FRAMEWORK } from '@/lib/spine/framework';
 import { useRouter } from 'next/navigation';
 import { Button, C, Card, Pill, SectionLabel } from './ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Draft {
   name: string;
@@ -79,7 +80,7 @@ export function Discovery({ customerId }: { customerId: string }) {
 
   const flag = async (r: Row) => {
     setRows((rs) => rs.map((x) => (x.id === r.id ? { ...x, flagged: !x.flagged } : x)));
-    await supabase.from('discovery').update({ flagged: !r.flagged }).eq('id', r.id);
+    await saveOrFail(supabase.from('discovery').update({ flagged: !r.flagged }).eq('id', r.id));
   };
 
   /**
@@ -107,7 +108,7 @@ export function Discovery({ customerId }: { customerId: string }) {
         : m
     );
 
-    const res = await supabase.from('brands').update({ messaging: next }).eq('id', brandId);
+    const res = await saveOrFail(supabase.from('brands').update({ messaging: next }).eq('id', brandId));
     setBusy(null);
     if (res.error) { setError(human(res.error.message)); return; }
     setDone((d) => ({ ...d, [r.id]: `Added to ${moduleName(r.informs)}` }));
@@ -136,7 +137,7 @@ export function Discovery({ customerId }: { customerId: string }) {
     setError(null);
     try {
       const org = await supabase.rpc('current_org_id');
-      const job = await supabase
+      const job = await saveOrFail(supabase
         .from('jobs')
         .insert({
           org_id: org.data,
@@ -148,10 +149,10 @@ export function Discovery({ customerId }: { customerId: string }) {
           description: draft.summary,
         })
         .select('id')
-        .single();
+        .single());
       if (job.error) throw new Error(job.error.message);
 
-      const est = await supabase
+      const est = await saveOrFail(supabase
         .from('estimates')
         .insert({
           org_id: org.data,
@@ -164,7 +165,7 @@ export function Discovery({ customerId }: { customerId: string }) {
           scope_out: draft.scope_out,
         })
         .select('id')
-        .single();
+        .single());
       if (est.error) throw new Error(est.error.message);
 
       const lines = draft.lines.map((l, i) => ({
@@ -180,7 +181,7 @@ export function Discovery({ customerId }: { customerId: string }) {
         optional: l.optional,
         position: i + 1,
       }));
-      const ins = await supabase.from('estimate_lines').insert(lines);
+      const ins = await saveOrFail(supabase.from('estimate_lines').insert(lines));
       if (ins.error) throw new Error(ins.error.message);
 
       router.push(`/jobs/${job.data.id}`);

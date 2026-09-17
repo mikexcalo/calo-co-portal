@@ -38,6 +38,7 @@ import {
   brandTabs,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Intel {
   id: string;
@@ -141,9 +142,9 @@ export default function IntelPage({ params }: { params: { id: string } }) {
     });
 
     if (drops.length) {
-      const res = await supabase
+      const res = await saveOrFail(supabase
         .from('brand_intel')
-        .insert(drops.map((d) => ({ ...d, org_id: org.data, brand_id: brand.id })));
+        .insert(drops.map((d) => ({ ...d, org_id: org.data, brand_id: brand.id }))));
       if (res.error) { setError(human(res.error.message)); setSaving(false); return; }
     }
 
@@ -195,7 +196,7 @@ export default function IntelPage({ params }: { params: { id: string } }) {
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? 'Could not read that.'); setReading(null); return; }
       setResult(data as Read);
-      await supabase
+      await saveOrFail(supabase
         .from('brand_intel')
         .update({
           read_at: new Date().toISOString(),
@@ -205,7 +206,7 @@ export default function IntelPage({ params }: { params: { id: string } }) {
           summary: drop.summary ?? data.summary ?? null,
           takeaway: drop.takeaway ?? data.takeaway ?? null,
         })
-        .eq('id', drop.id);
+        .eq('id', drop.id));
       load();
     } catch (e) {
       setError(human((e as Error).message));
@@ -223,7 +224,7 @@ export default function IntelPage({ params }: { params: { id: string } }) {
     const next = brand.messaging.map((m) =>
       m.id === p.id ? { ...m, content: p.content, source: `Read from intel · ${p.confidence}` } : m
     );
-    const res = await supabase.from('brands').update({ messaging: next }).eq('id', brand.id);
+    const res = await saveOrFail(supabase.from('brands').update({ messaging: next }).eq('id', brand.id));
     if (!res.error) {
       setBrand({ ...brand, messaging: next });
       setTaken((t) => new Set(t).add(p.id));
@@ -233,7 +234,7 @@ export default function IntelPage({ params }: { params: { id: string } }) {
   const acceptProof = async (item: Read['proof'][number], key: string) => {
     if (!brand) return;
     const org = await supabase.rpc('current_org_id');
-    const res = await supabase.from('brand_proof').insert({
+    const res = await saveOrFail(supabase.from('brand_proof').insert({
       org_id: org.data,
       brand_id: brand.id,
       kind: item.kind,
@@ -243,7 +244,7 @@ export default function IntelPage({ params }: { params: { id: string } }) {
       // Never real on arrival. Real needs written permission on file, and the
       // database will refuse it anyway.
       status: 'placeholder',
-    });
+    }));
     if (!res.error) setTaken((t) => new Set(t).add(key));
   };
 
@@ -255,10 +256,10 @@ export default function IntelPage({ params }: { params: { id: string } }) {
       setTaken((t) => new Set(t).add(key));
       return;
     }
-    const res = await supabase
+    const res = await saveOrFail(supabase
       .from('brands')
       .update({ guardrails: { ...g, never: [...(g.never ?? []), r] } })
-      .eq('id', brand.id);
+      .eq('id', brand.id));
     if (!res.error) setTaken((t) => new Set(t).add(key));
   };
 

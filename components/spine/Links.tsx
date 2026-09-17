@@ -19,6 +19,7 @@ import supabase from '@/lib/supabase';
 import { Button, C, Card, Empty, SectionLabel, inputStyle } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface LinkRow {
   id: string;
@@ -85,13 +86,13 @@ export function Links({
     }
     setBusy(true);
     setError(null);
-    const res = await supabase.from('links').insert({
+    const res = await saveOrFail(supabase.from('links').insert({
       org_id: orgId,
       customer_id: customerId ?? null,
       job_id: jobId ?? null,
       url: clean,
       title: title.trim() || nameFromUrl(clean),
-    });
+    }));
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
     setUrl('');
@@ -103,7 +104,7 @@ export function Links({
   const remove = async () => {
     if (!confirmDelete) return;
     setBusy(true);
-    await supabase.from('links').delete().eq('id', confirmDelete.id);
+    await saveOrFail(supabase.from('links').delete().eq('id', confirmDelete.id));
     setBusy(false);
     setConfirmDelete(null);
     await load();

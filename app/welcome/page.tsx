@@ -21,6 +21,7 @@ import { METHODS, looksLikeAccountNumber, type PaymentMethod } from '@/lib/spine
 import type { Org } from '@/lib/spine/types';
 import { PRODUCT } from '@/lib/brand';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 const INK = '#141414';
 const BORDER = '#e4e4e0';
@@ -187,17 +188,17 @@ export default function WelcomePage() {
          */
         let o = initial;
         if (!o && auth?.user) {
-          const membership = await supabase
+          const membership = await saveOrFail(supabase
             .from('memberships')
             .select('org_id')
             .eq('user_id', auth.user.id)
             .limit(1)
-            .maybeSingle();
+            .maybeSingle());
 
           if (membership.data?.org_id) {
-            await supabase
+            await saveOrFail(supabase
               .from('profiles')
-              .upsert({ id: auth.user.id, active_org_id: membership.data.org_id }, { onConflict: 'id' });
+              .upsert({ id: auth.user.id, active_org_id: membership.data.org_id }, { onConflict: 'id' }));
             o = await getCurrentOrg();
           }
         }
@@ -259,7 +260,7 @@ export default function WelcomePage() {
           // The role is on the person, not the business: two people in one
           // workspace do different jobs and should not be told they do the same
           // one.
-          await supabase.from('profiles').upsert(
+          await saveOrFail(supabase.from('profiles').upsert(
             {
               id: auth.user.id,
               ...(fullName.trim() ? { full_name: fullName.trim() } : {}),
@@ -268,7 +269,7 @@ export default function WelcomePage() {
               ...(goal.trim() ? { goal: goal.trim() } : {}),
             },
             { onConflict: 'id' }
-          );
+          ));
         }
         if (!org) {
           // Everything typed would be thrown away. Say so rather than
@@ -432,7 +433,7 @@ export default function WelcomePage() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   style={field}
-                  placeholder="Mark Mesedahl"
+                  placeholder="Their name"
                   autoComplete="name"
                   autoFocus
                 />

@@ -36,6 +36,7 @@ import { Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/compon
 import { Glyph } from '@/components/spine/icons';
 import { Doc, CopyDoc } from '@/components/spine/Doc';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface RefDoc {
   id: string;
@@ -99,14 +100,14 @@ export default function MarketPage() {
   const save = async () => {
     if (!org || !draft?.title.trim() || !draft.body.trim()) return;
     setBusy(true);
-    const res = await supabase.from('reference_docs').insert({
+    const res = await saveOrFail(supabase.from('reference_docs').insert({
       org_id: org.id,
       title: draft.title.trim(),
       subject: draft.subject.trim() || null,
       source: draft.source.trim() || null,
       as_of: draft.as_of || null,
       body: draft.body,
-    });
+    }));
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
     setDraft(null);

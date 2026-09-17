@@ -32,6 +32,7 @@ import {
   DIGITAL_TABS,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Site {
   id: string;
@@ -125,7 +126,7 @@ export default function WebsitePage() {
     setBusy(true);
     setError(null);
     try {
-      const res = await supabase.from('site_content').update({ value }).eq('id', c.id);
+      const res = await saveOrFail(supabase.from('site_content').update({ value }).eq('id', c.id));
       if (res.error) throw new Error(res.error.message);
       setContent((prev) => prev.map((x) => (x.id === c.id ? { ...x, value } : x)));
       setNotice(`${c.label} updated. It's live on the site now.`);
@@ -144,7 +145,7 @@ export default function WebsitePage() {
       if (!org) throw new Error('No business selected.');
       const { data: auth } = await supabase.auth.getUser();
 
-      const res = await supabase.from('site_requests').insert({
+      const res = await saveOrFail(supabase.from('site_requests').insert({
         org_id: org.id,
         site_id: site?.id ?? null,
         title: title.trim(),
@@ -153,19 +154,19 @@ export default function WebsitePage() {
         urgency,
         requested_by: auth?.user?.id ?? null,
         requester_email: auth?.user?.email ?? null,
-      });
+      }));
       if (res.error) throw new Error(res.error.message);
 
       // Tell the agency that manages this site. Best-effort — the request is
       // already saved, and a failed announcement must not lose it.
       if (site?.managed_by_org_id) {
-        await supabase.from('notifications').insert({
+        await saveOrFail(supabase.from('notifications').insert({
           org_id: site.managed_by_org_id,
           kind: 'site_request',
           title: `${org.name}: ${title.trim()}`,
           body: body.trim().slice(0, 120),
           href: '/requests',
-        });
+        }));
       }
 
       setTitle(''); setBody(''); setKind('change'); setUrgency('normal');

@@ -36,6 +36,7 @@ import {
 } from '@/components/spine/ui';
 import { DropZone } from '@/components/spine/DropZone';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface PriceItem {
   id: string;
@@ -120,7 +121,7 @@ export default function PricingPage() {
       const usable = rows.filter((r) => r.name.trim());
       if (!usable.length) throw new Error('Nothing to save.');
 
-      const res = await supabase.from('price_items').insert(
+      const res = await saveOrFail(supabase.from('price_items').insert(
         usable.map((r, i) => ({
           org_id: orgId,
           name: r.name.trim(),
@@ -131,7 +132,7 @@ export default function PricingPage() {
           kind: r.kind,
           position: items.length + i,
         }))
-      );
+      ));
       if (res.error) throw new Error(res.error.message);
 
       setNotice(`Added ${usable.length} item${usable.length === 1 ? '' : 's'}.`);
@@ -149,7 +150,7 @@ export default function PricingPage() {
   const toggle = async (item: PriceItem, patch: Partial<PriceItem>) => {
     setError(null);
     try {
-      const res = await supabase.from('price_items').update(patch).eq('id', item.id);
+      const res = await saveOrFail(supabase.from('price_items').update(patch).eq('id', item.id));
       if (res.error) throw new Error(res.error.message);
       setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, ...patch } : i)));
     } catch (e) {

@@ -21,6 +21,7 @@ import { useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, inputStyle } from './ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Found {
   website: string;
@@ -76,7 +77,7 @@ export function Enrich({
     if (take.name && found.name) patch.name = found.name;
     if (take.description && found.description) patch.notes = found.description;
     if (take.phone && found.phone) patch.phone = found.phone;
-    const res = await supabase.from('customers').update(patch).eq('id', customerId);
+    const res = await saveOrFail(supabase.from('customers').update(patch).eq('id', customerId));
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
     setFound(null);

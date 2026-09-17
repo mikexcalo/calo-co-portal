@@ -37,6 +37,7 @@ import {
   PITCH_TABS,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Claim {
   id: string;
@@ -239,7 +240,7 @@ export default function StoriesPage() {
     if (!proposed) return;
     setBusy(true);
     const org = await supabase.rpc('current_org_id');
-    const cs = await supabase
+    const cs = await saveOrFail(supabase
       .from('case_studies')
       .insert({
         org_id: org.data,
@@ -257,10 +258,10 @@ export default function StoriesPage() {
         status: 'draft',
       })
       .select('id')
-      .single();
+      .single());
 
     if (!cs.error && proposed.claims.length) {
-      await supabase.from('case_study_claims').insert(
+      await saveOrFail(supabase.from('case_study_claims').insert(
         proposed.claims.map((c) => ({
           org_id: org.data,
           case_id: cs.data.id,
@@ -268,7 +269,7 @@ export default function StoriesPage() {
           status: 'unsourced',
           source: null,
         }))
-      );
+      ));
     }
     setBusy(false);
     setProposed(null);
@@ -289,7 +290,7 @@ export default function StoriesPage() {
   const save = async (id: string) => {
     setBusy(true);
     setError(null);
-    const res = await supabase.from('case_studies').update(draft).eq('id', id);
+    const res = await saveOrFail(supabase.from('case_studies').update(draft).eq('id', id));
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
     setOpen(null);
@@ -298,7 +299,7 @@ export default function StoriesPage() {
 
   const setStatus = async (s: Story, status: Story['status']) => {
     setBusy(true);
-    const res = await supabase.from('case_studies').update({ status }).eq('id', s.id);
+    const res = await saveOrFail(supabase.from('case_studies').update({ status }).eq('id', s.id));
     setBusy(false);
     if (!res.error) load();
   };
@@ -306,7 +307,7 @@ export default function StoriesPage() {
   const addClaim = async (s: Story) => {
     if (!newClaim.trim()) return;
     const org = await supabase.rpc('current_org_id');
-    const res = await supabase.from('case_study_claims').insert({
+    const res = await saveOrFail(supabase.from('case_study_claims').insert({
       org_id: org.data,
       case_id: s.id,
       claim: newClaim.trim(),
@@ -320,16 +321,16 @@ export default function StoriesPage() {
        */
       source: sourceDefault,
       status: 'sourced',
-    });
+    }));
     if (!res.error) { setNewClaim(''); load(); }
   };
 
   const sourceClaim = async (c: Claim, source: string) => {
     const value = source.trim();
-    const res = await supabase
+    const res = await saveOrFail(supabase
       .from('case_study_claims')
       .update({ source: value || null, status: value ? 'sourced' : 'unsourced' })
-      .eq('id', c.id);
+      .eq('id', c.id));
     if (!res.error) load();
   };
 
@@ -467,7 +468,7 @@ export default function StoriesPage() {
       )}
 
       {stories.length === 0 ? (
-        <Card><Empty>Nothing yet.</Empty></Card>
+        <Card><Empty>No case studies yet. Write one up from a finished job.</Empty></Card>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {stories.map((s) => {

@@ -31,6 +31,7 @@ import {
   shortDate,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Person { name: string; role?: string | null; email?: string | null; phone?: string | null }
 interface Task { what: string; who?: string | null; due?: string | null }
@@ -147,7 +148,7 @@ export default function NotesPage() {
         '\n\n— — —\nOriginal:\n' + raw,
       ];
 
-      const res = await supabase.from('customer_notes').insert({
+      const res = await saveOrFail(supabase.from('customer_notes').insert({
         org_id: org.id,
         customer_id: customerId || null,
         title: result.title,
@@ -157,7 +158,7 @@ export default function NotesPage() {
         happened_on: result.happened_on || new Date().toISOString().slice(0, 10),
         // Recorded, never displayed. See the AI usage tile in Overheads.
         extraction_cost_cents: cost,
-      });
+      }));
       if (res.error) throw new Error(res.error.message);
 
       setResult(null);

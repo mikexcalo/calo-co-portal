@@ -37,6 +37,7 @@ import {
 import { RecordTable, type Column } from '@/components/spine/RecordTable';
 import { daysSince } from '@/lib/spine/stage';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 type Relationship = 'contact' | 'client' | 'proxy' | 'prospect' | 'referrer' | 'freelancer' | 'partner';
 
@@ -239,7 +240,7 @@ export default function PeoplePage() {
     if (!org || !draft.name.trim()) return;
     setBusy(true);
     setError(null);
-    const res = await supabase.from('customer_contacts').insert({
+    const res = await saveOrFail(supabase.from('customer_contacts').insert({
       org_id: org.id,
       name: draft.name.trim(),
       title: draft.title.trim() || null,
@@ -255,7 +256,7 @@ export default function PeoplePage() {
       met_on: new Date().toISOString().slice(0, 10),
       last_spoke_on: new Date().toISOString().slice(0, 10),
       is_primary: false,
-    });
+    }));
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
     setDraft(blank);
@@ -264,7 +265,7 @@ export default function PeoplePage() {
   };
 
   const save = async (id: string, patch: Partial<Person>) => {
-    await supabase.from('customer_contacts').update(patch).eq('id', id);
+    await saveOrFail(supabase.from('customer_contacts').update(patch).eq('id', id));
     load();
   };
 

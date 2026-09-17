@@ -24,6 +24,7 @@ import { useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, SectionLabel } from './ui';
 import { TalkToIt } from './TalkToIt';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 const FIELD_LABEL: Record<string, string> = {
   opportunity: 'The opportunity',
@@ -111,27 +112,27 @@ export function SayIt({
 
   /** The note is the record, so it is saved before anything is judged. */
   const saveNote = async (r: Read) => {
-    await supabase.from('customer_notes').insert({
+    await saveOrFail(supabase.from('customer_notes').insert({
       org_id: orgId,
       customer_id: customerId,
       kind: 'call',
       body: `${r.title}\n\n${r.summary}\n\n---\nSaid:\n${transcript}`,
       happened_on: new Date().toISOString().slice(0, 10),
-    });
+    }));
   };
 
   const accept = async (u: Update) => {
     const next = { ...current, [u.field]: u.text };
-    await supabase.from('customers').update({ brief: next }).eq('id', customerId);
+    await saveOrFail(supabase.from('customers').update({ brief: next }).eq('id', customerId));
     setCurrent(next);
     setTaken((s) => new Set(s).add(u.field));
   };
 
   const acceptWaiting = async (w: string) => {
-    await supabase
+    await saveOrFail(supabase
       .from('customers')
       .update({ waiting_on: w, awaiting_reply_since: new Date().toISOString().slice(0, 10) })
-      .eq('id', customerId);
+      .eq('id', customerId));
     setTaken((s) => new Set(s).add('__waiting'));
   };
 

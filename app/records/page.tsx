@@ -38,6 +38,7 @@ import {
 } from '@/components/spine/ui';
 import { DropZone } from '@/components/spine/DropZone';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface BusinessFile {
   id: string;
@@ -170,7 +171,7 @@ export default function FilesPage() {
         });
         if (up.error) throw new Error(up.error.message);
 
-        const res = await supabase.from('business_files').insert({
+        const res = await saveOrFail(supabase.from('business_files').insert({
           org_id: orgId,
           name: item.name.trim() || item.file.name,
           description: item.description.trim() || null,
@@ -181,7 +182,7 @@ export default function FilesPage() {
           mime_type: item.file.type || null,
           size_bytes: item.file.size,
           uploaded_by: auth?.user?.id ?? null,
-        });
+        }));
         if (res.error) {
           // Never leave a file orphaned in storage with no row pointing at it.
           await supabase.storage.from('documents').remove([path]).catch(() => {});
@@ -234,7 +235,7 @@ export default function FilesPage() {
     setError(null);
     try {
       await supabase.storage.from('documents').remove([f.storage_path]).catch(() => {});
-      const res = await supabase.from('business_files').delete().eq('id', f.id);
+      const res = await saveOrFail(supabase.from('business_files').delete().eq('id', f.id));
       if (res.error) throw new Error(res.error.message);
       await load();
     } catch (e) {
@@ -393,7 +394,7 @@ export default function FilesPage() {
       {loading ? (
         <Empty>Loading…</Empty>
       ) : files.length === 0 ? (
-        <Card><Empty>Nothing filed yet.</Empty></Card>
+        <Card><Empty>Nothing filed yet. Drop in insurance, a licence, a contract.</Empty></Card>
       ) : (
         CATEGORIES.filter((c) => grouped[c.id]?.length).map((c) => (
           <div key={c.id} style={{ marginBottom: 26, maxWidth: 720 }}>

@@ -17,6 +17,7 @@ import { usePathname } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { Button, C, Card, SectionLabel, inputStyle } from './ui';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 const KINDS = [
   { id: 'idea',      label: 'I need something', hint: 'A thing that is not here yet.' },
@@ -57,7 +58,7 @@ export function TellUs() {
     if (!org || !body.trim()) return;
     setBusy(true);
     const { data: auth } = await supabase.auth.getUser();
-    const res = await supabase.from('feedback').insert({
+    const res = await saveOrFail(supabase.from('feedback').insert({
       org_id: org.id,
       author_id: auth?.user?.id ?? null,
       kind,
@@ -65,7 +66,7 @@ export function TellUs() {
       // Recorded rather than asked. "Which screen" is the question nobody can
       // answer afterwards.
       page: pathname,
-    });
+    }));
     setBusy(false);
     if (res.error) return;
     setBody('');

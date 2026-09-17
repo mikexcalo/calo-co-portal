@@ -36,6 +36,7 @@ import {
   inputStyle,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 type Stage = 'drop' | 'review' | 'done';
 
@@ -122,7 +123,7 @@ export default function ImportCustomersPage() {
       // The batch exists first, so every row can point at it. If this import
       // turns out to be wrong, "undo that spreadsheet" is one decision rather
       // than two hundred.
-      const batch = await supabase
+      const batch = await saveOrFail(supabase
         .from('import_batches')
         .insert({
           org_id: org.id,
@@ -131,7 +132,7 @@ export default function ImportCustomersPage() {
           row_count: keeping.length,
         })
         .select()
-        .single();
+        .single());
       if (batch.error) throw new Error(batch.error.message);
 
       const payload = keeping.map((r) => ({
@@ -152,7 +153,7 @@ export default function ImportCustomersPage() {
             .join('\n') || null,
       }));
 
-      const res = await supabase.from('customers').insert(payload);
+      const res = await saveOrFail(supabase.from('customers').insert(payload));
       if (res.error) throw new Error(res.error.message);
 
       setImported(payload.length);

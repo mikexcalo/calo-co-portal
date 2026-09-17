@@ -26,6 +26,7 @@ import {
   shortDate,
 } from './ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 export interface Campaign {
   id: string;
@@ -123,11 +124,11 @@ export function QrCampaigns({
     }
 
     const code = makeCode();
-    const res = await supabase
+    const res = await saveOrFail(supabase
       .from('qr_campaigns')
       .insert({ org_id: orgId, code, label: label.trim(), medium, destination: dest })
       .select()
-      .single();
+      .single());
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
 

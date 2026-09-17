@@ -22,6 +22,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, SectionLabel, inputStyle, shortDate, useIsPhone } from './ui';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface BriefShape {
   opportunity?: string;
@@ -87,7 +88,7 @@ export function Brief({ customerId, clientName }: { customerId: string; clientNa
 
   const save = async () => {
     setBusy(true);
-    await supabase.from('customers').update({ brief }).eq('id', customerId);
+    await saveOrFail(supabase.from('customers').update({ brief }).eq('id', customerId));
     setBusy(false);
     setEditing(false);
     load();

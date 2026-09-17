@@ -18,6 +18,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, SectionLabel, inputStyle } from './ui';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Site {
   id: string;
@@ -69,12 +70,12 @@ export function TheirSite({
     const clean = (url.trim() || website || '').trim();
     if (!clean) return;
     setBusy(true);
-    await supabase.from('client_sites').insert({
+    await saveOrFail(supabase.from('client_sites').insert({
       org_id: orgId,
       customer_id: customerId,
       name: clientName,
       url: clean.startsWith('http') ? clean : `https://${clean}`,
-    });
+    }));
     setBusy(false);
     setUrl('');
     load();
@@ -83,7 +84,7 @@ export function TheirSite({
   const toggle = async () => {
     if (!site) return;
     setBusy(true);
-    await supabase.from('client_sites').update({ analytics_on: !site.analytics_on }).eq('id', site.id);
+    await saveOrFail(supabase.from('client_sites').update({ analytics_on: !site.analytics_on }).eq('id', site.id));
     setBusy(false);
     load();
   };

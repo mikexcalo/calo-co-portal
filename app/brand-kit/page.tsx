@@ -260,7 +260,7 @@ export default function BrandKitPage() {
           <Card>
             <SectionLabel>Colors</SectionLabel>
             {brand.colors.length === 0 ? (
-              <Empty>No colors set for this brand.</Empty>
+              <Empty>No colors yet. Add them, or drop a logo below and read them off it.</Empty>
             ) : (
               <div
                 style={{

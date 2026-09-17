@@ -35,6 +35,7 @@ import { ModuleSwitchboard } from '@/components/spine/ModuleSwitchboard';
 import { Avatar, CLIENT_TABS, C, Card, Empty, Page, SectionLabel, Switch } from '@/components/spine/ui';
 import { brandAssetUrl } from '@/lib/spine/db';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Row {
   id: string;
@@ -133,9 +134,9 @@ export default function AccessPage() {
     if (next === null) delete mods[key];
     else mods[key] = next;
     setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, modules: mods } : r)));
-    await supabase.from('customers').update({ modules: mods }).eq('id', row.id);
+    await saveOrFail(supabase.from('customers').update({ modules: mods }).eq('id', row.id));
     // A client with a login keeps its own copy, or the switch is decorative.
-    if (row.workspace_id) await supabase.from('orgs').update({ modules: mods }).eq('id', row.workspace_id);
+    if (row.workspace_id) await saveOrFail(supabase.from('orgs').update({ modules: mods }).eq('id', row.workspace_id));
   };
 
   const owed = useMemo(
@@ -155,7 +156,7 @@ export default function AccessPage() {
           </div>
         </Card>
       ) : rows.length === 0 ? (
-        <Card><Empty>No clients yet.</Empty></Card>
+        <Card><Empty>No clients yet. Add one and you can choose what they see.</Empty></Card>
       ) : (
         <>
           {owed > 0 && (

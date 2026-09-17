@@ -22,6 +22,7 @@ import {
   Button, C, Card, Empty, Field, Metric, Page, Pill, SectionLabel, inputStyle,
   DIGITAL_TABS,
 } from '@/components/spine/ui';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface TaskRow { key: string; status: 'todo' | 'doing' | 'done' | 'skipped' }
 interface Citation { id: string; name: string; url: string | null; status: string; note: string | null }
@@ -80,9 +81,9 @@ export default function SeoPage() {
     // Seeded on first visit so the list is never empty and nobody has to think
     // of the directories themselves.
     if ((c.data ?? []).length === 0) {
-      await supabase.from('seo_citations').insert(
+      await saveOrFail(supabase.from('seo_citations').insert(
         DEFAULT_CITATIONS.map((d) => ({ org_id: o.data, customer_id: clientId, name: d.name, url: d.url, note: d.note }))
-      );
+      ));
       const again = await scope(supabase.from('seo_citations').select('*').eq('org_id', o.data)).order('created_at');
       setCitations((again.data ?? []) as Citation[]);
     } else {
@@ -98,12 +99,12 @@ export default function SeoPage() {
     const o = await supabase.rpc('current_org_id');
     if (!o.data) return;
     setBusy(true);
-    const res = await supabase
+    const res = await saveOrFail(supabase
       .from('seo_profile')
       .upsert(
         { ...profile, org_id: o.data, customer_id: clientId, updated_at: new Date().toISOString() },
         { onConflict: 'org_id,customer_id' }
-      );
+      ));
     setBusy(false);
     if (!res.error) setEditing(false);
   };
@@ -112,12 +113,12 @@ export default function SeoPage() {
     const o = await supabase.rpc('current_org_id');
     if (!o.data) return;
     setTasks((t) => ({ ...t, [key]: status }));
-    await supabase.from('seo_tasks').upsert({ org_id: o.data, customer_id: clientId, key, status }, { onConflict: 'org_id,customer_id,key' });
+    await saveOrFail(supabase.from('seo_tasks').upsert({ org_id: o.data, customer_id: clientId, key, status }, { onConflict: 'org_id,customer_id,key' }));
   };
 
   const setCitation = async (c: Citation, status: string) => {
     setCitations((rows) => rows.map((r) => (r.id === c.id ? { ...r, status } : r)));
-    await supabase.from('seo_citations').update({ status }).eq('id', c.id);
+    await saveOrFail(supabase.from('seo_citations').update({ status }).eq('id', c.id));
   };
 
   const copy = (key: string, text: string) => {

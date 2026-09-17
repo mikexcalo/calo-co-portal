@@ -27,6 +27,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, Empty, SectionLabel, inputStyle } from './ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Product {
   id: string;
@@ -92,7 +93,7 @@ export function ClientCatalog({
   const add = async () => {
     if (!draft?.item.trim()) return;
     setBusy(true);
-    const res = await supabase.from('client_products').insert({
+    const res = await saveOrFail(supabase.from('client_products').insert({
       org_id: orgId,
       customer_id: customerId,
       item: draft.item.trim(),
@@ -105,7 +106,7 @@ export function ClientCatalog({
       species: draft.species.trim() || null,
       sells_to: draft.sells_to.trim() || null,
       sort: rows.length + 1,
-    });
+    }));
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
     setDraft(null);
@@ -119,7 +120,7 @@ export function ClientCatalog({
       fob: edit.fob.trim() || null,
       pack: edit.pack.trim() || null,
     };
-    const res = await supabase.from('client_products').update(patch).eq('id', id);
+    const res = await saveOrFail(supabase.from('client_products').update(patch).eq('id', id));
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
     setEditing(null);

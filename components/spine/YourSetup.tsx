@@ -19,6 +19,7 @@ import { useOrg } from '@/lib/spine/org';
 import { useViewAs } from '@/lib/spine/viewas';
 import { Button, C, Card, SectionLabel } from './ui';
 import { Glyph } from './icons';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 type Status = 'todo' | 'doing' | 'done' | 'skipped';
 
@@ -99,7 +100,7 @@ export function YourSetup() {
   const set = async (key: string, status: Status) => {
     if (!org) return;
     setState((s) => ({ ...s, [key]: status }));
-    await supabase.from('setup_items').upsert({ org_id: org.id, key, status }, { onConflict: 'org_id,key' });
+    await saveOrFail(supabase.from('setup_items').upsert({ org_id: org.id, key, status }, { onConflict: 'org_id,key' }));
   };
 
   /**
@@ -118,10 +119,10 @@ export function YourSetup() {
     const finished = next.length === total;
     if (finished) setState((st) => ({ ...st, [key]: 'done' }));
 
-    await supabase.from('setup_items').upsert(
+    await saveOrFail(supabase.from('setup_items').upsert(
       { org_id: org.id, key, steps_done: next, status: finished ? 'done' : 'todo' },
       { onConflict: 'org_id,key' }
-    );
+    ));
   };
 
   if (!loaded || !org) return null;

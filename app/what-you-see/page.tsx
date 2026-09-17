@@ -21,6 +21,7 @@ import { modulesFor, type ModuleId, type ModuleState } from '@/lib/spine/modules
 import { ModuleSwitchboard } from '@/components/spine/ModuleSwitchboard';
 import { C, Card, Empty, Page, SETUP_TABS } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 /** What each one is, to you rather than to a client. */
 const WHAT: Partial<Record<ModuleId, string>> = {
@@ -86,7 +87,7 @@ export default function WhatYouSeePage() {
     if (!org) return;
     const mods = { ...state, [id]: next };
     setState(mods);
-    const res = await supabase.from('orgs').update({ modules: mods }).eq('id', org.id);
+    const res = await saveOrFail(supabase.from('orgs').update({ modules: mods }).eq('id', org.id));
     if (res.error) { setError(human(res.error.message)); load(); return; }
     // The sidebar reads the org, so it has to be told the org changed.
     await refresh();

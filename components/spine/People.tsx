@@ -18,6 +18,7 @@ import supabase from '@/lib/supabase';
 import { Avatar, Button, C, Card, Empty, Pill, SectionLabel, inputStyle } from './ui';
 import { Confirm } from './Confirm';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Person {
   id: string;
@@ -59,7 +60,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
     if (!draft.name.trim()) return;
     setBusy(true);
     setError(null);
-    const res = await supabase.from('customer_contacts').insert({
+    const res = await saveOrFail(supabase.from('customer_contacts').insert({
       org_id: orgId,
       customer_id: customerId,
       name: draft.name.trim(),
@@ -70,7 +71,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
       // The first person added becomes the default. After that it is a
       // deliberate choice, not a side effect of being typed in first.
       is_primary: rows.length === 0,
-    });
+    }));
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
     setDraft(blank);
@@ -88,14 +89,14 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
   const saveEdit = async (p: Person) => {
     setBusy(true);
     setError(null);
-    const res = await supabase
+    const res = await saveOrFail(supabase
       .from('customer_contacts')
       .update({
         email: edit.email.trim() || null,
         phone: edit.phone.trim() || null,
         title: edit.title.trim() || null,
       })
-      .eq('id', p.id);
+      .eq('id', p.id));
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
     setEditingId(null);
@@ -106,12 +107,12 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
     setBusy(true);
     // Stand the old one down first. The database allows only one primary per
     // client, so setting the new one first would collide.
-    await supabase
+    await saveOrFail(supabase
       .from('customer_contacts')
       .update({ is_primary: false })
       .eq('customer_id', customerId)
-      .eq('is_primary', true);
-    await supabase.from('customer_contacts').update({ is_primary: true }).eq('id', p.id);
+      .eq('is_primary', true));
+    await saveOrFail(supabase.from('customer_contacts').update({ is_primary: true }).eq('id', p.id));
     setBusy(false);
     await load();
   };
@@ -119,7 +120,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
   const remove = async () => {
     if (!confirmDelete) return;
     setBusy(true);
-    await supabase.from('customer_contacts').delete().eq('id', confirmDelete.id);
+    await saveOrFail(supabase.from('customer_contacts').delete().eq('id', confirmDelete.id));
     setBusy(false);
     setConfirmDelete(null);
     await load();

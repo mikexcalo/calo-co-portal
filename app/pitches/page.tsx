@@ -26,6 +26,7 @@ import {
   PITCH_TABS,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Pitch {
   id: string;
@@ -74,7 +75,7 @@ export default function PitchesPage() {
   const create = async () => {
     if (!org) return;
     setBusy(true);
-    const res = await supabase
+    const res = await saveOrFail(supabase
       .from('pitches')
       .insert({
         org_id: org.id,
@@ -88,7 +89,7 @@ export default function PitchesPage() {
         ],
       })
       .select()
-      .single();
+      .single());
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
     router.push(`/pitches/${res.data.id}`);

@@ -25,6 +25,7 @@ import {
   shortDate,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 type Status = 'submitted' | 'needs_info' | 'approved' | 'building' | 'shipped' | 'declined';
 
@@ -135,7 +136,7 @@ export default function RequestsPage() {
     setBusy(true);
     setError(null);
     try {
-      const res = await supabase
+      const res = await saveOrFail(supabase
         .from('site_requests')
         .update({
           status,
@@ -143,7 +144,7 @@ export default function RequestsPage() {
           decided_at: new Date().toISOString(),
           ...(status === 'shipped' ? { shipped_at: new Date().toISOString() } : {}),
         })
-        .eq('id', r.id);
+        .eq('id', r.id));
       if (res.error) throw new Error(res.error.message);
       await load();
     } catch (e) {

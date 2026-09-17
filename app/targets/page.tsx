@@ -29,6 +29,7 @@ import { BulkAction, BulkBar, RecordTable, type Column } from '@/components/spin
 import { SavedViews, type View } from '@/components/spine/SavedViews';
 import { brandAssetUrl } from '@/lib/spine/db';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Row {
   id: string;
@@ -191,7 +192,7 @@ export default function PipelinePage() {
      */
     const step = STEP[next];
     if (log && step && org) {
-      await supabase.from('customer_notes').insert(
+      await saveOrFail(supabase.from('customer_notes').insert(
         ids.map((id) => ({
           org_id: org.id,
           customer_id: id,
@@ -200,10 +201,10 @@ export default function PipelinePage() {
           body: step.note,
           happened_on: today,
         }))
-      );
+      ));
     }
 
-    const res = await supabase
+    const res = await saveOrFail(supabase
       .from('customers')
       .update({
         stage: next,
@@ -211,7 +212,7 @@ export default function PipelinePage() {
         stage_changed_on: today,
         ...(log ? { last_contacted_on: today } : {}),
       })
-      .in('id', ids);
+      .in('id', ids));
     if (res.error) { setError(human(res.error.message)); load(); }
   };
 
@@ -247,7 +248,7 @@ export default function PipelinePage() {
   const add = async () => {
     if (!org || !name.trim()) return;
     setBusy(true);
-    const res = await supabase.from('customers').insert({ org_id: org.id, name: name.trim(), stage: 'noticed' });
+    const res = await saveOrFail(supabase.from('customers').insert({ org_id: org.id, name: name.trim(), stage: 'noticed' }));
     setBusy(false);
     if (res.error) {
       // The unique index speaking. Worth translating, because "duplicate key

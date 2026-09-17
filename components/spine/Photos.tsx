@@ -20,6 +20,7 @@ import { Button, C, Card, Empty, SectionLabel } from './ui';
 import { Confirm } from './Confirm';
 import { Processing } from './Processing';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Photo {
   id: string;
@@ -112,7 +113,7 @@ export function Photos({
       });
       if (up.error) { setError(human(up.error.message)); break; }
 
-      const row = await supabase.from('documents').insert({
+      const row = await saveOrFail(supabase.from('documents').insert({
         org_id: orgId,
         customer_id: customerId ?? null,
         job_id: jobId ?? null,
@@ -123,7 +124,7 @@ export function Photos({
         kind: 'photo',
         // Nothing to review: no extraction ran.
         status: 'filed',
-      });
+      }));
       if (row.error) {
         // Don't leave the file orphaned in storage if the record failed.
         await supabase.storage.from('documents').remove([path]);
@@ -144,7 +145,7 @@ export function Photos({
     setBusy(true);
     // Row first. An orphaned file costs pennies; a row pointing at a file
     // that is gone renders a broken image on the customer's page.
-    await supabase.from('documents').delete().eq('id', confirmDelete.id);
+    await saveOrFail(supabase.from('documents').delete().eq('id', confirmDelete.id));
     await supabase.storage.from('documents').remove([confirmDelete.storage_path]);
     setBusy(false);
     setConfirmDelete(null);

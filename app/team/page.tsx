@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
+import { InvitePerson } from '@/components/spine/InvitePerson';
 import {
   Button,
   C,
@@ -122,6 +123,7 @@ export default function TeamPage() {
 
   return (
     <Page
+      action={org?.id ? <InvitePerson orgId={org.id} orgName={org.name} /> : null}
       tabs={SETUP_TABS}
       title="Team"
       subtitle={
@@ -257,7 +259,7 @@ export default function TeamPage() {
       {loading ? (
         <Empty>Loading…</Empty>
       ) : members.length === 0 ? (
-        <Card><Empty>Nobody yet.</Empty></Card>
+        <Card><Empty>Nobody yet. Invite whoever needs a login.</Empty></Card>
       ) : (
         <Table>
           <Row cols="1fr 140px 130px" header>

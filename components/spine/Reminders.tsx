@@ -17,6 +17,7 @@ import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, Check, Empty, SectionLabel, inputStyle, shortDate } from './ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Reminder {
   id: string;
@@ -76,14 +77,14 @@ export function Reminders({
     setBusy(true);
     setError(null);
     const { data: auth } = await supabase.auth.getUser();
-    const res = await supabase.from('reminders').insert({
+    const res = await saveOrFail(supabase.from('reminders').insert({
       org_id: orgId,
       customer_id: customerId ?? null,
       job_id: jobId ?? null,
       body: body.trim(),
       due_on: due,
       created_by: auth?.user?.id ?? null,
-    });
+    }));
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
     setBody('');
@@ -94,10 +95,10 @@ export function Reminders({
 
   const toggle = async (r: Reminder) => {
     setBusy(true);
-    await supabase
+    await saveOrFail(supabase
       .from('reminders')
       .update({ done_at: r.done_at ? null : new Date().toISOString() })
-      .eq('id', r.id);
+      .eq('id', r.id));
     setBusy(false);
     await load();
   };

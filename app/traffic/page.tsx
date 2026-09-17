@@ -27,6 +27,7 @@ import {
   DIGITAL_TABS,
   SectionLabel,
 } from '@/components/spine/ui';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Site {
   id: string;
@@ -103,7 +104,7 @@ export default function TrafficPage() {
 
   const toggle = async () => {
     if (!site) return;
-    await supabase.from('client_sites').update({ analytics_on: !site.analytics_on }).eq('id', site.id);
+    await saveOrFail(supabase.from('client_sites').update({ analytics_on: !site.analytics_on }).eq('id', site.id));
     loadSites();
   };
 

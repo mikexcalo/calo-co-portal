@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { Button, C, Card, SectionLabel, inputStyle } from './ui';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Row {
   id: string;
@@ -88,14 +89,14 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
 
   const answer = async (id: string, status: string) => {
     setRows((p) => p.filter((r) => r.id !== id || status === 'building'));
-    await supabase
+    await saveOrFail(supabase
       .from('feedback')
       .update({
         status,
         reply: reply.trim() || null,
         closed_at: status === 'done' || status === 'wont' ? new Date().toISOString() : null,
       })
-      .eq('id', id);
+      .eq('id', id));
     setReply('');
     setOpen(null);
     load();

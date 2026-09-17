@@ -59,6 +59,7 @@ import {
   useIsPhone,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Customer {
   id: string;
@@ -252,10 +253,10 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
     if (!customer) return;
     setStageBusy(true);
     setCustomer({ ...customer, stage: next, stage_why: null });
-    const res = await supabase
+    const res = await saveOrFail(supabase
       .from('customers')
       .update({ stage: next, stage_why: null, stage_changed_on: new Date().toISOString().slice(0, 10) })
-      .eq('id', params.id);
+      .eq('id', params.id));
     setStageBusy(false);
     if (res.error) { setError(human(res.error.message)); load(); }
   };
@@ -263,7 +264,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
   const saveTags = async (next: string[]) => {
     if (!customer) return;
     setCustomer({ ...customer, tags: next });
-    const res = await supabase.from('customers').update({ tags: next }).eq('id', params.id);
+    const res = await saveOrFail(supabase.from('customers').update({ tags: next }).eq('id', params.id));
     if (res.error) { setError(human(res.error.message)); load(); }
     else setKnownTags((k) => Array.from(new Set([...k, ...next])).sort());
   };
@@ -298,7 +299,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
     setError(null);
     try {
       const { data: auth } = await supabase.auth.getUser();
-      const res = await supabase.from('customer_notes').insert({
+      const res = await saveOrFail(supabase.from('customer_notes').insert({
         org_id: orgId,
         customer_id: params.id,
         kind: noteKind,
@@ -306,15 +307,15 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
         body: noteBody.trim(),
         happened_on: noteDate,
         author_id: auth?.user?.id ?? null,
-      });
+      }));
       if (res.error) throw new Error(res.error.message);
 
       // Logging contact IS contact — no reason to make someone update a date
       // field they'll forget.
-      await supabase
+      await saveOrFail(supabase
         .from('customers')
         .update({ last_contacted_on: todayStr() })
-        .eq('id', params.id);
+        .eq('id', params.id));
 
       setNoteBody('');
       // Folded away again. The reason you opened it is now in the list below.
@@ -331,7 +332,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
     setBusy(true);
     setError(null);
     try {
-      const res = await supabase
+      const res = await saveOrFail(supabase
         .from('customers')
         .update({
           name: draft.name?.trim(),
@@ -345,7 +346,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           next_action: draft.next_action?.trim() || null,
           next_action_on: draft.next_action_on || null,
         })
-        .eq('id', params.id);
+        .eq('id', params.id));
       if (res.error) throw new Error(res.error.message);
       setEditing(false);
       await load();
@@ -359,10 +360,10 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
   const clearNextAction = async () => {
     setBusy(true);
     try {
-      await supabase
+      await saveOrFail(supabase
         .from('customers')
         .update({ next_action: null, next_action_on: null })
-        .eq('id', params.id);
+        .eq('id', params.id));
       await load();
     } finally {
       setBusy(false);
@@ -814,11 +815,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             // The one empty state that earns itself: a client with nothing
             // logged is a client nobody has spoken to, which is worth saying.
             <Card>
-              <Empty>
-                Nothing logged yet. History is for short things that happened: texted Mark, no
-                answer. Anything longer than a paragraph belongs in Capture, which files it as a
-                document with a summary above it.
-              </Empty>
+              <Empty>Nothing logged yet. Short things that happened — a call, a text, a site visit.</Empty>
             </Card>
           ) : !showHistory ? (
             /* Folded. The most recent line is enough to know whether to open
@@ -991,7 +988,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                       onChange={async (e) => {
                         const next = e.target.value as JobRow['status'];
                         setJobs((prev) => prev.map((x) => (x.id === j.id ? { ...x, status: next } : x)));
-                        const res = await supabase.from('jobs').update({ status: next }).eq('id', j.id);
+                        const res = await saveOrFail(supabase.from('jobs').update({ status: next }).eq('id', j.id));
                         if (res.error) { setError(human(res.error.message)); load(); }
                       }}
                       style={{

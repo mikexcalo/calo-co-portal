@@ -21,6 +21,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { C } from './ui';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 export interface View {
   id: string;
@@ -72,11 +73,11 @@ export function SavedViews({
 
   const save = async () => {
     if (!orgId || !name.trim()) return;
-    const res = await supabase
+    const res = await saveOrFail(supabase
       .from('saved_views')
       .insert({ org_id: orgId, screen, name: name.trim(), filters: current, sort: views.length })
       .select('id, name, filters')
-      .maybeSingle();
+      .maybeSingle());
     if (!res.error && res.data) {
       setViews((v) => [...v, res.data as View]);
       onApply(res.data as View);
@@ -88,7 +89,7 @@ export function SavedViews({
   const remove = async (id: string) => {
     setViews((v) => v.filter((x) => x.id !== id));
     if (active === id) onApply(null);
-    await supabase.from('saved_views').delete().eq('id', id);
+    await saveOrFail(supabase.from('saved_views').delete().eq('id', id));
   };
 
   if (views.length === 0 && !worthSaving) return null;

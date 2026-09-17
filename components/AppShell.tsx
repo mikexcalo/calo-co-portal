@@ -1,6 +1,7 @@
 'use client';
 
 import { TourRunner } from '@/components/spine/TourRunner';
+import { SaveFailed } from '@/components/spine/SaveFailed';
 import { ViewAsBar } from '@/components/spine/ViewAsBar';
 import { useViewAs } from '@/lib/spine/viewas';
 import { useEffect, useState } from 'react';
@@ -174,6 +175,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           quietly stop it being visible. */}
       <ViewAsBar />
       <TourRunner />
+      <SaveFailed />
     </div>
   );
 }

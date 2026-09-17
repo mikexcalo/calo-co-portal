@@ -20,6 +20,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, SectionLabel, inputStyle } from './ui';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 type Owner = 'unassigned' | 'us' | 'client' | 'third_party';
 type Status = 'not_started' | 'in_progress' | 'done' | 'blocked';
@@ -79,22 +80,22 @@ export function Plan({ customerId, clientName }: { customerId: string; clientNam
     // Optimistic: changing an owner on a call should feel instant, and the
     // reload behind it corrects anything the database disagreed with.
     setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
-    await supabase.from('job_tasks').update(patch).eq('id', id);
+    await saveOrFail(supabase.from('job_tasks').update(patch).eq('id', id));
     load();
   };
 
   const add = async () => {
     const name = draft.trim();
     if (!name || jobs.length === 0) return;
-    const org = await supabase.from('jobs').select('org_id').eq('id', jobs[0].id).maybeSingle();
-    await supabase.from('job_tasks').insert({
+    const org = await saveOrFail(supabase.from('jobs').select('org_id').eq('id', jobs[0].id).maybeSingle());
+    await saveOrFail(supabase.from('job_tasks').insert({
       org_id: (org.data as { org_id: string } | null)?.org_id,
       job_id: jobs[0].id,
       name,
       owner: 'us',
       status: 'not_started',
       position: Math.max(0, ...steps.map((s) => s.position)) + 1,
-    });
+    }));
     setDraft('');
     setAdding(false);
     load();

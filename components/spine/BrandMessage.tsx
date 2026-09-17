@@ -25,6 +25,7 @@ import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, SectionLabel, inputStyle } from './ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Field {
   key: string;
@@ -121,9 +122,9 @@ export function BrandMessage({ orgId, orgName }: { orgId: string | null; orgName
     if (!orgId) return;
     setBusy(true);
     setError(null);
-    const cur = await supabase.from('orgs').select('settings').eq('id', orgId).maybeSingle();
+    const cur = await saveOrFail(supabase.from('orgs').select('settings').eq('id', orgId).maybeSingle());
     const settings = { ...((cur.data?.settings ?? {}) as Record<string, unknown>), message: value };
-    const res = await supabase.from('orgs').update({ settings }).eq('id', orgId);
+    const res = await saveOrFail(supabase.from('orgs').update({ settings }).eq('id', orgId));
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
     setSaved(true);

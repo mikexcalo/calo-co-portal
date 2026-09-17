@@ -16,6 +16,7 @@ import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, Empty, Pill, SectionLabel, inputStyle, shortDate } from './ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Task {
   id: string;
@@ -61,7 +62,7 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
     if (!draft.name.trim()) return;
     setBusy(true);
     setError(null);
-    const res = await supabase.from('job_tasks').insert({
+    const res = await saveOrFail(supabase.from('job_tasks').insert({
       org_id: orgId,
       job_id: jobId,
       name: draft.name.trim(),
@@ -71,7 +72,7 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
       owner: draft.owner,
       depends_on: draft.depends_on || null,
       position: rows.length + 1,
-    });
+    }));
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
     setDraft(blank);
@@ -89,14 +90,14 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
    */
   const patch = async (t: Task, changes: Partial<Task>) => {
     setBusy(true);
-    const res = await supabase.from('job_tasks').update(changes).eq('id', t.id);
+    const res = await saveOrFail(supabase.from('job_tasks').update(changes).eq('id', t.id));
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
     load();
   };
 
   const remove = async (t: Task) => {
-    await supabase.from('job_tasks').delete().eq('id', t.id);
+    await saveOrFail(supabase.from('job_tasks').delete().eq('id', t.id));
     load();
   };
 

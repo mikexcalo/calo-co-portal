@@ -36,6 +36,7 @@ import {
   inputStyle,
   brandTabs,
 } from '@/components/spine/ui';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Proof {
   id: string;
@@ -111,7 +112,7 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
         source: stillProposed ? m.source : undefined,
       };
     });
-    const res = await supabase.from('brands').update({ messaging: next }).eq('id', brand.id);
+    const res = await saveOrFail(supabase.from('brands').update({ messaging: next }).eq('id', brand.id));
     setBusy(false);
     if (!res.error) {
       setBrand({ ...brand, messaging: next });

@@ -18,6 +18,7 @@ import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { MODULE_LABEL, type ModuleId } from '@/lib/spine/modules';
 import { C, Card, Empty, Pill, SectionLabel } from '@/components/spine/ui';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Workspace {
   id: string;
@@ -56,7 +57,7 @@ export function Workspaces() {
 
   const setPlan = async (w: Workspace, plan: Workspace['plan']) => {
     setBusy(w.id);
-    const res = await supabase.from('orgs').update({ plan }).eq('id', w.id);
+    const res = await saveOrFail(supabase.from('orgs').update({ plan }).eq('id', w.id));
     setBusy(null);
     if (!res.error) setRows((r) => r.map((x) => (x.id === w.id ? { ...x, plan } : x)));
   };
@@ -75,7 +76,7 @@ export function Workspaces() {
     else delete mods[key];
 
     setBusy(w.id);
-    const res = await supabase.from('orgs').update({ modules: mods }).eq('id', w.id);
+    const res = await saveOrFail(supabase.from('orgs').update({ modules: mods }).eq('id', w.id));
     setBusy(null);
     if (!res.error) setRows((r) => r.map((x) => (x.id === w.id ? { ...x, modules: mods } : x)));
   };

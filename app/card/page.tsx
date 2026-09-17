@@ -18,6 +18,7 @@ import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { BRAND_TABS, Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Link { label: string; url: string }
 interface CardRow {
@@ -91,7 +92,7 @@ export default function CardPage() {
     setBusy(true);
     setError(null);
     const { id, scans, last_scan, ...fields } = row;
-    const res = await supabase.from('cards').update(fields).eq('id', id);
+    const res = await saveOrFail(supabase.from('cards').update(fields).eq('id', id));
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
     setSaved(true);
@@ -101,12 +102,12 @@ export default function CardPage() {
   const create = async () => {
     if (!org) return;
     setBusy(true);
-    const res = await supabase.from('cards').insert({
+    const res = await saveOrFail(supabase.from('cards').insert({
       org_id: org.id,
       slug: org.slug.slice(0, 30),
       name: org.name,
       company: org.name,
-    });
+    }));
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }
     load();
@@ -145,7 +146,7 @@ export default function CardPage() {
         <Empty>Loading…</Empty>
       ) : !row ? (
         <Card>
-          <Empty>No card yet.</Empty>
+          <Empty>No card yet. Build one and share it instead of a paper card.</Empty>
           <div style={{ marginTop: 12 }}>
             <Button onClick={create} disabled={busy}>Make one</Button>
           </div>

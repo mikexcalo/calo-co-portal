@@ -40,6 +40,7 @@ import {
   CLIENT_TABS,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Summary {
   /** Same value as customer_id. The shared table keys every list on `id`. */
@@ -246,10 +247,10 @@ export default function CustomersPage() {
   const moveStage = async (ids: string[], next: Stage) => {
     setRows((prev) => prev.map((r) => (ids.includes(r.id) ? { ...r, stage: next } : r)));
     setPicked(new Set());
-    const res = await supabase
+    const res = await saveOrFail(supabase
       .from('customers')
       .update({ stage: next, stage_why: null, stage_changed_on: new Date().toISOString().slice(0, 10) })
-      .in('id', ids);
+      .in('id', ids));
     if (res.error) { setError(human(res.error.message)); load(); }
   };
 
@@ -385,7 +386,7 @@ export default function CustomersPage() {
               <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={inputStyle} autoFocus />
             </Field>
             <Field label="Contact person">
-              <input value={form.contact_name} onChange={(e) => setForm({ ...form, contact_name: e.target.value })} style={inputStyle} placeholder="Mark Mesedahl" />
+              <input value={form.contact_name} onChange={(e) => setForm({ ...form, contact_name: e.target.value })} style={inputStyle} placeholder="Their name" />
             </Field>
             <Field label="Their title">
               <input value={form.contact_title} onChange={(e) => setForm({ ...form, contact_title: e.target.value })} style={inputStyle} placeholder="Owner" />
