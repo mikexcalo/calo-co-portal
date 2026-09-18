@@ -250,7 +250,7 @@ export const MODULE_SECTION: Record<ModuleId, NavSection> = {
   team: 'Setup',
   security: 'Setup',
   business: 'Setup',
-  records: 'Setup',
+  records: 'The work',
 };
 
 export const NAV_SECTIONS: NavSection[] = ['The work', 'Money', 'Grow', 'Setup'];
@@ -327,7 +327,7 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   learn: 'Learn',
   team: 'Team',
   security: 'Security',
-  business: 'Business settings',
+  business: 'Settings',
   account: 'Bills to you',
 };
 
@@ -552,7 +552,18 @@ export const MODULE_HREF: Record<ModuleId, string> = {
  * the parent has the row, and its tabs are one click in.
  */
 /** Reached from the top bar rather than the sidebar. */
-export const MODULE_IN_TOPBAR: ModuleId[] = ['learn'];
+export const MODULE_IN_TOPBAR: ModuleId[] = [
+  'learn',
+  /**
+   * Settings belongs to you, not to the work.
+   *
+   * It sat in the sidebar as its own section, which put "how this business
+   * charges" at the same level as the jobs you are doing today. It is reached
+   * from your own face in the top bar, which is where every other product on
+   * a laptop keeps it.
+   */
+  'business',
+];
 
 export const MODULE_TAB_PARENT: Partial<Record<ModuleId, ModuleId>> = {
   receipts: 'pl',
@@ -561,7 +572,6 @@ export const MODULE_TAB_PARENT: Partial<Record<ModuleId, ModuleId>> = {
   reviews:  'seo',
   stories:  'pitches',
   pricing:  'pl',
-  records:  'business',
   team:     'business',
   security: 'business',
   // The Brand row already points at the kit; a second row for the same page

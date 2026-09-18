@@ -60,7 +60,7 @@ const NAV: Item[] = [
   { id: 'n-pitches', label: 'Pitches', href: '/pitches', group: 'Go to' },
   { id: 'n-stories', label: 'Case Studies', href: '/stories', group: 'Go to' },
   { id: 'n-brandkit', label: 'Brand Kit', href: '/brand-kit', group: 'Go to' },
-  { id: 'n-business', label: 'Business settings', href: '/business', group: 'Go to' },
+  { id: 'n-business', label: 'Settings', href: '/business', group: 'Go to' },
 ];
 
 /** Reads like a question, so offering to answer it is worth the keystroke. */

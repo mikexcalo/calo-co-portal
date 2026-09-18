@@ -74,7 +74,7 @@ export const SHIPPED: Array<{ group: string; items: Shipped[] }> = [
       { name: 'Search', where: 'Find work, Search', href: '/seo',
         what: 'The local search checklist, plus a generated address block, structured data and page titles.',
         sells: 'An afternoon of admin that everybody abandons halfway, held as state instead of advice.' },
-      { name: 'Enquiry link', where: 'Business settings', href: '/business',
+      { name: 'Enquiry link', where: 'Settings', href: '/business',
         what: 'A public form for a yard sign or an email footer. Fills straight into your clients.',
         sells: 'A lead that arrives written down instead of as a voicemail.' },
       { name: 'QR campaigns', where: 'Brand, Kit and assets', href: '/brand-kit',

@@ -42,7 +42,7 @@ const titlesFor = (vocab: { jobPlural: string; customerPlural: string; estimate:
   '/brand-kit': 'Brand Kit',
   '/security': 'Security',
   '/team': 'Team',
-  '/business': 'Business',
+  '/business': 'Settings',
 } as Record<string, string>);
 
 export default function TopBar() {
@@ -392,13 +392,13 @@ function AccountMenu() {
               looking under a face.
             */}
             <div style={{ padding: '4px 12px 5px', fontSize: 11, color: C.faint, textTransform: 'uppercase', letterSpacing: '.07em', fontWeight: 600 }}>
-              Setup
+              Settings
             </div>
             <button
               style={item}
               onClick={() => { setOpen(false); router.push('/business'); }}
             >
-              Business details
+              The business
             </button>
             <button
               style={item}

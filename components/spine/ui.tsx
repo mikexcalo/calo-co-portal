@@ -203,13 +203,12 @@ function PageTabs({ tabs, phone }: { tabs: readonly PageTab[]; phone: boolean })
  * behind a tab.
  */
 export const SETUP_TABS: readonly PageTab[] = [
-  { label: 'Business', href: '/business', icon: 'business' },
+  { label: 'Settings', href: '/business', icon: 'business' },
   // Yours, the same way Access is theirs.
   { label: 'What you see', href: '/what-you-see', icon: 'layers' },
   // Was reachable only by typing the URL, which made inviting anybody a thing
   // you had to be told how to do.
   { label: 'Team', href: '/team', icon: 'people' },
-  { label: 'Records', href: '/records', icon: 'records' },
   { label: 'Security', href: '/security', icon: 'activity' },
 ];
 
