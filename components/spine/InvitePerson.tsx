@@ -116,15 +116,19 @@ export function InvitePerson({ orgId, orgName, onDone }: { orgId: string; orgNam
     setBusy(false);
   }
 
-  if (!open) {
-    return (
+  /**
+   * The trigger stays put while the dialog is open.
+   *
+   * Returning only the overlay took the button out of the header, and a
+   * header that reflows when you click something in it is the same class of
+   * bug as the one this component started with.
+   */
+  return (
+    <>
       <Button variant="ghost" onClick={() => { setOpen(true); setSent(''); setError(''); }}>
         Invite someone
       </Button>
-    );
-  }
-
-  return (
+      {open && (
     <div
       onMouseDown={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
       style={{
@@ -264,5 +268,7 @@ export function InvitePerson({ orgId, orgName, onDone }: { orgId: string; orgNam
         </div>
       </div>
     </div>
+      )}
+    </>
   );
 }

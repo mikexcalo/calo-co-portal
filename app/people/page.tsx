@@ -23,7 +23,6 @@ import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { DropShelf } from '@/components/spine/DropShelf';
-import { InvitePerson } from '@/components/spine/InvitePerson';
 import {
   Button,
   C,
@@ -297,12 +296,16 @@ export default function PeoplePage() {
       title="People"
       subtitle="Everyone you know."
       action={
-        <>
-          {org?.id && <InvitePerson orgId={org.id} orgName={org.name} />}
-          <Button onClick={() => setAdding((v) => !v)}>
-            {adding ? 'Cancel' : 'Add someone'}
-          </Button>
-        </>
+        /*
+          No invite here.
+          
+          People is the address book — everybody you know, most of whom will
+          never have a login. Giving somebody access to the business is a
+          permission, and it lives with the other permissions under Settings.
+        */
+        <Button onClick={() => setAdding((v) => !v)}>
+          {adding ? 'Cancel' : 'Add someone'}
+        </Button>
       }
     >
       {adding && (

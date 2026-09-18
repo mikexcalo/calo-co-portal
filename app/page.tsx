@@ -659,9 +659,7 @@ export default function Dashboard() {
                   <span style={{ fontSize: 13, color: C.faint, lineHeight: 1.5 }}>{s.why}</span>
                 )}
                 <span style={{ flex: 1 }} />
-                <span style={{ fontSize: 12.5, color: C.blue }}>
-                  {s.done ? 'Done — open it' : 'Open'} &rarr;
-                </span>
+                <span style={{ fontSize: 12.5, color: C.blue }}>Open &rarr;</span>
               </button>
             ))}
           </div>
