@@ -35,8 +35,10 @@ families, or a sidebar label that disagrees with its tab all fail the build.
 npm run sitemap     # prints the whole map
 ```
 
-It runs on `prebuild`, so a regression stops the deploy instead of reaching
-somebody's screen.
+Run it before pushing. It is deliberately **not** wired into `prebuild`: it
+was, and a failure there killed every deployment for hours with no signal
+except a stale site. A check that can block a deploy has to be one you can see
+failing.
 
 ## Writing
 
