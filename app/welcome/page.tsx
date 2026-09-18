@@ -82,19 +82,19 @@ const BILLING_STYLES = [
  * "step 3" stops meaning anything and the index becomes a bug waiting to
  * happen.
  */
-type StepKey = 'name' | 'role' | 'business' | 'charge' | 'pay' | 'craft' | 'goal';
+type StepKey = 'name' | 'password' | 'role' | 'business' | 'charge' | 'pay' | 'craft' | 'goal';
 
 const PLANS: Record<string, StepKey[]> = {
-  owner:    ['name', 'role', 'business', 'charge', 'pay'],
-  admin:    ['name', 'role', 'business', 'charge', 'pay'],
-  finance:  ['name', 'role', 'business', 'charge', 'pay'],
+  owner:    ['name', 'password', 'role', 'business', 'charge', 'pay'],
+  admin:    ['name', 'password', 'role', 'business', 'charge', 'pay'],
+  finance:  ['name', 'password', 'role', 'business', 'charge', 'pay'],
   // Does the work: never asked what to charge, asked what they actually do.
-  delivery: ['name', 'role', 'craft'],
+  delivery: ['name', 'password', 'role', 'craft'],
   // Having a look: asked the one thing worth knowing from a visitor.
-  looking:  ['name', 'role', 'goal'],
+  looking:  ['name', 'password', 'role', 'goal'],
 };
 
-const DEFAULT_PLAN: StepKey[] = ['name', 'role'];
+const DEFAULT_PLAN: StepKey[] = ['name', 'password', 'role'];
 
 /**
  * Who you are to this business.
@@ -147,6 +147,9 @@ export default function WelcomePage() {
   const [feesOpen, setFeesOpen] = useState(false);
 
   const [fullName, setFullName] = useState('');
+  const [pw, setPw] = useState('');
+  const [pwSaved, setPwSaved] = useState(false);
+  const [pwErr, setPwErr] = useState('');
   const [role, setRole] = useState<string>('');
   const [craft, setCraft] = useState('');
   const [goal, setGoal] = useState('');
@@ -439,6 +442,57 @@ export default function WelcomePage() {
                 />
               </label>
               <div style={{ display: 'flex', gap: 8, marginTop: 22 }}>{nextBtn(!fullName.trim())}</div>
+            </>
+          )}
+
+          {/*
+            The invitation said "set your password", and until now nothing ever
+            asked for one. The link signs you in once and expires, so somebody
+            who did not set one here had no way back in except another link.
+          */}
+          {key === 'password' && (
+            <>
+              <h1 style={{ fontSize: 19, fontWeight: 600, color: TEXT, margin: '8px 0 6px' }}>
+                Pick a password
+              </h1>
+              <p style={{ fontSize: 14.5, color: DIM, margin: '0 0 18px', lineHeight: 1.6 }}>
+                The link that brought you here works once. This is how you get back in.
+              </p>
+              <label style={{ display: 'block' }}>
+                <div style={label}>Password</div>
+                <input
+                  type="password"
+                  value={pw}
+                  onChange={(e) => { setPw(e.target.value); setPwErr(''); setPwSaved(false); }}
+                  style={field}
+                  placeholder="At least 8 characters"
+                  autoComplete="new-password"
+                  autoFocus
+                />
+              </label>
+              {pwErr && <p style={{ fontSize: 13, color: '#E01B1B', margin: '10px 0 0' }}>{pwErr}</p>}
+              {pwSaved && <p style={{ fontSize: 13, color: '#008738', margin: '10px 0 0' }}>Saved.</p>}
+              <div style={{ display: 'flex', gap: 8, marginTop: 22 }}>
+                <button
+                  onClick={async () => {
+                    if (pw.length < 8) { setPwErr('Eight characters or more.'); return; }
+                    const res = await supabase.auth.updateUser({ password: pw });
+                    if (res.error) { setPwErr(human(res.error)); return; }
+                    setPwSaved(true);
+                    setStep((v) => v + 1);
+                  }}
+                  disabled={busy || pw.length < 8}
+                  style={{
+                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    gap: 6, padding: '11px 18px', borderRadius: 999, border: 'none',
+                    background: pw.length < 8 ? '#9198A1' : '#141414', color: '#fff',
+                    fontSize: 14.5, fontWeight: 500, cursor: pw.length < 8 ? 'default' : 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  Save and carry on
+                </button>
+              </div>
             </>
           )}
 
