@@ -31,6 +31,9 @@ export function InvitePerson({ orgId, orgName, onDone }: { orgId: string; orgNam
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [sent, setSent] = useState('');
+  const [link, setLink] = useState('');
+  const [emailed, setEmailed] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   async function send() {
     const to = email.trim().toLowerCase();
@@ -46,10 +49,14 @@ export function InvitePerson({ orgId, orgName, onDone }: { orgId: string; orgNam
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ email: to, orgId, role, fullName: name.trim() || undefined }),
       });
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      const body = (await res.json().catch(() => ({}))) as {
+        error?: string; link?: string; emailed?: boolean; message?: string;
+      };
       if (!res.ok) { setError(human(body.error ?? '', 'That invite did not send.')); setBusy(false); return; }
 
       setSent(to);
+      setLink(body.link ?? '');
+      setEmailed(body.emailed !== false);
       setEmail(''); setName('');
       onDone?.();
     } catch (e) {
@@ -115,9 +122,44 @@ export function InvitePerson({ orgId, orgName, onDone }: { orgId: string; orgNam
 
       {error && <p style={{ fontSize: 12.5, color: C.red, margin: '10px 0 0' }}>{error}</p>}
       {sent && (
-        <p style={{ fontSize: 12.5, color: C.green, margin: '10px 0 0' }}>
-          Sent to {sent}. They can sign in as soon as they follow the link.
-        </p>
+        <div style={{ margin: '12px 0 0' }}>
+          <p style={{ fontSize: 12.5, color: emailed ? C.green : C.amber, margin: 0 }}>
+            {emailed
+              ? `Sent to ${sent}. They set their own password from the email.`
+              : `Account ready for ${sent}, but the email did not send. Copy the link and send it yourself.`}
+          </p>
+
+          {/*
+            Always offered, not only on failure. Email is slow, lands in spam,
+            and the person you are inviting is often sitting next to you.
+          */}
+          {link && (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
+              <input
+                readOnly
+                value={link}
+                onFocus={(e) => e.currentTarget.select()}
+                style={{ ...inputStyle, fontSize: 11.5, fontFamily: 'var(--font-mono, monospace)' }}
+              />
+              <button
+                onClick={() => {
+                  navigator.clipboard?.writeText(link).then(() => {
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1400);
+                  }).catch(() => {});
+                }}
+                style={{ background: 'transparent', border: 'none', padding: '0 4px', color: C.blue, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+              >
+                {copied ? 'Copied' : 'Copy link'}
+              </button>
+            </div>
+          )}
+          {link && (
+            <p style={{ fontSize: 11.5, color: C.faint, margin: '6px 0 0' }}>
+              Works once, expires in about a day.
+            </p>
+          )}
+        </div>
       )}
 
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 14 }}>

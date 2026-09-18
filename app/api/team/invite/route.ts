@@ -111,7 +111,14 @@ export async function POST(req: NextRequest) {
      * here and the email goes out from the same domain as everything else.
      */
     const { data: targetOrg } = await admin.from('orgs').select('name').eq('id', orgId).maybeSingle();
-    const orgName = targetOrg?.name ?? 'the workspace';
+    /**
+     * A workspace waiting to be named should not say so to the person being
+     * invited. "You have been given access to Untitled business" reads as a
+     * bug in the first email somebody gets from you.
+     */
+    const rawName = targetOrg?.name?.trim() ?? '';
+    const named = rawName && !/^untitled/i.test(rawName);
+    const orgName = named ? rawName : 'your new workspace';
 
     let link: string | null = null;
 
