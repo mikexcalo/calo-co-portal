@@ -42,6 +42,7 @@ export function StageBar({
   busy?: boolean;
 }) {
   const [confirming, setConfirming] = useState<Stage | null>(null);
+  const [changing, setChanging] = useState(false);
   const here = LANE.findIndex((s) => s.id === stage);
   const closed = CLOSED.find((s) => s.id === stage);
 
@@ -77,9 +78,7 @@ export function StageBar({
             {stage === 'won' ? 'A client' : 'A past client'}
           </span>
 
-          <span style={{ fontSize: 12.5, color: C.faint, flex: 1, minWidth: 120 }}>
-            {stage === 'won' ? 'Working with you now.' : 'Worked with you before.'}
-          </span>
+          <span style={{ flex: 1 }} />
 
           {confirming ? (
             <span style={{ display: 'inline-flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -89,7 +88,7 @@ export function StageBar({
                   : 'Put them back in the pipeline? They leave your client list.'}
               </span>
               <button
-                onClick={() => { onChange(confirming); setConfirming(null); }}
+                onClick={() => { onChange(confirming); setConfirming(null); setChanging(false); }}
                 disabled={busy}
                 style={{ ...quiet, color: C.amber }}
               >
@@ -101,14 +100,31 @@ export function StageBar({
             </span>
           ) : (
             <>
-              {stage === 'won' && (
-                <button onClick={() => setConfirming('past')} disabled={busy} style={quiet}>
-                  No longer a client
+              {/*
+                Behind one word, because these are decisions you make once and
+                the record is one you open every day. Two live buttons whose
+                only effect is to remove somebody from your client list do not
+                belong permanently at the top of their page.
+              */}
+              {changing ? (
+                <>
+                  {stage === 'won' && (
+                    <button onClick={() => setConfirming('past')} disabled={busy} style={quiet}>
+                      No longer a client
+                    </button>
+                  )}
+                  <button onClick={() => setConfirming('talking')} disabled={busy} style={quiet}>
+                    Back to pipeline
+                  </button>
+                  <button onClick={() => setChanging(false)} style={{ ...quiet, color: C.faint }}>
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => setChanging(true)} style={{ ...quiet, color: C.faint }}>
+                  Change
                 </button>
               )}
-              <button onClick={() => setConfirming('talking')} disabled={busy} style={quiet}>
-                Back to pipeline
-              </button>
             </>
           )}
         </div>

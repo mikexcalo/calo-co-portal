@@ -385,9 +385,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
       back={{ label: vocab.customerPlural, href: '/customers' }}
       title={customer.name}
       subtitle={
-        [customer.website?.replace(/^https?:\/\//, '').replace(/\/$/, ''), customer.stage]
-          .filter(Boolean)
-          .join(' · ') || undefined
+        customer.website?.replace(/^https?:\/\//, '').replace(/\/$/, '') || undefined
       }
       action={
         <>
@@ -546,20 +544,26 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             onChange={setStage}
           />
 
-          {/* Only offered when there is nothing to lose. A company with a
-              website on file has already been filled in by somebody. */}
-          {!customer.website && (
-            <Enrich customerId={params.id} currentName={customer.name} onSaved={load} />
-          )}
-
-          {/* Tags under it, because what a company is and where it stands are
-              the two things you want before anything else on the page. */}
-          <div style={{ marginBottom: 18 }}>
-            <Tags
-              tags={customer.tags ?? []}
-              known={knownTags}
-              onChange={saveTags}
-            />
+          {/*
+            One row, not two stacked empty fields.
+            
+            Filling the record in from a website and tagging it are the same
+            kind of act — small, optional, done once — and giving each its own
+            full-width row put two unfilled inputs between the name and
+            anything worth reading.
+          */}
+          <div
+            style={{
+              display: 'flex', gap: 12, alignItems: 'center',
+              flexWrap: 'wrap', marginBottom: 18,
+            }}
+          >
+            <Tags tags={customer.tags ?? []} known={knownTags} onChange={saveTags} />
+            {!customer.website && (
+              <div style={{ flex: '1 1 260px', minWidth: 220 }}>
+                <Enrich customerId={params.id} currentName={customer.name} onSaved={load} />
+              </div>
+            )}
           </div>
 
           {/* Above everything. The first thing you read, and the only
