@@ -17,6 +17,7 @@ import { AddOns } from './AddOns';
 export const dynamic = 'force-dynamic';
 
 interface Line {
+  list_unit_price?: number | null;
   id: string;
   kind: string;
   description: string;
@@ -195,17 +196,49 @@ export default async function PublicEstimate({ params }: { params: { token: stri
                 </tr>
               </thead>
               <tbody>
-                {required.map((l) => (
+                {required.map((l) => {
+                  /*
+                    A discount nobody can see is a discount nobody values.
+
+                    Where a line carries a list price above what is being
+                    charged, both are printed: what it costs everybody else,
+                    struck, and what it costs them. The line decides — nothing
+                    here is keyed on wording, so it cannot be switched on by
+                    naming a row cleverly, and it turns itself off the day the
+                    two prices match.
+                  */
+                  const list = Number((l as { list_unit_price?: number }).list_unit_price ?? 0);
+                  const unit = Number(l.unit_price);
+                  const cut = list > 0 && list > unit;
+                  return (
                   <tr key={l.id} style={{ borderBottom: '1px solid #f0f0ed' }}>
-                    <td style={{ padding: '11px 0', color: '#222' }}>{l.description}</td>
+                    <td style={{ padding: '11px 0', color: '#222' }}>
+                      {l.description}
+                      {cut && (
+                        <div style={{ fontSize: 12.5, marginTop: 3 }}>
+                          <span style={{ textDecoration: 'line-through', color: '#999' }}>
+                            {money(list)}
+                          </span>
+                          <span style={{ color: '#15803d', marginLeft: 7 }}>
+                            {money(unit)}{l.unit ? ` a ${l.unit}` : ''} for you
+                          </span>
+                        </div>
+                      )}
+                    </td>
                     <td style={{ padding: '11px 0 11px 10px', textAlign: 'right', color: '#666', whiteSpace: 'nowrap' }}>
                       {Number(l.qty)}{l.unit ? ` ${l.unit}` : ''}
                     </td>
                     <td style={{ padding: '11px 0 11px 10px', textAlign: 'right', color: '#222', whiteSpace: 'nowrap' }}>
+                      {cut && Number(l.qty) > 0 && (
+                        <span style={{ textDecoration: 'line-through', color: '#999', marginRight: 7, fontSize: 13 }}>
+                          {money(list * Number(l.qty))}
+                        </span>
+                      )}
                       {money(Number(l.total))}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           )}

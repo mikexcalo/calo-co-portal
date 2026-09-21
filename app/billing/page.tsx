@@ -352,7 +352,25 @@ export default function BillingPage() {
                     </Pill>
                   </div>
                   <div>{money(inv.total)}</div>
-                  <div style={{ color: C.dim }}>{shortDate(inv.due_on)}</div>
+                  {/*
+                    Overdue is a fact about today, not a status somebody sets.
+
+                    The column printed the date in grey whether it had passed
+                    or not, so an invoice three weeks late looked exactly like
+                    one due next Friday.
+                  */}
+                  {(() => {
+                    const owedNow = inv.total - inv.amount_paid;
+                    const late =
+                      inv.due_on && owedNow > 0 && inv.status !== 'paid' &&
+                      inv.due_on < new Date().toISOString().slice(0, 10);
+                    return (
+                      <div style={{ color: late ? C.red : C.dim }}>
+                        {shortDate(inv.due_on)}
+                        {late && <span style={{ fontSize: 12 }}> · overdue</span>}
+                      </div>
+                    );
+                  })()}
                 </Row>
 
                 {isOpen && (

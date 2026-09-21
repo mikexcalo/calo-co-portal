@@ -166,8 +166,26 @@ export default async function PublicInvoice({ params }: { params: { token: strin
             </tbody>
           </table>
 
+          {/*
+            When, and what has already arrived.
+
+            The invoice asked to be paid and never said by when — due_on was on
+            the table from the start and nothing ever filled it, so every
+            invoice went out with a dash where the date belongs. And a part
+            payment vanished: amount_paid was subtracted from the total in
+            silence, so somebody who had sent half saw a smaller number with no
+            explanation and no record their money had landed.
+          */}
+          {Number(invoice.amount_paid) > 0 && !paid && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16, gap: 14, fontSize: 13.5, color: '#666' }}>
+              <span>{money(Number(invoice.total))} invoiced, {money(Number(invoice.amount_paid))} received</span>
+            </div>
+          )}
+
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 18, alignItems: 'baseline', gap: 14 }}>
-            <span style={{ fontSize: 14, color: '#666' }}>{paid ? 'Total' : 'Amount due'}</span>
+            <span style={{ fontSize: 14, color: '#666' }}>
+              {paid ? 'Total' : Number(invoice.amount_paid) > 0 ? 'Still due' : 'Amount due'}
+            </span>
             <span style={{ fontSize: 26, fontWeight: 600, color: '#111' }}>
               {money(paid ? Number(invoice.total) : owed)}
             </span>
