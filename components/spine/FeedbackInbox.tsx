@@ -97,6 +97,32 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
         closed_at: status === 'done' || status === 'wont' ? new Date().toISOString() : null,
       })
       .eq('id', id));
+    /**
+     * Tell them you answered.
+     *
+     * The reply landed on the screen they wrote it on and nothing said so, so
+     * a tester had to go back and check on the off chance. Somebody who is
+     * doing you a favour by reporting a bug should not have to.
+     */
+    const row = rows.find((r) => r.id === id);
+    if (row) {
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      const said = { done: 'sorted', building: 'on it', wont: 'not doing it' }[status] ?? 'answered';
+      if (token) {
+        await fetch('/api/asks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            orgId: row.org_id,
+            title: `We answered: ${row.body.slice(0, 60)}${row.body.length > 60 ? '…' : ''}`,
+            detail: reply.trim() ? `${reply.trim()}\n\n— marked ${said}` : `Marked ${said}.`,
+            href: '/feedback',
+          }),
+        }).catch(() => {});
+      }
+    }
+
     setReply('');
     setOpen(null);
     load();

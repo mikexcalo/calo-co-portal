@@ -67,6 +67,15 @@ export function ClientIntake({
    */
   const [belongsTo, setBelongsTo] = useState<'ours' | 'supplier'>('ours');
   const [supplier, setSupplier] = useState('');
+  /**
+   * A price list is a thing that gets updated, not a thing you write once.
+   *
+   * Dropping a new sheet on top of an old one silently doubled everything,
+   * and an estimate then picked whichever row it saw first. So: count what is
+   * already there and make replacing it a choice somebody makes.
+   */
+  const [existingPrices, setExistingPrices] = useState(0);
+  const [priceMode, setPriceMode] = useState<'add' | 'replace'>('add');
 
   const send = useCallback(async (payload: { data?: string; mediaType?: string; text?: string }) => {
     setReading(true); setError('');
@@ -89,6 +98,15 @@ export function ClientIntake({
         price: p.price == null ? '' : String(p.price),
       })));
       setCents(typeof body.cents === 'number' ? body.cents : null);
+
+      if ((i.prices ?? []).length) {
+        const have = await supabase
+          .from('price_items')
+          .select('id', { count: 'exact', head: true })
+          .eq('org_id', orgId)
+          .eq('active', true);
+        setExistingPrices(have.count ?? 0);
+      }
       setRead(true);
     } catch (e) {
       setError(human(e, 'That could not be read.'));
@@ -159,6 +177,21 @@ export function ClientIntake({
 
       const items = prices.filter((p) => p.name.trim());
       if (items.length) {
+        /*
+          Retired, not deleted. An estimate sent last month has to keep showing
+          what was actually quoted, so the old rows stay and stop being offered.
+        */
+        if (priceMode === 'replace' && existingPrices > 0) {
+          await saveOrFail(
+            supabase
+              .from('price_items')
+              .update({ active: false })
+              .eq('org_id', orgId)
+              .eq('active', true)
+              .eq('belongs_to', belongsTo),
+            'Retiring the old prices'
+          );
+        }
         await saveOrFail(
           supabase.from('price_items').insert(
             items.map((p) => ({
@@ -204,8 +237,9 @@ export function ClientIntake({
         <>
           <SectionLabel>Drop what you have</SectionLabel>
           <p style={{ fontSize: 13, color: C.faint, margin: '6px 0 12px', maxWidth: '62ch' }}>
-            A photo of notes, a business card, a price sheet, a PDF. It reads the business, the
-            people and the prices, and shows you everything before anything is saved.
+            A screenshot, a photo, or a PDF — notes you scribbled, a business card, a price
+            sheet, an email you were sent. It reads the business, the people and the prices,
+            and shows you everything before anything is saved.
           </p>
 
           <div
@@ -221,6 +255,11 @@ export function ClientIntake({
             }}
           >
             {reading ? 'Reading…' : 'Drop a file here, or click to choose one'}
+            {!reading && (
+              <div style={{ fontSize: 11.5, color: C.faint, marginTop: 6 }}>
+                PNG, JPG, WEBP or PDF
+              </div>
+            )}
           </div>
           <input
             ref={fileRef}
@@ -335,6 +374,39 @@ export function ClientIntake({
                   ? 'Estimates pick from these.'
                   : 'Kept for reference. Estimates never quote from a supplier sheet.'}
               </p>
+
+              {existingPrices > 0 && (
+                <div style={{ border: `1px solid ${C.amber}55`, background: C.amberSoft, borderRadius: 9, padding: '10px 12px', margin: '0 0 10px' }}>
+                  <div style={{ fontSize: 13, color: C.amber, fontWeight: 500 }}>
+                    You already have {existingPrices} price{existingPrices === 1 ? '' : 's'}.
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                    {([
+                      { id: 'replace' as const, label: 'This replaces them' },
+                      { id: 'add' as const, label: 'Add these as well' },
+                    ]).map((o) => (
+                      <button
+                        key={o.id}
+                        onClick={() => setPriceMode(o.id)}
+                        style={{
+                          padding: '5px 12px', borderRadius: 999, fontSize: 12.5, cursor: 'pointer',
+                          fontFamily: 'inherit',
+                          border: `1px solid ${priceMode === o.id ? C.ink : C.border}`,
+                          background: priceMode === o.id ? C.panel : 'transparent',
+                          color: priceMode === o.id ? C.text : C.dim,
+                        }}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: 12, color: C.faint, marginTop: 8 }}>
+                    {priceMode === 'replace'
+                      ? 'The old ones are retired rather than deleted, so an estimate you already sent still shows what was quoted.'
+                      : 'Nothing is retired. Watch for the same item appearing twice.'}
+                  </div>
+                </div>
+              )}
               {prices.map((p, i) => (
                 <div key={i} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) 28px', gap: 6, marginTop: 6, alignItems: 'center' }}>
                   <input value={p.name} placeholder="What it is" onChange={(e) => setPrices((x) => x.map((y, n) => (n === i ? { ...y, name: e.target.value } : y)))} style={{ ...inputStyle, fontSize: 13 }} />

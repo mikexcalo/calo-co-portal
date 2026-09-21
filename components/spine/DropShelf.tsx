@@ -192,6 +192,8 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
 
       <DropZone
         label={busy ? 'Saving…' : 'Drop files here, or click to choose'}
+        hint="Screenshots, photos, PDFs, spreadsheets — anything you would otherwise leave in a folder."
+
         busy={busy}
         busyLabel="Saving…"
         compact={compact}
