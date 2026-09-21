@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useOrg } from '@/lib/spine/org';
+import { useViewAs } from '@/lib/spine/viewas';
 import { C } from './ui';
 
 /**
@@ -13,11 +14,27 @@ import { C } from './ui';
  */
 export function OrgSwitcher() {
   const { org, orgs, loading, switchOrg } = useOrg();
+  const { viewAs } = useViewAs();
   const [open, setOpen] = useState(false);
 
   if (loading || !org) return null;
 
-  const single = orgs.length <= 1;
+  /*
+    In a preview, this is the one control that was still telling the truth
+    about you.
+
+    The bar at the top says "what they would be shown", and then the switcher
+    underneath it listed all five businesses Mike belongs to — so a preview of
+    what Mark sees opened with a menu of every client Mike has. Nothing leaked:
+    the list is Mike's own memberships, rendered in Mike's own session, and
+    every read still runs under his row-level rules. But it is the single most
+    alarming thing the preview could draw, and it is wrong: Mark belongs to one
+    business and would see no menu at all.
+
+    Somebody being previewed has exactly the org you are standing in. So while
+    a preview is on, this collapses to that one name and stops being a menu.
+  */
+  const single = orgs.length <= 1 || viewAs !== null;
 
   return (
     <div style={{ position: 'relative' }}>
