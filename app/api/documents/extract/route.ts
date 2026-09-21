@@ -47,10 +47,21 @@ const EXTRACTION_SCHEMA = {
       description: 'Grand total including tax, as a number. Null if not legible.',
     },
     tax: { type: ['number', 'null'] as const, description: 'Tax portion, if shown separately.' },
+    /*
+      Not nullable, because a nullable enum is not a schema.
+
+      This was type ['string','null'] with null in the enum list, which the API
+      rejects outright — "Enum value 'material' does not match declared type
+      ['string','null']" — so the request 400'd before the model ever saw the
+      document. Every receipt anybody uploaded failed, silently, since this was
+      written. John's Cloudflare invoice failed twice in forty-four seconds.
+
+      "other" already means "I could not tell", so null never had a job here.
+    */
     category: {
-      type: ['string', 'null'] as const,
-      enum: ['material', 'subcontractor', 'equipment', 'permit', 'other', null],
-      description: 'Best guess at the job-cost category.',
+      type: 'string' as const,
+      enum: ['material', 'subcontractor', 'equipment', 'permit', 'other'],
+      description: 'Best guess at the job-cost category. Use "other" when unsure.',
     },
     line_items: {
       type: ['array', 'null'] as const,
