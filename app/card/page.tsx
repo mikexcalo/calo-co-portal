@@ -19,6 +19,7 @@ import { useOrg } from '@/lib/spine/org';
 import { BRAND_TABS, Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
+import { orgNow } from '@/lib/spine/db';
 
 interface Link { label: string; url: string }
 interface CardRow {
@@ -53,7 +54,7 @@ export default function CardPage() {
   const load = useCallback(async () => {
     const res = await supabase
       .from('cards')
-      .select('id, slug, name, title, company, email, phone, website, photo_url, tagline, cta_label, cta_url, links, live, scans, last_scan')
+      .select('id, slug, name, title, company, email, phone, website, photo_url, tagline, cta_label, cta_url, links, live, scans, last_scan').eq('org_id', await orgNow())
       .limit(1)
       .maybeSingle();
     if (res.error) setError(human(res.error.message));

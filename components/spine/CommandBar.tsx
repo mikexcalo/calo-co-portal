@@ -31,6 +31,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { C, useIsPhone } from './ui';
+import { orgNow } from '@/lib/spine/db';
 
 interface Item {
   id: string;
@@ -117,7 +118,7 @@ export function CommandBar() {
        */
       supabase
         .from('customer_contacts')
-        .select('id, name, title, email, customer_id, customers(name)')
+        .select('id, name, title, email, customer_id, customers(name)').eq('org_id', await orgNow())
         .limit(500),
       // Notes, by their first line. The body is what holds the answer to
       // "what did they say about pricing", and none of it was findable.

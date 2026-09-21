@@ -78,7 +78,13 @@ export function ClientIntake({
    */
   const [existingPrices, setExistingPrices] = useState(0);
   /** What the reader decided this document is. */
-  const [doc, setDoc] = useState<'client' | 'estimate' | 'pricelist' | 'unknown'>('client');
+  const [doc, setDoc] = useState<'client' | 'estimate' | 'pricelist' | 'receipt' | 'unknown'>('client');
+  const [vendor, setVendor] = useState('');
+  const [paidOn, setPaidOn] = useState('');
+  const [amount, setAmount] = useState('');
+  const [costKind, setCostKind] = useState('other');
+  const [jobs, setJobs] = useState<{ id: string; name: string }[]>([]);
+  const [costJob, setCostJob] = useState('');
   const [jobName, setJobName] = useState('');
   const [jobAddress, setJobAddress] = useState('');
   const [lines, setLines] = useState<{ description: string; qty: string; unit: string; unit_price: string }[]>([]);
@@ -128,6 +134,23 @@ export function ClientIntake({
       })));
       setCents(typeof body.cents === 'number' ? body.cents : null);
 
+      if (i.doc === 'receipt') {
+        setVendor(i.spend?.vendor ?? i.name ?? '');
+        setPaidOn(i.spend?.paid_on ?? new Date().toISOString().slice(0, 10));
+        setAmount(i.spend?.total == null ? '' : String(i.spend.total));
+        setCostKind(i.spend?.kind ?? 'other');
+        /* Offered, not guessed. Which job a receipt belongs to is the one
+           thing on it that is not written on it. */
+        const open = await supabase
+          .from('jobs')
+          .select('id, name')
+          .eq('org_id', orgId)
+          .neq('status', 'done')
+          .order('created_at', { ascending: false })
+          .limit(50);
+        setJobs((open.data ?? []) as { id: string; name: string }[]);
+      }
+
       if ((i.prices ?? []).length) {
         const have = await supabase
           .from('price_items')
@@ -171,6 +194,41 @@ export function ClientIntake({
 
   /** Everything at once, and nothing before the button. */
   async function keep() {
+    /**
+     * A receipt is not a company.
+     *
+     * Everything here used to begin by making a customer, so a receipt for a
+     * domain name asked for a business name and, given one, filed the
+     * registrar as a company you work with. Money going out is its own shape
+     * and it stops here.
+     */
+    if (doc === 'receipt') {
+      const value = parseFloat(amount);
+      if (!vendor.trim()) { setError('Say who was paid.'); return; }
+      if (!Number.isFinite(value) || value <= 0) { setError('Put in the amount.'); return; }
+      setBusy(true); setError('');
+      const cost = await saveOrFail(
+        supabase.from('costs').insert({
+          org_id: orgId,
+          job_id: costJob || null,
+          kind: costKind,
+          vendor: vendor.trim(),
+          description: notes.trim() || null,
+          amount: value,
+          purchased_on: paidOn || new Date().toISOString().slice(0, 10),
+          /* An overhead has no customer to bill it to, and the database
+             refuses a billable cost with no job. */
+          billable: Boolean(costJob),
+        }),
+        'The expense'
+      );
+      setBusy(false);
+      if (cost.error) { setError(human(cost.error)); return; }
+      onSaved({});
+      onClose();
+      return;
+    }
+
     if (!name.trim()) { setError('Give the business a name.'); return; }
     setBusy(true); setError('');
     try {
@@ -258,6 +316,11 @@ export function ClientIntake({
               name: p.name.trim(),
               unit: p.unit.trim() || null,
               unit_price: parseFloat(p.price) || 0,
+              /* The toggle above decided this and then nothing wrote it down,
+                 so every sheet went in as your own prices — including a
+                 warehouse sheet, which estimates would then quote from. */
+              belongs_to: belongsTo,
+              supplier: belongsTo === 'supplier' ? supplier.trim() || name.trim() || null : null,
             }))
           ),
           'The prices'
@@ -312,6 +375,20 @@ export function ClientIntake({
     }
     setBusy(false);
   }
+
+  /** What is stopping this from saving, in a sentence, or nothing. */
+  const blocked =
+    doc === 'receipt'
+      ? !vendor.trim()
+        ? 'Say who was paid.'
+        : !(parseFloat(amount) > 0)
+          ? 'Put in the amount.'
+          : ''
+      : !name.trim()
+        ? doc === 'estimate'
+          ? 'Say who the work is for.'
+          : 'Give the business a name.'
+        : '';
 
   const field = (v: string, set: (s: string) => void, ph: string) => (
     <input value={v} onChange={(e) => set(e.target.value)} placeholder={ph} style={inputStyle} />
@@ -397,6 +474,42 @@ export function ClientIntake({
             {cents != null && ` Reading that cost ${cents < 1 ? 'under a cent' : `${cents.toFixed(1)}c`}.`}
           </p>
 
+          {doc === 'receipt' && (
+            <div style={{ border: `1px solid ${C.border}`, borderRadius: 9, padding: '12px 13px', marginBottom: 14 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 2 }}>
+                This reads as money you have already spent
+              </div>
+              <p style={{ fontSize: 12.5, color: C.faint, margin: '0 0 10px' }}>
+                Keeping it files an expense. Put it against a job and it becomes a job cost you
+                can bill on; leave the job blank and it is business overhead, which still comes
+                off Profit &amp; Loss.
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8 }}>
+                {field(vendor, setVendor, 'Who was paid')}
+                <input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount" inputMode="decimal" style={inputStyle} />
+                <input value={paidOn} onChange={(e) => setPaidOn(e.target.value)} type="date" style={inputStyle} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8, marginTop: 8 }}>
+                <select value={costKind} onChange={(e) => setCostKind(e.target.value)} style={inputStyle}>
+                  <option value="material">Materials</option>
+                  <option value="subcontractor">Subcontractor</option>
+                  <option value="equipment">Equipment</option>
+                  <option value="permit">Permit or licence</option>
+                  <option value="other">Something else</option>
+                </select>
+                <select value={costJob} onChange={(e) => setCostJob(e.target.value)} style={inputStyle}>
+                  <option value="">Overhead — no job</option>
+                  {jobs.map((j) => (
+                    <option key={j.id} value={j.id}>{j.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="What it was for" style={inputStyle} />
+              </div>
+            </div>
+          )}
+
           {doc === 'estimate' && (
             <div style={{ border: `1px solid ${C.border}`, borderRadius: 9, padding: '12px 13px', marginBottom: 14 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 2 }}>
@@ -429,6 +542,8 @@ export function ClientIntake({
             </div>
           )}
 
+          {doc !== 'receipt' && (
+          <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
             {field(name, setName, doc === 'estimate' ? 'Who it is for' : 'Business name')}
             {field(website, setWebsite, 'Website')}
@@ -467,6 +582,8 @@ export function ClientIntake({
               style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }}
             />
           </div>
+          </>
+          )}
 
           {contacts.length > 0 && (
             <div style={{ marginTop: 16 }}>
@@ -583,9 +700,16 @@ export function ClientIntake({
           {error && <p style={{ fontSize: 12.5, color: C.red, margin: '12px 0 0' }}>{error}</p>}
 
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 18 }}>
-            <Button onClick={keep} disabled={busy || !name.trim()}>
+            {/*
+              The button was disabled whenever the reader had not found a
+              business name, with nothing on screen saying so — which is how
+              somebody ends up pressing "Looks good, keep it" and watching it
+              do nothing. What is missing has to be named.
+            */}
+            <Button onClick={keep} disabled={busy || Boolean(blocked)}>
               {busy ? 'Saving…' : 'Looks good — keep it'}
             </Button>
+            {blocked && <span style={{ fontSize: 12.5, color: C.amber }}>{blocked}</span>}
             <button onClick={() => { setRead(false); setError(''); }} style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>
               Start again
             </button>

@@ -18,6 +18,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { C, Card, SectionLabel } from './ui';
+import { orgNow } from '@/lib/spine/db';
 
 interface Row {
   kind: string;
@@ -50,7 +51,7 @@ export function Unresolved() {
   const load = useCallback(async () => {
     const res = await supabase
       .from('unresolved')
-      .select('*')
+      .select('*').eq('org_id', await orgNow())
       .order('urgency', { ascending: false })
       .order('age_days', { ascending: false });
     /**

@@ -12,7 +12,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
-import { getCurrentOrg, updateOrg } from '@/lib/spine/db';
+import { getCurrentOrg, updateOrg, orgNow} from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import { modulesFor } from '@/lib/spine/modules';
 import { QrStudio } from '@/components/spine/QrStudio';
@@ -133,7 +133,7 @@ export default function BrandKitPage() {
   // yard sign or truck door almost always points at.
   useEffect(() => {
     (async () => {
-      const res = await supabase.from('client_sites').select('url').limit(1).maybeSingle();
+      const res = await supabase.from('client_sites').select('url').eq('org_id', await orgNow()).limit(1).maybeSingle();
       if (!res.error && res.data?.url) setSiteUrl(res.data.url);
     })();
   }, [org?.id]);

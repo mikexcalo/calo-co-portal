@@ -58,10 +58,19 @@ export interface Intake {
    * Turks Cap" with no people and no prices. A document has a shape and the
    * reader has to say which one it found.
    */
-  doc: 'client' | 'estimate' | 'pricelist' | 'unknown';
+  doc: 'client' | 'estimate' | 'pricelist' | 'receipt' | 'unknown';
   /** When doc is estimate: the work being quoted. */
   job: { name: string | null; address: string | null; customer: string | null; total: number | null } | null;
   lines: IntakeLine[];
+  /**
+   * When doc is receipt: money that already left the business.
+   *
+   * John dropped the invoice for the domain he had just bought and it landed
+   * nowhere, because every shape the reader knew about was something to sell
+   * or somebody to sell it to. A receipt is the other direction, and it is
+   * the half that makes Profit & Loss true rather than flattering.
+   */
+  spend: { vendor: string | null; paid_on: string | null; total: number | null; kind: string | null } | null;
   name: string | null;
   website: string | null;
   address: string | null;
@@ -78,6 +87,8 @@ const PROMPT =
   '  client     it is mainly about a company or the people at one\n' +
   '  estimate   it is a quote or estimate for a specific job, usually with an address and lines\n' +
   '  pricelist  it is a list of items and prices, not tied to one job\n' +
+  '  receipt    it is proof of money already spent - a receipt, a paid invoice, a bill, a ' +
+  'subscription charge, or a permit or licence fee\n' +
   '  unknown    none of those\n\n' +
   'Return only JSON, no prose and no code fence, with exactly these keys:\n' +
   '  doc      one of the four words above\n' +
@@ -86,6 +97,9 @@ const PROMPT =
   '  lines    when doc is estimate or pricelist: an array of ' +
   '{ description, qty, unit, unit_price }. Numbers as numbers, no currency symbols. ' +
   'Otherwise an empty array.\n' +
+  '  spend    when doc is receipt: { vendor, paid_on, total, kind }. vendor is who was paid. ' +
+  'paid_on is the date as YYYY-MM-DD. total is the amount actually charged, as a number. ' +
+  'kind is one of material, subcontractor, equipment, permit, other. Otherwise null.\n' +
   '  name     the business name, or null\n' +
   '  website  a domain if one is written down, or null\n' +
   '  address  a postal address if one is written down, or null\n' +
@@ -152,7 +166,7 @@ export async function POST(req: NextRequest) {
     }
 
     const intake: Intake = {
-      doc: (['client', 'estimate', 'pricelist', 'unknown'] as const).includes(parsed.doc as never)
+      doc: (['client', 'estimate', 'pricelist', 'receipt', 'unknown'] as const).includes(parsed.doc as never)
         ? (parsed.doc as Intake['doc'])
         : 'unknown',
       job: parsed.job
@@ -161,6 +175,20 @@ export async function POST(req: NextRequest) {
             address: parsed.job.address ?? null,
             customer: parsed.job.customer ?? null,
             total: typeof parsed.job.total === 'number' ? parsed.job.total : null,
+          }
+        : null,
+      spend: parsed.spend
+        ? {
+            vendor: parsed.spend.vendor ?? null,
+            paid_on: /^\d{4}-\d{2}-\d{2}$/.test(String(parsed.spend.paid_on ?? ''))
+              ? String(parsed.spend.paid_on)
+              : null,
+            total: typeof parsed.spend.total === 'number' ? parsed.spend.total : null,
+            kind: ['material', 'subcontractor', 'equipment', 'permit', 'other'].includes(
+              String(parsed.spend.kind ?? '')
+            )
+              ? String(parsed.spend.kind)
+              : 'other',
           }
         : null,
       lines: Array.isArray(parsed.lines)
@@ -192,7 +220,7 @@ export async function POST(req: NextRequest) {
     const anything =
       intake.name || intake.website || intake.address || intake.notes ||
       intake.contacts.length || intake.prices.length ||
-      intake.lines.length || intake.job?.name;
+      intake.lines.length || intake.job?.name || intake.spend?.total || intake.spend?.vendor;
     if (!anything) {
       return NextResponse.json({ error: 'Nothing about a business in that.' }, { status: 422 });
     }

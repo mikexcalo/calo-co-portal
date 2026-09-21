@@ -17,6 +17,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { C, Card, Empty, SectionLabel } from './ui';
+import { orgNow } from '@/lib/spine/db';
 
 interface Row {
   id: string;
@@ -49,7 +50,7 @@ export function WeekAhead() {
   useEffect(() => { setToday(new Date()); }, []);
 
   const load = useCallback(async () => {
-    const res = await supabase.from('week_ahead').select('*');
+    const res = await supabase.from('week_ahead').select('*').eq('org_id', await orgNow());
     if (!res.error) setRows((res.data ?? []) as Row[]);
     setLoaded(true);
   }, []);

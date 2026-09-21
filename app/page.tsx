@@ -22,7 +22,7 @@ import { FollowUps } from '@/components/spine/FollowUps';
 import { WeekAhead } from '@/components/spine/WeekAhead';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { listDocuments, listInvoices, listJobLedger, listJobs } from '@/lib/spine/db';
+import { listDocuments, listInvoices, listJobLedger, listJobs, orgNow} from '@/lib/spine/db';
 import { modulesFor } from '@/lib/spine/modules';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
@@ -119,7 +119,7 @@ export default function Dashboard() {
           listInvoices(),
           listDocuments({ unfiledOnly: true }),
         ]);
-        const bd = await supabase.from('billing_due').select('*');
+        const bd = await supabase.from('billing_due').select('*').eq('org_id', await orgNow());
 
         const quietCutoff = new Date();
         quietCutoff.setDate(quietCutoff.getDate() - 4);
@@ -156,6 +156,7 @@ export default function Dashboard() {
             supabase
               .from('customers')
               .select('id', head)
+              .eq('org_id', await orgNow())
               .not('awaiting_reply_since', 'is', null)
               .lte('awaiting_reply_since', quietCutoff.toISOString().slice(0, 10)),
             // Due today or already late. A reminder for next Tuesday is not

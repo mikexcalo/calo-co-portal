@@ -28,6 +28,7 @@ import {
   SectionLabel,
 } from '@/components/spine/ui';
 import { save as saveOrFail } from '@/lib/spine/save';
+import { orgNow } from '@/lib/spine/db';
 
 interface Site {
   id: string;
@@ -63,7 +64,7 @@ export default function TrafficPage() {
   const loadSites = useCallback(async () => {
     const res = await supabase
       .from('client_sites')
-      .select('id, name, url, analytics_on, track_token')
+      .select('id, name, url, analytics_on, track_token').eq('org_id', await orgNow())
       .order('name');
     const rows = (res.data ?? []) as Site[];
     setSites(rows);

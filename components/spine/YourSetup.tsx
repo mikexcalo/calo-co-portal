@@ -20,6 +20,7 @@ import { useViewAs } from '@/lib/spine/viewas';
 import { Button, C, Card, SectionLabel } from './ui';
 import { Glyph } from './icons';
 import { save as saveOrFail } from '@/lib/spine/save';
+import { orgNow } from '@/lib/spine/db';
 
 type Status = 'todo' | 'doing' | 'done' | 'skipped';
 
@@ -83,7 +84,7 @@ export function YourSetup() {
   const [showAll, setShowAll] = useState(true);
 
   const load = useCallback(async () => {
-    const res = await supabase.from('setup_items').select('key, status, steps_done');
+    const res = await supabase.from('setup_items').select('key, status, steps_done').eq('org_id', await orgNow());
     if (!res.error) {
       setState(Object.fromEntries((res.data ?? []).map((r) => [r.key, r.status as Status])));
       setTicks(

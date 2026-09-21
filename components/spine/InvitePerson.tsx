@@ -19,6 +19,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { human } from '@/lib/spine/errors';
 import { Button, C, inputStyle } from './ui';
+import { orgNow } from '@/lib/spine/db';
 
 const ROLES = [
   { id: 'member', label: 'Can do the work', note: 'Add jobs, log hours, file receipts. Cannot change settings or rates.' },
@@ -78,7 +79,7 @@ export function InvitePerson({ orgId, orgName, choices, prefillEmail, prefillNam
     if (t.length < 2) { setHits([]); return; }
     const res = await supabase
       .from('customer_contacts')
-      .select('id, name, email, company')
+      .select('id, name, email, company').eq('org_id', await orgNow())
       .or(`name.ilike.%${t}%,email.ilike.%${t}%,company.ilike.%${t}%`)
       .not('email', 'is', null)
       .limit(6);

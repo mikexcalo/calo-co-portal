@@ -11,7 +11,7 @@ import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { modulesFor } from '@/lib/spine/modules';
-import { getCurrentOrg } from '@/lib/spine/db';
+import { getCurrentOrg, orgNow} from '@/lib/spine/db';
 import {
   Button,
   C,
@@ -79,7 +79,7 @@ export default function RequestsPage() {
   const load = useCallback(async () => {
     const res = await supabase
       .from('site_requests')
-      .select('*, site:client_sites(id, name, url, repo)')
+      .select('*, site:client_sites(id, name, url, repo)').eq('org_id', await orgNow())
       .order('submitted_at', { ascending: false });
     if (res.error) throw new Error(res.error.message);
     setRequests((res.data ?? []) as SiteRequest[]);

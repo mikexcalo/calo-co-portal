@@ -22,6 +22,7 @@ import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { C } from './ui';
 import { save as saveOrFail } from '@/lib/spine/save';
+import { orgNow } from '@/lib/spine/db';
 
 export interface View {
   id: string;
@@ -51,7 +52,7 @@ export function SavedViews({
   const load = useCallback(async () => {
     const res = await supabase
       .from('saved_views')
-      .select('id, name, filters')
+      .select('id, name, filters').eq('org_id', await orgNow())
       .eq('screen', screen)
       .order('sort')
       .order('created_at');

@@ -37,6 +37,7 @@ import { Glyph } from '@/components/spine/icons';
 import { Doc, CopyDoc } from '@/components/spine/Doc';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
+import { orgNow } from '@/lib/spine/db';
 
 interface RefDoc {
   id: string;
@@ -62,7 +63,7 @@ export default function MarketPage() {
   const load = useCallback(async () => {
     const res = await supabase
       .from('reference_docs')
-      .select('id, title, subject, source, as_of, body')
+      .select('id, title, subject, source, as_of, body').eq('org_id', await orgNow())
       .order('subject')
       .order('title');
     if (res.error) setError(human(res.error.message));

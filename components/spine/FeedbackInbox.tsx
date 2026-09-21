@@ -1,12 +1,21 @@
 'use client';
 
 /**
- * What people are asking for, across every workspace you belong to.
+ * What people are asking for, on the workspace you are standing in.
  *
- * A tester writing in her own workspace is invisible from yours, so an inbox
- * scoped the usual way would be five inboxes nobody checks. This reads across
- * membership instead: everything from every business you belong to, in one
- * list, on the screen you already open first.
+ * A tester writing in her own workspace is invisible from yours, so this reads
+ * across membership: everything from every business you belong to, in one
+ * query, on the screen you already open first.
+ *
+ * What it does NOT do any more is show them all at once. Standing in Global
+ * Seafood's workspace, Lakemere's complaint was sitting on the home screen —
+ * one client's workspace showing another client's name. Nobody else can see
+ * it (the row filter only returns businesses you belong to), but it makes the
+ * switcher a lie: if the workspace does not change what is on the page, there
+ * is no point having one.
+ *
+ * So the notes written here are shown here, and everything else is one muted
+ * line saying where it is.
  *
  * Only appears when there is something. A permanently empty panel on Home is a
  * thing you learn to look past, and then miss the day it fills.
@@ -82,10 +91,19 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
    * is the thing that was actually meant — a note you wrote is not news to
    * you no matter which workspace you are standing in.
    */
-  const others = rows.filter((r) => r.author_id !== me);
-  if (others.length === 0) return null;
+  const notMine = rows.filter((r) => r.author_id !== me);
+  const others = notMine.filter((r) => r.org_id === currentOrgId);
+  const elsewhere = notMine.filter((r) => r.org_id !== currentOrgId);
+  if (others.length === 0 && elsewhere.length === 0) return null;
 
   const orgName = (r: Row) => (Array.isArray(r.orgs) ? r.orgs[0]?.name : r.orgs?.name) ?? 'a workspace';
+
+  /* One line per workspace, not one per note — the point is where to go. */
+  const byOrg = elsewhere.reduce<Record<string, { name: string; n: number }>>((acc, r) => {
+    const k = r.org_id;
+    acc[k] = { name: orgName(r), n: (acc[k]?.n ?? 0) + 1 };
+    return acc;
+  }, {});
 
   const answer = async (id: string, status: string) => {
     setRows((p) => p.filter((r) => r.id !== id || status === 'building'));
@@ -132,6 +150,9 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
     <div style={{ marginBottom: 22 }}>
       <SectionLabel>Asked for ({others.length})</SectionLabel>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {others.length === 0 && (
+          <div style={{ fontSize: 13, color: C.faint }}>Nothing asked for here.</div>
+        )}
         {others.map((r) => {
           const isOpen = open === r.id;
           const tone = TONE[r.kind] ?? 'faint';
@@ -223,6 +244,20 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
           );
         })}
       </div>
+
+      {Object.keys(byOrg).length > 0 && (
+        <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 14 }}>
+          {Object.entries(byOrg).map(([id, o]) => (
+            <button
+              key={id}
+              onClick={async () => { await switchOrg(id); router.push('/'); router.refresh(); }}
+              style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              {o.n} waiting in {o.name} →
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

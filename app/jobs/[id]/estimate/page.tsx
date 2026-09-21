@@ -10,7 +10,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createEstimate, getCurrentOrg, getJob } from '@/lib/spine/db';
+import { createEstimate, getCurrentOrg, getJob, orgNow} from '@/lib/spine/db';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { planAllows } from '@/lib/spine/modules';
@@ -81,7 +81,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
         }
         const cat = await supabase
           .from('price_items')
-          .select('id, name, unit, unit_price, kind, category, belongs_to')
+          .select('id, name, unit, unit_price, kind, category, belongs_to').eq('org_id', await orgNow())
           .eq('active', true)
           // Unconfirmed prices stay out. A number nobody has stood behind is
           // worse than no number, because no number makes you think.

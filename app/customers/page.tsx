@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
-import { brandAssetUrl } from '@/lib/spine/db';
+import { brandAssetUrl, orgNow} from '@/lib/spine/db';
 import { createCustomer, getCurrentOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import { FirstSteps } from '@/components/spine/FirstSteps';
@@ -113,7 +113,7 @@ export default function CustomersPage() {
   const load = useCallback(async () => {
     const [o, res, tg] = await Promise.all([
       getCurrentOrg(),
-      supabase.from('customer_summary').select('*').order('name'),
+      supabase.from('customer_summary').select('*').eq('org_id', await orgNow()).order('name'),
       // Tags live on customers and the summary view predates them. Replacing a
       // view can only append columns, so they are merged here rather than the
       // view being rebuilt for one field.

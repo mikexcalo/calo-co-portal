@@ -13,7 +13,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
-import { getCurrentOrg } from '@/lib/spine/db';
+import { getCurrentOrg, orgNow} from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import { modulesFor } from '@/lib/spine/modules';
 import {
@@ -90,7 +90,7 @@ export default function WebsitePage() {
 
   const load = useCallback(async () => {
     const [s, r] = await Promise.all([
-      supabase.from('client_sites').select('*').limit(1).maybeSingle(),
+      supabase.from('client_sites').select('*').eq('org_id', await orgNow()).limit(1).maybeSingle(),
       supabase.from('site_requests').select('*').order('submitted_at', { ascending: false }),
     ]);
     if (s.error) throw new Error(s.error.message);

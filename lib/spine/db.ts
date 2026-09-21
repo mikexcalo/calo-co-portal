@@ -47,6 +47,41 @@ function unwrap<T>(res: { data: T | null; error: { message: string } | null }): 
 // ---------------------------------------------------------------------------
 
 /**
+ * The workspace you are standing in, as an id.
+ *
+ * Every screen already trusted the row filter to do this, and the row filter
+ * answers a different question: it returns every business you belong to, not
+ * the one you switched to. For somebody in one workspace those are the same
+ * set and nothing looked wrong. For the person running the agency they are
+ * not, and Jobs, Customers, the week ahead and the home screen were all
+ * quietly showing four clients' work stacked on top of each other.
+ *
+ * Returns null when there is no active workspace, which filters to nothing —
+ * an empty screen is the right way to be wrong here.
+ */
+let known: { user: string; org: string | null } | null = null;
+
+export async function orgNow(): Promise<string | null> {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth?.user?.id;
+  if (!uid) return null;
+  if (known?.user === uid) return known.org;
+  const profile = await supabase
+    .from('profiles')
+    .select('active_org_id')
+    .eq('id', uid)
+    .maybeSingle();
+  const org = (profile.data?.active_org_id as string | undefined) ?? null;
+  known = { user: uid, org };
+  return org;
+}
+
+/** Called by the switcher. Without this the old workspace stays cached. */
+export function forgetOrg(): void {
+  known = null;
+}
+
+/**
  * The org you're currently looking at. Reads active_org_id, which the
  * database only honors when a matching membership exists — so this can
  * never return an org you don't belong to.
@@ -118,7 +153,7 @@ export async function updateOrg(id: string, patch: Partial<Org>): Promise<Org> {
 
 export async function listCustomers(): Promise<Customer[]> {
   return unwrap(
-    await supabase.from('customers').select('*').order('name', { ascending: true })
+    await supabase.from('customers').select('*').eq('org_id', await orgNow()).order('name', { ascending: true })
   ) as Customer[];
 }
 
@@ -145,6 +180,7 @@ export async function listJobs(statuses?: JobStatus[]): Promise<JobWithCustomer[
   let q = supabase
     .from('jobs')
     .select('*, customer:customers(id, name)')
+    .eq('org_id', await orgNow())
     .order('updated_at', { ascending: false });
 
   if (statuses?.length) q = q.in('status', statuses);
@@ -186,7 +222,7 @@ export async function updateJob(id: string, patch: Partial<Job>): Promise<Job> {
  * needed and instead did with a loop of one request per client.
  */
 export async function listJobLedger(): Promise<JobLedger[]> {
-  const rows = unwrap(await supabase.from('job_ledger').select('*')) as JobLedger[];
+  const rows = unwrap(await supabase.from('job_ledger').select('*').eq('org_id', await orgNow())) as JobLedger[];
   return rows.map((r) => ({
     ...r,
     hours_logged: num(r.hours_logged),
@@ -437,7 +473,7 @@ export async function listDocuments(opts?: {
   /** Photos are excluded unless asked for. See below. */
   kind?: string;
 }): Promise<DocumentRecord[]> {
-  let q = supabase.from('documents').select('*').order('created_at', { ascending: false });
+  let q = supabase.from('documents').select('*').eq('org_id', await orgNow()).order('created_at', { ascending: false });
 
   if (opts?.jobId) q = q.eq('job_id', opts.jobId);
   if (opts?.unfiledOnly) q = q.is('job_id', null);
@@ -565,6 +601,7 @@ export async function getExtractionSpend(): Promise<{ cents: number; documents: 
     await supabase
       .from('documents')
       .select('extraction_cost_cents')
+      .eq('org_id', await orgNow())
       .not('extraction_cost_cents', 'is', null)
   ) as Array<{ extraction_cost_cents: number }>;
 
@@ -582,6 +619,7 @@ export async function listInvoices(jobId?: string): Promise<JobInvoice[]> {
   let q = supabase
     .from('job_invoices')
     .select('*')
+    .eq('org_id', await orgNow())
     .order('created_at', { ascending: false });
   if (jobId) q = q.eq('job_id', jobId);
 
@@ -906,6 +944,7 @@ export async function listAllEstimates(): Promise<
     await supabase
       .from('estimates')
       .select('*, job:jobs(id, name, customer:customers(name))')
+      .eq('org_id', await orgNow())
       .order('created_at', { ascending: false })
   ) as Array<Estimate & { job: { id: string; name: string; customer: { name: string } | null } | null }>;
 }

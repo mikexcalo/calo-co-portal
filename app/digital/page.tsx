@@ -23,6 +23,7 @@ import supabase from '@/lib/supabase';
 import { SEO_TASKS } from '@/lib/spine/seo';
 import { Button, C, Card, DIGITAL_TABS, Empty, Page, SectionLabel } from '@/components/spine/ui';
 import { Glyph, type IconName } from '@/components/spine/icons';
+import { orgNow } from '@/lib/spine/db';
 
 interface Panel {
   icon: IconName;
@@ -44,7 +45,7 @@ export default function DigitalPage() {
 
   const load = useCallback(async () => {
     const [sites, tasks, reviews, profile] = await Promise.all([
-      supabase.from('client_sites').select('id, name, analytics_on, customer_id'),
+      supabase.from('client_sites').select('id, name, analytics_on, customer_id').eq('org_id', await orgNow()),
       supabase.from('seo_tasks').select('key, status'),
       supabase.from('review_requests').select('id, sent_at, clicked_at'),
       supabase.from('seo_profile').select('gbp_url, site_url').is('customer_id', null).maybeSingle(),

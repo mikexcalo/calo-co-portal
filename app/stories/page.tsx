@@ -38,6 +38,7 @@ import {
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
+import { orgNow } from '@/lib/spine/db';
 
 interface Claim {
   id: string;
@@ -115,7 +116,7 @@ export default function StoriesPage() {
 
   const load = useCallback(async () => {
     const [s, c] = await Promise.all([
-      supabase.from('case_studies').select('*').order('created_at', { ascending: false }),
+      supabase.from('case_studies').select('*').eq('org_id', await orgNow()).order('created_at', { ascending: false }),
       supabase.from('case_study_claims').select('*').order('created_at'),
     ]);
     if (s.data) setStories(s.data as Story[]);
@@ -134,9 +135,10 @@ export default function StoriesPage() {
      * call proving it. Readiness is checked here from the same material the
      * writer reads: a finished engagement, or proof of a result on file.
      */
+    const here = await orgNow();
     const [list, jobsRes, proofRes] = await Promise.all([
-      supabase.from('customers').select('id, name').order('name'),
-      supabase.from('jobs').select('customer_id, status'),
+      supabase.from('customers').select('id, name').eq('org_id', here).order('name'),
+      supabase.from('jobs').select('customer_id, status').eq('org_id', here),
       supabase.from('brand_proof').select('brand_id, status, brands!inner(customer_id)'),
     ]);
 

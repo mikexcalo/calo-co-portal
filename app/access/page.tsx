@@ -33,7 +33,7 @@ import {
 } from '@/lib/spine/modules';
 import { ModuleSwitchboard } from '@/components/spine/ModuleSwitchboard';
 import { Avatar, CLIENT_TABS, C, Card, Empty, Page, SectionLabel, Switch } from '@/components/spine/ui';
-import { brandAssetUrl } from '@/lib/spine/db';
+import { brandAssetUrl, orgNow} from '@/lib/spine/db';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 
@@ -93,7 +93,7 @@ export default function AccessPage() {
      * below: a query that breaks now says it broke.
      */
     const [sum, full] = await Promise.all([
-      supabase.from('customer_summary').select('customer_id, name, logo_path').order('name'),
+      supabase.from('customer_summary').select('customer_id, name, logo_path').eq('org_id', await orgNow()).order('name'),
       supabase.from('customers').select('id, plan, modules, workspace_id'),
     ]);
     if (sum.error || full.error) {

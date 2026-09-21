@@ -37,6 +37,7 @@ import {
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
+import { orgNow } from '@/lib/spine/db';
 
 type Stage = 'drop' | 'review' | 'done';
 
@@ -72,7 +73,7 @@ export default function ImportCustomersPage() {
         return;
       }
 
-      const existing = await supabase.from('customers').select('name, email');
+      const existing = await supabase.from('customers').select('name, email').eq('org_id', await orgNow());
       const dup = findDuplicates(parsed.rows, existing.data ?? []);
       setDupes(dup);
       // Unticked from the start. The notice says they are excluded, and a

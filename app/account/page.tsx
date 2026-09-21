@@ -37,6 +37,7 @@ import {
   shortDate,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { orgNow } from '@/lib/spine/db';
 
 interface AccountRow {
   job_id: string;
@@ -76,7 +77,7 @@ export default function AccountPage() {
   useEffect(() => {
     (async () => {
       try {
-        const acct = await supabase.from('client_account').select('*');
+        const acct = await supabase.from('client_account').select('*').eq('org_id', await orgNow());
         if (acct.error) throw new Error(acct.error.message);
 
         const list = (acct.data ?? []).map((r: Record<string, unknown>) => ({

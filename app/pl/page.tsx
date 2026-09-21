@@ -13,7 +13,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { listInvoices, listJobLedger } from '@/lib/spine/db';
+import { listInvoices, listJobLedger, orgNow} from '@/lib/spine/db';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import type { JobInvoice, JobLedger } from '@/lib/spine/types';
@@ -97,7 +97,7 @@ export default function ProfitLossPage() {
         const [l, inv, rec, oh] = await Promise.all([
           listJobLedger(),
           listInvoices(),
-          supabase.from('recovery_metrics').select('*'),
+          supabase.from('recovery_metrics').select('*').eq('org_id', await orgNow()),
           supabase.from('overhead_summary').select('monthly_run_rate').maybeSingle(),
         ]);
 

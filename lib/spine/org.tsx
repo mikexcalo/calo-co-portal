@@ -15,6 +15,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
+import { forgetOrg } from '@/lib/spine/db';
 import type { Org } from './types';
 
 export interface Vocab {
@@ -173,6 +174,7 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      forgetOrg();
       // Full reload rather than swapping state: every open page is showing
       // the other business's data and needs to re-fetch from scratch.
       window.location.reload();

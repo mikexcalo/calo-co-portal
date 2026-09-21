@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { MODULE_LABEL, moduleState, type ModuleId } from '@/lib/spine/modules';
 import { C, Card, SectionLabel } from './ui';
+import { orgNow } from '@/lib/spine/db';
 
 interface Row {
   id: string;
@@ -38,7 +39,7 @@ export function SoldNotLive() {
   const [loaded, setLoaded] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await supabase.from('customers').select('id, name, modules');
+    const res = await supabase.from('customers').select('id, name, modules').eq('org_id', await orgNow());
     if (res.error) { setLoaded(true); return; }
 
     const out: Owed[] = [];

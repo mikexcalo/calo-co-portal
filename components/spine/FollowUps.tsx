@@ -13,6 +13,7 @@ import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { planAllows } from '@/lib/spine/modules';
 import { Button, C, Card, SectionLabel, money } from './ui';
+import { orgNow } from '@/lib/spine/db';
 
 interface Row {
   kind: 'estimate' | 'invoice';
@@ -30,7 +31,7 @@ export function FollowUps() {
   const [note, setNote] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const res = await supabase.from('follow_ups').select('*');
+    const res = await supabase.from('follow_ups').select('*').eq('org_id', await orgNow());
     if (!res.error) setRows((res.data ?? []) as Row[]);
   }, []);
 
