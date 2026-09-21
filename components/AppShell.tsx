@@ -52,7 +52,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [navOpen, setNavOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
 
-  const isBarePage = pathname === '/login' || pathname === '/welcome';
+  /*
+    Five public routes were being wrapped in the signed-in app.
+
+    This listed /login and /welcome and nothing else, so every page a CLIENT
+    is sent — a proposal, an invoice, a site preview — rendered inside the
+    sidebar, the search bar and the workspace switcher. The document never got
+    to render at all: the server returned the shell, titled CALO&CO, with
+    "Loading…" where the proposal should be.
+
+    Which means the link in John's email did not show him a proposal. It showed
+    him the inside of somebody else's software, and then failed. The same is
+    true of every invoice link already sent.
+
+    These routes are the product's front door for people who do not have an
+    account. They are bare, by definition.
+  */
+  const PUBLIC = ['/e/', '/i/', '/s/', '/c/', '/preview/'];
+  const isBarePage =
+    pathname === '/login' ||
+    pathname === '/welcome' ||
+    PUBLIC.some((p) => pathname.startsWith(p));
 
   /**
    * Switching to a business that doesn't have the module you're looking at
