@@ -110,3 +110,35 @@ old label until they turn two-factor off and set it up again.
 So it moves on a considered decision, not as a side effect of editing a
 heading. Any rename needs to tell existing users why their authenticator still
 says the old thing.
+
+---
+
+## Price lists have three owners, and only two exist — 2026-09-21
+
+Today `price_items` carries `belongs_to`, which is either `ours` (what you
+charge, and the only list an estimate may quote from) or `supplier` (what
+somebody charges you, kept for reference). `client_products` separately holds
+what a client sells, per client, in John's own columns — item, form, size,
+pack, fob.
+
+That covers a builder and it does not cover a distributor. John needs three
+lists at once:
+
+1. **His own prices** — what Global Seafood Partners charges. `ours`, exists.
+2. **A price list per client** — what he quotes *that* client, which is not
+   the same number for everybody. Does not exist. `client_products` is what
+   the client *sells*, not what he sells *to* them.
+3. **Other distributors' lists** — Sysco and the like, who are not his clients
+   and never will be. Today these land as `supplier`, which is right in spirit
+   and wrong in shape: a supplier is somebody you buy from, and a competing
+   distributor's sheet is market intelligence.
+
+**Not being built yet, deliberately.** He is populating the platform now, and
+the right shape will be obvious from what he actually drops in. Guessing at it
+before then means building a schema against an imagined workflow, which is how
+the first version of `price_items` ended up assuming everybody is a builder.
+
+What to watch for while he uses it: whether a per-client price is a discount
+off his own list or an entirely separate sheet. The first is a modifier on
+`price_items`; the second is a table. They are very different amounts of work
+and the answer is in how he talks about it.
