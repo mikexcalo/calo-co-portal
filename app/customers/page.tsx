@@ -22,6 +22,7 @@ import { FirstSteps } from '@/components/spine/FirstSteps';
 import { STAGE, isClient, daysSince, type Stage } from '@/lib/spine/stage';
 import { BulkAction, BulkBar, RecordTable, type Column } from '@/components/spine/RecordTable';
 import { SavedViews, type View } from '@/components/spine/SavedViews';
+import { ClientIntake } from '@/components/spine/ClientIntake';
 import {
   Avatar,
   Button,
@@ -186,6 +187,7 @@ export default function CustomersPage() {
    */
   const [brands, setBrands] = useState<Array<{ id: string; name: string; customer_id: string | null }>>([]);
   const [brandFilter, setBrandFilter] = useState<string>('all');
+  const [dropping, setDropping] = useState(false);
 
   useEffect(() => {
     if (!org) return;
@@ -367,12 +369,23 @@ export default function CustomersPage() {
           <Button variant="ghost" onClick={() => router.push('/customers/import')}>
             Import a list
           </Button>
-          <Button onClick={() => setAdding((v) => !v)}>
+          {/*
+            The other way in. Most of what you know about a new client arrives
+            as a photograph of a page, not as typing.
+          */}
+          <Button variant="ghost" onClick={() => { setDropping((v) => !v); setAdding(false); }}>
+            {dropping ? 'Cancel' : 'Drop what you have'}
+          </Button>
+          <Button onClick={() => { setAdding((v) => !v); setDropping(false); }}>
             {adding ? 'Cancel' : `New ${vocab.customer.toLowerCase()}`}
           </Button>
         </>
       }
     >
+      {dropping && orgId && (
+        <ClientIntake orgId={orgId} onSaved={load} onClose={() => setDropping(false)} />
+      )}
+
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
