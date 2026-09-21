@@ -63,7 +63,8 @@ function ago(iso: string, now: number): string {
 
 export function Notifications() {
   const router = useRouter();
-  const { switchOrg } = useOrg();
+  const { org, switchOrg } = useOrg();
+  const orgId = org?.id ?? null;
   const [items, setItems] = useState<Notification[]>([]);
   /**
    * Feedback ids are synthesised, so there is no row to mark read. Clicking one
@@ -122,9 +123,18 @@ export function Notifications() {
        * bell stayed empty, which is the worst version of an alert: it taught
        * its owner there was nothing to see.
        */
+      /**
+       * This workspace only.
+       *
+       * Feedback is readable across every business you belong to, so standing
+       * in one client's account showed another client's note — which reads as
+       * a leak even though it is your own book. The cross-workspace view is
+       * "Asked for" on Home, where it belongs.
+       */
       supabase
         .from('feedback')
         .select('id, org_id, kind, body, page, status, created_at, orgs(name)')
+        .eq('org_id', orgId ?? '')
         // Only unanswered. Saying "working on it" is an answer, and a bell
         // that keeps ringing after you have replied is a bell you turn off.
         .eq('status', 'open')
@@ -179,7 +189,7 @@ export function Notifications() {
       (a, b) => (a.created_at < b.created_at ? 1 : -1)
     );
     setItems(merged);
-  }, []);
+  }, [orgId]);
 
   useEffect(() => {
     setNow(Date.now());
@@ -390,13 +400,32 @@ export function Notifications() {
                     >
                       {n.title}
                     </span>
+                    {/*
+                      Two lines, then a way in.
+                      
+                      A four-hundred-word task printed in full turned the tray
+                      into the document, so one item filled the panel and the
+                      others were below the fold. The tray says what happened;
+                      the screen it points at says the rest.
+                    */}
                     {n.body && (
-                      <span style={{ display: 'block', fontSize: 13, color: C.dim, marginTop: 2 }}>
+                      <span
+                        style={{
+                          display: '-webkit-box', WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                          fontSize: 13, color: C.dim, marginTop: 2, lineHeight: 1.5,
+                        }}
+                      >
                         {n.body}
                       </span>
                     )}
-                    <span style={{ display: 'block', fontSize: 11.5, color: C.faint, marginTop: 4 }}>
-                      {now ? ago(n.created_at, now) : ''}
+                    <span style={{ display: 'flex', gap: 10, alignItems: 'baseline', marginTop: 5 }}>
+                      <span style={{ fontSize: 11.5, color: C.faint }}>
+                        {now ? ago(n.created_at, now) : ''}
+                      </span>
+                      <span style={{ fontSize: 12, color: C.blue }}>
+                        {n.kind === 'system' ? 'Open it →' : 'Take a look →'}
+                      </span>
                     </span>
                   </span>
                 </button>
