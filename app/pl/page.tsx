@@ -304,16 +304,27 @@ export default function ProfitLossPage() {
               tone="green"
               hint="Money actually in"
             />
+            {/* Red, like every other place money owed to you is shown. */}
             <Metric
               label="Owed to you"
               hideAtZero
               value={money0(scoped.outstanding)}
-              tone={scoped.outstanding > 0 ? 'amber' : undefined}
+              tone={scoped.outstanding > 0 ? 'red' : undefined}
               hint="Invoiced, not paid"
             />
             {/* Sits beside profit rather than inside it. Tax is not a cost of
                 doing the work, it is a share of the money that was never
                 yours. */}
+            {/*
+              Nothing collected, nothing to hold back.
+
+              Every other card here hides at zero, so on a business that has
+              not invoiced yet this was the only one left — the words "Not set"
+              stretched across the full width of an otherwise empty screen,
+              nagging about a rate that would apply to no money. It asks once
+              there is something for it to take a share of.
+            */}
+            {scoped.collected > 0 && (
             <Metric
               label="Hold back for tax"
               value={scoped.setAside == null ? 'Not set' : money0(scoped.setAside)}
@@ -324,6 +335,7 @@ export default function ProfitLossPage() {
                   : `${taxPct}% of what you collected`
               }
             />
+            )}
           </div>
 
           {overdelivering.length > 0 && (
@@ -505,7 +517,16 @@ export default function ProfitLossPage() {
                     <div style={{ color: unbilled > 0 ? C.amber : C.faint }}>
                       {unbilled > 0 ? money(unbilled) : '—'}
                     </div>
-                    <div style={{ color: r.margin_to_date >= 0 ? C.green : C.red }}>
+                    {/*
+                      Zero is not good news.
+
+                      This coloured anything not negative green, so a job that
+                      has earned nothing and cost nothing — every job on a
+                      business that has not started invoicing — showed $0.00 in
+                      the green that means settled. Green is for a margin that
+                      exists.
+                    */}
+                    <div style={{ color: r.margin_to_date > 0 ? C.green : r.margin_to_date < 0 ? C.red : C.faint }}>
                       {money(r.margin_to_date)}
                     </div>
                   </Row>

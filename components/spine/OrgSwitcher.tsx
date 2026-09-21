@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useOrg } from '@/lib/spine/org';
 import { useViewAs } from '@/lib/spine/viewas';
-import { C } from './ui';
+import { Avatar, C } from './ui';
 
 /**
  * Which business am I looking at right now.
@@ -59,15 +59,7 @@ export function OrgSwitcher() {
           textAlign: 'left',
         }}
       >
-        <span
-          style={{
-            width: 7,
-            height: 7,
-            borderRadius: '50%',
-            background: org.is_demo ? C.amber : org.kind === 'agency' ? C.blue : C.green,
-            flexShrink: 0,
-          }}
-        />
+        <Avatar name={org.name} size={20} shape="company" />
         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {org.name}
         </span>
@@ -102,15 +94,44 @@ export function OrgSwitcher() {
               position: 'absolute',
               top: 'calc(100% + 4px)',
               left: 0,
-              right: 0,
+              minWidth: '100%',
+              width: 'max-content',
+              maxWidth: 340,
               background: C.panel,
               border: `1px solid ${C.border}`,
-              borderRadius: 8,
-              padding: 4,
+              borderRadius: 10,
+              padding: 5,
               zIndex: 41,
-              boxShadow: '0 8px 24px rgba(0,0,0,.4)',
+              boxShadow: '0 10px 30px rgba(0,0,0,.13)',
             }}
           >
+            {/*
+              A list you can run your eye down.
+
+              It was as wide as the sidebar, so "Global Seafood Partners" broke
+              across three lines, the kind label floated somewhere beside the
+              middle one, and four businesses already needed sorting out by
+              reading. At twenty it would be unusable.
+
+              Three things fixed it. The panel sets its own width instead of
+              inheriting the sidebar's, so names get one line each and the tail
+              of a long one is clipped rather than wrapped. Every row is the
+              same height, so the kind labels line up in a column you can scan
+              instead of scattering. And the name starts at the same x on every
+              row, which is what actually makes a list sortable by eye.
+
+              The coloured dot is gone. It was green for a contractor and
+              #141414 for an agency — colour used as decoration, which this
+              palette forbids in as many words: green means settled, amber
+              means needs you, red means wrong, and none of them mean
+              construction. The word beside it already said which kind it was.
+
+              In its place, the monogram. Avatar draws a logo when there is one
+              and the initials when there is not, so this does not go sloppy
+              while some businesses have a mark and others do not — every row
+              is the same shape either way, and real logos appear as they land
+              without the layout moving.
+            */}
             {orgs.map((o) => (
               <button
                 key={o.id}
@@ -121,12 +142,13 @@ export function OrgSwitcher() {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 8,
+                  gap: 10,
                   width: '100%',
-                  padding: '8px 10px',
-                  borderRadius: 999,
+                  height: 40,
+                  padding: '0 10px',
+                  borderRadius: 8,
                   border: 'none',
-                  background: o.id === org.id ? '#ffffff0d' : 'transparent',
+                  background: o.id === org.id ? C.panelAlt : 'transparent',
                   color: o.id === org.id ? C.text : C.dim,
                   fontSize: 14,
                   fontFamily: 'inherit',
@@ -134,21 +156,25 @@ export function OrgSwitcher() {
                   textAlign: 'left',
                 }}
               >
-                {o.is_demo && (
-                  <span style={{ fontSize: 10, color: C.amber, flexShrink: 0 }}>DEMO</span>
-                )}
+                <Avatar name={o.name} size={22} shape="company" />
                 <span
                   style={{
-                    width: 7,
-                    height: 7,
-                    borderRadius: '50%',
-                    background: o.kind === 'agency' ? C.blue : C.green,
-                    flexShrink: 0,
+                    flex: 1,
+                    minWidth: 0,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    fontWeight: o.id === org.id ? 500 : 400,
                   }}
-                />
-                <span style={{ flex: 1 }}>{o.name}</span>
-                <span style={{ fontSize: 11, color: C.faint }}>
-                  {o.kind === 'agency' ? 'Agency' : 'Contractor'}
+                >
+                  {o.name}
+                </span>
+                {/*
+                  One badge, not two. A business called "Demo" was drawing the
+                  word DEMO beside its own name.
+                */}
+                <span style={{ fontSize: 11, color: o.is_demo ? C.amber : C.faint, flexShrink: 0 }}>
+                  {o.is_demo ? 'Demo' : o.kind === 'agency' ? 'Agency' : 'Contractor'}
                 </span>
               </button>
             ))}

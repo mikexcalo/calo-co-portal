@@ -4,6 +4,7 @@ import { TourRunner } from '@/components/spine/TourRunner';
 import { SaveFailed } from '@/components/spine/SaveFailed';
 import { ViewAsBar } from '@/components/spine/ViewAsBar';
 import { useViewAs } from '@/lib/spine/viewas';
+import { VIEW_AS_BAR } from '@/components/spine/ViewAsBar';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
@@ -22,7 +23,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const phone = useIsPhone();
   const { org, vocab, loading: orgLoading, orgs } = useOrg();
-  const { setMyRole } = useViewAs();
+  const { setMyRole, viewAs } = useViewAs();
   const orgCount = orgs?.length ?? 0;
 
   /**
@@ -161,7 +162,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
+    /*
+      The preview bar takes its own room rather than sitting on top of things.
+
+      It is position: fixed at the top of the window, which put it over the top
+      bar: search, the workspace name and every control up there were sliced in
+      half the moment you turned the preview on — on the screen whose whole job
+      is showing you what somebody else sees. The shell is VIEW_AS_BAR shorter
+      while it is on, so the bar has its own strip and nothing is underneath it.
+    */
+    <div style={{ display: 'flex', height: '100vh', paddingTop: viewAs ? VIEW_AS_BAR : 0 }}>
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <TopBar />

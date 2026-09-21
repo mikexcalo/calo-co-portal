@@ -36,12 +36,21 @@ export const NAV_ICONS: Record<string, React.ReactNode> = {
       <path d="M6.4 13.8V9.6h3.2v4.2" />
     </svg>
   ),
-  // A yard sign — what a contractor plants on a job.
+  /*
+    A trail to a pin, because the row says Route.
+
+    This was a yard sign — the board a contractor plants on a finished job —
+    which is a fine drawing of something this screen is not about. Route is the
+    order you drive the day in, and nothing about a signpost says driving,
+    order, or map. A dotted trail running up to a dropped pin says all three
+    before the word is read, which is the only reason an icon is there.
+  */
   yardSign: (
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2.2" y="2" width="11.6" height="7.2" rx="1.1" />
-      <path d="M5.2 5.1h5.6M5.2 7h3.4" />
-      <path d="M8 9.2V14" /><path d="M5.6 14h4.8" />
+      <circle cx="3" cy="13" r="1.5" />
+      <path d="M4.6 13h3.1a2.4 2.4 0 0 0 0-4.8H6.2" strokeDasharray="0.1 2.4" />
+      <path d="M11.4 2.1a2.9 2.9 0 0 1 2.9 2.9c0 2.1-2.9 5-2.9 5S8.5 7.1 8.5 5a2.9 2.9 0 0 1 2.9-2.9Z" />
+      <circle cx="11.4" cy="5" r="1" />
     </svg>
   ),
   // A hard hat — the people a contractor deals with.
@@ -101,11 +110,19 @@ export const NAV_ICONS: Record<string, React.ReactNode> = {
    * every product uses for "apps" or "dashboard" and said nothing about
    * colour, type or a mark. This is the one object that only ever means brand.
    */
+  /*
+    A drop of colour.
+
+    The last one was three upright swatch cards with a brush leaning on them,
+    which at seventeen pixels is five overlapping strokes and reads as a
+    smudge. Brand here is colours, logos and a typeface, and the one object
+    that means colour at any size is a drop of it — two strokes, nothing to
+    resolve, and unmistakable in a column of outlines.
+  */
   brandKit: (
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="1.6" y="4.4" width="4" height="9.8" rx="1.3" />
-      <rect x="6.4" y="2.4" width="4" height="11.8" rx="1.3" />
-      <path d="M11.6 5.1l2.5.9a1.3 1.3 0 0 1 .8 1.7l-2.3 6.1" />
+      <path d="M8 1.7c0 0 4.4 4.7 4.4 7.5a4.4 4.4 0 0 1-8.8 0C3.6 6.4 8 1.7 8 1.7Z" />
+      <path d="M6 9.4a2 2 0 0 0 2 2" />
     </svg>
   ),
   // A signed document — a proposal awaiting a decision.

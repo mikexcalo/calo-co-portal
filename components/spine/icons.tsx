@@ -122,12 +122,18 @@ const PATHS: Record<IconName, ReactNode> = {
       <path d="M13.6 3.2H9.4c-.9 0-1.4.5-1.4 1.3v8.3c0-.7.5-1.2 1.4-1.2h4.2z" />
     </>
   ),
+  /*
+    The same drop the sidebar draws.
+
+    Brand had two different glyphs: a grid of squares and circles on its tab
+    strip, and a set of swatch cards in the sidebar row that opens it. Same
+    module, two marks, so neither became the one you recognise. This is the
+    sidebar's drop, and now there is one.
+  */
   swatches: (
     <>
-      <path d="M2.6 2.8h4.6v4.6H2.6z" />
-      <circle cx="11.2" cy="5.1" r="2.4" />
-      <path d="M2.6 9.2h4.6v4.6H2.6z" />
-      <circle cx="11.2" cy="11.5" r="2.4" />
+      <path d="M8 1.7c0 0 4.4 4.7 4.4 7.5a4.4 4.4 0 0 1-8.8 0C3.6 6.4 8 1.7 8 1.7Z" />
+      <path d="M6 9.4a2 2 0 0 0 2 2" />
     </>
   ),
   globe: (

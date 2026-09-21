@@ -12,6 +12,15 @@
 import { useViewAs } from '@/lib/spine/viewas';
 import { C } from './ui';
 
+/**
+ * How tall the bar is, so the shell can leave it a strip of its own.
+ *
+ * Exported rather than guessed at: it was fixed to the top of the window with
+ * nothing accounting for it, so it sat across the top bar and cut the controls
+ * in half.
+ */
+export const VIEW_AS_BAR = 32;
+
 export function ViewAsBar() {
   const { viewAs, setViewAs } = useViewAs();
   if (!viewAs) return null;
@@ -22,7 +31,8 @@ export function ViewAsBar() {
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 130,
         background: C.text, color: C.panel,
         display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
-        padding: '7px 16px', fontSize: 12.5,
+        height: VIEW_AS_BAR, boxSizing: 'border-box',
+        padding: '0 16px', fontSize: 12.5,
       }}
     >
       <span style={{ fontWeight: 600 }}>Seeing this as {viewAs.label}</span>
