@@ -32,7 +32,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
-import { Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/components/spine/ui';
+import { Button, C, Card, Empty, Page, SectionLabel, inputStyle , SearchField} from '@/components/spine/ui';
 import { Glyph } from '@/components/spine/icons';
 import { Doc, CopyDoc } from '@/components/spine/Doc';
 import { human } from '@/lib/spine/errors';
@@ -188,11 +188,11 @@ export default function MarketPage() {
         </Card>
       ) : (
         <>
-          <input
+          <SearchField
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={setQ}
             placeholder="Search inside every document, not just the titles"
-            style={{ ...inputStyle, marginBottom: 14 }}
+            style={{ flex: '1 1 100%', marginBottom: 14 }}
           />
 
           {shown.length === 0 && (

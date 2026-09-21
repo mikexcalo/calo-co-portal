@@ -24,7 +24,7 @@ import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { LANE, OPEN_STAGES, STAGE, daysSince, stale, type Stage } from '@/lib/spine/stage';
-import { Avatar, Button, C, Card, Empty, Page, inputStyle } from '@/components/spine/ui';
+import { Avatar, Button, C, Card, Empty, Page, inputStyle , SearchField} from '@/components/spine/ui';
 import { BulkAction, BulkBar, RecordTable, type Column } from '@/components/spine/RecordTable';
 import { SavedViews, type View } from '@/components/spine/SavedViews';
 import { brandAssetUrl } from '@/lib/spine/db';
@@ -461,12 +461,7 @@ export default function PipelinePage() {
             {chip('All', only === 'all', () => setOnly('all'), rows.length)}
             {COLUMNS.map((c) => chip(c.label, only === c.id, () => setOnly(c.id), counts[c.id] ?? 0))}
             <span style={{ flex: 1 }} />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search"
-              style={{ ...inputStyle, maxWidth: 180, padding: '5px 11px', fontSize: 13 }}
-            />
+            <SearchField value={q} onChange={setQ} style={{ flex: '0 1 200px' }} />
             {allTags.length > 0 && (
               <button
                 onClick={() => setShowTags((v) => !v)}

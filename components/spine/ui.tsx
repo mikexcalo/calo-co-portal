@@ -665,6 +665,61 @@ export const inputStyle: React.CSSProperties = {
 };
 
 /**
+ * A search box that looks like one.
+ *
+ * These were plain text inputs with the word "Search" typed into the
+ * placeholder, which is indistinguishable from a field waiting to be filled
+ * in until you read it. A magnifier is the one icon everybody already knows,
+ * and it survives the placeholder being replaced by what somebody typed.
+ *
+ * Shared rather than repeated: the boxes on People and Clients had drifted to
+ * different widths and different placeholder grammar, which is what happens to
+ * anything written out twice.
+ */
+export function SearchField({
+  value,
+  onChange,
+  placeholder = 'Search',
+  style,
+  autoFocus,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  style?: React.CSSProperties;
+  autoFocus?: boolean;
+}) {
+  return (
+    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: '1 1 260px', ...style }}>
+      <span style={{ position: 'absolute', left: 11, display: 'flex', pointerEvents: 'none' }}>
+        <Glyph name="search" size={14} color={C.faint} />
+      </span>
+      <input
+        value={value}
+        autoFocus={autoFocus}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        style={{ ...inputStyle, paddingLeft: 33 }}
+      />
+      {value && (
+        <button
+          onClick={() => onChange('')}
+          aria-label="Clear search"
+          title="Clear"
+          style={{
+            position: 'absolute', right: 8, width: 20, height: 20, borderRadius: 999,
+            border: 'none', background: 'transparent', color: C.faint,
+            fontSize: 14, lineHeight: 1, cursor: 'pointer', fontFamily: 'inherit',
+          }}
+        >
+          &times;
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
  * Nothing here yet.
  *
  * Was 28px of padding and centered text, so an empty section took as much

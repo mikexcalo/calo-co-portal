@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 import { LEARN_AREAS, LESSONS } from '@/lib/spine/learn';
 import { TOURS } from '@/lib/spine/tours';
 import { startTour } from '@/components/spine/TourRunner';
-import { Button, C, Card, Empty, Page, inputStyle } from '@/components/spine/ui';
+import { Button, C, Card, Empty, Page, inputStyle , SearchField} from '@/components/spine/ui';
 
 export default function LearnPage() {
   const router = useRouter();
@@ -89,12 +89,7 @@ export default function LearnPage() {
         {chip('All', area === 'all', () => setArea('all'))}
         {LEARN_AREAS.map((a) => chip(a, area === a, () => setArea(a)))}
         <span style={{ flex: 1 }} />
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search"
-          style={{ ...inputStyle, maxWidth: 200, padding: '5px 11px', fontSize: 13 }}
-        />
+        <SearchField value={q} onChange={setQ} style={{ flex: '0 1 220px' }} />
       </div>
 
       {shown.length === 0 ? (

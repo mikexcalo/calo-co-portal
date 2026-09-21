@@ -39,6 +39,7 @@ import {
   radius,
   shortDate,
   clientTabs,
+  SearchField,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -55,6 +56,14 @@ interface Summary {
   logo_path: string | null;
   waiting_on: string | null;
   stage: Stage;
+  /**
+   * customer, supplier or other.
+   *
+   * A company you deal with is not necessarily one you sell to — the utility
+   * you file permits with, the warehouse whose sheet you watch. They were all
+   * customers because that was the only list a company could be in.
+   */
+  relationship: 'customer' | 'supplier' | 'other';
   /** Merged in from customers; the summary view does not carry it. */
   tags?: string[];
   next_action: string | null;
@@ -99,6 +108,7 @@ export default function CustomersPage() {
   const [adding, setAdding] = useState(false);
   const [q, setQ] = useState('');
   const [stageFilter, setStageFilter] = useState<'all' | 'won' | 'past'>('all');
+  const [kindFilter, setKindFilter] = useState<'customer' | 'supplier' | 'other'>('customer');
   const [view, setView] = useState<string | null>(null);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [bulkTag, setBulkTag] = useState(false);
@@ -209,6 +219,9 @@ export default function CustomersPage() {
       // Anything still being chased belongs to Pipeline, not here. A record
       // does not move between lists when it converts; the window changes.
       if (!isClient(r.stage)) return false;
+      // A supplier or a utility is not somebody you sell to, so it is not
+      // counted here and never offered an invoice.
+      if ((r.relationship ?? 'customer') !== kindFilter) return false;
       if (stageFilter !== 'all' && r.stage !== stageFilter) return false;
       if (brandFilter !== 'all' && r.customer_id !== brandClient) return false;
       if (!term) return true;
@@ -354,7 +367,16 @@ export default function CustomersPage() {
    * would invoice. A number that large and that red on an otherwise empty
    * screen reads as a fault in the product rather than a fact about the data.
    */
-  const clients = useMemo(() => rows.filter((r) => isClient(r.stage)), [rows]);
+  const clients = useMemo(
+    () => rows.filter((r) => isClient(r.stage) && (r.relationship ?? 'customer') === 'customer'),
+    [rows]
+  );
+  /** How many sit under each of the three, so a tab with nothing in it is not offered. */
+  const kindCounts = useMemo(() => {
+    const m = { customer: 0, supplier: 0, other: 0 } as Record<string, number>;
+    for (const r of rows) if (isClient(r.stage)) m[r.relationship ?? 'customer'] += 1;
+    return m;
+  }, [rows]);
   const dueNow = today ? clients.filter((r) => r.next_action_on && r.next_action_on <= today) : [];
   const owing = clients.filter((r) => r.owed > 0);
   const noEmail = clients.filter((r) => !r.email);
@@ -442,14 +464,57 @@ export default function CustomersPage() {
         rows, which is more chrome than list. They earn their place at forty
         clients and are noise at four, so they arrive when the list does.
       */}
-      {(rows.length > 7 || q || stageFilter !== 'all' || brandFilter !== 'all') && (
+      {/*
+        The search box stays; the filters are what wait.
+
+        This whole strip was hidden below eight rows, on the reasoning that a
+        search box above four clients is more chrome than list. That is true of
+        three stage filters and a brand dropdown. It is not true of the search
+        box, which People shows from the first row — so the same act worked on
+        one screen and the control was simply absent on the other, with nothing
+        saying why.
+      */}
+      {/*
+        Who they are to you, before anything else about them.
+
+        Only shown once there is more than one kind on file. Until Mark files a
+        permit or John saves a warehouse sheet, every company here is somebody
+        he sells to and three tabs would be two lies.
+      */}
+      {(kindCounts.supplier > 0 || kindCounts.other > 0) && (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
+          {([
+            { id: 'customer' as const, label: `${vocab.customerPlural} (${kindCounts.customer})`, hint: 'People you sell to.' },
+            { id: 'supplier' as const, label: `Suppliers (${kindCounts.supplier})`, hint: 'People you buy from.' },
+            { id: 'other' as const, label: `Other (${kindCounts.other})`, hint: 'Companies you deal with where no money moves either way.' },
+          ]).map((o) => (
+            <button
+              key={o.id}
+              onClick={() => setKindFilter(o.id)}
+              title={o.hint}
+              style={{
+                padding: '6px 13px', borderRadius: 999, fontSize: 13, cursor: 'pointer',
+                fontFamily: 'inherit',
+                border: `1px solid ${kindFilter === o.id ? C.ink : C.border}`,
+                background: kindFilter === o.id ? C.panelAlt : 'transparent',
+                color: kindFilter === o.id ? C.text : C.dim,
+              }}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: 10, marginBottom: 18, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input
+        <SearchField
           value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder={`Search ${vocab.customerPlural.toLowerCase()}…`}
-          style={{ ...inputStyle, maxWidth: 260, background: C.panel }}
+          onChange={setQ}
+          placeholder={`Search ${vocab.customerPlural.toLowerCase()}`}
+          style={{ flex: '0 1 280px' }}
         />
+        {(rows.length > 7 || stageFilter !== 'all' || brandFilter !== 'all') && (
+        <>
         <div style={{ display: 'flex', gap: 5 }}>
           {(['all', 'won', 'past'] as const).map((s) => (
             <button
@@ -487,8 +552,9 @@ export default function CustomersPage() {
             ))}
           </select>
         )}
+        </>
+        )}
       </div>
-      )}
 
       {loading ? (
         <Empty>Loading…</Empty>

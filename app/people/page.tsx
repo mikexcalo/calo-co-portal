@@ -33,7 +33,8 @@ import {
   Pill,
   Avatar,
   inputStyle,
-} from '@/components/spine/ui';
+
+  SearchField,} from '@/components/spine/ui';
 import { RecordTable, type Column } from '@/components/spine/RecordTable';
 import { daysSince } from '@/lib/spine/stage';
 import { human } from '@/lib/spine/errors';
@@ -439,11 +440,10 @@ export default function PeoplePage() {
       )}
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input
+        <SearchField
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={setQ}
           placeholder="Search names, companies, and what was said"
-          style={{ ...inputStyle, flex: '1 1 260px' }}
         />
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           <button

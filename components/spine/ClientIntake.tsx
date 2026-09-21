@@ -99,6 +99,14 @@ export function ClientIntake({
    * the other answer is one click away.
    */
   const [isCustomer, setIsCustomer] = useState(true);
+  /**
+   * Who they are to this business.
+   *
+   * A permit read as a company and went in as a customer, so the utility Mark
+   * files with landed in the list he measures revenue against. Not every
+   * company on a document is somebody you sell to.
+   */
+  const [relationship, setRelationship] = useState<'customer' | 'supplier' | 'other'>('customer');
 
   const send = useCallback(async (payload: { data?: string; mediaType?: string; text?: string }) => {
     setReading(true); setError('');
@@ -237,7 +245,9 @@ export function ClientIntake({
           org_id: orgId,
           // Named rather than left to the default, which is still the word the
           // check constraint stopped allowing.
-          stage: isCustomer ? 'won' : 'noticed',
+          stage: relationship === 'customer' ? (isCustomer ? 'won' : 'noticed') : 'won',
+          // A supplier is not at a sales stage, so the lane does not apply.
+          relationship,
           name: name.trim(),
           website: website.trim() || null,
           address: address.trim() || null,
@@ -285,7 +295,7 @@ export function ClientIntake({
               phone: c.phone.trim() || null,
               // Matches the company. Calling somebody a client while their
               // company sits in the pipeline is two screens disagreeing.
-              relationship: isCustomer ? 'client' : 'prospect',
+              relationship: relationship !== 'customer' ? 'other' : isCustomer ? 'client' : 'prospect',
             }))
           ),
           'The people'
@@ -551,6 +561,36 @@ export function ClientIntake({
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 10 }}>
             {([
+              { id: 'customer' as const, label: 'You sell to them' },
+              { id: 'supplier' as const, label: 'You buy from them' },
+              { id: 'other' as const, label: 'Neither' },
+            ]).map((o) => (
+              <button
+                key={o.id}
+                onClick={() => setRelationship(o.id)}
+                style={{
+                  padding: '5px 12px', borderRadius: 999, fontSize: 12.5, cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  border: `1px solid ${relationship === o.id ? C.ink : C.border}`,
+                  background: relationship === o.id ? C.panelAlt : 'transparent',
+                  color: relationship === o.id ? C.text : C.dim,
+                }}
+              >
+                {o.label}
+              </button>
+            ))}
+            <span style={{ fontSize: 12, color: C.faint }}>
+              {relationship === 'customer'
+                ? ''
+                : relationship === 'supplier'
+                  ? 'Kept out of revenue, never offered an invoice.'
+                  : 'A utility, an inspector — somebody you deal with where no money moves.'}
+            </span>
+          </div>
+
+          {relationship === 'customer' && (
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 10 }}>
+            {([
               { id: true, label: 'A customer' },
               { id: false, label: 'Still chasing them' },
             ]).map((o) => (
@@ -572,6 +612,7 @@ export function ClientIntake({
               {isCustomer ? 'Lands in Customers.' : 'Lands in Pipeline until you win them.'}
             </span>
           </div>
+          )}
 
           <div style={{ marginTop: 8 }}>
             <textarea
