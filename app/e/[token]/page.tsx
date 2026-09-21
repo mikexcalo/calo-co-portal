@@ -210,12 +210,42 @@ export default async function PublicEstimate({ params }: { params: { token: stri
             </table>
           )}
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 18, alignItems: 'baseline', gap: 14 }}>
-            <span style={{ fontSize: 14, color: '#666' }}>Total</span>
-            <span style={{ fontSize: 24, fontWeight: 600, color: '#111' }}>
-              {money(Number(estimate.total) || subtotal)}
-            </span>
-          </div>
+          {/*
+            A total has to say what it is a total of.
+
+            This proposal is a rate, not a quote: $20 of hosting that recurs
+            and $60 an hour that depends entirely on what gets asked for. The
+            page added the lines up and printed "Total $20.00", which reads as
+            the price of the whole arrangement and is the one number on here
+            nobody should take away. Mike read it off the proposal list and
+            said the totals were wrong; they were.
+
+            Where a line recurs, the figure is labelled by what it recurs on,
+            and the rate lines are named underneath instead of being silently
+            summed as zero.
+          */}
+          {(() => {
+            const recurring = required.filter((l) => l.unit === 'month');
+            const rated = required.filter((l) => Number(l.qty) === 0 && Number(l.unit_price) > 0);
+            const fixed = required.filter((l) => !recurring.includes(l) && !rated.includes(l));
+            const monthly = recurring.reduce((t, l) => t + Number(l.total), 0);
+            const isRate = recurring.length > 0 && fixed.length === 0;
+            return (
+              <div style={{ marginTop: 18, textAlign: 'right' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline', gap: 14 }}>
+                  <span style={{ fontSize: 14, color: '#666' }}>{isRate ? 'Every month' : 'Total'}</span>
+                  <span style={{ fontSize: 24, fontWeight: 600, color: '#111' }}>
+                    {money(isRate ? monthly : Number(estimate.total) || subtotal)}
+                  </span>
+                </div>
+                {rated.map((l) => (
+                  <div key={l.id} style={{ fontSize: 13.5, color: '#555', marginTop: 5 }}>
+                    plus {money(Number(l.unit_price))} an {l.unit ?? 'hour'}, for the {l.unit ?? 'hour'}s you use
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
 
           {isTM && (
             <div style={{ marginTop: 16, padding: 13, background: '#f7f7f5', borderRadius: 8, fontSize: 13.5, color: '#555', lineHeight: 1.6 }}>

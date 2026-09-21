@@ -87,7 +87,6 @@ export default function ProposalsPage() {
   const winRate = decided >= 3 ? Math.round((won.length / decided) * 100) : null;
 
   const outValue = out.reduce((s, r) => s + r.total, 0);
-  const draftValue = drafts.reduce((s, r) => s + r.total, 0);
 
   const daysSince = (iso: string | null) =>
     iso && now ? Math.floor((now - new Date(iso).getTime()) / 86_400_000) : null;
@@ -124,12 +123,24 @@ export default function ProposalsPage() {
           tone={outValue > 0 ? 'blue' : undefined}
           hint={`${out.length} waiting`}
         />
+        {/*
+          A count, because the sum was not a number.
+
+          This added up every unsent proposal's total and printed $40 — two
+          clients' monthly hosting fees, from two agreements that are mostly
+          an hourly rate, added together. Nobody is ever going to be invoiced
+          $40, and no decision gets made from it.
+
+          What is worth knowing at a glance is how many are sitting unsent,
+          which is the thing that costs something. The money is on each row,
+          where it belongs to one client and means what it says.
+        */}
         <Metric
           label="Unsent drafts"
-          value={money0(draftValue)}
+          value={String(drafts.length)}
           hideAtZero
           tone={drafts.length ? 'amber' : undefined}
-          hint={`${drafts.length} never sent`}
+          hint="Written, never sent"
         />
         <Metric label="Won" value={String(won.length)} tone="green" hideAtZero />
         {winRate != null && (

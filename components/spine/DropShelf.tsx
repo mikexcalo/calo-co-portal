@@ -272,7 +272,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                 key={d.id}
                 style={{
                   border: `1px solid ${C.border}`, borderRadius: 9, padding: 10,
-                  display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap',
+                  display: 'flex', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap',
                 }}
               >
                 {d.kind === 'image' && urls[d.id] ? (
@@ -296,9 +296,36 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                 )}
 
                 <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, color: C.text, lineHeight: 1.45, wordBreak: 'break-word' }}>
+                  {/*
+                    Two lines of it, not all of it.
+
+                    A note printed its entire body. Somebody pasted a supplier's
+                    price list — nine hundred words of "Emperor Fillets 4–6 oz
+                    1,364 cs 13,640 lbs $4.70/lb" — and the card grew to fill
+                    the screen with it. Three of those in a row and the shelf is
+                    a wall of somebody else's spreadsheet, with Read it floating
+                    somewhere down the middle of the card because it was
+                    vertically centred against eight hundred pixels of text.
+
+                    The first two lines are enough to know which one this is,
+                    which is all the shelf has to do; reading it is what the
+                    button is for. Everything on the card sits at the top now,
+                    so the button is where it was on the card above.
+                  */}
+                  <div
+                    style={{
+                      fontSize: 13.5, color: C.text, lineHeight: 1.45, wordBreak: 'break-word',
+                      display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}
+                  >
                     {label}
                   </div>
+                  {label.length > 150 && (
+                    <div style={{ fontSize: 11.5, color: C.faint, marginTop: 3 }}>
+                      {label.length.toLocaleString()} characters — press Read it to file what is in it
+                    </div>
+                  )}
                   <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 3, flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 11.5, color: C.faint }}>
                       {new Date(d.created_at).toLocaleDateString()}

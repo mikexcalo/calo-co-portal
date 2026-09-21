@@ -827,8 +827,35 @@ function LogosTab({
             gap: 14,
           }}
         >
+          {/*
+            A kit you can take something out of.
+
+            You could add a logo and never remove one. CALO&CO's kit held the
+            site favicon — an ampersand in a black square — which is not the
+            mark; the proposal takes the first logo it finds, so every proposal
+            went out headed with a favicon and there was no button anywhere
+            that would take it back out.
+
+            Remove, and a way to say which one documents should use, because
+            "the first one in the list" is not something anybody can see or
+            change from here.
+          */}
           {variants.map((v) => (
-            <LogoCard key={v.id} variant={v} company={company} onError={setError} />
+            <LogoCard
+              key={v.id}
+              variant={v}
+              company={company}
+              onError={setError}
+              isDefault={(brand.logoLight ?? (brand.logos ?? [])[0]) === v.url}
+              onUseOnDocuments={() => onChange({ logoLight: v.url })}
+              onRemove={() =>
+                onChange({
+                  logos: (brand.logos ?? []).filter((u) => (u ?? '').trim() !== v.url),
+                  ...(brand.logoLight === v.url ? { logoLight: '' } : {}),
+                  ...(brand.logoDark === v.url ? { logoDark: '' } : {}),
+                })
+              }
+            />
           ))}
         </div>
       )}
@@ -858,10 +885,16 @@ function LogoCard({
   variant,
   company,
   onError,
+  isDefault,
+  onUseOnDocuments,
+  onRemove,
 }: {
   variant: LogoVariant;
   company: string;
   onError: (msg: string | null) => void;
+  isDefault: boolean;
+  onUseOnDocuments: () => void;
+  onRemove: () => void;
 }) {
   const [format, setFormat] = useState<LogoFormat>('png');
   const [size, setSize] = useState(0);
@@ -887,6 +920,40 @@ function LogoCard({
 
   return (
     <Card style={{ padding: 0, overflow: 'hidden' }}>
+      {/*
+        Which one goes on a proposal, and a way out.
+
+        The document picks the first logo in the list, which is invisible from
+        here — so the only way to change what a client sees at the top of a
+        proposal was to get the order right by luck. This says which one is
+        being used and lets you say otherwise.
+      */}
+      <div
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          gap: 8, padding: '8px 10px', borderBottom: `1px solid ${C.border}`,
+        }}
+      >
+        {isDefault ? (
+          <span style={{ fontSize: 11.5, fontWeight: 600, color: C.green }}>
+            On your documents
+          </span>
+        ) : (
+          <button
+            onClick={onUseOnDocuments}
+            style={{ background: 'transparent', border: 'none', padding: 0, color: C.dim, fontSize: 11.5, cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            Use this on documents
+          </button>
+        )}
+        <button
+          onClick={onRemove}
+          title="Take this out of the kit"
+          style={{ background: 'transparent', border: 'none', padding: 0, color: C.red, fontSize: 11.5, cursor: 'pointer', fontFamily: 'inherit' }}
+        >
+          Remove
+        </button>
+      </div>
       <div
         style={{
           background: previewBg,
