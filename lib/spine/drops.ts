@@ -105,7 +105,13 @@ export async function listDrops(opts: {
   return (res.data ?? []) as Drop[];
 }
 
-/** Answering "who is this about", which is the only question the inbox asks. */
+/**
+ * Answering "who is this about", which is the only question the inbox asks.
+ *
+ * Called with an empty target it simply marks the thing dealt with — which is
+ * what happens when a drop has been read into real records and no longer
+ * needs anybody to decide about it.
+ */
 export async function fileDrop(id: string, target: DropTarget): Promise<void> {
   const res = await supabase
     .from('drops')

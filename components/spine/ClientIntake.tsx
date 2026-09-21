@@ -13,7 +13,7 @@
  * wrong invoice, then a conversation with a customer about being overcharged.
  */
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -22,7 +22,28 @@ import { Button, C, Card, SectionLabel, inputStyle } from './ui';
 interface Contact { name: string; title: string; email: string; phone: string }
 interface Price { name: string; unit: string; price: string }
 
-export function ClientIntake({ orgId, onSaved, onClose }: { orgId: string; onSaved: () => void; onClose: () => void }) {
+export interface IntakeSeed {
+  /** Already-written text — a pasted note, a scribble transcribed. */
+  text?: string;
+  /** A file already in storage, as base64 plus its type. */
+  data?: string;
+  mediaType?: string;
+  /** Shown while it reads, so somebody knows which thing is being read. */
+  label?: string;
+}
+
+export function ClientIntake({
+  orgId,
+  seed,
+  onSaved,
+  onClose,
+}: {
+  orgId: string;
+  /** Skip the drop zone and read this instead. */
+  seed?: IntakeSeed;
+  onSaved: () => void;
+  onClose: () => void;
+}) {
   const [reading, setReading] = useState(false);
   const [error, setError] = useState('');
   const [cents, setCents] = useState<number | null>(null);
@@ -74,6 +95,20 @@ export function ClientIntake({ orgId, onSaved, onClose }: { orgId: string; onSav
     }
     setReading(false);
   }, []);
+
+  /**
+   * Something already on the shelf.
+   *
+   * A drop that has been sitting in Drops is the same problem as a fresh
+   * file: it is content nobody has turned into records yet. Seeded, this
+   * opens straight into reading rather than asking for the file again.
+   */
+  useEffect(() => {
+    if (!seed) return;
+    if (seed.text?.trim()) { send({ text: seed.text }); return; }
+    if (seed.data && seed.mediaType) send({ data: seed.data, mediaType: seed.mediaType });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seed?.text, seed?.data]);
 
   const take = useCallback(async (file: File) => {
     const ok = file.type.startsWith('image/') || file.type === 'application/pdf';
@@ -151,7 +186,21 @@ export function ClientIntake({ orgId, onSaved, onClose }: { orgId: string; onSav
 
   return (
     <Card style={{ marginBottom: 14 }}>
-      {!read ? (
+      {seed && !read ? (
+        <>
+          <SectionLabel>Reading</SectionLabel>
+          <p style={{ fontSize: 13, color: C.faint, margin: '6px 0 0' }}>
+            {error || `Reading ${seed.label ?? 'what you dropped'}…`}
+          </p>
+          {error && (
+            <div style={{ marginTop: 12 }}>
+              <button onClick={onClose} style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>
+                Close
+              </button>
+            </div>
+          )}
+        </>
+      ) : !read ? (
         <>
           <SectionLabel>Drop what you have</SectionLabel>
           <p style={{ fontSize: 13, color: C.faint, margin: '6px 0 12px', maxWidth: '62ch' }}>

@@ -16,6 +16,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { C } from '@/lib/spine/tokens';
+import { ClientIntake, type IntakeSeed } from './ClientIntake';
 import { human } from '@/lib/spine/errors';
 import { DropZone } from './DropZone';
 import { extractPalette, SAMPLE_EDGE } from '@/lib/spine/palette';
@@ -79,6 +80,33 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
   const [text, setText] = useState('');
   const [error, setError] = useState('');
   const [urls, setUrls] = useState<Record<string, string>>({});
+  /**
+   * Turning a drop into records.
+   *
+   * A shelf that only holds things teaches people it is a bin. A price sheet
+   * sitting here as text is the same content the intake reads on the Clients
+   * screen, so it gets the same treatment: read it, check it, keep it.
+   */
+  const [readingDrop, setReadingDrop] = useState<{ id: string; seed: IntakeSeed } | null>(null);
+
+  const readIt = useCallback(async (d: Drop) => {
+    if (d.kind === 'note' || d.kind === 'link') {
+      setReadingDrop({ id: d.id, seed: { text: d.body ?? '', label: 'that note' } });
+      return;
+    }
+    const url = await dropUrl(d);
+    if (!url) return;
+    const blob = await fetch(url).then((r) => r.blob());
+    const b64 = await new Promise<string>((resolve) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result ?? '').split(',')[1] ?? '');
+      r.readAsDataURL(blob);
+    });
+    setReadingDrop({
+      id: d.id,
+      seed: { data: b64, mediaType: blob.type || d.mime || 'application/pdf', label: d.title ?? 'that file' },
+    });
+  }, []);
 
   const load = useCallback(async () => {
     if (!orgId) return;
@@ -137,6 +165,22 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
     }
     setBusy(false);
   }, [text, orgId, target, load, onChange]);
+
+  if (readingDrop) {
+    return (
+      <ClientIntake
+        orgId={orgId}
+        seed={readingDrop.seed}
+        onSaved={async () => {
+          // It became records, so it is no longer waiting to be dealt with.
+          await fileDrop(readingDrop.id, {});
+          await load();
+          onChange?.();
+        }}
+        onClose={() => setReadingDrop(null)}
+      />
+    );
+  }
 
   return (
     <div>
@@ -245,6 +289,12 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                     {d.kind === 'link' && d.body && (
                       <a href={d.body} target="_blank" rel="noopener noreferrer"
                         style={{ color: C.blue, fontSize: 11, textDecoration: 'none' }}>Open</a>
+                    )}
+                    {!d.filed_at && (
+                      <button
+                        onClick={() => readIt(d)}
+                        style={{ background: 'transparent', border: 'none', padding: 0, color: C.blue, fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}
+                      >Read it</button>
                     )}
                     <button
                       onClick={async () => { await removeDrop(d); await load(); onChange?.(); }}
