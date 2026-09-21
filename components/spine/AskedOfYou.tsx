@@ -28,15 +28,31 @@ export function AskedOfYou() {
   const [rows, setRows] = useState<Ask[]>([]);
   const [loaded, setLoaded] = useState(false);
 
+  /**
+   * Yours, not the workspace's.
+   *
+   * read_at on the notification is shared by everybody in the business, so an
+   * agency looking in and pressing Done cleared the task off the client's
+   * screen. Whether you have dealt with something is a row about you.
+   */
   const load = useCallback(async () => {
-    const res = await supabase
-      .from('notifications')
-      .select('id, title, body, href, created_at')
-      .eq('kind', 'system')
-      .is('read_at', null)
-      .order('created_at', { ascending: false })
-      .limit(10);
-    if (!res.error) setRows((res.data ?? []) as Ask[]);
+    const { data: auth } = await supabase.auth.getUser();
+    const me = auth?.user?.id;
+    if (!me) { setLoaded(true); return; }
+
+    const [all, mine] = await Promise.all([
+      supabase
+        .from('notifications')
+        .select('id, title, body, href, created_at')
+        .eq('kind', 'system')
+        .is('read_at', null)
+        .order('created_at', { ascending: false })
+        .limit(20),
+      supabase.from('notification_reads').select('notification_id').eq('user_id', me),
+    ]);
+
+    const done = new Set((mine.data ?? []).map((r) => (r as { notification_id: string }).notification_id));
+    if (!all.error) setRows(((all.data ?? []) as Ask[]).filter((r) => !done.has(r.id)).slice(0, 10));
     setLoaded(true);
   }, []);
 
@@ -44,8 +60,11 @@ export function AskedOfYou() {
 
   async function done(id: string) {
     setRows((p) => p.filter((r) => r.id !== id));
+    const { data: auth } = await supabase.auth.getUser();
+    const me = auth?.user?.id;
+    if (!me) return;
     await saveOrFail(
-      supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', id),
+      supabase.from('notification_reads').upsert({ notification_id: id, user_id: me }),
       'Marking that done'
     );
   }

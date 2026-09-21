@@ -101,12 +101,13 @@ export function Notifications() {
    * leaves this list when its status changes, and nowhere else.
    */
   const load = useCallback(async () => {
-    const [notes, requests, said] = await Promise.all([
+    const [notes, mineRead, requests, said] = await Promise.all([
       supabase
         .from('notifications')
         .select('id, kind, title, body, href, read_at, created_at')
         .order('created_at', { ascending: false })
         .limit(30),
+      supabase.from('notification_reads').select('notification_id'),
       supabase
         .from('site_requests')
         .select('id, title, detail, status, submitted_at')
@@ -166,7 +167,15 @@ export function Notifications() {
       } as Notification;
     });
 
-    const merged = [...asFeedback, ...asNotifications, ...((notes.data ?? []) as Notification[])].sort(
+    // Rows this person has already waved away.
+    const dismissed = new Set(
+      (mineRead.data ?? []).map((r) => (r as { notification_id: string }).notification_id)
+    );
+    const own = ((notes.data ?? []) as Notification[]).map((n) =>
+      dismissed.has(n.id) ? { ...n, read_at: n.read_at ?? new Date().toISOString() } : n
+    );
+
+    const merged = [...asFeedback, ...asNotifications, ...own].sort(
       (a, b) => (a.created_at < b.created_at ? 1 : -1)
     );
     setItems(merged);
@@ -203,6 +212,20 @@ export function Notifications() {
   const openItem = async (n: Notification) => {
     setOpen(false);
     if (n.id.startsWith('req-')) { router.push('/requests'); return; }
+    /**
+     * A system ask is dismissed for you alone. Everything else stays as it
+     * was: an invoice being paid is settled for the whole business, not
+     * something each person waves away.
+     */
+    if (n.kind === 'system') {
+      setItems((prev) => prev.map((i) => (i.id === n.id ? { ...i, read_at: new Date().toISOString() } : i)));
+      const { data: auth } = await supabase.auth.getUser();
+      if (auth?.user) {
+        await supabase.from('notification_reads').upsert({ notification_id: n.id, user_id: auth.user.id });
+      }
+      if (n.href) router.push(n.href);
+      return;
+    }
     /**
      * A note lives in the workspace it was written in.
      *
