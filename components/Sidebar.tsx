@@ -525,6 +525,19 @@ export default function Sidebar() {
       </div>
 
       {/*
+        Where help sits in every product anybody has used: the bottom.
+        
+        The box for this was at the foot of the home screen and exactly one
+        person ever found it. A beta lives on what its testers tell you, so it
+        gets an address.
+      */}
+      {modulesFor(org).has('feedback') && (
+        <div style={{ padding: '0 8px 4px' }}>
+          {navBtn('Tell us', '/feedback', 'megaphone')}
+        </div>
+      )}
+
+      {/*
         Seeing it as they do, from where you can find it.
         
         This lived in the menu under a photograph, which is where account

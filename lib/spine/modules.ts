@@ -13,6 +13,7 @@
 import type { Org } from './types';
 
 export type ModuleId =
+  | 'feedback'       // tell us what is wrong with this
   | 'routes'         // the order to drive the day in
   | 'inbox'          // anything that arrived before its subject did
   | 'jobs'
@@ -47,6 +48,7 @@ export type ModuleId =
 
 const CONTRACTOR: ModuleId[] = [
   'learn',
+  'feedback',
   'routes',
   'inbox',
   'ask',
@@ -80,6 +82,7 @@ const CONTRACTOR: ModuleId[] = [
 
 const AGENCY: ModuleId[] = [
   'learn',
+  'feedback',
   'routes',
   'inbox',
   'ask',
@@ -122,11 +125,11 @@ const AGENCY: ModuleId[] = [
  */
 const PLAN_MODULES: Record<string, ModuleId[]> = {
   core: [
-    'inbox', 'routes', 'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
+    'feedback', 'inbox', 'routes', 'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
     'records', 'business', 'security', 'reviews', 'targets', 'learn',
   ],
   grow: [
-    'inbox', 'routes', 'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
+    'feedback', 'inbox', 'routes', 'jobs', 'customers', 'people', 'receipts', 'notes', 'billing', 'pl', 'expenses',
     'records', 'business', 'security', 'reviews',
     'seo', 'ask', 'pricing', 'client_requests', 'team', 'website', 'targets',
     'traffic',
@@ -162,6 +165,7 @@ const PLAN_FEATURES: Record<string, Feature[]> = {
  * object.
  */
 export const MODULE_ICON: Record<ModuleId, string> = {
+  feedback: 'megaphone',
   routes: 'yardSign',
   inbox: 'drop',
   customers: 'clients',
@@ -217,6 +221,7 @@ export type ModuleKind = 'place' | 'capability';
 export type NavSection = 'The work' | 'Money' | 'Grow' | 'Setup';
 
 export const MODULE_SECTION: Record<ModuleId, NavSection> = {
+  feedback: 'Setup',
   routes: 'The work',
   inbox: 'The work',
   customers: 'The work',
@@ -257,6 +262,7 @@ export const NAV_SECTIONS: NavSection[] = ['The work', 'Money', 'Grow', 'Setup']
 
 export const MODULE_KIND: Record<ModuleId, ModuleKind> = {
   // Places: they appear in the sidebar, or as a tab of something that does.
+  feedback: 'place',
   routes: 'place',
   inbox: 'place',
   customers: 'place',
@@ -298,6 +304,7 @@ export const MODULE_KIND: Record<ModuleId, ModuleKind> = {
 
 /** Human names for every module, so a switchboard is readable. */
 export const MODULE_LABEL: Record<ModuleId, string> = {
+  feedback: 'Tell us',
   routes: 'Route',
   inbox: 'Drops',
   jobs: 'Jobs and engagements',
@@ -410,6 +417,7 @@ export const MODULE_STATES: { id: ModuleState; label: string; note: string }[] =
  * stranded on a screen that isn't in their nav.
  */
 const ROUTE_MODULE: Array<[string, ModuleId]> = [
+  ['/feedback', 'feedback'],
   ['/routes', 'routes'],
   ['/inbox', 'inbox'],
   ['/jobs', 'jobs'],
@@ -503,6 +511,7 @@ export function pathAllowed(org: Org | null, pathname: string): boolean {
  * Team, Security and Business settings ended up with no row in the sidebar.
  */
 export const MODULE_HREF: Record<ModuleId, string> = {
+  feedback: '/feedback',
   routes: '/routes',
   inbox: '/inbox',
   jobs: '/jobs',
@@ -561,6 +570,8 @@ export const MODULE_HREF: Record<ModuleId, string> = {
 export const MODULE_IN_TOPBAR: ModuleId[] = [
   /** Its own row beside Home. Things land here before they are anything. */
   'inbox',
+  /** Its own row at the foot of the sidebar, where help lives. */
+  'feedback',
   'learn',
   /**
    * Settings belongs to you, not to the work.

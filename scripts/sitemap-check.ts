@@ -75,7 +75,7 @@ for (const f of ['app', 'components', 'lib']) {
 const orphans = pages.filter((r) => {
   if (reachable.has(r)) return false;
   if (r.includes('[')) return false;               // detail pages, reached from their list
-  if (/^\/(login|welcome|trust|whats-new|what-you-see|access|preview)/.test(r)) return false; // entered directly or by link
+  if (/^\/(login|reset|welcome|trust|whats-new|what-you-see|access|preview)/.test(r)) return false; // entered directly, or arrived at from an email
   return !linkedFromCode.has(r);
 });
 if (orphans.length) { console.log('\nUNREACHABLE SCREENS'); orphans.forEach((o) => console.log('  ' + o)); bad += orphans.length; }
