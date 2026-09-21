@@ -42,7 +42,26 @@ export interface IntakePrice {
   price: number | null;
 }
 
+export interface IntakeLine {
+  description: string | null;
+  qty: number | null;
+  unit: string | null;
+  unit_price: number | null;
+}
+
 export interface Intake {
+  /**
+   * What the thing actually is.
+   *
+   * The first version assumed every drop described a business, so an estimate
+   * for a fireplace at 8908 Turks Cap came back as a company called "8908
+   * Turks Cap" with no people and no prices. A document has a shape and the
+   * reader has to say which one it found.
+   */
+  doc: 'client' | 'estimate' | 'pricelist' | 'unknown';
+  /** When doc is estimate: the work being quoted. */
+  job: { name: string | null; address: string | null; customer: string | null; total: number | null } | null;
+  lines: IntakeLine[];
   name: string | null;
   website: string | null;
   address: string | null;
@@ -52,9 +71,21 @@ export interface Intake {
 }
 
 const PROMPT =
-  'This is something about a business somebody wants to record as a client — a photo of ' +
-  'notes, a business card, a price sheet, an email, or several of those at once.\n\n' +
+  'This is something a contractor or distributor dropped into their software. It might be ' +
+  'notes about a business, a business card, a price sheet, or a quote or estimate for a ' +
+  'piece of work.\n\n' +
+  'First decide what it is and put it in "doc":\n' +
+  '  client     it is mainly about a company or the people at one\n' +
+  '  estimate   it is a quote or estimate for a specific job, usually with an address and lines\n' +
+  '  pricelist  it is a list of items and prices, not tied to one job\n' +
+  '  unknown    none of those\n\n' +
   'Return only JSON, no prose and no code fence, with exactly these keys:\n' +
+  '  doc      one of the four words above\n' +
+  '  job      when doc is estimate: { name, address, customer, total }. The name is what the ' +
+  'work is, in a few words. total is a number or null. Otherwise null.\n' +
+  '  lines    when doc is estimate or pricelist: an array of ' +
+  '{ description, qty, unit, unit_price }. Numbers as numbers, no currency symbols. ' +
+  'Otherwise an empty array.\n' +
   '  name     the business name, or null\n' +
   '  website  a domain if one is written down, or null\n' +
   '  address  a postal address if one is written down, or null\n' +
@@ -121,6 +152,25 @@ export async function POST(req: NextRequest) {
     }
 
     const intake: Intake = {
+      doc: (['client', 'estimate', 'pricelist', 'unknown'] as const).includes(parsed.doc as never)
+        ? (parsed.doc as Intake['doc'])
+        : 'unknown',
+      job: parsed.job
+        ? {
+            name: parsed.job.name ?? null,
+            address: parsed.job.address ?? null,
+            customer: parsed.job.customer ?? null,
+            total: typeof parsed.job.total === 'number' ? parsed.job.total : null,
+          }
+        : null,
+      lines: Array.isArray(parsed.lines)
+        ? parsed.lines.slice(0, 200).map((l) => ({
+            description: l?.description ?? null,
+            qty: typeof l?.qty === 'number' ? l.qty : null,
+            unit: l?.unit ?? null,
+            unit_price: typeof l?.unit_price === 'number' ? l.unit_price : null,
+          }))
+        : [],
       name: parsed.name ?? null,
       website: parsed.website ?? null,
       address: parsed.address ?? null,
@@ -141,7 +191,8 @@ export async function POST(req: NextRequest) {
 
     const anything =
       intake.name || intake.website || intake.address || intake.notes ||
-      intake.contacts.length || intake.prices.length;
+      intake.contacts.length || intake.prices.length ||
+      intake.lines.length || intake.job?.name;
     if (!anything) {
       return NextResponse.json({ error: 'Nothing about a business in that.' }, { status: 422 });
     }

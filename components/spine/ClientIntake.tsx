@@ -17,6 +17,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
+import { createEstimate } from '@/lib/spine/db';
 import { Button, C, Card, SectionLabel, inputStyle } from './ui';
 
 interface Contact { name: string; title: string; email: string; phone: string }
@@ -75,6 +76,11 @@ export function ClientIntake({
    * already there and make replacing it a choice somebody makes.
    */
   const [existingPrices, setExistingPrices] = useState(0);
+  /** What the reader decided this document is. */
+  const [doc, setDoc] = useState<'client' | 'estimate' | 'pricelist' | 'unknown'>('client');
+  const [jobName, setJobName] = useState('');
+  const [jobAddress, setJobAddress] = useState('');
+  const [lines, setLines] = useState<{ description: string; qty: string; unit: string; unit_price: string }[]>([]);
   const [priceMode, setPriceMode] = useState<'add' | 'replace'>('add');
 
   const send = useCallback(async (payload: { data?: string; mediaType?: string; text?: string }) => {
@@ -96,6 +102,18 @@ export function ClientIntake({
       setPrices((i.prices ?? []).map((p: Record<string, unknown>) => ({
         name: String(p.name ?? ''), unit: String(p.unit ?? ''),
         price: p.price == null ? '' : String(p.price),
+      })));
+      setDoc(i.doc ?? 'client');
+      if (i.job) {
+        setJobName(i.job.name ?? '');
+        setJobAddress(i.job.address ?? '');
+        if (i.job.customer && !i.name) setName(i.job.customer);
+      }
+      setLines((i.lines ?? []).map((l: Record<string, unknown>) => ({
+        description: String(l.description ?? ''),
+        qty: l.qty == null ? '' : String(l.qty),
+        unit: String(l.unit ?? ''),
+        unit_price: l.unit_price == null ? '' : String(l.unit_price),
       })));
       setCents(typeof body.cents === 'number' ? body.cents : null);
 
@@ -205,6 +223,45 @@ export function ClientIntake({
         );
       }
 
+      /**
+       * An estimate is about a piece of work, so it makes the work.
+       *
+       * The lines go on as a first version rather than straight onto an
+       * invoice: what was quoted and what is finally billed are different
+       * numbers, and conflating them is how somebody gets charged for a
+       * fireplace they talked you out of.
+       */
+      if (doc === 'estimate' && jobName.trim()) {
+        const job = await saveOrFail(
+          supabase.from('jobs').insert({
+            org_id: orgId,
+            customer_id: customerId,
+            name: jobName.trim(),
+            address: jobAddress.trim() || null,
+            status: 'lead',
+          }).select('id').single(),
+          'The job'
+        );
+        const jobId = (job.data as { id: string } | null)?.id;
+        const usable = lines.filter((l) => l.description.trim());
+        if (jobId && usable.length) {
+          await createEstimate(
+            orgId,
+            jobId,
+            usable.map((l, i) => ({
+              kind: 'material' as const,
+              description: l.description.trim(),
+              qty: parseFloat(l.qty) || 1,
+              unit: l.unit.trim() || null,
+              unit_price: parseFloat(l.unit_price) || 0,
+              total: (parseFloat(l.qty) || 1) * (parseFloat(l.unit_price) || 0),
+              position: i,
+              optional: false,
+            }))
+          );
+        }
+      }
+
       onSaved();
       onClose();
     } catch (e) {
@@ -297,8 +354,40 @@ export function ClientIntake({
             {cents != null && ` Reading that cost ${cents < 1 ? 'under a cent' : `${cents.toFixed(1)}c`}.`}
           </p>
 
+          {doc === 'estimate' && (
+            <div style={{ border: `1px solid ${C.border}`, borderRadius: 9, padding: '12px 13px', marginBottom: 14 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 2 }}>
+                This reads as a quote for a piece of work
+              </div>
+              <p style={{ fontSize: 12.5, color: C.faint, margin: '0 0 10px' }}>
+                Keeping it makes the {'{'}job{'}'} below and puts these lines on it as a first
+                estimate. What was quoted and what finally gets billed stay separate.
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
+                {field(jobName, setJobName, 'What the work is')}
+                {field(jobAddress, setJobAddress, 'Address')}
+              </div>
+              {lines.length > 0 && (
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ fontSize: 12, color: C.faint, marginBottom: 6 }}>
+                    {lines.length} line{lines.length === 1 ? '' : 's'}
+                  </div>
+                  {lines.map((l, i) => (
+                    <div key={i} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,2fr) 70px 70px 90px 28px', gap: 6, marginTop: 6, alignItems: 'center' }}>
+                      <input value={l.description} placeholder="What it is" onChange={(e) => setLines((x) => x.map((y, n) => (n === i ? { ...y, description: e.target.value } : y)))} style={{ ...inputStyle, fontSize: 13 }} />
+                      <input value={l.qty} placeholder="Qty" onChange={(e) => setLines((x) => x.map((y, n) => (n === i ? { ...y, qty: e.target.value } : y)))} style={{ ...inputStyle, fontSize: 13 }} />
+                      <input value={l.unit} placeholder="Unit" onChange={(e) => setLines((x) => x.map((y, n) => (n === i ? { ...y, unit: e.target.value } : y)))} style={{ ...inputStyle, fontSize: 13 }} />
+                      <input value={l.unit_price} placeholder="Price" onChange={(e) => setLines((x) => x.map((y, n) => (n === i ? { ...y, unit_price: e.target.value } : y)))} style={{ ...inputStyle, fontSize: 13 }} />
+                      <button onClick={() => setLines((x) => x.filter((_, n) => n !== i))} title="Drop this line" style={{ background: 'transparent', border: 'none', color: C.faint, cursor: 'pointer', fontSize: 15, fontFamily: 'inherit' }}>×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
-            {field(name, setName, 'Business name')}
+            {field(name, setName, doc === 'estimate' ? 'Who it is for' : 'Business name')}
             {field(website, setWebsite, 'Website')}
             {field(address, setAddress, 'Address')}
           </div>
