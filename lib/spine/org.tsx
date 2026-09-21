@@ -46,8 +46,23 @@ const AGENCY: Vocab = {
   lead: 'Prospect',
 };
 
-export const vocabFor = (kind: Org['kind'] | undefined): Vocab =>
-  kind === 'agency' ? AGENCY : CONTRACTOR;
+/**
+ * The word for the thing you send before the invoice.
+ *
+ * Two kinds was one too few. A contractor sends an estimate, an agency sends a
+ * proposal, and John — who distributes seafood — sends neither: he quotes. The
+ * kind of business gets it right most of the time and the exception is not
+ * rare enough to live with, because this word is on the document a client
+ * receives.
+ *
+ * So the business can override it, and the rest of the vocabulary still comes
+ * from what kind of business it is.
+ */
+export const vocabFor = (kind: Org['kind'] | undefined, settings?: Record<string, unknown> | null): Vocab => {
+  const base = kind === 'agency' ? AGENCY : CONTRACTOR;
+  const word = typeof settings?.estimate_word === 'string' ? settings.estimate_word.trim() : '';
+  return word ? { ...base, estimate: word } : base;
+};
 
 interface OrgContextValue {
   org: Org | null;
@@ -187,7 +202,7 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
       value={{
         org,
         orgs,
-        vocab: vocabFor(org?.kind),
+        vocab: vocabFor(org?.kind, org?.settings as Record<string, unknown> | null),
         loading,
         error,
         switchOrg,

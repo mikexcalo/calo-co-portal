@@ -778,8 +778,15 @@ export function navFor(
         // No row. It held one card, its stages are a funnel Proposals and
         // Invoices already report, and the actual work lives on the client as
         // the Plan. Reachable from a client, which is where you think of it.
-        { id: 'billing', label: 'Invoices', href: '/billing', icon: 'invoices' },
+        /*
+          The order is the order it happens in.
+
+          You quote, then you bill. Invoices sat above the thing that has to
+          exist before them, which reads as though billing were the first act
+          of a job rather than the last.
+        */
         { id: 'proposals', label: vocab.estimate + 's', href: '/proposals', icon: 'proposal' },
+        { id: 'billing', label: 'Invoices', href: '/billing', icon: 'invoices' },
         // Overheads and receipts are tabs inside this one.
         { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
         { id: 'account', label: 'Bills to You', href: '/account', icon: 'incoming' },

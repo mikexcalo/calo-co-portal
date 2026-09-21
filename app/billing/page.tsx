@@ -52,6 +52,8 @@ export default function BillingPage() {
   const [lines, setLines] = useState<Record<string, JobInvoiceLine[]>>({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  /** Which invoice has its secondary actions showing. One at a time. */
+  const [moreFor, setMoreFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -248,8 +250,18 @@ export default function BillingPage() {
         </Card>
       ) : (
         <Table>
-          <Row cols="100px 1fr 130px 110px 110px" header>
-            <div>Number</div><div>Job</div><div>Status</div><div>Total</div><div>Due</div>
+          {/*
+            Whose it is, before what it was for.
+
+            Two invoices both read "Platform and support", both $60, both
+            draft, numbered one and two — and nothing on either row said which
+            client it belonged to. The number carries the client now (GSP-001,
+            MMTH-001) and the name is beside it, because a number you have to
+            decode is a number you look up.
+          */}
+          <Row cols="110px 1.1fr 1fr 120px 100px 100px" header>
+            <div>Number</div><div>{vocab.customer}</div><div>{vocab.job}</div>
+            <div>Status</div><div>Total</div><div>Due</div>
           </Row>
 
           {invoices.map((inv) => {
@@ -257,8 +269,9 @@ export default function BillingPage() {
             const isOpen = expanded === inv.id;
             return (
               <div key={inv.id}>
-                <Row cols="100px 1fr 130px 110px 110px" labels={['Number', 'Job', 'Status', 'Total', 'Due']} onClick={() => toggle(inv.id)}>
-                  <div>{inv.number}</div>
+                <Row cols="110px 1.1fr 1fr 120px 100px 100px" labels={['Number', vocab.customer, vocab.job, 'Status', 'Total', 'Due']} onClick={() => toggle(inv.id)}>
+                  <div style={{ fontVariantNumeric: 'tabular-nums' }}>{inv.number}</div>
+                  <div>{job?.customer?.name ?? '—'}</div>
                   <div style={{ color: C.dim }}>{job?.name ?? '—'}</div>
                   <div>
                     <Pill
@@ -342,46 +355,22 @@ export default function BillingPage() {
                         gap: 10,
                       }}
                     >
-                      {/* Wraps. Six buttons in a fixed row runs off the side
-                          of a phone and the actions that fall off are the ones
-                          that send the invoice. */}
-                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                        <Button variant="ghost" onClick={() => router.push(`/jobs/${inv.job_id}`)}>
-                          Open job
-                        </Button>
-                        <Button variant="ghost" disabled={busy} onClick={() => preview(inv)}>
-                          Preview
-                        </Button>
+                      {/*
+                        One thing to do, and everything else behind "More".
+
+                        There were seven buttons across the bottom of a draft —
+                        Open job, Preview, Email invoice, Copy link, Send via
+                        Stripe, Mark sent by hand, Void — all the same size, in
+                        one grey row, with a red one on the end. Seven equal
+                        choices is not a choice, and the destructive one was
+                        sitting at the same weight as the one you actually
+                        want. Sending it is the act; the rest are ways round.
+                      */}
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                         {inv.status === 'draft' && (
-                          <>
-                            {/* Default: email a link listing every method they
-                                accept. Stripe stays available for anyone who
-                                wants instant card payment, but it is no
-                                longer the only way to send a bill. */}
-                            <Button disabled={busy} onClick={() => emailInvoice(inv)}>
-                              Email invoice
-                            </Button>
-                            <Button variant="ghost" disabled={busy} onClick={() => sendAsLink(inv)}>
-                              Copy link
-                            </Button>
-                            <Button variant="ghost" disabled={busy} onClick={() => sendViaStripe(inv)}>
-                              Send via Stripe
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              disabled={busy}
-                              onClick={() =>
-                                act(async () => {
-                                  await updateInvoice(inv.id, {
-                                    status: 'sent',
-                                    sent_at: new Date().toISOString(),
-                                  });
-                                })
-                              }
-                            >
-                              Mark sent by hand
-                            </Button>
-                          </>
+                          <Button disabled={busy} onClick={() => emailInvoice(inv)}>
+                            Send it
+                          </Button>
                         )}
                         {['sent', 'partial', 'overdue'].includes(inv.status) && (
                           <select
@@ -409,15 +398,18 @@ export default function BillingPage() {
                             ))}
                           </select>
                         )}
-                        {inv.status !== 'void' && inv.status !== 'paid' && (
-                          <Button
-                            variant="danger"
-                            disabled={busy}
-                            onClick={() => act(async () => { await voidInvoice(inv.id); })}
-                          >
-                            Void
-                          </Button>
-                        )}
+                        <Button variant="ghost" disabled={busy} onClick={() => preview(inv)}>
+                          Preview
+                        </Button>
+                        <button
+                          onClick={() => setMoreFor(moreFor === inv.id ? null : inv.id)}
+                          style={{
+                            background: 'transparent', border: 'none', padding: '6px 4px',
+                            color: C.faint, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
+                          }}
+                        >
+                          {moreFor === inv.id ? 'Less' : 'More…'}
+                        </button>
                       </div>
 
                       <div style={{ fontSize: 14 }}>
@@ -426,9 +418,55 @@ export default function BillingPage() {
                       </div>
                     </div>
 
-                    {inv.status !== 'void' && inv.status !== 'paid' && (
-                      <div style={{ fontSize: 12, color: C.faint, marginTop: 8 }}>
-                        Voiding returns these hours and receipts to unbilled so they can be re-invoiced.
+                    {moreFor === inv.id && (
+                      <div
+                        style={{
+                          marginTop: 10, paddingTop: 10, borderTop: `1px solid ${C.border}`,
+                          display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center',
+                        }}
+                      >
+                        <Button variant="ghost" onClick={() => router.push(`/jobs/${inv.job_id}`)}>
+                          Open job
+                        </Button>
+                        {inv.status === 'draft' && (
+                          <>
+                            <Button variant="ghost" disabled={busy} onClick={() => sendAsLink(inv)}>
+                              Copy link
+                            </Button>
+                            <Button variant="ghost" disabled={busy} onClick={() => sendViaStripe(inv)}>
+                              Send via Stripe
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              disabled={busy}
+                              onClick={() =>
+                                act(async () => {
+                                  await updateInvoice(inv.id, {
+                                    status: 'sent',
+                                    sent_at: new Date().toISOString(),
+                                  });
+                                })
+                              }
+                            >
+                              Mark sent by hand
+                            </Button>
+                          </>
+                        )}
+                        {inv.status !== 'void' && inv.status !== 'paid' && (
+                          <>
+                            <span style={{ flex: 1 }} />
+                            <Button
+                              variant="danger"
+                              disabled={busy}
+                              onClick={() => act(async () => { await voidInvoice(inv.id); })}
+                            >
+                              Void
+                            </Button>
+                            <span style={{ fontSize: 12, color: C.faint, flexBasis: '100%' }}>
+                              Voiding returns these hours and receipts to unbilled so they can be re-invoiced.
+                            </span>
+                          </>
+                        )}
                       </div>
                     )}
 

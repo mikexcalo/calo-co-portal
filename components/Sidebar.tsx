@@ -531,7 +531,17 @@ export default function Sidebar() {
         person ever found it. A beta lives on what its testers tell you, so it
         gets an address.
       */}
-      {modulesFor(org).has('feedback') && (
+      {/*
+        Not on the agency's own workspace.
+
+        Tell us is how a client reaches us, and the role preview below it is
+        for checking what somebody with fewer permissions sees. On CALO&CO both
+        are pointed at the person already reading them: telling yourself
+        something, and previewing a role nobody else holds. This is the screen
+        everything is administered from, and a control that does nothing here
+        is worse than one that is missing.
+      */}
+      {org?.kind !== 'agency' && modulesFor(org).has('feedback') && (
         <div style={{ padding: '0 8px 4px' }}>
           {navBtn('Tell us', '/feedback', 'megaphone')}
         </div>
@@ -545,6 +555,7 @@ export default function Sidebar() {
         is the last row of the sidebar, and when it is on it says so loudly,
         because a preview you forget you are in is worse than no preview.
       */}
+      {org?.kind !== 'agency' && (
       <div style={{ padding: '8px 8px 12px', borderTop: `1px solid ${C.border}` }}>
         {viewAs ? (
           <button
@@ -586,6 +597,7 @@ export default function Sidebar() {
           </select>
         )}
       </div>
+      )}
     </div>
   );
 }
