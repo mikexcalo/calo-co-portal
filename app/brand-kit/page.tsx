@@ -45,9 +45,11 @@ import {
   Pill,
   SectionLabel,
   inputStyle,
+  numeric,
   useIsPhone,
-  BRAND_TABS,
+  brandTabsFor,
 } from '@/components/spine/ui';
+import { FontSpecimen } from '@/components/spine/FontSpecimen';
 import { human } from '@/lib/spine/errors';
 
 type Tab = 'brand' | 'logos' | 'qr' | 'signature';
@@ -109,12 +111,9 @@ export default function BrandKitPage() {
       `${name} — type`,
       new Date().toISOString().slice(0, 10),
       '',
-      'WEBSITE',
+      'TYPE',
       `  Headings   ${brand.fontHeading || 'not set'}`,
       `  Body       ${brand.fontBody || 'not set'}`,
-      '',
-      'PLATFORM',
-      ...PLATFORM_TYPE.map(([role, face, use]) => `  ${role.padEnd(10)} ${face.padEnd(12)} ${use}`),
       '',
       'COLORS',
       ...brand.colors.map((c) => `  ${c.hex}  ${c.name}${c.role ? ` — ${c.role}` : ''}`),
@@ -210,7 +209,7 @@ export default function BrandKitPage() {
 
   return (
     <Page
-      tabs={BRAND_TABS}
+      tabs={brandTabsFor(org?.kind)}
             title="Brand"
       subtitle="Your logos, colors, type and voice."
       action={
@@ -265,7 +264,7 @@ export default function BrandKitPage() {
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(112px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
                   gap: 14,
                 }}
               >
@@ -297,7 +296,7 @@ export default function BrandKitPage() {
             */}
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 16 }}>
               <span style={{ fontSize: 12.5, color: C.faint, flex: 1 }}>
-                {editingColors ? 'Nothing saves until you save.' : 'Click a color to copy it.'}
+                {editingColors ? 'Nothing saves until you save.' : ''}
               </span>
               {editingColors && (
                 <button
@@ -348,16 +347,28 @@ export default function BrandKitPage() {
               </button>
             </div>
 
-            <div style={{ fontSize: 11, color: C.faint, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>
-              Website
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            {/*
+              The face, set in the face.
+
+              Both were a name typed into a grey box, in the interface's own
+              font — so the one question this section exists to answer, what
+              does it look like, was the one thing it could not show. The
+              specimen loads the family and sets a line in it at the size that
+              family is actually used at.
+
+              The Platform block is gone. It listed Figtree, Inter and Geist
+              Mono — the typefaces this software is built in — identically on
+              every brand, so Mammoth's kit was three-quarters a description of
+              CALO&CO's tooling. That is reference material about Nautilus and
+              has no place on somebody's identity.
+            */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
               <Field label="Headings">
                 <input
                   value={brand.fontHeading}
                   onChange={(e) => setBrand((b) => ({ ...b, fontHeading: e.target.value }))}
                   style={inputStyle}
-                  placeholder="Ancizar Serif"
+                  placeholder="Name a face"
                 />
               </Field>
               <Field label="Body">
@@ -365,36 +376,25 @@ export default function BrandKitPage() {
                   value={brand.fontBody}
                   onChange={(e) => setBrand((b) => ({ ...b, fontBody: e.target.value }))}
                   style={inputStyle}
-                  placeholder="Geist"
+                  placeholder="Name a face"
                 />
               </Field>
             </div>
 
-            <div
-              style={{
-                fontSize: 12.5, color: C.amber, lineHeight: 1.6, marginTop: 12,
-                padding: '9px 12px', borderRadius: 8,
-                background: C.amberSoft, border: `1px solid ${C.amber}44`,
-              }}
-            >
-              <strong style={{ fontWeight: 600 }}>Ancizar Serif never loads.</strong> The site asks for
-              it and never fetches it, so headings fall back to Georgia. Add it to the fonts link, or
-              name a face you do load.
-            </div>
-
-            <div style={{ marginTop: 18, paddingTop: 14, borderTop: `1px solid ${C.border}` }}>
-              <div style={{ fontSize: 11, color: C.faint, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>
-                Platform
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
-                {PLATFORM_TYPE.map(([role, face, use]) => (
-                  <div key={role} style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: '9px 11px' }}>
-                    <div style={{ fontSize: 11, color: C.faint, textTransform: 'uppercase', letterSpacing: '.06em' }}>{role}</div>
-                    <div style={{ fontSize: 15, color: C.text, marginTop: 3 }}>{face}</div>
-                    <div style={{ fontSize: 12, color: C.faint, marginTop: 2 }}>{use}</div>
-                  </div>
-                ))}
-              </div>
+            <div style={{ display: 'grid', gap: 12 }}>
+              <FontSpecimen
+                family={brand.fontHeading}
+                role="Headings"
+                sample={org?.name ?? 'Headings'}
+                size={34}
+                weight={600}
+              />
+              <FontSpecimen
+                family={brand.fontBody}
+                role="Body"
+                sample="The quick brown fox jumps over the lazy dog, and the invoice goes out on the first."
+                size={16}
+              />
             </div>
           </Card>
 
@@ -581,11 +581,6 @@ export default function BrandKitPage() {
  */
 
 /** The platform's own faces. Not editable: it is software, not brand. */
-const PLATFORM_TYPE: [string, string, string][] = [
-  ['Headings', 'Figtree', 'Titles and nav'],
-  ['Body', 'Inter', 'Text and tables'],
-  ['Figures', 'Geist Mono', 'Money'],
-];
 
 /**
  * A pencil, not the word "edit colors".
@@ -705,68 +700,68 @@ function ColorTile({
     );
   }
 
+  /*
+    A tile, not a bauble.
+
+    Seventy-six pixels of circle, centred, with the name and the hex in small
+    grey underneath. Thirteen of them filled the screen with colour and put the
+    one thing anybody comes here for — the hex — at the bottom in 11.5px grey.
+    And the only way to learn it copied was the line of help text under the
+    whole grid saying "click a color to copy it", which is the product telling
+    you what it should be showing you.
+
+    The swatch is a band across the top of a card now, so it reads as a sample
+    of a colour rather than a button; the hex sits in the figure face at a size
+    you can read across a desk; and Copy is a word you can see.
+  */
   return (
-    <button
-      onClick={onCopy}
-      title={`Copy ${color.hex}`}
+    <div
       style={{
-        background: 'none',
-        border: 'none',
-        padding: 0,
-        cursor: 'pointer',
-        fontFamily: 'inherit',
-        textAlign: 'center',
-        width: '100%',
+        border: `1px solid ${C.border}`,
+        borderRadius: 10,
+        overflow: 'hidden',
+        background: C.panel,
       }}
     >
       <div
         style={{
-          width: 76,
-          height: 76,
-          borderRadius: '50%',
+          height: 48,
           background: color.hex,
-          border: `1px solid ${C.borderStrong}`,
-          margin: '0 auto 11px',
-          position: 'relative',
+          borderBottom: `1px solid ${C.border}`,
           boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.04)',
         }}
-      >
-        {copied && (
-          <span
+      />
+      <div style={{ padding: '9px 11px 10px' }}>
+        <div style={{ fontSize: 13.5, color: C.text, fontWeight: 500, lineHeight: 1.3 }}>
+          {color.name}
+        </div>
+        {color.role && (
+          <div style={{ fontSize: 11.5, color: C.faint, marginTop: 1 }}>{color.role}</div>
+        )}
+        <div
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: 8, marginTop: 7,
+          }}
+        >
+          <span style={{ ...numeric, fontSize: 12.5, color: C.dim }}>
+            {color.hex.toUpperCase()}
+          </span>
+          <button
+            onClick={onCopy}
             style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '50%',
-              background: 'rgba(0,0,0,.6)',
-              color: '#fff',
-              fontSize: 12,
-              fontWeight: 600,
+              background: copied ? C.green : 'transparent',
+              border: `1px solid ${copied ? C.green : C.border}`,
+              color: copied ? '#fff' : C.dim,
+              borderRadius: 6, padding: '2px 9px', fontSize: 11.5, fontWeight: 500,
+              cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
             }}
           >
-            Copied
-          </span>
-        )}
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+        </div>
       </div>
-
-      <div style={{ fontSize: 14, color: C.text, fontWeight: 500 }}>{color.name}</div>
-      {color.role && (
-        <div style={{ fontSize: 11.5, color: C.faint, marginTop: 2 }}>{color.role}</div>
-      )}
-      <div
-        style={{
-          fontSize: 11.5,
-          color: C.faint,
-          marginTop: 3,
-          fontVariantNumeric: 'tabular-nums',
-          textTransform: 'uppercase',
-        }}
-      >
-        {color.hex}
-      </div>
-    </button>
+    </div>
   );
 }
 

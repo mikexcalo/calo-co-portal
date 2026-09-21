@@ -295,6 +295,18 @@ export const MONEY_TABS: readonly PageTab[] = [
  * What is left is the two things that actually are yours: your kit, and your
  * site.
  */
+/**
+ * Client brands is an agency's row.
+ *
+ * It sat on every brand screen, so Mammoth — a contractor with no clients of
+ * its own inside Nautilus — was offered a tab to manage identities it does not
+ * hold, leading to a list built from CALO&CO's book of work. Pass the org kind
+ * and it appears only where there is something behind it.
+ */
+export function brandTabsFor(kind: string | null | undefined): readonly PageTab[] {
+  return BRAND_TABS.filter((t) => t.href !== '/brands' || kind === 'agency');
+}
+
 export const BRAND_TABS: readonly PageTab[] = [
   { label: 'Brand', href: '/brand-kit', icon: 'swatches' },
   // Framework had no row and no tab once Brand pointed at the kit, which left

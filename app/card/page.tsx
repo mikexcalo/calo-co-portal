@@ -16,7 +16,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
-import { BRAND_TABS, Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/components/spine/ui';
+import { brandTabsFor, Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { orgNow } from '@/lib/spine/db';
@@ -137,7 +137,7 @@ export default function CardPage() {
     <Page
       title="Card"
       subtitle="A card you hold up instead of hand over."
-      tabs={BRAND_TABS}
+      tabs={brandTabsFor(org?.kind)}
       action={row ? <Button onClick={save} disabled={busy}>{busy ? 'Saving…' : 'Save'}</Button> : undefined}
     >
       {error && <div style={{ fontSize: 13, color: C.red, marginBottom: 12 }}>{error}</div>}

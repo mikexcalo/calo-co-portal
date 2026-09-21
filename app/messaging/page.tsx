@@ -11,7 +11,7 @@
 
 import { useOrg } from '@/lib/spine/org';
 import { BrandMessage } from '@/components/spine/BrandMessage';
-import { BRAND_TABS, Empty, Page } from '@/components/spine/ui';
+import { brandTabsFor, Empty, Page } from '@/components/spine/ui';
 
 export default function MessagingPage() {
   const { org, loading } = useOrg();
@@ -19,7 +19,7 @@ export default function MessagingPage() {
     <Page
       title="Messaging"
       subtitle="What you say about yourself."
-      tabs={BRAND_TABS}
+      tabs={brandTabsFor(org?.kind)}
     >
       {loading || !org ? (
         <Empty>Loading…</Empty>

@@ -27,6 +27,7 @@ import {
   Page,
   Pill,
   SectionLabel,
+  brandTabsFor,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 
@@ -81,10 +82,21 @@ export default function BrandsPage() {
   );
 
   return (
+    /*
+      A way back.
+
+      This screen had no route to the one above it. You reached it from the
+      Client brands tab on Brand, and from here the only door was the browser's
+      back button — the tab strip does not render on this page, so the module
+      you were inside vanished the moment you entered it. The button said "Open
+      your brand kit", which is where you had just come from and did not read
+      as the way back.
+    */
     <Page
       title="Brands"
-      subtitle={`Your own identity, and every ${vocab.customer.toLowerCase()} identity you hold.`}
-      action={<Button onClick={() => router.push('/brand-kit')}>Open your brand kit</Button>}
+      subtitle={`Every ${vocab.customer.toLowerCase()} identity you hold. Your own is in Brand.`}
+      tabs={brandTabsFor(org?.kind)}
+      action={<Button onClick={() => router.push('/brand-kit')}>&larr; Back to your brand</Button>}
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
