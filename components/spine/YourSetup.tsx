@@ -81,7 +81,15 @@ export function YourSetup() {
    * The compromise that keeps it from being a wall: every item shows its title
    * and what it blocks, and the steps stay one click away.
    */
-  const [showAll, setShowAll] = useState(true);
+  /*
+    Closed until asked for.
+
+    Open by default meant eight tasks, each with its reasoning, sat between the
+    numbers at the top of Home and the work at the bottom — so the two things
+    somebody opens Home to see were separated by a wall of text about things
+    they are not doing right now.
+  */
+  const [showAll, setShowAll] = useState(false);
 
   const load = useCallback(async () => {
     const res = await supabase.from('setup_items').select('key, status, steps_done').eq('org_id', await orgNow());
@@ -159,7 +167,13 @@ export function YourSetup() {
             cursor: 'pointer', fontFamily: 'inherit', fontSize: 13.5, color: C.dim,
           }}
         >
+          {/* Closed, the urgent count is the only thing that has to survive. */}
           <span style={{ color: C.text }}>Your tasks ({items.length})</span>
+          {items.some((i) => i.urgent) && (
+            <span style={{ color: C.red }}>
+              {'  ·  '}{items.filter((i) => i.urgent).length} urgent
+            </span>
+          )}
           {' · '}
           {items.slice(0, 3).map((i) => i.title.replace(/^(Add|Set|Claim|Invite|Upgrade|Change|Send|Point|Verify|Redirect) /, '')).join(', ')}
           {items.length > 3 ? ', and more' : ''}
@@ -210,16 +224,23 @@ export function YourSetup() {
                 <span style={{ fontSize: 12, color: C.blue }}>{isOpen ? 'Hide' : 'How'}</span>
               </div>
 
-              {/* Why it matters, always visible and written out in full. An
-                  item nobody can name a cost for should not be nagging
-                  anybody, and a one-line cost is usually a guess dressed up. */}
+              {/*
+                The first line closed, the rest when you ask.
+
+                This printed every word of "why it matters" on every task at
+                once — three and four paragraphs each, eight of them, so the
+                home screen became about four thousand words of reasoning
+                stacked above the work. All of it is worth reading once and
+                none of it is worth re-reading every morning. The first
+                sentence says which task this is; opening it says why.
+              */}
               <div
                 style={{
-                  fontSize: 12.5, color: C.faint, marginTop: 6, lineHeight: 1.6,
+                  fontSize: 12.5, color: C.faint, marginTop: 5, lineHeight: 1.6,
                   maxWidth: 640, whiteSpace: 'pre-line', paddingLeft: 26,
                 }}
               >
-                {i.blocks}
+                {isOpen ? i.blocks : i.blocks.split('\n')[0]}
               </div>
 
               {isOpen && (
