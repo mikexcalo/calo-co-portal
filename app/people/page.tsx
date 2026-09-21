@@ -163,6 +163,12 @@ export default function PeoplePage() {
 
   const openPerson = useMemo(() => rows.find((r) => r.id === openId) ?? null, [rows, openId]);
 
+  /** The workspace this person belongs to, if the company they work at has one. */
+  const theirOrg = (p: Person): string | null => {
+    const c = Array.isArray(p.customers) ? p.customers[0] : p.customers;
+    return (c as { linked_org_id?: string | null } | null)?.linked_org_id ?? null;
+  };
+
   /**
    * A person's row, in the same grammar as a company's.
    *
@@ -268,7 +274,7 @@ export default function PeoplePage() {
     const res = await supabase
       .from('customer_contacts')
       .select(
-        'id, name, title, company, website, email, phone, note, relationship, met_how, met_on, last_spoke_on, customer_id, avatar_url, customers(name, last_contacted_on)'
+        'id, name, title, company, website, email, phone, note, relationship, met_how, met_on, last_spoke_on, customer_id, avatar_url, customers(name, last_contacted_on, linked_org_id)'
       )
       .order('name');
     if (!res.error) setRows((res.data ?? []) as unknown as Person[]);
@@ -496,11 +502,27 @@ export default function PeoplePage() {
             {shown.length} of {rows.length}. Click somebody to fill them in.
           </div>
 
-          {/* Whoever is open, below the list rather than inside it. */}
+          {/*
+            Over the list, not under it.
+            
+            Opening somebody pushed a tall card below seven rows, so the thing
+            you had just clicked was off the bottom of the screen and the list
+            you were reading jumped. A record is a thing you look at, which is
+            what a dialog is for.
+          */}
           {openPerson && (() => {
             const p = openPerson;
             return (
-              <Card style={{ marginTop: 14 }}>
+              <div
+                onMouseDown={(e) => { if (e.target === e.currentTarget) setOpenId(null); }}
+                style={{
+                  position: 'fixed', inset: 0, zIndex: 300,
+                  background: 'rgba(16,17,20,.34)',
+                  display: 'grid', placeItems: 'start center',
+                  padding: '6vh 20px 20px', overflowY: 'auto',
+                }}
+              >
+              <Card style={{ width: '100%', maxWidth: 720, boxShadow: '0 24px 60px rgba(0,0,0,.18)' }}>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12 }}>
                   <Avatar src={p.avatar_url} name={p.name} size={26} />
                   <span style={{ fontSize: 15, fontWeight: 500, color: C.text, flex: 1 }}>{p.name}</span>
@@ -589,13 +611,22 @@ export default function PeoplePage() {
                 sending them there to retype an email you are looking at is
                 the lookup the product should be doing.
               */}
+              {/*
+                Their business, not the one you happen to be standing in.
+                
+                This defaulted to the current workspace, so inviting a client's
+                owner from CALO&CO offered to put him inside CALO&CO. The
+                company on his record knows where he belongs; when it does not,
+                nothing is preselected and the send waits for an answer.
+              */}
               {p.email && orgs.length > 0 && (
                 <InvitePerson
-                  orgId={org?.id ?? orgs[0].id}
+                  orgId={theirOrg(p) ?? ''}
                   choices={orgs.map((o) => ({ id: o.id, name: o.name }))}
                   prefillEmail={p.email}
                   prefillName={p.name}
                   trigger="Give them a login"
+                  primary
                 />
               )}
               <button
@@ -615,6 +646,7 @@ export default function PeoplePage() {
             </div>
           </div>
               </Card>
+              </div>
             );
           })()}
         </>

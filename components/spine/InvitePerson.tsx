@@ -37,10 +37,12 @@ interface Props {
   prefillName?: string;
   /** What the button says where it sits. */
   trigger?: string;
+  /** Draw it as the main action. Giving somebody access is usually the point. */
+  primary?: boolean;
   onDone?: () => void;
 }
 
-export function InvitePerson({ orgId, orgName, choices, prefillEmail, prefillName, trigger, onDone }: Props) {
+export function InvitePerson({ orgId, orgName, choices, prefillEmail, prefillName, trigger, primary, onDone }: Props) {
   const [target, setTarget] = useState(orgId);
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState(prefillName || prefillEmail || '');
@@ -98,6 +100,7 @@ export function InvitePerson({ orgId, orgName, choices, prefillEmail, prefillNam
   }
 
   async function send() {
+    if (!target) { setError('Pick which business they are joining.'); return; }
     const to = (email || q).trim().toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) {
       setError('That does not look like an email address. Pick somebody from the list, or type the whole address.');
@@ -139,7 +142,7 @@ export function InvitePerson({ orgId, orgName, choices, prefillEmail, prefillNam
    */
   return (
     <>
-      <Button variant="ghost" onClick={() => { setOpen(true); setSent(''); setError(''); }}>
+      <Button variant={primary ? 'primary' : 'ghost'} onClick={() => { setOpen(true); setSent(''); setError(''); }}>
         {trigger ?? 'Invite someone'}
       </Button>
       {open && (
@@ -181,6 +184,9 @@ export function InvitePerson({ orgId, orgName, choices, prefillEmail, prefillNam
               onChange={(e) => setTarget(e.target.value)}
               style={{ ...inputStyle, fontSize: 13.5 }}
             >
+              {/* No silent default. Picking the workspace you are standing in
+                  is how somebody's client ends up inside your own business. */}
+              <option value="">Choose one…</option>
               {choices.map((o) => (
                 <option key={o.id} value={o.id}>{o.name}</option>
               ))}
@@ -287,7 +293,7 @@ export function InvitePerson({ orgId, orgName, choices, prefillEmail, prefillNam
         )}
 
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 18 }}>
-          <Button onClick={send} disabled={busy || !(email || q).trim()}>
+          <Button onClick={send} disabled={busy || !target || !(email || q).trim()}>
             {busy ? 'Sending…' : sent ? 'Invite somebody else' : 'Send the invite'}
           </Button>
           <button
