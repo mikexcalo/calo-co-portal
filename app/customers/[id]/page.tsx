@@ -122,6 +122,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
    */
   const hasCatalog = useMemo(() => modulesFor(org).has('catalog'), [org]);
   const [stageBusy, setStageBusy] = useState(false);
+  const [noting, setNoting] = useState(false);
   /** Every tag already in use here, so the vocabulary converges by itself. */
   const [knownTags, setKnownTags] = useState<string[]>([]);
 
@@ -644,13 +645,33 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
 
           {view === 'now' && (
             <>
-              <Waiting customerId={params.id} />
-              {orgId && (
+              {/*
+                One strip, not two blocks.
+                
+                A permanently open note field and a separate "waiting on
+                something" link sat above the brief, so the first two things
+                on the page were both empty boxes asking to be filled.
+              */}
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
+                <Waiting customerId={params.id} />
+                {orgId && !noting && (
+                  <button
+                    onClick={() => setNoting(true)}
+                    style={{
+                      border: 'none', background: 'transparent', padding: 0,
+                      fontSize: 12.5, color: C.faint, cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    + Add a note
+                  </button>
+                )}
+              </div>
+              {orgId && noting && (
                 <SayIt
                   customerId={params.id}
                   clientName={customer.name}
                   orgId={orgId}
-                  onDone={load}
+                  onDone={() => { setNoting(false); load(); }}
                 />
               )}
               <Brief customerId={params.id} clientName={customer.name} />
@@ -894,6 +915,19 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           {orgId && <People orgId={orgId} customerId={params.id} />}
 
           {/*
+            Under the people, because that is what it is about.
+            
+            It floated unanchored between two cards, reading as a fact about
+            the company rather than about the last time anybody spoke to
+            anyone in it.
+          */}
+          {customer.last_contacted_on && (
+            <div style={{ fontSize: 12, color: C.faint, margin: '-6px 0 16px' }}>
+              Last contact {shortDate(customer.last_contacted_on)}
+            </div>
+          )}
+
+          {/*
             One line, not a stack of bars.
 
             This was a card holding two full-width buttons stacked vertically:
@@ -946,14 +980,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             </Card>
           )}
 
-          {/* Its own line, because a client with no website still has a last
-              contact date and it was about to hide inside a card that only
-              renders when there is a site or an address. */}
-          {customer.last_contacted_on && (
-            <div style={{ fontSize: 12, color: C.faint, marginBottom: 14 }}>
-              Last contact {shortDate(customer.last_contacted_on)}
-            </div>
-          )}
+
 
           {/*
             The work comes before the filing.

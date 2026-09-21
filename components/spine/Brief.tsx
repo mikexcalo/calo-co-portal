@@ -67,6 +67,14 @@ export function Brief({ customerId, clientName }: { customerId: string; clientNa
   const [updated, setUpdated] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  const toggle = (key: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
   const phone = useIsPhone();
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -106,7 +114,7 @@ export function Brief({ customerId, clientName }: { customerId: string; clientNa
    * answer will eventually be.
    */
   if (written.length === 0 && !editing) {
-    return (
+  return (
       <div style={{ marginBottom: 22 }}>
         <button
           onClick={() => setEditing(true)}
@@ -183,14 +191,26 @@ export function Brief({ customerId, clientName }: { customerId: string; clientNa
               const hasMore = full.length > head.length + 2;
               const isOpen = expanded.has(f.key);
               return (
+                /*
+                  The row is the control.
+                  
+                  Six rows each ending in the word "More" is the same word six
+                  times down the page, and the thing you wanted to press was
+                  the sentence you were already reading.
+                */
                 <div
                   key={f.key}
+                  onClick={hasMore ? () => toggle(f.key) : undefined}
+                  role={hasMore ? 'button' : undefined}
+                  tabIndex={hasMore ? 0 : undefined}
+                  onKeyDown={hasMore ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(f.key); } } : undefined}
                   style={{
                     display: 'grid',
                     gridTemplateColumns: phone ? '1fr' : '160px minmax(0, 1fr)',
                     gap: phone ? 2 : 16,
                     padding: '10px 0',
                     borderTop: i === 0 ? 'none' : `1px solid ${C.border}`,
+                    cursor: hasMore ? 'pointer' : 'default',
                   }}
                 >
                   <div style={{ fontSize: 12.5, color: C.faint, paddingTop: 1 }}>{f.label}</div>
@@ -198,23 +218,10 @@ export function Brief({ customerId, clientName }: { customerId: string; clientNa
                     <div style={{ fontSize: 14, color: C.text, lineHeight: 1.6 }}>
                       {isOpen ? full : head}
                     </div>
-                    {hasMore && (
-                      <button
-                        onClick={() =>
-                          setExpanded((prev) => {
-                            const next = new Set(prev);
-                            if (next.has(f.key)) next.delete(f.key);
-                            else next.add(f.key);
-                            return next;
-                          })
-                        }
-                        style={{
-                          background: 'transparent', border: 'none', padding: 0, marginTop: 3,
-                          color: C.accent, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
-                        }}
-                      >
-                        {isOpen ? 'Less' : 'More'}
-                      </button>
+                    {hasMore && !isOpen && (
+                      <span style={{ fontSize: 12, color: C.faint, marginTop: 2, display: 'block' }}>
+                        …
+                      </span>
                     )}
                   </div>
                 </div>
