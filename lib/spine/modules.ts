@@ -493,6 +493,19 @@ const ALWAYS = [
 export function pathAllowed(org: Org | null, pathname: string): boolean {
   if (ALWAYS.includes(pathname)) return true;
 
+  /*
+    Handing somebody a login to this platform is an agency act.
+
+    Access was a tab on every Customers screen, so a contractor was being
+    offered a way to give a homeowner a seat in Nautilus. What his customers
+    should see is an invoice and the things that need them to do something,
+    which is a different screen and a much shorter list. Hiding the tab is not
+    enough on its own — the URL has to say no too.
+  */
+  if (pathname === '/access' || pathname.startsWith('/access/')) {
+    return org?.kind === 'agency';
+  }
+
   const entry = ROUTE_MODULE.find(
     ([prefix]) => pathname === prefix || pathname.startsWith(prefix + '/')
   );

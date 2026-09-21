@@ -32,7 +32,7 @@ import {
   type ModuleState,
 } from '@/lib/spine/modules';
 import { ModuleSwitchboard } from '@/components/spine/ModuleSwitchboard';
-import { Avatar, CLIENT_TABS, C, Card, Empty, Page, SectionLabel, Switch } from '@/components/spine/ui';
+import { Avatar, clientTabs, C, Card, Empty, Page, SectionLabel, Switch } from '@/components/spine/ui';
 import { brandAssetUrl, orgNow} from '@/lib/spine/db';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -146,7 +146,7 @@ export default function AccessPage() {
   );
 
   return (
-    <Page title="Access" subtitle="What each client can open." tabs={CLIENT_TABS}>
+    <Page title="Access" subtitle="What each client can open." tabs={clientTabs(org?.kind)}>
       {!loaded ? (
         <Empty>Loading…</Empty>
       ) : error ? (

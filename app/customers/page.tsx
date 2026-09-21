@@ -38,7 +38,7 @@ import {
   money0,
   radius,
   shortDate,
-  CLIENT_TABS,
+  clientTabs,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -361,7 +361,7 @@ export default function CustomersPage() {
 
   return (
     <Page
-      tabs={CLIENT_TABS}
+      tabs={clientTabs(org?.kind)}
       title={vocab.customerPlural}
       subtitle={`Everyone you work with.`}
       action={

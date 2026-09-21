@@ -142,3 +142,28 @@ What to watch for while he uses it: whether a per-client price is a discount
 off his own list or an entirely separate sheet. The first is a modifier on
 `price_items`; the second is a table. They are very different amounts of work
 and the answer is in how he talks about it.
+
+## A contact who is neither a person nor a customer
+
+*2026-09-21 — thought about, deliberately not built.*
+
+The address book has two shapes and the world has more. Austin Energy is the
+utility Mark files permits with. Sysco is a distributor John watches prices
+from but does not sell to. A supplier, an inspector, a GC who subcontracts to
+you, a warehouse — none of them are customers, and calling them one puts them
+in the list you count revenue against.
+
+Filing them as People is no better: People answers "who do I know", and a
+utility is not somebody you know.
+
+What this probably wants is a third kind on the company record — customer,
+supplier, other — rather than a fourth module. Customers already has a stage
+lane deciding what shows where, and a relationship field would ride alongside
+it without another sidebar row. Price lists already carry `belongs_to`
+(ours/supplier), which is the same distinction arriving from a different
+direction; those two should almost certainly be the same field.
+
+Not built yet because two beta clients have single-digit customer counts and
+the cost of getting the shape wrong now is higher than the cost of a utility
+sitting in the wrong list for a fortnight. Revisit when either of them has
+enough rows that the wrong ones are actually in the way.

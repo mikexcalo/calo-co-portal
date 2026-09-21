@@ -236,6 +236,23 @@ export const CLIENT_TABS: readonly PageTab[] = [
   { label: 'Access', href: '/access', icon: 'layers' },
 ];
 
+/**
+ * Access is ours, not theirs.
+ *
+ * Access hands somebody a login to this platform. On the agency side that is
+ * the point — it is how a client of ours gets in to see their own work. Sitting
+ * on Mark's Customers screen it offered him something entirely different: a way
+ * to give a homeowner a seat in Nautilus.
+ *
+ * What his customers should ever see is a specific and much shorter list —
+ * an invoice, an estimate, the things that need them to do something — and
+ * none of that is a login to the whole platform. So it is not a tab a
+ * contractor has, and typing the URL does not get you there either.
+ */
+export function clientTabs(kind: string | null | undefined): readonly PageTab[] {
+  return kind === 'agency' ? CLIENT_TABS : [CLIENT_TABS[0]];
+}
+
 export const DIGITAL_TABS: readonly PageTab[] = [
   { label: 'Overview', href: '/digital', icon: 'globe' },
   { label: 'Site requests', href: '/site-requests', icon: 'brief' },
