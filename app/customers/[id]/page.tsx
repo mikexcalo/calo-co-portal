@@ -18,6 +18,7 @@ import { brandAssetUrl, getCurrentOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import { modulesFor } from '@/lib/spine/modules';
 import { StageBar } from '@/components/spine/StageBar';
+import { AskThem } from '@/components/spine/AskThem';
 import { Tags } from '@/components/spine/Tags';
 import { Enrich } from '@/components/spine/Enrich';
 import type { Stage } from '@/lib/spine/stage';
@@ -64,6 +65,8 @@ import { save as saveOrFail } from '@/lib/spine/save';
 interface Customer {
   id: string;
   org_id: string;
+  /** Their own workspace, when they have been given one. */
+  linked_org_id: string | null;
   name: string;
   contact_name: string | null;
   contact_title: string | null;
@@ -560,6 +563,10 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             }}
           >
             <Tags tags={customer.tags ?? []} known={knownTags} onChange={saveTags} />
+            {/* Only when they can actually sign in and read it. */}
+            {customer.linked_org_id && (
+              <AskThem orgId={customer.linked_org_id} clientName={customer.name} />
+            )}
             {!customer.website && (
               <div style={{ flex: '1 1 260px', minWidth: 220 }}>
                 <Enrich customerId={params.id} currentName={customer.name} onSaved={load} />

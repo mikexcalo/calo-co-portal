@@ -15,6 +15,7 @@
 import { Unresolved } from '@/components/spine/Unresolved';
 import { TellUs } from '@/components/spine/TellUs';
 import { FeedbackInbox } from '@/components/spine/FeedbackInbox';
+import { AskedOfYou } from '@/components/spine/AskedOfYou';
 import { YourSetup } from '@/components/spine/YourSetup';
 import { SoldNotLive } from '@/components/spine/SoldNotLive';
 import { FollowUps } from '@/components/spine/FollowUps';
@@ -799,6 +800,10 @@ export default function Dashboard() {
             Drop a note — talk or paste, and it files itself
             <span style={{ float: 'right', fontSize: 12, color: C.faint }}>⌘J</span>
           </button>
+
+          {/* Somebody is waiting on you. First, because it is the only
+              thing here that somebody else is blocked by. */}
+          <AskedOfYou />
 
           <Unresolved />
 

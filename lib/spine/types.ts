@@ -120,6 +120,13 @@ export interface Org {
 export interface Customer {
   id: string;
   org_id: string;
+  /**
+   * Their own workspace, when they have one.
+   *
+   * A client record is what you know about them; this is where they sign in.
+   * Null for everybody you have not given a login to, which is most of them.
+   */
+  linked_org_id?: string | null;
   name: string;
   email: string | null;
   phone: string | null;
