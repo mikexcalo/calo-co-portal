@@ -882,7 +882,6 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                   style={{
                     background: C.panel,
                     border: `1px solid ${C.border}`,
-                    borderLeft: `3px solid ${n.kind === 'system' ? C.border : C.accent}`,
                     borderRadius: radius.md,
                     padding: '12px 14px',
                   }}

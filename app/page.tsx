@@ -687,41 +687,53 @@ export default function Dashboard() {
             <div style={{ marginBottom: 30 }}>
               <SectionLabel>Wrong or waiting ({attention.length})</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {attention.map((a) => {
-                  const accent =
-                    a.tone === 'red' ? C.red : a.tone === 'amber' ? C.amber : C.blue;
-                  const soft =
-                    a.tone === 'red' ? C.redSoft : a.tone === 'amber' ? C.amberSoft : C.blueSoft;
-                  return (
-                    <div
-                      key={a.key}
-                      style={{
-                        display: 'flex',
-                        gap: 14,
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        flexWrap: 'wrap',
-                        background: soft,
-                        border: `1px solid ${C.border}`,
-                        borderLeft: `3px solid ${accent}`,
-                        borderRadius: radius.lg,
-                        padding: '15px 18px',
-                      }}
-                    >
-                      <div style={{ minWidth: 240, flex: 1 }}>
+                {/*
+                  The tone is a word, not a bent stripe.
+
+                  These were a tinted panel with a 3px colored border down the
+                  left, dragged around a 12px corner radius — so the one part
+                  of the card carrying the meaning rendered as a colored sliver
+                  curling off into the corner. It read as damage rather than
+                  design, and it is the sort of thing that gets copied: the
+                  same treatment had already spread to customer notes.
+
+                  A pill says the same thing in a word, in the tone color, at
+                  the size the rest of the system already uses for status. The
+                  card underneath goes back to being a plain card.
+                */}
+                {attention.map((a) => (
+                  <div
+                    key={a.key}
+                    style={{
+                      display: 'flex',
+                      gap: 14,
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      background: C.panel,
+                      border: `1px solid ${C.border}`,
+                      borderRadius: radius.lg,
+                      padding: '15px 18px',
+                    }}
+                  >
+                    <div style={{ minWidth: 240, flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+                        <Pill tone={a.tone === 'red' ? 'red' : a.tone === 'amber' ? 'amber' : 'neutral'}>
+                          {a.tone === 'red' ? 'Wrong' : a.tone === 'amber' ? 'Waiting' : 'Note'}
+                        </Pill>
                         <div style={{ ...DISPLAY, fontSize: 18, color: C.text }}>
                           {a.title}
                         </div>
-                        <div style={{ fontSize: 13.5, color: C.dim, marginTop: 4 }}>
-                          {a.detail}
-                        </div>
                       </div>
-                      <Button variant="ghost" onClick={() => router.push(a.href)}>
-                        {a.cta}
-                      </Button>
+                      <div style={{ fontSize: 13.5, color: C.dim, marginTop: 5 }}>
+                        {a.detail}
+                      </div>
                     </div>
-                  );
-                })}
+                    <Button variant="ghost" onClick={() => router.push(a.href)}>
+                      {a.cta}
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -765,10 +777,19 @@ export default function Dashboard() {
               value={money0(unbilled)}
               tone={unbilled > 0 ? 'amber' : undefined}
             />
+            {/*
+              Money owed to you is red.
+
+              This was 'blue', which in this palette is #141414 — so the one
+              number on Home that represents cash sitting in somebody else's
+              account rendered in the same black as the engagement count. Red
+              is the tone this platform reserves for something that is wrong,
+              and money invoiced and not paid is exactly that.
+            */}
             <Metric
               label="Owed to you"
               value={money0(outstanding)}
-              tone={outstanding > 0 ? 'blue' : undefined}
+              tone={outstanding > 0 ? 'red' : undefined}
             />
             <Metric label="Collected" value={money0(collected)} tone="green" />
           </div>

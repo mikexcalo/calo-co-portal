@@ -30,6 +30,7 @@ import {
   Card,
   Empty,
   Field,
+  Metric,
   Page,
   Pill,
   SectionLabel,
@@ -335,8 +336,17 @@ export default function CustomersPage() {
       align: 'right',
       sortBy: (r) => -r.owed,
       render: (r) => (
-        <span style={{ fontSize: 13, color: r.owed > 0 ? C.amber : C.faint, fontVariantNumeric: 'tabular-nums' }}>
-          {r.owed > 0 ? money0(r.owed) : '—'}
+        /*
+          Red, and to the cent.
+
+          Amber means "needs you"; money already invoiced and not paid is past
+          that. And the Invoices table prints $80.00 for the same row this one
+          printed as $80 — so the rule is now explicit: tiles round, because a
+          headline number is for scale, and table rows are exact, because a
+          row is something you reconcile against.
+        */
+        <span style={{ fontSize: 13, color: r.owed > 0 ? C.red : C.faint, fontVariantNumeric: 'tabular-nums' }}>
+          {r.owed > 0 ? money(r.owed) : '—'}
         </span>
       ),
     },
@@ -444,15 +454,40 @@ export default function CustomersPage() {
 
       {/* What needs doing, before the list of everyone */}
       {!loading && (dueNow.length > 0 || owing.length > 0 || noEmail.length > 0) && (
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 24 }}>
+        /*
+          The same number, drawn the same way as everywhere else.
+
+          Clients had its own tile — a local `Flag` component that existed in
+          this one file: filled grey background, number on top at 18px, label
+          underneath. Home and Invoices use `Metric`: white card, small
+          uppercase label on top, number underneath at 25px. So $160 owed to
+          you looked like two different facts depending on which screen you
+          were standing on, which is exactly the doubt a money screen cannot
+          afford.
+
+          There is no good reason for a second tile. This is `Metric`, in the
+          same grid Invoices uses.
+        */
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+            gap: 12,
+            marginBottom: 26,
+          }}
+        >
           {dueNow.length > 0 && (
-            <Flag tone="amber" label="Follow up due" value={String(dueNow.length)} />
+            <Metric label="Follow up due" value={String(dueNow.length)} tone="amber" />
           )}
           {owing.length > 0 && (
-            <Flag tone="blue" label="Owing you" value={money0(owing.reduce((s, r) => s + r.owed, 0))} />
+            <Metric
+              label="Owing you"
+              value={money0(owing.reduce((s, r) => s + r.owed, 0))}
+              tone="red"
+            />
           )}
           {noEmail.length > 0 && (
-            <Flag tone="neutral" label="No email, can't invoice" value={String(noEmail.length)} />
+            <Metric label="No email" value={String(noEmail.length)} hint="Can't invoice" />
           )}
         </div>
       )}
@@ -660,28 +695,3 @@ function Stat({ label, value, color }: { label: string; value: string; color?: s
   );
 }
 
-function Flag({
-  tone,
-  label,
-  value,
-}: {
-  tone: 'amber' | 'blue' | 'neutral';
-  label: string;
-  value: string;
-}) {
-  const fg = tone === 'amber' ? C.amber : tone === 'blue' ? C.accent : C.dim;
-  const bg = tone === 'amber' ? C.amberSoft : tone === 'blue' ? C.accentSoft : C.panelAlt;
-  return (
-    <div
-      style={{
-        background: bg,
-        border: `1px solid ${C.border}`,
-        borderRadius: radius.md,
-        padding: '10px 14px',
-      }}
-    >
-      <div style={{ fontSize: 18, color: fg, fontWeight: 500 }}>{value}</div>
-      <div style={{ fontSize: 12, color: C.dim, marginTop: 2 }}>{label}</div>
-    </div>
-  );
-}
