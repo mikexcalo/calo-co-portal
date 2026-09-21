@@ -37,7 +37,7 @@ export default async function PublicInvoice({ params }: { params: { token: strin
 
   const { data: invoice } = await db
     .from('job_invoices')
-    .select('*, job:jobs(name, address, org_id, customer:customers(name, contact_name))')
+    .select('*, job:jobs(name, address, org_id, customer_id, customer:customers(name, contact_name))')
     .eq('public_token', params.token)
     .maybeSingle();
 
@@ -48,9 +48,23 @@ export default async function PublicInvoice({ params }: { params: { token: strin
     customer: { name: string; contact_name: string | null } | null;
   } | null;
 
-  const [{ data: lines }, { data: org }] = await Promise.all([
+  const [{ data: lines }, { data: org }, { data: terms }] = await Promise.all([
     db.from('job_invoice_lines').select('*').eq('invoice_id', invoice.id).order('position'),
     db.from('orgs').select('name, settings, payment_methods').eq('id', job?.org_id ?? '').maybeSingle(),
+    /*
+      What they would have paid.
+
+      An invoice that prints $60.00 states a price. It does not say the price
+      is half, which is the whole point of the arrangement and the thing that
+      quietly stops being visible the moment it becomes routine. The standard
+      rate is already recorded on the agreed terms, so the discount is read
+      from what was agreed rather than typed onto the document.
+    */
+    db.from('customer_terms')
+      .select('hourly_rate, standard_rate')
+      .eq('org_id', job?.org_id ?? '')
+      .eq('customer_id', (invoice.job as { customer_id?: string } | null)?.customer_id ?? '')
+      .maybeSingle(),
   ]);
 
   if (!invoice.viewed_at) {
@@ -108,19 +122,47 @@ export default async function PublicInvoice({ params }: { params: { token: strin
               </tr>
             </thead>
             <tbody>
-              {(lines ?? []).map((l: Record<string, unknown>) => (
-                <tr key={l.id as string} style={{ borderBottom: '1px solid #f0f0ed' }}>
-                  <td style={{ padding: '11px 0', color: '#222' }}>
-                    {l.description as string}
-                    {Number(l.qty) !== 1 && (
-                      <span style={{ color: '#888' }}> · {Number(l.qty)}{l.unit ? ` ${l.unit}` : ''}</span>
-                    )}
-                  </td>
-                  <td style={{ padding: '11px 0 11px 10px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                    {money(Number(l.total))}
-                  </td>
-                </tr>
-              ))}
+              {(lines ?? []).map((l: Record<string, unknown>) => {
+                /*
+                  Show the discount, do not claim it.
+
+                  A line charged at the agreed hourly rate is priced below the
+                  standard rate, and the only honest way to say so is to print
+                  both: what it lists at, struck, and what it actually costs.
+                  The test is the rate, not the line's wording — so it holds
+                  for any hourly line and cannot be turned on by naming a line
+                  cleverly.
+                */
+                const unit = Number(l.unit_price);
+                const std = Number(terms?.standard_rate ?? 0);
+                const agreed = Number(terms?.hourly_rate ?? 0);
+                const discounted = std > 0 && agreed > 0 && unit === agreed && std > agreed;
+                const wouldBe = discounted ? std * Number(l.qty || 0) : 0;
+                return (
+                  <tr key={l.id as string} style={{ borderBottom: '1px solid #f0f0ed' }}>
+                    <td style={{ padding: '11px 0', color: '#222' }}>
+                      {l.description as string}
+                      {Number(l.qty) !== 1 && (
+                        <span style={{ color: '#888' }}> · {Number(l.qty)}{l.unit ? ` ${l.unit}` : ''}</span>
+                      )}
+                      {discounted && (
+                        <div style={{ fontSize: 12.5, color: '#15803d', marginTop: 3 }}>
+                          Your rate {money(agreed)}/{String(l.unit ?? 'hour')} — standard is{' '}
+                          <span style={{ textDecoration: 'line-through', color: '#999' }}>{money(std)}</span>
+                        </div>
+                      )}
+                    </td>
+                    <td style={{ padding: '11px 0 11px 10px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      {discounted && (
+                        <span style={{ textDecoration: 'line-through', color: '#999', marginRight: 8, fontSize: 13.5 }}>
+                          {money(wouldBe)}
+                        </span>
+                      )}
+                      {money(Number(l.total))}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
 

@@ -54,6 +54,7 @@ export default function BillingPage() {
   const [busy, setBusy] = useState(false);
   /** Which invoice has its secondary actions showing. One at a time. */
   const [moreFor, setMoreFor] = useState<string | null>(null);
+  const [previewing, setPreviewing] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -127,7 +128,18 @@ export default function BillingPage() {
       });
       const payload = await res.json();
       if (!res.ok) throw new Error(payload.error || 'Could not build a preview');
-      if (payload.link) window.open(payload.link, '_blank', 'noopener');
+      /*
+        The preview opens here.
+
+        It called window.open, so checking an invoice before sending it left a
+        CALO&CO tab behind every time — and checking three of them left three.
+        The link is same-origin, so the document can be shown in place, which
+        is also the honest thing: a preview is a look, not a departure.
+
+        The link is still offered inside the panel for anybody who does want a
+        tab, and that is a choice rather than the only behaviour.
+      */
+      if (payload.link) setPreviewing(payload.link);
       await load();
     } catch (e) {
       setError(human((e as Error).message));
@@ -216,6 +228,58 @@ export default function BillingPage() {
 
   return (
     <Page title="Invoices" subtitle="What you have invoiced, and what is still owed.">
+      {/*
+        The invoice, exactly as the client gets it, without leaving.
+
+        An iframe of the same public link rather than a second rendering of
+        the document, so there is nothing here that can drift out of step with
+        what is actually sent.
+      */}
+      {previewing && (
+        <div
+          onClick={() => setPreviewing(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,.45)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: C.panel, borderRadius: 12, overflow: 'hidden',
+              width: 'min(880px, 100%)', height: 'min(90vh, 1000px)',
+              display: 'flex', flexDirection: 'column',
+              boxShadow: '0 24px 60px rgba(0,0,0,.3)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '10px 14px', borderBottom: `1px solid ${C.border}`,
+              }}
+            >
+              <span style={{ fontSize: 13.5, fontWeight: 500, color: C.text, flex: 1 }}>
+                What they will see
+              </span>
+              <a
+                href={previewing}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 12.5, color: C.dim, textDecoration: 'none' }}
+              >
+                Open in a tab
+              </a>
+              <Button variant="ghost" onClick={() => setPreviewing(null)}>Close</Button>
+            </div>
+            <iframe
+              src={previewing}
+              title="Invoice preview"
+              style={{ flex: 1, border: 'none', width: '100%', background: '#f5f5f3' }}
+            />
+          </div>
+        </div>
+      )}
+
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
