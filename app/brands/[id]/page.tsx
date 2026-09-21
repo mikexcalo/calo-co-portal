@@ -15,6 +15,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
+import { Swatch, Pairings } from '@/components/spine/BrandSpecimen';
+import { kitFromBrand } from '@/lib/spine/brandkit';
 import {
   Button,
   C,
@@ -280,61 +282,19 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-              gap: 8,
+              gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))',
+              gap: 12,
             }}
           >
-            {colors.map((c) => (
-              <button
-                key={c.hex + c.name}
-                onClick={() => copy(c.hex)}
-                title="Copy hex"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 11,
-                  border: `1px solid ${C.border}`,
-                  borderRadius: 999,
-                  padding: 10,
-                  background: C.panel,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  fontFamily: 'inherit',
-                }}
-              >
-                <span
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 6,
-                    background: c.hex,
-                    border: `1px solid ${C.border}`,
-                    flexShrink: 0,
-                  }}
-                />
-                <span style={{ minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: C.text }}>
-                    {copied === c.hex ? 'Copied' : c.name}
-                  </span>
-                  <span
-                    style={{
-                      display: 'block',
-                      fontSize: 12,
-                      color: C.faint,
-                      fontFamily: 'ui-monospace, monospace',
-                    }}
-                  >
-                    {c.hex}{c.token ? ` · ${c.token}` : ''}
-                  </span>
-                  {c.role && (
-                    <span style={{ display: 'block', fontSize: 12, color: C.faint, marginTop: 2 }}>
-                      {c.role}
-                    </span>
-                  )}
-                </span>
-              </button>
-            ))}
+            {colors.map((c, i) => <Swatch key={`${c.hex}-${i}`} c={c} />)}
           </div>
+        </div>
+      )}
+
+      {colors.length > 1 && (
+        <div style={{ marginBottom: 26 }}>
+          {/* Derived from the colours above, never typed, so it cannot drift. */}
+          <Pairings kit={kitFromBrand({ id: brand.id, name: brand.name, kit: brand.kit })} />
         </div>
       )}
 

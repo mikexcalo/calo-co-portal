@@ -11,6 +11,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { getCurrentOrg, updateOrg, orgNow} from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
@@ -50,6 +51,8 @@ import {
   brandTabsFor,
 } from '@/components/spine/ui';
 import { FontSpecimen } from '@/components/spine/FontSpecimen';
+import { BrandSpecimen, Pairings } from '@/components/spine/BrandSpecimen';
+import { kitFromOrg, kitFromBrand, type Kit } from '@/lib/spine/brandkit';
 import { human } from '@/lib/spine/errors';
 
 type Tab = 'brand' | 'logos' | 'qr' | 'signature';
@@ -86,8 +89,46 @@ export default function BrandKitPage() {
   const phone = useIsPhone();
   const { org, refresh } = useOrg();
   const mods = modulesFor(org);
+  const router = useRouter();
   const [tab, setTab] = useState<Tab>('brand');
+
+  /*
+    Whose identity is on screen.
+
+    Client brands were a tab that left the module: Brand → Client brands → a
+    list → click a client → their screens, and no way back up. Four moves to
+    look at a colour, and the tab strip stopped rendering once you were in, so
+    the module you were inside disappeared behind you.
+
+    An agency holds several identities and swaps between them constantly. That
+    is a picker at the top of one screen, not a journey. '' means your own.
+  */
+  const [viewing, setViewing] = useState('');
+  const [clientBrands, setClientBrands] = useState<Array<{ id: string; name: string; kit: unknown }>>([]);
+
+  useEffect(() => {
+    if (org?.kind !== 'agency') return;
+    let dead = false;
+    (async () => {
+      const { data } = await supabase.from('brands').select('id, name, kit').order('name');
+      if (!dead && data) setClientBrands(data as Array<{ id: string; name: string; kit: unknown }>);
+    })();
+    return () => { dead = true; };
+  }, [org?.id, org?.kind]);
+
   const [brand, setBrand] = useState<BrandSettings>(EMPTY_BRAND);
+
+  /* Whatever is being looked at, in one shape. */
+  const shown: Kit = useMemo(() => {
+    if (viewing) {
+      const row = clientBrands.find((b) => b.id === viewing);
+      if (row) return kitFromBrand(row);
+    }
+    return kitFromOrg(org?.name ?? 'Your brand', { brand });
+  }, [viewing, clientBrands, org?.name, brand]);
+
+  /* Somebody else's identity is read here and edited on its own screens. */
+  const mine = !viewing;
   const [sig, setSig] = useState<SignatureFields>(EMPTY_SIGNATURE);
   const [style, setStyle] = useState<SignatureStyle>('stacked');
   const [guideId, setGuideId] = useState('gmail');
@@ -210,20 +251,49 @@ export default function BrandKitPage() {
   return (
     <Page
       tabs={brandTabsFor(org?.kind)}
-            title="Brand"
-      subtitle="Your logos, colors, type and voice."
+      title="Brand"
+      subtitle={mine ? 'Your logos, colours, type and voice.' : `${shown.name} — held by you, edited on its own screens.`}
       action={
         <>
-          {saved && <Pill tone="green">Saved</Pill>}
-          <Button
-            onClick={() => save(tab === 'brand' ? { brand } : { signature: sig })}
-            disabled={busy || !org}
-          >
-            {busy ? 'Saving…' : 'Save'}
-          </Button>
+          {saved && mine && <Pill tone="green">Saved</Pill>}
+          {mine ? (
+            <Button
+              onClick={() => save(tab === 'brand' ? { brand } : { signature: sig })}
+              disabled={busy || !org}
+            >
+              {busy ? 'Saving…' : 'Save'}
+            </Button>
+          ) : (
+            <Button onClick={() => router.push(`/brands/${viewing}`)}>Open {shown.name}</Button>
+          )}
         </>
       }
     >
+      {/*
+        The picker, where the identities are.
+
+        Only where there is more than one — a contractor holds their own and
+        nothing else, and a dropdown offering one choice is furniture.
+      */}
+      {clientBrands.length > 0 && (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 20, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12.5, color: C.faint }}>Showing</span>
+          <select
+            value={viewing}
+            onChange={(e) => { setViewing(e.target.value); setTab('brand'); }}
+            style={{
+              fontSize: 14, padding: '7px 11px', borderRadius: 8,
+              border: `1px solid ${C.border}`, background: C.panel, color: C.text,
+              fontFamily: 'inherit', cursor: 'pointer',
+            }}
+          >
+            <option value="">{org?.name ?? 'Your brand'} — yours</option>
+            {clientBrands.map((b) => (
+              <option key={b.id} value={b.id}>{b.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
@@ -254,7 +324,9 @@ export default function BrandKitPage() {
         ))}
       </div>
 
-      {tab === 'brand' ? (
+      {!mine ? (
+        <BrandSpecimen kit={shown} />
+      ) : tab === 'brand' ? (
         <div style={{ display: 'grid', gap: 18, maxWidth: 720 }}>
           <Card>
             <SectionLabel>Colors</SectionLabel>
@@ -321,6 +393,16 @@ export default function BrandKitPage() {
             is for the ones that arrived as a picture — a prospect's logo, a
             screenshot of a sign, a PDF somebody exported.
           */}
+          {/*
+            The rule the grid cannot state.
+
+            Thirteen swatches tell you the brand owns a gold and an ivory. They
+            cannot tell you that gold on ivory is unreadable, which is the only
+            thing anybody gets wrong. Derived, never typed, so it cannot drift
+            from the colours above it.
+          */}
+          <Pairings kit={shown} />
+
           <Card>
             <SectionLabel>Colors from a logo</SectionLabel>
             <p style={{ fontSize: 12.5, color: C.faint, margin: '6px 0 12px' }}>
