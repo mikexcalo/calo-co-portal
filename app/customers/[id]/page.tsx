@@ -25,6 +25,7 @@ import type { Stage } from '@/lib/spine/stage';
 import { Links } from '@/components/spine/Links';
 import { Photos } from '@/components/spine/Photos';
 import { People } from '@/components/spine/People';
+import { Terms } from '@/components/spine/Terms';
 import { Discovery } from '@/components/spine/Discovery';
 import { ClientDocs } from '@/components/spine/ClientDocs';
 import { Brief } from '@/components/spine/Brief';
@@ -919,6 +920,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             schema change somebody has to ask for.
           */}
 
+          {orgId && <Terms orgId={orgId} customerId={params.id} />}
           {orgId && <People orgId={orgId} customerId={params.id} />}
 
           {/*

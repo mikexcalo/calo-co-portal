@@ -1,0 +1,234 @@
+'use client';
+
+/**
+ * What was agreed with this client.
+ *
+ * The deal with John and Mark existed entirely in one person's head: sixty an
+ * hour instead of the usual hundred and twenty because they are friends,
+ * twenty a month for hosting, billed on the first, paid by Venmo. An
+ * arrangement that lives in a memory is the one that gets misremembered in six
+ * months, when somebody queries an invoice and there is nothing to point at.
+ *
+ * What this deliberately is not: a switch that starts charging. Nothing bills
+ * from it. Recording a rate and charging it are different acts, and the screen
+ * says which one this is.
+ */
+
+import { useCallback, useEffect, useState } from 'react';
+import supabase from '@/lib/supabase';
+import { Button, C, Card, SectionLabel, inputStyle, money } from './ui';
+import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
+
+interface Row {
+  hourly_rate: number | null;
+  standard_rate: number | null;
+  why_discounted: string | null;
+  monthly_fee: number | null;
+  monthly_fee_for: string | null;
+  platform_fee: number | null;
+  bills_on: number;
+  pay_by: string | null;
+  billing_live: boolean;
+  note: string | null;
+}
+
+const EMPTY: Row = {
+  hourly_rate: null, standard_rate: null, why_discounted: null,
+  monthly_fee: null, monthly_fee_for: null, platform_fee: null,
+  bills_on: 1, pay_by: null, billing_live: false, note: null,
+};
+
+const num = (v: string) => (v.trim() === '' ? null : Number.parseFloat(v) || 0);
+const str = (v: string) => (v.trim() === '' ? null : v.trim());
+
+export function Terms({ orgId, customerId }: { orgId: string; customerId: string }) {
+  const [row, setRow] = useState<Row | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<Row>(EMPTY);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const load = useCallback(async () => {
+    const res = await supabase
+      .from('customer_terms')
+      .select('hourly_rate, standard_rate, why_discounted, monthly_fee, monthly_fee_for, platform_fee, bills_on, pay_by, billing_live, note')
+      .eq('customer_id', customerId)
+      .maybeSingle();
+    if (!res.error) setRow((res.data as Row) ?? null);
+  }, [customerId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const start = () => { setDraft(row ?? EMPTY); setEditing(true); setError(''); };
+
+  const keep = async () => {
+    setBusy(true); setError('');
+    const res = await saveOrFail(
+      supabase.from('customer_terms').upsert(
+        { org_id: orgId, customer_id: customerId, ...draft },
+        { onConflict: 'customer_id' }
+      ),
+      'What you agreed'
+    );
+    setBusy(false);
+    if (res.error) { setError(human(res.error)); return; }
+    setEditing(false);
+    load();
+  };
+
+  const field = (
+    label: string,
+    value: string,
+    set: (v: string) => void,
+    hint?: string,
+    placeholder?: string
+  ) => (
+    <label style={{ display: 'block' }}>
+      <span style={{ fontSize: 12, color: C.faint, display: 'block', marginBottom: 4 }}>{label}</span>
+      <input value={value} onChange={(e) => set(e.target.value)} placeholder={placeholder} style={inputStyle} />
+      {hint && <span style={{ fontSize: 11.5, color: C.faint, display: 'block', marginTop: 3 }}>{hint}</span>}
+    </label>
+  );
+
+  if (!editing) {
+    const nth = row ? (row.bills_on === 1 ? '1st' : row.bills_on === 2 ? '2nd' : row.bills_on === 3 ? '3rd' : `${row.bills_on}th`) : '';
+    const saved =
+      row?.hourly_rate != null && row?.standard_rate != null && row.standard_rate > row.hourly_rate
+        ? Math.round(((row.standard_rate - row.hourly_rate) / row.standard_rate) * 100)
+        : null;
+    return (
+      <div style={{ marginBottom: 26 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+          <SectionLabel>What you agreed</SectionLabel>
+          <Button variant="ghost" onClick={start}>{row ? 'Change it' : 'Write it down'}</Button>
+        </div>
+        <Card>
+          {!row ? (
+            <p style={{ fontSize: 13.5, color: C.faint, margin: 0, lineHeight: 1.6 }}>
+              Nothing written down. What you charge them, anything flat each month, when it bills
+              and how they pay — put it here while you still remember agreeing it.
+            </p>
+          ) : (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16 }}>
+                {row.hourly_rate != null && (
+                  <div>
+                    <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 2 }}>Their rate</div>
+                    <div style={{ fontSize: 19, color: C.text }}>{money(row.hourly_rate)}<span style={{ fontSize: 13, color: C.faint }}>/hr</span></div>
+                    {saved != null && (
+                      <div style={{ fontSize: 11.5, color: C.green, marginTop: 2 }}>
+                        {saved}% off your {money(row.standard_rate ?? 0)}
+                        {row.why_discounted ? ` — ${row.why_discounted.toLowerCase()}` : ''}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {row.monthly_fee != null && (
+                  <div>
+                    <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 2 }}>Every month</div>
+                    <div style={{ fontSize: 19, color: C.text }}>{money(row.monthly_fee)}</div>
+                    <div style={{ fontSize: 11.5, color: C.faint, marginTop: 2 }}>
+                      {row.monthly_fee_for ?? 'Flat fee'}, on the {nth}
+                    </div>
+                  </div>
+                )}
+                <div>
+                  <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 2 }}>Platform use</div>
+                  <div style={{ fontSize: 19, color: row.platform_fee == null ? C.faint : C.text }}>
+                    {row.platform_fee == null ? 'Not decided' : money(row.platform_fee)}
+                  </div>
+                  {row.platform_fee == null && (
+                    <div style={{ fontSize: 11.5, color: C.faint, marginTop: 2 }}>On top of the above.</div>
+                  )}
+                </div>
+                {row.pay_by && (
+                  <div>
+                    <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 2 }}>They pay by</div>
+                    <div style={{ fontSize: 15, color: C.text, marginTop: 3 }}>{row.pay_by}</div>
+                  </div>
+                )}
+              </div>
+
+              {row.note && (
+                <p style={{ fontSize: 13, color: C.dim, margin: '14px 0 0', lineHeight: 1.6 }}>{row.note}</p>
+              )}
+
+              {/*
+                The line that stops somebody assuming this is live.
+
+                A rate on a screen looks like a rate being charged. It is not,
+                and it will not be until somebody decides it is.
+              */}
+              <div
+                style={{
+                  marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.border}`,
+                  fontSize: 12.5, color: row.billing_live ? C.green : C.amber,
+                }}
+              >
+                {row.billing_live
+                  ? `Billing on the ${nth} of each month.`
+                  : 'Written down, not being charged. Nothing is invoiced from this yet.'}
+              </div>
+            </>
+          )}
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginBottom: 26 }}>
+      <SectionLabel>What you agreed</SectionLabel>
+      <Card>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 }}>
+          {field('Their hourly rate', draft.hourly_rate?.toString() ?? '', (v) => setDraft({ ...draft, hourly_rate: num(v) }), 'What this client pays.', '60')}
+          {field('Your usual rate', draft.standard_rate?.toString() ?? '', (v) => setDraft({ ...draft, standard_rate: num(v) }), 'So the discount is visible later.', '120')}
+          {field('Why the discount', draft.why_discounted ?? '', (v) => setDraft({ ...draft, why_discounted: str(v) }), undefined, 'Friends and family')}
+          {field('Flat monthly', draft.monthly_fee?.toString() ?? '', (v) => setDraft({ ...draft, monthly_fee: num(v) }), undefined, '20')}
+          {field('What that covers', draft.monthly_fee_for ?? '', (v) => setDraft({ ...draft, monthly_fee_for: str(v) }), 'Naming it stops an argument.', 'Hosting')}
+          {field('Platform use', draft.platform_fee?.toString() ?? '', (v) => setDraft({ ...draft, platform_fee: num(v) }), 'Leave blank until decided.', 'Not decided')}
+          {field('Bills on day', draft.bills_on?.toString() ?? '1', (v) => setDraft({ ...draft, bills_on: Math.min(28, Math.max(1, Number.parseInt(v, 10) || 1)) }), 'Of each month.', '1')}
+          {field('They pay by', draft.pay_by ?? '', (v) => setDraft({ ...draft, pay_by: str(v) }), undefined, 'Venmo or PayPal')}
+        </div>
+
+        <div style={{ marginTop: 12 }}>
+          <textarea
+            value={draft.note ?? ''}
+            onChange={(e) => setDraft({ ...draft, note: str(e.target.value) })}
+            rows={2}
+            placeholder="Anything else about the arrangement"
+            style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }}
+          />
+        </div>
+
+        <label style={{ display: 'flex', gap: 9, alignItems: 'flex-start', marginTop: 12, cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={draft.billing_live}
+            onChange={(e) => setDraft({ ...draft, billing_live: e.target.checked })}
+            style={{ marginTop: 3 }}
+          />
+          <span style={{ fontSize: 13, color: C.dim, lineHeight: 1.55 }}>
+            Actually charge this
+            <span style={{ display: 'block', fontSize: 12, color: C.faint }}>
+              Off while you are still deciding. Nothing is invoiced until this is on.
+            </span>
+          </span>
+        </label>
+
+        {error && <p style={{ fontSize: 12.5, color: C.red, margin: '10px 0 0' }}>{error}</p>}
+
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 14 }}>
+          <Button onClick={keep} disabled={busy}>{busy ? 'Saving…' : 'Keep it'}</Button>
+          <button
+            onClick={() => setEditing(false)}
+            style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            Cancel
+          </button>
+        </div>
+      </Card>
+    </div>
+  );
+}
