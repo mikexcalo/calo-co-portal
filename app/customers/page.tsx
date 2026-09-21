@@ -422,6 +422,14 @@ export default function CustomersPage() {
         </div>
       )}
 
+      {/*
+        Tools appear when there is something to search.
+        
+        A search box, three stage filters and a brand dropdown sat above four
+        rows, which is more chrome than list. They earn their place at forty
+        clients and are noise at four, so they arrive when the list does.
+      */}
+      {(rows.length > 7 || q || stageFilter !== 'all' || brandFilter !== 'all') && (
       <div style={{ display: 'flex', gap: 10, marginBottom: 18, flexWrap: 'wrap', alignItems: 'center' }}>
         <input
           value={q}
@@ -467,6 +475,7 @@ export default function CustomersPage() {
           </select>
         )}
       </div>
+      )}
 
       {loading ? (
         <Empty>Loading…</Empty>
@@ -485,13 +494,15 @@ export default function CustomersPage() {
         />
       ) : (
         <>
-          <SavedViews
-            screen="clients"
-            orgId={orgId}
-            current={{ q, stageFilter, brandFilter }}
-            active={view}
-            onApply={applyView}
-          />
+          {rows.length > 7 && (
+            <SavedViews
+              screen="clients"
+              orgId={orgId}
+              current={{ q, stageFilter, brandFilter }}
+              active={view}
+              onApply={applyView}
+            />
+          )}
 
           {/*
             The same table Pipeline uses.
