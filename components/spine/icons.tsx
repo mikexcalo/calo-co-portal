@@ -130,10 +130,11 @@ const PATHS: Record<IconName, ReactNode> = {
     module, two marks, so neither became the one you recognise. This is the
     sidebar's drop, and now there is one.
   */
+  /* The sidebar's tag. One mark for Brand, on the row and on the strip. */
   swatches: (
     <>
-      <path d="M8 1.7c0 0 4.4 4.7 4.4 7.5a4.4 4.4 0 0 1-8.8 0C3.6 6.4 8 1.7 8 1.7Z" />
-      <path d="M6 9.4a2 2 0 0 0 2 2" />
+      <path d="M7.5 1.9h5.5a1.1 1.1 0 0 1 1.1 1.1v5.5a1.1 1.1 0 0 1-.32.78l-5.2 5.2a1.1 1.1 0 0 1-1.56 0L2.02 10.5a1.1 1.1 0 0 1 0-1.56l5.2-5.2" />
+      <circle cx="11" cy="5" r="1.05" />
     </>
   ),
   globe: (

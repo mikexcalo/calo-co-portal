@@ -37,20 +37,20 @@ export const NAV_ICONS: Record<string, React.ReactNode> = {
     </svg>
   ),
   /*
-    A trail to a pin, because the row says Route.
+    A map.
 
-    This was a yard sign — the board a contractor plants on a finished job —
-    which is a fine drawing of something this screen is not about. Route is the
-    order you drive the day in, and nothing about a signpost says driving,
-    order, or map. A dotted trail running up to a dropped pin says all three
-    before the word is read, which is the only reason an icon is there.
+    Two tries at this. It was a yard sign — the board planted on a finished job
+    — and then a trail running to a dropped pin, which was closer but still a
+    diagram of a journey rather than the thing you open. Route is where you
+    look to see the day laid out, so it is a folded map: three panels, the
+    shape every map has had since before any of this was on a screen, and
+    nothing to work out at seventeen pixels.
   */
   yardSign: (
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="3" cy="13" r="1.5" />
-      <path d="M4.6 13h3.1a2.4 2.4 0 0 0 0-4.8H6.2" strokeDasharray="0.1 2.4" />
-      <path d="M11.4 2.1a2.9 2.9 0 0 1 2.9 2.9c0 2.1-2.9 5-2.9 5S8.5 7.1 8.5 5a2.9 2.9 0 0 1 2.9-2.9Z" />
-      <circle cx="11.4" cy="5" r="1" />
+      <path d="M1.8 4.3 5.9 2.5v9.2L1.8 13.5z" />
+      <path d="M5.9 2.5l4.2 1.8v9.2L5.9 11.7z" />
+      <path d="M10.1 4.3l4.1-1.8v9.2l-4.1 1.8z" />
     </svg>
   ),
   // A hard hat — the people a contractor deals with.
@@ -111,18 +111,18 @@ export const NAV_ICONS: Record<string, React.ReactNode> = {
    * colour, type or a mark. This is the one object that only ever means brand.
    */
   /*
-    A drop of colour.
+    A tag.
 
-    The last one was three upright swatch cards with a brush leaning on them,
-    which at seventeen pixels is five overlapping strokes and reads as a
-    smudge. Brand here is colours, logos and a typeface, and the one object
-    that means colour at any size is a drop of it — two strokes, nothing to
-    resolve, and unmistakable in a column of outlines.
+    The drop of colour read as a teardrop, which is what a drop is, and there
+    is no drawing of a drop that stops being one. A brand is a mark you put on
+    a thing so it is known as yours — which is a tag, literally, and the word
+    is the older meaning of brand. Four strokes, one hole, nothing to resolve,
+    and nothing else in the column has its shape.
   */
   brandKit: (
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M8 1.7c0 0 4.4 4.7 4.4 7.5a4.4 4.4 0 0 1-8.8 0C3.6 6.4 8 1.7 8 1.7Z" />
-      <path d="M6 9.4a2 2 0 0 0 2 2" />
+      <path d="M7.5 1.9h5.5a1.1 1.1 0 0 1 1.1 1.1v5.5a1.1 1.1 0 0 1-.32.78l-5.2 5.2a1.1 1.1 0 0 1-1.56 0L2.02 10.5a1.1 1.1 0 0 1 0-1.56l5.2-5.2" />
+      <circle cx="11" cy="5" r="1.05" />
     </svg>
   ),
   // A signed document — a proposal awaiting a decision.

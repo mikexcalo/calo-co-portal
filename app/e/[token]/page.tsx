@@ -11,6 +11,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
+import { SaveAsPdf } from './SaveAsPdf';
 import { AddOns } from './AddOns';
 
 export const dynamic = 'force-dynamic';
@@ -108,6 +109,24 @@ export default async function PublicEstimate({ params }: { params: { token: stri
 
   return (
     <div style={{ background: '#f5f5f3', minHeight: '100vh', padding: '24px 16px 60px' }}>
+      {/*
+        The one control that is not part of the document, above the document.
+
+        Sat outside the white page on purpose: everything inside the card is
+        the proposal and prints; this is the thing you press to print it, and
+        it takes itself out of the printed copy.
+      */}
+      <div
+        data-print-hide
+        style={{
+          maxWidth: 720,
+          margin: '0 auto 12px',
+          display: 'flex',
+          justifyContent: 'flex-end',
+        }}
+      >
+        <SaveAsPdf accent={accent} />
+      </div>
       <div
         style={{
           maxWidth: 720,

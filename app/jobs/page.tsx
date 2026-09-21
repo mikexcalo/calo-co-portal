@@ -24,6 +24,7 @@ import {
   Metric,
   Page,
   Pill,
+  hours,
   money0,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
@@ -109,7 +110,20 @@ export default function JobsPage() {
   return (
     <Page
       title={vocab.jobPlural}
-      subtitle={`Every ${vocab.job.toLowerCase()} from first call to final payment.`}
+      /*
+        What this screen is, as against Home.
+
+        It said "every engagement from first call to final payment", which
+        describes the data and not the job. Mike read it beside Home and could
+        not say which he was meant to be standing on — reasonably, because both
+        opened with a row of tiles and a list of the same work.
+
+        They answer different questions. Home is today: what is wrong, what is
+        owed, what is waiting, ranked by what it costs to keep ignoring. This
+        is everything at once, in the order it moves — the board you come to in
+        order to move something along, not to find out what is on fire.
+      */
+      subtitle={`Every ${vocab.job.toLowerCase()} you have on, in the order it moves. Home is what needs you today; this is the whole board.`}
       action={
         <Button onClick={() => router.push('/jobs/new')}>New {vocab.job.toLowerCase()}</Button>
       }
@@ -159,7 +173,7 @@ export default function JobsPage() {
           <Metric
             label="Awaiting payment"
             value={money0(outstanding)}
-            tone="blue"
+            tone="red"
             hint="Invoiced but not collected"
           />
         )}
@@ -232,9 +246,21 @@ export default function JobsPage() {
                           cursor: 'pointer',
                         }}
                       >
-                        {/* Name and customer only. A pipeline card is for
-                            recognising a job at a glance and clicking it —
-                            the money lives one click deeper, on the job. */}
+                        {/*
+                          A card that says what is happening on it.
+
+                          It carried a name and a client, on the reasoning that
+                          a board card is for recognising a thing and clicking
+                          it. That holds for a lead. It does not hold for three
+                          live projects called almost the same thing for two
+                          different clients, where the only way to find out
+                          which one needed anything was to open all three.
+
+                          One line of state, and only where there is state to
+                          report: money sitting unbilled, hours logged and
+                          never invoiced, or nothing — in which case the card
+                          stays as quiet as it was.
+                        */}
                         <div style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.35 }}>
                           {job.name}
                         </div>
@@ -243,11 +269,24 @@ export default function JobsPage() {
                             {job.customer.name}
                           </div>
                         )}
-                        {pending > 0 && (
-                          <div style={{ fontSize: 12.5, color: C.amber, marginTop: 7 }}>
-                            {money0(pending)} unbilled
-                          </div>
-                        )}
+                        {(() => {
+                          const owed = l ? l.invoiced_total - l.collected : 0;
+                          const hrs = l?.hours_logged ?? 0;
+                          const bits: Array<{ text: string; tone: string }> = [];
+                          if (owed > 0) bits.push({ text: `${money0(owed)} owed`, tone: C.red });
+                          if (pending > 0) bits.push({ text: `${money0(pending)} unbilled`, tone: C.amber });
+                          if (!bits.length && hrs > 0) bits.push({ text: `${hours(hrs)} logged`, tone: C.faint });
+                          if (!bits.length) return null;
+                          return (
+                            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 7 }}>
+                              {bits.map((b) => (
+                                <span key={b.text} style={{ fontSize: 12.5, color: b.tone }}>
+                                  {b.text}
+                                </span>
+                              ))}
+                            </div>
+                          );
+                        })()}
                       </div>
                     );
                   })}

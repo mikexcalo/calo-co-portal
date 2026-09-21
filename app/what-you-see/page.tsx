@@ -27,7 +27,7 @@ import { save as saveOrFail } from '@/lib/spine/save';
 const WHAT: Partial<Record<ModuleId, string>> = {
   customers: 'Everyone you work with',
   people: 'The address book, clients or not',
-  jobs: 'Engagements, from first call to final payment',
+  jobs: 'Projects, from first call to final payment',
   targets: 'Everyone you want, before they are anybody you have',
   market: 'Reference that stays true across every client',
   billing: 'Send and chase invoices',

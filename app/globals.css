@@ -4679,3 +4679,58 @@ input:focus, textarea:focus, select:focus {
     transform: none !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Printing a proposal.
+
+   Mike asked for a PDF he and his clients can email around. Rather than
+   render a second copy of the document on the server — which is one more
+   thing to keep in step with the page, and drifts the first time somebody
+   edits one and not the other — the page prints, and every browser turns a
+   print into a PDF through its own Save as PDF destination. What lands in the
+   file is exactly what was on screen.
+
+   Three things have to be true for that to look like a document rather than a
+   screenshot of a website: the grey desk behind the page goes white, the
+   card's shadow and rounding go (paper has neither), and anything that is a
+   control rather than content takes itself out. Backgrounds are forced to
+   print, because browsers drop them by default and the accent rule at the top
+   of the proposal is the only brand on the page.
+   --------------------------------------------------------------------------- */
+@media print {
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  /* Colour is the brand here, so it has to survive the printer's default. */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* The desk the document sits on is a screen idea. */
+  body > div {
+    background: #fff !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+  }
+
+  /* Paper has no border, no rounding and casts no shadow. */
+  body > div > div {
+    max-width: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* A table split across a page break is unreadable; keep rows whole. */
+  tr,
+  li {
+    break-inside: avoid;
+  }
+}

@@ -152,15 +152,47 @@ export default function ProposalsPage() {
             <div style={{ marginBottom: 26 }}>
               <SectionLabel>Written but never sent ({drafts.length})</SectionLabel>
               <Table>
+                {/*
+                  A row that says which document it is, and opens it.
+
+                  Every row read "Platform and support" — the name of the
+                  project the proposal hangs off — with no number, no status
+                  and no hint that the thing being listed was a document at
+                  all. Two of them side by side were distinguishable only by
+                  the client's name in the next column.
+
+                  And pressing one went to the project. That is the right
+                  destination for the work and the wrong one for a proposal:
+                  you came here to look at what you are about to send, and
+                  landed on hours, costs, reminders and invoices instead, with
+                  the proposal itself a table near the bottom.
+
+                  It opens the document now, in the state the client will see
+                  it. New tab, because this is a thing you read and come back
+                  from, not a place you navigate to.
+                */}
+                <Row cols="130px 1fr 170px 110px 100px" header>
+                  <div>Proposal</div>
+                  <div>For</div>
+                  <div>Project</div>
+                  <div>Total</div>
+                  <div>Status</div>
+                </Row>
                 {drafts.map((r) => (
                   <Row
                     key={r.id}
-                    cols="1fr 160px 120px"
-                    onClick={() => r.job && router.push(`/jobs/${r.job.id}`)}
+                    cols="130px 1fr 170px 110px 100px"
+                    onClick={() =>
+                      r.public_token
+                        ? window.open(`/e/${r.public_token}`, '_blank', 'noopener')
+                        : r.job && router.push(`/jobs/${r.job.id}`)
+                    }
                   >
-                    <div>{r.job?.name ?? '—'}</div>
-                    <div style={{ color: C.dim }}>{r.job?.customer?.name ?? '—'}</div>
+                    <div style={{ fontWeight: 500 }}>Proposal #{r.version}</div>
+                    <div>{r.job?.customer?.name ?? '—'}</div>
+                    <div style={{ color: C.dim }}>{r.job?.name ?? '—'}</div>
                     <div>{money(r.total)}</div>
+                    <div><Pill tone={STATUS_TONE[r.status]}>{r.status}</Pill></div>
                   </Row>
                 ))}
               </Table>
@@ -181,7 +213,11 @@ export default function ProposalsPage() {
                   return (
                     <div
                       key={r.id}
-                      onClick={() => r.job && router.push(`/jobs/${r.job.id}`)}
+                      onClick={() =>
+                        r.public_token
+                          ? window.open(`/e/${r.public_token}`, '_blank', 'noopener')
+                          : r.job && router.push(`/jobs/${r.job.id}`)
+                      }
                       style={{
                         background: C.panel,
                         border: `1px solid ${stale ? C.amber : C.border}`,

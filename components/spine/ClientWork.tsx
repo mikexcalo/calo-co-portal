@@ -67,7 +67,7 @@ export function ClientWork({ customerId }: { customerId: string }) {
     // not be shown a zero: a zero reads as a problem somebody checked.
     if (n('owed') > 0) next.push({ label: 'Owed to you', money: n('owed'), href: `/jobs?client=${customerId}`, tone: 'amber' });
     if (n('unbilled') > 0) next.push({ label: 'Unbilled', money: n('unbilled'), href: `/jobs?client=${customerId}`, tone: 'amber' });
-    if (n('engagements')) next.push({ label: 'Engagements', count: n('engagements'), href: `/jobs?client=${customerId}` });
+    if (n('engagements')) next.push({ label: 'Projects', count: n('engagements'), href: `/jobs?client=${customerId}` });
     // Targets on behalf of a client are gone: a company you want is now a
     // record in the one lane, and John's hundred and four moved into his own
     // workspace when he got one. The view still counts them and always says

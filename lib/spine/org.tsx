@@ -37,9 +37,22 @@ const CONTRACTOR: Vocab = {
   lead: 'Lead',
 };
 
+/*
+  Projects, not engagements.
+
+  "Engagement" is consultancy-speak. It is the word a firm uses on an invoice
+  to a procurement department, and it means nothing to anybody standing in
+  front of the actual work — Mike opened his own sidebar and could not say what
+  the row was for or how it differed from Home. A word you have to translate
+  before you can use the screen is a bad word, however correct it is.
+
+  Project is what the thing is: a named piece of work for one client, with a
+  start, a cost and an end. Same record, same table; the contractor still calls
+  it a Job.
+*/
 const AGENCY: Vocab = {
-  job: 'Engagement',
-  jobPlural: 'Engagements',
+  job: 'Project',
+  jobPlural: 'Projects',
   customer: 'Client',
   customerPlural: 'Clients',
   estimate: 'Proposal',

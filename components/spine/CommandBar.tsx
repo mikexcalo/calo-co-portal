@@ -47,7 +47,7 @@ interface Item {
 
 const NAV: Item[] = [
   { id: 'n-today', label: 'Home', href: '/', group: 'Go to' },
-  { id: 'n-jobs', label: 'Engagements', href: '/jobs', group: 'Go to' },
+  { id: 'n-jobs', label: 'Projects', href: '/jobs', group: 'Go to' },
   { id: 'n-clients', label: 'Clients', href: '/customers', group: 'Go to' },
   { id: 'n-people', label: 'People', href: '/people', group: 'Go to' },
   { id: 'n-access', label: 'Access — who is on what', href: '/access', group: 'Go to' },
@@ -183,7 +183,7 @@ export function CommandBar() {
     }
 
     for (const j of jobs.data ?? []) {
-      next.push({ id: `j-${j.id}`, label: j.name, hint: j.status, href: `/jobs/${j.id}`, group: 'Engagements' });
+      next.push({ id: `j-${j.id}`, label: j.name, hint: j.status, href: `/jobs/${j.id}`, group: 'Projects' });
     }
     for (const b of brands.data ?? []) {
       next.push({ id: `b-${b.id}`, label: b.name, hint: 'Brand kit', href: `/brands/${b.id}`, group: 'Brands' });
