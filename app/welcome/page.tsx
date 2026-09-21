@@ -354,6 +354,29 @@ export default function WelcomePage() {
   const key: StepKey = plan[Math.min(step, total - 1)] ?? 'name';
   const last = step >= total - 1;
 
+
+  /**
+   * Skipping money is allowed.
+   *
+   * Somebody who has just renamed their business does not know their hourly
+   * rate yet, and making them invent one to get past a screen is how a
+   * plausible wrong number ends up on an invoice. Both of these are asked
+   * again, in Settings, at the moment they actually matter.
+   */
+  const skipBtn = (
+    <button
+      onClick={() => (last ? finish() : setStep((v) => v + 1))}
+      disabled={busy}
+      style={{
+        padding: '11px 16px', borderRadius: 999, border: 'none',
+        background: 'transparent', color: FAINT, fontSize: 14,
+        cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+      }}
+    >
+      I'll do this later
+    </button>
+  );
+
   const nextBtn = (disabled?: boolean) => (
     <button
       onClick={() => (last ? finish() : setStep((s) => s + 1))}
@@ -623,6 +646,7 @@ export default function WelcomePage() {
               </label>
               <div style={{ display: 'flex', gap: 8, marginTop: 22 }}>
                 <BackBtn onClick={() => setStep((s) => s - 1)} />
+                {skipBtn}
                 {nextBtn()}
               </div>
             </>
@@ -726,6 +750,7 @@ export default function WelcomePage() {
 
               <div style={{ display: 'flex', gap: 8, marginTop: 22 }}>
                 <BackBtn onClick={() => setStep((s) => s - 1)} />
+                {skipBtn}
                 {nextBtn(!billingStyle)}
               </div>
             </>

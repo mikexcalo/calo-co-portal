@@ -27,11 +27,25 @@ const ROLES = [
 
 interface Suggestion { id: string; name: string; email: string | null; company: string | null }
 
-export function InvitePerson({ orgId, orgName, onDone }: { orgId: string; orgName?: string; onDone?: () => void }) {
+interface Props {
+  /** The business being joined. Ignored when `choices` is given. */
+  orgId: string;
+  orgName?: string;
+  /** Offer a picker, for inviting somebody from a screen that is not their business. */
+  choices?: { id: string; name: string }[];
+  prefillEmail?: string;
+  prefillName?: string;
+  /** What the button says where it sits. */
+  trigger?: string;
+  onDone?: () => void;
+}
+
+export function InvitePerson({ orgId, orgName, choices, prefillEmail, prefillName, trigger, onDone }: Props) {
+  const [target, setTarget] = useState(orgId);
   const [open, setOpen] = useState(false);
-  const [q, setQ] = useState('');
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
+  const [q, setQ] = useState(prefillName || prefillEmail || '');
+  const [email, setEmail] = useState(prefillEmail ?? '');
+  const [name, setName] = useState(prefillName ?? '');
   const [role, setRole] = useState<'member' | 'admin'>('member');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -40,7 +54,7 @@ export function InvitePerson({ orgId, orgName, onDone }: { orgId: string; orgNam
   const [emailed, setEmailed] = useState(true);
   const [copied, setCopied] = useState(false);
   const [hits, setHits] = useState<Suggestion[]>([]);
-  const [picked, setPicked] = useState(false);
+  const [picked, setPicked] = useState(Boolean(prefillEmail));
   const box = useRef<HTMLDivElement>(null);
 
   /* Escape closes it, and the backdrop is clickable. Standard, and absent. */
@@ -98,7 +112,7 @@ export function InvitePerson({ orgId, orgName, onDone }: { orgId: string; orgNam
       const res = await fetch('/api/team/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ email: to, orgId, role, fullName: name.trim() || undefined }),
+        body: JSON.stringify({ email: to, orgId: target, role, fullName: name.trim() || undefined }),
       });
       const body = (await res.json().catch(() => ({}))) as {
         error?: string; link?: string; emailed?: boolean;
@@ -126,7 +140,7 @@ export function InvitePerson({ orgId, orgName, onDone }: { orgId: string; orgNam
   return (
     <>
       <Button variant="ghost" onClick={() => { setOpen(true); setSent(''); setError(''); }}>
-        Invite someone
+        {trigger ?? 'Invite someone'}
       </Button>
       {open && (
     <div
@@ -150,12 +164,29 @@ export function InvitePerson({ orgId, orgName, onDone }: { orgId: string; orgNam
         }}
       >
         <div style={{ fontSize: 17, fontWeight: 600, color: C.text }}>
-          Invite someone to {orgName && !/^untitled/i.test(orgName) ? orgName : 'this business'}
+          {choices && choices.length > 1
+            ? 'Give them a login'
+            : `Invite someone to ${orgName && !/^untitled/i.test(orgName) ? orgName : 'this business'}`}
         </div>
         <p style={{ fontSize: 13, color: C.faint, margin: '4px 0 16px' }}>
           They get an email with a link to set their own password. If they already have a
           login, this adds this business to it.
         </p>
+
+        {choices && choices.length > 1 && (
+          <label style={{ display: 'block', marginBottom: 10 }}>
+            <div style={{ fontSize: 12, color: C.faint, marginBottom: 4 }}>Which business</div>
+            <select
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
+              style={{ ...inputStyle, fontSize: 13.5 }}
+            >
+              {choices.map((o) => (
+                <option key={o.id} value={o.id}>{o.name}</option>
+              ))}
+            </select>
+          </label>
+        )}
 
         <div style={{ position: 'relative' }}>
           <input

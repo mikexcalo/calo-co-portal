@@ -18,11 +18,12 @@
  * a different screen because it answers a different question.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { DropShelf } from '@/components/spine/DropShelf';
+import { InvitePerson } from '@/components/spine/InvitePerson';
 import {
   Button,
   C,
@@ -108,7 +109,48 @@ const blank = {
 
 export default function PeoplePage() {
   const router = useRouter();
-  const { org } = useOrg();
+  const { org, orgs } = useOrg();
+  const shotRef = useRef<HTMLInputElement>(null);
+  const [reading, setReading] = useState(false);
+  const [readMsg, setReadMsg] = useState('');
+
+  const readContact = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) { setReadMsg('That is not an image.'); return; }
+    setReading(true); setReadMsg('');
+    try {
+      const b64 = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onerror = () => reject(new Error('unreadable'));
+        r.onload = () => resolve(String(r.result ?? '').split(',')[1] ?? '');
+        r.readAsDataURL(file);
+      });
+      const res = await fetch('/api/people/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: b64, mediaType: file.type }),
+      });
+      const body = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        found?: number;
+        read?: { name: string | null; title: string | null; company: string | null; email: string | null; phone: string | null; website: string | null };
+      };
+      if (!res.ok || !body.read) { setReadMsg(body.error ?? 'Nothing readable in that image.'); setReading(false); return; }
+      const r = body.read;
+      setDraft((d) => ({
+        ...d,
+        name: r.name ?? d.name,
+        title: r.title ?? d.title,
+        company: r.company ?? d.company,
+        email: r.email ?? d.email,
+        phone: r.phone ?? d.phone,
+        website: r.website ?? d.website,
+      }));
+      setReadMsg(`Read ${body.found} field${body.found === 1 ? '' : 's'}. Check them before saving.`);
+    } catch {
+      setReadMsg('That image could not be read.');
+    }
+    setReading(false);
+  }, []);
   const [rows, setRows] = useState<Person[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [q, setQ] = useState('');
@@ -310,6 +352,39 @@ export default function PeoplePage() {
     >
       {adding && (
         <Card style={{ marginBottom: 14 }}>
+          {/*
+            Read it off the picture instead of retyping it.
+            
+            A signature block, a business card, a screenshot of a profile —
+            every field below is already in that image, and typing it again is
+            the work the product should be doing. It fills the form and stops,
+            because a misread phone number that saves itself is worse than no
+            phone number.
+          */}
+          <div
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) readContact(f); }}
+            onPaste={(e) => { const f = Array.from(e.clipboardData.files ?? [])[0]; if (f) { e.preventDefault(); readContact(f); } }}
+            onClick={() => shotRef.current?.click()}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter') shotRef.current?.click(); }}
+            style={{
+              border: `1px dashed ${C.border}`, borderRadius: 9, padding: '12px 14px',
+              marginBottom: 10, cursor: 'pointer', fontSize: 12.5, color: C.faint, textAlign: 'center',
+            }}
+          >
+            {reading
+              ? 'Reading…'
+              : readMsg || 'Drop a screenshot or photo of their details — a card, a signature, a profile.'}
+          </div>
+          <input
+            ref={shotRef}
+            type="file"
+            accept="image/png,image/jpeg,image/gif,image/webp"
+            style={{ display: 'none' }}
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) readContact(f); e.target.value = ''; }}
+          />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8, marginBottom: 8 }}>
             <input autoFocus value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Name" style={inputStyle} />
             <input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder="Title" style={inputStyle} />
@@ -506,6 +581,23 @@ export default function PeoplePage() {
                 {p.last_spoke_on ? `Last spoke ${p.last_spoke_on}` : 'No call logged'}
                 {p.met_on ? ` · met ${p.met_on}` : ''}
               </span>
+              {/*
+                A login, for this person, from where you are looking at them.
+                
+                Inviting is a permission and lives in Settings, but the moment
+                you actually want one is while reading somebody's record — and
+                sending them there to retype an email you are looking at is
+                the lookup the product should be doing.
+              */}
+              {p.email && orgs.length > 0 && (
+                <InvitePerson
+                  orgId={org?.id ?? orgs[0].id}
+                  choices={orgs.map((o) => ({ id: o.id, name: o.name }))}
+                  prefillEmail={p.email}
+                  prefillName={p.name}
+                  trigger="Give them a login"
+                />
+              )}
               <button
                 onClick={() => spokeToday(p.id)}
                 style={{ background: 'transparent', border: 'none', padding: 0, color: C.accent, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
