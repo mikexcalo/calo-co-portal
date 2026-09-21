@@ -34,7 +34,6 @@ import {
   inputStyle,
   radius,
   shortDate,
-  SETUP_TABS,
 } from '@/components/spine/ui';
 import { DropZone } from '@/components/spine/DropZone';
 import { human } from '@/lib/spine/errors';
@@ -262,7 +261,6 @@ export default function FilesPage() {
 
   return (
     <Page
-      tabs={SETUP_TABS}
       title="Records"
       subtitle="Insurance, licenses, contracts, manuals."
       action={<Button onClick={() => fileRef.current?.click()}>Add a file</Button>}

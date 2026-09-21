@@ -42,9 +42,62 @@ for (const [id, parent] of Object.entries(MODULE_TAB_PARENT)) {
   if (t && t.label !== MODULE_LABEL[id as never]) { console.log(`  label mismatch   ${id}: sidebar "${MODULE_LABEL[id as never]}" vs tab "${t.label}"`); bad++; }
 }
 
-// ---- reachability: every screen must be a row, a tab, or reached from one ----
 import { readdirSync, statSync } from 'fs';
 import { join } from 'path';
+
+/*
+  A page that wears somebody else's tabs.
+
+  Records is its own sidebar row and rendered the Settings strip — Settings,
+  What you see, Security — so the strip on screen had no tab for the page you
+  were standing on, and three of the four links left the section. Price list
+  did the same thing from the other direction: it belongs to Money and wore
+  Settings' tabs.
+
+  The rule is simply that if a page shows a strip, it has to be in it.
+*/
+const stripOf: Record<string, string> = {};
+(function walkTabs(dir: string) {
+  for (const e of readdirSync(dir)) {
+    const fp = join(dir, e);
+    if (statSync(fp).isDirectory()) { walkTabs(fp); continue; }
+    if (e !== 'page.tsx') continue;
+    const m = readFileSync(fp, 'utf8').match(/tabs=\{(\w+_TABS)\}/);
+    if (!m) continue;
+    const r = '/' + dir.replace(/^app\/?/, '');
+    stripOf[r === '/' ? '/' : r.replace(/\/$/, '')] = m[1];
+  }
+})('app');
+
+for (const [route, strip] of Object.entries(stripOf)) {
+  const tabs = strips[strip];
+  if (!tabs) continue;
+  if (!tabs.some((t) => t.href === route)) {
+    console.log(`  wears ${strip} but is not in it: ${route}`);
+    bad++;
+  }
+}
+
+/*
+  The row you clicked and the page you landed on have to say the same word.
+
+  The sidebar said Drops and the page said Unfiled, which reads as having
+  clicked the wrong thing.
+*/
+for (const r of rows) {
+  const dir = r.href === '/' ? 'app' : 'app' + r.href;
+  let title: string | null = null;
+  try {
+    const m = readFileSync(join(dir, 'page.tsx'), 'utf8').match(/\btitle=(?:"([^"]+)"|\{`([^`]+)`\}|\{([\w.]+)\})/);
+    title = m ? (m[1] ?? m[2] ?? m[3]) : null;
+  } catch { /* generated or dynamic */ }
+  if (!title) continue;
+  if (/[${]/.test(title) || /^vocab\./.test(title)) continue;   // computed from vocabulary
+  title = title.replace(/&amp;/g, '&').replace(/&apos;/g, "'");
+  if (title !== r.label) { console.log(`  row says "${r.label}", page says "${title}"   ${r.href}`); bad++; }
+}
+
+// ---- reachability: every screen must be a row, a tab, or reached from one ----
 const pages: string[] = [];
 (function walk(dir: string) {
   for (const e of readdirSync(dir)) {

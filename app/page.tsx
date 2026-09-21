@@ -294,7 +294,7 @@ export default function Dashboard() {
     attention.push({
       key: 'noemail',
       weight: 5e8,
-      title: `${signals.customersNoEmail} ${vocab.customerPlural.toLowerCase()} with no email`,
+      title: `${signals.customersNoEmail} ${signals.customersNoEmail === 1 ? vocab.customer.toLowerCase() : vocab.customerPlural.toLowerCase()} with no email`,
       detail: "You can't send an invoice or an estimate to someone with no email address.",
       cta: `Open ${vocab.customerPlural.toLowerCase()}`,
       href: '/customers',

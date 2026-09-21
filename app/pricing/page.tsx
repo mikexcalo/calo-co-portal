@@ -32,7 +32,7 @@ import {
   inputStyle,
   money,
   useIsPhone,
-  SETUP_TABS,
+  MONEY_TABS,
 } from '@/components/spine/ui';
 import { DropZone } from '@/components/spine/DropZone';
 import { human } from '@/lib/spine/errors';
@@ -199,7 +199,7 @@ export default function PricingPage() {
 
   return (
     <Page
-      tabs={SETUP_TABS}
+      tabs={MONEY_TABS}
       title="Price list"
       subtitle={`What you charge.`}
       action={
@@ -253,7 +253,8 @@ export default function PricingPage() {
       {!loading && items.some((i) => !i.confirmed) && (
         <Card style={{ marginBottom: 20, borderColor: C.amber, background: C.amberSoft }}>
           <div style={{ fontSize: 14.5, fontWeight: 500, color: C.text, marginBottom: 6 }}>
-            {items.filter((i) => !i.confirmed).length} prices need confirming
+            {items.filter((i) => !i.confirmed).length} price
+            {items.filter((i) => !i.confirmed).length === 1 ? ' needs' : 's need'} confirming
           </div>
           <div style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.6 }}>
             These were read from a document or worked out from one job&apos;s totals. A rate

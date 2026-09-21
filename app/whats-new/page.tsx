@@ -23,7 +23,7 @@ export default function WhatsNewPage() {
   return (
     <Page
       title="Everything in here"
-      subtitle={`${total} things, where to find them, and which ones are worth charging for.`}
+      subtitle={`${total} ${total === 1 ? 'thing' : 'things'}, where to find them, and which ones are worth charging for.`}
     >
       {SHIPPED.map((g) => (
         <div key={g.group} style={{ marginBottom: 28 }}>

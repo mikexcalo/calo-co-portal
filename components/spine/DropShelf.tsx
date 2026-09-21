@@ -250,55 +250,111 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
       )}
 
       {items.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10, marginTop: 12 }}>
+        /*
+          Rows, not thumbnails.
+
+          These were 140px tiles, which suits a wall of logos and suits nothing
+          else. A PDF called "8908 turks cap - Fireplace - estimate (1).pdf" is
+          mostly filename, and in a 140px column the name was truncated, then
+          printed a second time, and the one button that matters was squeezed
+          under both. The name is the whole of what you recognise it by, so it
+          gets the width, and Read it gets to look like the thing to press.
+        */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
           {items.map((d) => {
             const palette = Array.isArray(d.meta?.palette) ? (d.meta.palette as string[]) : [];
+            const label =
+              d.kind === 'note' ? (d.body ?? 'Note')
+              : d.kind === 'link' ? (d.body ?? 'Link')
+              : (d.title ?? 'Untitled');
             return (
-              <div key={d.id} style={{ border: `1px solid ${C.border}`, borderRadius: 9, overflow: 'hidden' }}>
+              <div
+                key={d.id}
+                style={{
+                  border: `1px solid ${C.border}`, borderRadius: 9, padding: 10,
+                  display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap',
+                }}
+              >
                 {d.kind === 'image' && urls[d.id] ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={urls[d.id]} alt={d.title ?? ''} style={{ width: '100%', height: 74, objectFit: 'contain', background: C.panelAlt }} />
+                  <img
+                    src={urls[d.id]}
+                    alt={d.title ?? ''}
+                    style={{ width: 54, height: 54, objectFit: 'contain', background: C.panelAlt, borderRadius: 6, flexShrink: 0 }}
+                  />
                 ) : (
-                  /*
-                    Ninety characters centred in a 74px box overflowed it, ran
-                    under the line beneath, and then printed the same text
-                    again as the title. Clamped to three lines, top-aligned,
-                    and read as writing rather than as a caption.
-                  */
                   <div
                     style={{
-                      height: 74, background: C.panelAlt, padding: '8px 9px',
-                      overflow: 'hidden',
+                      width: 54, height: 54, borderRadius: 6, background: C.panelAlt,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 10.5, color: C.faint, flexShrink: 0, textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
                     }}
                   >
-                    <span
-                      style={{
-                        fontSize: 11.5, color: C.dim, lineHeight: 1.45,
-                        display: '-webkit-box', WebkitLineClamp: 3,
-                        WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                        wordBreak: 'break-word',
-                      }}
-                    >
-                      {d.kind === 'link'
-                        ? (d.body ?? 'Link')
-                        : d.kind === 'note'
-                          ? (d.body ?? '')
-                          : (d.title ?? 'File')}
-                    </span>
+                    {d.kind === 'note' ? 'Note' : d.kind === 'link' ? 'Link' : (d.title ?? '').split('.').pop()?.slice(0, 4) || 'File'}
                   </div>
                 )}
 
-                {palette.length > 0 && (
-                  <div style={{ display: 'flex', height: 8 }} title={palette.join('  ')}>
-                    {palette.slice(0, 6).map((hex) => (
-                      <span key={hex} style={{ flex: 1, background: hex }} />
-                    ))}
+                <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+                  <div style={{ fontSize: 13.5, color: C.text, lineHeight: 1.45, wordBreak: 'break-word' }}>
+                    {label}
                   </div>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 3, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 11.5, color: C.faint }}>
+                      {new Date(d.created_at).toLocaleDateString()}
+                    </span>
+                    {d.storage_path && (
+                      <button
+                        onClick={async () => { const u = await dropUrl(d); if (u) window.open(u, '_blank', 'noopener'); }}
+                        style={{ background: 'transparent', border: 'none', padding: 0, color: C.blue, fontSize: 11.5, cursor: 'pointer', fontFamily: 'inherit' }}
+                      >Open</button>
+                    )}
+                    {d.kind === 'link' && d.body && (
+                      <a href={d.body} target="_blank" rel="noopener noreferrer"
+                        style={{ color: C.blue, fontSize: 11.5, textDecoration: 'none' }}>Open</a>
+                    )}
+                    <button
+                      onClick={async () => { await removeDrop(d); await load(); onChange?.(); }}
+                      style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 11.5, cursor: 'pointer', fontFamily: 'inherit' }}
+                    >Remove</button>
+                    {palette.length > 0 && (
+                      <span style={{ display: 'inline-flex', height: 8, width: 54, borderRadius: 2, overflow: 'hidden' }} title={palette.join('  ')}>
+                        {palette.slice(0, 6).map((hex) => (
+                          <span key={hex} style={{ flex: 1, background: hex }} />
+                        ))}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {filingOptions && filingOptions.length > 0 && !d.filed_at && (
+                  <select
+                    defaultValue=""
+                    onChange={async (e) => {
+                      const opt = filingOptions.find((o) => o.id === e.target.value);
+                      if (!opt) return;
+                      await fileDrop(d.id, opt.kind === 'person'
+                        ? { person_id: opt.id }
+                        : { customer_id: opt.id });
+                      await load();
+                      onChange?.();
+                    }}
+                    style={{
+                      fontSize: 12, padding: '6px 8px', flexShrink: 0,
+                      border: `1px solid ${C.border}`, borderRadius: 7,
+                      color: C.dim, background: C.panel, fontFamily: 'inherit',
+                    }}
+                  >
+                    <option value="">Who is this about?</option>
+                    {filingOptions.map((o) => (
+                      <option key={`${o.kind}-${o.id}`} value={o.id}>{o.name}</option>
+                    ))}
+                  </select>
                 )}
 
                 {/*
                   The one thing to do with it, as a button.
-                  
+
                   "Read it" was eleven pixels of blue text between Open and
                   Remove, and two clients in a row dropped files and then asked
                   what happens next. Nothing happens next: reading is the whole
@@ -308,66 +364,15 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                   <button
                     onClick={() => readIt(d)}
                     style={{
-                      display: 'block', width: '100%', border: 'none',
+                      border: 'none', borderRadius: 7, flexShrink: 0,
                       background: C.ink, color: '#fff', cursor: 'pointer',
-                      padding: '8px 10px', fontSize: 12.5, fontWeight: 500,
+                      padding: '9px 16px', fontSize: 13, fontWeight: 500,
                       fontFamily: 'inherit',
                     }}
                   >
                     Read it &rarr;
                   </button>
                 )}
-
-                <div style={{ padding: '6px 8px 8px' }}>
-                  {/* A note is its own label. Repeating it here was the same
-                      words twice in forty pixels. */}
-                  <div style={{ fontSize: 11, color: C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {d.kind === 'note'
-                      ? `Note · ${new Date(d.created_at).toLocaleDateString()}`
-                      : d.title ?? 'Untitled'}
-                  </div>
-                  <div style={{ display: 'flex', gap: 8, marginTop: 3 }}>
-                    {d.storage_path && (
-                      <button
-                        onClick={async () => { const u = await dropUrl(d); if (u) window.open(u, '_blank', 'noopener'); }}
-                        style={{ background: 'transparent', border: 'none', padding: 0, color: C.blue, fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}
-                      >Open</button>
-                    )}
-                    {d.kind === 'link' && d.body && (
-                      <a href={d.body} target="_blank" rel="noopener noreferrer"
-                        style={{ color: C.blue, fontSize: 11, textDecoration: 'none' }}>Open</a>
-                    )}
-
-                    <button
-                      onClick={async () => { await removeDrop(d); await load(); onChange?.(); }}
-                      style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}
-                    >Remove</button>
-                  </div>
-                  {filingOptions && filingOptions.length > 0 && !d.filed_at && (
-                    <select
-                      defaultValue=""
-                      onChange={async (e) => {
-                        const opt = filingOptions.find((o) => o.id === e.target.value);
-                        if (!opt) return;
-                        await fileDrop(d.id, opt.kind === 'person'
-                          ? { person_id: opt.id }
-                          : { customer_id: opt.id });
-                        await load();
-                        onChange?.();
-                      }}
-                      style={{
-                        marginTop: 6, width: '100%', fontSize: 11, padding: '4px 6px',
-                        border: `1px solid ${C.border}`, borderRadius: 6,
-                        color: C.dim, background: C.panel, fontFamily: 'inherit',
-                      }}
-                    >
-                      <option value="">Who is this about?</option>
-                      {filingOptions.map((o) => (
-                        <option key={`${o.kind}-${o.id}`} value={o.id}>{o.name}</option>
-                      ))}
-                    </select>
-                  )}
-                </div>
               </div>
             );
           })}

@@ -54,7 +54,7 @@ export default function InboxPage() {
 
   return (
     <Page
-      title="Unfiled"
+      title="Drops"
       subtitle="Anything you have not filed yet."
     >
       {!org?.id ? (

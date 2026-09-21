@@ -159,7 +159,7 @@ export default function RequestsPage() {
 
   return (
     <Page
-      title="Site requests"
+      title="Client requests"
       subtitle="Changes your clients have asked for."
     >
       {error && (

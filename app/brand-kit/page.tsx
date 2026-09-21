@@ -211,7 +211,7 @@ export default function BrandKitPage() {
   return (
     <Page
       tabs={BRAND_TABS}
-            title="Brand Kit"
+            title="Brand"
       subtitle="Your logos, colors, type and voice."
       action={
         <>
