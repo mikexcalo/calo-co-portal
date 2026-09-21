@@ -389,11 +389,23 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         />
       </div>
 
+      {/*
+        The schedule is its own block.
+        
+        It was rendered inside the Hours header — a space-between row built to
+        hold a label and a button — so a whole component with its own steps and
+        dates was squeezed in beside the word "Hours" and pushed the button off
+        its own line.
+      */}
+      {orgId && (
+        <div style={{ marginBottom: 26 }}>
+          <Schedule orgId={orgId} jobId={jobId} />
+        </div>
+      )}
+
       {/* Labor */}
       <div style={{ marginBottom: 26 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {orgId && <Schedule orgId={orgId} jobId={jobId} />}
-
           <SectionLabel>Hours</SectionLabel>
           <Button variant="ghost" onClick={() => setShowTime((v) => !v)}>
             {showTime ? 'Cancel' : 'Log hours'}
@@ -672,7 +684,7 @@ function TimeForm({
           <input type="number" step="1" min="0" value={rate} onChange={(e) => setRate(e.target.value)} style={inputStyle} placeholder="85" />
         </Field>
         <Field label="Who">
-          <input value={worker} onChange={(e) => setWorker(e.target.value)} style={inputStyle} placeholder="Mark" />
+          <input value={worker} onChange={(e) => setWorker(e.target.value)} style={inputStyle} placeholder="A name" />
         </Field>
       </div>
       <Field label="What was done">

@@ -296,7 +296,7 @@ export default function IntelPage({ params }: { params: { id: string } }) {
             <input
               value={source}
               onChange={(e) => setSource(e.target.value)}
-              placeholder="Frank, kickoff call"
+              placeholder="Kickoff call"
               style={inputStyle}
             />
           </Field>

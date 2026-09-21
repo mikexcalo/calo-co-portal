@@ -86,7 +86,7 @@ export default function NewJobPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             style={inputStyle}
-            placeholder="Gorshteyn bathroom remodel"
+            placeholder="Kitchen remodel"
             autoFocus
           />
         </Field>
@@ -110,7 +110,7 @@ export default function NewJobPage() {
               value={newCustomer}
               onChange={(e) => setNewCustomer(e.target.value)}
               style={inputStyle}
-              placeholder="Grigoriy Gorshteyn"
+              placeholder="Their name"
             />
           </Field>
         )}

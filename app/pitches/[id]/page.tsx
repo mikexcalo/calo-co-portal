@@ -236,7 +236,7 @@ export default function PitchEditorPage({ params }: { params: { id: string } }) 
           <input
             value={pitch.recipient ?? ''}
             onChange={(e) => setPitch({ ...pitch, recipient: e.target.value })}
-            placeholder="Mark at Mammoth Construction"
+            placeholder="Who it is for"
             style={inputStyle}
           />
         </Field>
