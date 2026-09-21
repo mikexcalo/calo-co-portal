@@ -39,6 +39,14 @@ const SOURCE_ROUTING: Array<{ match: RegExp; slug: string; label: string; notify
     notify: 'info@mammothconstructiontx.com',
   },
   {
+    // John's own enquiries, into John's own book. Matched before the agency
+    // rule, which is deliberately broad enough to catch anything unknown.
+    match: /seafood|globalseafood/i,
+    slug: 'global-seafood',
+    label: 'Global Seafood Partners',
+    notify: 'john.littonny@gmail.com',
+  },
+  {
     match: /calo|company|portfolio|mikecalo/i,
     slug: 'calo-co',
     label: 'CALO&CO',

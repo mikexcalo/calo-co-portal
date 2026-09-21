@@ -212,7 +212,14 @@ export default function BillingPage() {
       setNotice(
         `${inv.number} sent. The customer can pay online, and it will mark itself paid.`
       );
-      if (payload.hostedUrl) window.open(payload.hostedUrl, '_blank', 'noopener');
+      /*
+        Sending should not throw a tab either.
+
+        Preview stopped doing it and this one was left, so pressing Send it
+        still put the hosted page in a new tab straight after the notice said
+        it had gone. It opens in the same panel Preview uses.
+      */
+      if (payload.hostedUrl) setPreviewing(payload.hostedUrl);
       await load();
     } catch (e) {
       setError(human((e as Error).message));

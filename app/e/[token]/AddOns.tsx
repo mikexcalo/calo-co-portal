@@ -63,7 +63,7 @@ export function AddOns({
             Optional
           </div>
           <p style={{ fontSize: 14, color: '#666', margin: '0 0 14px', lineHeight: 1.6 }}>
-            Add any of these if you want them. Leave them and the price above stands.
+            Want any of these? Tick them. Leave them and the price above is what you pay.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

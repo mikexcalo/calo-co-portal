@@ -272,7 +272,8 @@ export const NAV_ICONS: Record<string, React.ReactNode> = {
 export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { org, vocab } = useOrg();
+  const { org, orgs, vocab } = useOrg();
+  const orgCount = orgs?.length ?? 0;
 
   /**
    * Library covers three screens behind one entry, so it stays lit on any of
@@ -466,8 +467,28 @@ export default function Sidebar() {
         </span>
       </div>
 
-      <div style={{ padding: '12px 12px 6px' }}>
-        <OrgSwitcher />
+      {/*
+        The name, whole, and not a control.
+
+        The switcher sat here as a pill with a chevron, and a business called
+        Global Seafood Partners rendered as "Global Seafood Par..." — the name
+        of the business somebody is standing in, cut off, at the top of their
+        own screen. There is no width that fixes that; the next client is
+        longer.
+
+        So the top of the sidebar says whose workspace this is and stops being
+        a control. Switching is Mike's job and nobody else's — it lives at the
+        bottom, out of the way, where it cannot truncate anybody's name.
+      */}
+      <div style={{ padding: '10px 14px 8px' }}>
+        <div
+          style={{
+            fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
+            fontSize: 15, fontWeight: 600, color: C.text, lineHeight: 1.25,
+          }}
+        >
+          {org?.name ?? '\u00a0'}
+        </div>
       </div>
 
       <div style={{ flex: 1, padding: '8px 8px 8px', overflowY: 'auto' }}>
@@ -559,6 +580,19 @@ export default function Sidebar() {
       {org?.kind !== 'agency' && modulesFor(org).has('feedback') && (
         <div style={{ padding: '0 8px 4px' }}>
           {navBtn('Tell us', '/feedback', 'megaphone')}
+        </div>
+      )}
+
+      {/*
+        Switching, for the only person who does it.
+
+        At the bottom because it is not part of doing the work — it is how Mike
+        gets from one business to the next, and it renders at all only when
+        there is somewhere to go.
+      */}
+      {orgCount > 1 && (
+        <div style={{ padding: '8px 10px 10px', borderTop: `1px solid ${C.border}` }}>
+          <OrgSwitcher />
         </div>
       )}
 

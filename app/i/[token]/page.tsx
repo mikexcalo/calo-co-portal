@@ -15,6 +15,19 @@ import { notFound } from 'next/navigation';
 import { METHODS, payLink, type PaymentMethod } from '@/lib/spine/payments';
 
 export const dynamic = 'force-dynamic';
+/*
+  And the data behind it, which force-dynamic does not cover.
+
+  force-dynamic stops the ROUTE being prerendered. It does not stop Next
+  caching the fetches inside it, and supabase-js goes through fetch — so this
+  page rendered on every request and rendered the same stale rows every time.
+
+  A proposal showed a price that had been changed hours earlier, three separate
+  times, while the database held the new one. On a document somebody is asked
+  to accept, that is about as bad as a caching default gets. The two other
+  public routes in here already carried this line.
+*/
+export const fetchCache = 'force-no-store';
 
 const money = (n: number) =>
   `$${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -198,7 +211,7 @@ export default async function PublicInvoice({ params }: { params: { token: strin
               How to pay
             </div>
             <p style={{ fontSize: 13.5, color: '#666', margin: '0 0 16px' }}>
-              Any of these works. Please include invoice {invoice.number} so it can be matched up.
+              Whichever's easiest. Just put {invoice.number} on it so we can match it up.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -254,7 +267,7 @@ export default async function PublicInvoice({ params }: { params: { token: strin
       </div>
 
       <div style={{ maxWidth: 720, margin: '18px auto 0', textAlign: 'center', fontSize: 12.5, color: '#888' }}>
-        Questions? Reply to the email this came from.
+        Questions? Just reply to the email this came from.
       </div>
     </div>
   );

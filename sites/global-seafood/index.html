@@ -121,6 +121,39 @@
      elements start visible, so the page is complete for them and for anyone
      whose JavaScript never runs.
      --------------------------------------------------------------------- */
+
+  /* ---------------------------------------------------------------------
+     The enquiry form.
+
+     A mailto is a dead end: it opens whatever mail client the machine
+     happens to have, half of them open nothing at all, and whatever does
+     get sent arrives as prose in an inbox rather than as a record. This
+     posts into Nautilus, so an enquiry lands in John's customers with the
+     name, the company and the note already on it.
+     --------------------------------------------------------------------- */
+  .sheet{position:fixed;inset:0;z-index:50;display:none;
+    align-items:center;justify-content:center;padding:1.25rem;
+    background:rgba(4,20,38,.72)}
+  .sheet[open]{display:flex}
+  .sheet-card{background:var(--fathom);border:1px solid var(--line-strong);
+    border-radius:16px;width:min(34rem,100%);max-height:92vh;overflow:auto;
+    padding:clamp(1.4rem,4vw,2rem)}
+  .sheet h2{font-size:1.3rem;margin-bottom:.4rem}
+  .sheet .sub{font-size:.95rem;color:var(--muted);margin:0 0 1.4rem}
+  .field{display:block;margin-bottom:.9rem}
+  .field span{display:block;font-size:.8rem;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:.35rem}
+  .field input,.field textarea{width:100%;font:inherit;font-size:.97rem;
+    color:var(--ink);background:rgba(255,255,255,.06);
+    border:1px solid var(--line-strong);border-radius:9px;padding:.65rem .8rem}
+  .field textarea{min-height:6.5rem;resize:vertical}
+  .field input:focus,.field textarea:focus{outline:2px solid var(--shallows);
+    outline-offset:1px;border-color:transparent}
+  .hp{position:absolute;left:-9999px}
+  .sheet-actions{display:flex;gap:.7rem;align-items:center;margin-top:1.1rem}
+  .note{font-size:.88rem;color:var(--muted)}
+  .ok{color:var(--shallows)}
+
   @media (prefers-reduced-motion: no-preference){
     .rise{opacity:0;transform:translateY(18px);
       transition:opacity .85s cubic-bezier(.22,.61,.36,1),
@@ -134,24 +167,23 @@
 <header>
   <div class="wrap bar">
     <span class="mark">Global Seafood Partners</span>
-    <a class="btn btn-ghost" href="#contact">Get in touch</a>
+    <button class="btn btn-ghost" type="button" data-open-form>Get in touch</button>
   </div>
 </header>
 
 <main>
   <div class="wrap hero">
     <p class="eyebrow rise">Wholesale seafood distribution</p>
-    <h1 class="rise">Fish that arrives the way it left the water.</h1>
+    <h1 class="rise">The best global seafood right to your doorstep.</h1>
     <p class="lede rise">
       We supply restaurants, retailers and institutional kitchens &mdash; sourcing,
       cold chain and delivery handled end to end.
     </p>
     <div class="btns rise">
-      <a class="btn btn-primary" href="#contact">
+      <button class="btn btn-primary" type="button" data-open-form>
         Get in touch
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10"/><path d="M9 4l4 4-4 4"/></svg>
-      </a>
-      <a class="btn btn-ghost" href="#what">What we do</a>
+      </button>
     </div>
   </div>
 
@@ -210,14 +242,35 @@
       land and when.
     </p>
     <div class="btns rise">
-      <a class="btn btn-primary" href="mailto:john.littonny@gmail.com?subject=Supplying%20our%20kitchen">
+      <button class="btn btn-primary" type="button" data-open-form>
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.8 4.2h12.4v7.6H1.8z"/><path d="m1.8 4.6 6.2 4.2 6.2-4.2"/></svg>
-        Email us
-      </a>
+        Tell us what you need
+      </button>
       <a class="btn btn-ghost mail" href="mailto:john.littonny@gmail.com">john.littonny@gmail.com</a>
     </div>
   </section>
 </main>
+
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+  <div class="sheet-card">
+    <h2 id="sheet-title">Tell us what you need</h2>
+    <p class="sub">What you serve and how often. We'll tell you what we can land and when.</p>
+    <form id="enquiry">
+      <label class="field"><span>Your name</span><input name="name" required autocomplete="name"></label>
+      <label class="field"><span>Restaurant or company</span><input name="company" autocomplete="organization"></label>
+      <label class="field"><span>Email</span><input name="email" type="email" required autocomplete="email"></label>
+      <label class="field"><span>Phone</span><input name="phone" type="tel" autocomplete="tel"></label>
+      <label class="field"><span>What are you after?</span><textarea name="message" placeholder="Species, volumes, how often, anything you're struggling to get hold of."></textarea></label>
+      <label class="hp" aria-hidden="true" tabindex="-1"><span>Leave this empty</span><input name="website" tabindex="-1" autocomplete="off"></label>
+      <div class="sheet-actions">
+        <button class="btn btn-primary" type="submit" id="send">Send it</button>
+        <button class="btn btn-ghost" type="button" data-close-form>Cancel</button>
+        <span class="note" id="status" role="status"></span>
+      </div>
+    </form>
+  </div>
+</div>
 
 <footer>
   <div class="wrap">&copy; 2026 Global Seafood Partners</div>
@@ -251,6 +304,55 @@
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.1 });
 
     items.forEach(function (el) { io.observe(el); });
+  })();
+</script>
+<script>
+  /* The form: open, close, and post into Nautilus. */
+  (function () {
+    var sheet = document.getElementById('sheet');
+    var form = document.getElementById('enquiry');
+    var status = document.getElementById('status');
+    var send = document.getElementById('send');
+    if (!sheet || !form) return;
+
+    function open() { sheet.setAttribute('open', ''); var f = form.querySelector('input'); if (f) f.focus(); }
+    function close() { sheet.removeAttribute('open'); }
+
+    document.querySelectorAll('[data-open-form]').forEach(function (b) {
+      b.addEventListener('click', open);
+    });
+    document.querySelectorAll('[data-close-form]').forEach(function (b) {
+      b.addEventListener('click', close);
+    });
+    sheet.addEventListener('click', function (e) { if (e.target === sheet) close(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var data = {};
+      new FormData(form).forEach(function (v, k) { data[k] = String(v); });
+      // Names the source, which is how Nautilus decides whose book it lands in.
+      data.source = 'globalseafood.partners';
+      status.textContent = 'Sending…';
+      status.className = 'note';
+      send.disabled = true;
+
+      fetch('https://nautilusapp.vercel.app/api/leads/ingest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      }).then(function (r) {
+        if (!r.ok) throw new Error('bad status');
+        status.textContent = 'Got it. We\u2019ll come back to you shortly.';
+        status.className = 'note ok';
+        form.reset();
+        setTimeout(close, 2200);
+      }).catch(function () {
+        // Never a dead end: if the post fails, hand them the address.
+        status.innerHTML = 'That didn\u2019t send. Email <a class="mail" href="mailto:john.littonny@gmail.com">john.littonny@gmail.com</a>.';
+        status.className = 'note';
+      }).then(function () { send.disabled = false; });
+    });
   })();
 </script>
 

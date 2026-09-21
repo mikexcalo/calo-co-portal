@@ -15,6 +15,19 @@ import { SaveAsPdf } from './SaveAsPdf';
 import { AddOns } from './AddOns';
 
 export const dynamic = 'force-dynamic';
+/*
+  And the data behind it, which force-dynamic does not cover.
+
+  force-dynamic stops the ROUTE being prerendered. It does not stop Next
+  caching the fetches inside it, and supabase-js goes through fetch — so this
+  page rendered on every request and rendered the same stale rows every time.
+
+  A proposal showed a price that had been changed hours earlier, three separate
+  times, while the database held the new one. On a document somebody is asked
+  to accept, that is about as bad as a caching default gets. The two other
+  public routes in here already carried this line.
+*/
+export const fetchCache = 'force-no-store';
 
 interface Line {
   list_unit_price?: number | null;
@@ -282,9 +295,10 @@ export default async function PublicEstimate({ params }: { params: { token: stri
 
           {isTM && (
             <div style={{ marginTop: 16, padding: 13, background: '#f7f7f5', borderRadius: 8, fontSize: 13.5, color: '#555', lineHeight: 1.6 }}>
-              This is a <strong>time and materials</strong> estimate. It reflects the work
-              expected; the final invoice is based on hours actually worked and materials
-              actually used, and you&apos;ll be able to see both as the job goes.
+              {/* Said the way somebody would say it, not the way a contract would. */}
+              You only pay for what actually gets done. This is what we expect; the
+              invoice is built from the hours logged and the receipts filed, and you&apos;ll
+              see every one of them as we go.
             </div>
           )}
 
@@ -297,34 +311,54 @@ export default async function PublicEstimate({ params }: { params: { token: stri
             weight as the inclusions on purpose.
           */}
           {(scopeIn.length > 0 || scopeOut.length > 0) && (
+            /*
+              Two lists that had nothing holding them apart.
+
+              Bare bullets in two columns under two grey labels, so at a glance
+              the page had one long list with a gap down the middle and the
+              second half — the half saying what you are NOT getting — read as
+              more of the first. Each side sits on its own card now, and each
+              line carries a mark that says which list it is in: a tick for
+              what is included, a dash for what is not.
+            */
             <div
               style={{
-                marginTop: 20,
+                marginTop: 22,
                 display: 'grid',
-                gridTemplateColumns: scopeIn.length && scopeOut.length ? 'repeat(auto-fit, minmax(240px, 1fr))' : '1fr',
-                gap: 22,
+                gridTemplateColumns: scopeIn.length && scopeOut.length ? 'repeat(auto-fit, minmax(250px, 1fr))' : '1fr',
+                gap: 14,
               }}
             >
               {scopeIn.length > 0 && (
-                <div>
-                  <div style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.09em', color: '#777', fontWeight: 600, marginBottom: 8 }}>
-                    What this covers
+                <div style={{ border: '1px solid #e4e4e0', borderRadius: 10, padding: '14px 16px 16px', background: '#fcfcfb' }}>
+                  <div style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.09em', color: '#15803d', fontWeight: 700, marginBottom: 10 }}>
+                    What you get
                   </div>
-                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: 14, color: '#333', lineHeight: 1.7 }}>
-                    {scopeIn.map((x, i) => <li key={i}>{x}</li>)}
+                  <ul style={{ margin: 0, padding: 0, listStyle: 'none', fontSize: 14, color: '#333', lineHeight: 1.6 }}>
+                    {scopeIn.map((x, i) => (
+                      <li key={i} style={{ display: 'flex', gap: 9, marginBottom: 9 }}>
+                        <span style={{ color: '#15803d', flexShrink: 0, fontWeight: 700 }}>&#10003;</span>
+                        <span>{x}</span>
+                      </li>
+                    ))}
                   </ul>
                 </div>
               )}
               {scopeOut.length > 0 && (
-                <div>
-                  <div style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.09em', color: '#777', fontWeight: 600, marginBottom: 8 }}>
-                    What it does not
+                <div style={{ border: '1px solid #e4e4e0', borderRadius: 10, padding: '14px 16px 16px', background: '#fcfcfb' }}>
+                  <div style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.09em', color: '#777', fontWeight: 700, marginBottom: 10 }}>
+                    What it doesn&apos;t
                   </div>
-                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: 14, color: '#333', lineHeight: 1.7 }}>
-                    {scopeOut.map((x, i) => <li key={i}>{x}</li>)}
+                  <ul style={{ margin: 0, padding: 0, listStyle: 'none', fontSize: 14, color: '#333', lineHeight: 1.6 }}>
+                    {scopeOut.map((x, i) => (
+                      <li key={i} style={{ display: 'flex', gap: 9, marginBottom: 9 }}>
+                        <span style={{ color: '#aaa', flexShrink: 0, fontWeight: 700 }}>&ndash;</span>
+                        <span>{x}</span>
+                      </li>
+                    ))}
                   </ul>
-                  <div style={{ fontSize: 12.5, color: '#777', marginTop: 8, lineHeight: 1.55 }}>
-                    Anything here can be added later as a separate quote.
+                  <div style={{ fontSize: 12.5, color: '#777', marginTop: 4, lineHeight: 1.55 }}>
+                    Want any of it? We&apos;ll quote it separately.
                   </div>
                 </div>
               )}
@@ -348,7 +382,7 @@ export default async function PublicEstimate({ params }: { params: { token: stri
       </div>
 
       <div style={{ maxWidth: 720, margin: '18px auto 0', textAlign: 'center', fontSize: 12.5, color: '#888' }}>
-        Questions about this estimate? Reply to the email it came from.
+        Questions? Just reply to the email this came from.
       </div>
     </div>
   );
