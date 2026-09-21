@@ -171,9 +171,15 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
       <ClientIntake
         orgId={orgId}
         seed={readingDrop.seed}
-        onSaved={async () => {
-          // It became records, so it is no longer waiting to be dealt with.
-          await fileDrop(readingDrop.id, {});
+        onSaved={async (made) => {
+          /*
+            Filed onto what it became, not just marked dealt with.
+            
+            The PDF is the evidence for the client it created, so it belongs on
+            that record rather than dissolving into rows with nothing linking
+            back to where they came from.
+          */
+          await fileDrop(readingDrop.id, made?.customerId ? { customer_id: made.customerId } : {});
           await load();
           onChange?.();
         }}

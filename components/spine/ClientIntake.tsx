@@ -42,7 +42,8 @@ export function ClientIntake({
   orgId: string;
   /** Skip the drop zone and read this instead. */
   seed?: IntakeSeed;
-  onSaved: () => void;
+  /** Handed the records that were created, so the source can be filed to them. */
+  onSaved: (made?: { customerId?: string; jobId?: string }) => void;
   onClose: () => void;
 }) {
   const [reading, setReading] = useState(false);
@@ -174,9 +175,23 @@ export function ClientIntake({
         'The client'
       );
       const customerId = (made.data as { id: string } | null)?.id;
-      if (made.error || !customerId) { setBusy(false); return; }
+      if (made.error || !customerId) {
+        /* The toast at the bottom of the screen is easy to miss while reading
+           a form. Say it here too, beside the button that did nothing. */
+        setError(made.error ? human(made.error) : 'That client could not be created.');
+        setBusy(false);
+        return;
+      }
 
-      const people = contacts.filter((c) => c.name.trim() || c.email.trim());
+      /*
+        A name, or it is not a person.
+        
+        Reading a utility form produced seven "people": two humans and five
+        service desks — North: Kramer Service Centre, AE Metering Questions —
+        which are departments with phone numbers. A row with no name is not
+        somebody you can write to.
+      */
+      const people = contacts.filter((c) => c.name.trim());
       if (people.length) {
         await saveOrFail(
           supabase.from('customer_contacts').insert(
@@ -231,6 +246,7 @@ export function ClientIntake({
        * numbers, and conflating them is how somebody gets charged for a
        * fireplace they talked you out of.
        */
+      let madeJobId: string | undefined;
       if (doc === 'estimate' && jobName.trim()) {
         const job = await saveOrFail(
           supabase.from('jobs').insert({
@@ -243,6 +259,7 @@ export function ClientIntake({
           'The job'
         );
         const jobId = (job.data as { id: string } | null)?.id;
+        madeJobId = jobId ?? undefined;
         const usable = lines.filter((l) => l.description.trim());
         if (jobId && usable.length) {
           await createEstimate(
@@ -262,7 +279,7 @@ export function ClientIntake({
         }
       }
 
-      onSaved();
+      onSaved({ customerId, jobId: madeJobId });
       onClose();
     } catch (e) {
       setError(human(e));
