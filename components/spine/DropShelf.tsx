@@ -190,9 +190,31 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={urls[d.id]} alt={d.title ?? ''} style={{ width: '100%', height: 74, objectFit: 'contain', background: C.panelAlt }} />
                 ) : (
-                  <div style={{ height: 74, background: C.panelAlt, display: 'grid', placeItems: 'center', padding: 8 }}>
-                    <span style={{ fontSize: 11.5, color: C.dim, textAlign: 'center', lineHeight: 1.4 }}>
-                      {d.kind === 'link' ? 'Link' : d.kind === 'note' ? (d.body ?? '').slice(0, 90) : 'File'}
+                  /*
+                    Ninety characters centred in a 74px box overflowed it, ran
+                    under the line beneath, and then printed the same text
+                    again as the title. Clamped to three lines, top-aligned,
+                    and read as writing rather than as a caption.
+                  */
+                  <div
+                    style={{
+                      height: 74, background: C.panelAlt, padding: '8px 9px',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 11.5, color: C.dim, lineHeight: 1.45,
+                        display: '-webkit-box', WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {d.kind === 'link'
+                        ? (d.body ?? 'Link')
+                        : d.kind === 'note'
+                          ? (d.body ?? '')
+                          : (d.title ?? 'File')}
                     </span>
                   </div>
                 )}
@@ -206,8 +228,12 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                 )}
 
                 <div style={{ padding: '6px 8px 8px' }}>
-                  <div style={{ fontSize: 11.5, color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {d.title ?? (d.body ?? '').slice(0, 40) ?? 'Untitled'}
+                  {/* A note is its own label. Repeating it here was the same
+                      words twice in forty pixels. */}
+                  <div style={{ fontSize: 11, color: C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {d.kind === 'note'
+                      ? `Note · ${new Date(d.created_at).toLocaleDateString()}`
+                      : d.title ?? 'Untitled'}
                   </div>
                   <div style={{ display: 'flex', gap: 8, marginTop: 3 }}>
                     {d.storage_path && (
