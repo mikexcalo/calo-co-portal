@@ -81,7 +81,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
         }
         const cat = await supabase
           .from('price_items')
-          .select('id, name, unit, unit_price, kind, category')
+          .select('id, name, unit, unit_price, kind, category, belongs_to')
           .eq('active', true)
           // Unconfirmed prices stay out. A number nobody has stood behind is
           // worse than no number, because no number makes you think.
@@ -90,7 +90,18 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
           .order('name');
         if (!cat.error) {
           setCatalog(
-            (cat.data ?? []).map((r: Record<string, unknown>) => ({
+            (cat.data ?? [])
+              /**
+               * Your prices only.
+               *
+               * A supplier's sheet lives in the same table for reference, and
+               * quoting a customer at what Sysco charges you is the one
+               * mistake this screen must not be able to make. Filtered here
+               * rather than in the query so it behaves the same before and
+               * after the column exists.
+               */
+              .filter((r: Record<string, unknown>) => (r.belongs_to ?? 'ours') === 'ours')
+              .map((r: Record<string, unknown>) => ({
               ...(r as { id: string; name: string; unit: string | null; kind: LineKind; category: string | null }),
               unit_price: Number(r.unit_price) || 0,
             }))

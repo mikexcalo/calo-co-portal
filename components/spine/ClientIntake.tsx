@@ -37,6 +37,15 @@ export function ClientIntake({ orgId, onSaved, onClose }: { orgId: string; onSav
   const [notes, setNotes] = useState('');
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [prices, setPrices] = useState<Price[]>([]);
+  /**
+   * Whose prices these are.
+   *
+   * A builder drops what he charges. A distributor drops a supplier's sheet.
+   * Filed as the same thing, an estimate would quote a customer at cost, so
+   * the question is asked once, here, while somebody is already looking.
+   */
+  const [belongsTo, setBelongsTo] = useState<'ours' | 'supplier'>('ours');
+  const [supplier, setSupplier] = useState('');
 
   const send = useCallback(async (payload: { data?: string; mediaType?: string; text?: string }) => {
     setReading(true); setError('');
@@ -244,8 +253,38 @@ export function ClientIntake({ orgId, onSaved, onClose }: { orgId: string; onSav
           {prices.length > 0 && (
             <div style={{ marginTop: 16 }}>
               <SectionLabel>Prices ({prices.length})</SectionLabel>
-              <p style={{ fontSize: 12, color: C.faint, margin: '4px 0 6px' }}>
-                These go to your price list, so estimates can pick from them.
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', margin: '6px 0 10px' }}>
+                {([
+                  { id: 'ours' as const, label: 'What you charge' },
+                  { id: 'supplier' as const, label: 'What a supplier charges you' },
+                ]).map((o) => (
+                  <button
+                    key={o.id}
+                    onClick={() => setBelongsTo(o.id)}
+                    style={{
+                      padding: '5px 12px', borderRadius: 999, fontSize: 12.5, cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      border: `1px solid ${belongsTo === o.id ? C.ink : C.border}`,
+                      background: belongsTo === o.id ? C.panelAlt : 'transparent',
+                      color: belongsTo === o.id ? C.text : C.dim,
+                    }}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+                {belongsTo === 'supplier' && (
+                  <input
+                    value={supplier}
+                    onChange={(e) => setSupplier(e.target.value)}
+                    placeholder="Who charges it"
+                    style={{ ...inputStyle, fontSize: 13, maxWidth: 200 }}
+                  />
+                )}
+              </div>
+              <p style={{ fontSize: 12, color: C.faint, margin: '0 0 6px' }}>
+                {belongsTo === 'ours'
+                  ? 'Estimates pick from these.'
+                  : 'Kept for reference. Estimates never quote from a supplier sheet.'}
               </p>
               {prices.map((p, i) => (
                 <div key={i} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) 28px', gap: 6, marginTop: 6, alignItems: 'center' }}>
