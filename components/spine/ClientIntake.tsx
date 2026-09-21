@@ -83,6 +83,16 @@ export function ClientIntake({
   const [jobAddress, setJobAddress] = useState('');
   const [lines, setLines] = useState<{ description: string; qty: string; unit: string; unit_price: string }[]>([]);
   const [priceMode, setPriceMode] = useState<'add' | 'replace'>('add');
+  /**
+   * A customer, or somebody you are still chasing.
+   *
+   * Everything read out of a document went in at 'noticed', which is the top
+   * of the prospect lane — so Customers never showed them and the person
+   * beside them said "works at a client". Somebody filing a document about a
+   * company usually already has a relationship, so that is the default, and
+   * the other answer is one click away.
+   */
+  const [isCustomer, setIsCustomer] = useState(true);
 
   const send = useCallback(async (payload: { data?: string; mediaType?: string; text?: string }) => {
     setReading(true); setError('');
@@ -169,7 +179,7 @@ export function ClientIntake({
           org_id: orgId,
           // Named rather than left to the default, which is still the word the
           // check constraint stopped allowing.
-          stage: 'noticed',
+          stage: isCustomer ? 'won' : 'noticed',
           name: name.trim(),
           website: website.trim() || null,
           address: address.trim() || null,
@@ -194,7 +204,18 @@ export function ClientIntake({
         which are departments with phone numbers. A row with no name is not
         somebody you can write to.
       */
-      const people = contacts.filter((c) => c.name.trim());
+      /*
+        Not you.
+        
+        Mark's own name and email are on the permit he filed, so reading it
+        added him to his own address book — a contact at a company he owns.
+        Anything matching the signed-in address is dropped.
+      */
+      const { data: meAuth } = await supabase.auth.getUser();
+      const myEmail = (meAuth?.user?.email ?? '').toLowerCase();
+      const people = contacts.filter(
+        (c) => c.name.trim() && (!myEmail || c.email.trim().toLowerCase() !== myEmail)
+      );
       if (people.length) {
         await saveOrFail(
           supabase.from('customer_contacts').insert(
@@ -204,7 +225,9 @@ export function ClientIntake({
               title: c.title.trim() || null,
               email: c.email.trim() || null,
               phone: c.phone.trim() || null,
-              relationship: 'client',
+              // Matches the company. Calling somebody a client while their
+              // company sits in the pipeline is two screens disagreeing.
+              relationship: isCustomer ? 'client' : 'prospect',
             }))
           ),
           'The people'
@@ -411,6 +434,30 @@ export function ClientIntake({
             {field(website, setWebsite, 'Website')}
             {field(address, setAddress, 'Address')}
           </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 10 }}>
+            {([
+              { id: true, label: 'A customer' },
+              { id: false, label: 'Still chasing them' },
+            ]).map((o) => (
+              <button
+                key={String(o.id)}
+                onClick={() => setIsCustomer(o.id)}
+                style={{
+                  padding: '5px 12px', borderRadius: 999, fontSize: 12.5, cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  border: `1px solid ${isCustomer === o.id ? C.ink : C.border}`,
+                  background: isCustomer === o.id ? C.panelAlt : 'transparent',
+                  color: isCustomer === o.id ? C.text : C.dim,
+                }}
+              >
+                {o.label}
+              </button>
+            ))}
+            <span style={{ fontSize: 12, color: C.faint }}>
+              {isCustomer ? 'Lands in Customers.' : 'Lands in Pipeline until you win them.'}
+            </span>
+          </div>
+
           <div style={{ marginTop: 8 }}>
             <textarea
               value={notes}
