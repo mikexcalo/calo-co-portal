@@ -51,6 +51,7 @@ export default function ProposalsPage() {
   const router = useRouter();
   const { vocab } = useOrg();
   const [rows, setRows] = useState<Row_[]>([]);
+  const [previewing, setPreviewing] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState<number | null>(null);
@@ -102,6 +103,54 @@ export default function ProposalsPage() {
       title={`${vocab.estimate}s`}
       subtitle={`Everything you have quoted.`}
     >
+      {/*
+        The document opens here, not in a tab.
+
+        Every row called window.open, so reading three proposals left three
+        CALO&CO tabs behind. It is the same link the client is sent, in an
+        iframe, so nothing here can drift from what they actually see — and
+        Open in a tab is still there for anybody who wants one.
+      */}
+      {previewing && (
+        <div
+          onClick={() => setPreviewing(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,.45)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: C.panel, borderRadius: 12, overflow: 'hidden',
+              width: 'min(900px, 100%)', height: 'min(92vh, 1040px)',
+              display: 'flex', flexDirection: 'column',
+              boxShadow: '0 24px 60px rgba(0,0,0,.3)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderBottom: `1px solid ${C.border}` }}>
+              <span style={{ fontSize: 13.5, fontWeight: 500, color: C.text, flex: 1 }}>
+                What they will see
+              </span>
+              <a
+                href={previewing}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 12.5, color: C.dim, textDecoration: 'none' }}
+              >
+                Open in a tab
+              </a>
+              <Button variant="ghost" onClick={() => setPreviewing(null)}>Close</Button>
+            </div>
+            <iframe
+              src={previewing}
+              title="Proposal preview"
+              style={{ flex: 1, border: 'none', width: '100%', background: '#f5f5f3' }}
+            />
+          </div>
+        </div>
+      )}
+
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
@@ -195,7 +244,7 @@ export default function ProposalsPage() {
                     cols="130px 1fr 170px 110px 100px"
                     onClick={() =>
                       r.public_token
-                        ? window.open(`/e/${r.public_token}`, '_blank', 'noopener')
+                        ? setPreviewing(`/e/${r.public_token}`)
                         : r.job && router.push(`/jobs/${r.job.id}`)
                     }
                   >
@@ -225,9 +274,9 @@ export default function ProposalsPage() {
                     <div
                       key={r.id}
                       onClick={() =>
-                        r.public_token
-                          ? window.open(`/e/${r.public_token}`, '_blank', 'noopener')
-                          : r.job && router.push(`/jobs/${r.job.id}`)
+                      r.public_token
+                        ? setPreviewing(`/e/${r.public_token}`)
+                        : r.job && router.push(`/jobs/${r.job.id}`)
                       }
                       style={{
                         background: C.panel,
@@ -281,7 +330,11 @@ export default function ProposalsPage() {
                 .map((r) => (
                   <Row
                     key={r.id} cols="1fr 150px 110px 110px 110px" labels={['', '', 'Status', 'Decided', 'Value']}
-                    onClick={() => r.job && router.push(`/jobs/${r.job.id}`)}
+                    onClick={() =>
+                      r.public_token
+                        ? setPreviewing(`/e/${r.public_token}`)
+                        : r.job && router.push(`/jobs/${r.job.id}`)
+                    }
                   >
                     <div>{r.job?.name ?? '—'}</div>
                     <div style={{ color: C.dim }}>{r.job?.customer?.name ?? '—'}</div>

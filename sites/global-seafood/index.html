@@ -138,6 +138,14 @@
   .sheet-card{background:var(--fathom);border:1px solid var(--line-strong);
     border-radius:16px;width:min(34rem,100%);max-height:92vh;overflow:auto;
     padding:clamp(1.4rem,4vw,2rem)}
+  /* iOS zooms any field under 16px on focus, which throws the layout. */
+  @media (max-width:32rem){
+    .sheet{padding:0;align-items:flex-end}
+    .sheet-card{border-radius:16px 16px 0 0;max-height:94vh;width:100%}
+    .field input,.field textarea{font-size:16px}
+    .sheet-actions{flex-wrap:wrap}
+    .btns .btn{flex:1 1 auto;justify-content:center}
+  }
   .sheet h2{font-size:1.3rem;margin-bottom:.4rem}
   .sheet .sub{font-size:.95rem;color:var(--muted);margin:0 0 1.4rem}
   .field{display:block;margin-bottom:.9rem}
@@ -238,15 +246,15 @@
   <section class="wrap band contact" id="contact">
     <h2 class="rise">Get in touch</h2>
     <p class="rise">
-      Tell us what you serve and how often, and we will tell you what we can
-      land and when.
+      Tell us what you serve and how often. We&rsquo;ll tell you what we can land,
+      and when.
     </p>
     <div class="btns rise">
+      <!-- The heading already says Get in touch; the button says what pressing it does. -->
       <button class="btn btn-primary" type="button" data-open-form>
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.8 4.2h12.4v7.6H1.8z"/><path d="m1.8 4.6 6.2 4.2 6.2-4.2"/></svg>
-        Tell us what you need
+        Send us a message
       </button>
-      <a class="btn btn-ghost mail" href="mailto:john.littonny@gmail.com">john.littonny@gmail.com</a>
     </div>
   </section>
 </main>
@@ -254,8 +262,7 @@
 
 <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
   <div class="sheet-card">
-    <h2 id="sheet-title">Tell us what you need</h2>
-    <p class="sub">What you serve and how often. We'll tell you what we can land and when.</p>
+    <h2 id="sheet-title">Get in touch</h2>
     <form id="enquiry">
       <label class="field"><span>Your name</span><input name="name" required autocomplete="name"></label>
       <label class="field"><span>Restaurant or company</span><input name="company" autocomplete="organization"></label>

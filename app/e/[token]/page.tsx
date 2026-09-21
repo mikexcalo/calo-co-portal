@@ -10,8 +10,10 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import type React from 'react';
 import { notFound } from 'next/navigation';
 import { SaveAsPdf } from './SaveAsPdf';
+import { Faq, asQuestions } from '@/components/spine/Faq';
 import { AddOns } from './AddOns';
 
 export const dynamic = 'force-dynamic';
@@ -41,6 +43,13 @@ interface Line {
   position: number;
   optional: boolean;
 }
+
+/* Tabular figures, so a column of numbers lines up. */
+const numeralStyle: React.CSSProperties = {
+  fontVariantNumeric: 'tabular-nums',
+  fontSize: 12.5,
+  letterSpacing: '.04em',
+};
 
 const money = (n: number) =>
   `$${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -310,66 +319,64 @@ export default async function PublicEstimate({ params }: { params: { token: stri
             they will otherwise assume in their own favor. Shown at the same
             weight as the inclusions on purpose.
           */}
-          {(scopeIn.length > 0 || scopeOut.length > 0) && (
-            /*
-              Two lists that had nothing holding them apart.
+          {/*
+            What you get, and nothing about what you don't.
 
-              Bare bullets in two columns under two grey labels, so at a glance
-              the page had one long list with a gap down the middle and the
-              second half — the half saying what you are NOT getting — read as
-              more of the first. Each side sits on its own card now, and each
-              line carries a mark that says which list it is in: a tick for
-              what is included, a dash for what is not.
-            */
-            <div
-              style={{
-                marginTop: 22,
-                display: 'grid',
-                gridTemplateColumns: scopeIn.length && scopeOut.length ? 'repeat(auto-fit, minmax(250px, 1fr))' : '1fr',
-                gap: 14,
-              }}
-            >
-              {scopeIn.length > 0 && (
-                <div style={{ border: '1px solid #e4e4e0', borderRadius: 10, padding: '14px 16px 16px', background: '#fcfcfb' }}>
-                  <div style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.09em', color: '#15803d', fontWeight: 700, marginBottom: 10 }}>
-                    What you get
+            This was two cards side by side, ticks on one and dashes on the
+            other, and the exclusions were drawn at the same weight as the
+            inclusions — so a document meant to make somebody say yes gave half
+            its width to a list of things they were not getting. The exclusions
+            still exist and still matter; they belong in the terms underneath,
+            where somebody looks when they have a question, not in the middle
+            of the offer.
+
+            What is left is not a checklist either. It is what they are buying,
+            set as rows with a rule between them, at a size worth reading.
+          */}
+          {scopeIn.length > 0 && (
+            <div style={{ marginTop: 26 }}>
+              <div style={{ fontSize: 17, fontWeight: 600, color: '#111', letterSpacing: '-0.01em', marginBottom: 2 }}>
+                What you get
+              </div>
+              <div>
+                {scopeIn.map((x, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: 'flex', gap: 13, alignItems: 'baseline',
+                      padding: '13px 2px', borderBottom: '1px solid #f0f0ed',
+                      fontSize: 15, color: '#222', lineHeight: 1.55,
+                    }}
+                  >
+                    <span style={{ ...numeralStyle, color: '#bbb', flexShrink: 0 }}>
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span>{x}</span>
                   </div>
-                  <ul style={{ margin: 0, padding: 0, listStyle: 'none', fontSize: 14, color: '#333', lineHeight: 1.6 }}>
-                    {scopeIn.map((x, i) => (
-                      <li key={i} style={{ display: 'flex', gap: 9, marginBottom: 9 }}>
-                        <span style={{ color: '#15803d', flexShrink: 0, fontWeight: 700 }}>&#10003;</span>
-                        <span>{x}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {scopeOut.length > 0 && (
-                <div style={{ border: '1px solid #e4e4e0', borderRadius: 10, padding: '14px 16px 16px', background: '#fcfcfb' }}>
-                  <div style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.09em', color: '#777', fontWeight: 700, marginBottom: 10 }}>
-                    What it doesn&apos;t
-                  </div>
-                  <ul style={{ margin: 0, padding: 0, listStyle: 'none', fontSize: 14, color: '#333', lineHeight: 1.6 }}>
-                    {scopeOut.map((x, i) => (
-                      <li key={i} style={{ display: 'flex', gap: 9, marginBottom: 9 }}>
-                        <span style={{ color: '#aaa', flexShrink: 0, fontWeight: 700 }}>&ndash;</span>
-                        <span>{x}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div style={{ fontSize: 12.5, color: '#777', marginTop: 4, lineHeight: 1.55 }}>
-                    Want any of it? We&apos;ll quote it separately.
-                  </div>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
           )}
 
-          {estimate.notes && (
-            <div style={{ marginTop: 20, fontSize: 14, color: '#444', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
-              {estimate.notes}
-            </div>
-          )}
+          {/*
+            The terms, and the exclusions, as questions.
+
+            A wall of pre-wrapped text gets scrolled past and then asked about.
+            The last one is built from scope_out rather than written twice, so
+            what is excluded can never drift from what the record says.
+          */}
+          <Faq
+            accent={accent}
+            items={[
+              ...asQuestions(estimate.notes),
+              ...(scopeOut.length
+                ? [{
+                    q: "What isn't included?",
+                    a: scopeOut.join('\n\n') + "\n\nWant any of it? We'll quote it separately.",
+                  }]
+                : []),
+            ]}
+          />
         </div>
 
         <AddOns
