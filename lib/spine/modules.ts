@@ -163,7 +163,7 @@ const PLAN_FEATURES: Record<string, Feature[]> = {
  */
 export const MODULE_ICON: Record<ModuleId, string> = {
   routes: 'yardSign',
-  inbox: 'notes',
+  inbox: 'drop',
   customers: 'clients',
   people: 'network',
   jobs: 'quotes',
@@ -551,8 +551,16 @@ export const MODULE_HREF: Record<ModuleId, string> = {
  * Naming the parent here keeps them out of the sidebar without hiding them:
  * the parent has the row, and its tabs are one click in.
  */
-/** Reached from the top bar rather than the sidebar. */
+/**
+ * Reached outside the grouped nav — the top bar, or a fixed row of its own.
+ *
+ * Without this the auto-completer below does its job and gives them a second
+ * row inside a section, which is how Drops ended up both beside Home and
+ * under The work.
+ */
 export const MODULE_IN_TOPBAR: ModuleId[] = [
+  /** Its own row beside Home. Things land here before they are anything. */
+  'inbox',
   'learn',
   /**
    * Settings belongs to you, not to the work.
@@ -738,7 +746,6 @@ export function navFor(
          * rather than what it resembles. It sits below the real work because
          * it is a shelf, not a place you go to get something done.
          */
-        { id: 'inbox', label: 'Drops', href: '/inbox', icon: 'inbox' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {

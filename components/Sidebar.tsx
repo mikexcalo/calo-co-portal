@@ -148,6 +148,14 @@ export const NAV_ICONS: Record<string, React.ReactNode> = {
     </svg>
   ),
   // A tray. Things arriving that you have to deal with.
+  // An arrow falling into a circle. Somewhere things land.
+  drop: (
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="8" cy="8" r="6.2" />
+      <path d="M8 4.9v5.4" />
+      <path d="M5.9 8.4 8 10.5l2.1-2.1" />
+    </svg>
+  ),
   inbox: (
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M1.9 8.6 3.6 2.9h8.8l1.7 5.7" />
@@ -447,6 +455,15 @@ export default function Sidebar() {
 
       <div style={{ flex: 1, padding: '8px 8px 8px', overflowY: 'auto' }}>
         {navBtn('Home', '/', 'dashboard')}
+        {/*
+          Drops belongs beside Home, not inside The work.
+          
+          It is where something lands before anybody has decided what it is,
+          which is the opposite of the work — and filed under a heading it
+          made no sense under, nobody could say what it was for.
+        */}
+        {groups.some((g) => g.items.some((i) => i.id === 'inbox')) &&
+          navBtn('Drops', '/inbox', 'drop')}
 
         {groups.map((g) => {
           // A collapsed section that hides the page you are on would leave you

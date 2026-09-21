@@ -522,13 +522,14 @@ export default function Dashboard() {
       done: invoices.length > 0,
       href: '/billing',
     },
-    {
-      module: 'pl',
-      label: 'See your profit',
-      why: '',
-      done: false,
-      href: '/pl',
-    },
+    /*
+      No "see your profit" here.
+      
+      This list only shows on a workspace with no jobs, no invoices and no
+      receipts, so the P&L behind it is guaranteed to be empty. Offering it as
+      one of six first moves sends somebody to a screen of zeroes and teaches
+      them the product has nothing in it.
+    */
   ] as const).filter((row) => mods.has(row.module as never));
 
   /** Account settings. Real, but nobody's first move, and only the owner's. */
