@@ -60,25 +60,46 @@ function unwrap<T>(res: { data: T | null; error: { message: string } | null }): 
  * an empty screen is the right way to be wrong here.
  */
 let known: { user: string; org: string | null } | null = null;
+/** One lookup shared by everything that asks while it is in flight. */
+let asking: Promise<string | null> | null = null;
 
 export async function orgNow(): Promise<string | null> {
-  const { data: auth } = await supabase.auth.getUser();
-  const uid = auth?.user?.id;
-  if (!uid) return null;
-  if (known?.user === uid) return known.org;
-  const profile = await supabase
-    .from('profiles')
-    .select('active_org_id')
-    .eq('id', uid)
-    .maybeSingle();
-  const org = (profile.data?.active_org_id as string | undefined) ?? null;
-  known = { user: uid, org };
-  return org;
+  if (known) return known.org;
+  if (asking) return asking;
+  asking = (async () => {
+    /*
+      getSession, not getUser.
+
+      getUser revalidates the token against the auth server — a network round
+      trip, every call. Twenty-eight reads were made workspace-aware in one go
+      and every one of them started with that round trip, so a screen with six
+      queries grew six extra hops before any of them ran. That is the whole of
+      why the app got slow this afternoon.
+
+      getSession reads the token already in the browser. It is not a weaker
+      check: nothing here is a permission decision. The row filter is what
+      keeps a workspace private, and it is enforced in the database against the
+      real token no matter what this returns.
+    */
+    const { data } = await supabase.auth.getSession();
+    const uid = data.session?.user?.id;
+    if (!uid) { asking = null; return null; }
+    const profile = await supabase
+      .from('profiles')
+      .select('active_org_id')
+      .eq('id', uid)
+      .maybeSingle();
+    known = { user: uid, org: (profile.data?.active_org_id as string | undefined) ?? null };
+    asking = null;
+    return known.org;
+  })();
+  return asking;
 }
 
 /** Called by the switcher. Without this the old workspace stays cached. */
 export function forgetOrg(): void {
   known = null;
+  asking = null;
 }
 
 /**
