@@ -13,7 +13,8 @@ import { createClient } from '@supabase/supabase-js';
 import type React from 'react';
 import { notFound } from 'next/navigation';
 import { SaveAsPdf } from './SaveAsPdf';
-import { Faq, asQuestions } from '@/components/spine/Faq';
+import { Faq } from '@/components/spine/Faq';
+import { asQuestions } from '@/lib/spine/questions-from-notes';
 import { AddOns } from './AddOns';
 
 export const dynamic = 'force-dynamic';

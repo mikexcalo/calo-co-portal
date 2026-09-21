@@ -14,8 +14,9 @@
  */
 
 import { useState } from 'react';
+import type { Question } from '@/lib/spine/questions-from-notes';
 
-export function Faq({ items, accent }: { items: Array<{ q: string; a: string }>; accent: string }) {
+export function Faq({ items, accent }: { items: Question[]; accent: string }) {
   const [open, setOpen] = useState(0);
   if (items.length === 0) return null;
 
@@ -65,31 +66,4 @@ export function Faq({ items, accent }: { items: Array<{ q: string; a: string }>;
       })}
     </div>
   );
-}
-
-/**
- * Split the stored note into those questions.
- *
- * The copy is written as a heading line, a blank line, then its paragraphs —
- * so that is the rule, rather than a second column somebody has to keep in
- * step with the first. A heading is a short line with no full stop that has a
- * blank line under it. Anything before the first heading, or a note that
- * follows no convention at all, comes back as a single block and still renders.
- */
-export function asQuestions(notes: string | null | undefined): Array<{ q: string; a: string }> {
-  const text = (notes ?? '').trim();
-  if (!text) return [];
-
-  const blocks = text.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
-  const out: Array<{ q: string; a: string }> = [];
-
-  for (const b of blocks) {
-    const oneLine = !b.includes('\n');
-    const heading = oneLine && b.length <= 60 && !/[.!?:,]$/.test(b);
-    if (heading) out.push({ q: b, a: '' });
-    else if (out.length) out[out.length - 1].a += (out[out.length - 1].a ? '\n\n' : '') + b;
-    else out.push({ q: 'The detail', a: b });
-  }
-
-  return out.filter((x) => x.a);
 }
