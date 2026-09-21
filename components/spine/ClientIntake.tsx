@@ -167,6 +167,9 @@ export function ClientIntake({
       const made = await saveOrFail(
         supabase.from('customers').insert({
           org_id: orgId,
+          // Named rather than left to the default, which is still the word the
+          // check constraint stopped allowing.
+          stage: 'noticed',
           name: name.trim(),
           website: website.trim() || null,
           address: address.trim() || null,

@@ -138,6 +138,8 @@ export default function ImportCustomersPage() {
       const payload = keeping.map((r) => ({
         org_id: org.id,
         import_batch_id: batch.data.id,
+        // Named, because the column default is a value the check rejects.
+        stage: 'noticed',
         name: r.name.trim(),
         email: r.email?.trim() || null,
         phone: r.phone?.trim() || null,

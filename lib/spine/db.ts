@@ -129,7 +129,9 @@ export async function createCustomer(
   return unwrap(
     await supabase
       .from('customers')
-      .insert({ ...input, org_id: orgId })
+      // stage first, so a caller that cares still wins. The column default is
+      // a value its own constraint rejects; see 20261026.
+      .insert({ stage: 'noticed', ...input, org_id: orgId })
       .select()
       .single()
   ) as Customer;
