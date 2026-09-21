@@ -198,7 +198,9 @@ function LoginForm() {
 
     const supabase = createSupabaseBrowser();
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      // Straight to the screen that asks for one. Through /auth/callback it
+      // landed on Home, signed in, with the password still unchanged.
+      redirectTo: `${window.location.origin}/auth/callback?next=/reset`,
     });
 
     setLoading(false);
