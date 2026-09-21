@@ -138,7 +138,15 @@ export default function JobsPage() {
           space by changing; one pinned at zero is furniture. They appear the
           moment there is money in them.
         */}
-        <Metric label={`Active ${vocab.jobPlural.toLowerCase()}`} value={String(active.length)} />
+        {/*
+          Not a full-width zero.
+
+          With nothing active this drew one enormous 0 across the top of the
+          screen, above a board that already says LEAD 1 / ESTIMATING 0 and
+          says it better. Metric has carried hideAtZero for exactly this since
+          it was written; this call was the one that never passed it.
+        */}
+        <Metric label={`Active ${vocab.jobPlural.toLowerCase()}`} value={String(active.length)} hideAtZero />
         {unbilled > 0 && (
           <Metric
             label="Unbilled work"

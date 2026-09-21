@@ -22,6 +22,7 @@ import { FollowUps } from '@/components/spine/FollowUps';
 import { WeekAhead } from '@/components/spine/WeekAhead';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { CLIENT_STAGES } from '@/lib/spine/stage';
 import { listDocuments, listInvoices, listJobLedger, listJobs, orgNow} from '@/lib/spine/db';
 import { modulesFor } from '@/lib/spine/modules';
 import supabase from '@/lib/supabase';
@@ -132,7 +133,23 @@ export default function Dashboard() {
 
         const [noEmail, unconfirmed, draftEst, staleEst, expiring, needReview, reqs, noCustomer, custCount, quiet, due] =
           await Promise.all([
-            supabase.from('customers').select('id', head).is('email', null),
+            /*
+              The same count the screen you are sent to makes.
+
+              This counted every row in customers with no email — suppliers,
+              utilities, anything filed as "other", and anything still being
+              chased in the pipeline. Clients shows only people you sell to who
+              have actually been won, so Home said "1 customer with no email"
+              and the list underneath it said zero.
+
+              Clients already had this fix, with a note about John's screen
+              announcing "104 No email, can't invoice" for a hundred and four
+              distributors he has never contacted. Home was making the same
+              mistake one screen earlier.
+            */
+            supabase.from('customers').select('id', head).is('email', null)
+              .in('stage', CLIENT_STAGES)
+              .or('relationship.eq.customer,relationship.is.null'),
             supabase.from('price_items').select('id', head).eq('confirmed', false),
             supabase.from('estimates').select('id', head).eq('status', 'draft'),
             supabase.from('estimates').select('id', head).eq('status', 'sent')
@@ -685,7 +702,7 @@ export default function Dashboard() {
         <>
           {attention.length > 0 && (
             <div style={{ marginBottom: 30 }}>
-              <SectionLabel>Wrong or waiting ({attention.length})</SectionLabel>
+              <SectionLabel>Needs you ({attention.length})</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {/*
                   The tone is a word, not a bent stripe.
@@ -718,8 +735,15 @@ export default function Dashboard() {
                   >
                     <div style={{ minWidth: 240, flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+                        {/*
+                          "Wrong" was too strong. An hourly rate you have not
+                          set yet is not wrong, it is unfinished, and a word
+                          that accusing at the top of the screen you open every
+                          morning wears badly. Fix says the same thing and asks
+                          rather than scolds.
+                        */}
                         <Pill tone={a.tone === 'red' ? 'red' : a.tone === 'amber' ? 'amber' : 'neutral'}>
-                          {a.tone === 'red' ? 'Wrong' : a.tone === 'amber' ? 'Waiting' : 'Note'}
+                          {a.tone === 'red' ? 'Fix' : a.tone === 'amber' ? 'Waiting' : 'Note'}
                         </Pill>
                         <div style={{ ...DISPLAY, fontSize: 18, color: C.text }}>
                           {a.title}

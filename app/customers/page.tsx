@@ -634,11 +634,27 @@ export default function CustomersPage() {
             onSelect={setPicked}
             onOpen={(r) => router.push(`/customers/${r.id}`)}
             empty={
+              /*
+                Say which of the two reasons it actually is.
+
+                An empty list here had one explanation — "nobody has been
+                marked won yet, so everyone is still in Pipeline" — and used it
+                for both reasons a row can be missing. Mammoth's screen showed
+                it while holding Austin Energy, which IS won; it is filed as a
+                utility, so it sits under Other. The message named the wrong
+                cause and pointed at Pipeline, which a contractor's sidebar
+                does not have — their leads are in Jobs.
+
+                Two causes, two sentences, and neither names a screen that is
+                not there.
+              */
               clients.length > 0
                 ? 'Nothing matches.'
-                : rows.length > 0
-                  ? `Nobody has been marked won yet, so everyone is still in Pipeline. ${rows.length} there.`
-                  : `No ${vocab.customerPlural.toLowerCase()} yet.`
+                : kindCounts.supplier + kindCounts.other > 0
+                  ? `Nothing filed as somebody you sell to. ${kindCounts.supplier + kindCounts.other} under the other tabs.`
+                  : rows.length > 0
+                    ? `Nobody marked won yet — ${rows.length} still being chased in ${vocab.jobPlural}.`
+                    : `No ${vocab.customerPlural.toLowerCase()} yet.`
             }
           />
 
