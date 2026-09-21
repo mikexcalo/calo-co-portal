@@ -70,10 +70,20 @@ export default async function PublicEstimate({ params }: { params: { token: stri
     await db.from('estimates').update({ viewed_at: new Date().toISOString() }).eq('id', estimate.id);
   }
 
+  /*
+    The logo the brand kit actually stores.
+
+    This looked for brand.logoLight and nothing else. The kit writes a `logos`
+    array — CALO&CO's three marks, Mammoth's seven — so every proposal went out
+    unbranded while a logo sat one key away. Both are read now, the explicit
+    light mark first where somebody has chosen one.
+  */
   const brand = ((org?.settings as Record<string, unknown>)?.brand ?? {}) as {
     colors?: Array<{ hex: string; role?: string }>;
     logoLight?: string;
+    logos?: string[];
   };
+  const logo = brand.logoLight ?? brand.logos?.[0] ?? null;
   const accent =
     brand.colors?.find((c) => /primary/i.test(c.role ?? ''))?.hex ??
     brand.colors?.[0]?.hex ??
@@ -109,9 +119,9 @@ export default async function PublicEstimate({ params }: { params: { token: stri
         }}
       >
         <div style={{ borderTop: `4px solid ${accent}`, padding: '28px 30px 0' }}>
-          {brand.logoLight && (
+          {logo && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={brand.logoLight} alt={org?.name ?? ''} style={{ height: 40, objectFit: 'contain', marginBottom: 18 }} />
+            <img src={logo} alt={org?.name ?? ''} style={{ height: 40, objectFit: 'contain', marginBottom: 18 }} />
           )}
 
           <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
