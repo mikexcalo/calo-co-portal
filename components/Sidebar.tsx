@@ -11,7 +11,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useOrg } from '@/lib/spine/org';
-import { navFor } from '@/lib/spine/modules';
+import { useViewAs } from '@/lib/spine/viewas';
+import { modulesFor, navFor } from '@/lib/spine/modules';
 import { OrgSwitcher } from '@/components/spine/OrgSwitcher';
 import { C, radius } from '@/components/spine/ui';
 import { PRODUCT } from '@/lib/brand';
@@ -256,6 +257,7 @@ export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const { org, vocab } = useOrg();
+  const { viewAs, setViewAs } = useViewAs();
 
   /**
    * Library covers three screens behind one entry, so it stays lit on any of
@@ -462,8 +464,10 @@ export default function Sidebar() {
           which is the opposite of the work — and filed under a heading it
           made no sense under, nobody could say what it was for.
         */}
-        {groups.some((g) => g.items.some((i) => i.id === 'inbox')) &&
-          navBtn('Drops', '/inbox', 'drop')}
+        {/* Asked of the modules directly. Checking the groups meant Drops
+            vanished the moment it stopped being in one, which is exactly what
+            moving it here did. */}
+        {modulesFor(org).has('inbox') && navBtn('Drops', '/inbox', 'drop')}
 
         {groups.map((g) => {
           // A collapsed section that hides the page you are on would leave you
@@ -520,7 +524,55 @@ export default function Sidebar() {
         })}
       </div>
 
-
+      {/*
+        Seeing it as they do, from where you can find it.
+        
+        This lived in the menu under a photograph, which is where account
+        settings live and not where "check what my client can see" lives. It
+        is the last row of the sidebar, and when it is on it says so loudly,
+        because a preview you forget you are in is worse than no preview.
+      */}
+      <div style={{ padding: '8px 8px 12px', borderTop: `1px solid ${C.border}` }}>
+        {viewAs ? (
+          <button
+            onClick={() => setViewAs(null)}
+            style={{
+              width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit',
+              border: `1px solid ${C.amber}`, background: C.amberSoft, color: C.amber,
+              borderRadius: 9, padding: '8px 10px', fontSize: 12.5, fontWeight: 500,
+            }}
+          >
+            Seeing it as {viewAs.label} — back to mine
+          </button>
+        ) : (
+          <select
+            aria-label="See it as somebody else"
+            value=""
+            onChange={(e) => {
+              const v = e.target.value;
+              if (!v) return;
+              const label = ({
+                owner: 'somebody who owns it',
+                admin: 'somebody who runs the day to day',
+                delivery: 'somebody who does the work',
+                looking: 'somebody having a look',
+              } as Record<string, string>)[v];
+              setViewAs({ role: v, label });
+            }}
+            style={{
+              width: '100%', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5,
+              border: `1px solid ${C.border}`, background: 'transparent', color: C.dim,
+              borderRadius: 9, padding: '8px 10px',
+            }}
+          >
+            <option value="">See it as somebody else…</option>
+            <option value="owner">Somebody who owns it</option>
+            <option value="admin">Somebody who runs the day to day</option>
+            <option value="delivery">Somebody who does the work</option>
+            <option value="looking">Somebody having a look</option>
+          </select>
+        )}
+      </div>
     </div>
   );
 }
