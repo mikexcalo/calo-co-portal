@@ -232,6 +232,23 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
 
       {error && <p style={{ fontSize: 12.5, color: C.red, margin: '8px 0 0' }}>{error}</p>}
 
+      {items.some((d) => !d.filed_at) && (
+        <div
+          style={{
+            border: `1px solid ${C.border}`, borderRadius: 9,
+            padding: '10px 12px', marginTop: 12, background: C.panelAlt,
+          }}
+        >
+          <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>
+            {items.filter((d) => !d.filed_at).length} waiting to be read
+          </div>
+          <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2, lineHeight: 1.5 }}>
+            Saving keeps the file. Reading turns it into records — a client and its people, a
+            price list, or a job with its line items. Nothing is written until you check it.
+          </div>
+        </div>
+      )}
+
       {items.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10, marginTop: 12 }}>
           {items.map((d) => {
@@ -279,6 +296,28 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                   </div>
                 )}
 
+                {/*
+                  The one thing to do with it, as a button.
+                  
+                  "Read it" was eleven pixels of blue text between Open and
+                  Remove, and two clients in a row dropped files and then asked
+                  what happens next. Nothing happens next: reading is the whole
+                  point and it was the least visible thing on the card.
+                */}
+                {!d.filed_at && (
+                  <button
+                    onClick={() => readIt(d)}
+                    style={{
+                      display: 'block', width: '100%', border: 'none',
+                      background: C.ink, color: '#fff', cursor: 'pointer',
+                      padding: '8px 10px', fontSize: 12.5, fontWeight: 500,
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    Read it &rarr;
+                  </button>
+                )}
+
                 <div style={{ padding: '6px 8px 8px' }}>
                   {/* A note is its own label. Repeating it here was the same
                       words twice in forty pixels. */}
@@ -298,12 +337,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                       <a href={d.body} target="_blank" rel="noopener noreferrer"
                         style={{ color: C.blue, fontSize: 11, textDecoration: 'none' }}>Open</a>
                     )}
-                    {!d.filed_at && (
-                      <button
-                        onClick={() => readIt(d)}
-                        style={{ background: 'transparent', border: 'none', padding: 0, color: C.blue, fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}
-                      >Read it</button>
-                    )}
+
                     <button
                       onClick={async () => { await removeDrop(d); await load(); onChange?.(); }}
                       style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}
