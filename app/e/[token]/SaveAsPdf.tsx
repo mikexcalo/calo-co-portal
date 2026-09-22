@@ -96,30 +96,44 @@ export function SaveAsPdf({ accent, name = 'Document', doc }: { accent: string; 
       };
 
       // ---- Header -------------------------------------------------------
-      text(doc.org.toUpperCase(), M, 9.5, { bold: true });
-      const afterOrg = y;
-      y = afterOrg - 9.5 * 1.45;
+      /*
+        Two columns, each drawn from its own top.
+
+        The first version drew the left column, then rewound y to put
+        "Prepared by" on the right, which put it wherever the title happened to
+        have got to. A two-line title landed underneath it and the two collided.
+
+        Each column is measured from the same starting line and neither reaches
+        into the other's width.
+      */
+      const headTop = y;
+      const rightW = 150;
+      const leftW = RIGHT - M - rightW - 24;
+
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(9.5);
       pdf.setTextColor(ink[0], ink[1], ink[2]);
-      pdf.text(doc.reference, RIGHT, y, { align: 'right' });
-      y = afterOrg + 6;
-
-      text(doc.title, M, 19, { bold: true, maxWidth: RIGHT - M - 150 });
-      if (doc.preparedFor) text(`Prepared for ${doc.preparedFor}`, M, 10.5, { color: grey });
+      pdf.text(doc.reference, RIGHT, headTop, { align: 'right' });
       if (doc.preparedBy) {
-        const save = y;
-        y = afterOrg + 6 + 19 * 1.45;
         pdf.setFont('helvetica', 'normal');
         pdf.setFontSize(9.5);
         pdf.setTextColor(grey[0], grey[1], grey[2]);
-        pdf.text(`Prepared by ${doc.preparedBy}`, RIGHT, y, { align: 'right' });
-        y = save;
+        pdf.text(`Prepared by ${doc.preparedBy}`, RIGHT, headTop + 16, { align: 'right' });
       }
 
-      y += 14;
+      y = headTop;
+      text(doc.org.toUpperCase(), M, 9.5, { bold: true });
+      y += 2;
+      text(doc.title, M, 18, { bold: true, maxWidth: leftW });
+      if (doc.preparedFor) {
+        y += 2;
+        text(`Prepared for ${doc.preparedFor}`, M, 10.5, { color: grey });
+      }
+      y = Math.max(y, headTop + 34);
+
+      y += 18;
       hr();
-      y += 16;
+      y += 18;
 
       // ---- Lines --------------------------------------------------------
       const qtyX = RIGHT - 150;
@@ -170,16 +184,16 @@ export function SaveAsPdf({ accent, name = 'Document', doc }: { accent: string; 
           pdf.line(amtX - w, y - 3, amtX, y - 3);
         }
 
-        y = Math.max(bottom, top + 16) + 10;
+        y = Math.max(bottom, top + 16) + 12;
         hr(0.4, [240, 240, 237]);
-        y += 12;
+        y += 14;
       }
 
       // ---- Totals -------------------------------------------------------
-      room(70);
-      y += 4;
+      room(80);
+      y += 2;
       hr(1.2, [26, 26, 26]);
-      y += 18;
+      y += 20;
       let tx = RIGHT;
       for (const t of [...doc.totals].reverse()) {
         pdf.setFont('helvetica', 'bold');
@@ -194,10 +208,10 @@ export function SaveAsPdf({ accent, name = 'Document', doc }: { accent: string; 
         pdf.text(t.label.toUpperCase(), tx, y, { align: 'right' });
         tx -= Math.max(vw, lw) + 38;
       }
-      y += 34;
+      y += 38;
 
       if (doc.note) {
-        y += 14;
+        y += 6;
         room(50);
         text(doc.note, M, 10.5, { color: [51, 51, 51], maxWidth: RIGHT - M });
       }
@@ -206,8 +220,9 @@ export function SaveAsPdf({ accent, name = 'Document', doc }: { accent: string; 
       if (doc.included.length) {
         y += 18;
         room(60);
+        room(12.5 * 1.45 + 30);
         text('What you get', M, 12.5, { bold: true });
-        y += 4;
+        y += 6;
         doc.included.forEach((line, i) => {
           room(26);
           pdf.setFont('helvetica', 'normal');
@@ -221,16 +236,28 @@ export function SaveAsPdf({ accent, name = 'Document', doc }: { accent: string; 
       }
 
       // ---- The terms, open ----------------------------------------------
+      /*
+        A heading never sits alone at the foot of a page.
+
+        "What this costs" ended page one with its answer on page two, which is
+        the one thing typesetting has always refused to do. The space needed is
+        measured before the heading is drawn: the heading plus its first
+        paragraph, or the break comes first.
+      */
       for (const sec of doc.sections) {
-        y += 18;
-        room(70);
+        const paras = sec.body.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+        const firstHeight = paras.length
+          ? pdf.splitTextToSize(paras[0].replace(/\n/g, ' '), RIGHT - M).length * 10.5 * 1.45
+          : 0;
+
+        y += 20;
+        room(12.5 * 1.45 + firstHeight + 14);
         text(sec.heading, M, 12.5, { bold: true });
-        y += 2;
-        for (const para of sec.body.split(/\n{2,}/)) {
-          if (!para.trim()) continue;
-          room(34);
-          text(para.trim().replace(/\n/g, ' '), M, 10.5, { color: [60, 60, 60], maxWidth: RIGHT - M });
-          y += 4;
+        y += 3;
+        for (const para of paras) {
+          room(28);
+          text(para.replace(/\n/g, ' '), M, 10.5, { color: [60, 60, 60], maxWidth: RIGHT - M });
+          y += 5;
         }
       }
 
