@@ -185,15 +185,28 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
 
   const switchOrg = useCallback(
     async (orgId: string) => {
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth?.user) return;
+      /*
+        getSession, not getUser.
+
+        getUser revalidates the token against the auth server — a network round
+        trip before anything else can start. Switching business is the thing
+        Mike does most often in a day and it was paying for that hop every
+        time, on top of the write and the reload. The session is already in
+        memory; the id is on it.
+
+        The same lesson is written on orgNow() a few files over, where it is
+        called the whole reason the app got slow one afternoon.
+      */
+      const { data: auth } = await supabase.auth.getSession();
+      const userId = auth?.session?.user?.id;
+      if (!userId) return;
 
       // select() back so a write blocked by RLS surfaces as an error rather
       // than a reload into the wrong business.
       const res = await supabase
         .from('profiles')
         .update({ active_org_id: orgId })
-        .eq('id', auth.user.id)
+        .eq('id', userId)
         .select('active_org_id')
         .maybeSingle();
 

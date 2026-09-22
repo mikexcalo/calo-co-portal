@@ -239,12 +239,21 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
             padding: '10px 12px', marginTop: 12, background: C.panelAlt,
           }}
         >
+          {/*
+            "Read it" was homework.
+
+            It named what the software does — read the file — and to the person
+            holding the mouse that sounds like an instruction to sit down and
+            read it themselves. What actually happens is that it pulls the
+            names, prices and line items out and files them. So the button says
+            the outcome, not the mechanism.
+          */}
           <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>
-            {items.filter((d) => !d.filed_at).length} waiting to be read
+            {items.filter((d) => !d.filed_at).length} waiting to be sorted
           </div>
           <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2, lineHeight: 1.5 }}>
-            Saving keeps the file. Reading turns it into records — a client and its people, a
-            price list, or a job with its line items. Nothing is written until you check it.
+            Press Sort it and the names, prices and line items come out onto the right records.
+            You see what it found before anything is saved.
           </div>
         </div>
       )}
@@ -341,7 +350,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                   </div>
                   {label.length > 150 && (
                     <div style={{ fontSize: 11.5, color: C.faint, marginTop: 3 }}>
-                      {label.length.toLocaleString()} characters — press Read it to file what is in it
+                      {label.length.toLocaleString()} characters — press Sort it to pull out what is in here
                     </div>
                   )}
                   <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 3, flexWrap: 'wrap' }}>
@@ -420,7 +429,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                       fontFamily: 'inherit',
                     }}
                   >
-                    Read it &rarr;
+                    Sort it &rarr;
                   </button>
                 )}
               </div>

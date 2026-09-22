@@ -57,7 +57,7 @@ export const LANE: StageSpec[] = [
     money is not agreed. A stage says where the relationship is; what somebody
     is allowed to open is a membership, and always was.
   */
-  { id: 'trying',   label: 'Trying it', means: 'In and using it. Nothing agreed or charged yet.',   tone: 'amber' },
+  { id: 'trying',   label: 'Free trial', means: 'In and using it. Nothing agreed or charged yet.',   tone: 'amber' },
   { id: 'won',      label: 'Won',      means: 'They are a client.',                                 tone: 'green' },
 ];
 

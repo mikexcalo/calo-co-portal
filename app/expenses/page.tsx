@@ -37,6 +37,7 @@ import {
   MONEY_TABS,
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
+import { DropShelf } from '@/components/spine/DropShelf';
 import { PRODUCT } from '@/lib/brand';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -358,6 +359,30 @@ export default function ExpensesPage() {
               </div>
             </div>
           </Card>
+        </div>
+      )}
+
+      {/*
+        A screen that takes typing should take a file.
+
+        Overheads had one way in: press Add an expense and fill in a form. But
+        the thing somebody actually has is a receipt — a screenshot of a
+        Supabase charge, a photo of a fuel docket — and this is the whole point
+        of the product. Typing what a receipt says, while looking at the
+        receipt, is the work it was built to remove.
+
+        The same shelf the Drops screen uses, so a receipt dropped here goes
+        through the same reader and lands on the same records, rather than a
+        second half-implementation of filing that drifts from the first.
+      */}
+      {org?.id && !adding && (
+        <div style={{ marginBottom: 18 }}>
+          <DropShelf
+            orgId={org.id}
+            compact
+            label="Drop a receipt — a screenshot, a photo, a PDF"
+            onChange={load}
+          />
         </div>
       )}
 
