@@ -1,0 +1,244 @@
+-- Column definitions of the tables dropped by 20260904_drop_dead_schema.sql.
+-- Recorded before the drop. Every one held zero rows; this is structure only.
+-- Kept so the drop is reviewable rather than merely trusted.
+
+-- _archived_client_tasks_notes (7 columns)
+--   id uuid not null default gen_random_uuid()
+--   client_id uuid
+--   type text default 'task'::text
+--   content text
+--   status text default 'open'::text
+--   created_at timestamp with time zone default now()
+--   completed_at timestamp with time zone
+
+-- activity_log (5 columns)
+--   id uuid not null default gen_random_uuid()
+--   client_id uuid
+--   event_type text not null
+--   metadata jsonb default '{}'::jsonb
+--   created_at timestamp with time zone default now()
+
+-- agencies (7 columns)
+--   id uuid not null default gen_random_uuid()
+--   name text not null
+--   slug text not null
+--   status text not null default 'active'::text
+--   created_at timestamp with time zone not null default now()
+--   updated_at timestamp with time zone not null default now()
+--   metadata jsonb not null default '{}'::jsonb
+
+-- agency (6 columns)
+--   id uuid not null default gen_random_uuid()
+--   name text not null default 'CALO&CO'::text
+--   founder text
+--   url text
+--   location text
+--   created_at timestamp with time zone default now()
+
+-- assets (7 columns)
+--   id uuid not null default gen_random_uuid()
+--   brand_kit_id uuid
+--   slot text not null
+--   file_name text
+--   storage_url text
+--   is_primary boolean default false
+--   created_at timestamp with time zone default now()
+
+-- brand_kits (6 columns)
+--   id uuid not null default gen_random_uuid()
+--   client_id uuid
+--   typography jsonb default '{}'::jsonb
+--   color_palette jsonb default '[]'::jsonb
+--   brand_notes text
+--   created_at timestamp with time zone default now()
+
+-- clients (21 columns)
+--   id uuid not null default gen_random_uuid()
+--   name text not null
+--   company text
+--   email text
+--   phone text
+--   address text
+--   active_modules ARRAY default ARRAY['invoices'::text]
+--   created_at timestamp with time zone default now()
+--   tier text default 'basic'::text
+--   health_status text default 'active'::text
+--   engagement_status text default 'active'::text
+--   next_step text
+--   brand_builder_fields jsonb default '{}'::jsonb
+--   code text
+--   address_line_1 text
+--   address_line_2 text
+--   city text
+--   state text
+--   postal_code text
+--   website text
+--   lifecycle_stage text not null default 'active'::text
+
+-- contacts (20 columns)
+--   id uuid not null default gen_random_uuid()
+--   client_id uuid
+--   name text not null
+--   role text
+--   email text
+--   phone text
+--   is_primary_contact boolean default false
+--   created_at timestamp with time zone default now()
+--   updated_at timestamp with time zone not null default now()
+--   avatar_url text
+--   kind text not null default 'network'::text
+--   tags ARRAY not null default '{}'::text[]
+--   is_billing_contact boolean not null default false
+--   context text
+--   met_at_date date
+--   met_at_location text
+--   links jsonb not null default '[]'::jsonb
+--   custom_fields jsonb not null default '{}'::jsonb
+--   source text
+--   unread boolean not null default true
+
+-- events (10 columns)
+--   id uuid not null default gen_random_uuid()
+--   created_at timestamp with time zone not null default now()
+--   updated_at timestamp with time zone not null default now()
+--   client_id uuid
+--   contact_id uuid
+--   title text not null
+--   event_date date not null
+--   location text
+--   description text
+--   source_note_id uuid
+
+-- ingest_events (8 columns)
+--   id uuid not null default gen_random_uuid()
+--   client_id uuid
+--   site_id uuid
+--   type text not null
+--   payload jsonb not null default '{}'::jsonb
+--   processed_at timestamp with time zone
+--   created_at timestamp with time zone not null default now()
+--   agency_id uuid
+
+-- ingest_log (14 columns)
+--   id uuid not null default gen_random_uuid()
+--   site_id uuid
+--   client_id uuid
+--   api_key_prefix text
+--   form_id text
+--   status_code integer not null
+--   error_code text
+--   ip inet
+--   user_agent text
+--   origin text
+--   record_type text
+--   record_id uuid
+--   received_at timestamp with time zone not null default now()
+--   agency_id uuid
+
+-- invoices (21 columns)
+--   id uuid not null default gen_random_uuid()
+--   client_id uuid
+--   invoice_number text not null
+--   status text not null default 'unpaid'::text
+--   issued_date date
+--   due_date date
+--   subtotal numeric
+--   total numeric
+--   internal_margin numeric default 0
+--   notes text
+--   line_items jsonb
+--   attachment_url text
+--   created_at timestamp with time zone default now()
+--   project_name text
+--   project_description text
+--   terms text
+--   tax numeric default 0
+--   shipping numeric default 0
+--   paid_at timestamp with time zone
+--   type text default 'service'::text
+--   source_quote_id uuid
+
+-- leads (10 columns)
+--   id uuid not null default gen_random_uuid()
+--   created_at timestamp with time zone not null default now()
+--   name text not null
+--   email text not null
+--   company text
+--   message text
+--   status text not null default 'new'::text
+--   source text not null default 'site'::text
+--   promoted_contact_id uuid
+--   read_at timestamp with time zone
+
+-- notes (10 columns)
+--   id uuid not null default gen_random_uuid()
+--   created_at timestamp with time zone not null default now()
+--   updated_at timestamp with time zone not null default now()
+--   client_id uuid
+--   contact_id uuid
+--   content text not null
+--   kind text not null default 'note'::text
+--   pinned boolean not null default false
+--   source_raw text
+--   source_kind text
+
+-- quote_requests (19 columns)
+--   id uuid not null default gen_random_uuid()
+--   client_id uuid
+--   email text
+--   name text
+--   phone text
+--   message text
+--   status text not null default 'new'::text
+--   created_at timestamp with time zone not null default now()
+--   updated_at timestamp with time zone not null default now()
+--   site_id uuid
+--   form_id text
+--   idempotency_key text
+--   utm jsonb default '{}'::jsonb
+--   source_meta jsonb default '{}'::jsonb
+--   raw_fields jsonb default '{}'::jsonb
+--   project_type text
+--   budget_range text
+--   timeline text
+--   agency_id uuid
+
+-- sites (25 columns)
+--   id uuid not null default gen_random_uuid()
+--   client_id uuid
+--   name text not null
+--   slug text not null
+--   production_domain text
+--   allowed_origins ARRAY not null default '{}'::text[]
+--   api_key_prefix text not null
+--   api_key_hash text not null
+--   api_key_last_rotated_at timestamp with time zone
+--   repo_provider text
+--   repo_owner text
+--   repo_name text
+--   repo_default_branch text default 'main'::text
+--   vercel_team_id text
+--   vercel_project_id text
+--   status text not null default 'active'::text
+--   rate_limit_per_minute integer not null default 10
+--   rate_limit_per_day integer not null default 500
+--   form_configs jsonb not null default '{}'::jsonb
+--   notification_config jsonb not null default '{}'::jsonb
+--   created_at timestamp with time zone not null default now()
+--   updated_at timestamp with time zone not null default now()
+--   created_by uuid
+--   metadata jsonb not null default '{}'::jsonb
+--   agency_id uuid
+
+-- tasks (11 columns)
+--   id uuid not null default gen_random_uuid()
+--   created_at timestamp with time zone not null default now()
+--   updated_at timestamp with time zone not null default now()
+--   client_id uuid
+--   contact_id uuid
+--   event_id uuid
+--   title text not null
+--   due_date date
+--   lead_days integer
+--   completed_at timestamp with time zone
+--   source_note_id uuid
