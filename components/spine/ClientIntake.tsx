@@ -120,6 +120,7 @@ export function ClientIntake({
   const kindWord =
     doc === 'receipt' ? 'a receipt'
     : doc === 'estimate' ? 'an estimate'
+    : doc === 'pricelist' || /price list/i.test(notes) ? 'a price list'
     : prices.length > 0 ? 'a price list'
     : 'a company';
 
@@ -128,6 +129,18 @@ export function ClientIntake({
     : relationship === 'customer' ? 'you sell to'
     : 'you deal with';
 
+  /*
+    A sentence somebody would actually say.
+
+    The first version built "This looks like a company from Pacific Empress,
+    somebody you sell to. 1 contact." Three things wrong in eleven words: the
+    grammar, the direction of the money, and the silence about the thing that
+    mattered.
+
+    A price list arrives FROM the business selling the goods, so the default is
+    that you buy from them. It was defaulting to customer, which put a shrimp
+    supplier in the list John measures his own revenue against.
+  */
   const summary = [
     `This looks like ${kindWord}`,
     name ? ` from ${name}` : '',
@@ -136,8 +149,23 @@ export function ClientIntake({
     contacts.length ? ` ${contacts.length} contact${contacts.length === 1 ? '' : 's'}.` : '',
   ].join('');
 
+  /*
+    Say when the useful half is missing.
+
+    John's price list has thirty-six shrimp sizes, pack formats, and a column
+    headed FOB Price with nothing under it. Nothing was extracted because there
+    was nothing to extract, which is correct and was completely invisible:
+    the screen said "1 contact" and left somebody to wonder where the prices
+    went. Saying so is worth more than any amount of careful silence.
+  */
+  const missingPrices =
+    kindWord === 'a price list' && prices.length === 0
+      ? 'No prices came out of it. The price column looks empty, so there was nothing to read. Fill it in and drop it again and the prices will come through.'
+      : null;
+
   const landsWhere =
     doc === 'receipt' ? 'Filing it records the money as spent, and it comes off Profit and Loss.'
+    : relationship === 'supplier' ? 'They land under Suppliers, and anything priced becomes searchable.'
     : isCustomer ? 'They land in Customers, and anything priced becomes searchable and goes onto quotes.'
     : 'They land in Pipeline until you win them.';
 
@@ -161,6 +189,13 @@ export function ClientIntake({
         name: String(p.name ?? ''), unit: String(p.unit ?? ''),
         price: p.price == null ? '' : String(p.price),
       })));
+      /*
+        The reader now says which side they are on. A price list received is a
+        supplier selling to you, and defaulting that to "customer" is how a
+        shrimp packer ends up in the list somebody measures revenue against.
+      */
+      if (i.side === 'supplier') { setRelationship('supplier'); setIsCustomer(false); }
+      else if (i.side === 'customer') { setRelationship('customer'); setIsCustomer(true); }
       setDoc(i.doc ?? 'client');
       if (i.job) {
         setJobName(i.job.name ?? '');
@@ -567,6 +602,11 @@ export function ClientIntake({
           <p style={{ fontSize: 17, color: C.text, margin: '8px 0 4px', lineHeight: 1.45, maxWidth: '58ch' }}>
             {summary}
           </p>
+          {missingPrices && (
+            <p style={{ fontSize: 13.5, color: C.amber, margin: '0 0 10px', maxWidth: '58ch', lineHeight: 1.5 }}>
+              {missingPrices}
+            </p>
+          )}
           <p style={{ fontSize: 13, color: C.faint, margin: '0 0 16px', maxWidth: '58ch' }}>
             {landsWhere}
           </p>

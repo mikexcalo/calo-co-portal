@@ -77,6 +77,8 @@ export interface Intake {
   notes: string | null;
   contacts: IntakeContact[];
   prices: IntakePrice[];
+  /** Which side of the deal they are on, read off what the document is. */
+  side: 'supplier' | 'customer' | null;
 }
 
 const PROMPT =
@@ -106,7 +108,13 @@ const PROMPT =
   '  notes    anything said about them that is worth keeping, in plain sentences, or null\n' +
   '  contacts an array of { name, title, email, phone }, one per person named. Empty if none.\n' +
   '  prices   an array of { name, unit, price }, one per line item on any price list. ' +
-  'price is a number with no currency symbol. Empty if there is no price list.\n\n' +
+  'price is a number with no currency symbol. Empty if there is no price list, and empty ' +
+  'if the price column exists but has no numbers in it. Never carry a size or a pack ' +
+  'quantity across into price.\n' +
+  '  side     who this business is to the reader: "supplier" if the document is something ' +
+  'they RECEIVED, such as a price list, a quote or an invoice addressed to them; ' +
+  '"customer" if it is something they SENT; null if it genuinely does not say. ' +
+  'A price list from a company is that company selling, which makes them a supplier.\n\n' +
   'Use null for anything not clearly there. Do not guess a company from an email domain, ' +
   'do not complete a partial phone number, and do not invent a price. Leaving a field empty ' +
   'is always better than filling it with something plausible.';
@@ -209,6 +217,7 @@ export async function POST(req: NextRequest) {
             email: c?.email ?? null, phone: c?.phone ?? null,
           }))
         : [],
+      side: parsed.side === 'supplier' || parsed.side === 'customer' ? parsed.side : null,
       prices: Array.isArray(parsed.prices)
         ? parsed.prices.slice(0, 200).map((p) => ({
             name: p?.name ?? null, unit: p?.unit ?? null,
