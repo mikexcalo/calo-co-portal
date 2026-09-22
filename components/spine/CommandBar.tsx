@@ -46,9 +46,15 @@ interface Item {
   copy?: string;
   /** Switches the workspace instead of navigating anywhere. */
   switchTo?: string;
+  /** Opens something rather than going somewhere. Logging an hour is not a
+      destination, and sending you to a page to do it is what made it too far
+      away to bother with. */
+  fire?: string;
 }
 
 const NAV: Item[] = [
+  { id: 'a-log', label: 'Log time', hint: 'against a client', href: '', group: 'Do', fire: 'calo:log-time' },
+  { id: 'a-note', label: 'Drop a note', hint: 'type, talk or paste', href: '', group: 'Do', fire: 'calo:drop-note' },
   { id: 'n-today', label: 'Home', href: '/', group: 'Go to' },
   { id: 'n-jobs', label: 'Projects', href: '/jobs', group: 'Go to' },
   { id: 'n-clients', label: 'Clients', href: '/customers', group: 'Go to' },
@@ -315,6 +321,11 @@ export function CommandBar({ trigger = true }: { trigger?: boolean } = {}) {
   };
 
   const choose = (i: Item) => {
+    if (i.fire) {
+      window.dispatchEvent(new Event(i.fire));
+      setOpen(false);
+      return;
+    }
     if (i.copy) {
       navigator.clipboard?.writeText(i.copy);
       setOpen(false);

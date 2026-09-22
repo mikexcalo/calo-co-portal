@@ -12,6 +12,7 @@
 
 import supabase from '@/lib/supabase';
 import type {
+  BillableJob,
   Cost,
   CostKind,
   DocumentRecord,
@@ -473,6 +474,57 @@ export async function listTimeEntries(jobId: string): Promise<TimeEntry[]> {
  * which case the work is unbilled and the next run will pick it up, which is
  * also correct.
  */
+/**
+ * Everywhere an hour could go, with what it would do to the bill.
+ *
+ * Logging time meant navigating to a client, into a job, finding the hours
+ * panel and filling in a rate — four screens deep, for the thing an agency
+ * does more often than anything else. This is the list behind a logger that
+ * lives in the top bar instead: every open job, who it belongs to, the rate
+ * already agreed, and the draft it would land on.
+ *
+ * The rate is read, never guessed. What the client agreed beats what the job
+ * was set up with, which beats the workspace default. If all three are unset
+ * it comes back zero and the logger says so rather than inventing a number.
+ */
+export async function listBillableJobs(orgId: string): Promise<BillableJob[]> {
+  const [jobRes, custRes, termRes, invRes] = await Promise.all([
+    supabase.from('jobs').select('id, name, customer_id, labor_rate, updated_at')
+      .eq('org_id', orgId).in('status', ['lead', 'estimating', 'won', 'active'])
+      .order('updated_at', { ascending: false }),
+    supabase.from('customers').select('id, name').eq('org_id', orgId),
+    supabase.from('customer_terms').select('customer_id, hourly_rate').eq('org_id', orgId),
+    supabase.from('job_invoices').select('job_id, number, total').eq('org_id', orgId).eq('status', 'draft'),
+  ]);
+  for (const r of [jobRes, custRes, termRes, invRes]) if (r.error) throw new Error(r.error.message);
+
+  const org = (await supabase.from('orgs').select('default_labor_rate').eq('id', orgId).maybeSingle()).data as
+    { default_labor_rate: number | null } | null;
+  const fallback = num(org?.default_labor_rate);
+
+  const names = new Map((custRes.data ?? []).map((c: { id: string; name: string }) => [c.id, c.name]));
+  const agreed = new Map(
+    (termRes.data ?? []).map((t: { customer_id: string; hourly_rate: number | null }) => [t.customer_id, num(t.hourly_rate)])
+  );
+  const drafts = new Map(
+    (invRes.data ?? []).map((i: { job_id: string; number: string; total: number }) => [i.job_id, i])
+  );
+
+  return (jobRes.data ?? []).map((j: Record<string, unknown>) => {
+    const customerId = j.customer_id ? String(j.customer_id) : null;
+    const draft = drafts.get(String(j.id));
+    return {
+      id: String(j.id),
+      name: String(j.name),
+      customer_id: customerId,
+      customer_name: customerId ? names.get(customerId) ?? null : null,
+      rate: (customerId ? agreed.get(customerId) : 0) || num(j.labor_rate) || fallback,
+      draft_number: draft ? String(draft.number) : null,
+      draft_total: draft ? num(draft.total) : null,
+    };
+  });
+}
+
 export async function syncOpenDraft(orgId: string, jobId: string): Promise<JobInvoice | null> {
   const draft = (
     await supabase

@@ -12,6 +12,7 @@ import { useIsPhone, radius } from '@/components/spine/ui';
 import { C } from '@/components/spine/ui';
 import { Notifications } from '@/components/spine/Notifications';
 import { DropIt } from '@/components/spine/DropIt';
+import LogTime from '@/components/spine/LogTime';
 import { PRODUCT } from '@/lib/brand';
 
 /**
@@ -66,6 +67,7 @@ export default function TopBar() {
    */
   const [siteUrl, setSiteUrl] = useState<string | null>(null);
   const [dropping, setDropping] = useState(false);
+  const [logging, setLogging] = useState(false);
 
   /**
    * Opened by keyboard and from Home, not by a blue button in the chrome.
@@ -80,13 +82,21 @@ export default function TopBar() {
         e.preventDefault();
         setDropping(true);
       }
+      /* The same reach as a note, because it is the same kind of act. */
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        setLogging(true);
+      }
     };
     const onAsk = () => setDropping(true);
+    const onLog = () => setLogging(true);
     window.addEventListener('keydown', onKey);
     window.addEventListener('calo:drop-note', onAsk);
+    window.addEventListener('calo:log-time', onLog);
     return () => {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('calo:drop-note', onAsk);
+      window.removeEventListener('calo:log-time', onLog);
     };
   }, []);
 
@@ -203,6 +213,36 @@ export default function TopBar() {
           </svg>
           Drop a note
         </button>
+
+        {/*
+          Logging an hour is not a trip to a client record.
+
+          It was four screens deep: the client, then the job inside it, then
+          the hours panel, then a rate you had to remember. That is the thing
+          an agency does more often than anything else, so putting it that far
+          away means it happens on the 30th from memory, and hours
+          reconstructed from memory are always fewer than hours that happened.
+
+          Beside Drop a note, because they are the same kind of act: something
+          you record in ten seconds without leaving what you were doing.
+        */}
+        <button
+          onClick={() => setLogging(true)}
+          title="Log time against a client  (⌘L)"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
+            background: 'transparent', border: `1px solid ${C.border}`,
+            borderRadius: radius.pill, padding: '6px 13px', fontSize: 13.5, fontWeight: 500,
+            color: C.dim, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <circle cx="8" cy="8.6" r="5.6" />
+            <path d="M8 5.6v3l1.9 1.2" />
+            <path d="M6.2 1.6h3.6" />
+          </svg>
+          Log time
+        </button>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -276,6 +316,8 @@ export default function TopBar() {
           </a>
         )}
         <Notifications />
+        {logging && <LogTime onClose={() => setLogging(false)} />}
+
         {dropping && (
           <div
             onClick={() => setDropping(false)}

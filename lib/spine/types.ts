@@ -400,3 +400,16 @@ export const COST_KIND_LABEL: Record<CostKind, string> = {
   permit: 'Permit',
   other: 'Other',
 };
+
+/** A place an hour can be logged against, and what it would join. */
+export interface BillableJob {
+  id: string;
+  name: string;
+  customer_id: string | null;
+  customer_name: string | null;
+  /** Agreed with the client, else the job's, else the workspace default. */
+  rate: number;
+  /** The open draft this would land on, if there is one. */
+  draft_number: string | null;
+  draft_total: number | null;
+}
