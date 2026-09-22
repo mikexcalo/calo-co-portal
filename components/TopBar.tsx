@@ -166,10 +166,21 @@ export default function TopBar() {
             color: C.dim, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
           }}
         >
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M8 2.2v7.4" />
-            <path d="m5.2 6.9 2.8 2.8 2.8-2.8" />
-            <path d="M2.6 11.6v1.2a1 1 0 0 0 1 1h8.8a1 1 0 0 0 1-1v-1.2" />
+          {/*
+            A sticky note, because that is what this is.
+
+            It was a download arrow — a tray with something dropping into it —
+            which is the universal symbol for "save this file to my computer",
+            the exact opposite of what pressing it does. Next to the words
+            "Drop a note" it read as downloading your notes.
+
+            A square with the corner turned up is a sticky note and nothing
+            else, at any size.
+          */}
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M2.4 3.4a1 1 0 0 1 1-1h9.2a1 1 0 0 1 1 1v5.9L9.3 13.6H3.4a1 1 0 0 1-1-1z" />
+            <path d="M13.6 9.3H10.3a1 1 0 0 0-1 1v3.3" />
+            <path d="M5.1 6h5.8M5.1 8.4h3.1" />
           </svg>
           Drop a note
         </button>

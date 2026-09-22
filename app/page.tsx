@@ -828,24 +828,17 @@ export default function Dashboard() {
             entirely the moment every job was finished.
           */}
           {/*
-            Where a note starts.
+            One way to write a note, not three.
 
-            One line rather than a button in the chrome: it is here because
-            Home is where you land, and it says the shortcut so the second time
-            you never come looking for it.
+            This dashed box sat under the numbers saying "Drop a note — talk or
+            paste", while the top bar carried a Drop a note button, and further
+            down the page a second box asked "Tell us what you need". Three
+            places to type on one screen, two of them going to the same place.
+
+            The control in the chrome is on every screen and is where anybody
+            learns it lives, so it wins. The shortcut it teaches is on that
+            button too.
           */}
-          <button
-            onClick={() => window.dispatchEvent(new Event('calo:drop-note'))}
-            style={{
-              width: '100%', textAlign: 'left', marginBottom: 22,
-              border: `1px dashed ${C.border}`, background: 'transparent',
-              borderRadius: 10, padding: '11px 14px', cursor: 'pointer',
-              fontFamily: 'inherit', fontSize: 13.5, color: C.dim,
-            }}
-          >
-            Drop a note — talk or paste, and it files itself
-            <span style={{ float: 'right', fontSize: 12, color: C.faint }}>⌘J</span>
-          </button>
 
           {/* Somebody is waiting on you. First, because it is the only
               thing here that somebody else is blocked by. */}
