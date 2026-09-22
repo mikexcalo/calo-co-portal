@@ -61,6 +61,7 @@ import {
   useIsPhone,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { tidyAddress } from '@/lib/spine/tidy';
 import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Customer {
@@ -979,9 +980,28 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                     Search setup
                   </button>
                 )}
+                {/*
+                  An address with a label on it.
+
+                  It sat at the end of a row of links, in 12.5px grey, with
+                  nothing saying what it was — so "1018 b cushing dr, round
+                  rock, TX" read as a stray line of text rather than as where
+                  the work happens. Labelled, in the reading colour, and
+                  capitalised the way somebody would write it.
+                */}
                 {customer.address && (
-                  <span style={{ fontSize: 12.5, color: C.faint, flex: 1, minWidth: 120 }}>
-                    {customer.address}
+                  <span style={{ display: 'block', flexBasis: '100%', minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600, marginBottom: 2 }}>
+                      Where
+                    </span>
+                    <a
+                      href={`https://maps.google.com/?q=${encodeURIComponent(customer.address)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: 14, color: C.text, textDecoration: 'none' }}
+                    >
+                      {tidyAddress(customer.address)}
+                    </a>
                   </span>
                 )}
               </div>

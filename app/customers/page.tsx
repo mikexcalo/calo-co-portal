@@ -107,6 +107,14 @@ export default function CustomersPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  /*
+    A search term that means "the ones with no email".
+
+    The tile counted them and the list gave no way to find them, so this is
+    what pressing it types into the filter — the same list, narrowed, rather
+    than a second mode with its own rules.
+  */
+  const NO_EMAIL = '\u0000no-email';
   const [q, setQ] = useState('');
   const [stageFilter, setStageFilter] = useState<'all' | 'won' | 'past'>('all');
   const [kindFilter, setKindFilter] = useState<'customer' | 'supplier' | 'other'>('customer');
@@ -216,6 +224,12 @@ export default function CustomersPage() {
     const brandClient =
       brandFilter === 'all' ? null : brands.find((b) => b.id === brandFilter)?.customer_id ?? null;
 
+    if (term === NO_EMAIL) {
+      return rows.filter(
+        (r) => isClient(r.stage) && (r.relationship ?? 'customer') === kindFilter && !r.email
+      );
+    }
+
     return rows.filter((r) => {
       // Anything still being chased belongs to Pipeline, not here. A record
       // does not move between lists when it converts; the window changes.
@@ -297,11 +311,35 @@ export default function CustomersPage() {
       key: 'who',
       label: 'Who',
       width: 'minmax(120px, 1.2fr)',
-      render: (r) => (
-        <span style={{ fontSize: 12.5, color: r.contact_name ? C.dim : C.amber, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
-          {r.contact_name ?? (r.email ? r.email : 'nobody on file')}
-        </span>
-      ),
+      /*
+        Who, rather than the same name twice.
+
+        A residential customer IS a person, so the company and the contact are
+        the same words — Mammoth's list read "Nikhail / Nikhail" across two
+        columns. Where the contact adds nothing, the column says what it does
+        know instead: the email, or that nobody is on file.
+
+        And the client with no email is marked here. Home says "1 client with
+        no email" and sends you to this screen, which then showed a count in a
+        tile and gave no way at all to tell which row it meant. Four rows is
+        guessable; forty is not.
+      */
+      render: (r) => {
+        const same =
+          r.contact_name &&
+          r.contact_name.trim().toLowerCase() === r.name.trim().toLowerCase();
+        const who = same ? null : r.contact_name;
+        return (
+          <span style={{ fontSize: 12.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+            <span style={{ color: who ? C.dim : C.faint }}>
+              {who ?? (r.email ? r.email : 'nobody on file')}
+            </span>
+            {!r.email && (
+              <span style={{ color: C.red, marginLeft: who ? 8 : 0 }}>· no email</span>
+            )}
+          </span>
+        );
+      },
     },
     {
       key: 'next',
@@ -487,7 +525,17 @@ export default function CustomersPage() {
             />
           )}
           {noEmail.length > 0 && (
-            <Metric label="No email" value={String(noEmail.length)} hint="Can't invoice" />
+            <button
+              onClick={() => setQ(q === NO_EMAIL ? '' : NO_EMAIL)}
+              style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              <Metric
+                label="No email"
+                value={String(noEmail.length)}
+                tone="red"
+                hint={q === NO_EMAIL ? 'Showing them — press to clear' : "Can't invoice · press to see who"}
+              />
+            </button>
           )}
         </div>
       )}
@@ -542,8 +590,9 @@ export default function CustomersPage() {
       )}
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 18, flexWrap: 'wrap', alignItems: 'center' }}>
+        {/* The sentinel is a filter, not something anybody typed. */}
         <SearchField
-          value={q}
+          value={q === NO_EMAIL ? '' : q}
           onChange={setQ}
           placeholder={`Search ${vocab.customerPlural.toLowerCase()}`}
           style={{ flex: '0 1 280px' }}

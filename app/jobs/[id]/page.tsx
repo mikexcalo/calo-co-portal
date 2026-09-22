@@ -67,6 +67,7 @@ import { UndoBar, type UndoState } from '@/components/spine/Undo';
 import { useOrg } from '@/lib/spine/org';
 import { Reminders } from '@/components/spine/Reminders';
 import { human } from '@/lib/spine/errors';
+import { tidyAddress } from '@/lib/spine/tidy';
 
 const STATUSES: JobStatus[] = [
   'lead',
@@ -227,7 +228,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     <Page
       back={{ label: vocab.jobPlural, href: '/jobs' }}
       title={job.name}
-      subtitle={[job.customer?.name, job.address].filter(Boolean).join(' · ') || undefined}
+      subtitle={[job.customer?.name, tidyAddress(job.address)].filter(Boolean).join(' · ') || undefined}
       action={
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <Button variant="ghost" onClick={() => router.push('/jobs')}>All jobs</Button>

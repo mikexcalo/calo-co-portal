@@ -91,9 +91,19 @@ export function OrgSwitcher() {
           />
           <div
             style={{
+              /*
+                It opens upward, because it lives at the bottom.
+
+                The switcher moved to the foot of the sidebar and kept opening
+                downward, so the list unrolled off the bottom of the window and
+                the businesses underneath the first one were unreachable
+                without scrolling a menu that does not scroll.
+              */
               position: 'absolute',
-              top: 'calc(100% + 4px)',
+              bottom: 'calc(100% + 6px)',
               left: 0,
+              maxHeight: 'min(60vh, 420px)',
+              overflowY: 'auto',
               minWidth: '100%',
               width: 'max-content',
               maxWidth: 340,
@@ -102,7 +112,7 @@ export function OrgSwitcher() {
               borderRadius: 10,
               padding: 5,
               zIndex: 41,
-              boxShadow: '0 10px 30px rgba(0,0,0,.13)',
+              boxShadow: '0 -8px 30px rgba(0,0,0,.13)',
             }}
           >
             {/*
