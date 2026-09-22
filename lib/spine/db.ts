@@ -447,23 +447,162 @@ export async function listTimeEntries(jobId: string): Promise<TimeEntry[]> {
   return rows.map((r) => ({ ...r, hours: num(r.hours), rate: num(r.rate) }));
 }
 
+/**
+ * A DRAFT ABSORBS NEW WORK.
+ *
+ * Logging an hour against a job that already has a draft used to do nothing
+ * to that draft. The hour sat unbilled, the cron skipped the job because an
+ * invoice already existed for the month, and the only way to get the work
+ * onto the bill was to void the invoice and draft it again — which renumbers
+ * it, so a document somebody may already have looked at changes its name.
+ *
+ * Four steps ending in a voided invoice, for the single most ordinary thing
+ * an agency does: bill another hour.
+ *
+ * A draft has not been sent. Nobody has seen it and nobody owes anything on
+ * it, so there is no reason it cannot simply be right. It rebuilds from the
+ * actuals every time they change, keeps its number, and stops the moment it
+ * is approved or sent.
+ *
+ * Lines with no source are left alone. The monthly run writes the recurring
+ * fees with their own period naming and pro-rating, and rebuilding those from
+ * terms here would quietly overwrite arithmetic that was correct. This owns
+ * the lines that came from hours and receipts. Nothing else.
+ *
+ * Returns the updated invoice, or null when the job has no open draft — in
+ * which case the work is unbilled and the next run will pick it up, which is
+ * also correct.
+ */
+export async function syncOpenDraft(orgId: string, jobId: string): Promise<JobInvoice | null> {
+  const draft = (
+    await supabase
+      .from('job_invoices')
+      .select('*')
+      .eq('org_id', orgId)
+      .eq('job_id', jobId)
+      .eq('status', 'draft')
+      .order('issued_on', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+  ).data as JobInvoice | null;
+  if (!draft) return null;
+
+  // Claim anything still unbilled. Same conditional update the original draft
+  // uses, so two of these racing cannot both claim the same hour.
+  const claim = await Promise.all([
+    supabase.from('time_entries').update({ invoiced_on: draft.id })
+      .eq('job_id', jobId).eq('billable', true).is('invoiced_on', null),
+    supabase.from('costs').update({ invoiced_on: draft.id })
+      .eq('job_id', jobId).eq('billable', true).is('invoiced_on', null),
+  ]);
+  for (const r of claim) if (r.error) throw new Error(r.error.message);
+
+  // Everything this invoice now holds, including whatever it already had.
+  const [timeRes, costRes, lineRes] = await Promise.all([
+    supabase.from('time_entries').select('*').eq('invoiced_on', draft.id).order('worked_on'),
+    supabase.from('costs').select('*').eq('invoiced_on', draft.id).order('purchased_on'),
+    supabase.from('job_invoice_lines').select('*').eq('invoice_id', draft.id).order('position'),
+  ]);
+  for (const r of [timeRes, costRes, lineRes]) if (r.error) throw new Error(r.error.message);
+
+  const time = (timeRes.data ?? []) as TimeEntry[];
+  const costs = (costRes.data ?? []) as Cost[];
+  const existing = (lineRes.data ?? []) as JobInvoiceLine[];
+
+  /* The fees and anything typed by hand. Not ours to rewrite. */
+  const kept = existing.filter((l) => !l.source_time_entry_id && !l.source_cost_id);
+  const job = await getJob(jobId);
+
+  const rebuilt = [
+    ...time.map((e) => ({
+      kind: 'labor',
+      description: e.description || `Labor${e.worker_name ? ` (${e.worker_name})` : ''} (${e.worked_on})`,
+      qty: num(e.hours),
+      unit: 'hr',
+      unit_price: num(e.rate),
+      total: round2(num(e.hours) * num(e.rate)),
+      source_time_entry_id: e.id,
+      source_cost_id: null,
+    })),
+    ...costs.map((c) => {
+      const markup = num(c.markup_pct ?? job?.material_markup_pct ?? 0);
+      const billed = round2(num(c.amount) * (1 + markup / 100));
+      return {
+        kind: c.kind === 'subcontractor' ? 'subcontractor' : 'material',
+        description: c.description || c.vendor || 'Materials',
+        qty: 1,
+        unit: null,
+        unit_price: billed,
+        total: billed,
+        source_time_entry_id: null,
+        source_cost_id: c.id,
+      };
+    }),
+  ];
+
+  const sourced = existing.filter((l) => l.source_time_entry_id || l.source_cost_id);
+  if (sourced.length) {
+    const del = await supabase.from('job_invoice_lines').delete()
+      .in('id', sourced.map((l) => l.id));
+    if (del.error) throw new Error(del.error.message);
+  }
+
+  if (rebuilt.length) {
+    const ins = await supabase.from('job_invoice_lines').insert(
+      rebuilt.map((l, i) => ({ ...l, invoice_id: draft.id, position: kept.length + i }))
+    );
+    if (ins.error) throw new Error(ins.error.message);
+  }
+
+  const subtotal = round2(
+    kept.reduce((s, l) => s + num(l.total), 0) + rebuilt.reduce((s, l) => s + l.total, 0)
+  );
+  const taxAmount = round2(subtotal * (num(draft.tax_rate) / 100));
+  const dates = [...time.map((e) => e.worked_on), ...costs.map((c) => c.purchased_on)].sort();
+
+  return unwrap(
+    await supabase
+      .from('job_invoices')
+      .update({
+        subtotal,
+        tax_amount: taxAmount,
+        total: round2(subtotal + taxAmount),
+        period_start: dates[0] ?? draft.period_start,
+        period_end: dates[dates.length - 1] ?? draft.period_end,
+      })
+      .eq('id', draft.id)
+      .select()
+      .single()
+  ) as JobInvoice;
+}
+
 export async function createTimeEntry(
   orgId: string,
   jobId: string,
   input: { worked_on: string; hours: number; rate: number; worker_name?: string; description?: string }
 ): Promise<TimeEntry> {
-  return unwrap(
+  const row = unwrap(
     await supabase
       .from('time_entries')
       .insert({ ...input, org_id: orgId, job_id: jobId })
       .select()
       .single()
   ) as TimeEntry;
+  // Onto the open draft, if there is one. See syncOpenDraft.
+  await syncOpenDraft(orgId, jobId);
+  return row;
 }
 
 export async function deleteTimeEntry(id: string): Promise<void> {
+  /* Read it first: once it is gone there is no way to know which job's draft
+     needs rebuilding, and a deleted hour that stays on the invoice is worse
+     than one that was never logged. */
+  const row = (
+    await supabase.from('time_entries').select('org_id, job_id').eq('id', id).maybeSingle()
+  ).data as { org_id: string; job_id: string } | null;
   const res = await supabase.from('time_entries').delete().eq('id', id);
   if (res.error) throw new Error(res.error.message);
+  if (row) await syncOpenDraft(row.org_id, row.job_id);
 }
 
 // ---------------------------------------------------------------------------
@@ -494,19 +633,27 @@ export async function createCost(
     markup_pct?: number;
   }
 ): Promise<Cost> {
-  return unwrap(
+  const row = unwrap(
     await supabase
       .from('costs')
       .insert({ ...input, org_id: orgId, job_id: jobId })
       .select()
-      .single()
-  ) as Cost;
+      .single()  ) as Cost;
+  await syncOpenDraft(orgId, jobId);
+  return row;
 }
 
 export async function deleteCost(id: string): Promise<void> {
+  /* Same as deleting an hour: read the job first, or the draft keeps a line
+     for a receipt that no longer exists. */
+  const row = (
+    await supabase.from('costs').select('org_id, job_id').eq('id', id).maybeSingle()
+  ).data as { org_id: string; job_id: string } | null;
   const res = await supabase.from('costs').delete().eq('id', id);
   if (res.error) throw new Error(res.error.message);
+  if (row) await syncOpenDraft(row.org_id, row.job_id);
 }
+
 
 // ---------------------------------------------------------------------------
 // Documents — the shoebox

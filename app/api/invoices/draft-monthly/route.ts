@@ -65,13 +65,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: invErr?.message ?? 'Could not draft' }, { status: 500 });
   }
 
-  // Claim the unbilled work onto this invoice, so two runs cannot bill it twice.
-  const [{ data: time }, { data: costs }] = await Promise.all([
-    db.from('time_entries').update({ invoiced_on: today.toISOString().slice(0, 10) })
-      .eq('job_id', jobId).is('invoiced_on', null).select('*'),
-    db.from('costs').update({ invoiced_on: today.toISOString().slice(0, 10) })
+  /*
+    invoiced_on holds the invoice, not the date.
+
+    This wrote today's date into it. The column is a uuid with a foreign key to
+    job_invoices, so Postgres rejected every one of these updates as invalid
+    uuid syntax — and the error was thrown away, because only `data` was
+    destructured. `time` came back null, no labor lines were built, and the
+    invoice went out carrying the monthly fees and none of the hours. The hours
+    stayed unbilled forever, since the next run skips a job that already has an
+    invoice for the month.
+
+    Nothing caught it because the two invoices on file were seeded by a
+    migration, which did it correctly. This route had never actually run.
+  */
+  const [timeRes, costRes] = await Promise.all([
+    db.from('time_entries').update({ invoiced_on: invoice.id })
+      .eq('job_id', jobId).eq('billable', true).is('invoiced_on', null).select('*'),
+    db.from('costs').update({ invoiced_on: invoice.id })
       .eq('job_id', jobId).is('invoiced_on', null).eq('billable', true).select('*'),
   ]);
+  /* And it is not thrown away. A billing run that half-works has to say so. */
+  for (const r of [timeRes, costRes]) {
+    if (r.error) {
+      await db.from('job_invoices').delete().eq('id', invoice.id);
+      return NextResponse.json({ error: r.error.message }, { status: 500 });
+    }
+  }
+  const time = timeRes.data;
+  const costs = costRes.data;
 
   type Line = Record<string, unknown>;
   const lines: Line[] = [];

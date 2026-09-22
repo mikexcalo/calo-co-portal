@@ -580,7 +580,8 @@ export default function BillingPage() {
                     */}
                     {inv.status === 'draft' && (
                       <div style={{ fontSize: 12.5, color: C.faint, marginTop: 10, lineHeight: 1.6 }}>
-                        Lines come from hours and receipts filed against the job.{' '}
+                        Hours and receipts filed against the job land here while
+                        this is still a draft.{' '}
                         <button
                           onClick={() => router.push(`/jobs/${inv.job_id}`)}
                           style={{
@@ -592,7 +593,7 @@ export default function BillingPage() {
                         >
                           Add work on the job
                         </button>
-                        {' '}and it lands here.
+                        {' '}and the total updates.
                       </div>
                     )}
 
