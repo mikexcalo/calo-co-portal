@@ -115,6 +115,48 @@ export async function POST(req: NextRequest) {
 
     const job = one<{ name: string; customer_id: string | null }>(estimate.job);
 
+    /*
+      A record on the client, because an acceptance is a contract.
+
+      Accepting set a status on the estimate and moved the job to won, both of
+      which are working state — the estimate can be superseded, the job moves
+      on, and neither is somewhere anybody would look in a year to answer "what
+      did they agree to, when, and who said so".
+
+      This writes it onto the customer's own timeline, where their history
+      already lives: the amount, the date, the name the person typed, and the
+      link to the exact document they were looking at. Written from the same
+      request that recorded the decision, so it cannot be true in one place and
+      missing in the other.
+    */
+    if (job?.customer_id) {
+      await db.from('customer_notes').insert({
+        org_id: estimate.org_id,
+        customer_id: job.customer_id,
+        job_id: estimate.job_id,
+        kind: 'system',
+        source: 'estimate',
+        direction: 'in',
+        happened_on: now.slice(0, 10),
+        title:
+          decision === 'accepted'
+            ? `Accepted: ${job?.name ?? 'proposal'}`
+            : `Declined: ${job?.name ?? 'proposal'}`,
+        body:
+          decision === 'accepted'
+            ? [
+                `${body.name?.trim() || 'Somebody'} accepted this on ${now.slice(0, 10)}.`,
+                `Agreed at ${acceptedTotal.toFixed(2)}.`,
+                `Document: /e/${(body.token ?? '').trim()}`,
+              ].join('\n')
+            : [
+                `${body.name?.trim() || 'Somebody'} declined this on ${now.slice(0, 10)}.`,
+                body.reason?.trim() ? `Reason given: ${body.reason.trim()}` : null,
+                `Document: /e/${(body.token ?? '').trim()}`,
+              ].filter(Boolean).join('\n'),
+      }).then(undefined, (e) => console.error('[estimates/decide] client record:', e));
+    }
+
     await db.from('notifications').insert({
       org_id: estimate.org_id,
       kind: 'system',

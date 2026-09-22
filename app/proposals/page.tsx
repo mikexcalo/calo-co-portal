@@ -271,7 +271,21 @@ export default function ProposalsPage() {
                   it. New tab, because this is a thing you read and come back
                   from, not a place you navigate to.
                 */}
-                <Row cols="130px 1fr 170px 110px 130px" header>
+                {/*
+                  Room where the words are.
+
+                  The columns were fixed at 130/1fr/170/110/100, so the client
+                  name got a flexible column it did not need and the project
+                  name got 170 fixed pixels it could not live in. "Platform
+                  Access & Ongoing Development" wrapped to two lines beside a
+                  half-empty column.
+
+                  The reference is a fixed width because it is always the same
+                  shape. The two names share the slack, with the project taking
+                  more because project names are always longer than company
+                  names. Money is as narrow as money ever needs.
+                */}
+                <Row cols="104px minmax(0, 1fr) minmax(0, 1.6fr) 96px 110px" header>
                   <div>Proposal</div>
                   <div>For</div>
                   <div>Project</div>
@@ -281,7 +295,7 @@ export default function ProposalsPage() {
                 {drafts.map((r) => (
                   <Row
                     key={r.id}
-                    cols="130px 1fr 170px 110px 130px"
+                    cols="104px minmax(0, 1fr) minmax(0, 1.6fr) 96px 110px"
                     onClick={() =>
                       r.public_token
                         ? setPreviewing(`/e/${r.public_token}`)
