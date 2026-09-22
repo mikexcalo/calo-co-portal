@@ -130,7 +130,29 @@ export default async function PublicInvoice({ params }: { params: { token: strin
     <div style={{ background: '#f5f5f3', minHeight: '100vh', padding: '24px 16px 60px' }}>
       {/* An invoice deserves the same one-press download a proposal gets. */}
       <div style={{ maxWidth: 720, margin: '0 auto 12px', display: 'flex', justifyContent: 'flex-end' }}>
-        <SaveAsPdf accent={accent} name={`${org?.name ?? ""} Invoice ${invoice.number}`} />
+        <SaveAsPdf
+          accent={accent}
+          name={`${org?.name ?? ''} Invoice ${invoice.number}`}
+          doc={{
+            org: org?.name ?? '',
+            reference: `Invoice ${invoice.number}`,
+            title: job?.name ?? '',
+            preparedFor: job?.customer?.contact_name || job?.customer?.name || null,
+            lines: (lines ?? []).map((l: Record<string, unknown>) => {
+              const [head, ...rest] = String(l.description ?? '').split(/\.\s+/);
+              return {
+                title: head.replace(/\.$/, ''),
+                detail: rest.join('. ') || undefined,
+                qty: Number(l.qty) !== 1 ? `${Number(l.qty)}${l.unit ? ` ${l.unit}` : ''}` : '',
+                amount: money(Number(l.total)),
+              };
+            }),
+            totals: [{ label: paid ? 'Total' : 'Amount due', value: money(paid ? Number(invoice.total) : owed) }],
+            note: invoice.due_on ? `Due ${fmtDate(invoice.due_on)}.` : null,
+            included: [],
+            sections: [],
+          }}
+        />
       </div>
       <div data-document style={{ maxWidth: 720, margin: '0 auto', background: '#fff', border: '1px solid #e4e4e0', borderRadius: 12, overflow: 'hidden' }}>
         <div style={{ borderTop: `4px solid ${accent}`, padding: '28px 30px 0' }}>

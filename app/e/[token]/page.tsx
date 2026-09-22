@@ -231,7 +231,50 @@ export default async function PublicEstimate({
           justifyContent: 'flex-end',
         }}
       >
-        <SaveAsPdf accent={accent} name={`${org?.name ?? ''} ${vocabWord} ${String(estimate.version).padStart(3, '0')} ${job?.customer?.name ?? ''}`} />
+        {/*
+          The document as data, so the PDF can be typeset rather than
+          photographed. Everything a reader needs and nothing that only works
+          on a screen: no accept button, no accordion, no links.
+        */}
+        <SaveAsPdf
+          accent={accent}
+          name={`${org?.name ?? ''} ${vocabWord} ${String(estimate.version).padStart(3, '0')} ${job?.customer?.name ?? ''}`}
+          doc={{
+            org: org?.name ?? '',
+            preparedBy: senderName,
+            reference: `${vocabWord} ${String(estimate.version).padStart(3, '0')}`,
+            title: job?.name ?? '',
+            preparedFor: job?.customer?.contact_name || job?.customer?.name || null,
+            lines: required.map((l) => {
+              const list = Number((l as { list_unit_price?: number }).list_unit_price ?? 0);
+              const unit = Number(l.unit_price);
+              const rateOnly = Number(l.qty) === 0 && unit > 0;
+              const cut = list > 0 && list > unit;
+              const [head, ...rest] = l.description.split(/\.\s+/);
+              return {
+                title: head.replace(/\.$/, ''),
+                detail: rest.join('. ') || undefined,
+                qty: rateOnly ? 'Hourly' : l.unit === 'month' ? 'Monthly' : `${Number(l.qty)}${l.unit ? ` ${l.unit}` : ''}`,
+                amount: money(rateOnly ? unit : Number(l.total)),
+                wasAmount: cut ? money(rateOnly ? list : list * Number(l.qty)) : undefined,
+              };
+            }),
+            totals: (() => {
+              const recurring = required.filter((l) => l.unit === 'month');
+              const rated = required.filter((l) => Number(l.qty) === 0 && Number(l.unit_price) > 0);
+              const monthly = recurring.reduce((t, l) => t + Number(l.total), 0);
+              const out = [{ label: 'Monthly', value: money(monthly || Number(estimate.total) || subtotal) }];
+              for (const r of rated) out.push({ label: `Per ${r.unit ?? 'hour'} of work`, value: money(Number(r.unit_price)) });
+              return out;
+            })(),
+            note: 'The $40 covers the platform and your hosting. The hourly only gets charged when you actually ask for work, so plenty of months that\'s nothing.',
+            included: scopeIn,
+            sections: [
+              ...asQuestions(estimate.notes),
+              ...(scopeOut.length ? [{ q: "What isn't included", a: scopeOut.join('\n\n') }] : []),
+            ].map((x) => ({ heading: x.q, body: x.a })),
+          }}
+        />
       </div>
       <div
         data-document
