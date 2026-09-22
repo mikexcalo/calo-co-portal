@@ -72,34 +72,111 @@
   .service h3{font-family:Fraunces,Georgia,serif;font-size:1.5rem;color:var(--ink);
     font-weight:600;margin:0 0 .6rem}
   .service p{margin:0 0 .8rem;max-width:58ch}
-  .partner{padding-block:1.5rem;border-top:1px solid var(--line)}
-  .partner:first-of-type{border-top:none;padding-top:0}
-  .partner h3{font-family:Fraunces,Georgia,serif;font-size:1.25rem;color:var(--ink);
-    font-weight:600;margin:0 0 .4rem}
-  .partner p{margin:0;max-width:58ch}
-
-  .hero{padding-block:clamp(4.5rem,12vw,8.5rem) clamp(3rem,7vw,5rem)}
-  .eyebrow{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--muted);margin:0 0 1.4rem}
+  /* A little light in the water behind the headline. Six screens of flat
+     navy is a wall; this gives the top of the page somewhere to be. */
+  .hero{padding-block:clamp(4.5rem,12vw,8.5rem) clamp(3rem,7vw,5rem);
+    background:radial-gradient(58% 52% at 18% 42%,rgba(128,221,250,.10),transparent 70%)}
   h1{font-size:clamp(2.4rem,6.5vw,4.1rem);line-height:1.08;letter-spacing:-0.02em;
     max-width:18ch;color:var(--ink)}
   .lede{font-size:clamp(1.05rem,2.2vw,1.22rem);max-width:46ch;margin:1.6rem 0 0}
   h2{font-size:1.5rem;margin-bottom:2rem}
 
-  /* --------------------------------------------------------------- cards */
-  .grid{display:grid;gap:clamp(1.75rem,3.5vw,2.5rem);
-    grid-template-columns:repeat(auto-fit,minmax(15rem,1fr))}
-  .card{background:rgba(255,255,255,.045);border:1px solid var(--line);
-    border-radius:14px;padding:1.5rem 1.4rem 1.6rem}
-  .card h3{font-size:1.05rem;color:var(--ink);margin:0 0 .5rem;font-weight:600}
+  /* --------------------------------------------------------------- cards
+     Four things, two by two.
+
+     auto-fit dropped three across and left the fourth alone on its own row,
+     which reads as an afterthought rather than a fourth service. Four items
+     have an obvious shape and it is a square.
+     --------------------------------------------------------------------- */
+  .grid{display:grid;gap:clamp(1rem,2vw,1.4rem);grid-template-columns:1fr}
+  @media(min-width:46rem){.grid{grid-template-columns:1fr 1fr}}
+
+  .card{position:relative;overflow:hidden;background:rgba(255,255,255,.045);
+    border:1px solid var(--line);border-radius:16px;
+    padding:clamp(1.5rem,3vw,2rem) clamp(1.4rem,2.6vw,1.9rem);
+    transition:transform .25s cubic-bezier(.22,.8,.3,1),
+               background .25s ease, border-color .25s ease}
+  .card h3{font-size:1.12rem;color:var(--ink);margin:0 0 .55rem;font-weight:600}
   .card p{margin:0;font-size:.97rem;color:var(--body)}
-  /* The icon sits in its own disc so three different silhouettes still line
-     up as one set. */
-  .ico{width:44px;height:44px;border-radius:11px;display:flex;
-    align-items:center;justify-content:center;margin-bottom:1.1rem;
+
+  /* The icon sits in its own disc so four different silhouettes line up as
+     one set. */
+  .ico{width:46px;height:46px;border-radius:12px;display:flex;
+    align-items:center;justify-content:center;margin-bottom:1.15rem;
     background:rgba(128,221,250,.13);border:1px solid rgba(128,221,250,.3);
-    color:var(--shallows)}
-  .ico svg{width:23px;height:23px}
+    color:var(--shallows);
+    transition:background .25s ease, border-color .25s ease, transform .25s cubic-bezier(.22,.8,.3,1)}
+  .ico svg{width:24px;height:24px}
+
+  /* ---------------------------------------------------------------------
+     Hover: it comes up out of the water.
+
+     The same movement the page already uses on arrival, on a shorter throw.
+     A tile lifts, its edge catches the light, and a slow wash crosses behind
+     it. Nothing slides, nothing bounces, nothing changes size: the point is
+     that the surface is live, not that it is animated.
+     --------------------------------------------------------------------- */
+  .card::after{content:'';position:absolute;inset:0;pointer-events:none;
+    opacity:0;transition:opacity .3s ease;
+    background:radial-gradient(70% 100% at 12% 0%,rgba(128,221,250,.13),transparent 70%)}
+  @media(hover:hover){
+    .card:hover{transform:translateY(-4px);background:rgba(255,255,255,.07);
+      border-color:rgba(128,221,250,.45)}
+    .card:hover::after{opacity:1}
+    .card:hover .ico{background:rgba(128,221,250,.22);
+      border-color:rgba(128,221,250,.55);transform:translateY(-2px)}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .card,.ico{transition:background .2s ease,border-color .2s ease}
+    .card:hover{transform:none}
+    .card:hover .ico{transform:none}
+  }
+
+  /* ---------------------------------------------------------------------
+     What that looks like: deliberately not cards.
+
+     Three sections of John's own prose, and boxing them would have made the
+     page four identical grids in a row. This is the editorial rhythm
+     instead: the name holds the left column and stays put while its own
+     paragraphs scroll past it, so you always know which service you are
+     reading about. No border, no fill, nothing to click.
+     --------------------------------------------------------------------- */
+  .service{padding-block:clamp(2rem,4vw,2.75rem);border-top:1px solid var(--line)}
+  .service:first-of-type{border-top:none;padding-top:0}
+  .service h3{font-family:Fraunces,Georgia,serif;font-size:1.45rem;color:var(--ink);
+    font-weight:600;margin:0 0 .9rem;line-height:1.2}
+  .service p{margin:0 0 .9rem;max-width:58ch}
+  .service p:last-child{margin-bottom:0}
+  @media(min-width:52rem){
+    .service{display:grid;grid-template-columns:minmax(11rem,15rem) 1fr;
+      gap:clamp(2rem,5vw,4rem)}
+    .service h3{position:sticky;top:6rem;margin:0}
+  }
+
+  /* ---------------------------------------------------------------------
+     Who we work with: a directory, not cards and not an essay.
+
+     A third shape again, because three sections that look the same read as
+     one long section. These are other people's companies, so they get the
+     treatment a list of names gets: a monogram, the name, what they are
+     good for, and a way to check for yourself.
+     --------------------------------------------------------------------- */
+  .partners{display:grid;gap:clamp(1.75rem,3vw,2.25rem);grid-template-columns:1fr}
+  @media(min-width:48rem){.partners{grid-template-columns:repeat(3,1fr)}}
+  .partner{padding-top:1.25rem;border-top:2px solid rgba(128,221,250,.35)}
+  .partner h3{font-family:Fraunces,Georgia,serif;font-size:1.2rem;color:var(--ink);
+    font-weight:600;margin:0 0 .5rem}
+  .partner p{margin:0;font-size:.95rem;max-width:40ch}
+  .mono{display:inline-flex;align-items:center;justify-content:center;
+    width:34px;height:34px;border-radius:9px;margin-bottom:.85rem;
+    background:rgba(255,255,255,.07);border:1px solid var(--line);
+    font-size:.72rem;font-weight:600;letter-spacing:.06em;color:var(--shallows)}
+  /* Proof, for anybody who wants to check that these are real companies. */
+  .visit{display:inline-flex;align-items:center;gap:.35rem;margin-top:.9rem;
+    font-size:.88rem;color:var(--shallows);text-decoration:none;
+    border-bottom:1px solid transparent;transition:border-color .2s ease}
+  .visit:hover{border-bottom-color:var(--shallows)}
+  .visit svg{width:13px;height:13px}
 
   /* ------------------------------------------------------------- buttons */
   .btns{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:2rem}
@@ -209,11 +286,19 @@
 
 <main>
   <div class="wrap hero">
-    <p class="eyebrow rise">Seafood sales, marketing and representation</p>
     <h1 class="rise">The best global seafood right to your doorstep.</h1>
+    <!--
+      The lede is the elevator pitch now.
+
+      It used to open on "We are not a distributor", which spends the most
+      valuable line on the page saying what the business isn't. Somebody who
+      has never heard of Global Seafood Partners needs to know what it does
+      first. The distinction still matters, so it moved down to where it is
+      the answer to a question rather than the opening statement.
+    -->
     <p class="lede rise">
-      We are not a distributor. We get your product in front of the distributors,
-      chefs and buyers who will actually move it.
+      We source seafood, place it with the distributors who can sell it, and
+      work the street until it moves.
     </p>
     <div class="btns rise">
       <button class="btn btn-primary" type="button" data-open-form>
@@ -225,10 +310,15 @@
 
   <section class="wrap band" id="what">
     <h2 class="rise">What we do</h2>
+    <p class="rise" style="max-width:52ch;margin:-1.2rem 0 2.2rem">
+      We are not a distributor. We are the people who get your product in front
+      of the ones who are.
+    </p>
     <div class="grid">
+
       <div class="card rise">
         <div class="ico" aria-hidden="true">
-          <!-- A fish: what is being sourced. -->
+          <!-- A fish: the thing itself, and where it came from. -->
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             <path d="M2.5 12c3-4.2 6.4-6.3 10.2-6.3 3.5 0 6.4 2.1 8.8 6.3-2.4 4.2-5.3 6.3-8.8 6.3-3.8 0-7.2-2.1-10.2-6.3Z"/>
             <path d="M2.5 12 6 9.2M2.5 12 6 14.8"/>
@@ -242,12 +332,11 @@
 
       <div class="card rise">
         <div class="ico" aria-hidden="true">
-          <!-- Two nodes joined: a producer linked to a distributor. -->
+          <!-- A chain link: your company joined to a distributor. The old
+               three-node icon read as a share button. -->
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="5.5" cy="12" r="2.6"/>
-            <circle cx="18.5" cy="6" r="2.6"/>
-            <circle cx="18.5" cy="18" r="2.6"/>
-            <path d="M7.9 10.9 16.1 7.1M7.9 13.1l8.2 3.8"/>
+            <path d="M9.6 14.4a3.6 3.6 0 0 1 0-5.1l2.1-2.1a3.6 3.6 0 1 1 5.1 5.1l-1 1"/>
+            <path d="M14.4 9.6a3.6 3.6 0 0 1 0 5.1l-2.1 2.1a3.6 3.6 0 1 1-5.1-5.1l1-1"/>
           </svg>
         </div>
         <h3>Sales and marketing</h3>
@@ -257,12 +346,13 @@
 
       <div class="card rise">
         <div class="ico" aria-hidden="true">
-          <!-- A person in front of people: street-level selling. -->
+          <!-- A storefront: the accounts being called on. Two-people-in-a-crowd
+               said nothing that the next card did not also say. -->
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="9" cy="7.5" r="3.2"/>
-            <path d="M2.8 20.2a6.2 6.2 0 0 1 12.4 0"/>
-            <path d="M16.5 5.4a3.2 3.2 0 0 1 0 6"/>
-            <path d="M18.4 14.4a6.2 6.2 0 0 1 2.8 5.2"/>
+            <path d="M3 9.4 4.7 4.4h14.6L21 9.4"/>
+            <path d="M3 9.4h18"/>
+            <path d="M4.8 9.4V19.8h14.4V9.4"/>
+            <path d="M9.6 19.8v-5.6h4.8v5.6"/>
           </svg>
         </div>
         <h3>Sales representation</h3>
@@ -270,13 +360,17 @@
           pulling product through distribution. Selling at trade shows to gain
           maximum exposure.</p>
       </div>
+
       <div class="card rise">
         <div class="ico" aria-hidden="true">
-          <!-- A question answered: what sells, what does not. -->
+          <!-- Cutlery: the menu it has to earn a place on. A question-mark
+               speech bubble described the conversation, not the work. -->
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20.5 15.2a2.3 2.3 0 0 1-2.3 2.3H7.9L3.3 21.3V5.1a2.3 2.3 0 0 1 2.3-2.3h12.6a2.3 2.3 0 0 1 2.3 2.3z"/>
-            <path d="M9.4 8.6a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.2-2.5 3.6"/>
-            <path d="M11.9 15.6h.01"/>
+            <path d="M4 3v6.2a2.4 2.4 0 0 0 2.4 2.4h1.7a2.4 2.4 0 0 0 2.4-2.4V3"/>
+            <path d="M7.2 11.6V21"/>
+            <path d="M4 3v4.2M10.5 3v4.2"/>
+            <path d="M19.4 3c-1.8 1.1-2.8 3-2.8 5.2v3.4a1.4 1.4 0 0 0 1.4 1.4h1.4Z"/>
+            <path d="M19.4 13V21"/>
           </svg>
         </div>
         <h3>Consulting</h3>
@@ -328,27 +422,48 @@
 
   <section class="wrap band" id="partners">
     <h2 class="rise">Who we work with</h2>
+    <p class="rise" style="max-width:52ch;margin:-1.2rem 0 2.4rem">
+      The suppliers behind what we sell. Real companies, and you are welcome to
+      go and look.
+    </p>
 
-    <div class="partner rise">
-      <h3>Pacific Empress</h3>
-      <p>One of Ecuador&rsquo;s oldest families in the shrimp business. Pacific Empress
-        packs commercial lines, spec packs, retail boxes and breaded items, so you can
-        buy the right product at a price you can afford. Farm raised Vannamei whites,
-        and Luis and his team hold the quality.</p>
-    </div>
+    <div class="partners">
+      <div class="partner rise">
+        <span class="mono" aria-hidden="true">PE</span>
+        <h3>Pacific Empress</h3>
+        <p>One of Ecuador&rsquo;s oldest families in the shrimp business. Commercial
+          lines, spec packs, retail boxes and breaded items, so you can buy the
+          right product at a price you can afford. Farm raised Vannamei whites,
+          and Luis and his team hold the quality.</p>
+      </div>
 
-    <div class="partner rise">
-      <h3>Wide Foods</h3>
-      <p>A premier company with a wide selection, carrying everything from commodity
-        frozen fish to lobster tails, shipping from New Jersey or Florida. If you are
-        looking for something unusual, they can find it.</p>
-    </div>
+      <div class="partner rise">
+        <span class="mono" aria-hidden="true">WF</span>
+        <h3>Wide Foods</h3>
+        <p>A premier company with a wide selection, carrying everything from
+          commodity frozen fish to lobster tails, shipping from New Jersey or
+          Florida. If you are looking for something unusual, they can find it.</p>
+      </div>
 
-    <div class="partner rise">
-      <h3>Barrington Seafoods</h3>
-      <p>A small northeastern company with real depth in the industry: clams, mussels,
-        calamari and domestic Florida oysters. If you need a unique product line, they
-        can usually source it.</p>
+      <div class="partner rise">
+        <span class="mono" aria-hidden="true">BS</span>
+        <h3>Barrington Seafoods</h3>
+        <p>A small northeastern company with real depth in the industry: clams,
+          mussels, calamari and domestic Florida oysters. If you need a unique
+          product line, they can usually source it.</p>
+        <!--
+          Only the one that could be verified.
+
+          Naming a supplier and linking to them is the difference between a
+          claim and a reference, so the other two want their addresses here
+          too. Not guessed: a wrong link on a supplier's name is worse than
+          no link at all, and John knows what they are.
+        -->
+        <a class="visit" href="https://barringtonseafoods.com" target="_blank" rel="noopener noreferrer">
+          barringtonseafoods.com
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h7v7"/><path d="M13 3 4 12"/></svg>
+        </a>
+      </div>
     </div>
   </section>
 
@@ -378,7 +493,7 @@
       <label class="field"><span>Restaurant or company</span><input name="company" autocomplete="organization"></label>
       <label class="field"><span>Email</span><input name="email" type="email" required autocomplete="email"></label>
       <label class="field"><span>Phone</span><input name="phone" type="tel" autocomplete="tel"></label>
-      <label class="field"><span>What are you after?</span><textarea name="message" placeholder="Species, volumes, how often, anything you're struggling to get hold of."></textarea></label>
+      <label class="field"><span>How can we help you?</span><textarea name="message" placeholder="Species, volumes, how often, anything you're struggling to get hold of."></textarea></label>
       <label class="hp" aria-hidden="true" tabindex="-1"><span>Leave this empty</span><input name="website" tabindex="-1" autocomplete="off"></label>
       <div class="sheet-actions">
         <button class="btn btn-primary" type="submit" id="send">Send it</button>
