@@ -300,6 +300,8 @@ export interface JobInvoice {
   external_ref: string | null;
   public_token: string | null;
   viewed_at: string | null;
+  /** Approved now, posted on this date. Null sends immediately. */
+  send_on: string | null;
   paid_via: string | null;
   payment_note: string | null;
   created_at: string;

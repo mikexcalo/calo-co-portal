@@ -95,8 +95,9 @@ export async function POST(req: NextRequest) {
   }
 
   let invoiceId: string;
+  let sendOn: string | undefined;
   try {
-    ({ invoiceId } = await req.json());
+    ({ invoiceId, sendOn } = await req.json());
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
@@ -109,6 +110,37 @@ export async function POST(req: NextRequest) {
   /* Signed in, and this row belongs to a business they are in. */
   const caller = await whoIsCalling();
   if (!caller) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
+
+  /*
+    Approving and sending are two different acts.
+
+    Send it meant send it now, so an invoice checked on the 30th had to be
+    checked again on the 1st by somebody who remembered to. Passing a date
+    approves it for that day instead: it is signed off, it is not going
+    anywhere yet, and the scheduled job posts it when the day arrives.
+
+    No date still means now, which is every send made before this existed.
+  */
+  if (sendOn) {
+    const db0 = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
+    const upd = await db0
+      .from('job_invoices')
+      .update({ send_on: sendOn })
+      .eq('id', invoiceId)
+      .is('sent_at', null)
+      .select('number, send_on')
+      .maybeSingle();
+
+    if (upd.error) return NextResponse.json({ error: upd.error.message }, { status: 500 });
+    if (!upd.data) {
+      return NextResponse.json({ error: 'That one has already gone out.' }, { status: 409 });
+    }
+    return NextResponse.json({
+      ok: true,
+      scheduled: true,
+      message: `${upd.data.number} is approved. It goes out on ${upd.data.send_on}.`,
+    });
+  }
 
   const db = createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false },

@@ -196,6 +196,38 @@ export default function BillingPage() {
     }
   };
 
+  /*
+    Approve it for the 1st of next month.
+
+    The date is worked out here rather than typed, because "the 1st" is the
+    only answer anybody ever gives and a date picker for it is a question
+    nobody needs asking.
+  */
+  const approveForFirst = async (inv: JobInvoice) => {
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const first = new Date();
+      first.setDate(1);
+      if (new Date().getDate() !== 1) first.setMonth(first.getMonth() + 1);
+
+      const res = await fetch('/api/invoices/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invoiceId: inv.id, sendOn: first.toISOString().slice(0, 10) }),
+      });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error || 'Could not approve it');
+      setNotice(payload.message ?? `${inv.number} is approved.`);
+      await load();
+    } catch (e) {
+      setError(human((e as Error).message));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const sendViaStripe = async (inv: JobInvoice) => {
     setBusy(true);
     setError(null);
@@ -468,10 +500,39 @@ export default function BillingPage() {
                         want. Sending it is the act; the rest are ways round.
                       */}
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                        {inv.status === 'draft' && (
-                          <Button disabled={busy} onClick={() => emailInvoice(inv)}>
-                            Send it
-                          </Button>
+                        {/*
+                          Approve for the 1st, or send it now.
+
+                          "Send it" meant send it this second, so an invoice
+                          checked on the 30th had to be checked again on the
+                          1st by somebody who remembered. Approving sets the
+                          date and the scheduler posts it: signed off, not
+                          gone anywhere.
+
+                          Sending now is still here, because sometimes it is
+                          the 3rd and you just want it out.
+                        */}
+                        {inv.status === 'draft' && !inv.send_on && (
+                          <>
+                            <Button disabled={busy} onClick={() => approveForFirst(inv)}>
+                              Approve for the 1st
+                            </Button>
+                            <button
+                              onClick={() => emailInvoice(inv)}
+                              disabled={busy}
+                              style={{
+                                background: 'transparent', border: 'none', padding: '6px 4px',
+                                color: C.dim, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
+                              }}
+                            >
+                              Send now
+                            </button>
+                          </>
+                        )}
+                        {inv.status === 'draft' && inv.send_on && (
+                          <span style={{ fontSize: 13, color: C.green }}>
+                            Approved, goes out {shortDate(inv.send_on)}
+                          </span>
                         )}
                         {['sent', 'partial', 'overdue'].includes(inv.status) && (
                           <select

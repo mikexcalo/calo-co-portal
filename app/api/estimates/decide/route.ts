@@ -129,6 +129,37 @@ export async function POST(req: NextRequest) {
       request that recorded the decision, so it cannot be true in one place and
       missing in the other.
     */
+    /*
+      Accepting is what switches the billing on.
+
+      Terms were written down the day they were agreed and sat with
+      billing_live false, because agreeing a price and being live are not the
+      same thing. Nothing turned that flag, so a client could accept a proposal
+      and never be billed for it: the monthly job skips anybody not live, which
+      is correct, and nobody was ever making them live.
+
+      The meter starts on the 1st of the month after they say yes. Charging
+      from the day somebody accepted means a fractional first invoice, and
+      being owed nine days is not worth the first bill they ever see being
+      arithmetic.
+    */
+    if (decision === 'accepted' && job?.customer_id) {
+      const nextMonth = new Date();
+      nextMonth.setDate(1);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+      await db
+        .from('customer_terms')
+        .update({
+          billing_live: true,
+          billing_starts_on: nextMonth.toISOString().slice(0, 10),
+        })
+        .eq('org_id', estimate.org_id)
+        .eq('customer_id', job.customer_id)
+        .is('billing_live', false)
+        .then(undefined, (e) => console.error('[estimates/decide] billing_live:', e));
+    }
+
     if (job?.customer_id) {
       await db.from('customer_notes').insert({
         org_id: estimate.org_id,

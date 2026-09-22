@@ -113,5 +113,29 @@ export async function GET(req: NextRequest) {
     if (r?.ok) sent.push(inv.number);
   }
 
+  /*
+    Drafts that nobody is told about are drafts that sit there.
+
+    The whole point of building them the night before is that the 1st starts
+    with "check these two". That only works if somebody says so.
+  */
+  if (drafted.length) {
+    const { data: orgs } = await db
+      .from('customer_terms')
+      .select('org_id')
+      .eq('billing_live', true);
+
+    for (const orgId of [...new Set((orgs ?? []).map((o) => o.org_id))]) {
+      await db.from('notifications').insert({
+        org_id: orgId,
+        kind: 'system',
+        title: `${drafted.length} invoice${drafted.length === 1 ? '' : 's'} ready to check`,
+        body:
+          `${drafted.join(', ')} built from this month's hours and the agreed fees. ` +
+          'Nothing has been sent. Open Invoices, check them, and approve them for the 1st.',
+      }).then(undefined, (e) => console.error('[cron/billing] notice:', e));
+    }
+  }
+
   return NextResponse.json({ ok: true, drafted, sent, ranOn: todayStr });
 }
