@@ -130,7 +130,7 @@ export default async function PublicInvoice({ params }: { params: { token: strin
     <div style={{ background: '#f5f5f3', minHeight: '100vh', padding: '24px 16px 60px' }}>
       {/* An invoice deserves the same one-press download a proposal gets. */}
       <div style={{ maxWidth: 720, margin: '0 auto 12px', display: 'flex', justifyContent: 'flex-end' }}>
-        <SaveAsPdf accent={accent} name={`Invoice ${invoice.number}`} />
+        <SaveAsPdf accent={accent} name={`${org?.name ?? ""} Invoice ${invoice.number}`} />
       </div>
       <div data-document style={{ maxWidth: 720, margin: '0 auto', background: '#fff', border: '1px solid #e4e4e0', borderRadius: 12, overflow: 'hidden' }}>
         <div style={{ borderTop: `4px solid ${accent}`, padding: '28px 30px 0' }}>

@@ -40,12 +40,25 @@ export function SaveAsPdf({ accent, name = 'Document' }: { accent: string; name?
       const page = document.querySelector('[data-document]') as HTMLElement | null;
       if (!page) throw new Error('Could not find the document on the page.');
 
+      /*
+        Unfold everything first.
+
+        A PDF cannot be clicked, so anything collapsed on screen is simply
+        absent from the file. The terms were four headings with a plus beside
+        them and nothing underneath.
+      */
+      window.dispatchEvent(new Event('calo:expand-all'));
+      await new Promise((r) => setTimeout(r, 120));
+
       const canvas = await html2canvas(page, {
         scale: 2,          // Legible when somebody zooms in or prints it.
         backgroundColor: '#ffffff',
         useCORS: true,
         logging: false,
+        windowWidth: page.scrollWidth,
       });
+
+      window.dispatchEvent(new Event('calo:collapse-all'));
 
       const pdf = new jsPDF({ unit: 'pt', format: 'a4', compress: true });
       const pageW = pdf.internal.pageSize.getWidth();
@@ -57,10 +70,19 @@ export function SaveAsPdf({ accent, name = 'Document' }: { accent: string; name?
       const imgH = (canvas.height * imgW) / canvas.width;
       const img = canvas.toDataURL('image/jpeg', 0.92);
 
+      /*
+        A white page under every slice.
+
+        Pages after the first were drawn onto whatever jsPDF had left there,
+        which showed as dark bands above and below the content. Each page gets
+        its own white ground before the image lands on it.
+      */
       let offset = 0;
       let first = true;
-      while (offset < imgH) {
+      while (offset < imgH - 1) {
         if (!first) pdf.addPage();
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(0, 0, pageW, pageH, 'F');
         pdf.addImage(img, 'JPEG', 0, -offset, imgW, imgH);
         offset += pageH;
         first = false;

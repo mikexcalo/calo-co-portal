@@ -13,7 +13,7 @@
  * open, because what it costs is the question everybody has.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Question } from '@/lib/spine/questions-from-notes';
 
 export function Faq({
@@ -27,12 +27,35 @@ export function Faq({
   startOpen?: number;
 }) {
   const [open, setOpen] = useState(startOpen);
+  /*
+    A PDF cannot be clicked.
+
+    Everything folded stayed folded in the download, so the file John keeps had
+    "What this costs", "Why the prices are crossed out" and "What isn't
+    included" as four headings with a plus beside them and nothing underneath.
+    The terms of the arrangement, missing from the copy of the document that
+    outlives the web page.
+
+    Everything opens while the picture is taken, and folds back after.
+  */
+  const [all, setAll] = useState(false);
+
+  useEffect(() => {
+    const open = () => setAll(true);
+    const close = () => setAll(false);
+    window.addEventListener('calo:expand-all', open);
+    window.addEventListener('calo:collapse-all', close);
+    return () => {
+      window.removeEventListener('calo:expand-all', open);
+      window.removeEventListener('calo:collapse-all', close);
+    };
+  }, []);
   if (items.length === 0) return null;
 
   return (
     <div style={{ marginTop: 26, borderTop: '1px solid #e4e4e0' }}>
       {items.map((it, i) => {
-        const on = open === i;
+        const on = all || open === i;
         return (
           <div key={it.q} style={{ borderBottom: '1px solid #e4e4e0' }}>
             <button
