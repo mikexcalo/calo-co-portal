@@ -517,7 +517,7 @@ export default function Sidebar() {
           onClick={() => window.dispatchEvent(new Event('calo:open-search'))}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', gap: 9,
-            padding: '8px 10px', borderRadius: 9,
+            padding: '8px 10px', borderRadius: radius.md,
             border: `1px solid ${C.border}`, background: C.panelAlt,
             color: C.faint, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit',
             textAlign: 'left',
@@ -532,7 +532,15 @@ export default function Sidebar() {
         </button>
       </div>
 
-      <div style={{ flex: 1, padding: '8px 8px 8px', overflowY: 'auto' }}>
+      {/*
+        The nav stops where it stops.
+
+        This took every spare pixel, so on a business with eight rows the
+        controls at the foot were shoved to the bottom of a tall empty column
+        and the sidebar read as half-loaded. It takes the room it needs and no
+        more; the gap below is just gap.
+      */}
+      <div style={{ flexShrink: 0, padding: '8px 8px 8px', overflowY: 'auto', maxHeight: '100%' }}>
         {navBtn('Home', '/', 'dashboard')}
         {/*
           Drops belongs beside Home, not inside The work.
@@ -618,6 +626,8 @@ export default function Sidebar() {
         everything is administered from, and a control that does nothing here
         is worse than one that is missing.
       */}
+      <div style={{ flex: 1, minHeight: 12 }} />
+
       {/*
         A button, shaped like one.
 
@@ -634,7 +644,7 @@ export default function Sidebar() {
             onClick={() => router.push('/feedback')}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: 8, padding: '9px 12px', borderRadius: 999,
+              gap: 8, padding: '9px 12px', borderRadius: radius.pill,
               border: `1px solid ${C.borderStrong ?? C.border}`, background: C.panel,
               color: C.text, fontSize: 13.5, fontWeight: 500,
               cursor: 'pointer', fontFamily: 'inherit',

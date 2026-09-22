@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useTutorial } from '@/lib/spine/tutorial';
 import { useOrg } from '@/lib/spine/org';
-import { useIsPhone } from '@/components/spine/ui';
+import { useIsPhone, radius } from '@/components/spine/ui';
 import { C } from '@/components/spine/ui';
 import { Notifications } from '@/components/spine/Notifications';
 import { DropIt } from '@/components/spine/DropIt';
@@ -165,7 +165,7 @@ export default function TopBar() {
           style={{
             display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
             background: 'transparent', border: `1px solid ${C.border}`,
-            borderRadius: 999, padding: '6px 11px', fontSize: 13.5, fontWeight: 500,
+            borderRadius: radius.pill, padding: '6px 13px', fontSize: 13.5, fontWeight: 500,
             color: C.dim, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
           }}
         >
@@ -217,7 +217,7 @@ export default function TopBar() {
               background: viewAs ? C.text : 'transparent',
               border: `1px solid ${viewAs ? C.text : C.border}`,
               color: viewAs ? C.panel : C.dim,
-              borderRadius: 7, padding: '6px 11px',
+              borderRadius: radius.pill, padding: '6px 13px',
               fontSize: 13.5, fontWeight: 500, whiteSpace: 'nowrap',
               cursor: 'pointer', fontFamily: 'inherit',
             }}
@@ -241,7 +241,7 @@ export default function TopBar() {
               gap: 7,
               background: 'transparent',
               border: `1px solid ${C.border}`,
-              borderRadius: 7,
+              borderRadius: radius.pill,
               padding: '6px 11px',
               fontSize: 13.5,
               fontWeight: 500,

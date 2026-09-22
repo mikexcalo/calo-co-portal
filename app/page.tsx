@@ -796,9 +796,19 @@ export default function Dashboard() {
           >
             <Metric label={`Active ${vocab.jobPlural.toLowerCase()}`} value={String(activeJobs.length)} />
             <Metric label={vocab.lead + 's'} value={String(leads.length)} hint="Not yet won" />
+            {/*
+              Three zeros in a row.
+
+              Unbilled $0, Owed to you $0, Collected $0 — on a business that
+              has not invoiced yet, which is every business on its first day.
+              Metric has carried hideAtZero since it was written and the note
+              on it calls five cards reading $0 the single most repeated
+              mistake in this product. Home was making it.
+            */}
             <Metric
               label="Unbilled"
               value={money0(unbilled)}
+              hideAtZero
               tone={unbilled > 0 ? 'amber' : undefined}
             />
             {/*
@@ -813,9 +823,10 @@ export default function Dashboard() {
             <Metric
               label="Owed to you"
               value={money0(outstanding)}
+              hideAtZero
               tone={outstanding > 0 ? 'red' : undefined}
             />
-            <Metric label="Collected" value={money0(collected)} tone="green" />
+            <Metric label="Collected" value={money0(collected)} hideAtZero tone="green" />
           </div>
 
           {/*
@@ -862,7 +873,14 @@ export default function Dashboard() {
           {org?.kind === 'agency' && canSetUp && <YourSetup />}
 
           {/* And the way to send one, on the screen everybody opens first. */}
-          <TellUs />
+          {/*
+            Not on Home as well.
+
+            Tell Us is a button at the foot of the sidebar on every screen, and
+            this put a second copy of the same thing in the middle of the page
+            somebody lands on. One way to say something, in the place it always
+            lives.
+          */}
 
           <FollowUps />
 

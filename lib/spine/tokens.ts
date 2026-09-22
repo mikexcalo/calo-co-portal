@@ -122,8 +122,28 @@ export const DISPLAY: React.CSSProperties = {
   letterSpacing: '-0.021em',
 };
 
+/**
+ * Two shapes, and a rule for which is which.
+ *
+ * The sidebar and the top bar had both: pills on the workspace switcher and
+ * the page actions, 7px rectangles on Your site and Learn, 9px on the nav
+ * rows, 10px on the cards. Four radii doing three jobs, decided a screen at a
+ * time. It reads as two design systems sharing a window.
+ *
+ * The rule is what the thing IS, not where it sits:
+ *
+ *   pill  — you press it and something happens. Buttons, tabs, the switcher.
+ *   lg    — it holds something. Cards, panels, the sheet.
+ *   md    — you type into it, or it is a row in a list. Inputs, nav rows.
+ *
+ * A nav row is deliberately not a pill even though you press it: it is a place
+ * in a list, and a column of fourteen pills reads as fourteen buttons shouting
+ * at once.
+ */
 export const radius = {
   sm: 5,
   md: 7,
   lg: 10,
+  /** Anything you press that does a thing. */
+  pill: 999,
 } as const;
