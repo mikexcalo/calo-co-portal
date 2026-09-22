@@ -493,22 +493,8 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                         refuses a second press while the first is in flight,
                         and deleting somebody's file now asks first.
                       */
-                      onClick={async () => {
-                        if (removing) return;
-                        if (!confirm(`Remove ${d.title || 'this'}? It cannot be undone.`)) return;
-                        setRemoving(d.id);
-                        setItems((prev) => prev.filter((x) => x.id !== d.id));
-                        try {
-                          await removeDrop(d);
-                          await load();
-                          onChange?.();
-                        } catch (e) {
-                          setError(human(e));
-                          await load();
-                        } finally {
-                          setRemoving(null);
-                        }
-                      }}
+                      /* Asked inside the product, not by the browser at the top of the window. */
+                      onClick={() => { if (!removing) setConfirming(d); }}
                       disabled={removing === d.id}
                       style={{
                         background: 'transparent', border: 'none', padding: 0,
@@ -566,7 +552,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                       textDecoration: 'underline',
                     }}
                   >
-                    Send it over
+                    Send to whoever runs this
                   </button>
                 )}
 

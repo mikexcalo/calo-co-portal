@@ -18,7 +18,7 @@ import supabase from '@/lib/supabase';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { createEstimate } from '@/lib/spine/db';
-import { Button, C, Card, SectionLabel, inputStyle } from './ui';
+import { Button, C, Card, SectionLabel, inputStyle, Field } from './ui';
 
 interface Contact { name: string; title: string; email: string; phone: string }
 interface Price { name: string; unit: string; price: string }
@@ -481,7 +481,7 @@ export function ClientIntake({
           <p style={{ fontSize: 13, color: C.faint, margin: '6px 0 14px', maxWidth: '62ch' }}>
             Everything below was read off what you dropped. Correct anything wrong, delete anything
             it invented, then keep it.
-            {cents != null && ` Reading that cost ${cents < 1 ? 'under a cent' : `${cents.toFixed(1)}c`}.`}
+
           </p>
 
           {doc === 'receipt' && (
@@ -554,12 +554,34 @@ export function ClientIntake({
 
           {doc !== 'receipt' && (
           <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
-            {field(name, setName, doc === 'estimate' ? 'Who it is for' : 'Business name')}
-            {field(website, setWebsite, 'Website')}
-            {field(address, setAddress, 'Address')}
+          {/*
+            Labels, not placeholders.
+
+            A placeholder disappears the instant something is in the box, so a
+            filled-in form was three unlabelled fields reading "Pacific
+            Empress", nothing, and "Miami, FLA". Mike could not tell what the
+            third one was, and he built this. A client would be lost.
+          */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+            <Field label={doc === 'estimate' ? 'Who it is for' : 'Business name'}>
+              {field(name, setName, doc === 'estimate' ? 'Who it is for' : 'Business name')}
+            </Field>
+            <Field label="Website">{field(website, setWebsite, 'Website')}</Field>
+            <Field label="Where they are">{field(address, setAddress, 'Address')}</Field>
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 10 }}>
+          {/*
+            Say what is being asked.
+
+            Two rows of pills with no question above them, and the answer
+            already chosen. Pacific Empress is a supplier John buys shrimp
+            from, and it arrived pre-set to "You sell to them, A customer",
+            which is the wrong way round and the sort of thing somebody clicks
+            past.
+          */}
+          <div style={{ fontSize: 12.5, color: C.dim, marginTop: 16, marginBottom: 6 }}>
+            Which way does the money go?
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             {([
               { id: 'customer' as const, label: 'You sell to them' },
               { id: 'supplier' as const, label: 'You buy from them' },
