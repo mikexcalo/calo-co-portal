@@ -16,6 +16,7 @@ import { SaveAsPdf } from './SaveAsPdf';
 import { Faq } from '@/components/spine/Faq';
 import { asQuestions } from '@/lib/spine/questions-from-notes';
 import { AddOns } from './AddOns';
+import { AskAbout } from './AskAbout';
 
 export const dynamic = 'force-dynamic';
 /*
@@ -205,7 +206,18 @@ export default async function PublicEstimate({ params }: { params: { token: stri
 
           <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 600, color: '#111', letterSpacing: '-0.2px' }}>
+              {/*
+                Who it is from, then what it is for.
+
+                The company sat in the top right in small grey while the
+                project name took the headline, so the first thing a client
+                read was a job title with no sender attached. A proposal is
+                from somebody.
+              */}
+              <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#111' }}>
+                {org?.name}
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 600, color: '#111', letterSpacing: '-0.2px', marginTop: 6 }}>
                 {job?.name}
               </div>
               {job?.address && (
@@ -218,7 +230,10 @@ export default async function PublicEstimate({ params }: { params: { token: stri
               )}
             </div>
             <div style={{ textAlign: 'right', fontSize: 13.5, color: '#666' }}>
-              <div style={{ fontWeight: 600, color: '#111' }}>{org?.name}</div>
+              {/* The reference, where the sender used to be. */}
+              <div style={{ ...numeralStyle, fontSize: 13, fontWeight: 600, color: '#111' }}>
+                {vocabWord} {String(estimate.version).padStart(3, '0')}
+              </div>
               {/*
                 A person, not just a company.
 
@@ -228,21 +243,7 @@ export default async function PublicEstimate({ params }: { params: { token: stri
                 possible signal that somebody is accountable for this.
               */}
               {senderName && <div style={{ marginTop: 2 }}>Prepared by {senderName}</div>}
-              {/* "Valid until" reads like a coupon about to expire. It is a price,
-                  and this is the date it is held to. */}
-              {estimate.valid_until && <div style={{ marginTop: 4 }}>Price held to {fmtDate(estimate.valid_until)}</div>}
-              {/*
-                One word for the document.
 
-                The header said the org's word for it down the left and
-                "Estimate #1" on the right, six inches apart on the same page.
-                Whatever this business calls it, it calls it that in both
-                places, and the number reads as a reference rather than a
-                version count.
-              */}
-              <div style={{ ...numeralStyle, fontSize: 12.5 }}>
-                {vocabWord} {String(estimate.version).padStart(3, '0')}
-              </div>
             </div>
           </div>
 
@@ -309,8 +310,24 @@ export default async function PublicEstimate({ params }: { params: { token: stri
                   const recurringLine = l.unit === 'month' && Number(l.qty) > 0;
                   return (
                   <tr key={l.id} style={{ borderBottom: '1px solid #f0f0ed' }}>
+                    {/*
+                      The title, then what it means underneath.
+
+                      "Platform access. Your workspace, your records, your
+                      people, kept running." was one run-on line in a table
+                      cell, so the thing being bought and the explanation of it
+                      had the same weight. The first sentence is the item; the
+                      rest is the detail.
+                    */}
                     <td style={{ padding: '11px 0', color: '#222' }}>
-                      {l.description}
+                      <span style={{ fontWeight: 500 }}>
+                        {l.description.split(/\.\s+/)[0].replace(/\.$/, '')}
+                      </span>
+                      {l.description.split(/\.\s+/).slice(1).join('. ') && (
+                        <div style={{ fontSize: 13, color: '#666', marginTop: 3, lineHeight: 1.5 }}>
+                          {l.description.split(/\.\s+/).slice(1).join('. ')}
+                        </div>
+                      )}
                       {/*
                         Said once, not twice.
 
@@ -340,7 +357,7 @@ export default async function PublicEstimate({ params }: { params: { token: stri
                       to total until somebody works an hour.
                     */}
                     <td style={{ padding: '11px 0 11px 10px', textAlign: 'right', color: '#666', whiteSpace: 'nowrap' }}>
-                      {rateOnly ? 'Per hour' : recurringLine ? 'Every month' : `${Number(l.qty)}${l.unit ? ` ${l.unit}` : ''}`}
+                      {rateOnly ? 'Hourly' : recurringLine ? 'Monthly' : `${Number(l.qty)}${l.unit ? ` ${l.unit}` : ''}`}
                     </td>
                     <td style={{ padding: '11px 0 11px 10px', textAlign: 'right', color: '#222', whiteSpace: 'nowrap' }}>
                       {cut && (
@@ -400,7 +417,7 @@ export default async function PublicEstimate({ params }: { params: { token: stri
                 >
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.07em', color: '#777', fontWeight: 600 }}>
-                      Every month
+                      Monthly
                     </div>
                     <div style={{ fontSize: 26, fontWeight: 600, color: '#111', marginTop: 3 }}>
                       {money(isRate ? monthly : Number(estimate.total) || subtotal)}
@@ -409,7 +426,7 @@ export default async function PublicEstimate({ params }: { params: { token: stri
                   {rated.map((l) => (
                     <div key={l.id} style={{ textAlign: 'right' }}>
                       <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.07em', color: '#777', fontWeight: 600 }}>
-                        Each {l.unit ?? 'hour'} you use
+                        Per hour of work
                       </div>
                       <div style={{ fontSize: 26, fontWeight: 600, color: '#111', marginTop: 3 }}>
                         {money(Number(l.unit_price))}
@@ -417,9 +434,7 @@ export default async function PublicEstimate({ params }: { params: { token: stri
                     </div>
                   ))}
                 </div>
-                <div style={{ fontSize: 13, color: '#777', marginTop: 8, textAlign: 'right' }}>
-                  Nothing else. No setup fee, no minimum, no notice period.
-                </div>
+
               </div>
             );
           })()}
@@ -435,7 +450,7 @@ export default async function PublicEstimate({ params }: { params: { token: stri
           */}
           <div style={{ marginTop: 16, padding: '13px 15px', background: '#f7f7f5', borderRadius: 8, fontSize: 14.5, color: '#333', lineHeight: 1.6 }}>
             The $40 covers the platform and your hosting. The hourly only gets charged when you
-            actually ask for work, so plenty of months that is nothing.
+            actually ask for work, so plenty of months that's nothing.
           </div>
 
           {/*
@@ -484,7 +499,7 @@ export default async function PublicEstimate({ params }: { params: { token: stri
           {!decided && (
             <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid #e4e4e0' }}>
               <div style={{ fontSize: 17, fontWeight: 600, color: '#111', letterSpacing: '-0.01em', marginBottom: 12 }}>
-                What happens if you say yes
+                What happens when you approve
               </div>
               <div style={{ display: 'grid', gap: 10, fontSize: 14.5, color: '#333', lineHeight: 1.6, maxWidth: '62ch' }}>
                 <div style={{ display: 'flex', gap: 13 }}>
@@ -502,15 +517,12 @@ export default async function PublicEstimate({ params }: { params: { token: stri
                 <div style={{ display: 'flex', gap: 13 }}>
                   <span style={{ ...numeralStyle, color: '#bbb', flexShrink: 0 }}>03</span>
                   <span>
-                    Want to stop? Tell me and I will switch it off that day. No notice
+                    Want to stop? Tell me and I'll switch it off that day. No notice
                     period, nothing to cancel, no last invoice for a month you did not use.
                   </span>
                 </div>
               </div>
-              <div style={{ fontSize: 13.5, color: '#666', marginTop: 16, lineHeight: 1.6 }}>
-                Something here not right? Reply to the email this came from and it gets
-                changed before you sign anything.
-              </div>
+              <AskAbout token={params.token} accent={accent} />
             </div>
           )}
         </div>

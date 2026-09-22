@@ -468,37 +468,22 @@ export default function Sidebar() {
         }}
       >
         {/*
-          Whose workspace this is, not whose software it is.
+          The product, because the workspace is named in the bar.
 
-          The product name sat here on every screen of every business, so Mark
-          opened his own company's tool and the first thing it said was
-          CALO&CO, twice, counting the row underneath. He knows who built it.
-          What he needs to see at a glance is which business he is standing in,
-          and the attribution moved to the foot of the sidebar where a
-          "powered by" belongs.
+          This showed the business name and so did the switcher two inches to
+          the right: the same words twice on one line, which is what made the
+          top of the app feel cluttered. The switcher is the identity and the
+          control; this is just the roof over it.
         */}
         <span
           onClick={() => router.push('/')}
           style={{
             fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
-            fontSize: 15.5,
-            fontWeight: 700,
-            color: C.text,
-            letterSpacing: '-0.2px',
-            cursor: 'pointer',
-            lineHeight: 1.2,
-            /* Two lines rather than an ellipsis. "Mammoth Constructi…" is the
-               same failure the switcher had — a business's own name, cut off,
-               on its own screen. There is no width that fixes it; the next
-               client is longer. */
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
+            fontSize: 15.5, fontWeight: 700, color: C.text,
+            letterSpacing: '-0.2px', cursor: 'pointer',
           }}
-          title={org?.name ?? PRODUCT}
         >
-          {org?.name ?? PRODUCT}
+          {PRODUCT}
         </span>
       </div>
 

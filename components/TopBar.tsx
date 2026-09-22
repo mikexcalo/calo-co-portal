@@ -151,45 +151,6 @@ export default function TopBar() {
       <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 8 }}>
         {/* On a phone only: the sidebar carries it everywhere else. */}
         {/*
-          What they see, one press.
-
-          This was four roles in a dropdown in the sidebar footer, below the
-          fold on the screen you check it from. It is the control you reach for
-          right before sending somebody a link, so it belongs where the rest of
-          the controls are, and it only needs the one role: the person you are
-          about to send it to owns their business.
-
-          Hidden inside your own agency, where previewing "the owner" previews
-          you.
-        */}
-        {org && org.kind !== 'agency' && (
-          <button
-            onClick={() =>
-              setViewAs(viewAs ? null : { role: 'owner', label: 'somebody who owns it' })
-            }
-            title={
-              viewAs
-                ? 'Back to your own view'
-                : 'Show this screen the way the person who owns this business sees it'
-            }
-            style={{
-              display: 'flex', alignItems: 'center', gap: 7,
-              background: viewAs ? C.text : 'transparent',
-              border: `1px solid ${viewAs ? C.text : C.border}`,
-              color: viewAs ? C.panel : C.dim,
-              borderRadius: radius.pill, padding: '6px 13px',
-              fontSize: 13.5, fontWeight: 500, whiteSpace: 'nowrap',
-              cursor: 'pointer', fontFamily: 'inherit',
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M1 8s2.6-4.5 7-4.5S15 8 15 8s-2.6 4.5-7 4.5S1 8 1 8Z" />
-              <circle cx="8" cy="8" r="1.9" />
-            </svg>
-            {viewAs ? 'Back to my view' : 'What they see'}
-          </button>
-        )}
-        {/*
           The workspace, beside the things you do to it.
 
           At the foot of the sidebar this read as a footer item, under a
@@ -245,6 +206,46 @@ export default function TopBar() {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/*
+          What they see, one press.
+
+          This was four roles in a dropdown in the sidebar footer, below the
+          fold on the screen you check it from. It is the control you reach for
+          right before sending somebody a link, so it belongs where the rest of
+          the controls are, and it only needs the one role: the person you are
+          about to send it to owns their business.
+
+          Hidden inside your own agency, where previewing "the owner" previews
+          you.
+        */}
+        {org && org.kind !== 'agency' && (
+          <button
+            onClick={() =>
+              setViewAs(viewAs ? null : { role: 'owner', label: 'somebody who owns it' })
+            }
+            title={
+              viewAs
+                ? 'Back to your own view'
+                : 'Show this screen the way the person who owns this business sees it'
+            }
+            style={{
+              display: 'flex', alignItems: 'center', gap: 7,
+              background: viewAs ? C.text : 'transparent',
+              border: `1px solid ${viewAs ? C.text : C.border}`,
+              color: viewAs ? C.panel : C.dim,
+              borderRadius: radius.pill, padding: '6px 13px',
+              fontSize: 13.5, fontWeight: 500, whiteSpace: 'nowrap',
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M1 8s2.6-4.5 7-4.5S15 8 15 8s-2.6 4.5-7 4.5S1 8 1 8Z" />
+              <circle cx="8" cy="8" r="1.9" />
+            </svg>
+            {viewAs ? 'Back to my view' : 'What they see'}
+          </button>
+        )}
+
         {siteUrl && (
           <a
             href={siteUrl}
