@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useTutorial } from '@/lib/spine/tutorial';
 import { useOrg } from '@/lib/spine/org';
+import { useIsPhone } from '@/components/spine/ui';
 import { C } from '@/components/spine/ui';
 import { Notifications } from '@/components/spine/Notifications';
 import { DropIt } from '@/components/spine/DropIt';
@@ -50,6 +51,7 @@ export default function TopBar() {
   const router = useRouter();
   const { openPanel } = useTutorial();
   const { org, vocab } = useOrg();
+  const phone = useIsPhone();
   const { viewAs, setViewAs } = useViewAs();
 
   /**
@@ -145,7 +147,8 @@ export default function TopBar() {
         now sits where your eye lands first.
       */}
       <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 8 }}>
-        <CommandBar />
+        {/* On a phone only: the sidebar carries it everywhere else. */}
+        <CommandBar trigger={phone} />
 
         {/*
           Beside the search, not opposite it.

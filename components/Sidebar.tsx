@@ -461,10 +461,10 @@ export default function Sidebar() {
     >
       <div
         style={{
-          height: 56,
+          minHeight: 56,
           display: 'flex',
           alignItems: 'center',
-          padding: '0 18px',
+          padding: '10px 18px',
           flexShrink: 0,
           borderBottom: `1px solid ${C.border}`,
         }}
@@ -483,14 +483,20 @@ export default function Sidebar() {
           onClick={() => router.push('/')}
           style={{
             fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
-            fontSize: 16.5,
+            fontSize: 15.5,
             fontWeight: 700,
             color: C.text,
-            letterSpacing: '-0.3px',
+            letterSpacing: '-0.2px',
             cursor: 'pointer',
+            lineHeight: 1.2,
+            /* Two lines rather than an ellipsis. "Mammoth Constructi…" is the
+               same failure the switcher had — a business's own name, cut off,
+               on its own screen. There is no width that fixes it; the next
+               client is longer. */
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
           }}
           title={org?.name ?? PRODUCT}
         >

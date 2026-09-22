@@ -72,7 +72,7 @@ const looksLikeQuestion = (q: string) =>
   /\?$/.test(q.trim()) ||
   /^(who|what|what's|whats|how|how's|when|which|where|why|do i|am i|are there|is there|show me|list)\b/i.test(q.trim());
 
-export function CommandBar() {
+export function CommandBar({ trigger = true }: { trigger?: boolean } = {}) {
   const router = useRouter();
   const { org, orgs, switchOrg } = useOrg();
   const [open, setOpen] = useState(false);
@@ -356,8 +356,17 @@ export function CommandBar() {
 
   return (
     <>
-      {/* The affordance, so this is discoverable without knowing the shortcut,
-          and reachable on a phone where there is no shortcut at all. */}
+      {/*
+        The affordance, so this is discoverable without knowing the shortcut,
+        and reachable on a phone where there is no shortcut at all.
+
+        Optional now: the sidebar grew its own search row above Home, and two
+        identical "Search or ask" boxes on one screen — one in the chrome, one
+        in the nav, four inches apart — is worse than either alone. The sidebar
+        keeps it on desktop; this stays for the phone, where there is no
+        sidebar and no keyboard.
+      */}
+      {trigger && (
       <button
         onClick={() => setOpen(true)}
         aria-label="Search"
@@ -377,6 +386,7 @@ export function CommandBar() {
         {!phone && <span>Search or ask</span>}
         {!phone && <span style={{ marginLeft: 'auto', fontSize: 11.5, color: C.faint }}>⌘K</span>}
       </button>
+      )}
 
       {open && (
         <div
