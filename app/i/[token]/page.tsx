@@ -94,6 +94,23 @@ export default async function PublicInvoice({ params }: { params: { token: strin
       .maybeSingle(),
   ]);
 
+  /*
+    The same signal on an invoice as on a proposal.
+
+    Knowing somebody has opened a bill is the difference between chasing a
+    person who never got it and leaving alone a person who is getting to it.
+    First open only.
+  */
+  if (!invoice.viewed_at) {
+    const client = job?.customer?.contact_name || job?.customer?.name || 'Somebody';
+    await db.from('notifications').insert({
+      org_id: job?.org_id ?? invoice.org_id,
+      kind: 'system',
+      title: `${client.split(/\s+/)[0]} opened invoice ${invoice.number}`,
+      body: `${money(Number(invoice.total))}. Not paid yet.`,
+    }).then(undefined, () => {});
+  }
+
   if (!invoice.viewed_at) {
     await db.from('job_invoices').update({ viewed_at: new Date().toISOString() }).eq('id', invoice.id);
   }

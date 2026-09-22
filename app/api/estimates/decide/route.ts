@@ -115,6 +115,11 @@ export async function POST(req: NextRequest) {
 
     const job = one<{ name: string; customer_id: string | null }>(estimate.job);
 
+    /* The name they typed, first name only, because that is how people talk. */
+    const whoSaid = body.name?.trim() || '';
+    const firstName = whoSaid.split(/\s+/)[0] || 'They';
+    const word = 'proposal';
+
     /*
       A record on the client, because an acceptance is a contract.
 
@@ -191,10 +196,18 @@ export async function POST(req: NextRequest) {
     await db.from('notifications').insert({
       org_id: estimate.org_id,
       kind: 'system',
+      /*
+        Written the way somebody would say it.
+
+        "Estimate accepted — Platform Access & Ongoing Development" is a log
+        line. The thing that actually happened is that John said yes, and the
+        person reading this has been waiting to hear it. Use his name, say it
+        first, and let the record underneath carry the detail.
+      */
       title:
         decision === 'accepted'
-          ? `Estimate accepted — ${job?.name ?? 'job'}`
-          : `Estimate declined — ${job?.name ?? 'job'}`,
+          ? `Nice! ${firstName} accepted your ${word}`
+          : `${firstName} passed on your ${word}`,
       body:
         decision === 'accepted'
           ? `${body.name?.trim()} accepted $${acceptedTotal.toFixed(2)}.`

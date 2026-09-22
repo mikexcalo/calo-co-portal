@@ -137,6 +137,30 @@ export default async function PublicEstimate({
   */
   const isPreview = searchParams?.preview === '1';
 
+  /*
+    The first time they open it, say so.
+
+    "Opened it" was a pill on a list somebody had to go and look at. The useful
+    version is a line on Home the moment it happens, because a proposal being
+    read is the only signal between sending one and hearing back — and it is
+    the difference between chasing somebody who never got the email and leaving
+    alone somebody who is still thinking.
+
+    Once only: the first open is news, the fourth is not.
+  */
+  if (!isPreview && !estimate.viewed_at) {
+    const client = job?.customer?.contact_name || job?.customer?.name || 'Somebody';
+    const first = client.split(/\s+/)[0];
+    await db.from('notifications').insert({
+      org_id: job?.org_id ?? estimate.org_id,
+      kind: 'system',
+      title: `${first} just opened your proposal`,
+      body: `${job?.name ?? 'The proposal'}. No decision yet.`,
+    }).then(undefined, () => {
+      // A missed notice is not a reason to fail the page somebody is reading.
+    });
+  }
+
   if (!isPreview && !estimate.viewed_at) {
     await db.from('estimates').update({ viewed_at: new Date().toISOString() }).eq('id', estimate.id);
   }

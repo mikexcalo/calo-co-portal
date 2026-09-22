@@ -57,6 +57,14 @@ export async function POST(req: NextRequest) {
     .filter(Boolean)
     .join(' ');
 
+  /* On Home as well as in feedback: money arriving is the point of all this. */
+  await db.from('notifications').insert({
+    org_id: inv.org_id,
+    kind: 'system',
+    title: `${who.split(/\s+/)[0]} says they've paid ${inv.number}`,
+    body: 'Check it landed, then tick it on the invoice.',
+  }).then(undefined, () => {});
+
   const { error } = await db.from('feedback').insert({
     org_id: inv.org_id,
     kind: 'payment',
