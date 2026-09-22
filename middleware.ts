@@ -174,11 +174,27 @@ export const config = {
      * - /api/card/              that card as a vCard file
      * - /api/version            which commit is live, so a stale deploy can be
      *                           told apart from a bug
+     * - /auth/                  where a reset link and a Google sign-in land
+     *
+     * That last one is the whole front door, and it was not here.
+     *
+     * Both routes establish the session by exchanging what is in the URL — a
+     * token hash from an email, a code from Google. So on the way in there is
+     * no session yet, which is precisely what this middleware bounces to
+     * /login. The link 307'd to /login carrying its token as a query string
+     * that the login page ignores, and the handler that would have consumed it
+     * never ran.
+     *
+     * The effect: nobody could reset a password and nobody could sign in with
+     * Google, ever. It was invisible because anybody who already knew their
+     * password signed in fine — /login is a client-side call and never
+     * redirects. Marcie, whose account was created by hand in SQL and who
+     * therefore had no password to know, had no way in at all.
      *
      * The last two have to be here or the whole feature is inert: a script tag
      * on a public page cannot carry a session, so auth would 307 both the
      * script and every event it tries to send to /login.
      */
-    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|q/|p/|e/|i/|s/|r/|new/|api/enquiry|t\\.js|api/track|api/preview/|api/card/|api/version|reset|c/).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|q/|p/|e/|i/|s/|r/|new/|api/enquiry|t\\.js|api/track|api/preview/|api/card/|api/version|reset|auth/|c/).*)',
   ],
 };
