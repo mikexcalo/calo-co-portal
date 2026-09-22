@@ -32,7 +32,7 @@ export default function NotFound() {
           It may have expired, been replaced by a newer version, or been turned off.
         </p>
         <p style={{ fontSize: 15.5, lineHeight: 1.6, color: '#383D45', margin: 0 }}>
-          Ask whoever sent it for a fresh link — nothing is lost at their end.
+          Ask whoever sent it for a fresh link, nothing is lost at their end.
         </p>
         <p style={{ fontSize: 12.5, color: '#8A9099', marginTop: 28 }}>{PRODUCT}</p>
       </div>

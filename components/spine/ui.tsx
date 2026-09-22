@@ -671,7 +671,7 @@ export function Metric({
   /** Drop the card entirely when the value reads as nothing. */
   hideAtZero?: boolean;
 }) {
-  if (hideAtZero && /^(\$?0(\.00)?|0|—|-)$/.test(value.trim())) return null;
+  if (hideAtZero && /^(\$?0(\.00)?|0|, |-)$/.test(value.trim())) return null;
   const color =
     tone === 'green' ? C.green
     : tone === 'amber' ? C.amber
@@ -1004,11 +1004,11 @@ export const hours = (n: number | null | undefined): string =>
   `${(n ?? 0).toLocaleString('en-US', { maximumFractionDigits: 1 })}h`;
 
 export function shortDate(d: string | null | undefined): string {
-  if (!d) return '—';
+  if (!d) return ', ';
   // Date-only strings must not be parsed as UTC or they shift a day backward
   // in western timezones.
   const [y, m, day] = d.slice(0, 10).split('-').map(Number);
-  if (!y || !m || !day) return '—';
+  if (!y || !m || !day) return ', ';
   return new Date(y, m - 1, day).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',

@@ -119,7 +119,7 @@ export function BrandCard({ customerId }: { customerId: string }) {
                   {colors.map((c) => (
                     <span
                       key={c.hex + c.name}
-                      title={`${c.name} ${c.hex}${c.role ? ` — ${c.role}` : ''}`}
+                      title={`${c.name} ${c.hex}${c.role ? `, ${c.role}` : ''}`}
                       style={{
                         width: 30,
                         height: 30,

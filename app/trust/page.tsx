@@ -41,7 +41,7 @@ const FACTS = [
   {
     title: 'We never store bank account or routing numbers',
     body:
-      `This is a deliberate choice rather than a gap. The payment details kept here are the public handles you already hand out to get paid — a Venmo username, a PayPal address. Knowing one lets someone send you money, not take it. Where a customer needs real account details, ${PRODUCT} tells them to ask you directly.`,
+      `This is a deliberate choice rather than a gap. The payment details kept here are the public handles you already hand out to get paid, a Venmo username, a PayPal address. Knowing one lets someone send you money, not take it. Where a customer needs real account details, ${PRODUCT} tells them to ask you directly.`,
   },
   {
     title: 'Encrypted going in and sitting still',
@@ -56,7 +56,7 @@ const FACTS = [
   {
     title: 'Audited infrastructure underneath',
     body:
-      `${PRODUCT} runs on Supabase and Vercel, both independently audited to SOC 2 Type II — the standard a company’s IT department asks about. Data is held in the United States on Amazon Web Services.`,
+      `${PRODUCT} runs on Supabase and Vercel, both independently audited to SOC 2 Type II, the standard a company’s IT department asks about. Data is held in the United States on Amazon Web Services.`,
   },
 ];
 

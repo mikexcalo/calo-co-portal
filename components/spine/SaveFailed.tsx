@@ -19,7 +19,7 @@ export function SaveFailed() {
     let timer: ReturnType<typeof setTimeout>;
     const on = (e: Event) => {
       const d = (e as CustomEvent<{ message: string; what: string | null }>).detail;
-      setMsg(d?.what ? `${d.what} — ${d.message}` : d?.message ?? 'That did not save.');
+      setMsg(d?.what ? `${d.what}, ${d.message}` : d?.message ?? 'That did not save.');
       clearTimeout(timer);
       timer = setTimeout(() => setMsg(null), 9000);
     };

@@ -154,14 +154,14 @@ export function OrgSwitcher() {
               row, which is what actually makes a list sortable by eye.
 
               The coloured dot is gone. It was green for a contractor and
-              #141414 for an agency — colour used as decoration, which this
+              #141414 for an agency, colour used as decoration, which this
               palette forbids in as many words: green means settled, amber
               means needs you, red means wrong, and none of them mean
               construction. The word beside it already said which kind it was.
 
               In its place, the monogram. Avatar draws a logo when there is one
               and the initials when there is not, so this does not go sloppy
-              while some businesses have a mark and others do not — every row
+              while some businesses have a mark and others do not, every row
               is the same shape either way, and real logos appear as they land
               without the layout moving.
             */}

@@ -80,7 +80,7 @@ export default function FeedbackPage() {
             <Card>
               <Empty>
                 Nothing yet. If something is wrong or missing, the box above is the fastest
-                way to reach us — it comes through with the screen you were on.
+                way to reach us, it comes through with the screen you were on.
               </Empty>
             </Card>
           ) : (

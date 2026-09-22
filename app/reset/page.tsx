@@ -65,8 +65,8 @@ export default function ResetPage() {
             {/*
               The rule, on screen, before it is broken.
 
-              It lived in the placeholder — which vanishes the moment anybody
-              types — and in an error that only appeared after a failed
+              It lived in the placeholder, which vanishes the moment anybody
+              types, and in an error that only appeared after a failed
               attempt. Meanwhile the button sat greyed out saying nothing about
               why. So somebody picked a six-character password, found a dead
               button and no explanation, and the only place the requirement was

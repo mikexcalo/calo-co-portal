@@ -198,13 +198,13 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
           <div style={{ fontSize: 13.5, color: C.dim }}>
             {isTM ? (
               <>
-                This job is <strong style={{ color: C.text }}>time &amp; materials</strong> —
+                This job is <strong style={{ color: C.text }}>time &amp; materials</strong> , 
                 this is a forecast. The invoice will be built from hours actually logged and
                 receipts actually filed, not from this number.
               </>
             ) : (
               <>
-                This job is <strong style={{ color: C.text }}>fixed price</strong> — once
+                This job is <strong style={{ color: C.text }}>fixed price</strong>, once
                 accepted, this is the number that gets billed. Actual costs affect your
                 margin, not the customer&apos;s bill.
               </>
@@ -335,7 +335,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
               <option value="">Add from price list…</option>
               {catalog.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} — {c.unit_price.toFixed(2)}{c.unit ? `/${c.unit}` : ''}
+                  {c.name}, {c.unit_price.toFixed(2)}{c.unit ? `/${c.unit}` : ''}
                 </option>
               ))}
             </select>

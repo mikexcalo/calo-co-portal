@@ -36,7 +36,7 @@ function nameFromUrl(url: string): string {
     const path = u.pathname.replace(/\/+$/, '').split('/').filter(Boolean).pop();
     const host = u.hostname.replace(/^www\./, '');
     if (!path) return host;
-    return `${host} — ${decodeURIComponent(path).replace(/[-_]+/g, ' ').slice(0, 50)}`;
+    return `${host}, ${decodeURIComponent(path).replace(/[-_]+/g, ' ').slice(0, 50)}`;
   } catch {
     return url.slice(0, 60);
   }

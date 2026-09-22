@@ -174,7 +174,7 @@ export default async function PublicInvoice({ params }: { params: { token: strin
                       )}
                       {discounted && (
                         <div style={{ fontSize: 12.5, color: '#15803d', marginTop: 3 }}>
-                          Your rate {money(agreed)}/{String(l.unit ?? 'hour')} — standard is{' '}
+                          Your rate {money(agreed)}/{String(l.unit ?? 'hour')}, standard is{' '}
                           <span style={{ textDecoration: 'line-through', color: '#999' }}>{money(std)}</span>
                         </div>
                       )}
@@ -196,7 +196,7 @@ export default async function PublicInvoice({ params }: { params: { token: strin
           {/*
             When, and what has already arrived.
 
-            The invoice asked to be paid and never said by when — due_on was on
+            The invoice asked to be paid and never said by when, due_on was on
             the table from the start and nothing ever filled it, so every
             invoice went out with a dash where the date belongs. And a part
             payment vanished: amount_paid was subtracted from the total in

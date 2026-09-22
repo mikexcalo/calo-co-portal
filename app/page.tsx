@@ -708,7 +708,7 @@ export default function Dashboard() {
                   The tone is a word, not a bent stripe.
 
                   These were a tinted panel with a 3px colored border down the
-                  left, dragged around a 12px corner radius — so the one part
+                  left, dragged around a 12px corner radius, so the one part
                   of the card carrying the meaning rendered as a colored sliver
                   curling off into the corner. It read as damage rather than
                   design, and it is the sort of thing that gets copied: the
@@ -799,7 +799,7 @@ export default function Dashboard() {
             {/*
               Three zeros in a row.
 
-              Unbilled $0, Owed to you $0, Collected $0 — on a business that
+              Unbilled $0, Owed to you $0, Collected $0, on a business that
               has not invoiced yet, which is every business on its first day.
               Metric has carried hideAtZero since it was written and the note
               on it calls five cards reading $0 the single most repeated
@@ -814,7 +814,7 @@ export default function Dashboard() {
             {/*
               Money owed to you is red.
 
-              This was 'blue', which in this palette is #141414 — so the one
+              This was 'blue', which in this palette is #141414, so the one
               number on Home that represents cash sitting in somebody else's
               account rendered in the same black as the engagement count. Red
               is the tone this platform reserves for something that is wrong,
@@ -841,7 +841,7 @@ export default function Dashboard() {
           {/*
             One way to write a note, not three.
 
-            This dashed box sat under the numbers saying "Drop a note — talk or
+            This dashed box sat under the numbers saying "Drop a note, talk or
             paste", while the top bar carried a Drop a note button, and further
             down the page a second box asked "Tell us what you need". Three
             places to type on one screen, two of them going to the same place.
@@ -865,7 +865,7 @@ export default function Dashboard() {
           {/*
             Platform setup, for the business that runs the platform.
             
-            These are real and they are Mike's — Stripe keys, Supabase Pro,
+            These are real and they are Mike's, Stripe keys, Supabase Pro,
             the search console. What was wrong was showing them inside
             Lakemere, whose owner cannot do any of them and did not ask. The
             agency workspace, and only its owners.
@@ -916,9 +916,9 @@ export default function Dashboard() {
                           </Pill>
                         </span>
                       </div>
-                      <div style={{ color: C.dim }}>{j.customer?.name ?? '—'}</div>
+                      <div style={{ color: C.dim }}>{j.customer?.name ?? ', '}</div>
                       <div style={{ color: u > 0 ? C.amber : C.faint }}>
-                        {u > 0 ? money(u) : '—'}
+                        {u > 0 ? money(u) : ', '}
                       </div>
                       <div style={{ color: (l?.margin_to_date ?? 0) >= 0 ? C.green : C.red }}>
                         {money(l?.margin_to_date ?? 0)}
@@ -945,7 +945,7 @@ export default function Dashboard() {
                   >
                     <div>{i.number}</div>
                     <div style={{ color: C.dim }}>
-                      {jobs.find((j) => j.id === i.job_id)?.name ?? '—'}
+                      {jobs.find((j) => j.id === i.job_id)?.name ?? ', '}
                     </div>
                     <div style={{ color: C.red }}>{shortDate(i.due_on)}</div>
                     <div>{money(i.total - i.amount_paid)}</div>

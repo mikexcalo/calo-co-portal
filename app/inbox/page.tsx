@@ -64,7 +64,7 @@ export default function InboxPage() {
           <Card>
             <SectionLabel>Not filed yet</SectionLabel>
             <p style={{ fontSize: 12.5, color: C.faint, margin: '6px 0 12px' }}>
-              Nothing here is lost — it just has not been said who it is about.
+              Nothing here is lost, it just has not been said who it is about.
               Answer that on any item and it moves onto their record.
             </p>
             <DropShelf

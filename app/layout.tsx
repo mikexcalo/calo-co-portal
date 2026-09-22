@@ -37,7 +37,7 @@ import { PRODUCT } from '@/lib/brand';
 
 export const metadata: Metadata = {
   title: PRODUCT,
-  description: `${PRODUCT} — run the work, bill the work.`,
+  description: `${PRODUCT}, run the work, bill the work.`,
   /**
    * The ampersand from calo.company, copied rather than redrawn — it is set
    * in Lora italic with the font embedded in the file, so any recreation

@@ -74,7 +74,7 @@ export function PaletteFromImage({ onAdd }: Props) {
           setPreview(src);
           if (!found.length) setError('No solid colour in that image.');
         } catch {
-          setError('That image could not be read. An SVG with no fixed size is the usual cause — export it as PNG.');
+          setError('That image could not be read. An SVG with no fixed size is the usual cause, export it as PNG.');
         }
         setBusy(false);
       };

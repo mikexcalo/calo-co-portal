@@ -117,10 +117,10 @@ export default async function PreviewPage({ params }: { params: { token: string 
           padding: '7px 16px', textAlign: 'center', letterSpacing: '.01em',
         }}
       >
-        Preview of {org.name} — hover any section to leave a note
+        Preview of {org.name}, hover any section to leave a note
         {pending > 0
-          ? ` — showing ${pending} unpublished ${pending === 1 ? 'edit' : 'edits'}`
-          : ' — nothing unpublished, this is the live version'}
+          ? `, showing ${pending} unpublished ${pending === 1 ? 'edit' : 'edits'}`
+          : ', nothing unpublished, this is the live version'}
       </div>
 
       {/*

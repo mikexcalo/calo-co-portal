@@ -198,7 +198,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
 
       <DropZone
         label={busy ? 'Saving…' : 'Drop files here, or click to choose'}
-        hint="Screenshots, photos, PDFs, spreadsheets — anything you would otherwise leave in a folder."
+        hint="Screenshots, photos, PDFs, spreadsheets, anything you would otherwise leave in a folder."
 
         busy={busy}
         busyLabel="Saving…"
@@ -242,7 +242,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
           {/*
             "Read it" was homework.
 
-            It named what the software does — read the file — and to the person
+            It named what the software does, read the file, and to the person
             holding the mouse that sounds like an instruction to sit down and
             read it themselves. What actually happens is that it pulls the
             names, prices and line items out and files them. So the button says
@@ -327,8 +327,8 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                     Two lines of it, not all of it.
 
                     A note printed its entire body. Somebody pasted a supplier's
-                    price list — nine hundred words of "Emperor Fillets 4–6 oz
-                    1,364 cs 13,640 lbs $4.70/lb" — and the card grew to fill
+                    price list, nine hundred words of "Emperor Fillets 4–6 oz
+                    1,364 cs 13,640 lbs $4.70/lb", and the card grew to fill
                     the screen with it. Three of those in a row and the shelf is
                     a wall of somebody else's spreadsheet, with Read it floating
                     somewhere down the middle of the card because it was
@@ -350,7 +350,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                   </div>
                   {label.length > 150 && (
                     <div style={{ fontSize: 11.5, color: C.faint, marginTop: 3 }}>
-                      {label.length.toLocaleString()} characters — press Sort it to pull out what is in here
+                      {label.length.toLocaleString()} characters, press Sort it to pull out what is in here
                     </div>
                   )}
                   <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 3, flexWrap: 'wrap' }}>
@@ -373,7 +373,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                     >Remove</button>
                     {twin && (
                       <span style={{ fontSize: 11.5, color: C.amber }}>
-                        Already here — same file, dropped twice
+                        Already here, same file, dropped twice
                       </span>
                     )}
                     {palette.length > 0 && (

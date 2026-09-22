@@ -354,7 +354,7 @@ export default function ExpensesPage() {
               </div>
               <div style={{ flex: 1, minWidth: 230, fontSize: 12.5, color: C.faint, lineHeight: 1.6, alignSelf: 'center' }}>
                 Measured, not estimated. Only owners and admins see this, and it is not
-                charged to anyone — it is here so the numbers behind pricing come from real
+                charged to anyone, it is here so the numbers behind pricing come from real
                 usage rather than a guess.
               </div>
             </div>
@@ -366,8 +366,8 @@ export default function ExpensesPage() {
         A screen that takes typing should take a file.
 
         Overheads had one way in: press Add an expense and fill in a form. But
-        the thing somebody actually has is a receipt — a screenshot of a
-        Supabase charge, a photo of a fuel docket — and this is the whole point
+        the thing somebody actually has is a receipt, a screenshot of a
+        Supabase charge, a photo of a fuel docket, and this is the whole point
         of the product. Typing what a receipt says, while looking at the
         receipt, is the work it was built to remove.
 
@@ -380,7 +380,7 @@ export default function ExpensesPage() {
           <DropShelf
             orgId={org.id}
             compact
-            label="Drop a receipt — a screenshot, a photo, a PDF"
+            label="Drop a receipt, a screenshot, a photo, a PDF"
             onChange={load}
           />
         </div>
@@ -390,7 +390,7 @@ export default function ExpensesPage() {
         <Card><Empty>Loading…</Empty></Card>
       ) : rows.length === 0 ? (
         <Card>
-          <Empty>Nothing recorded yet. Software, insurance, fuel — anything no single job caused.</Empty>
+          <Empty>Nothing recorded yet. Software, insurance, fuel, anything no single job caused.</Empty>
         </Card>
       ) : (
         <>
@@ -435,7 +435,7 @@ export default function ExpensesPage() {
                 </div>
                 <div>{money(r.amount)}</div>
                 <div style={{ color: C.dim }}>
-                  {r.recurrence === 'once' ? '—' : money(perMonth(r.amount, r.recurrence))}
+                  {r.recurrence === 'once' ? ', ' : money(perMonth(r.amount, r.recurrence))}
                 </div>
                 <div>
                   <Button variant="danger" onClick={() => setConfirmDelete(r)}>

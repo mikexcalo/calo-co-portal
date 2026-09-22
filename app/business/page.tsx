@@ -468,7 +468,7 @@ export default function BusinessPage() {
           <SectionLabel>How you get paid</SectionLabel>
 
           {/* The page title already names the business, and that was not
-              enough — one person's Venmo handle got saved against another
+              enough, one person's Venmo handle got saved against another
               business's account, which would have told their customers to
               pay the wrong person. Anything that ends up in front of someone
               else's customers says whose it is, right where you type it. */}
@@ -671,7 +671,7 @@ export default function BusinessPage() {
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Calendar</div>
             <p style={{ fontSize: 13.5, color: C.dim, margin: '0 0 8px', lineHeight: 1.65 }}>
               Subscribe to this in Google or Apple Calendar and scheduled {vocab.jobPlural.toLowerCase()}{' '}
-              appear alongside everything else. One-way and read-only — {vocab.jobPlural.toLowerCase()}{' '}
+              appear alongside everything else. One-way and read-only, {vocab.jobPlural.toLowerCase()}{' '}
               with no dates don&apos;t show up.
             </p>
             <CopyRow value={org.calendar_token ? `${origin}/api/calendar/${org.calendar_token}` : ''} />
@@ -688,7 +688,7 @@ export default function BusinessPage() {
           </div>
 
           <div style={{ fontSize: 12.5, color: C.faint, marginTop: 16, lineHeight: 1.65 }}>
-            Treat both links as private. Anyone holding one can read what it exposes — nothing
+            Treat both links as private. Anyone holding one can read what it exposes, nothing
             more, and neither allows any changes.
           </div>
         </Card>

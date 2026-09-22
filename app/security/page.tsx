@@ -104,7 +104,7 @@ const DATA_FACTS = [
   {
     title: 'We never store bank account or routing numbers',
     body:
-      `This one is a deliberate design decision rather than something we have not got to. The only payment details kept here are the handles you already give out freely — a Venmo username, a PayPal address. Knowing one lets somebody send you money, not take it. When a customer needs your real account details, ${PRODUCT} tells them to ask you directly instead of storing them.`,
+      `This one is a deliberate design decision rather than something we have not got to. The only payment details kept here are the handles you already give out freely, a Venmo username, a PayPal address. Knowing one lets somebody send you money, not take it. When a customer needs your real account details, ${PRODUCT} tells them to ask you directly instead of storing them.`,
     icon: icon(
       <>
         <path d="M2.2 6.2 8 3l5.8 3.2" />
@@ -255,7 +255,7 @@ export default function SecurityPage() {
         <Card><div style={{ fontSize: 14, color: C.faint }}>Loading…</div></Card>
       ) : stage === 'codes' ? (
         <Card>
-          <SectionLabel>Step 3 of 3 — save your backup codes</SectionLabel>
+          <SectionLabel>Step 3 of 3, save your backup codes</SectionLabel>
           <h2 style={{ fontSize: 18, fontWeight: 600, color: C.text, margin: '8px 0 10px' }}>
             These are how you get in if you lose your phone
           </h2>
@@ -306,7 +306,7 @@ export default function SecurityPage() {
                 setNotice(null);
               }}
             >
-              I&apos;ve saved them — finish
+              I&apos;ve saved them, finish
             </Button>
           </div>
 
@@ -370,25 +370,25 @@ export default function SecurityPage() {
           <ol style={{ margin: '0 0 20px', paddingLeft: 20, fontSize: 14.5, color: C.dim, lineHeight: 1.9, maxWidth: 580 }}>
             <li>Point your authenticator app at a square barcode on the next screen.</li>
             <li>Type the six digits it starts showing, to prove it worked.</li>
-            <li>Save eight backup codes — your way in if the phone is ever lost.</li>
+            <li>Save eight backup codes, your way in if the phone is ever lost.</li>
           </ol>
 
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <Button onClick={begin} disabled={busy}>
-              {busy ? 'One moment…' : 'I have an authenticator app — continue'}
+              {busy ? 'One moment…' : 'I have an authenticator app, continue'}
             </Button>
             <Button variant="ghost" onClick={() => setStage('idle')}>Not now</Button>
           </div>
         </Card>
       ) : stage === 'scan' && enrol ? (
         <Card>
-          <SectionLabel>Step 1 of 3 — scan this</SectionLabel>
+          <SectionLabel>Step 1 of 3, scan this</SectionLabel>
           <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.65, margin: '8px 0 14px', maxWidth: 560 }}>
             Open your authenticator app, choose to add an account, and point your camera at this square. It&apos;ll start showing a six-digit code for {PRODUCT}.
           </p>
 
           {/* Supabase hands back an SVG data URI. It is a QR code, so it must
-              stay square — a stretched one will not scan. */}
+              stay square, a stretched one will not scan. */}
           <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 12 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -443,7 +443,7 @@ export default function SecurityPage() {
           )}
 
           <div style={{ marginTop: 22 }}>
-            <SectionLabel>Step 2 of 3 — prove it worked</SectionLabel>
+            <SectionLabel>Step 2 of 3, prove it worked</SectionLabel>
             <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.65, margin: '8px 0 12px' }}>
               Type the six digits your app is showing for {PRODUCT}. They change every 30 seconds, so use whatever is on screen.
             </p>
@@ -494,7 +494,7 @@ export default function SecurityPage() {
                 <p style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.7, margin: 0 }}>
                   {enabled
                     ? 'Signing in takes your password plus a six-digit code from your phone. Someone with your password still gets nowhere without it.'
-                    : `Adds a second step when you sign in: after your password, ${PRODUCT} asks for a six-digit code that only your phone can produce. It means a stolen or guessed password is not enough on its own — which is how most business accounts are lost.`}
+                    : `Adds a second step when you sign in: after your password, ${PRODUCT} asks for a six-digit code that only your phone can produce. It means a stolen or guessed password is not enough on its own, which is how most business accounts are lost.`}
                 </p>
               </div>
               <div>

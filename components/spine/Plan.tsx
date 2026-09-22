@@ -41,7 +41,7 @@ const OWNERS: { id: Owner; label: string; short: string }[] = [
   { id: 'us', label: 'Us', short: 'Us' },
   { id: 'client', label: 'Them', short: 'Them' },
   { id: 'third_party', label: 'Someone else', short: 'Other' },
-  { id: 'unassigned', label: 'Nobody yet', short: '—' },
+  { id: 'unassigned', label: 'Nobody yet', short: ', ' },
 ];
 
 const STATUSES: { id: Status; label: string }[] = [

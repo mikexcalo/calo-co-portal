@@ -107,7 +107,7 @@ export function Terms({ orgId, customerId }: { orgId: string; customerId: string
           {!row ? (
             <p style={{ fontSize: 13.5, color: C.faint, margin: 0, lineHeight: 1.6 }}>
               Nothing written down. What you charge them, anything flat each month, when it bills
-              and how they pay — put it here while you still remember agreeing it.
+              and how they pay, put it here while you still remember agreeing it.
             </p>
           ) : (
             <>
@@ -119,7 +119,7 @@ export function Terms({ orgId, customerId }: { orgId: string; customerId: string
                     {saved != null && (
                       <div style={{ fontSize: 11.5, color: C.green, marginTop: 2 }}>
                         {saved}% off your {money(row.standard_rate ?? 0)}
-                        {row.why_discounted ? ` — ${row.why_discounted.toLowerCase()}` : ''}
+                        {row.why_discounted ? `, ${row.why_discounted.toLowerCase()}` : ''}
                       </div>
                     )}
                   </div>

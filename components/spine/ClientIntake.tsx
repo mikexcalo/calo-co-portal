@@ -424,7 +424,7 @@ export function ClientIntake({
         <>
           <SectionLabel>Drop what you have</SectionLabel>
           <p style={{ fontSize: 13, color: C.faint, margin: '6px 0 12px', maxWidth: '62ch' }}>
-            A screenshot, a photo, or a PDF — notes you scribbled, a business card, a price
+            A screenshot, a photo, or a PDF, notes you scribbled, a business card, a price
             sheet, an email you were sent. It reads the business, the people and the prices,
             and shows you everything before anything is saved.
           </p>
@@ -508,7 +508,7 @@ export function ClientIntake({
                   <option value="other">Something else</option>
                 </select>
                 <select value={costJob} onChange={(e) => setCostJob(e.target.value)} style={inputStyle}>
-                  <option value="">Overhead — no job</option>
+                  <option value="">Overhead, no job</option>
                   {jobs.map((j) => (
                     <option key={j.id} value={j.id}>{j.name}</option>
                   ))}
@@ -584,7 +584,7 @@ export function ClientIntake({
                 ? ''
                 : relationship === 'supplier'
                   ? 'Kept out of revenue, never offered an invoice.'
-                  : 'A utility, an inspector — somebody you deal with where no money moves.'}
+                  : 'A utility, an inspector, somebody you deal with where no money moves.'}
             </span>
           </div>
 
@@ -743,12 +743,12 @@ export function ClientIntake({
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 18 }}>
             {/*
               The button was disabled whenever the reader had not found a
-              business name, with nothing on screen saying so — which is how
+              business name, with nothing on screen saying so, which is how
               somebody ends up pressing "Looks good, keep it" and watching it
               do nothing. What is missing has to be named.
             */}
             <Button onClick={keep} disabled={busy || Boolean(blocked)}>
-              {busy ? 'Saving…' : 'Looks good — keep it'}
+              {busy ? 'Saving…' : 'Looks good, keep it'}
             </Button>
             {blocked && <span style={{ fontSize: 12.5, color: C.amber }}>{blocked}</span>}
             <button onClick={() => { setRead(false); setError(''); }} style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>

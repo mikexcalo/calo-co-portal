@@ -474,7 +474,7 @@ export default function Sidebar() {
 
           The product name sat here on every screen of every business, so Mark
           opened his own company's tool and the first thing it said was
-          CALO&CO — twice, counting the row underneath. He knows who built it.
+          CALO&CO, twice, counting the row underneath. He knows who built it.
           What he needs to see at a glance is which business he is standing in,
           and the attribution moved to the foot of the sidebar where a
           "powered by" belongs.
@@ -508,7 +508,7 @@ export default function Sidebar() {
         Search, above everything it searches.
 
         It lived in the top bar across the content, which is a fine place for
-        it and the wrong place to learn it exists — the sidebar is where
+        it and the wrong place to learn it exists, the sidebar is where
         somebody looks for a way into something. It is the first row now, above
         Home, because it reaches every row under it.
       */}
@@ -546,7 +546,7 @@ export default function Sidebar() {
           Drops belongs beside Home, not inside The work.
           
           It is where something lands before anybody has decided what it is,
-          which is the opposite of the work — and filed under a heading it
+          which is the opposite of the work, and filed under a heading it
           made no sense under, nobody could say what it was for.
         */}
         {/* Asked of the modules directly. Checking the groups meant Drops
@@ -662,7 +662,7 @@ export default function Sidebar() {
         Whose software this is, where an attribution belongs.
 
         The product name came off the top of the sidebar so a client sees their
-        own business there. It is not gone — it is at the foot, which is where
+        own business there. It is not gone, it is at the foot, which is where
         "powered by" has lived on every white-labelled thing ever made, and it
         links out to the people who built it.
       */}
@@ -680,7 +680,7 @@ export default function Sidebar() {
       {/*
         Switching, for the only person who does it.
 
-        At the bottom because it is not part of doing the work — it is how Mike
+        At the bottom because it is not part of doing the work, it is how Mike
         gets from one business to the next, and it renders at all only when
         there is somewhere to go.
       */}
@@ -695,7 +695,7 @@ export default function Sidebar() {
 
         It was a dropdown in the sidebar footer offering four roles. Two
         problems: it was the last thing on a scrolling column, so it was below
-        the fold on Home, and four roles is three more than gets used — the
+        the fold on Home, and four roles is three more than gets used, the
         question anybody actually asks is "what does the person I am about to
         send this to see", and that person owns their business. It is one
         button in the top bar now, beside the rest of the controls.

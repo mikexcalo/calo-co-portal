@@ -396,7 +396,7 @@ export default function FilesPage() {
       ) : (
         CATEGORIES.filter((c) => grouped[c.id]?.length).map((c) => (
           <div key={c.id} style={{ marginBottom: 26, maxWidth: 720 }}>
-            {/* Real heading rather than a faint uppercase label — these are
+            {/* Real heading rather than a faint uppercase label, these are
                 the dividers you scan by. */}
             <div
               style={{

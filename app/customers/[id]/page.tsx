@@ -554,7 +554,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             One row, not two stacked empty fields.
             
             Filling the record in from a website and tagging it are the same
-            kind of act — small, optional, done once — and giving each its own
+            kind of act, small, optional, done once, and giving each its own
             full-width row put two unfilled inputs between the name and
             anything worth reading.
           */}
@@ -849,7 +849,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             // The one empty state that earns itself: a client with nothing
             // logged is a client nobody has spoken to, which is worth saying.
             <Card>
-              <Empty>Nothing logged yet. Short things that happened — a call, a text, a site visit.</Empty>
+              <Empty>Nothing logged yet. Short things that happened, a call, a text, a site visit.</Empty>
             </Card>
           ) : !showHistory ? (
             /* Folded. The most recent line is enough to know whether to open
@@ -984,7 +984,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                   An address with a label on it.
 
                   It sat at the end of a row of links, in 12.5px grey, with
-                  nothing saying what it was — so "1018 b cushing dr, round
+                  nothing saying what it was, so "1018 b cushing dr, round
                   rock, TX" read as a stray line of text rather than as where
                   the work happens. Labelled, in the reading colour, and
                   capitalised the way somebody would write it.

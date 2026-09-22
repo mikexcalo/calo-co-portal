@@ -368,7 +368,7 @@ export default function CustomersPage() {
         const overdue = Boolean(today && r.next_action_on && r.next_action_on <= today);
         return (
           <span style={{ fontSize: 12.5, color: overdue ? C.amber : r.next_action ? C.dim : C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
-            {r.next_action ?? '—'}
+            {r.next_action ?? ', '}
             {r.next_action_on && ` · ${shortDate(r.next_action_on)}`}
           </span>
         );
@@ -382,7 +382,7 @@ export default function CustomersPage() {
       sortBy: (r) => -r.open_jobs,
       render: (r) => (
         <span style={{ fontSize: 12.5, color: r.open_jobs ? C.dim : C.faint, fontVariantNumeric: 'tabular-nums' }}>
-          {r.open_jobs || '—'}
+          {r.open_jobs || ', '}
         </span>
       ),
     },
@@ -403,7 +403,7 @@ export default function CustomersPage() {
           row is something you reconcile against.
         */
         <span style={{ fontSize: 13, color: r.owed > 0 ? C.red : C.faint, fontVariantNumeric: 'tabular-nums' }}>
-          {r.owed > 0 ? money(r.owed) : '—'}
+          {r.owed > 0 ? money(r.owed) : ', '}
         </span>
       ),
     },
@@ -552,7 +552,7 @@ export default function CustomersPage() {
                 label="No email"
                 value={String(noEmail.length)}
                 tone="red"
-                hint={q === NO_EMAIL ? 'Showing them — press to clear' : "Can't invoice · press to see who"}
+                hint={q === NO_EMAIL ? 'Showing them, press to clear' : "Can't invoice · press to see who"}
               />
             </button>
           )}
@@ -572,7 +572,7 @@ export default function CustomersPage() {
         This whole strip was hidden below eight rows, on the reasoning that a
         search box above four clients is more chrome than list. That is true of
         three stage filters and a brand dropdown. It is not true of the search
-        box, which People shows from the first row — so the same act worked on
+        box, which People shows from the first row, so the same act worked on
         one screen and the control was simply absent on the other, with nothing
         saying why.
       */}
@@ -665,10 +665,10 @@ export default function CustomersPage() {
         <FirstSteps
           copy={{
             title: `No ${vocab.customerPlural.toLowerCase()} yet`,
-            blurb: `Everyone you work with lives here — the ones paying you now and the ones you are still talking to, in one list rather than two.`,
+            blurb: `Everyone you work with lives here, the ones paying you now and the ones you are still talking to, in one list rather than two.`,
             steps: [
               'Add one by hand. A name is genuinely enough; the email, phone and address can be filled in as you learn them.',
-              'Or import a spreadsheet if you already keep the list somewhere else — the columns get matched up for you.',
+              'Or import a spreadsheet if you already keep the list somewhere else, the columns get matched up for you.',
               `Once somebody is in here you can start a ${vocab.job.toLowerCase()} against them, and everything they owe you follows from that.`,
             ],
             action: { label: 'Import a list', href: '/customers/import' },
@@ -721,7 +721,7 @@ export default function CustomersPage() {
                 : kindCounts.supplier + kindCounts.other > 0
                   ? `Nothing filed as somebody you sell to. ${kindCounts.supplier + kindCounts.other} under the other tabs.`
                   : rows.length > 0
-                    ? `Nobody marked won yet — ${rows.length} still being chased in ${vocab.jobPlural}.`
+                    ? `Nobody marked won yet, ${rows.length} still being chased in ${vocab.jobPlural}.`
                     : `No ${vocab.customerPlural.toLowerCase()} yet.`
             }
           />

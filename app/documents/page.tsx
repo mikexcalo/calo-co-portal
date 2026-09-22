@@ -335,14 +335,14 @@ export default function DocumentsPage() {
       {confirmingDelete && (
         <Confirm
           title="Delete this document?"
-          body="The original file is removed too. If it has already become a job cost, that cost stays but loses its receipt — which is what you would need if the charge is ever questioned."
+          body="The original file is removed too. If it has already become a job cost, that cost stays but loses its receipt, which is what you would need if the charge is ever questioned."
           confirmLabel="Delete document"
           onConfirm={() => removeDoc(confirmingDelete)}
           onCancel={() => setConfirmingDelete(null)}
         />
       )}
 
-      {/* One at a time, in arrival order — a stack of modals is worse than a
+      {/* One at a time, in arrival order, a stack of modals is worse than a
           queue you work through. */}
       {pending.length > 0 && (
         <ExtractionReview
@@ -473,7 +473,7 @@ function DocCard({
           {ex ? (
             <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', fontSize: 13.5 }}>
               <span style={{ color: C.faint }}>
-                Vendor <span style={{ color: C.text }}>{ex.vendor || '—'}</span>
+                Vendor <span style={{ color: C.text }}>{ex.vendor || ', '}</span>
               </span>
               <span style={{ color: C.faint }}>
                 Date <span style={{ color: C.text }}>{shortDate(ex.purchased_on)}</span>

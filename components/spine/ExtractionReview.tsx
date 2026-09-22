@@ -222,7 +222,7 @@ export function ExtractionReview({
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
                 style={inputStyle}
-                placeholder="Lumber — framing"
+                placeholder="Lumber, framing"
               />
             </Field>
 

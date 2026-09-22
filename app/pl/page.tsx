@@ -319,7 +319,7 @@ export default function ProfitLossPage() {
               Nothing collected, nothing to hold back.
 
               Every other card here hides at zero, so on a business that has
-              not invoiced yet this was the only one left — the words "Not set"
+              not invoiced yet this was the only one left, the words "Not set"
               stretched across the full width of an otherwise empty screen,
               nagging about a rate that would apply to no money. It asks once
               there is something for it to take a share of.
@@ -467,7 +467,7 @@ export default function ProfitLossPage() {
                   )}
                 </div>
                 <div style={{ fontSize: 12.5, color: C.faint, marginTop: 14, lineHeight: 1.65, maxWidth: 620 }}>
-                  {recovery.recoveredItems} item{recovery.recoveredItems === 1 ? '' : 's'} —
+                  {recovery.recoveredItems} item{recovery.recoveredItems === 1 ? '' : 's'} , 
                   hours and receipts that were recorded, sat long enough to be at real risk of
                   being forgotten, and then got invoiced.{' '}
                   <strong style={{ color: C.dim }}>
@@ -486,7 +486,7 @@ export default function ProfitLossPage() {
             This is a live product a contractor opens in front of his own crew,
             and it was calling his work the worst. It sorts by margin, lowest
             up top, because the one that is losing money is the one to look at
-            — which is what the heading should say.
+, which is what the heading should say.
           */}
           <SectionLabel>Every {vocab.job.toLowerCase()}, lowest margin first</SectionLabel>
           {ranked.length === 0 ? (
@@ -523,14 +523,14 @@ export default function ProfitLossPage() {
                     <div>{money(r.invoiced_total)}</div>
                     <div style={{ color: C.dim }}>{money(r.cost_total)}</div>
                     <div style={{ color: unbilled > 0 ? C.amber : C.faint }}>
-                      {unbilled > 0 ? money(unbilled) : '—'}
+                      {unbilled > 0 ? money(unbilled) : ', '}
                     </div>
                     {/*
                       Zero is not good news.
 
                       This coloured anything not negative green, so a job that
-                      has earned nothing and cost nothing — every job on a
-                      business that has not started invoicing — showed $0.00 in
+                      has earned nothing and cost nothing, every job on a
+                      business that has not started invoicing, showed $0.00 in
                       the green that means settled. Green is for a margin that
                       exists.
                     */}

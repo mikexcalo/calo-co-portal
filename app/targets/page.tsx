@@ -318,7 +318,7 @@ export default function PipelinePage() {
               </span>
             )}
             <span style={{ fontSize: 12.5, color: r.next_action ? C.dim : C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {r.next_action?.replace(/shortlist\s*#?\s*\d+\.?\s*/i, '') || '—'}
+              {r.next_action?.replace(/shortlist\s*#?\s*\d+\.?\s*/i, '') || ', '}
             </span>
           </span>
         );

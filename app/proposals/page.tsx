@@ -108,7 +108,7 @@ export default function ProposalsPage() {
 
         Every row called window.open, so reading three proposals left three
         CALO&CO tabs behind. It is the same link the client is sent, in an
-        iframe, so nothing here can drift from what they actually see — and
+        iframe, so nothing here can drift from what they actually see, and
         Open in a tab is still there for anybody who wants one.
       */}
       {previewing && (
@@ -175,7 +175,7 @@ export default function ProposalsPage() {
         {/*
           A count, because the sum was not a number.
 
-          This added up every unsent proposal's total and printed $40 — two
+          This added up every unsent proposal's total and printed $40, two
           clients' monthly hosting fees, from two agreements that are mostly
           an hourly rate, added together. Nobody is ever going to be invoiced
           $40, and no decision gets made from it.
@@ -215,8 +215,8 @@ export default function ProposalsPage() {
                 {/*
                   A row that says which document it is, and opens it.
 
-                  Every row read "Platform and support" — the name of the
-                  project the proposal hangs off — with no number, no status
+                  Every row read "Platform and support", the name of the
+                  project the proposal hangs off, with no number, no status
                   and no hint that the thing being listed was a document at
                   all. Two of them side by side were distinguishable only by
                   the client's name in the next column.
@@ -249,8 +249,8 @@ export default function ProposalsPage() {
                     }
                   >
                     <div style={{ fontWeight: 500 }}>Proposal #{r.version}</div>
-                    <div>{r.job?.customer?.name ?? '—'}</div>
-                    <div style={{ color: C.dim }}>{r.job?.name ?? '—'}</div>
+                    <div>{r.job?.customer?.name ?? ', '}</div>
+                    <div style={{ color: C.dim }}>{r.job?.name ?? ', '}</div>
                     <div>{money(r.total)}</div>
                     <div><Pill tone={STATUS_TONE[r.status]}>{r.status}</Pill></div>
                   </Row>
@@ -291,9 +291,9 @@ export default function ProposalsPage() {
                       }}
                     >
                       <div style={{ flex: 1, minWidth: 200 }}>
-                        <div style={{ fontSize: 15, fontWeight: 500 }}>{r.job?.name ?? '—'}</div>
+                        <div style={{ fontSize: 15, fontWeight: 500 }}>{r.job?.name ?? ', '}</div>
                         <div style={{ fontSize: 13, color: C.dim, marginTop: 3 }}>
-                          {r.job?.customer?.name ?? '—'}
+                          {r.job?.customer?.name ?? ', '}
                           {age != null && ` · sent ${age === 0 ? 'today' : `${age}d ago`}`}
                         </div>
                       </div>
@@ -336,8 +336,8 @@ export default function ProposalsPage() {
                         : r.job && router.push(`/jobs/${r.job.id}`)
                     }
                   >
-                    <div>{r.job?.name ?? '—'}</div>
-                    <div style={{ color: C.dim }}>{r.job?.customer?.name ?? '—'}</div>
+                    <div>{r.job?.name ?? ', '}</div>
+                    <div style={{ color: C.dim }}>{r.job?.customer?.name ?? ', '}</div>
                     <div><Pill tone={STATUS_TONE[r.status]}>{r.status}</Pill></div>
                     <div style={{ color: C.dim }}>{shortDate(r.decided_at)}</div>
                     <div>{money(r.total)}</div>
@@ -354,7 +354,7 @@ export default function ProposalsPage() {
                   .filter((r) => r.decline_reason)
                   .map((r) => (
                     <div key={r.id} style={{ fontSize: 13.5, color: C.dim, padding: '5px 0' }}>
-                      <strong style={{ color: C.text }}>{r.job?.name}</strong> —{' '}
+                      <strong style={{ color: C.text }}>{r.job?.name}</strong> , {' '}
                       {r.decline_reason}
                     </div>
                   ))}

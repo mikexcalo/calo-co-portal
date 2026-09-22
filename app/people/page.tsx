@@ -230,7 +230,7 @@ export default function PeoplePage() {
       width: 'minmax(110px, 1.2fr)',
       render: (p) => (
         <span style={{ fontSize: 12.5, color: p.title ? C.dim : C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
-          {p.title ?? '—'}
+          {p.title ?? ', '}
         </span>
       ),
     },
@@ -241,7 +241,7 @@ export default function PeoplePage() {
       sortBy: (p) => (p.customers?.name ?? p.company ?? '').toLowerCase(),
       render: (p) => (
         <span style={{ fontSize: 12.5, color: C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
-          {p.customers?.name ?? p.company ?? '—'}
+          {p.customers?.name ?? p.company ?? ', '}
         </span>
       ),
     },
@@ -259,7 +259,7 @@ export default function PeoplePage() {
             {p.email}
           </a>
         ) : (
-          <span style={{ fontSize: 12.5, color: C.faint }}>—</span>
+          <span style={{ fontSize: 12.5, color: C.faint }}>, </span>
         ),
     },
     {
@@ -386,7 +386,7 @@ export default function PeoplePage() {
           {/*
             Read it off the picture instead of retyping it.
             
-            A signature block, a business card, a screenshot of a profile —
+            A signature block, a business card, a screenshot of a profile , 
             every field below is already in that image, and typing it again is
             the work the product should be doing. It fills the form and stops,
             because a misread phone number that saves itself is worse than no
@@ -407,7 +407,7 @@ export default function PeoplePage() {
           >
             {reading
               ? 'Reading…'
-              : readMsg || 'Drop a screenshot or photo of their details — a card, a signature, a profile.'}
+              : readMsg || 'Drop a screenshot or photo of their details, a card, a signature, a profile.'}
           </div>
           <input
             ref={shotRef}
@@ -631,7 +631,7 @@ export default function PeoplePage() {
                 A login, for this person, from where you are looking at them.
                 
                 Inviting is a permission and lives in Settings, but the moment
-                you actually want one is while reading somebody's record — and
+                you actually want one is while reading somebody's record, and
                 sending them there to retype an email you are looking at is
                 the lookup the product should be doing.
               */}

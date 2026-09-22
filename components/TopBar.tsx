@@ -161,7 +161,7 @@ export default function TopBar() {
         */}
         <button
           onClick={() => setDropping(true)}
-          title="Drop a note — talk or paste  (⌘J)"
+          title="Drop a note, talk or paste  (⌘J)"
           style={{
             display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
             background: 'transparent', border: `1px solid ${C.border}`,
@@ -172,7 +172,7 @@ export default function TopBar() {
           {/*
             A sticky note, because that is what this is.
 
-            It was a download arrow — a tray with something dropping into it —
+            It was a download arrow, a tray with something dropping into it , 
             which is the universal symbol for "save this file to my computer",
             the exact opposite of what pressing it does. Next to the words
             "Drop a note" it read as downloading your notes.
@@ -436,7 +436,7 @@ function AccountMenu() {
                 Signed in as
               </div>
               <div style={{ fontSize: 13.5, color: C.text, marginTop: 3, wordBreak: 'break-all' }}>
-                {email ?? '—'}
+                {email ?? ', '}
               </div>
             </div>
             {/*

@@ -97,7 +97,7 @@ export default function NewJobPage() {
             onChange={(e) => setCustomerId(e.target.value)}
             style={inputStyle}
           >
-            <option value="">— New customer —</option>
+            <option value="">,  New customer , </option>
             {customers.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}

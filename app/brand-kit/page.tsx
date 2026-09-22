@@ -149,7 +149,7 @@ export default function BrandKitPage() {
   const downloadType = useCallback(() => {
     const name = org?.name ?? 'brand';
     const body = [
-      `${name} — type`,
+      `${name}, type`,
       new Date().toISOString().slice(0, 10),
       '',
       'TYPE',
@@ -157,7 +157,7 @@ export default function BrandKitPage() {
       `  Body       ${brand.fontBody || 'not set'}`,
       '',
       'COLORS',
-      ...brand.colors.map((c) => `  ${c.hex}  ${c.name}${c.role ? ` — ${c.role}` : ''}`),
+      ...brand.colors.map((c) => `  ${c.hex}  ${c.name}${c.role ? `, ${c.role}` : ''}`),
       '',
     ].join('\n');
     const url = URL.createObjectURL(new Blob([body], { type: 'text/plain' }));
@@ -222,7 +222,7 @@ export default function BrandKitPage() {
       setCopied(label);
       setTimeout(() => setCopied(null), 2000);
     } catch {
-      setError('Could not copy — your browser blocked clipboard access.');
+      setError('Could not copy, your browser blocked clipboard access.');
     }
   };
 
@@ -252,7 +252,7 @@ export default function BrandKitPage() {
     <Page
       tabs={brandTabsFor(org?.kind)}
       title="Brand"
-      subtitle={mine ? 'Your logos, colours, type and voice.' : `${shown.name} — held by you, edited on its own screens.`}
+      subtitle={mine ? 'Your logos, colours, type and voice.' : `${shown.name}, held by you, edited on its own screens.`}
       action={
         <>
           {saved && mine && <Pill tone="green">Saved</Pill>}
@@ -272,7 +272,7 @@ export default function BrandKitPage() {
       {/*
         The picker, where the identities are.
 
-        Only where there is more than one — a contractor holds their own and
+        Only where there is more than one, a contractor holds their own and
         nothing else, and a dropdown offering one choice is furniture.
       */}
       {clientBrands.length > 0 && (
@@ -287,7 +287,7 @@ export default function BrandKitPage() {
               fontFamily: 'inherit', cursor: 'pointer',
             }}
           >
-            <option value="">{org?.name ?? 'Your brand'} — yours</option>
+            <option value="">{org?.name ?? 'Your brand'}, yours</option>
             {clientBrands.map((b) => (
               <option key={b.id} value={b.id}>{b.name}</option>
             ))}
@@ -390,7 +390,7 @@ export default function BrandKitPage() {
 
           {/*
             The other direction. Colors above are ones you already know; this
-            is for the ones that arrived as a picture — a prospect's logo, a
+            is for the ones that arrived as a picture, a prospect's logo, a
             screenshot of a sign, a PDF somebody exported.
           */}
           {/*
@@ -407,7 +407,7 @@ export default function BrandKitPage() {
             <SectionLabel>Colors from a logo</SectionLabel>
             <p style={{ fontSize: 12.5, color: C.faint, margin: '6px 0 12px' }}>
               Drop an image and this reads the exact hexes out of it. Nothing is
-              uploaded and nothing is charged — it happens in your browser. What
+              uploaded and nothing is charged, it happens in your browser. What
               you add lands in Colors above and keeps when you save.
             </p>
             <PaletteFromImage
@@ -433,13 +433,13 @@ export default function BrandKitPage() {
               The face, set in the face.
 
               Both were a name typed into a grey box, in the interface's own
-              font — so the one question this section exists to answer, what
+              font, so the one question this section exists to answer, what
               does it look like, was the one thing it could not show. The
               specimen loads the family and sets a line in it at the size that
               family is actually used at.
 
               The Platform block is gone. It listed Figtree, Inter and Geist
-              Mono — the typefaces this software is built in — identically on
+              Mono, the typefaces this software is built in, identically on
               every brand, so Mammoth's kit was three-quarters a description of
               CALO&CO's tooling. That is reference material about Nautilus and
               has no place on somebody's identity.
@@ -603,7 +603,7 @@ export default function BrandKitPage() {
                 </Button>
               </div>
               <div style={{ fontSize: 12.5, color: C.faint, marginTop: 10 }}>
-                &quot;Copy signature&quot; puts the rendered version on your clipboard — that&apos;s
+                &quot;Copy signature&quot; puts the rendered version on your clipboard, that&apos;s
                 what mail clients want. &quot;Copy HTML&quot; gives you the source, for anything with
                 a code view.
               </div>
@@ -908,7 +908,7 @@ function LogosTab({
             A kit you can take something out of.
 
             You could add a logo and never remove one. CALO&CO's kit held the
-            site favicon — an ampersand in a black square — which is not the
+            site favicon, an ampersand in a black square, which is not the
             mark; the proposal takes the first logo it finds, so every proposal
             went out headed with a favicon and there was no button anywhere
             that would take it back out.
@@ -1001,7 +1001,7 @@ function LogoCard({
         Which one goes on a proposal, and a way out.
 
         The document picks the first logo in the list, which is invisible from
-        here — so the only way to change what a client sees at the top of a
+        here, so the only way to change what a client sees at the top of a
         proposal was to get the order right by luck. This says which one is
         being used and lets you say otherwise.
       */}

@@ -306,7 +306,7 @@ export default function BillingPage() {
           marginBottom: 26,
         }}
       >
-        {/* Owed to you, so red — the same rule as Home. */}
+        {/* Owed to you, so red, the same rule as Home. */}
         <Metric label="Outstanding" value={money0(outstanding)} tone={outstanding > 0 ? 'red' : undefined} hideAtZero />
         <Metric label="Collected" value={money0(collected)} tone="green" hideAtZero />
         <Metric label="Drafts" value={String(drafts)} tone={drafts > 0 ? 'amber' : undefined} hint="Not sent yet" hideAtZero />
@@ -326,7 +326,7 @@ export default function BillingPage() {
             Whose it is, before what it was for.
 
             Two invoices both read "Platform and support", both $60, both
-            draft, numbered one and two — and nothing on either row said which
+            draft, numbered one and two, and nothing on either row said which
             client it belonged to. The number carries the client now (GSP-001,
             MMTH-001) and the name is beside it, because a number you have to
             decode is a number you look up.
@@ -343,8 +343,8 @@ export default function BillingPage() {
               <div key={inv.id}>
                 <Row cols="110px 1.1fr 1fr 120px 100px 100px" labels={['Number', vocab.customer, vocab.job, 'Status', 'Total', 'Due']} onClick={() => toggle(inv.id)}>
                   <div style={{ fontVariantNumeric: 'tabular-nums' }}>{inv.number}</div>
-                  <div>{job?.customer?.name ?? '—'}</div>
-                  <div style={{ color: C.dim }}>{job?.name ?? '—'}</div>
+                  <div>{job?.customer?.name ?? ', '}</div>
+                  <div style={{ color: C.dim }}>{job?.name ?? ', '}</div>
                   <div>
                     <Pill
                       tone={
@@ -382,7 +382,7 @@ export default function BillingPage() {
 
                 {isOpen && (
                   <div style={{ padding: '14px 18px', background: C.panelAlt, borderBottom: `1px solid ${C.border}` }}>
-                    {/* Brand marker — the Brand Kit feeding a real document. */}
+                    {/* Brand marker, the Brand Kit feeding a real document. */}
                     <div
                       style={{
                         display: 'flex',
@@ -448,9 +448,9 @@ export default function BillingPage() {
                       {/*
                         One thing to do, and everything else behind "More".
 
-                        There were seven buttons across the bottom of a draft —
+                        There were seven buttons across the bottom of a draft , 
                         Open job, Preview, Email invoice, Copy link, Send via
-                        Stripe, Mark sent by hand, Void — all the same size, in
+                        Stripe, Mark sent by hand, Void, all the same size, in
                         one grey row, with a red one on the end. Seven equal
                         choices is not a choice, and the destructive one was
                         sitting at the same weight as the one you actually
@@ -577,7 +577,7 @@ export default function BillingPage() {
                       >
                         On {money(inv.total)}, card fees run about{' '}
                         <strong>{money(inv.total * 0.029 + 0.3)}</strong>. Bank transfer costs
-                        about <strong>{money(Math.min(inv.total * 0.008, 5))}</strong> — a
+                        about <strong>{money(Math.min(inv.total * 0.008, 5))}</strong>, a
                         difference of {money(inv.total * 0.029 + 0.3 - Math.min(inv.total * 0.008, 5))}.
                         Worth asking for on invoices this size.
                       </div>

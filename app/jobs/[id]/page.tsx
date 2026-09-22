@@ -345,7 +345,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
           </span>
         )}
 
-        {/* Dates feed the calendar subscription — a job with no dates simply
+        {/* Dates feed the calendar subscription, a job with no dates simply
             doesn't appear there. */}
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginLeft: 'auto' }}>
           <span style={{ fontSize: 12.5, color: C.faint }}>Scheduled</span>
@@ -406,8 +406,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
       {/*
         The schedule is its own block.
         
-        It was rendered inside the Hours header — a space-between row built to
-        hold a label and a button — so a whole component with its own steps and
+        It was rendered inside the Hours header, a space-between row built to
+        hold a label and a button, so a whole component with its own steps and
         dates was squeezed in beside the word "Hours" and pushed the button off
         its own line.
       */}
@@ -448,7 +448,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         {/*
           Column headings over nothing.
 
-          Date, Work, Hours, Rate, Value — drawn above the sentence "No hours
+          Date, Work, Hours, Rate, Value, drawn above the sentence "No hours
           logged yet." A header describes rows. With no rows it is five words
           of furniture and a ruled line, which is how an empty job ends up
           looking like a broken table.
@@ -552,7 +552,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         setConfirming({
                           kind: 'cost',
                           id: c.id,
-                          label: `${c.description || c.vendor || 'cost'} — ${money(c.amount)}`,
+                          label: `${c.description || c.vendor || 'cost'}, ${money(c.amount)}`,
                         })
                       }
                       style={{ background: 'none', border: 'none', color: C.faint, cursor: 'pointer', fontSize: 16 }}
@@ -642,7 +642,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
               <Row key={i.id} cols="110px 1fr 130px 110px" onClick={() => router.push('/billing')}>
                 <div>{i.number}</div>
                 <div style={{ color: C.dim }}>
-                  {i.period_start ? `${shortDate(i.period_start)} – ${shortDate(i.period_end)}` : '—'}
+                  {i.period_start ? `${shortDate(i.period_start)} – ${shortDate(i.period_end)}` : ', '}
                 </div>
                 <div>
                   <Pill tone={i.status === 'paid' ? 'green' : i.status === 'overdue' ? 'red' : i.status === 'draft' ? 'neutral' : 'blue'}>
@@ -778,7 +778,7 @@ function CostForm({
         </Field>
       </div>
       <Field label="What for">
-        <input value={desc} onChange={(e) => setDesc(e.target.value)} style={inputStyle} placeholder="Lumber — framing" />
+        <input value={desc} onChange={(e) => setDesc(e.target.value)} style={inputStyle} placeholder="Lumber, framing" />
       </Field>
       <Button
         disabled={busy || !valid}

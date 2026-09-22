@@ -289,7 +289,7 @@ export function QrStudio({
             }}
           >
             <strong style={{ fontWeight: 600 }}>
-              Contrast {ratio.toFixed(1)}:1 —{' '}
+              Contrast {ratio.toFixed(1)}:1 , {' '}
               {!scannable ? 'will not scan reliably' : comfortable ? 'scans well' : 'marginal'}
             </strong>
             <div style={{ marginTop: 4 }}>

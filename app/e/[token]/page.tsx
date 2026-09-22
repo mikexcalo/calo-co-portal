@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: { params: { token: string } }
     .maybeSingle();
   const job = data?.job as { name?: string; org?: { name?: string } } | null;
   return {
-    title: job?.name ? `Proposal — ${job.name}` : 'Proposal',
+    title: job?.name ? `Proposal, ${job.name}` : 'Proposal',
     description: job?.org?.name ? `A proposal from ${job.org.name}.` : undefined,
   };
 }
@@ -110,7 +110,7 @@ export default async function PublicEstimate({ params }: { params: { token: stri
 
   const [{ data: lines }, { data: org }] = await Promise.all([
     db.from('estimate_lines').select('*').eq('estimate_id', estimate.id).order('position'),
-    db.from('orgs').select('name, settings').eq('id', job?.org_id ?? '').maybeSingle(),
+    db.from('orgs').select('name, settings, kind').eq('id', job?.org_id ?? '').maybeSingle(),
   ]);
 
   // Record the first open. "Sent but never opened" is a different problem
@@ -152,6 +152,15 @@ export default async function PublicEstimate({ params }: { params: { token: stri
     Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && x.trim().length > 0) : [];
   const scopeIn = asList(estimate.scope_in);
   const scopeOut = asList(estimate.scope_out);
+  /*
+    What this business calls the document, used everywhere on it.
+
+    An agency sends a proposal, a contractor sends an estimate, and John quotes
+    — the word is already decided per business, and the header was ignoring it
+    on the right hand side.
+  */
+  const vocabWord = (org as { kind?: string } | null)?.kind === 'agency' ? 'Proposal' : 'Estimate';
+
   const decided = ['accepted', 'declined'].includes(estimate.status);
   const isTM = job?.billing_type === 'tm';
 
@@ -208,9 +217,34 @@ export default async function PublicEstimate({ params }: { params: { token: stri
             <div style={{ textAlign: 'right', fontSize: 13.5, color: '#666' }}>
               <div style={{ fontWeight: 600, color: '#111' }}>{org?.name}</div>
               {estimate.valid_until && <div style={{ marginTop: 4 }}>Valid until {fmtDate(estimate.valid_until)}</div>}
-              <div>Estimate #{estimate.version}</div>
+              {/*
+                One word for the document.
+
+                The header said the org's word for it down the left and
+                "Estimate #1" on the right, six inches apart on the same page.
+                Whatever this business calls it, it calls it that in both
+                places, and the number reads as a reference rather than a
+                version count.
+              */}
+              <div style={{ ...numeralStyle, fontSize: 12.5 }}>
+                {vocabWord} {String(estimate.version).padStart(3, '0')}
+              </div>
             </div>
           </div>
+
+          {/*
+            A line before the numbers.
+
+            It opened straight into a price table, which asks somebody to read
+            figures before they have been told what they are looking at or why
+            it arrived. Two sentences of context, in the sender's own words,
+            and then the money.
+          */}
+          {estimate.intro && (
+            <div style={{ fontSize: 15, color: '#333', lineHeight: 1.65, marginTop: 20, maxWidth: '62ch' }}>
+              {estimate.intro}
+            </div>
+          )}
         </div>
 
         {decided && (
@@ -225,7 +259,7 @@ export default async function PublicEstimate({ params }: { params: { token: stri
             }}
           >
             {estimate.status === 'accepted'
-              ? `Accepted${estimate.decided_by_name ? ` by ${estimate.decided_by_name}` : ''} on ${fmtDate(estimate.decided_at)}. Thank you — we'll be in touch to schedule.`
+              ? `Accepted${estimate.decided_by_name ? ` by ${estimate.decided_by_name}` : ''} on ${fmtDate(estimate.decided_at)}. Thank you, we'll be in touch to schedule.`
               : `Declined on ${fmtDate(estimate.decided_at)}.`}
           </div>
         )}
@@ -261,14 +295,21 @@ export default async function PublicEstimate({ params }: { params: { token: stri
                   <tr key={l.id} style={{ borderBottom: '1px solid #f0f0ed' }}>
                     <td style={{ padding: '11px 0', color: '#222' }}>
                       {l.description}
+                      {/*
+                        Said once, not twice.
+
+                        The crossed-out price appeared here AND in the Amount
+                        column, so every discounted line argued its own case
+                        twice on one row. Once is persuasive; twice reads as a
+                        page trying to talk somebody into something.
+
+                        The money comparison lives in the money column. This
+                        line just states the rate, which is the thing somebody
+                        needs in words rather than as a sum.
+                      */}
                       {cut && (
-                        <div style={{ fontSize: 12.5, marginTop: 3 }}>
-                          <span style={{ textDecoration: 'line-through', color: '#999' }}>
-                            {money(list)}
-                          </span>
-                          <span style={{ color: '#15803d', marginLeft: 7 }}>
-                            {money(unit)}{l.unit ? ` a ${l.unit}` : ''} for you
-                          </span>
+                        <div style={{ fontSize: 12.5, color: '#15803d', marginTop: 3 }}>
+                          {money(unit)}{l.unit ? ` a ${l.unit}` : ''}, normally {money(list)}
                         </div>
                       )}
                     </td>
@@ -311,18 +352,48 @@ export default async function PublicEstimate({ params }: { params: { token: stri
             const monthly = recurring.reduce((t, l) => t + Number(l.total), 0);
             const isRate = recurring.length > 0 && fixed.length === 0;
             return (
-              <div style={{ marginTop: 18, textAlign: 'right' }}>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline', gap: 14 }}>
-                  <span style={{ fontSize: 14, color: '#666' }}>{isRate ? 'Every month' : 'Total'}</span>
-                  <span style={{ fontSize: 24, fontWeight: 600, color: '#111' }}>
-                    {money(isRate ? monthly : Number(estimate.total) || subtotal)}
-                  </span>
-                </div>
-                {rated.map((l) => (
-                  <div key={l.id} style={{ fontSize: 13.5, color: '#555', marginTop: 5 }}>
-                    plus {money(Number(l.unit_price))} an {l.unit ?? 'hour'}, for the {l.unit ?? 'hour'}s you use
+              /*
+                Two numbers, at the same weight, because there are two.
+
+                It printed "Every month $40.00" at 24px with the hourly rate
+                underneath in small grey. But $40 is only what this costs in a
+                month where nobody asks for anything, and the hourly is the
+                half that moves. Sizing one as the answer and the other as a
+                footnote tells the reader the arrangement is cheaper than it
+                is, which is the last thing a price should do.
+
+                They sit side by side. Neither is the total, because there
+                isn't one until somebody uses an hour.
+              */
+              <div style={{ marginTop: 22 }}>
+                <div
+                  style={{
+                    display: 'flex', justifyContent: 'flex-end', gap: 34,
+                    flexWrap: 'wrap', borderTop: '2px solid #1a1a1a', paddingTop: 14,
+                  }}
+                >
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.07em', color: '#777', fontWeight: 600 }}>
+                      Every month
+                    </div>
+                    <div style={{ fontSize: 26, fontWeight: 600, color: '#111', marginTop: 3 }}>
+                      {money(isRate ? monthly : Number(estimate.total) || subtotal)}
+                    </div>
                   </div>
-                ))}
+                  {rated.map((l) => (
+                    <div key={l.id} style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.07em', color: '#777', fontWeight: 600 }}>
+                        Each {l.unit ?? 'hour'} you use
+                      </div>
+                      <div style={{ fontSize: 26, fontWeight: 600, color: '#111', marginTop: 3 }}>
+                        {money(Number(l.unit_price))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize: 13, color: '#777', marginTop: 8, textAlign: 'right' }}>
+                  Nothing else. No setup fee, no minimum, no notice period.
+                </div>
               </div>
             );
           })()}
@@ -349,7 +420,7 @@ export default async function PublicEstimate({ params }: { params: { token: stri
 
             This was two cards side by side, ticks on one and dashes on the
             other, and the exclusions were drawn at the same weight as the
-            inclusions — so a document meant to make somebody say yes gave half
+            inclusions, so a document meant to make somebody say yes gave half
             its width to a list of things they were not getting. The exclusions
             still exist and still matter; they belong in the terms underneath,
             where somebody looks when they have a question, not in the middle
@@ -402,6 +473,49 @@ export default async function PublicEstimate({ params }: { params: { token: stri
                 : []),
             ]}
           />
+
+          {/*
+            What happens after yes.
+
+            The commonest thing missing from a proposal, and the thing every
+            good one answers: somebody presses Accept and then has no idea
+            whether that started a clock, created an obligation, or sent an
+            email into a void. Three lines, fixed, because the process is the
+            same every time and is not something anybody should have to
+            remember to type.
+          */}
+          {!decided && (
+            <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid #e4e4e0' }}>
+              <div style={{ fontSize: 17, fontWeight: 600, color: '#111', letterSpacing: '-0.01em', marginBottom: 12 }}>
+                What happens if you say yes
+              </div>
+              <div style={{ display: 'grid', gap: 10, fontSize: 14.5, color: '#333', lineHeight: 1.6, maxWidth: '62ch' }}>
+                <div style={{ display: 'flex', gap: 13 }}>
+                  <span style={{ ...numeralStyle, color: '#bbb', flexShrink: 0 }}>01</span>
+                  <span>Nothing changes today. You keep using it exactly as you are.</span>
+                </div>
+                <div style={{ display: 'flex', gap: 13 }}>
+                  <span style={{ ...numeralStyle, color: '#bbb', flexShrink: 0 }}>02</span>
+                  <span>
+                    Your first invoice arrives on the 1st, covering the month just gone. It is
+                    built from the hours logged and the receipts filed, so you can check every
+                    line against something that actually happened.
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: 13 }}>
+                  <span style={{ ...numeralStyle, color: '#bbb', flexShrink: 0 }}>03</span>
+                  <span>
+                    If you want to stop, say so and it stops. There is no notice period and
+                    nothing to cancel.
+                  </span>
+                </div>
+              </div>
+              <div style={{ fontSize: 13.5, color: '#666', marginTop: 16, lineHeight: 1.6 }}>
+                Something here not right? Reply to the email this came from and it gets
+                changed before you sign anything.
+              </div>
+            </div>
+          )}
         </div>
 
         <AddOns

@@ -134,18 +134,20 @@ export default function NotesPage() {
       const parts = [
         result.summary,
         result.tasks.length
-          ? '\nAgreed:\n' + result.tasks.map((t) => `· ${t.what}${t.who ? ` — ${t.who}` : ''}${t.due ? ` (by ${t.due})` : ''}`).join('\n')
+          ? '\nAgreed:\n' + result.tasks.map((t) => `· ${t.what}${t.who ? `, ${t.who}` : ''}${t.due ? ` (by ${t.due})` : ''}`).join('\n')
           : '',
         result.amounts.length
-          ? '\nAmounts mentioned:\n' + result.amounts.map((a) => `· $${a.amount} — ${a.what}`).join('\n')
+          ? '\nAmounts mentioned:\n' + result.amounts.map((a) => `· $${a.amount}, ${a.what}`).join('\n')
           : '',
         result.people.length
-          ? '\nPeople:\n' + result.people.map((p) => `· ${p.name}${p.role ? `, ${p.role}` : ''}${p.email ? ` — ${p.email}` : ''}${p.phone ? ` — ${p.phone}` : ''}`).join('\n')
+          ? '\nPeople:\n' + result.people.map((p) => `· ${p.name}${p.role ? `, ${p.role}` : ''}${p.email ? `, ${p.email}` : ''}${p.phone ? `, ${p.phone}` : ''}`).join('\n')
           : '',
         result.uncertain.length
           ? '\nUnclear in the original:\n' + result.uncertain.map((u) => `· ${u}`).join('\n')
           : '',
-        '\n\n— — —\nOriginal:\n' + raw,
+        /* A separator, not prose. The em dash sweep turned three of these
+           into ", , ," — it is a marker the reader never sees as words. */
+        '\n\n---\nOriginal:\n' + raw,
       ];
 
       const res = await saveOrFail(supabase.from('customer_notes').insert({
@@ -310,7 +312,7 @@ export default function NotesPage() {
               {result.tasks.map((t, i) => (
                 <div key={i} style={{ fontSize: 14.5, color: C.text, padding: '5px 0', lineHeight: 1.5 }}>
                   · {t.what}
-                  {t.who && <span style={{ color: C.faint }}> — {t.who}</span>}
+                  {t.who && <span style={{ color: C.faint }}>, {t.who}</span>}
                   {t.due && <span style={{ marginLeft: 8 }}><Pill tone="amber">by {t.due}</Pill></span>}
                 </div>
               ))}
@@ -324,7 +326,7 @@ export default function NotesPage() {
               </div>
               {result.amounts.map((a, i) => (
                 <div key={i} style={{ fontSize: 14.5, color: C.text, padding: '4px 0' }}>
-                  ${a.amount.toLocaleString()} — <span style={{ color: C.dim }}>{a.what}</span>
+                  ${a.amount.toLocaleString()}, <span style={{ color: C.dim }}>{a.what}</span>
                 </div>
               ))}
               <div style={{ fontSize: 12.5, color: C.faint, marginTop: 6, lineHeight: 1.55 }}>
@@ -343,7 +345,7 @@ export default function NotesPage() {
                   {p.name}
                   {p.role && <span style={{ color: C.faint }}>, {p.role}</span>}
                   {(p.email || p.phone) && (
-                    <span style={{ color: C.dim }}> — {[p.email, p.phone].filter(Boolean).join(' · ')}</span>
+                    <span style={{ color: C.dim }}>, {[p.email, p.phone].filter(Boolean).join(' · ')}</span>
                   )}
                 </div>
               ))}
@@ -391,7 +393,7 @@ export default function NotesPage() {
                     {n.source === 'transcript' && <Pill tone="blue">From a transcript</Pill>}
                   </div>
                   <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.65, margin: '10px 0 0', whiteSpace: 'pre-wrap' }}>
-                    {n.body.split('— — —')[0].trim().slice(0, 400)}
+                    {n.body.split('\n---\n')[0].trim().slice(0, 400)}
                     {n.body.length > 400 ? '…' : ''}
                   </p>
                 </Card>

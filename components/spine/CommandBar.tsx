@@ -53,7 +53,7 @@ const NAV: Item[] = [
   { id: 'n-jobs', label: 'Projects', href: '/jobs', group: 'Go to' },
   { id: 'n-clients', label: 'Clients', href: '/customers', group: 'Go to' },
   { id: 'n-people', label: 'People', href: '/people', group: 'Go to' },
-  { id: 'n-access', label: 'Access — who is on what', href: '/access', group: 'Go to' },
+  { id: 'n-access', label: 'Access, who is on what', href: '/access', group: 'Go to' },
   { id: 'n-digital', label: 'Digital', href: '/digital', group: 'Go to' },
   { id: 'n-traffic', label: 'Traffic and analytics', href: '/traffic', group: 'Go to' },
   { id: 'n-notes', label: 'Notes', href: '/notes', group: 'Go to' },
@@ -361,8 +361,8 @@ export function CommandBar({ trigger = true }: { trigger?: boolean } = {}) {
         and reachable on a phone where there is no shortcut at all.
 
         Optional now: the sidebar grew its own search row above Home, and two
-        identical "Search or ask" boxes on one screen — one in the chrome, one
-        in the nav, four inches apart — is worse than either alone. The sidebar
+        identical "Search or ask" boxes on one screen, one in the chrome, one
+        in the nav, four inches apart, is worse than either alone. The sidebar
         keeps it on desktop; this stays for the phone, where there is no
         sidebar and no keyboard.
       */}

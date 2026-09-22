@@ -134,7 +134,7 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
           body: JSON.stringify({
             orgId: row.org_id,
             title: `We answered: ${row.body.slice(0, 60)}${row.body.length > 60 ? '…' : ''}`,
-            detail: reply.trim() ? `${reply.trim()}\n\n— marked ${said}` : `Marked ${said}.`,
+            detail: reply.trim() ? `${reply.trim()}\n\n,  marked ${said}` : `Marked ${said}.`,
             href: '/feedback',
           }),
         }).catch(() => {});

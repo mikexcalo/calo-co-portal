@@ -170,7 +170,7 @@ export function Pairings({ kit }: { kit: Kit }) {
     <Card>
       <SectionLabel>What sits on what</SectionLabel>
       <div style={{ fontSize: 12.5, color: C.faint, marginTop: 4, marginBottom: 12, lineHeight: 1.6, maxWidth: '64ch' }}>
-        The ratio is WCAG contrast — the same arithmetic an accessibility audit runs. 4.5 is the
+        The ratio is WCAG contrast, the same arithmetic an accessibility audit runs. 4.5 is the
         floor for body text, 3 for large. Below 3 it is not a preference, it is unreadable.
       </div>
       <div style={{ display: 'grid', gap: 12 }}>

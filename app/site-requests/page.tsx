@@ -186,7 +186,7 @@ export default function WebsitePage() {
       title="Site requests"
       subtitle={
         site
-          ? `${site.name}${site.url ? ` — ${site.url}` : ''}`
+          ? `${site.name}${site.url ? `, ${site.url}` : ''}`
           : 'Edit what you can yourself, and ask for anything else.'
       }
       action={
@@ -250,7 +250,7 @@ export default function WebsitePage() {
         </Card>
       )}
 
-      {/* Self-serve first — every field here is a request nobody has to work. */}
+      {/* Self-serve first, every field here is a request nobody has to work. */}
       {content.length > 0 && (
         <div style={{ marginBottom: 28 }}>
           <SectionLabel>Change these yourself</SectionLabel>

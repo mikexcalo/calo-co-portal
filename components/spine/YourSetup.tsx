@@ -228,7 +228,7 @@ export function YourSetup() {
                 The first line closed, the rest when you ask.
 
                 This printed every word of "why it matters" on every task at
-                once — three and four paragraphs each, eight of them, so the
+                once, three and four paragraphs each, eight of them, so the
                 home screen became about four thousand words of reasoning
                 stacked above the work. All of it is worth reading once and
                 none of it is worth re-reading every morning. The first

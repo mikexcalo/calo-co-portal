@@ -207,7 +207,7 @@ export default function RoutesPage() {
                 </p>
                 {noPin.map((j) => (
                   <div key={j.id} style={{ fontSize: 13, color: C.dim, padding: '4px 0' }}>
-                    {j.name} — {j.address}
+                    {j.name}, {j.address}
                   </div>
                 ))}
               </Card>
