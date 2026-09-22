@@ -62,8 +62,22 @@ export default function ResetPage() {
           </>
         ) : (
           <>
-            <p style={{ fontSize: 15, lineHeight: 1.6, color: '#383D45', margin: '0 0 18px' }}>
+            {/*
+              The rule, on screen, before it is broken.
+
+              It lived in the placeholder — which vanishes the moment anybody
+              types — and in an error that only appeared after a failed
+              attempt. Meanwhile the button sat greyed out saying nothing about
+              why. So somebody picked a six-character password, found a dead
+              button and no explanation, and the only place the requirement was
+              actually written down was a note Mike had to send by hand to
+              every single person he onboards.
+            */}
+            <p style={{ fontSize: 15, lineHeight: 1.6, color: '#383D45', margin: '0 0 6px' }}>
               This is the one you will use from now on. Nobody else has it, including us.
+            </p>
+            <p style={{ fontSize: 13.5, lineHeight: 1.6, color: '#5B6069', margin: '0 0 18px' }}>
+              Eight characters or more.
             </p>
             <input
               type="password"
@@ -88,7 +102,13 @@ export default function ResetPage() {
                 fontFamily: 'inherit',
               }}
             >
-              {busy ? 'Saving…' : 'Save it and sign in'}
+              {busy
+                ? 'Saving…'
+                : pw.length === 0
+                  ? 'Save it and sign in'
+                  : pw.length < 8
+                    ? `${8 - pw.length} more character${8 - pw.length === 1 ? '' : 's'}`
+                    : 'Save it and sign in'}
             </button>
           </>
         )}
