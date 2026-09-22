@@ -403,6 +403,47 @@ export function Card({
   );
 }
 
+/**
+ * A section heading with its action beside it.
+ *
+ * Every one of these was hand-built as a flex row holding a SectionLabel and a
+ * Button, and SectionLabel carries its own marginBottom. Inside a flex line
+ * that margin applies WITHIN the row rather than under it — so the label was
+ * nudged up off the button's centre line, and the row itself had no gap
+ * underneath at all. The result is what Mike saw: Log hours, Add cost and New
+ * estimate sitting directly on top of the table beneath them, on every
+ * section, on every job.
+ *
+ * One component, so the gap belongs to the header instead of to the label, and
+ * there is nowhere left to get it wrong.
+ */
+export function SectionHead({
+  children,
+  action,
+}: {
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: 12,
+        flexWrap: 'wrap',
+        marginBottom: 12,
+      }}
+    >
+      {/* The label's own margin is cancelled; this row owns the spacing. */}
+      <div style={{ marginBottom: -10 }}>
+        <SectionLabel>{children}</SectionLabel>
+      </div>
+      {action}
+    </div>
+  );
+}
+
 export function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div

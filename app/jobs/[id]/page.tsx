@@ -52,6 +52,7 @@ import {
   Page,
   Pill,
   Row,
+  SectionHead,
   SectionLabel,
   Table,
   hours as fmtHours,
@@ -231,9 +232,21 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <Button variant="ghost" onClick={() => router.push('/jobs')}>All jobs</Button>
 
-          <Button onClick={handleDraftInvoice} disabled={busy || unbilled <= 0}>
-            {unbilled > 0 ? `Invoice ${money0(unbilled)}` : 'Nothing to invoice'}
-          </Button>
+          {/*
+            A greyed-out button reading "Nothing to invoice" looks like a
+            control that is broken rather than a statement of fact. When there
+            is something to bill it is a button; when there is not, it is a
+            sentence.
+          */}
+          {unbilled > 0 ? (
+            <Button onClick={handleDraftInvoice} disabled={busy}>
+              Invoice {money0(unbilled)}
+            </Button>
+          ) : (
+            <span style={{ fontSize: 13, color: C.faint, alignSelf: 'center' }}>
+              Nothing to invoice yet
+            </span>
+          )}
         </div>
       }
     >
@@ -379,7 +392,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         <Metric
           label="Outstanding"
           value={money0(outstanding)}
-          tone={outstanding > 0 ? 'blue' : undefined}
+          tone={outstanding > 0 ? 'red' : undefined}
         />
         <Metric
           label="Margin to date"
@@ -405,12 +418,15 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
       {/* Labor */}
       <div style={{ marginBottom: 26 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <SectionLabel>Hours</SectionLabel>
-          <Button variant="ghost" onClick={() => setShowTime((v) => !v)}>
-            {showTime ? 'Cancel' : 'Log hours'}
-          </Button>
-        </div>
+        <SectionHead
+          action={
+            <Button variant="ghost" onClick={() => setShowTime((v) => !v)}>
+              {showTime ? 'Cancel' : 'Log hours'}
+            </Button>
+          }
+        >
+          Hours
+        </SectionHead>
 
         {showTime && (
           <Card style={{ marginBottom: 10 }}>
@@ -428,10 +444,20 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
           </Card>
         )}
 
+        {/*
+          Column headings over nothing.
+
+          Date, Work, Hours, Rate, Value — drawn above the sentence "No hours
+          logged yet." A header describes rows. With no rows it is five words
+          of furniture and a ruled line, which is how an empty job ends up
+          looking like a broken table.
+        */}
         <Table>
-          <Row cols="100px 1fr 90px 90px 110px 40px" header>
-            <div>Date</div><div>Work</div><div>Hours</div><div>Rate</div><div>Value</div><div />
-          </Row>
+          {entries.length > 0 && (
+            <Row cols="100px 1fr 90px 90px 110px 40px" header>
+              <div>Date</div><div>Work</div><div>Hours</div><div>Rate</div><div>Value</div><div />
+            </Row>
+          )}
           {entries.length === 0 ? (
             <Empty>No hours logged yet.</Empty>
           ) : (
@@ -469,8 +495,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
       {/* Costs */}
       <div style={{ marginBottom: 26 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <SectionLabel>Costs</SectionLabel>
+        <SectionHead
+          action={
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <Button variant="ghost" onClick={() => router.push('/documents')}>
               Add from receipt
@@ -479,7 +505,10 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
               {showCost ? 'Cancel' : 'Add cost'}
             </Button>
           </div>
-        </div>
+          }
+        >
+          Costs
+        </SectionHead>
 
         {showCost && (
           <Card style={{ marginBottom: 10 }}>
@@ -497,9 +526,11 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         )}
 
         <Table>
-          <Row cols="100px 1fr 130px 110px 40px" header>
-            <div>Date</div><div>What</div><div>Type</div><div>Amount</div><div />
-          </Row>
+          {costs.length > 0 && (
+            <Row cols="100px 1fr 130px 110px 40px" header>
+              <div>Date</div><div>What</div><div>Type</div><div>Amount</div><div />
+            </Row>
+          )}
           {costs.length === 0 ? (
             <Empty>No costs yet. Receipts dropped in Documents land here.</Empty>
           ) : (
@@ -538,12 +569,15 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
       {/* Estimates */}
       <div style={{ marginBottom: 26 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <SectionLabel>{vocab.estimate}</SectionLabel>
-          <Button variant="ghost" onClick={() => router.push(`/jobs/${jobId}/estimate`)}>
-            New estimate
-          </Button>
-        </div>
+        <SectionHead
+          action={
+            <Button variant="ghost" onClick={() => router.push(`/jobs/${jobId}/estimate`)}>
+              New estimate
+            </Button>
+          }
+        >
+          {vocab.estimate}
+        </SectionHead>
         {estimates.length === 0 ? (
           <Card><Empty>No estimate yet.</Empty></Card>
         ) : (
@@ -595,9 +629,11 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
       <div style={{ marginBottom: 26 }}>
         <SectionLabel>Invoices</SectionLabel>
         <Table>
-          <Row cols="110px 1fr 130px 110px" header>
-            <div>Number</div><div>Period</div><div>Status</div><div>Total</div>
-          </Row>
+          {invoices.length > 0 && (
+            <Row cols="110px 1fr 130px 110px" header>
+              <div>Number</div><div>Period</div><div>Status</div><div>Total</div>
+            </Row>
+          )}
           {invoices.length === 0 ? (
             <Empty>No invoices yet.</Empty>
           ) : (
