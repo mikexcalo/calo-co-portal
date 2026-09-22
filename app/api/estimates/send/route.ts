@@ -8,6 +8,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import crypto from 'crypto';
 
 export const runtime = 'nodejs';
@@ -38,7 +40,50 @@ export async function POST(req: NextRequest) {
   }
   if (!estimateId) return NextResponse.json({ error: 'estimateId is required' }, { status: 400 });
 
+  /*
+    Who is asking, and is it theirs to send.
+
+    This route mints a capability token, flips an estimate to sent and emails a
+    customer — all on the service-role key, which bypasses row-level security
+    entirely. The only thing standing in front of it was the middleware
+    redirect, which establishes that SOMEBODY is signed in and nothing about
+    who. Any authenticated user who could guess or read an estimate id could
+    send somebody else's proposal to somebody else's customer.
+
+    The session is read here and the estimate has to belong to a business the
+    caller is a member of. The service-role client below still does the work,
+    because sending has to write rows the caller cannot write directly — but it
+    only runs once this has passed.
+  */
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!anon) return NextResponse.json({ error: 'Server is not configured' }, { status: 500 });
+  const store = cookies();
+  const asCaller = createServerClient(url, anon, {
+    cookies: { get: (n: string) => store.get(n)?.value, set: () => {}, remove: () => {} },
+  });
+  const { data: auth } = await asCaller.auth.getUser();
+  if (!auth?.user) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
+
   const db = createClient(url, key, { auth: { persistSession: false } });
+
+  {
+    const { data: owner } = await db
+      .from('estimates')
+      .select('org_id')
+      .eq('id', estimateId)
+      .maybeSingle();
+    const { data: member } = await db
+      .from('memberships')
+      .select('id')
+      .eq('user_id', auth.user.id)
+      .eq('org_id', owner?.org_id ?? '')
+      .maybeSingle();
+    if (!owner || !member) {
+      // The same answer either way, so this cannot be used to find out which
+      // estimate ids exist.
+      return NextResponse.json({ error: 'Not found.' }, { status: 404 });
+    }
+  }
 
   try {
     const { data: est, error } = await db

@@ -10,6 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { whoIsCalling, belongsToCaller } from '@/lib/spine/api-caller';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 export const runtime = 'nodejs';
@@ -54,7 +55,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Server is not configured' }, { status: 500 });
   }
 
+  /* Signed in, and this row belongs to a business they are in. */
+
+  const caller = await whoIsCalling();
+
+  if (!caller) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
+
+
   const db = createClient(url, serviceKey, { auth: { persistSession: false } });
+
+  if (!(await belongsToCaller(db, caller.userId, 'job_invoices', invoiceId))) {
+
+    // Same answer whether it does not exist or is not theirs.
+
+    return NextResponse.json({ error: 'Not found.' }, { status: 404 });
+
+  }
 
   try {
     const { data: invoice, error } = await db

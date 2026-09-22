@@ -14,6 +14,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { whoIsCalling, belongsToCaller } from '@/lib/spine/api-caller';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 export const runtime = 'nodejs';
@@ -105,9 +106,18 @@ export async function POST(req: NextRequest) {
 
   // Service-role client: this runs server-side and needs to read the invoice
   // and its customer regardless of the caller's session.
+  /* Signed in, and this row belongs to a business they are in. */
+  const caller = await whoIsCalling();
+  if (!caller) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
+
   const db = createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false },
   });
+
+  if (!(await belongsToCaller(db, caller.userId, 'job_invoices', invoiceId))) {
+    // Same answer whether it does not exist or is not theirs.
+    return NextResponse.json({ error: 'Not found.' }, { status: 404 });
+  }
 
   try {
     const { data: invoice, error: invErr } = await db

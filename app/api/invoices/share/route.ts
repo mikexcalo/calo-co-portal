@@ -10,6 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { whoIsCalling, belongsToCaller } from '@/lib/spine/api-caller';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 
@@ -37,7 +38,22 @@ export async function POST(req: NextRequest) {
   }
   if (!invoiceId) return NextResponse.json({ error: 'invoiceId is required' }, { status: 400 });
 
+  /* Signed in, and this row belongs to a business they are in. */
+
+  const caller = await whoIsCalling();
+
+  if (!caller) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
+
+
   const db = createClient(url, key, { auth: { persistSession: false } });
+
+  if (!(await belongsToCaller(db, caller.userId, 'job_invoices', invoiceId))) {
+
+    // Same answer whether it does not exist or is not theirs.
+
+    return NextResponse.json({ error: 'Not found.' }, { status: 404 });
+
+  }
 
   try {
     const { data: inv, error } = await db
