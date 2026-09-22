@@ -108,9 +108,24 @@ export const STALE_AFTER_DAYS: Partial<Record<Stage, number>> = {
 
 export function daysSince(date: string | null | undefined): number | null {
   if (!date) return null;
-  const then = new Date(date + 'T00:00:00');
+
+  /*
+    A date and a timestamp are not the same input.
+
+    This appended 'T00:00:00' to whatever it was handed, which is right for a
+    date column and wrong for a timestamp: sent_at arrives as a full ISO
+    string, and gluing midnight onto the end of one produces a date the browser
+    reads however it likes. A proposal sent four minutes ago reported "sent -1d
+    ago".
+
+    Midnight is only added when there is no time there already, and the answer
+    is floored at zero, because nothing in this product has happened in the
+    future.
+  */
+  const raw = date.includes('T') || date.includes(' ') ? date : `${date}T00:00:00`;
+  const then = new Date(raw);
   if (Number.isNaN(then.getTime())) return null;
-  return Math.floor((Date.now() - then.getTime()) / 86_400_000);
+  return Math.max(0, Math.floor((Date.now() - then.getTime()) / 86_400_000));
 }
 
 /** Is this one going quiet? Returns the number of days, or null. */

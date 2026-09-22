@@ -89,7 +89,13 @@ function fmtDate(d: string | null): string {
   });
 }
 
-export default async function PublicEstimate({ params }: { params: { token: string } }) {
+export default async function PublicEstimate({
+  params,
+  searchParams,
+}: {
+  params: { token: string };
+  searchParams?: Record<string, string | string[] | undefined>;
+}) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) notFound();
@@ -116,7 +122,22 @@ export default async function PublicEstimate({ params }: { params: { token: stri
 
   // Record the first open. "Sent but never opened" is a different problem
   // from "opened and ignored", and only one of them needs a nudge.
-  if (!estimate.viewed_at) {
+  /*
+    Your own preview is not them opening it.
+
+    "Opened it" is a genuinely useful signal: it separates a customer who has
+    read a proposal and gone quiet from one who never got the email. But this
+    stamped viewed_at on ANY load of the page, and the first person to load it
+    is always Mike, from the preview panel, before it is even sent. Both
+    proposals showed "Opened it" within seconds of going out.
+
+    The preview asks for the page with ?preview=1 and gets no stamp. A customer
+    clicking a link in an email has no such thing on the URL, so the only way
+    to be recorded as having opened it is to have actually opened it.
+  */
+  const isPreview = searchParams?.preview === '1';
+
+  if (!isPreview && !estimate.viewed_at) {
     await db.from('estimates').update({ viewed_at: new Date().toISOString() }).eq('id', estimate.id);
   }
 

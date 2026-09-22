@@ -298,7 +298,7 @@ export default function ProposalsPage() {
                     cols="104px minmax(0, 1fr) minmax(0, 1.6fr) 96px 110px"
                     onClick={() =>
                       r.public_token
-                        ? setPreviewing(`/e/${r.public_token}`)
+                        ? setPreviewing(`/e/${r.public_token}?preview=1`)
                         : r.job && router.push(`/jobs/${r.job.id}`)
                     }
                   >
@@ -344,7 +344,7 @@ export default function ProposalsPage() {
                       key={r.id}
                       onClick={() =>
                       r.public_token
-                        ? setPreviewing(`/e/${r.public_token}`)
+                        ? setPreviewing(`/e/${r.public_token}?preview=1`)
                         : r.job && router.push(`/jobs/${r.job.id}`)
                       }
                       style={{
@@ -401,7 +401,7 @@ export default function ProposalsPage() {
                     key={r.id} cols="1fr 150px 110px 110px 110px" labels={['', '', 'Status', 'Decided', 'Value']}
                     onClick={() =>
                       r.public_token
-                        ? setPreviewing(`/e/${r.public_token}`)
+                        ? setPreviewing(`/e/${r.public_token}?preview=1`)
                         : r.job && router.push(`/jobs/${r.job.id}`)
                     }
                   >
