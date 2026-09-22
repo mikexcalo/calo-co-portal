@@ -514,6 +514,35 @@ export default function BillingPage() {
                       </div>
                     )}
 
+                    {/*
+                      Three numbers with no headings.
+
+                      "1 hour  $60.00  $60.00" is readable once you already
+                      know the shape. Nobody checking an invoice for the first
+                      time knows which of the last two is the rate.
+                    */}
+                    {!!lines[inv.id]?.length && (
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 80px 90px 100px',
+                          gap: 10,
+                          fontSize: 11,
+                          letterSpacing: '.06em',
+                          textTransform: 'uppercase',
+                          color: C.faint,
+                          paddingBottom: 6,
+                          borderBottom: `1px solid ${C.border}`,
+                          marginBottom: 4,
+                        }}
+                      >
+                        <div>Work</div>
+                        <div>Qty</div>
+                        <div>Rate</div>
+                        <div>Amount</div>
+                      </div>
+                    )}
+
                     {(lines[inv.id] ?? []).map((l) => (
                       <div
                         key={l.id}
@@ -539,6 +568,33 @@ export default function BillingPage() {
                     ))}
 
                     {!lines[inv.id]?.length && <Empty>No lines on this invoice.</Empty>}
+
+                    {/*
+                      Where a line comes from.
+
+                      A draft is built from hours and receipts filed against the
+                      job, and this screen never said so. Somebody looking at a
+                      short invoice had no way of knowing whether to fix it here
+                      or somewhere else, and there is no somewhere else on this
+                      page , the answer is the job. So say it, and open it.
+                    */}
+                    {inv.status === 'draft' && (
+                      <div style={{ fontSize: 12.5, color: C.faint, marginTop: 10, lineHeight: 1.6 }}>
+                        Lines come from hours and receipts filed against the job.{' '}
+                        <button
+                          onClick={() => router.push(`/jobs/${inv.job_id}`)}
+                          style={{
+                            background: 'transparent', border: 'none', padding: 0,
+                            color: C.text, fontSize: 12.5, cursor: 'pointer',
+                            fontFamily: 'inherit', textDecoration: 'underline',
+                            textUnderlineOffset: 3,
+                          }}
+                        >
+                          Add work on the job
+                        </button>
+                        {' '}and it lands here.
+                      </div>
+                    )}
 
                     <div
                       style={{
@@ -581,16 +637,6 @@ export default function BillingPage() {
                             <Button disabled={busy} onClick={() => approveForFirst(inv)}>
                               Approve for the 1st
                             </Button>
-                            <button
-                              onClick={() => emailInvoice(inv)}
-                              disabled={busy}
-                              style={{
-                                background: 'transparent', border: 'none', padding: '6px 4px',
-                                color: C.dim, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
-                              }}
-                            >
-                              Send now
-                            </button>
                           </>
                         )}
                         {inv.status === 'draft' && inv.send_on && (
@@ -635,6 +681,18 @@ export default function BillingPage() {
                         <Button variant="ghost" disabled={busy} onClick={() => preview(inv)}>
                           Preview
                         </Button>
+                        {inv.status === 'draft' && !inv.send_on && (
+                          <button
+                            onClick={() => emailInvoice(inv)}
+                            disabled={busy}
+                            style={{
+                              background: 'transparent', border: 'none', padding: '6px 4px',
+                              color: C.dim, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
+                            }}
+                          >
+                            Send now
+                          </button>
+                        )}
                         <button
                           onClick={() => setMoreFor(moreFor === inv.id ? null : inv.id)}
                           style={{
@@ -659,47 +717,61 @@ export default function BillingPage() {
                           display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center',
                         }}
                       >
-                        <Button variant="ghost" onClick={() => router.push(`/jobs/${inv.job_id}`)}>
-                          Open job
-                        </Button>
+                        {/*
+                          Four grey pills and a red one, all the same size.
+
+                          Copy link, Send via Stripe and Mark sent by hand are
+                          not four unrelated options , they are three answers to
+                          one question, which is how this goes out. Open job was
+                          a fifth thing entirely and has moved up to the line
+                          that explains what the job is for. Grouping them says
+                          in the layout what you would otherwise have to work
+                          out by reading all five.
+                        */}
                         {inv.status === 'draft' && (
-                          <>
-                            <Button variant="ghost" disabled={busy} onClick={() => sendAsLink(inv)}>
-                              Copy link
-                            </Button>
-                            <Button variant="ghost" disabled={busy} onClick={() => sendViaStripe(inv)}>
-                              Send via Stripe
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              disabled={busy}
-                              onClick={() =>
-                                act(async () => {
-                                  await updateInvoice(inv.id, {
-                                    status: 'sent',
-                                    sent_at: new Date().toISOString(),
-                                  });
-                                })
-                              }
-                            >
-                              Mark sent by hand
-                            </Button>
-                          </>
+                          <div style={{ flexBasis: '100%' }}>
+                            <div style={{ fontSize: 11, letterSpacing: '.06em', textTransform: 'uppercase', color: C.faint, marginBottom: 8 }}>
+                              Other ways to send it
+                            </div>
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                              <Button variant="ghost" disabled={busy} onClick={() => sendAsLink(inv)}>
+                                Copy link
+                              </Button>
+                              <Button variant="ghost" disabled={busy} onClick={() => sendViaStripe(inv)}>
+                                Via Stripe
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                disabled={busy}
+                                onClick={() =>
+                                  act(async () => {
+                                    await updateInvoice(inv.id, {
+                                      status: 'sent',
+                                      sent_at: new Date().toISOString(),
+                                    });
+                                  })
+                                }
+                              >
+                                Already sent it myself
+                              </Button>
+                            </div>
+                          </div>
                         )}
                         {inv.status !== 'void' && inv.status !== 'paid' && (
-                          <>
-                            <span style={{ flex: 1 }} />
-                            <Button
-                              variant="danger"
-                              disabled={busy}
-                              onClick={() => act(async () => { await voidInvoice(inv.id); })}
-                            >
-                              Void
-                            </Button>
-                            <span style={{ fontSize: 12, color: C.faint, flexBasis: '100%' }}>
-                              Voiding returns these hours and receipts to unbilled so they can be re-invoiced.
-                            </span>
-                          </>
+                          <div style={{ flexBasis: '100%', marginTop: inv.status === 'draft' ? 16 : 0 }}>
+                            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                              <Button
+                                variant="danger"
+                                disabled={busy}
+                                onClick={() => act(async () => { await voidInvoice(inv.id); })}
+                              >
+                                Void
+                              </Button>
+                              <span style={{ fontSize: 12, color: C.faint, lineHeight: 1.6 }}>
+                                Puts the hours and receipts back to unbilled so they can go on a later invoice.
+                              </span>
+                            </div>
+                          </div>
                         )}
                       </div>
                     )}
