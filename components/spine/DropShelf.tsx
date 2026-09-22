@@ -92,6 +92,8 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
   const [text, setText] = useState('');
   const [error, setError] = useState('');
   const [done, setDone] = useState('');
+  const [removing, setRemoving] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
   const [urls, setUrls] = useState<Record<string, string>>({});
   /**
    * Turning a drop into records.
@@ -229,7 +231,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
         hint="Screenshots, photos, PDFs, spreadsheets, anything you would otherwise leave in a folder."
 
         busy={busy}
-        busyLabel="Saving…"
+        busyLabel="Uploading…"
         compact={compact}
         onFiles={(files) => take(files)}
       />
@@ -379,7 +381,38 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                   >
                     {label}
                   </div>
+                  {/*
+                    You could not read what you dropped.
+
+                    Two lines and an ellipsis, with no way to see the rest.
+                    Somebody pastes a price list, comes back an hour later, and
+                    the only way to find out which one it is is to scan it and
+                    hope. The file has an Open link; text had nothing.
+                  */}
                   {label.length > 150 && (
+                    <button
+                      onClick={() => setOpenId(openId === d.id ? null : d.id)}
+                      style={{
+                        background: 'none', border: 'none', padding: 0, marginTop: 4,
+                        color: C.dim, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      {openId === d.id ? 'Show less' : 'Read all of it'}
+                    </button>
+                  )}
+                  {openId === d.id && (
+                    <div
+                      style={{
+                        marginTop: 8, padding: '10px 12px', background: C.panelAlt,
+                        borderRadius: 8, fontSize: 13, color: C.text, lineHeight: 1.55,
+                        whiteSpace: 'pre-wrap', maxHeight: 320, overflowY: 'auto',
+                      }}
+                    >
+                      {label}
+                    </div>
+                  )}
+                  {label.length > 150 && openId !== d.id && (
                     <div style={{ fontSize: 11.5, color: C.faint, marginTop: 3 }}>
                       {label.length.toLocaleString()} characters, press Scan and sort to pull out what is in here
                     </div>
@@ -399,9 +432,44 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                         style={{ color: C.blue, fontSize: 11.5, textDecoration: 'none' }}>Open</a>
                     )}
                     <button
-                      onClick={async () => { await removeDrop(d); await load(); onChange?.(); }}
-                      style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 11.5, cursor: 'pointer', fontFamily: 'inherit' }}
-                    >Remove</button>
+                      /*
+                        Remove deleted whatever had moved into the gap.
+
+                        The click fired an async delete and then a reload, with
+                        nothing disabled in between. So the first press did
+                        nothing visible, the second and third landed on rows
+                        that had shifted underneath the cursor, and Mike lost
+                        John's note trying to remove a spreadsheet.
+
+                        Three things wrong and all three fixed: the row goes
+                        immediately rather than after a round trip, the button
+                        refuses a second press while the first is in flight,
+                        and deleting somebody's file now asks first.
+                      */
+                      onClick={async () => {
+                        if (removing) return;
+                        if (!confirm(`Remove ${d.title || 'this'}? It cannot be undone.`)) return;
+                        setRemoving(d.id);
+                        setItems((prev) => prev.filter((x) => x.id !== d.id));
+                        try {
+                          await removeDrop(d);
+                          await load();
+                          onChange?.();
+                        } catch (e) {
+                          setError(human(e));
+                          await load();
+                        } finally {
+                          setRemoving(null);
+                        }
+                      }}
+                      disabled={removing === d.id}
+                      style={{
+                        background: 'transparent', border: 'none', padding: 0,
+                        color: removing === d.id ? C.border : C.faint,
+                        fontSize: 11.5, cursor: removing === d.id ? 'default' : 'pointer',
+                        fontFamily: 'inherit',
+                      }}
+                    >{removing === d.id ? 'Removing…' : 'Remove'}</button>
                     {twin && (
                       <span style={{ fontSize: 11.5, color: C.amber }}>
                         Already here, same file, dropped twice
