@@ -343,8 +343,8 @@ export default function BillingPage() {
               <div key={inv.id}>
                 <Row cols="110px 1.1fr 1fr 120px 100px 100px" labels={['Number', vocab.customer, vocab.job, 'Status', 'Total', 'Due']} onClick={() => toggle(inv.id)}>
                   <div style={{ fontVariantNumeric: 'tabular-nums' }}>{inv.number}</div>
-                  <div>{job?.customer?.name ?? ', '}</div>
-                  <div style={{ color: C.dim }}>{job?.name ?? ', '}</div>
+                  <div>{job?.customer?.name ?? '–'}</div>
+                  <div style={{ color: C.dim }}>{job?.name ?? '–'}</div>
                   <div>
                     <Pill
                       tone={

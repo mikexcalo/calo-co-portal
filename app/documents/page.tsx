@@ -473,7 +473,7 @@ function DocCard({
           {ex ? (
             <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', fontSize: 13.5 }}>
               <span style={{ color: C.faint }}>
-                Vendor <span style={{ color: C.text }}>{ex.vendor || ', '}</span>
+                Vendor <span style={{ color: C.text }}>{ex.vendor || '–'}</span>
               </span>
               <span style={{ color: C.faint }}>
                 Date <span style={{ color: C.text }}>{shortDate(ex.purchased_on)}</span>

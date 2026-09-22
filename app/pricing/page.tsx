@@ -432,7 +432,7 @@ export default function PricingPage() {
                       </div>
                     )}
                   </div>
-                  <div style={{ color: C.dim }}>{i.unit || ', '}</div>
+                  <div style={{ color: C.dim }}>{i.unit || '–'}</div>
                   <div style={{ color: i.confirmed ? C.text : C.faint }}>
                     {i.varies && !i.price_high ? (
                       <span title="Quote this per job">

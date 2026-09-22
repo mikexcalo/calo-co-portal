@@ -213,7 +213,7 @@ export function ClientCatalog({
                     >
                       <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' }}>
                         <span style={{ fontSize: 13.5, color: C.text, fontWeight: 500, minWidth: 110 }}>
-                          {p.form ?? ', '}
+                          {p.form ?? '–'}
                         </span>
                         {/* Counts line up or they cannot be compared, which is
                             the only reason anybody scans a price sheet. */}

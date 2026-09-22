@@ -916,9 +916,9 @@ export default function Dashboard() {
                           </Pill>
                         </span>
                       </div>
-                      <div style={{ color: C.dim }}>{j.customer?.name ?? ', '}</div>
+                      <div style={{ color: C.dim }}>{j.customer?.name ?? '–'}</div>
                       <div style={{ color: u > 0 ? C.amber : C.faint }}>
-                        {u > 0 ? money(u) : ', '}
+                        {u > 0 ? money(u) : '–'}
                       </div>
                       <div style={{ color: (l?.margin_to_date ?? 0) >= 0 ? C.green : C.red }}>
                         {money(l?.margin_to_date ?? 0)}
@@ -945,7 +945,7 @@ export default function Dashboard() {
                   >
                     <div>{i.number}</div>
                     <div style={{ color: C.dim }}>
-                      {jobs.find((j) => j.id === i.job_id)?.name ?? ', '}
+                      {jobs.find((j) => j.id === i.job_id)?.name ?? '–'}
                     </div>
                     <div style={{ color: C.red }}>{shortDate(i.due_on)}</div>
                     <div>{money(i.total - i.amount_paid)}</div>

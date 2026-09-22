@@ -368,7 +368,7 @@ export default function CustomersPage() {
         const overdue = Boolean(today && r.next_action_on && r.next_action_on <= today);
         return (
           <span style={{ fontSize: 12.5, color: overdue ? C.amber : r.next_action ? C.dim : C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
-            {r.next_action ?? ', '}
+            {r.next_action ?? '–'}
             {r.next_action_on && ` · ${shortDate(r.next_action_on)}`}
           </span>
         );
@@ -382,7 +382,7 @@ export default function CustomersPage() {
       sortBy: (r) => -r.open_jobs,
       render: (r) => (
         <span style={{ fontSize: 12.5, color: r.open_jobs ? C.dim : C.faint, fontVariantNumeric: 'tabular-nums' }}>
-          {r.open_jobs || ', '}
+          {r.open_jobs || '–'}
         </span>
       ),
     },
@@ -403,7 +403,7 @@ export default function CustomersPage() {
           row is something you reconcile against.
         */
         <span style={{ fontSize: 13, color: r.owed > 0 ? C.red : C.faint, fontVariantNumeric: 'tabular-nums' }}>
-          {r.owed > 0 ? money(r.owed) : ', '}
+          {r.owed > 0 ? money(r.owed) : '–'}
         </span>
       ),
     },

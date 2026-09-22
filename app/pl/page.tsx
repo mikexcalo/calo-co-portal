@@ -566,7 +566,7 @@ export default function ProfitLossPage() {
                     <div>{money(r.invoiced_total)}</div>
                     <div style={{ color: C.dim }}>{money(r.cost_total)}</div>
                     <div style={{ color: unbilled > 0 ? C.amber : C.faint }}>
-                      {unbilled > 0 ? money(unbilled) : ', '}
+                      {unbilled > 0 ? money(unbilled) : '–'}
                     </div>
                     {/*
                       Zero is not good news.

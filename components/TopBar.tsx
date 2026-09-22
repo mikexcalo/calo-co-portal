@@ -436,7 +436,7 @@ function AccountMenu() {
                 Signed in as
               </div>
               <div style={{ fontSize: 13.5, color: C.text, marginTop: 3, wordBreak: 'break-all' }}>
-                {email ?? ', '}
+                {email ?? '–'}
               </div>
             </div>
             {/*

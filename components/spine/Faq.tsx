@@ -16,8 +16,17 @@
 import { useState } from 'react';
 import type { Question } from '@/lib/spine/questions-from-notes';
 
-export function Faq({ items, accent }: { items: Question[]; accent: string }) {
-  const [open, setOpen] = useState(0);
+export function Faq({
+  items,
+  accent,
+  startOpen = 0,
+}: {
+  items: Question[];
+  accent: string;
+  /** Which one is already open. -1 for none. */
+  startOpen?: number;
+}) {
+  const [open, setOpen] = useState(startOpen);
   if (items.length === 0) return null;
 
   return (

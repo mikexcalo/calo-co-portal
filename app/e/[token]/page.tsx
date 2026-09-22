@@ -166,7 +166,6 @@ export default async function PublicEstimate({ params }: { params: { token: stri
   const vocabWord = (org as { kind?: string } | null)?.kind === 'agency' ? 'Proposal' : 'Estimate';
 
   const decided = ['accepted', 'declined'].includes(estimate.status);
-  const isTM = job?.billing_type === 'tm';
 
   return (
     <div style={{ background: '#f5f5f3', minHeight: '100vh', padding: '24px 16px 60px' }}>
@@ -229,7 +228,9 @@ export default async function PublicEstimate({ params }: { params: { token: stri
                 possible signal that somebody is accountable for this.
               */}
               {senderName && <div style={{ marginTop: 2 }}>Prepared by {senderName}</div>}
-              {estimate.valid_until && <div style={{ marginTop: 4 }}>Valid until {fmtDate(estimate.valid_until)}</div>}
+              {/* "Valid until" reads like a coupon about to expire. It is a price,
+                  and this is the date it is held to. */}
+              {estimate.valid_until && <div style={{ marginTop: 4 }}>Price held to {fmtDate(estimate.valid_until)}</div>}
               {/*
                 One word for the document.
 
@@ -304,6 +305,8 @@ export default async function PublicEstimate({ params }: { params: { token: stri
                   const list = Number((l as { list_unit_price?: number }).list_unit_price ?? 0);
                   const unit = Number(l.unit_price);
                   const cut = list > 0 && list > unit;
+                  const rateOnly = Number(l.qty) === 0 && unit > 0;
+                  const recurringLine = l.unit === 'month' && Number(l.qty) > 0;
                   return (
                   <tr key={l.id} style={{ borderBottom: '1px solid #f0f0ed' }}>
                     <td style={{ padding: '11px 0', color: '#222' }}>
@@ -320,22 +323,32 @@ export default async function PublicEstimate({ params }: { params: { token: stri
                         line just states the rate, which is the thing somebody
                         needs in words rather than as a sum.
                       */}
-                      {cut && (
-                        <div style={{ fontSize: 12.5, color: '#15803d', marginTop: 3 }}>
-                          {money(unit)}{l.unit ? ` a ${l.unit}` : ''}, normally {money(list)}
-                        </div>
-                      )}
+
                     </td>
+                    {/*
+                      "1 month" and "0 hour" were both lies.
+
+                      The first read as a single month rather than every month,
+                      which is the difference between a one-off and a
+                      subscription. The second was worse: a rate somebody will
+                      certainly use, printed as a quantity of zero and an
+                      amount of $0.00, on an account that already has hours
+                      logged against it. It made the hourly look free.
+
+                      A recurring line says how often. A rate line says what
+                      the rate is and shows no total, because there is nothing
+                      to total until somebody works an hour.
+                    */}
                     <td style={{ padding: '11px 0 11px 10px', textAlign: 'right', color: '#666', whiteSpace: 'nowrap' }}>
-                      {Number(l.qty)}{l.unit ? ` ${l.unit}` : ''}
+                      {rateOnly ? 'Per hour' : recurringLine ? 'Every month' : `${Number(l.qty)}${l.unit ? ` ${l.unit}` : ''}`}
                     </td>
                     <td style={{ padding: '11px 0 11px 10px', textAlign: 'right', color: '#222', whiteSpace: 'nowrap' }}>
-                      {cut && Number(l.qty) > 0 && (
+                      {cut && (
                         <span style={{ textDecoration: 'line-through', color: '#999', marginRight: 7, fontSize: 13 }}>
-                          {money(list * Number(l.qty))}
+                          {money(rateOnly ? list : list * Number(l.qty))}
                         </span>
                       )}
-                      {money(Number(l.total))}
+                      {money(rateOnly ? unit : Number(l.total))}
                     </td>
                   </tr>
                   );
@@ -411,62 +424,27 @@ export default async function PublicEstimate({ params }: { params: { token: stri
             );
           })()}
 
-          {isTM && (
-            <div style={{ marginTop: 16, padding: 13, background: '#f7f7f5', borderRadius: 8, fontSize: 13.5, color: '#555', lineHeight: 1.6 }}>
-              {/* Said the way somebody would say it, not the way a contract would. */}
-              You only pay for what actually gets done. This is what we expect; the
-              invoice is built from the hours logged and the receipts filed, and you&apos;ll
-              see every one of them as we go.
-            </div>
-          )}
+          {/*
+            The clearest sentence in the document, where it can be read.
+
+            It was three screens down inside an accordion, while the space
+            under the numbers carried "You only pay for what actually gets
+            done. This is what we expect; the invoice is built from..." which
+            is throat-clearing. This is the line that answers the question
+            somebody actually has when they see two prices.
+          */}
+          <div style={{ marginTop: 16, padding: '13px 15px', background: '#f7f7f5', borderRadius: 8, fontSize: 14.5, color: '#333', lineHeight: 1.6 }}>
+            The $40 covers the platform and your hosting. The hourly only gets charged when you
+            actually ask for work, so plenty of months that is nothing.
+          </div>
 
           {/*
-            Scope, on the page they accept.
-            
-            Both lists sit above the notes and below the price, because this is
-            the moment the reader is deciding, and the exclusions are the half
-            they will otherwise assume in their own favor. Shown at the same
-            weight as the inclusions on purpose.
+            What you get folds like everything else, and starts open.
+
+            It was a fixed list above a set of collapsible sections, so the one
+            block somebody always reads was the only one that could not be put
+            away once read. Same control as the rest, open on arrival.
           */}
-          {/*
-            What you get, and nothing about what you don't.
-
-            This was two cards side by side, ticks on one and dashes on the
-            other, and the exclusions were drawn at the same weight as the
-            inclusions, so a document meant to make somebody say yes gave half
-            its width to a list of things they were not getting. The exclusions
-            still exist and still matter; they belong in the terms underneath,
-            where somebody looks when they have a question, not in the middle
-            of the offer.
-
-            What is left is not a checklist either. It is what they are buying,
-            set as rows with a rule between them, at a size worth reading.
-          */}
-          {scopeIn.length > 0 && (
-            <div style={{ marginTop: 26 }}>
-              <div style={{ fontSize: 17, fontWeight: 600, color: '#111', letterSpacing: '-0.01em', marginBottom: 2 }}>
-                What you get
-              </div>
-              <div>
-                {scopeIn.map((x, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      display: 'flex', gap: 13, alignItems: 'baseline',
-                      padding: '13px 2px', borderBottom: '1px solid #f0f0ed',
-                      fontSize: 15, color: '#222', lineHeight: 1.55,
-                    }}
-                  >
-                    <span style={{ ...numeralStyle, color: '#bbb', flexShrink: 0 }}>
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <span>{x}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/*
             The terms, and the exclusions, as questions.
 
@@ -477,6 +455,12 @@ export default async function PublicEstimate({ params }: { params: { token: stri
           <Faq
             accent={accent}
             items={[
+              ...(scopeIn.length
+                ? [{
+                    q: 'What you get',
+                    a: scopeIn.map((x, i) => `${String(i + 1).padStart(2, '0')}  ${x}`).join('\n'),
+                  }]
+                : []),
               ...asQuestions(estimate.notes),
               ...(scopeOut.length
                 ? [{
@@ -510,16 +494,16 @@ export default async function PublicEstimate({ params }: { params: { token: stri
                 <div style={{ display: 'flex', gap: 13 }}>
                   <span style={{ ...numeralStyle, color: '#bbb', flexShrink: 0 }}>02</span>
                   <span>
-                    Your first invoice arrives on the 1st, covering the month just gone. It is
-                    built from the hours logged and the receipts filed, so you can check every
-                    line against something that actually happened.
+                    Your first invoice arrives on the first of the month, covering the month
+                    just gone. Every line is built from hours logged and receipts filed, so you
+                    can check it against something that actually happened.
                   </span>
                 </div>
                 <div style={{ display: 'flex', gap: 13 }}>
                   <span style={{ ...numeralStyle, color: '#bbb', flexShrink: 0 }}>03</span>
                   <span>
-                    If you want to stop, say so and it stops. There is no notice period and
-                    nothing to cancel.
+                    Want to stop? Tell me and I will switch it off that day. No notice
+                    period, nothing to cancel, no last invoice for a month you did not use.
                   </span>
                 </div>
               </div>

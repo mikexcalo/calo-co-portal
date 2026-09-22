@@ -230,7 +230,7 @@ export default function PeoplePage() {
       width: 'minmax(110px, 1.2fr)',
       render: (p) => (
         <span style={{ fontSize: 12.5, color: p.title ? C.dim : C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
-          {p.title ?? ', '}
+          {p.title ?? '–'}
         </span>
       ),
     },
@@ -241,7 +241,7 @@ export default function PeoplePage() {
       sortBy: (p) => (p.customers?.name ?? p.company ?? '').toLowerCase(),
       render: (p) => (
         <span style={{ fontSize: 12.5, color: C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
-          {p.customers?.name ?? p.company ?? ', '}
+          {p.customers?.name ?? p.company ?? '–'}
         </span>
       ),
     },

@@ -52,6 +52,9 @@ export default function ProposalsPage() {
   const { vocab } = useOrg();
   const [rows, setRows] = useState<Row_[]>([]);
   const [previewing, setPreviewing] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState<number | null>(null);
@@ -62,6 +65,37 @@ export default function ProposalsPage() {
     const data = await listAllEstimates();
     setRows(data.map((r) => ({ ...r, total: Number(r.total) || 0 })));
   }, []);
+
+  /*
+    Sending, from the screen that lists the unsent ones.
+
+    If the email cannot go out the proposal is still marked sent and the link
+    comes back, so nothing is lost and there is always a way to get the
+    document in front of somebody by hand.
+  */
+  const sendIt = useCallback(async (r: Row_) => {
+    setBusy(r.id);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetch('/api/estimates/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estimateId: r.id }),
+      });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error || 'Could not send it');
+      setNotice(
+        payload.message
+          ?? `Sent to ${r.job?.customer?.name ?? 'the customer'}. They can accept it from the link.`
+      );
+      await load();
+    } catch (e) {
+      setError(human((e as Error).message));
+    } finally {
+      setBusy(null);
+    }
+  }, [load]);
 
   useEffect(() => {
     (async () => {
@@ -151,6 +185,12 @@ export default function ProposalsPage() {
         </div>
       )}
 
+      {notice && (
+        <Card style={{ borderColor: `${C.green}55`, marginBottom: 16 }}>
+          <div style={{ color: C.green, fontSize: 14 }}>{notice}</div>
+        </Card>
+      )}
+
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
@@ -231,17 +271,17 @@ export default function ProposalsPage() {
                   it. New tab, because this is a thing you read and come back
                   from, not a place you navigate to.
                 */}
-                <Row cols="130px 1fr 170px 110px 100px" header>
+                <Row cols="130px 1fr 170px 110px 130px" header>
                   <div>Proposal</div>
                   <div>For</div>
                   <div>Project</div>
                   <div>Total</div>
-                  <div>Status</div>
+                  <div />
                 </Row>
                 {drafts.map((r) => (
                   <Row
                     key={r.id}
-                    cols="130px 1fr 170px 110px 100px"
+                    cols="130px 1fr 170px 110px 130px"
                     onClick={() =>
                       r.public_token
                         ? setPreviewing(`/e/${r.public_token}`)
@@ -249,10 +289,25 @@ export default function ProposalsPage() {
                     }
                   >
                     <div style={{ fontWeight: 500 }}>Proposal #{r.version}</div>
-                    <div>{r.job?.customer?.name ?? ', '}</div>
-                    <div style={{ color: C.dim }}>{r.job?.name ?? ', '}</div>
+                    <div>{r.job?.customer?.name ?? '–'}</div>
+                    <div style={{ color: C.dim }}>{r.job?.name ?? '–'}</div>
                     <div>{money(r.total)}</div>
-                    <div><Pill tone={STATUS_TONE[r.status]}>{r.status}</Pill></div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
+                      {/*
+                        The button that was missing.
+
+                        A screen headed "Written but never sent", above a note
+                        saying nobody can accept a proposal they never received,
+                        with no way to send one. The only send button lived on
+                        the project page, three clicks away, under Estimate.
+                      */}
+                      <Button
+                        onClick={() => { void sendIt(r); }}
+                        disabled={busy === r.id}
+                      >
+                        {busy === r.id ? 'Sending…' : 'Send it'}
+                      </Button>
+                    </div>
                   </Row>
                 ))}
               </Table>
@@ -291,9 +346,9 @@ export default function ProposalsPage() {
                       }}
                     >
                       <div style={{ flex: 1, minWidth: 200 }}>
-                        <div style={{ fontSize: 15, fontWeight: 500 }}>{r.job?.name ?? ', '}</div>
+                        <div style={{ fontSize: 15, fontWeight: 500 }}>{r.job?.name ?? '–'}</div>
                         <div style={{ fontSize: 13, color: C.dim, marginTop: 3 }}>
-                          {r.job?.customer?.name ?? ', '}
+                          {r.job?.customer?.name ?? '–'}
                           {age != null && ` · sent ${age === 0 ? 'today' : `${age}d ago`}`}
                         </div>
                       </div>
@@ -336,8 +391,8 @@ export default function ProposalsPage() {
                         : r.job && router.push(`/jobs/${r.job.id}`)
                     }
                   >
-                    <div>{r.job?.name ?? ', '}</div>
-                    <div style={{ color: C.dim }}>{r.job?.customer?.name ?? ', '}</div>
+                    <div>{r.job?.name ?? '–'}</div>
+                    <div style={{ color: C.dim }}>{r.job?.customer?.name ?? '–'}</div>
                     <div><Pill tone={STATUS_TONE[r.status]}>{r.status}</Pill></div>
                     <div style={{ color: C.dim }}>{shortDate(r.decided_at)}</div>
                     <div>{money(r.total)}</div>

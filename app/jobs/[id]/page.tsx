@@ -642,7 +642,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
               <Row key={i.id} cols="110px 1fr 130px 110px" onClick={() => router.push('/billing')}>
                 <div>{i.number}</div>
                 <div style={{ color: C.dim }}>
-                  {i.period_start ? `${shortDate(i.period_start)} – ${shortDate(i.period_end)}` : ', '}
+                  {i.period_start ? `${shortDate(i.period_start)} – ${shortDate(i.period_end)}` : '–'}
                 </div>
                 <div>
                   <Pill tone={i.status === 'paid' ? 'green' : i.status === 'overdue' ? 'red' : i.status === 'draft' ? 'neutral' : 'blue'}>
