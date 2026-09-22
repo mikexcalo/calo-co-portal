@@ -57,7 +57,7 @@ interface Person {
   last_spoke_on: string | null;
   customer_id: string | null;
   avatar_url: string | null;
-  customers: { name: string; last_contacted_on: string | null } | null;
+  customers: { name: string; last_contacted_on: string | null; relationship?: string | null; stage?: string | null } | null;
 }
 
 /**
@@ -81,6 +81,30 @@ const KINDS: { key: Relationship; label: string; tone: 'blue' | 'green' | 'amber
 ];
 
 const kindOf = (k: Relationship) => KINDS.find((x) => x.key === k) ?? KINDS[0];
+
+/**
+ * The label has to agree with the Customers screen.
+ *
+ * "Works at a client" is stored on the person, and the company they work at
+ * has its own relationship stored separately — so the two could disagree, and
+ * did. Jessica Grace read as working at a client while Austin Energy sat under
+ * Other on the very next screen, because a utility is not somebody Mammoth
+ * sells to.
+ *
+ * One of the two has to win, and it has to be the company: whether a business
+ * is a client of yours is a fact about that business, not about the person who
+ * answers their phone. So where the company is filed as a supplier or as
+ * neither, the person is described by where they actually work.
+ */
+function shownKind(p: { relationship: Relationship; customers?: { relationship?: string | null } | null }) {
+  const company = p.customers?.relationship ?? null;
+  if ((p.relationship === 'client' || p.relationship === 'proxy') && company && company !== 'customer') {
+    return company === 'supplier'
+      ? { label: 'Works at a supplier', tone: 'neutral' as const }
+      : { label: 'Works at a company you deal with', tone: 'neutral' as const };
+  }
+  return kindOf(p.relationship);
+}
 
 /**
  * When you last had contact with this person, from either side.
@@ -198,7 +222,7 @@ export default function PeoplePage() {
       label: 'How you know them',
       width: '158px',
       sortBy: (p) => p.relationship,
-      render: (p) => <Pill tone={kindOf(p.relationship).tone}>{kindOf(p.relationship).label}</Pill>,
+      render: (p) => <Pill tone={shownKind(p).tone}>{shownKind(p).label}</Pill>,
     },
     {
       key: 'title',
@@ -275,7 +299,7 @@ export default function PeoplePage() {
     const res = await supabase
       .from('customer_contacts')
       .select(
-        'id, name, title, company, website, email, phone, note, relationship, met_how, met_on, last_spoke_on, customer_id, avatar_url, customers(name, last_contacted_on, linked_org_id)'
+        'id, name, title, company, website, email, phone, note, relationship, met_how, met_on, last_spoke_on, customer_id, avatar_url, customers(name, last_contacted_on, linked_org_id, relationship, stage)'
       )
       .order('name');
     if (!res.error) setRows((res.data ?? []) as unknown as Person[]);
