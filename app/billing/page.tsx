@@ -55,6 +55,7 @@ export default function BillingPage() {
   /** Which invoice has its secondary actions showing. One at a time. */
   const [moreFor, setMoreFor] = useState<string | null>(null);
   const [previewing, setPreviewing] = useState<string | null>(null);
+  const [takingPayment, setTakingPayment] = useState<{ inv: JobInvoice; via: string; amount: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -285,6 +286,69 @@ export default function BillingPage() {
         the document, so there is nothing here that can drift out of step with
         what is actually sent.
       */}
+      {/*
+        How much, and by what.
+
+        Offered with the outstanding amount already in it, because that is what
+        usually arrives. Typing less records a part payment and leaves the rest
+        owed; typing the lot closes it. Either way the status follows the money
+        rather than somebody's choice of menu item.
+      */}
+      {takingPayment && (
+        <div
+          onClick={() => setTakingPayment(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 210, background: 'rgba(0,0,0,.45)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: C.panel, borderRadius: 12, padding: 22, width: 'min(380px, 100%)' }}
+          >
+            <div style={{ fontSize: 16, fontWeight: 600, color: C.text, marginBottom: 4 }}>
+              How much arrived?
+            </div>
+            <div style={{ fontSize: 13, color: C.faint, marginBottom: 14 }}>
+              {takingPayment.inv.number} &middot; {money(takingPayment.inv.total - takingPayment.inv.amount_paid)} outstanding
+            </div>
+            <input
+              value={takingPayment.amount}
+              onChange={(e) => setTakingPayment({ ...takingPayment, amount: e.target.value })}
+              inputMode="decimal"
+              autoFocus
+              style={{ ...inputStyle, fontSize: 18 }}
+            />
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 16 }}>
+              <Button
+                disabled={busy || !(Number(takingPayment.amount) > 0)}
+                onClick={() => {
+                  const paid = Number(takingPayment.amount) || 0;
+                  const t = takingPayment;
+                  setTakingPayment(null);
+                  act(async () => {
+                    await updateInvoice(t.inv.id, {
+                      amount_paid: Math.min(t.inv.amount_paid + paid, t.inv.total),
+                      // Knowing HOW it arrived is what tells you later whether
+                      // card fees were worth paying.
+                      paid_via: t.via,
+                    });
+                  });
+                }}
+              >
+                Record it
+              </Button>
+              <button
+                onClick={() => setTakingPayment(null)}
+                style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {previewing && (
         <div
           onClick={() => setPreviewing(null)}
@@ -538,19 +602,27 @@ export default function BillingPage() {
                           <select
                             defaultValue=""
                             disabled={busy}
+                            /*
+                              How much arrived, not just that something did.
+
+                              This wrote amount_paid = total whatever actually
+                              landed, so a customer paying $60 of $100 left a
+                              choice between calling it paid and pretending
+                              nothing came. The missing $40 was invisible: not
+                              overdue, nothing chasing it, and quietly inflating
+                              what Mike thought he was owed.
+
+                              It asks. The full amount is offered, because that
+                              is what usually arrives and nobody should have to
+                              type it, and the status works itself out from the
+                              number.
+                            */
                             onChange={(e) => {
                               const via = e.target.value;
                               if (!via) return;
-                              act(async () => {
-                                await updateInvoice(inv.id, {
-                                  status: 'paid',
-                                  amount_paid: inv.total,
-                                  paid_at: new Date().toISOString(),
-                                  // Knowing HOW it arrived is what tells you
-                                  // later whether card fees were worth paying.
-                                  paid_via: via,
-                                });
-                              });
+                              const owedNow = inv.total - inv.amount_paid;
+                              setTakingPayment({ inv, via, amount: owedNow.toFixed(2) });
+                              e.target.value = '';
                             }}
                             style={{ ...inputStyle, width: 'auto', padding: '8px 10px' }}
                           >

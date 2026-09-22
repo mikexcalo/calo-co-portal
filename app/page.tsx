@@ -201,6 +201,17 @@ export default function Dashboard() {
       )
     : [];
 
+  /*
+    Part paid is its own problem.
+
+    A customer who sends most of it is not the same as one who sends nothing,
+    and until now they looked identical: the balance sat inside "owed to you"
+    with nothing saying part of it had already arrived. It only surfaced once
+    the whole invoice went overdue, which is weeks after somebody clearly meant
+    to pay and stopped short.
+  */
+  const partPaid = live.filter((i) => i.amount_paid > 0 && i.total - i.amount_paid > 0.005);
+
   /* From every invoice, because live now deliberately excludes drafts. */
   const drafts = invoices.filter((i) => i.status === 'draft');
 
@@ -217,6 +228,21 @@ export default function Dashboard() {
       tone: 'amber',
     });
   }
+  if (partPaid.length) {
+    const left = partPaid.reduce((s, i) => s + (i.total - i.amount_paid), 0);
+    attention.push({
+      key: 'partpaid',
+      weight: 4e8,
+      title: `${money0(left)} still to come on ${partPaid.length} invoice${partPaid.length === 1 ? '' : 's'}`,
+      detail:
+        'Part of it arrived and the rest did not. Usually a short message rather than a chase, ' +
+        'because somebody who pays most of it meant to pay all of it.',
+      cta: 'Open invoices',
+      href: '/billing',
+      tone: 'amber',
+    });
+  }
+
   if (overdue.length) {
     const amt = overdue.reduce((s, i) => s + (i.total - i.amount_paid), 0);
     attention.push({
