@@ -102,42 +102,35 @@ export async function POST(req: NextRequest) {
   const forDays = partial ? ` (${billableDays} of ${daysInMonth} days)` : '';
 
   /*
-    One invoice, two periods, and both of them named.
+    Everything bills for the month just gone.
 
-    Access bills forward and work bills backward. That is what every platform
-    that also sells time does, for the good reason that you cannot invoice
-    hours before they happen and you should not be financing somebody else's
-    access. It only confuses people when the invoice does not say which is
-    which, so each line carries its own month:
+    The forward-billing version was the textbook answer and the wrong one for
+    two people Mike talks to every week. One period on the invoice, one date on
+    the calendar, nothing to explain: the 1st of October covers September, the
+    fee and the hours alike.
 
-      Platform access, October      the month being entered
-      Web hosting, October
-      Development, September        the month just finished
-
-    The invoice goes out on the 1st, so "next month" is the one starting today
-    and the hours are last month's.
+    A subscription billed a month in arrears costs a month of float and buys
+    an invoice nobody has to read twice.
   */
   const monthName = (d: Date) =>
     d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  const ahead = monthName(new Date(today.getFullYear(), today.getMonth(), 1));
-  const behind = monthName(new Date(today.getFullYear(), today.getMonth() - 1, 1));
+  const covers = monthName(new Date(today.getFullYear(), today.getMonth() - 1, 1));
 
-  // The fixed part first, because it is what somebody expects to recognise.
   const platform = notYet ? 0 : round2(num(terms?.platform_fee) * share);
   const monthly = notYet ? 0 : round2(num(terms?.monthly_fee) * share);
   if (platform > 0) {
-    lines.push({ kind: 'other', description: `Platform access, ${ahead}${forDays}`, qty: 1,
+    lines.push({ kind: 'other', description: `Platform access, ${covers}${forDays}`, qty: 1,
       unit: 'month', unit_price: platform, total: platform, position: lines.length });
   }
   if (monthly > 0) {
-    lines.push({ kind: 'other', description: `${terms?.monthly_fee_for || 'Monthly fee'}, ${ahead}${forDays}`,
+    lines.push({ kind: 'other', description: `${terms?.monthly_fee_for || 'Monthly fee'}, ${covers}${forDays}`,
       qty: 1, unit: 'month', unit_price: monthly, total: monthly, position: lines.length });
   }
 
   for (const e of time ?? []) {
     const hours = num(e.hours);
     const rate = num(e.rate);
-    lines.push({ kind: 'labor', description: `${e.description || 'Work'}, ${behind}`, qty: hours, unit: 'hr',
+    lines.push({ kind: 'labor', description: `${e.description || 'Work'}, ${covers}`, qty: hours, unit: 'hr',
       unit_price: rate, total: round2(hours * rate), position: lines.length,
       source_time_entry_id: e.id });
   }
