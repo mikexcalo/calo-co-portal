@@ -34,6 +34,19 @@ export interface Column<T> {
   /** How to order by this column. Absent means it cannot be sorted. */
   sortBy?: (row: T) => string | number;
   align?: 'right';
+  /**
+   * Hide the whole column while no row has anything in it.
+   *
+   * Next step and Tags are real fields nobody has filled in yet, so they
+   * rendered as a column of dashes taking up width and reading as broken. The
+   * column is not useless, it is unused, and those want opposite treatments:
+   * a useless column gets deleted, an unused one gets out of the way until
+   * the first value arrives and then comes back on its own.
+   *
+   * Only ever hidden when EVERY row is empty. One value and the column
+   * returns, so nothing can be filled in and stay invisible.
+   */
+  hasValue?: (row: T) => boolean;
 }
 
 export function RecordTable<T extends { id: string }>({
@@ -53,6 +66,12 @@ export function RecordTable<T extends { id: string }>({
   empty?: string;
 }) {
   const [sort, setSort] = useState<{ key: string; desc: boolean } | null>(null);
+
+  /* Columns nobody has put anything in yet. See hasValue. */
+  const shown = useMemo(
+    () => columns.filter((c) => !c.hasValue || rows.length === 0 || rows.some(c.hasValue)),
+    [columns, rows]
+  );
   /** For shift-click ranges, which is the only reason anyone tolerates checkboxes. */
   const lastClicked = useRef<string | null>(null);
   const selectable = Boolean(selected && onSelect);
@@ -113,7 +132,7 @@ export function RecordTable<T extends { id: string }>({
     return () => window.removeEventListener('keydown', h);
   }, [selectable, selected, onSelect]);
 
-  const grid = `${selectable ? '30px ' : ''}${columns.map((c) => c.width).join(' ')}`;
+  const grid = `${selectable ? '30px ' : ''}${shown.map((c) => c.width).join(' ')}`;
 
   return (
     <div style={{ border: `1px solid ${C.border}`, borderRadius: 10, overflow: 'hidden' }}>
@@ -137,7 +156,7 @@ export function RecordTable<T extends { id: string }>({
                 style={{ cursor: 'pointer', margin: 0 }}
               />
             )}
-            {columns.map((c) => (
+            {shown.map((c) => (
               <button
                 key={c.key}
                 onClick={() =>
@@ -188,7 +207,7 @@ export function RecordTable<T extends { id: string }>({
                       style={{ cursor: 'pointer', margin: 0 }}
                     />
                   )}
-                  {columns.map((c) => (
+                  {shown.map((c) => (
                     <div
                       key={c.key}
                       style={{

@@ -28,6 +28,14 @@ import { PRODUCT } from '@/lib/brand';
  * twenty rows of identical text. A row there and the row a client will see in
  * their own sidebar should be recognisably the same object.
  */
+/**
+ * Named for the state, not the mechanism.
+ *
+ * "Hidden" is wrong, because they are right there. "Archived" says gone.
+ * These are the rows somebody keeps so they remember the screen exists.
+ */
+const PARKED_HEADING = 'Not using';
+
 export const NAV_ICONS: Record<string, React.ReactNode> = {
   dashboard: (
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -322,11 +330,12 @@ export default function Sidebar() {
     return pathname === href || pathname.startsWith(href + '/');
   };
 
-  const navBtn = (label: string, href: string, iconKey: string) => {
+  const navBtn = (label: string, href: string, iconKey: string, canPark = true) => {
     const active = isActive(href);
+    const isParked = parked.has(href);
     return (
+      <div key={href} className="navRow" style={{ position: 'relative' }}>
       <button
-        key={href}
         className="navItem"
         onClick={() => router.push(href)}
         style={{
@@ -382,6 +391,28 @@ export default function Sidebar() {
         </span>
         {label}
       </button>
+      {/*
+        Appears on hover, so it is discoverable without being decoration.
+        Home and Drops keep every row, because a sidebar you can empty is a
+        sidebar somebody empties by accident.
+      */}
+      {canPark && (
+        <button
+          className="navPark"
+          onClick={(e) => { e.stopPropagation(); togglePark(href); }}
+          title={isParked ? `Move ${label} back up` : `Park ${label} at the bottom`}
+          aria-label={isParked ? `Move ${label} back up` : `Park ${label} at the bottom`}
+          style={{
+            position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+            width: 18, height: 18, lineHeight: '16px', textAlign: 'center',
+            borderRadius: 999, border: 'none', background: C.panel, color: C.faint,
+            fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', padding: 0,
+          }}
+        >
+          {isParked ? '+' : '\u2212'}
+        </button>
+      )}
+      </div>
     );
   };
 
@@ -402,6 +433,25 @@ export default function Sidebar() {
    */
   const [closed, setClosed] = useState<Set<string>>(new Set());
   const [ready, setReady] = useState(false);
+
+  /**
+   * Rows parked out of the way.
+   *
+   * Half this sidebar is a reminder that something exists rather than
+   * somewhere anybody goes. Route is an empty map on a business that does not
+   * drive to sites; Requests waits on a client portal nobody has used yet.
+   * Deleting them loses the reminder, and leaving them in place spends the
+   * top of the list on screens that do nothing this month.
+   *
+   * Parking keeps both: the row drops to a folded group at the bottom, still
+   * named, still one click away, and out of the way until it is wanted. Which
+   * rows those are is a judgement about how somebody works, so they make it,
+   * not us.
+   *
+   * Per browser, like the folded sections, and for the same reason: it is a
+   * preference about this screen on this machine.
+   */
+  const [parked, setParked] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     try {
@@ -424,10 +474,30 @@ export default function Sidebar() {
     } catch {
       // A browser refusing storage is not a reason to render nothing.
     }
+    try {
+      const p = window.localStorage.getItem('nav.parked.v1');
+      if (p) setParked(new Set(JSON.parse(p) as string[]));
+    } catch {
+      // Same as above: no storage is not a reason to render nothing.
+    }
     setReady(true);
     // Runs once. Re-running on every nav change would reset the user's
     // choice every time they switch business.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const togglePark = useCallback((href: string) => {
+    setParked((prev) => {
+      const next = new Set(prev);
+      if (next.has(href)) next.delete(href);
+      else next.add(href);
+      try {
+        window.localStorage.setItem('nav.parked.v1', JSON.stringify([...next]));
+      } catch {
+        // The choice still applies for this session.
+      }
+      return next;
+    });
   }, []);
 
   const toggleGroup = useCallback((heading: string) => {
@@ -535,9 +605,11 @@ export default function Sidebar() {
         {/* Asked of the modules directly. Checking the groups meant Drops
             vanished the moment it stopped being in one, which is exactly what
             moving it here did. */}
-        {modulesFor(org).has('inbox') && navBtn('Drops', '/inbox', 'drop')}
+        {modulesFor(org).has('inbox') && navBtn('Drops', '/inbox', 'drop', false)}
 
-        {groups.map((g) => {
+        {groups.map((g0) => {
+          const g = { ...g0, items: g0.items.filter((i) => !parked.has(i.href) || isActive(i.href)) };
+          if (!g.items.length) return null;
           // A collapsed section that hides the page you are on would leave you
           // unable to see where you are. Force it open in that case.
           const holdsCurrent = g.items.some((i) => isActive(i.href));
@@ -590,6 +662,40 @@ export default function Sidebar() {
             </div>
           );
         })}
+
+        {/*
+          Everything parked, kept in one place rather than deleted.
+
+          Folded by default and counted on the heading, so the list stays as
+          short as somebody wants it while still answering "what else is in
+          here" without leaving the screen.
+        */}
+        {(() => {
+          const away = groups.flatMap((g) => g.items).filter((i) => parked.has(i.href) && !isActive(i.href));
+          if (!away.length) return null;
+          const shut = ready && closed.has(PARKED_HEADING);
+          return (
+            <div style={{ marginTop: 15 }}>
+              <button
+                onClick={() => toggleGroup(PARKED_HEADING)}
+                aria-expanded={!shut}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5, width: '100%',
+                  background: 'transparent', border: 'none',
+                  fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
+                  fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.09em',
+                  color: C.faint, fontWeight: 600, padding: '0 12px 5px',
+                  cursor: 'pointer', textAlign: 'left',
+                }}
+              >
+                <span aria-hidden style={{ display: 'inline-block', fontSize: 8, transform: shut ? 'rotate(-90deg)' : 'none', transition: 'transform .18s ease' }}>▼</span>
+                {PARKED_HEADING}
+                <span style={{ marginLeft: 'auto', fontVariantNumeric: 'tabular-nums' }}>{away.length}</span>
+              </button>
+              {!shut && away.map((i) => navBtn(i.label, i.href, i.icon))}
+            </div>
+          );
+        })()}
       </div>
 
       {/*

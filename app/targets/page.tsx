@@ -292,6 +292,8 @@ export default function PipelinePage() {
       key: 'tags',
       label: 'Tags',
       width: 'minmax(130px, 1.4fr)',
+      /* A real field nobody has used yet, so it read as an empty column. */
+      hasValue: (r) => Boolean((r.tags ?? []).length),
       render: (r) => (
         <span style={{ fontSize: 12, color: C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
           {(r.tags ?? []).join(' · ')}
@@ -302,6 +304,7 @@ export default function PipelinePage() {
       key: 'next',
       label: 'Next step',
       width: 'minmax(140px, 1.6fr)',
+      hasValue: (r) => Boolean(r.next_action),
       render: (r) => {
         const n = shortlist(r.next_action);
         return (

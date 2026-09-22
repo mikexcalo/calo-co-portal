@@ -4734,3 +4734,15 @@ input:focus, textarea:focus, select:focus {
     break-inside: avoid;
   }
 }
+
+/*
+  The park control is only there when you are looking for it.
+
+  A permanent minus beside every nav row is fourteen pieces of chrome
+  competing with fourteen destinations. On hover it is discoverable; the rest
+  of the time the sidebar is a list of places.
+*/
+.navPark { opacity: 0; transition: opacity .12s ease; }
+.navRow:hover .navPark,
+.navPark:focus-visible { opacity: 1; }
+.navPark:hover { color: var(--nav-park-hover, #1A1A1A); }

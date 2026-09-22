@@ -364,6 +364,8 @@ export default function CustomersPage() {
       key: 'next',
       label: 'Next step',
       width: 'minmax(140px, 1.6fr)',
+      /* Nobody has named one yet, so this was a column of dashes. */
+      hasValue: (r) => Boolean(r.next_action),
       render: (r) => {
         const overdue = Boolean(today && r.next_action_on && r.next_action_on <= today);
         return (
