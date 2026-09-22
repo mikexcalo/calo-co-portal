@@ -91,6 +91,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
   const [busy, setBusy] = useState(false);
   const [text, setText] = useState('');
   const [error, setError] = useState('');
+  const [done, setDone] = useState('');
   const [urls, setUrls] = useState<Record<string, string>>({});
   /**
    * Turning a drop into records.
@@ -153,6 +154,21 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
       }
       await load();
       onChange?.();
+      /*
+        Say it worked.
+
+        A file went in and the screen changed slightly somewhere below the
+        fold. John dropped two files, saw nothing he recognised as success, and
+        assumed it had failed — which it had, that time, but he would have had
+        no way of knowing if it hadn't. Silence after an action reads as
+        failure.
+      */
+      setDone(
+        Array.from(files).length === 1
+          ? `Got it. ${Array.from(files)[0].name} is in.`
+          : `Got them. ${Array.from(files).length} files are in.`
+      );
+      setTimeout(() => setDone(''), 4000);
     } catch (e) {
       setError(human(e));
     }
@@ -243,6 +259,9 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
       </div>
 
       {error && <p style={{ fontSize: 12.5, color: C.red, margin: '8px 0 0' }}>{error}</p>}
+      {done && (
+        <p style={{ fontSize: 13, color: C.green, margin: '8px 0 0', fontWeight: 500 }}>{done}</p>
+      )}
 
       {showWaiting && items.some((d) => !d.filed_at) && (
         <div
@@ -437,7 +456,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                       John wrote a page of notes about his website, found
                       nowhere to put them, and emailed them instead.
                     */}
-                    <option value="">Who is this about?</option>
+                    <option value="">Or file it by hand&hellip;</option>
                     <option value="__handover">Send it to whoever runs this for me</option>
                     {filingOptions.map((o) => (
                       <option key={`${o.kind}-${o.id}`} value={o.id}>{o.name}</option>
