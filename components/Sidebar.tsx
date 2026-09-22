@@ -76,9 +76,20 @@ export const NAV_ICONS: Record<string, React.ReactNode> = {
     </svg>
   ),
   // A folder — records you keep.
+  /*
+    Two files, one behind the other.
+
+    A single folder outline is the same glyph as every Documents row in every
+    product, and Records is not a folder — it is the drawer: insurance,
+    licences, contracts, the things you keep rather than the things you are
+    working on. A filled tab sitting behind a clear one says "more than one,
+    filed" at a glance, and reads at seventeen pixels where a stack of thin
+    outlines would turn to mush.
+  */
   folder: (
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1.8 12.6V3.6a.9.9 0 0 1 .9-.9h3.1l1.5 1.8h6a.9.9 0 0 1 .9.9v7.2a.9.9 0 0 1-.9.9H2.7a.9.9 0 0 1-.9-.9z" />
+      <path d="M4.2 3.1V2.3a.85.85 0 0 1 .85-.85h2.6l1.3 1.55h5.1a.85.85 0 0 1 .85.85v6" fill="currentColor" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+      <path d="M1.3 13.1V4.9a.9.9 0 0 1 .9-.9h3.0l1.4 1.7h5.7a.9.9 0 0 1 .9.9v6.5a.9.9 0 0 1-.9.9H2.2a.9.9 0 0 1-.9-.9z" fill="var(--panel, #FFFFFF)" />
     </svg>
   ),
   // Banknote.
@@ -111,18 +122,23 @@ export const NAV_ICONS: Record<string, React.ReactNode> = {
    * colour, type or a mark. This is the one object that only ever means brand.
    */
   /*
-    A tag.
+    A painter's palette.
 
-    The drop of colour read as a teardrop, which is what a drop is, and there
-    is no drawing of a drop that stops being one. A brand is a mark you put on
-    a thing so it is known as yours — which is a tag, literally, and the word
-    is the older meaning of brand. Four strokes, one hole, nothing to resolve,
-    and nothing else in the column has its shape.
+    Third go at this. A grid of swatch cards read as "apps", a drop of colour
+    read as a teardrop, and a tag read as a price label — each one a picture of
+    something adjacent to brand rather than of brand. A palette is the object a
+    person holds while choosing colour, and nothing else in a sidebar looks
+    remotely like one.
+
+    The thumb hole is what makes it read at seventeen pixels; without it the
+    outline is just a blob.
   */
   brandKit: (
-    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M7.5 1.9h5.5a1.1 1.1 0 0 1 1.1 1.1v5.5a1.1 1.1 0 0 1-.32.78l-5.2 5.2a1.1 1.1 0 0 1-1.56 0L2.02 10.5a1.1 1.1 0 0 1 0-1.56l5.2-5.2" />
-      <circle cx="11" cy="5" r="1.05" />
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 1.6c-3.5 0-6.4 2.7-6.4 6.1 0 3.4 2.9 6.1 6.4 6.1.9 0 1.6-.6 1.6-1.4 0-.4-.2-.7-.4-1a1.3 1.3 0 0 1 1-2.2h1.1c1.8 0 3.1-1.3 3.1-3 0-2.6-2.8-4.6-6.4-4.6Z" />
+      <circle cx="4.9" cy="7.7" r=".85" />
+      <circle cx="6.9" cy="4.8" r=".85" />
+      <circle cx="10.4" cy="5.3" r=".85" />
     </svg>
   ),
   // A signed document — a proposal awaiting a decision.

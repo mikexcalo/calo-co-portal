@@ -218,11 +218,24 @@ export type ModuleKind = 'place' | 'capability';
  * same order, so the switchboard and the thing it controls are laid out the
  * same way.
  */
-export type NavSection = 'The work' | 'Money' | 'Grow' | 'Setup';
+/*
+  Four sections, because three were doing five jobs.
+
+  "The work" had grown to hold seven rows that are not the same kind of thing:
+  who you work with, what you are doing for them, the order you drive the day
+  in, your insurance certificates, and an inbox of client asks. A heading that
+  covers all of that is not a heading, it is a shrug.
+
+  The work is now who and what — clients, the people at them, the projects.
+  Growth is everything aimed at winning more. Running it is the rest of what
+  keeping a business open involves: the day's route, the filing cabinet, and
+  what people are asking you for.
+*/
+export type NavSection = 'The work' | 'Money' | 'Growth' | 'Running it' | 'Setup';
 
 export const MODULE_SECTION: Record<ModuleId, NavSection> = {
   feedback: 'Setup',
-  routes: 'The work',
+  routes: 'Running it',
   inbox: 'The work',
   customers: 'The work',
   people: 'The work',
@@ -231,7 +244,7 @@ export const MODULE_SECTION: Record<ModuleId, NavSection> = {
   market: 'The work',
   catalog: 'The work',
   notes: 'The work',
-  client_requests: 'The work',
+  client_requests: 'Running it',
 
   billing: 'Money',
   proposals: 'Money',
@@ -241,24 +254,24 @@ export const MODULE_SECTION: Record<ModuleId, NavSection> = {
   receipts: 'Money',
   pricing: 'Money',
 
-  pitches: 'Grow',
-  seo: 'Grow',
-  traffic: 'Grow',
-  reviews: 'Grow',
-  brands: 'Grow',
-  brand_kit: 'Grow',
-  stories: 'Grow',
-  website: 'Grow',
+  pitches: 'Growth',
+  seo: 'Growth',
+  traffic: 'Growth',
+  reviews: 'Growth',
+  brands: 'Growth',
+  brand_kit: 'Growth',
+  stories: 'Growth',
+  website: 'Growth',
   learn: 'Setup',
-  ask: 'Grow',
+  ask: 'Growth',
 
   team: 'Setup',
   security: 'Setup',
   business: 'Setup',
-  records: 'The work',
+  records: 'Running it',
 };
 
-export const NAV_SECTIONS: NavSection[] = ['The work', 'Money', 'Grow', 'Setup'];
+export const NAV_SECTIONS: NavSection[] = ['The work', 'Money', 'Growth', 'Running it', 'Setup'];
 
 export const MODULE_KIND: Record<ModuleId, ModuleKind> = {
   // Places: they appear in the sidebar, or as a tab of something that does.
@@ -329,7 +342,7 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   targets: 'Pipeline',
   catalog: 'What they sell',
   market: 'Market',
-  client_requests: 'Client requests',
+  client_requests: 'Requests',
   website: 'Site requests',
   learn: 'Learn',
   team: 'Team',
@@ -745,22 +758,6 @@ export function navFor(
          * dead end inside your own product.
          */
         { id: 'jobs', label: vocab.jobPlural, href: '/jobs', icon: 'quotes' },
-        { id: 'routes', label: 'Route', href: '/routes', icon: 'yardSign' },
-        /**
-         * Pipeline is work, not growth.
-         *
-         * It had no row at all and was reached from a client, on the reasoning
-         * that a hundred and four distributors are John's list rather than
-         * yours. True, and it stopped being the point the day John got his own
-         * workspace: in there they are simply his pipeline, and a list you work
-         * down every morning cannot only be reachable through somebody else's
-         * record.
-         */
-        { id: 'targets', label: 'Pipeline', href: '/targets', icon: 'crosshair' },
-        /**
-         * Reference, read while working rather than filed after it. The row
-         * only appears for a business that has something in it.
-         */
         { id: 'market', label: 'Market', href: '/market', icon: 'book' },
         /**
          * Last, and called Unfiled rather than Inbox.
@@ -770,6 +767,22 @@ export function navFor(
          * rather than what it resembles. It sits below the real work because
          * it is a shelf, not a place you go to get something done.
          */
+      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
+    },
+    {
+      heading: 'Running it',
+      defaultOpen: false,
+      items: [
+        /*
+          What keeping the doors open involves, as against the work itself.
+
+          The order you drive the day in, the filing cabinet, and what people
+          are asking you for. None of those is a client or a project, and all
+          three were sitting under The work making that heading meaningless.
+        */
+        { id: 'routes', label: 'Route', href: '/routes', icon: 'yardSign' },
+        { id: 'records', label: 'Records', href: '/records', icon: 'folder' },
+        { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'megaphone' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
@@ -793,7 +806,7 @@ export function navFor(
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
-      heading: 'Grow',
+      heading: 'Growth',
       defaultOpen: false,
       items: [
         /**
