@@ -8,6 +8,7 @@
  * at least two screens, it doesn't belong here.
  */
 
+import { readableOn } from '@/lib/spine/brandkit';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -1044,11 +1045,14 @@ export function Avatar({
   name,
   size = 40,
   shape = 'person',
+  tint,
 }: {
   src?: string | null;
   name?: string | null;
   size?: number;
   shape?: 'person' | 'company';
+  /** The brand's own colour, for a monogram that looks chosen rather than left. */
+  tint?: string | null;
 }) {
   const [failed, setFailed] = React.useState(false);
   const radius = shape === 'company' ? Math.max(4, Math.round(size * 0.22)) : '50%';
@@ -1083,6 +1087,21 @@ export function Avatar({
     );
   }
 
+  /*
+    A monogram on the brand's own colour.
+
+    Default grey reads as a placeholder nobody got round to replacing. The
+    brand's darkest colour reads as a choice — and for CALO&CO that colour is
+    Ink, which is near-black, so its tile is black without anything being
+    hardcoded to say so.
+
+    The letter flips to white or near-black on the same contrast test the rest
+    of the product uses, so a pale brand does not end up with white text on
+    cream.
+  */
+  const ground = (tint && /^#[0-9a-f]{6}$/i.test(tint.trim()) ? tint.trim() : null);
+  const ink = ground ? readableOn(ground) : C.faint;
+
   return (
     <div
       aria-hidden
@@ -1091,12 +1110,12 @@ export function Avatar({
         height: size,
         borderRadius: radius,
         flexShrink: 0,
-        background: C.panelAlt,
-        border: `1px solid ${C.border}`,
+        background: ground ?? C.panelAlt,
+        border: `1px solid ${ground ?? C.border}`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: C.faint,
+        color: ink,
         fontSize: size * 0.36,
         fontWeight: 600,
         letterSpacing: '0.02em',

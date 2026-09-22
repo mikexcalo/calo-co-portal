@@ -88,8 +88,10 @@ export const NAV_ICONS: Record<string, React.ReactNode> = {
   */
   folder: (
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4.2 3.1V2.3a.85.85 0 0 1 .85-.85h2.6l1.3 1.55h5.1a.85.85 0 0 1 .85.85v6" fill="currentColor" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
-      <path d="M1.3 13.1V4.9a.9.9 0 0 1 .9-.9h3.0l1.4 1.7h5.7a.9.9 0 0 1 .9.9v6.5a.9.9 0 0 1-.9.9H2.2a.9.9 0 0 1-.9-.9z" fill="var(--panel, #FFFFFF)" />
+      {/* Just the tab of the one behind, showing past the edge. Filling the
+          whole shape turned it into a drop shadow. */}
+      <path d="M4.4 2.6h2.4l1.2 1.45h4.9" />
+      <path d="M1.5 13.2V5.1a.9.9 0 0 1 .9-.9h2.9l1.35 1.65h5.5a.9.9 0 0 1 .9.9v6.45a.9.9 0 0 1-.9.9H2.4a.9.9 0 0 1-.9-.9z" fill="var(--panel, #FFFFFF)" />
     </svg>
   ),
   // Banknote.
@@ -467,44 +469,61 @@ export default function Sidebar() {
           borderBottom: `1px solid ${C.border}`,
         }}
       >
+        {/*
+          Whose workspace this is, not whose software it is.
+
+          The product name sat here on every screen of every business, so Mark
+          opened his own company's tool and the first thing it said was
+          CALO&CO — twice, counting the row underneath. He knows who built it.
+          What he needs to see at a glance is which business he is standing in,
+          and the attribution moved to the foot of the sidebar where a
+          "powered by" belongs.
+        */}
         <span
           onClick={() => router.push('/')}
           style={{
-            // The wordmark is a heading, so it takes the heading face.
             fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
             fontSize: 16.5,
             fontWeight: 700,
             color: C.text,
             letterSpacing: '-0.3px',
             cursor: 'pointer',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
           }}
+          title={org?.name ?? PRODUCT}
         >
-          {PRODUCT}
+          {org?.name ?? PRODUCT}
         </span>
       </div>
 
       {/*
-        The name, whole, and not a control.
+        Search, above everything it searches.
 
-        The switcher sat here as a pill with a chevron, and a business called
-        Global Seafood Partners rendered as "Global Seafood Par..." — the name
-        of the business somebody is standing in, cut off, at the top of their
-        own screen. There is no width that fixes that; the next client is
-        longer.
-
-        So the top of the sidebar says whose workspace this is and stops being
-        a control. Switching is Mike's job and nobody else's — it lives at the
-        bottom, out of the way, where it cannot truncate anybody's name.
+        It lived in the top bar across the content, which is a fine place for
+        it and the wrong place to learn it exists — the sidebar is where
+        somebody looks for a way into something. It is the first row now, above
+        Home, because it reaches every row under it.
       */}
-      <div style={{ padding: '10px 14px 8px' }}>
-        <div
+      <div style={{ padding: '10px 8px 2px' }}>
+        <button
+          onClick={() => window.dispatchEvent(new Event('calo:open-search'))}
           style={{
-            fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
-            fontSize: 15, fontWeight: 600, color: C.text, lineHeight: 1.25,
+            width: '100%', display: 'flex', alignItems: 'center', gap: 9,
+            padding: '8px 10px', borderRadius: 9,
+            border: `1px solid ${C.border}`, background: C.panelAlt,
+            color: C.faint, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit',
+            textAlign: 'left',
           }}
         >
-          {org?.name ?? '\u00a0'}
-        </div>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+            <circle cx="7.1" cy="7.1" r="4.6" />
+            <path d="m10.6 10.6 3 3" />
+          </svg>
+          <span style={{ flex: 1 }}>Search or ask</span>
+          <span style={{ fontSize: 11.5 }}>&#8984;K</span>
+        </button>
       </div>
 
       <div style={{ flex: 1, padding: '8px 8px 8px', overflowY: 'auto' }}>
@@ -593,11 +612,54 @@ export default function Sidebar() {
         everything is administered from, and a control that does nothing here
         is worse than one that is missing.
       */}
+      {/*
+        A button, shaped like one.
+
+        It was a nav row, identical to Home and Jobs, so it read as another
+        place in the product rather than as the way to say something to a
+        person. And the megaphone made it worse: a megaphone is somebody
+        broadcasting AT you, so next to "Tell us" it looked like announcements
+        from us rather than a line back. It is a speech bubble, which is the
+        direction this actually goes.
+      */}
       {org?.kind !== 'agency' && modulesFor(org).has('feedback') && (
-        <div style={{ padding: '0 8px 4px' }}>
-          {navBtn('Tell us', '/feedback', 'megaphone')}
+        <div style={{ padding: '2px 10px 8px' }}>
+          <button
+            onClick={() => router.push('/feedback')}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: 8, padding: '9px 12px', borderRadius: 999,
+              border: `1px solid ${C.borderStrong ?? C.border}`, background: C.panel,
+              color: C.text, fontSize: 13.5, fontWeight: 500,
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M13.8 9.4a1.4 1.4 0 0 1-1.4 1.4H5.6L2.8 13.5V3.6a1.4 1.4 0 0 1 1.4-1.4h8.2a1.4 1.4 0 0 1 1.4 1.4z" />
+            </svg>
+            Tell Us
+          </button>
         </div>
       )}
+
+      {/*
+        Whose software this is, where an attribution belongs.
+
+        The product name came off the top of the sidebar so a client sees their
+        own business there. It is not gone — it is at the foot, which is where
+        "powered by" has lived on every white-labelled thing ever made, and it
+        links out to the people who built it.
+      */}
+      <div style={{ padding: '4px 14px 8px' }}>
+        <a
+          href="https://calo.company"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ fontSize: 11.5, color: C.faint, textDecoration: 'none' }}
+        >
+          Powered by {PRODUCT}
+        </a>
+      </div>
 
       {/*
         Switching, for the only person who does it.

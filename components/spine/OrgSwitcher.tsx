@@ -12,6 +12,29 @@ import { Avatar, C } from './ui';
  * mistake in a multi-business tool is logging Mammoth's hours against a
  * CALO&CO engagement because you didn't notice which one was active.
  */
+
+/*
+  The logo, where there is one.
+
+  The tiles were drawing monograms for every business while Mammoth's mark sat
+  in its own brand kit — the whole point of putting an avatar here was that it
+  fills in with the real thing as each kit gets built, and nothing was reading
+  the kit.
+
+  The ground comes from the brand too: a business whose darkest colour is
+  near-black gets a near-black tile, which is what CALO&CO's Ink is. A monogram
+  on the brand's own colour looks deliberate where one on default grey looks
+  like a placeholder nobody replaced.
+*/
+function brandOf(o: { settings?: Record<string, unknown> | null }) {
+  const b = ((o.settings ?? {}) as Record<string, unknown>).brand as
+    | { logoLight?: string; logos?: string[]; colors?: Array<{ hex?: string }> }
+    | undefined;
+  const logo = (b?.logoLight || b?.logos?.[0] || '').trim() || null;
+  const hex = (b?.colors ?? []).map((c) => (c?.hex ?? '').trim()).filter(Boolean)[0] ?? null;
+  return { logo, hex };
+}
+
 export function OrgSwitcher() {
   const { org, orgs, loading, switchOrg } = useOrg();
   const { viewAs } = useViewAs();
@@ -59,7 +82,7 @@ export function OrgSwitcher() {
           textAlign: 'left',
         }}
       >
-        <Avatar name={org.name} size={20} shape="company" />
+        <Avatar name={org.name} src={brandOf(org).logo} tint={brandOf(org).hex} size={20} shape="company" />
         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {org.name}
         </span>
@@ -166,7 +189,7 @@ export function OrgSwitcher() {
                   textAlign: 'left',
                 }}
               >
-                <Avatar name={o.name} size={22} shape="company" />
+                <Avatar name={o.name} src={brandOf(o).logo} tint={brandOf(o).hex} size={22} shape="company" />
                 <span
                   style={{
                     flex: 1,

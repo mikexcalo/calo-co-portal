@@ -94,7 +94,13 @@ export function CommandBar() {
       if (e.key === 'Escape') setOpen(false);
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    /* The sidebar's search row opens the same thing the shortcut does. */
+    const openIt = () => setOpen(true);
+    window.addEventListener('calo:open-search', openIt);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('calo:open-search', openIt);
+    };
   }, []);
 
   /**

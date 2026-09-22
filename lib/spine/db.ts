@@ -100,6 +100,8 @@ export async function orgNow(): Promise<string | null> {
 export function forgetOrg(): void {
   known = null;
   asking = null;
+  fullOrg = null;
+  fullAsking = null;
 }
 
 /**
@@ -107,23 +109,46 @@ export function forgetOrg(): void {
  * database only honors when a matching membership exists — so this can
  * never return an org you don't belong to.
  */
+/*
+  Three round trips, on eleven screens, on every load.
+
+  This asked the auth server to revalidate the token, then read the profile to
+  find the active workspace, then read the workspace — in series, because each
+  answer is the next question's input. Eleven pages call it while they load,
+  and none of them needed it: orgNow() already holds the id and OrgProvider
+  already holds the row.
+
+  So it is cached exactly like orgNow, shares that function's in-flight
+  promise, and is cleared by the same forgetOrg() that runs on a switch. The
+  auth hop is gone entirely — the id comes from orgNow, which reads the session
+  out of memory.
+
+  This is the same lesson as the note on orgNow above, which calls the auth
+  round trip the whole reason the app got slow one afternoon. It was fixed
+  there and left standing here.
+*/
+let fullOrg: Org | null = null;
+let fullAsking: Promise<Org | null> | null = null;
+
 export async function getCurrentOrg(): Promise<Org | null> {
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth?.user) return null;
+  if (fullOrg) return fullOrg;
+  if (fullAsking) return fullAsking;
 
-  const profile = await supabase
-    .from('profiles')
-    .select('active_org_id')
-    .eq('id', auth.user.id)
-    .maybeSingle();
+  fullAsking = (async () => {
+    const orgId = await orgNow();
+    if (!orgId) return null;
 
-  if (profile.error) throw new Error(profile.error.message);
-  const orgId = profile.data?.active_org_id;
-  if (!orgId) return null;
+    const org = await supabase.from('orgs').select('*').eq('id', orgId).maybeSingle();
+    if (org.error) throw new Error(org.error.message);
+    fullOrg = (org.data as Org | null) ?? null;
+    return fullOrg;
+  })();
 
-  const org = await supabase.from('orgs').select('*').eq('id', orgId).maybeSingle();
-  if (org.error) throw new Error(org.error.message);
-  return org.data as Org | null;
+  try {
+    return await fullAsking;
+  } finally {
+    fullAsking = null;
+  }
 }
 
 /**
