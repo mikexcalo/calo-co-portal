@@ -18,6 +18,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { C } from '@/lib/spine/tokens';
 import { ClientIntake, type IntakeSeed } from './ClientIntake';
 import { human } from '@/lib/spine/errors';
+import { Confirm } from './Confirm';
 import { sheetToText, isSpreadsheet } from '@/lib/spine/spreadsheet';
 import { DropZone } from './DropZone';
 import { extractPalette, SAMPLE_EDGE } from '@/lib/spine/palette';
@@ -95,6 +96,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
   const [done, setDone] = useState('');
   const [removing, setRemoving] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<Drop | null>(null);
   const [urls, setUrls] = useState<Record<string, string>>({});
   /**
    * Turning a drop into records.
@@ -310,6 +312,32 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
         </div>
       )}
 
+      {confirming && (
+        <Confirm
+          title={`Remove ${confirming.title || 'this'}?`}
+          body="It goes for good. Nothing else on the record changes."
+          confirmLabel="Remove it"
+          busy={removing === confirming.id}
+          onCancel={() => setConfirming(null)}
+          onConfirm={async () => {
+            const d = confirming;
+            setRemoving(d.id);
+            setItems((prev) => prev.filter((x) => x.id !== d.id));
+            setConfirming(null);
+            try {
+              await removeDrop(d);
+              await load();
+              onChange?.();
+            } catch (e) {
+              setError(human(e));
+              await load();
+            } finally {
+              setRemoving(null);
+            }
+          }}
+        />
+      )}
+
       {showWaiting && items.length > 0 && (
         /*
           Rows, not thumbnails.
@@ -504,51 +532,42 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                   </div>
                 </div>
 
-                {filingOptions && filingOptions.length > 0 && !d.filed_at && (
-                  <select
-                    defaultValue=""
-                    onChange={async (e) => {
-                      if (e.target.value === '__handover') {
-                        await fetch('/api/drops/hand-over', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ dropId: d.id }),
-                        });
-                        await load();
-                        onChange?.();
-                        return;
-                      }
-                      const opt = filingOptions.find((o) => o.id === e.target.value);
-                      if (!opt) return;
-                      await fileDrop(d.id, opt.kind === 'person'
-                        ? { person_id: opt.id }
-                        : { customer_id: opt.id });
+                {/*
+                  No picker on the row at all.
+
+                  Choosing a name from it filed the drop on the spot: no
+                  confirmation, no scan, and the file left the list. Mike picked
+                  Pacific Empress to say what the spreadsheet was about and the
+                  spreadsheet vanished into Filed without ever being read.
+
+                  Selecting from a menu should never be a destructive act, and a
+                  question asked before the scan is a question the scan was about
+                  to answer. Scan first; the result proposes who it belongs to
+                  and can be corrected there. Handing it over is a plain link,
+                  because it is a different intention rather than another name in
+                  the same list.
+                */}
+                {!d.filed_at && (
+                  <button
+                    onClick={async () => {
+                      await fetch('/api/drops/hand-over', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ dropId: d.id }),
+                      });
+                      setDone('Sent over. It is in their Asked for now.');
+                      setTimeout(() => setDone(''), 4000);
                       await load();
                       onChange?.();
                     }}
                     style={{
-                      fontSize: 12, padding: '6px 8px', flexShrink: 0,
-                      border: `1px solid ${C.border}`, borderRadius: 7,
-                      color: C.dim, background: C.panel, fontFamily: 'inherit',
+                      background: 'transparent', border: 'none', padding: 0, flexShrink: 0,
+                      color: C.faint, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+                      textDecoration: 'underline',
                     }}
                   >
-                    {/*
-                      The option that was missing.
-
-                      Every choice here was "which of my people" or "which of
-                      my customers", so there was no way to say the thing a
-                      client eventually wants to say: this is not about one of
-                      my customers, it is for whoever runs this for me.
-
-                      John wrote a page of notes about his website, found
-                      nowhere to put them, and emailed them instead.
-                    */}
-                    <option value="">Or file it by hand&hellip;</option>
-                    <option value="__handover">Send it to whoever runs this for me</option>
-                    {filingOptions.map((o) => (
-                      <option key={`${o.kind}-${o.id}`} value={o.id}>{o.name}</option>
-                    ))}
-                  </select>
+                    Send it over
+                  </button>
                 )}
 
                 {/*
