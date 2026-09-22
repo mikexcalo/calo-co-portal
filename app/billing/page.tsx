@@ -228,10 +228,21 @@ export default function BillingPage() {
     }
   };
 
-  const live = invoices.filter((i) => i.status !== 'void');
+    /*
+    A draft is not money anybody owes you.
+
+    "live" meant "not void", so every draft invoice counted as outstanding.
+    Two drafts that had never left the building put $200 under Owed to you, on
+    Home and on Invoices, and the same figure fed Profit and Loss. Nobody had
+    been asked for it. Nobody could have paid it.
+
+    Issued means sent. An invoice sitting in draft is a document, not a debt.
+  */
+  const live = invoices.filter((i) => i.status !== 'void' && i.status !== 'draft');
   const outstanding = live.reduce((s, i) => s + (i.total - i.amount_paid), 0);
   const collected = live.reduce((s, i) => s + i.amount_paid, 0);
-  const drafts = live.filter((i) => i.status === 'draft').length;
+  /* From every invoice, because live now deliberately excludes drafts. */
+  const drafts = invoices.filter((i) => i.status === 'draft').length;
 
   return (
     <Page title="Invoices" subtitle="What you have invoiced, and what is still owed.">

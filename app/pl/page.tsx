@@ -153,7 +153,17 @@ export default function ProfitLossPage() {
   // land entirely in one.
   const scoped = useMemo(() => {
     const start = todayMs ? periodStart(period, new Date(todayMs)) : null;
-    const live = invoices.filter((i) => i.status !== 'void');
+      /*
+    A draft is not money anybody owes you.
+
+    "live" meant "not void", so every draft invoice counted as outstanding.
+    Two drafts that had never left the building put $200 under Owed to you, on
+    Home and on Invoices, and the same figure fed Profit and Loss. Nobody had
+    been asked for it. Nobody could have paid it.
+
+    Issued means sent. An invoice sitting in draft is a document, not a debt.
+  */
+    const live = invoices.filter((i) => i.status !== 'void' && i.status !== 'draft');
     const inPeriod = start
       ? live.filter((i) => i.issued_on && new Date(i.issued_on) >= start)
       : live;
