@@ -80,7 +80,7 @@ export const NAV_ICONS: Record<string, React.ReactNode> = {
 
     A single folder outline is the same glyph as every Documents row in every
     product, and Records is not a folder — it is the drawer: insurance,
-    licences, contracts, the things you keep rather than the things you are
+    licenses, contracts, the things you keep rather than the things you are
     working on. A filled tab sitting behind a clear one says "more than one,
     filed" at a glance, and reads at seventeen pixels where a stack of thin
     outlines would turn to mush.

@@ -175,8 +175,16 @@ export function YourSetup() {
             </span>
           )}
           {' · '}
-          {items.slice(0, 3).map((i) => i.title.replace(/^(Add|Set|Claim|Invite|Upgrade|Change|Send|Point|Verify|Redirect) /, '')).join(', ')}
-          {items.length > 3 ? ', and more' : ''}
+          {/*
+            Joined with commas, and the titles contain commas.
+
+            "Let replies come back, Retire mikecalo.co, and see what people
+            actually search, the site in Google Search Console, and more" is
+            four tasks and reads as one run-on sentence nobody can parse. A
+            middle dot cannot be mistaken for punctuation inside a title.
+          */}
+          {items.slice(0, 3).map((i) => i.title.replace(/^(Add|Set|Claim|Invite|Upgrade|Change|Send|Point|Verify|Redirect) /, '')).join('  ·  ')}
+          {items.length > 3 ? '  ·  and more' : ''}
         </button>
       </div>
     );

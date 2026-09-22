@@ -392,7 +392,7 @@ export default function FilesPage() {
       {loading ? (
         <Empty>Loading…</Empty>
       ) : files.length === 0 ? (
-        <Card><Empty>Nothing filed yet. Drop in insurance, a licence, a contract.</Empty></Card>
+        <Card><Empty>Nothing filed yet. Drop in insurance, a license, a contract.</Empty></Card>
       ) : (
         CATEGORIES.filter((c) => grouped[c.id]?.length).map((c) => (
           <div key={c.id} style={{ marginBottom: 26, maxWidth: 720 }}>

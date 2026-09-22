@@ -259,7 +259,7 @@ export default function PeoplePage() {
             {p.email}
           </a>
         ) : (
-          <span style={{ fontSize: 12.5, color: C.faint }}>, </span>
+          <span style={{ fontSize: 12.5, color: C.faint }}>–</span>
         ),
     },
     {

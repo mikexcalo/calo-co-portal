@@ -252,7 +252,7 @@ export default function BrandKitPage() {
     <Page
       tabs={brandTabsFor(org?.kind)}
       title="Brand"
-      subtitle={mine ? 'Your logos, colours, type and voice.' : `${shown.name}, held by you, edited on its own screens.`}
+      subtitle={mine ? 'Your logos, colors, type and voice.' : `${shown.name}, held by you, edited on its own screens.`}
       action={
         <>
           {saved && mine && <Pill tone="green">Saved</Pill>}
@@ -399,7 +399,7 @@ export default function BrandKitPage() {
             Thirteen swatches tell you the brand owns a gold and an ivory. They
             cannot tell you that gold on ivory is unreadable, which is the only
             thing anybody gets wrong. Derived, never typed, so it cannot drift
-            from the colours above it.
+            from the colors above it.
           */}
           <Pairings kit={shown} />
 

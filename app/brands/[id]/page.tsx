@@ -293,7 +293,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
 
       {colors.length > 1 && (
         <div style={{ marginBottom: 26 }}>
-          {/* Derived from the colours above, never typed, so it cannot drift. */}
+          {/* Derived from the colors above, never typed, so it cannot drift. */}
           <Pairings kit={kitFromBrand({ id: brand.id, name: brand.name, kit: brand.kit })} />
         </div>
       )}

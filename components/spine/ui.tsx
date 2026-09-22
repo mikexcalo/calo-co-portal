@@ -1054,22 +1054,33 @@ export const numeric: React.CSSProperties = {
   fontFeatureSettings: '"tnum"',
 };
 
-export const money = (n: number | null | undefined): string =>
-  `$${(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+/*
+  The minus goes outside the dollar sign.
+
+  "$-24" is not how anybody writes money. Losses were rendering that way on
+  every tile, because the sign came out of toLocaleString in the middle of the
+  string rather than being handled.
+*/
+export const money = (n: number | null | undefined): string => {
+  const v = n ?? 0;
+  return `${v < 0 ? '-' : ''}$${Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
 
 /** Whole dollars — for dashboard tiles where cents are noise. */
-export const money0 = (n: number | null | undefined): string =>
-  `$${Math.round(n ?? 0).toLocaleString('en-US')}`;
+export const money0 = (n: number | null | undefined): string => {
+  const v = Math.round(n ?? 0);
+  return `${v < 0 ? '-' : ''}$${Math.abs(v).toLocaleString('en-US')}`;
+};
 
 export const hours = (n: number | null | undefined): string =>
   `${(n ?? 0).toLocaleString('en-US', { maximumFractionDigits: 1 })}h`;
 
 export function shortDate(d: string | null | undefined): string {
-  if (!d) return ', ';
+  if (!d) return '–';
   // Date-only strings must not be parsed as UTC or they shift a day backward
   // in western timezones.
   const [y, m, day] = d.slice(0, 10).split('-').map(Number);
-  if (!y || !m || !day) return ', ';
+  if (!y || !m || !day) return '–';
   return new Date(y, m - 1, day).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',

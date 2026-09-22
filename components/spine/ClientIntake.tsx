@@ -657,7 +657,7 @@ export function ClientIntake({
                   <option value="material">Materials</option>
                   <option value="subcontractor">Subcontractor</option>
                   <option value="equipment">Equipment</option>
-                  <option value="permit">Permit or licence</option>
+                  <option value="permit">Permit or license</option>
                   <option value="other">Something else</option>
                 </select>
                 <select value={costJob} onChange={(e) => setCostJob(e.target.value)} style={inputStyle}>

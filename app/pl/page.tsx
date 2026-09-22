@@ -327,11 +327,23 @@ export default function ProfitLossPage() {
               marginBottom: 14,
             }}
           >
+            {/*
+              Revenue is the number you came for.
+
+              hideAtZero removed the card entirely when nothing had been
+              issued, which left Costs and Profit sitting alone and no way to
+              tell whether revenue was zero or simply missing. $0 is the
+              answer, and a $-24 profit next to no revenue at all reads as a
+              bug rather than a month that has not started.
+            */}
             <Metric
               label="Revenue"
-              hideAtZero
               value={money0(scoped.revenue)}
-              hint={`${scoped.count} invoice${scoped.count === 1 ? '' : 's'}`}
+              hint={
+                scoped.count
+                  ? `${scoped.count} invoice${scoped.count === 1 ? '' : 's'}`
+                  : 'Nothing issued yet'
+              }
             />
             <Metric
               label="Costs"
@@ -348,7 +360,9 @@ export default function ProfitLossPage() {
               hideAtZero
               value={money0(scoped.profit)}
               tone={scoped.profit >= 0 ? 'green' : 'red'}
-              hint={`${scoped.margin.toFixed(0)}% margin`}
+              /* There is no margin on no revenue. "0% margin" beside a
+                 negative number reads as break-even, which is the opposite. */
+              hint={scoped.revenue > 0 ? `${scoped.margin.toFixed(0)}% margin` : 'Overheads only'}
             />
             <Metric
               label="Collected"
