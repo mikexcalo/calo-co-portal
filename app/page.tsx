@@ -120,87 +120,40 @@ export default function Dashboard() {
           listInvoices(),
           listDocuments({ unfiledOnly: true }),
         ]);
-        const bd = await supabase.from('billing_due').select('*').eq('org_id', await orgNow());
+        /*
+          Three waves became one.
 
-        const quietCutoff = new Date();
-        quietCutoff.setDate(quietCutoff.getDate() - 4);
+          Home fetched four things, waited, fetched billing_due, waited, then
+          fired eleven separate head counts. Sixteen browser round trips in
+          three serial rounds, on a page that shows a handful of numbers, and
+          most of a hard refresh taking eight seconds.
 
-        const staleCutoff = new Date();
-        staleCutoff.setDate(staleCutoff.getDate() - 7);
-        const soonCutoff = new Date();
-        soonCutoff.setDate(soonCutoff.getDate() + 45);
-        const head = { count: 'exact' as const, head: true };
+          The eleven counts are one function call now, and everything that does
+          not depend on anything else goes at once.
+        */
+        const [bd, sig] = await Promise.all([
+          supabase.from('billing_due').select('*').eq('org_id', await orgNow()),
+          supabase.rpc('home_signals').maybeSingle(),
+        ]);
 
-        const [noEmail, unconfirmed, draftEst, staleEst, expiring, needReview, reqs, noCustomer, custCount, quiet, due] =
-          await Promise.all([
-            /*
-              The same count the screen you are sent to makes.
-
-              This counted every row in customers with no email — suppliers,
-              utilities, anything filed as "other", and anything still being
-              chased in the pipeline. Clients shows only people you sell to who
-              have actually been won, so Home said "1 customer with no email"
-              and the list underneath it said zero.
-
-              Clients already had this fix, with a note about John's screen
-              announcing "104 No email, can't invoice" for a hundred and four
-              distributors he has never contacted. Home was making the same
-              mistake one screen earlier.
-            */
-            supabase.from('customers').select('id', head).is('email', null)
-              .in('stage', CLIENT_STAGES)
-              .or('relationship.eq.customer,relationship.is.null'),
-            supabase.from('price_items').select('id', head).eq('confirmed', false),
-            supabase.from('estimates').select('id', head).eq('status', 'draft'),
-            supabase.from('estimates').select('id', head).eq('status', 'sent')
-              .lt('sent_at', staleCutoff.toISOString()),
-            supabase.from('business_files').select('id', head)
-              .not('expires_on', 'is', null)
-              .lte('expires_on', soonCutoff.toISOString().slice(0, 10)),
-            supabase.from('documents').select('id', head).eq('status', 'needs_review'),
-            supabase.from('site_requests').select('id', head)
-              .in('status', ['submitted', 'needs_info']),
-            supabase.from('jobs').select('id', head).is('customer_id', null)
-              .not('status', 'in', '(closed,lost)'),
-            supabase.from('customers').select('id', head),
-            /**
-             * People who owe you an answer.
-             *
-             * Four days is the threshold. Sooner and you are pestering
-             * somebody who is on a roof; much later and the job has gone cold
-             * without anybody deciding to let it.
-             */
-            supabase
-              .from('customers')
-              .select('id', head)
-              .eq('org_id', await orgNow())
-              .not('awaiting_reply_since', 'is', null)
-              .lte('awaiting_reply_since', quietCutoff.toISOString().slice(0, 10)),
-            // Due today or already late. A reminder for next Tuesday is not
-            // something to be shown on a Monday; it is noise until it is not.
-            supabase
-              .from('reminders')
-              .select('id', head)
-              .is('done_at', null)
-              .lte('due_on', new Date().toISOString().slice(0, 10)),
-          ]);
         if (canceled) return;
         setJobs(j);
         setLedger(l);
         setInvoices(inv);
         setDocs(d);
+        const c = (sig.data ?? {}) as Record<string, number>;
         setSignals({
-          customersNoEmail: noEmail.count ?? 0,
-          unconfirmedPrices: unconfirmed.count ?? 0,
-          draftEstimates: draftEst.count ?? 0,
-          staleEstimates: staleEst.count ?? 0,
-          expiringRecords: expiring.count ?? 0,
-          docsNeedingReview: needReview.count ?? 0,
-          openRequests: reqs.count ?? 0,
-          jobsNoCustomer: noCustomer.count ?? 0,
-          customerCount: custCount.count ?? 0,
-          goneQuiet: quiet.count ?? 0,
-          remindersDue: due.count ?? 0,
+          customersNoEmail: c.customers_no_email ?? 0,
+          unconfirmedPrices: c.unconfirmed_prices ?? 0,
+          draftEstimates: c.draft_estimates ?? 0,
+          staleEstimates: c.stale_estimates ?? 0,
+          expiringRecords: c.expiring_records ?? 0,
+          docsNeedingReview: c.docs_needing_review ?? 0,
+          openRequests: c.open_requests ?? 0,
+          jobsNoCustomer: c.jobs_no_customer ?? 0,
+          customerCount: c.customer_count ?? 0,
+          goneQuiet: c.quiet_customers ?? 0,
+          remindersDue: c.reminders_due ?? 0,
         });
         if (!bd.error) {
           setDueToBill(
