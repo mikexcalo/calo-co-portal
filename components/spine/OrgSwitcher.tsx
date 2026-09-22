@@ -68,7 +68,7 @@ export function OrgSwitcher() {
           alignItems: 'center',
           gap: 8,
           width: '100%',
-          padding: '9px 12px',
+          padding: '6px 11px',
           borderRadius: 999,
           border: `1px solid ${C.border}`,
           background: C.panelAlt,
@@ -122,8 +122,9 @@ export function OrgSwitcher() {
                 the businesses underneath the first one were unreachable
                 without scrolling a menu that does not scroll.
               */
+              /* Back in the chrome at the top, so it opens downward again. */
               position: 'absolute',
-              bottom: 'calc(100% + 6px)',
+              top: 'calc(100% + 6px)',
               left: 0,
               maxHeight: 'min(60vh, 420px)',
               overflowY: 'auto',
@@ -135,7 +136,7 @@ export function OrgSwitcher() {
               borderRadius: 10,
               padding: 5,
               zIndex: 41,
-              boxShadow: '0 -8px 30px rgba(0,0,0,.13)',
+              boxShadow: '0 10px 30px rgba(0,0,0,.13)',
             }}
           >
             {/*

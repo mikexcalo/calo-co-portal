@@ -12,7 +12,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useOrg } from '@/lib/spine/org';
 import { modulesFor, navFor } from '@/lib/spine/modules';
-import { OrgSwitcher } from '@/components/spine/OrgSwitcher';
 import { C, radius } from '@/components/spine/ui';
 import { PRODUCT } from '@/lib/brand';
 
@@ -290,8 +289,7 @@ export const NAV_ICONS: Record<string, React.ReactNode> = {
 export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { org, orgs, vocab } = useOrg();
-  const orgCount = orgs?.length ?? 0;
+  const { org, vocab } = useOrg();
 
   /**
    * Library covers three screens behind one entry, so it stays lit on any of
@@ -678,17 +676,13 @@ export default function Sidebar() {
       </div>
 
       {/*
-        Switching, for the only person who does it.
+        Switching moved to the top bar.
 
-        At the bottom because it is not part of doing the work, it is how Mike
-        gets from one business to the next, and it renders at all only when
-        there is somewhere to go.
+        It sat at the foot of the sidebar, which is where you put something
+        nobody uses. Mike is in and out of four workspaces all day, so it
+        belongs in the chrome beside the other things you do to the whole
+        screen rather than at the bottom of a list of places.
       */}
-      {orgCount > 1 && (
-        <div style={{ padding: '8px 10px 10px', borderTop: `1px solid ${C.border}` }}>
-          <OrgSwitcher />
-        </div>
-      )}
 
       {/*
         The preview toggle moved to the top bar.

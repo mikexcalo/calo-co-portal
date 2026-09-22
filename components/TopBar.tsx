@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useTutorial } from '@/lib/spine/tutorial';
 import { useOrg } from '@/lib/spine/org';
+import { OrgSwitcher } from '@/components/spine/OrgSwitcher';
 import { useIsPhone, radius } from '@/components/spine/ui';
 import { C } from '@/components/spine/ui';
 import { Notifications } from '@/components/spine/Notifications';
@@ -50,7 +51,8 @@ export default function TopBar() {
   const pathname = usePathname();
   const router = useRouter();
   const { openPanel } = useTutorial();
-  const { org, vocab } = useOrg();
+  const { org, orgs, vocab } = useOrg();
+  const orgCount = orgs?.length ?? 0;
   const phone = useIsPhone();
   const { viewAs, setViewAs } = useViewAs();
 
@@ -187,6 +189,20 @@ export default function TopBar() {
             {viewAs ? 'Back to my view' : 'What they see'}
           </button>
         )}
+        {/*
+          The workspace, beside the things you do to it.
+
+          At the foot of the sidebar this read as a footer item, under a
+          "powered by" line, which is where a product puts what it hopes you
+          ignore. Switching business is the most frequent action of the day for
+          the person who has more than one, so it sits in the chrome.
+        */}
+        {orgCount > 1 && (
+          <div style={{ minWidth: 170, maxWidth: 240 }}>
+            <OrgSwitcher />
+          </div>
+        )}
+
         <CommandBar trigger={phone} />
 
         {/*
