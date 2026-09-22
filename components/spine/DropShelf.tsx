@@ -18,6 +18,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { C } from '@/lib/spine/tokens';
 import { ClientIntake, type IntakeSeed } from './ClientIntake';
 import { human } from '@/lib/spine/errors';
+import { sheetToText, isSpreadsheet } from '@/lib/spine/spreadsheet';
 import { DropZone } from './DropZone';
 import { extractPalette, SAMPLE_EDGE } from '@/lib/spine/palette';
 import {
@@ -112,6 +113,24 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
     const url = await dropUrl(d);
     if (!url) return;
     const blob = await fetch(url).then((r) => r.blob());
+
+    /*
+      A spreadsheet goes in as its own contents.
+
+      Uploads were widened to take Excel and the reader was not, so the file
+      stored fine and then Scan and sort answered "Drop a PDF, a photo, or
+      paste text". It is a grid of text; the reader is good at text.
+    */
+    if (isSpreadsheet(d.mime ?? blob.type, d.title)) {
+      try {
+        const text = await sheetToText(blob, d.title ?? 'that sheet');
+        setReadingDrop({ id: d.id, seed: { text, label: d.title ?? 'that sheet' } });
+      } catch (e) {
+        setError(human(e));
+      }
+      return;
+    }
+
     const b64 = await new Promise<string>((resolve) => {
       const r = new FileReader();
       r.onload = () => resolve(String(r.result ?? '').split(',')[1] ?? '');

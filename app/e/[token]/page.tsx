@@ -231,9 +231,10 @@ export default async function PublicEstimate({
           justifyContent: 'flex-end',
         }}
       >
-        <SaveAsPdf accent={accent} />
+        <SaveAsPdf accent={accent} name={`${vocabWord} ${String(estimate.version).padStart(3, '0')} ${job?.customer?.name ?? ''}`} />
       </div>
       <div
+        data-document
         style={{
           maxWidth: 720,
           margin: '0 auto',

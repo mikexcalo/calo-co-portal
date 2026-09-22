@@ -1,44 +1,108 @@
 'use client';
 
 /**
- * Save this proposal as a PDF.
+ * Download as PDF. A file, in Downloads, no dialog.
  *
- * Mike asked for a PDF he and his clients can email around. This prints the
- * page, which every browser turns into a real PDF through its own Save as PDF
- * destination — no renderer on the server, no second copy of the document that
- * can drift from the one on screen, and nothing to keep in step when the
- * layout changes. What you print is exactly what the client is looking at.
+ * This used to call window.print(), which opens the printer sheet and asks
+ * somebody to choose "Save as PDF" from a menu. That is the browser's PDF
+ * writer, so it produced a correct file, and it made every download a
+ * three-step errand through a dialog nobody asked for.
  *
- * The print rules live in globals.css so they apply whether the button is
- * pressed or somebody hits Cmd-P themselves.
+ * The page is already laid out and already prints correctly, so it is drawn to
+ * a canvas and written into a PDF at the same proportions. What lands in
+ * Downloads is the document on screen.
+ *
+ * THE TRADE-OFF, STATED
+ *
+ * Text in the file is drawn rather than selected: you cannot highlight a line
+ * of it or search inside it. For a proposal somebody reads, signs and files
+ * that is a fair price for a one-press download. The version with selectable
+ * text means laying the whole document out a second time in a PDF library, and
+ * two layouts of the same document drift apart the first time anybody edits
+ * one of them.
  */
 
-export function SaveAsPdf({ accent }: { accent: string }) {
+import { useState } from 'react';
+
+export function SaveAsPdf({ accent, name = 'Document' }: { accent: string; name?: string }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  async function download() {
+    setBusy(true);
+    setError('');
+    try {
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ]);
+
+      const page = document.querySelector('[data-document]') as HTMLElement | null;
+      if (!page) throw new Error('Could not find the document on the page.');
+
+      const canvas = await html2canvas(page, {
+        scale: 2,          // Legible when somebody zooms in or prints it.
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        logging: false,
+      });
+
+      const pdf = new jsPDF({ unit: 'pt', format: 'a4', compress: true });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+
+      // Fit the width, then walk down the image a page at a time so a long
+      // proposal becomes several pages rather than one squashed one.
+      const imgW = pageW;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      const img = canvas.toDataURL('image/jpeg', 0.92);
+
+      let offset = 0;
+      let first = true;
+      while (offset < imgH) {
+        if (!first) pdf.addPage();
+        pdf.addImage(img, 'JPEG', 0, -offset, imgW, imgH);
+        offset += pageH;
+        first = false;
+      }
+
+      pdf.save(`${name.replace(/[^\w\- ]+/g, '').trim() || 'Document'}.pdf`);
+    } catch (e) {
+      setError((e as Error).message || 'That did not download.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
-    <button
-      onClick={() => window.print()}
-      data-print-hide
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 7,
-        background: 'transparent',
-        border: `1px solid ${accent}33`,
-        color: accent,
-        borderRadius: 7,
-        padding: '8px 13px',
-        fontSize: 13.5,
-        fontWeight: 500,
-        cursor: 'pointer',
-        fontFamily: 'inherit',
-      }}
-    >
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M8 1.8v8.4" />
-        <path d="M4.6 7l3.4 3.2L11.4 7" />
-        <path d="M2.4 12.1v1.1a1 1 0 0 0 1 1h9.2a1 1 0 0 0 1-1v-1.1" />
-      </svg>
-      Save as PDF
-    </button>
+    <div data-print-hide style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      {error && <span style={{ fontSize: 12.5, color: '#b91c1c' }}>{error}</span>}
+      <button
+        onClick={download}
+        disabled={busy}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 7,
+          background: 'transparent',
+          border: `1px solid ${accent}33`,
+          color: accent,
+          borderRadius: 999,
+          padding: '8px 15px',
+          fontSize: 13.5,
+          fontWeight: 500,
+          cursor: busy ? 'default' : 'pointer',
+          fontFamily: 'inherit',
+          opacity: busy ? 0.6 : 1,
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M8 1.8v8.4" />
+          <path d="M4.6 7l3.4 3.2L11.4 7" />
+          <path d="M2.4 12.1v1.1a1 1 0 0 0 1 1h9.2a1 1 0 0 0 1-1v-1.1" />
+        </svg>
+        {busy ? 'Building it…' : 'Download as PDF'}
+      </button>
+    </div>
   );
 }
