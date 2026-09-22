@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
   const { data: terms } = await db
     .from('customer_terms')
-    .select('monthly_fee, monthly_fee_for, platform_fee')
+    .select('monthly_fee, monthly_fee_for, platform_fee, billing_starts_on')
     .eq('org_id', orgId)
     .eq('customer_id', job?.customer_id ?? '')
     .maybeSingle();
@@ -76,16 +76,41 @@ export async function POST(req: NextRequest) {
   type Line = Record<string, unknown>;
   const lines: Line[] = [];
 
+  /*
+    A part month is billed as a part month.
+
+    Somebody who went live on the 21st owes ten days, not thirty, and the first
+    invoice a client ever receives is the worst possible place to be
+    approximately right. Before the start date there is nothing recurring to
+    bill at all; in the month the start date lands in, the fee is charged for
+    the days they actually had.
+
+    Full months after that are just full months, which is almost always the
+    case, so the arithmetic below runs once and then never matters again.
+  */
+  const periodStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  const periodEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  const daysInMonth = periodEnd.getDate();
+
+  const startsOn = terms?.billing_starts_on ? new Date(`${terms.billing_starts_on}T00:00:00`) : null;
+  const notYet = startsOn ? startsOn > periodEnd : false;
+  const partial = startsOn && startsOn > periodStart && startsOn <= periodEnd;
+  const billableDays = partial
+    ? daysInMonth - startsOn.getDate() + 1
+    : daysInMonth;
+  const share = partial ? billableDays / daysInMonth : 1;
+  const forDays = partial ? ` (${billableDays} of ${daysInMonth} days)` : '';
+
   // The fixed part first, because it is what somebody expects to recognise.
-  const platform = num(terms?.platform_fee);
-  const monthly = num(terms?.monthly_fee);
+  const platform = notYet ? 0 : round2(num(terms?.platform_fee) * share);
+  const monthly = notYet ? 0 : round2(num(terms?.monthly_fee) * share);
   if (platform > 0) {
-    lines.push({ kind: 'other', description: 'Platform access', qty: 1, unit: 'month',
-      unit_price: platform, total: round2(platform), position: lines.length });
+    lines.push({ kind: 'other', description: `Platform access${forDays}`, qty: 1, unit: 'month',
+      unit_price: platform, total: platform, position: lines.length });
   }
   if (monthly > 0) {
-    lines.push({ kind: 'other', description: terms?.monthly_fee_for || 'Monthly fee', qty: 1,
-      unit: 'month', unit_price: monthly, total: round2(monthly), position: lines.length });
+    lines.push({ kind: 'other', description: `${terms?.monthly_fee_for || 'Monthly fee'}${forDays}`,
+      qty: 1, unit: 'month', unit_price: monthly, total: monthly, position: lines.length });
   }
 
   for (const e of time ?? []) {
