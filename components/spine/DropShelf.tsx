@@ -519,44 +519,6 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                 </div>
 
                 {/*
-                  No picker on the row at all.
-
-                  Choosing a name from it filed the drop on the spot: no
-                  confirmation, no scan, and the file left the list. Mike picked
-                  Pacific Empress to say what the spreadsheet was about and the
-                  spreadsheet vanished into Filed without ever being read.
-
-                  Selecting from a menu should never be a destructive act, and a
-                  question asked before the scan is a question the scan was about
-                  to answer. Scan first; the result proposes who it belongs to
-                  and can be corrected there. Handing it over is a plain link,
-                  because it is a different intention rather than another name in
-                  the same list.
-                */}
-                {!d.filed_at && (
-                  <button
-                    onClick={async () => {
-                      await fetch('/api/drops/hand-over', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ dropId: d.id }),
-                      });
-                      setDone('Sent over. It is in their Asked for now.');
-                      setTimeout(() => setDone(''), 4000);
-                      await load();
-                      onChange?.();
-                    }}
-                    style={{
-                      background: 'transparent', border: 'none', padding: 0, flexShrink: 0,
-                      color: C.faint, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
-                      textDecoration: 'underline',
-                    }}
-                  >
-                    Send to whoever runs this
-                  </button>
-                )}
-
-                {/*
                   The one thing to do with it, as a button.
 
                   "Read it" was eleven pixels of blue text between Open and

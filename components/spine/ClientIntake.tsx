@@ -47,6 +47,8 @@ export function ClientIntake({
   onClose: () => void;
 }) {
   const [reading, setReading] = useState(false);
+  /* The form is the fallback, not the front door. */
+  const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState('');
   const [cents, setCents] = useState<number | null>(null);
   const [read, setRead] = useState(false);
@@ -107,6 +109,37 @@ export function ClientIntake({
    * company on a document is somebody you sell to.
    */
   const [relationship, setRelationship] = useState<'customer' | 'supplier' | 'other'>('customer');
+
+  /*
+    What it concluded, in a sentence somebody would say out loud.
+
+    Everything below this was already on screen as eight labelled boxes. The
+    boxes are still there behind "Not right?"; this is the version a person can
+    read in one go and agree or disagree with.
+  */
+  const kindWord =
+    doc === 'receipt' ? 'a receipt'
+    : doc === 'estimate' ? 'an estimate'
+    : prices.length > 0 ? 'a price list'
+    : 'a company';
+
+  const sideWord =
+    relationship === 'supplier' ? 'you buy from'
+    : relationship === 'customer' ? 'you sell to'
+    : 'you deal with';
+
+  const summary = [
+    `This looks like ${kindWord}`,
+    name ? ` from ${name}` : '',
+    name && relationship !== 'other' ? `, somebody ${sideWord}.` : '.',
+    prices.length ? ` ${prices.length} priced item${prices.length === 1 ? '' : 's'}.` : '',
+    contacts.length ? ` ${contacts.length} contact${contacts.length === 1 ? '' : 's'}.` : '',
+  ].join('');
+
+  const landsWhere =
+    doc === 'receipt' ? 'Filing it records the money as spent, and it comes off Profit and Loss.'
+    : isCustomer ? 'They land in Customers, and anything priced becomes searchable and goes onto quotes.'
+    : 'They land in Pipeline until you win them.';
 
   const send = useCallback(async (payload: { data?: string; mediaType?: string; text?: string }) => {
     setReading(true); setError('');
@@ -408,10 +441,50 @@ export function ClientIntake({
     <Card style={{ marginBottom: 14 }}>
       {seed && !read ? (
         <>
+          {/*
+            Something that moves, and says what it is doing.
+
+            One static grey line reading "Reading Price List.xlsx…" for eight
+            seconds is indistinguishable from a page that has hung. Nobody can
+            tell the difference between working and broken without motion.
+
+            A bar that fills, and the steps named as they happen, because
+            reading a file is three jobs and saying which one is running is
+            free reassurance.
+          */}
           <SectionLabel>Reading</SectionLabel>
-          <p style={{ fontSize: 13, color: C.faint, margin: '6px 0 0' }}>
-            {error || `Reading ${seed.label ?? 'what you dropped'}…`}
-          </p>
+          {!error && (
+            <>
+              <p style={{ fontSize: 14, color: C.text, margin: '6px 0 12px' }}>
+                Reading {seed.label ?? 'what you dropped'}
+              </p>
+              <div
+                style={{
+                  height: 4, borderRadius: 999, background: C.panelAlt,
+                  overflow: 'hidden', maxWidth: 420,
+                }}
+              >
+                <div
+                  style={{
+                    height: '100%', width: '40%', borderRadius: 999, background: C.ink,
+                    animation: 'calo-scan 1.1s ease-in-out infinite',
+                  }}
+                />
+              </div>
+              <p style={{ fontSize: 12.5, color: C.faint, margin: '10px 0 0' }}>
+                Pulling out names, prices and line items. Usually a few seconds.
+              </p>
+              <style>{`
+                @keyframes calo-scan {
+                  0%   { transform: translateX(-100%); }
+                  100% { transform: translateX(350%); }
+                }
+              `}</style>
+            </>
+          )}
+          {error && (
+            <p style={{ fontSize: 13, color: C.red, margin: '6px 0 0' }}>{error}</p>
+          )}
           {error && (
             <div style={{ marginTop: 12 }}>
               <button onClick={onClose} style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -477,11 +550,51 @@ export function ClientIntake({
         </>
       ) : (
         <>
-          <SectionLabel>Check this before it saves</SectionLabel>
-          <p style={{ fontSize: 13, color: C.faint, margin: '6px 0 14px', maxWidth: '62ch' }}>
-            Everything below was read off what you dropped. Correct anything wrong, delete anything
-            it invented, then keep it.
+          {/*
+            Say what it concluded, then get out of the way.
 
+            This opened with eight form fields and a heading telling somebody to
+            check them, which is the machine handing over its working and asking
+            a human to mark it. Mike could not read his own screen, and he built
+            it.
+
+            What the good ones do is state the answer in a sentence, in the
+            words somebody would use, and offer one button. The form still
+            exists, because the reading is often slightly wrong, but it waits
+            behind "Not right?" instead of being the first thing anybody meets.
+          */}
+          <SectionLabel>Here is what that was</SectionLabel>
+          <p style={{ fontSize: 17, color: C.text, margin: '8px 0 4px', lineHeight: 1.45, maxWidth: '58ch' }}>
+            {summary}
+          </p>
+          <p style={{ fontSize: 13, color: C.faint, margin: '0 0 16px', maxWidth: '58ch' }}>
+            {landsWhere}
+          </p>
+
+          {!showForm && (
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+              <Button onClick={keep} disabled={busy}>
+                {busy ? 'Filing…' : 'File it'}
+              </Button>
+              <button
+                onClick={() => setShowForm(true)}
+                style={{ background: 'transparent', border: 'none', padding: 0, color: C.dim, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}
+              >
+                Not right?
+              </button>
+              <button
+                onClick={onClose}
+                style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+
+          {showForm && (
+          <>
+          <p style={{ fontSize: 13, color: C.faint, margin: '0 0 14px', maxWidth: '62ch' }}>
+            Correct anything wrong, delete anything it invented, then keep it.
           </p>
 
           {doc === 'receipt' && (
@@ -782,6 +895,8 @@ export function ClientIntake({
           </div>
         </>
       )}
-    </Card>
+              </>
+          )}
+</Card>
   );
 }
