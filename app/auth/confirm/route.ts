@@ -68,9 +68,14 @@ export async function GET(request: NextRequest) {
   }
 
   /**
-   * A password reset lands on the security page, where there is somewhere to
-   * actually set a new one. Everything else goes to the app.
+   * A password reset lands on /reset, which is the page that can set one.
+   *
+   * It pointed at /security, and /security is the two-factor screen — backup
+   * codes, authenticator apps, no password field anywhere on it. So even once
+   * the link reached this handler, somebody resetting a password arrived
+   * somewhere that could not reset a password, with nothing on screen to
+   * explain why. /reset is the page with the box in it.
    */
-  const destination = next ?? (type === 'recovery' ? '/security?reset=1' : '/');
+  const destination = next ?? (type === 'recovery' ? '/reset' : '/');
   return NextResponse.redirect(`${origin}${destination}`);
 }
