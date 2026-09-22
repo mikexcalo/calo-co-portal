@@ -174,6 +174,14 @@ export const config = {
      * - /api/card/              that card as a vCard file
      * - /api/version            which commit is live, so a stale deploy can be
      *                           told apart from a bug
+     * - /api/cron/              Vercel's scheduler, which carries no session
+     *
+     * The scheduler is a machine calling in from outside with no cookies, so
+     * middleware bounced it to /login exactly as it would a stranger, and the
+     * nightly billing run would have quietly never happened. It is not open:
+     * the route itself demands Vercel's own signature or the secret, and
+     * answers 404 to anything else.
+     *
      * - /auth/                  where a reset link and a Google sign-in land
      *
      * That last one is the whole front door, and it was not here.
@@ -195,6 +203,6 @@ export const config = {
      * on a public page cannot carry a session, so auth would 307 both the
      * script and every event it tries to send to /login.
      */
-    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|q/|p/|e/|i/|s/|r/|new/|api/enquiry|t\\.js|api/track|api/preview/|api/card/|api/version|reset|auth/|c/).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|q/|p/|e/|i/|s/|r/|new/|api/enquiry|t\\.js|api/track|api/preview/|api/card/|api/version|api/cron/|reset|auth/|c/).*)',
   ],
 };
