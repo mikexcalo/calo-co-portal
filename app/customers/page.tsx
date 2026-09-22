@@ -16,7 +16,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { brandAssetUrl, orgNow} from '@/lib/spine/db';
-import { createCustomer, getCurrentOrg } from '@/lib/spine/db';
+import { createCustomer } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import { FirstSteps } from '@/components/spine/FirstSteps';
 import { STAGE, isClient, daysSince, type Stage } from '@/lib/spine/stage';
@@ -130,15 +130,34 @@ export default function CustomersPage() {
   useEffect(() => setToday(new Date().toISOString().slice(0, 10)), []);
 
   const load = useCallback(async () => {
-    const [o, res, tg] = await Promise.all([
-      getCurrentOrg(),
-      supabase.from('customer_summary').select('*').eq('org_id', await orgNow()).order('name'),
+    /*
+      Three round trips that did not need to happen.
+
+      The await on orgNow() sat INSIDE the Promise.all array, so it resolved
+      before the array was even built — nothing ran in parallel, the two
+      queries simply queued behind it. And getCurrentOrg() was there to supply
+      an org id that orgNow() already had: it calls auth.getUser(), which
+      revalidates the token against the auth server on every call. The comment
+      on orgNow says as much, and calls it the whole reason the app got slow
+      one afternoon.
+
+      So opening Clients was a token revalidation, then a profile read, then
+      the two queries it actually wanted — in series. That is the wait before
+      the screen fills in, and the empty "Customers" heading sitting there
+      while it happens.
+
+      The org is resolved once, off the cached value, and the queries go
+      together.
+    */
+    const org = await orgNow();
+    const [res, tg] = await Promise.all([
+      supabase.from('customer_summary').select('*').eq('org_id', org).order('name'),
       // Tags live on customers and the summary view predates them. Replacing a
       // view can only append columns, so they are merged here rather than the
       // view being rebuilt for one field.
       supabase.from('customers').select('id, tags'),
     ]);
-    setOrgId(o?.id ?? null);
+    setOrgId(org);
     if (res.error) throw new Error(res.error.message);
     const tagsById = new Map(
       ((tg.data ?? []) as Array<{ id: string; tags: string[] | null }>).map((t) => [t.id, t.tags ?? []])

@@ -18,6 +18,7 @@ export type Stage =
   | 'reached'
   | 'talking'
   | 'proposed'
+  | 'trying'
   | 'won'
   | 'past'
   | 'cold';
@@ -43,6 +44,20 @@ export const LANE: StageSpec[] = [
   { id: 'reached',  label: 'Reached',  means: 'You contacted them and have heard nothing back.',    tone: 'amber' },
   { id: 'talking',  label: 'Talking',  means: 'A real conversation is happening.',                  tone: 'neutral' },
   { id: 'proposed', label: 'Proposed', means: 'A number is in front of them.',                      tone: 'neutral' },
+  /*
+    In, using it, not paying.
+
+    Keith and Marcie have logins and use the product daily, and there was
+    nowhere to say that — so they were marked Won, which is the word for "they
+    are a client", and they landed in the client list, the client count and
+    every screen that means revenue by it.
+
+    Not a one-off either: a homeowner who has said yes but not signed, a
+    kitchen taking a first order on approval. The relationship is real and the
+    money is not agreed. A stage says where the relationship is; what somebody
+    is allowed to open is a membership, and always was.
+  */
+  { id: 'trying',   label: 'Trying it', means: 'In and using it. Nothing agreed or charged yet.',   tone: 'amber' },
   { id: 'won',      label: 'Won',      means: 'They are a client.',                                 tone: 'green' },
 ];
 
@@ -57,7 +72,7 @@ export const STAGE: Record<Stage, StageSpec> =
   Object.fromEntries(ALL_STAGES.map((s) => [s.id, s])) as Record<Stage, StageSpec>;
 
 /** Everything before won. What Pipeline shows. */
-export const OPEN_STAGES: Stage[] = ['noticed', 'reached', 'talking', 'proposed'];
+export const OPEN_STAGES: Stage[] = ['noticed', 'reached', 'talking', 'proposed', 'trying'];
 
 /** Won and past. What Clients shows. */
 export const CLIENT_STAGES: Stage[] = ['won', 'past'];

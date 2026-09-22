@@ -32,6 +32,7 @@ import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { C, useIsPhone } from './ui';
 import { orgNow } from '@/lib/spine/db';
+import { useOrg } from '@/lib/spine/org';
 
 interface Item {
   id: string;
@@ -43,6 +44,8 @@ interface Item {
   swatch?: string;
   /** Copied instead of navigated to, when the useful thing is the value. */
   copy?: string;
+  /** Switches the workspace instead of navigating anywhere. */
+  switchTo?: string;
 }
 
 const NAV: Item[] = [
@@ -71,6 +74,7 @@ const looksLikeQuestion = (q: string) =>
 
 export function CommandBar() {
   const router = useRouter();
+  const { org, orgs, switchOrg } = useOrg();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
   const [items, setItems] = useState<Item[]>([]);
@@ -182,6 +186,25 @@ export function CommandBar() {
       });
     }
 
+    /*
+      Every business you belong to, typeable.
+
+      Listed before the records so that typing three letters of a client's name
+      offers "go to their workspace" above "open the note that mentions them" —
+      which is the more likely intent when the two collide.
+    */
+    for (const o of orgs ?? []) {
+      if (o.id === org?.id) continue;
+      next.push({
+        id: `w-${o.id}`,
+        label: o.name,
+        hint: 'Switch to this workspace',
+        href: '/',
+        switchTo: o.id,
+        group: 'Workspaces',
+      });
+    }
+
     for (const j of jobs.data ?? []) {
       next.push({ id: `j-${j.id}`, label: j.name, hint: j.status, href: `/jobs/${j.id}`, group: 'Projects' });
     }
@@ -223,7 +246,8 @@ export function CommandBar() {
     }
 
     setItems(next);
-  }, []);
+    /* Rebuilt when the workspace list changes, or switching offers a stale one. */
+  }, [orgs, org?.id]);
 
   useEffect(() => {
     if (open) {
@@ -288,6 +312,24 @@ export function CommandBar() {
     if (i.copy) {
       navigator.clipboard?.writeText(i.copy);
       setOpen(false);
+      return;
+    }
+    /*
+      Switching by typing, which is how anybody with more than three of
+      anything actually moves.
+
+      The workspace control is a menu at the foot of the sidebar: find it,
+      press it, read a list, press again. Fine at two businesses and tiring at
+      ten, and it is the single most frequent thing Mike does — he is in and
+      out of four workspaces all day.
+
+      Search is already the way into everything else here, so a business is
+      just another thing you can type the first three letters of. The menu
+      stays, for browsing; this is for going.
+    */
+    if (i.switchTo) {
+      setOpen(false);
+      switchOrg(i.switchTo);
       return;
     }
     setOpen(false);
