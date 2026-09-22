@@ -381,6 +381,7 @@ export default function ExpensesPage() {
             orgId={org.id}
             compact
             label=""
+            showWaiting={false}
             onChange={load}
           />
         </div>

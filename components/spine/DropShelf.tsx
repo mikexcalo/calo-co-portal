@@ -36,6 +36,18 @@ interface Props {
   label?: string;
   compact?: boolean;
   /**
+   * Show the shelf of things waiting, or just the way in.
+   *
+   * Overheads grew a drop zone so a receipt could be thrown at it, and got the
+   * whole unfiled shelf with it: John's supplier price lists, sitting under a
+   * heading that says "what it costs to keep the doors open". They are not
+   * overheads and they are not his costs, they are three notes waiting to be
+   * sorted somewhere else entirely.
+   *
+   * A screen that accepts a drop does not automatically want to be an inbox.
+   */
+  showWaiting?: boolean;
+  /**
    * Offered per item when nothing is filed yet. The inbox asks exactly one
    * question and this is it; everything else about a loose file can wait.
    */
@@ -74,7 +86,7 @@ async function paletteOf(file: File): Promise<string[]> {
   });
 }
 
-export function DropShelf({ orgId, target, label, compact, filingOptions, onChange }: Props) {
+export function DropShelf({ orgId, target, label, compact, filingOptions, onChange, showWaiting = true }: Props) {
   const [items, setItems] = useState<Drop[]>([]);
   const [busy, setBusy] = useState(false);
   const [text, setText] = useState('');
@@ -232,7 +244,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
 
       {error && <p style={{ fontSize: 12.5, color: C.red, margin: '8px 0 0' }}>{error}</p>}
 
-      {items.some((d) => !d.filed_at) && (
+      {showWaiting && items.some((d) => !d.filed_at) && (
         <div
           style={{
             border: `1px solid ${C.border}`, borderRadius: 9,
@@ -258,7 +270,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
         </div>
       )}
 
-      {items.length > 0 && (
+      {showWaiting && items.length > 0 && (
         /*
           Rows, not thumbnails.
 

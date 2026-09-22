@@ -776,13 +776,61 @@ export async function draftInvoiceFromActuals(
     const claimedTime = (timeRes.data ?? []) as TimeEntry[];
     const claimedCosts = (costRes.data ?? []) as Cost[];
 
-    if (!claimedTime.length && !claimedCosts.length) {
+    /*
+      The recurring fee, which was never being billed at all.
+
+      This drafted an invoice from time entries and costs and nothing else, so
+      the $40 a month somebody agreed to — the platform fee and the hosting,
+      sitting in customer_terms since the day the terms were written — went on
+      no invoice, ever. The hours were billed and the subscription was free.
+
+      It is read from the agreed terms rather than typed, so it cannot drift
+      from what the proposal said, and it lands on the invoice for the month
+      being billed whether or not anybody logged an hour. That is what a
+      retainer is: it runs whether the phone rings or not.
+    */
+    const terms = job?.customer_id
+      ? (await supabase
+          .from('customer_terms')
+          .select('monthly_fee, monthly_fee_for, platform_fee')
+          .eq('org_id', orgId)
+          .eq('customer_id', job.customer_id)
+          .maybeSingle()).data
+      : null;
+
+    const recurring: Array<{ label: string; amount: number }> = [];
+    if (terms) {
+      const platform = num(terms.platform_fee);
+      const monthly = num(terms.monthly_fee);
+      if (platform > 0) recurring.push({ label: 'Platform access', amount: platform });
+      if (monthly > 0) {
+        recurring.push({ label: terms.monthly_fee_for || 'Monthly fee', amount: monthly });
+      }
+    }
+
+    if (!claimedTime.length && !claimedCosts.length && !recurring.length) {
       await cleanup();
       return null;
     }
 
     type Draft = Omit<JobInvoiceLine, 'id' | 'invoice_id' | 'created_at'>;
     const lines: Draft[] = [];
+
+    // The fixed part first: it is the same every month and is what somebody
+    // scanning the invoice expects to recognise before the variable work.
+    for (const r of recurring) {
+      lines.push({
+        kind: 'other',
+        description: r.label,
+        qty: 1,
+        unit: 'month',
+        unit_price: r.amount,
+        total: round2(r.amount),
+        position: lines.length,
+        source_time_entry_id: null,
+        source_cost_id: null,
+      });
+    }
 
     // Labor: one line per day worked, so the customer sees the shape of it.
     for (const e of claimedTime) {
