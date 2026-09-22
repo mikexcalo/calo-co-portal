@@ -29,6 +29,20 @@ export const dynamic = 'force-dynamic';
 */
 export const fetchCache = 'force-no-store';
 
+/* The invoice number is the name anybody files it under. */
+export async function generateMetadata({ params }: { params: { token: string } }) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return { title: 'Invoice' };
+  const db = createClient(url, key, { auth: { persistSession: false } });
+  const { data } = await db
+    .from('job_invoices')
+    .select('number')
+    .eq('public_token', params.token)
+    .maybeSingle();
+  return { title: data?.number ? `Invoice ${data.number}` : 'Invoice' };
+}
+
 const money = (n: number) =>
   `$${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 

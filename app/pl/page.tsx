@@ -480,7 +480,15 @@ export default function ProfitLossPage() {
             </div>
           )}
 
-          <SectionLabel>Every {vocab.job.toLowerCase()}, worst first</SectionLabel>
+          {/*
+            Not "worst first".
+
+            This is a live product a contractor opens in front of his own crew,
+            and it was calling his work the worst. It sorts by margin, lowest
+            up top, because the one that is losing money is the one to look at
+            — which is what the heading should say.
+          */}
+          <SectionLabel>Every {vocab.job.toLowerCase()}, lowest margin first</SectionLabel>
           {ranked.length === 0 ? (
             <Card>
               <Empty>

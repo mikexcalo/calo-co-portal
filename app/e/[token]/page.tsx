@@ -32,6 +32,30 @@ export const dynamic = 'force-dynamic';
 */
 export const fetchCache = 'force-no-store';
 
+/*
+  A tab, and a saved file, with a name on it.
+
+  Both documents inherited the app's title, so a client's browser tab said
+  CALO&CO and a PDF saved out of the page was called CALO&CO.pdf. The document
+  knows what it is; the title should say so.
+*/
+export async function generateMetadata({ params }: { params: { token: string } }) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return { title: 'Proposal' };
+  const db = createClient(url, key, { auth: { persistSession: false } });
+  const { data } = await db
+    .from('estimates')
+    .select('job:jobs(name, org:orgs(name))')
+    .eq('public_token', params.token)
+    .maybeSingle();
+  const job = data?.job as { name?: string; org?: { name?: string } } | null;
+  return {
+    title: job?.name ? `Proposal — ${job.name}` : 'Proposal',
+    description: job?.org?.name ? `A proposal from ${job.org.name}.` : undefined,
+  };
+}
+
 interface Line {
   list_unit_price?: number | null;
   id: string;

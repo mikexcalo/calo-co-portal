@@ -262,6 +262,24 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
         */
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
           {items.map((d) => {
+            /*
+              Say when something is already here.
+
+              The shelf held "8908 turks cap - Fireplace - estimate.pdf" and
+              "8908 turks cap - Fireplace - estimate (1).pdf", which is the
+              same estimate dropped twice — the browser added the (1), and the
+              shelf treated it as a second document. Read both and you get two
+              jobs for one fireplace.
+
+              Not deleted: a file somebody dropped is theirs, and two files
+              with similar names are occasionally two real files. It is said
+              out loud, next to Remove, and the decision stays with the person
+              who dropped it.
+            */
+            const bare = (t: string | null | undefined) =>
+              (t ?? '').replace(/\s*\(\d+\)(?=\.[^.]+$|$)/, '').trim().toLowerCase();
+            const twin =
+              d.title && items.find((o) => o.id !== d.id && bare(o.title) === bare(d.title));
             const palette = Array.isArray(d.meta?.palette) ? (d.meta.palette as string[]) : [];
             const label =
               d.kind === 'note' ? (d.body ?? 'Note')
@@ -344,6 +362,11 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                       onClick={async () => { await removeDrop(d); await load(); onChange?.(); }}
                       style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 11.5, cursor: 'pointer', fontFamily: 'inherit' }}
                     >Remove</button>
+                    {twin && (
+                      <span style={{ fontSize: 11.5, color: C.amber }}>
+                        Already here — same file, dropped twice
+                      </span>
+                    )}
                     {palette.length > 0 && (
                       <span style={{ display: 'inline-flex', height: 8, width: 54, borderRadius: 2, overflow: 'hidden' }} title={palette.join('  ')}>
                         {palette.slice(0, 6).map((hex) => (
