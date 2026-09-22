@@ -21,7 +21,7 @@ import {
   C,
   Card,
   Empty,
-  Metric,
+  Figures,
   Page,
   Pill,
   hours,
@@ -136,48 +136,14 @@ export default function JobsPage() {
         </Card>
       )}
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: 12,
-          marginBottom: 26,
-        }}
-      >
-        {/*
-          A zero is not a number worth a card.
-
-          Unbilled $0 and Awaiting payment $0 sat side by side taking a third of
-          the screen to report that nothing has happened. A metric earns its
-          space by changing; one pinned at zero is furniture. They appear the
-          moment there is money in them.
-        */}
-        {/*
-          Not a full-width zero.
-
-          With nothing active this drew one enormous 0 across the top of the
-          screen, above a board that already says LEAD 1 / ESTIMATING 0 and
-          says it better. Metric has carried hideAtZero for exactly this since
-          it was written; this call was the one that never passed it.
-        */}
-        <Metric label={`Active ${vocab.jobPlural.toLowerCase()}`} value={String(active.length)} hideAtZero />
-        {unbilled > 0 && (
-          <Metric
-            label="Unbilled work"
-            value={money0(unbilled)}
-            tone="amber"
-            hint="Hours and receipts not yet invoiced"
-          />
-        )}
-        {outstanding > 0 && (
-          <Metric
-            label="Awaiting payment"
-            value={money0(outstanding)}
-            tone="red"
-            hint="Invoiced but not collected"
-          />
-        )}
-      </div>
+      {/* Context above a board, so a line rather than a row of cards. */}
+      <Figures
+        items={[
+          { label: `Active ${vocab.jobPlural.toLowerCase()}`, value: String(active.length), hideAtZero: true },
+          { label: 'Unbilled work', value: money0(unbilled), tone: 'amber', hideAtZero: true },
+          { label: 'Awaiting payment', value: money0(outstanding), tone: 'red', hideAtZero: true },
+        ]}
+      />
 
       {loading ? (
         <Empty>Loading…</Empty>

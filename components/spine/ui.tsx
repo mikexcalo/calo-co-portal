@@ -657,6 +657,67 @@ export function Switch({
   );
 }
 
+/**
+ * A row of numbers, not a wall of cards.
+ *
+ * Metric draws a bordered card with 16px of padding and a 25px figure. Five of
+ * those across the top of a screen is a dashboard. Two of them, reading 3 and
+ * 0, is a third of the visible page spent on eight characters — which is what
+ * Home looked like once the zeroes started hiding and only a couple were left.
+ *
+ * Cards are right when the numbers are the point of the screen, as on Profit
+ * and Loss. On a screen whose point is a list of things to do, the numbers are
+ * context, and context is a line.
+ *
+ * Same rule as Metric: a figure pinned at zero is furniture, so it is dropped
+ * rather than drawn.
+ */
+export function Figures({
+  items,
+}: {
+  items: Array<{ label: string; value: string; tone?: 'green' | 'amber' | 'red'; hideAtZero?: boolean }>;
+}) {
+  const shown = items.filter(
+    (i) => !(i.hideAtZero && /^(\$?0(\.00)?|0|—|–|-)$/.test(i.value.trim()))
+  );
+  if (shown.length === 0) return null;
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'baseline',
+        gap: '10px 26px',
+        padding: '12px 2px 14px',
+        marginBottom: 20,
+        borderBottom: `1px solid ${C.border}`,
+      }}
+    >
+      {shown.map((i) => (
+        <span key={i.label} style={{ display: 'inline-flex', alignItems: 'baseline', gap: 8 }}>
+          <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
+            {i.label}
+          </span>
+          <span
+            style={{
+              ...DISPLAY,
+              fontSize: 19,
+              color:
+                i.tone === 'green' ? C.green
+                : i.tone === 'amber' ? C.amber
+                : i.tone === 'red' ? C.red
+                : C.text,
+            }}
+          >
+            {i.value}
+          </span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export function Metric({
   label,
   value,

@@ -91,14 +91,17 @@ export function WeekAhead() {
     carriedOver.length > 0 ||
     rows.some((r) => r.starts_on && r.starts_on >= todayIso && r.starts_on <= endIso);
 
-  if (!anything) {
-    return (
-      <div style={{ marginBottom: 26 }}>
-        <SectionLabel>This week</SectionLabel>
-        <Card><Empty>Nothing scheduled. Add steps to a job and they show up here.</Empty></Card>
-      </div>
-    );
-  }
+  /*
+    Nothing scheduled is not worth a heading and a card.
+
+    A section that exists only to say it is empty costs a heading, a bordered
+    box, a sentence and two gaps, every single day, to tell somebody a thing
+    they already know. Home carried three of these stacked together and the
+    screen read as mostly furniture.
+
+    It comes back the moment there is something in it.
+  */
+  if (!anything) return null;
 
   return (
     <div style={{ marginBottom: 26 }}>

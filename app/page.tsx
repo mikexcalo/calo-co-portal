@@ -36,6 +36,7 @@ import {
   Card,
   Check,
   Empty,
+  Figures,
   Metric,
   Page,
   Pill,
@@ -750,58 +751,24 @@ export default function Dashboard() {
             </div>
           )}
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))',
-              gap: 12,
-              marginBottom: 30,
-            }}
-          >
-            <Metric label={`Active ${vocab.jobPlural.toLowerCase()}`} value={String(activeJobs.length)} />
-            <Metric label={vocab.lead + 's'} value={String(leads.length)} hint="Not yet won" />
-            {/*
-              Three zeros in a row.
-
-              Unbilled $0, Owed to you $0, Collected $0, on a business that
-              has not invoiced yet, which is every business on its first day.
-              Metric has carried hideAtZero since it was written and the note
-              on it calls five cards reading $0 the single most repeated
-              mistake in this product. Home was making it.
-            */}
-            <Metric
-              label="Unbilled"
-              value={money0(unbilled)}
-              hideAtZero
-              tone={unbilled > 0 ? 'amber' : undefined}
-            />
-            {/*
-              Money owed to you is red.
-
-              This was 'blue', which in this palette is #141414, so the one
-              number on Home that represents cash sitting in somebody else's
-              account rendered in the same black as the engagement count. Red
-              is the tone this platform reserves for something that is wrong,
-              and money invoiced and not paid is exactly that.
-            */}
-            <Metric
-              label="Owed to you"
-              value={money0(outstanding)}
-              hideAtZero
-              tone={outstanding > 0 ? 'red' : undefined}
-            />
-            <Metric label="Collected" value={money0(collected)} hideAtZero tone="green" />
-          </div>
-
           {/*
-            Siblings, not children.
-            
-            These three were dropped inside the "In progress" heading row, which
-            is a flex line meant to hold a label and a button, and inside the
-            condition that there are active jobs. So they laid out sideways,
-            collided with the column beside them, and would have vanished
-            entirely the moment every job was finished.
+            Numbers as a line, not a wall.
+
+            Five bordered cards across the top of Home, and once the zeroes
+            started hiding correctly it was two of them reading 3 and 0 across
+            a third of the visible page. On a screen whose point is a list of
+            things to do, the figures are context. Context is a line.
           */}
+          <Figures
+            items={[
+              { label: `Active ${vocab.jobPlural.toLowerCase()}`, value: String(activeJobs.length), hideAtZero: true },
+              { label: vocab.lead + 's', value: String(leads.length), hideAtZero: true },
+              { label: 'Unbilled', value: money0(unbilled), tone: 'amber', hideAtZero: true },
+              { label: 'Owed to you', value: money0(outstanding), tone: 'red', hideAtZero: true },
+              { label: 'Collected', value: money0(collected), tone: 'green', hideAtZero: true },
+            ]}
+          />
+
           {/*
             One way to write a note, not three.
 

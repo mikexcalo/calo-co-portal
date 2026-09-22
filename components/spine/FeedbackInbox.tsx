@@ -146,13 +146,35 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
     load();
   };
 
+  /* Same rule: an empty inbox says so by not being there. */
+  /*
+    Nothing here, something over there: say only the something.
+
+    With an empty inbox and one note waiting in another workspace, this drew a
+    heading reading "Asked for (0)", a line saying nothing is asked for, and
+    then the one thing that is actually true. Three pieces of furniture around
+    a single useful sentence.
+  */
+  if (others.length === 0) {
+    return (
+      <div style={{ marginBottom: 18, display: 'flex', flexWrap: 'wrap', gap: 14 }}>
+        {Object.entries(byOrg).map(([id, o]) => (
+          <button
+            key={id}
+            onClick={async () => { await switchOrg(id); router.push('/'); router.refresh(); }}
+            style={{ background: 'transparent', border: 'none', padding: 0, color: C.dim, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            {o.n} waiting in {o.name} &rarr;
+          </button>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div style={{ marginBottom: 22 }}>
       <SectionLabel>Asked for ({others.length})</SectionLabel>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {others.length === 0 && (
-          <div style={{ fontSize: 13, color: C.faint }}>Nothing asked for here.</div>
-        )}
         {others.map((r) => {
           const isOpen = open === r.id;
           const tone = TONE[r.kind] ?? 'faint';

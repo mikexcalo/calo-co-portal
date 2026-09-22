@@ -30,7 +30,7 @@ import {
   Card,
   Empty,
   Field,
-  Metric,
+  Figures,
   Page,
   Pill,
   SectionLabel,
@@ -512,51 +512,24 @@ export default function CustomersPage() {
       {/* What needs doing, before the list of everyone */}
       {!loading && (dueNow.length > 0 || owing.length > 0 || noEmail.length > 0) && (
         /*
-          The same number, drawn the same way as everywhere else.
+          Context, on one line.
 
-          Clients had its own tile — a local `Flag` component that existed in
-          this one file: filled grey background, number on top at 18px, label
-          underneath. Home and Invoices use `Metric`: white card, small
-          uppercase label on top, number underneath at 25px. So $160 owed to
-          you looked like two different facts depending on which screen you
-          were standing on, which is exactly the doubt a money screen cannot
-          afford.
-
-          There is no good reason for a second tile. This is `Metric`, in the
-          same grid Invoices uses.
+          Three bordered cards above a list of four clients is a dashboard
+          bolted to the top of an address book. The numbers matter, they are
+          just not what this screen is for.
         */
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-            gap: 12,
-            marginBottom: 26,
-          }}
-        >
-          {dueNow.length > 0 && (
-            <Metric label="Follow up due" value={String(dueNow.length)} tone="amber" />
-          )}
-          {owing.length > 0 && (
-            <Metric
-              label="Owing you"
-              value={money0(owing.reduce((s, r) => s + r.owed, 0))}
-              tone="red"
-            />
-          )}
-          {noEmail.length > 0 && (
-            <button
-              onClick={() => setQ(q === NO_EMAIL ? '' : NO_EMAIL)}
-              style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}
-            >
-              <Metric
-                label="No email"
-                value={String(noEmail.length)}
-                tone="red"
-                hint={q === NO_EMAIL ? 'Showing them, press to clear' : "Can't invoice · press to see who"}
-              />
-            </button>
-          )}
-        </div>
+        <Figures
+          items={[
+            { label: 'Follow up due', value: String(dueNow.length), tone: 'amber', hideAtZero: true },
+            {
+              label: 'Owing you',
+              value: money0(owing.reduce((s, r) => s + r.owed, 0)),
+              tone: 'red',
+              hideAtZero: true,
+            },
+            { label: 'No email', value: String(noEmail.length), hideAtZero: true },
+          ]}
+        />
       )}
 
       {/*
