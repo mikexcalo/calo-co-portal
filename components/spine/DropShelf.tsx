@@ -402,6 +402,16 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                   <select
                     defaultValue=""
                     onChange={async (e) => {
+                      if (e.target.value === '__handover') {
+                        await fetch('/api/drops/hand-over', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ dropId: d.id }),
+                        });
+                        await load();
+                        onChange?.();
+                        return;
+                      }
                       const opt = filingOptions.find((o) => o.id === e.target.value);
                       if (!opt) return;
                       await fileDrop(d.id, opt.kind === 'person'
@@ -416,7 +426,19 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                       color: C.dim, background: C.panel, fontFamily: 'inherit',
                     }}
                   >
+                    {/*
+                      The option that was missing.
+
+                      Every choice here was "which of my people" or "which of
+                      my customers", so there was no way to say the thing a
+                      client eventually wants to say: this is not about one of
+                      my customers, it is for whoever runs this for me.
+
+                      John wrote a page of notes about his website, found
+                      nowhere to put them, and emailed them instead.
+                    */}
                     <option value="">Who is this about?</option>
+                    <option value="__handover">Send it to whoever runs this for me</option>
                     {filingOptions.map((o) => (
                       <option key={`${o.kind}-${o.id}`} value={o.id}>{o.name}</option>
                     ))}

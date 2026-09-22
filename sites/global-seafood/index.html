@@ -62,6 +62,21 @@
     gap:1.5rem;flex-wrap:wrap;padding-block:1.4rem}
   .mark{font-family:Fraunces,Georgia,serif;font-size:1.15rem;color:var(--ink);
     letter-spacing:-0.01em}
+  .nav{display:flex;align-items:center;gap:1.4rem;flex-wrap:wrap}
+  .nav a{color:var(--body);text-decoration:none;font-size:.95rem}
+  .nav a:hover{color:var(--shallows)}
+  /* Anchors land under a header, not behind it. */
+  section[id]{scroll-margin-top:5rem}
+  .service{padding-block:clamp(2rem,4vw,2.75rem);border-top:1px solid var(--line)}
+  .service:first-of-type{border-top:none;padding-top:0}
+  .service h3{font-family:Fraunces,Georgia,serif;font-size:1.5rem;color:var(--ink);
+    font-weight:600;margin:0 0 .6rem}
+  .service p{margin:0 0 .8rem;max-width:58ch}
+  .partner{padding-block:1.5rem;border-top:1px solid var(--line)}
+  .partner:first-of-type{border-top:none;padding-top:0}
+  .partner h3{font-family:Fraunces,Georgia,serif;font-size:1.25rem;color:var(--ink);
+    font-weight:600;margin:0 0 .4rem}
+  .partner p{margin:0;max-width:58ch}
 
   .hero{padding-block:clamp(4.5rem,12vw,8.5rem) clamp(3rem,7vw,5rem)}
   .eyebrow{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;
@@ -175,7 +190,20 @@
 <header>
   <div class="wrap bar">
     <span class="mark">Global Seafood Partners</span>
-    <button class="btn btn-ghost" type="button" data-open-form>Get in touch</button>
+    <!--
+      A nav, now that there is somewhere to go.
+
+      One page with four subjects on it needs a way past the first one. Anchors
+      rather than pages: the content is short enough that four separate loads
+      would be worse than one scroll, and it can become pages later without
+      anybody having to relearn where things are.
+    -->
+    <nav class="nav">
+      <a href="#what">What we do</a>
+      <a href="#services">Services</a>
+      <a href="#partners">Partners</a>
+      <button class="btn btn-ghost" type="button" data-open-form>Get in touch</button>
+    </nav>
   </div>
 </header>
 
@@ -255,6 +283,72 @@
         <p>Helping end users find the perfect product at the right price for
           your menu.</p>
       </div>
+    </div>
+  </section>
+
+  <!--
+    His words, on the page, rather than in a document in somebody's inbox.
+
+    John wrote all of this out. It is not a summary of what he does, it is what
+    he says to people, and the whole reason the first version read wrong is
+    that nobody had asked him.
+  -->
+  <section class="wrap band" id="services">
+    <h2 class="rise">What that looks like</h2>
+
+    <div class="service rise">
+      <h3>Sales and marketing</h3>
+      <p>Having trouble getting your product in front of the right distributor? We
+        maintain relationships with independent foodservice distributors and
+        corporate distributors. We also know the seafood markets in Boston and the
+        Bronx, Philadelphia and Jessup.</p>
+      <p>Looking to place your product with a national chain? We can help you.</p>
+    </div>
+
+    <div class="service rise">
+      <h3>Sales representation</h3>
+      <p>Is your product buried in a distributor warehouse? Have you done sales
+        presentations and training with no effect?</p>
+      <p>Our team is familiar with street level work. We make calls with or without
+        distributor reps, demonstrating your product to the people who matter, and
+        we can act as your representative on the street.</p>
+    </div>
+
+    <div class="service rise">
+      <h3>Consulting</h3>
+      <p>You run a restaurant. The season is coming and you want to add seafood.
+        What sells and what does not? Whole fish or portion packs, fresh or frozen?
+        How do you get waitstaff to sell it? We work through those questions with
+        you.</p>
+      <p>Want to introduce your line to distribution without a national company
+        taking all the profit? We can help you find an anchor and an independent
+        distributor. Looking for private labelling? We can help you find it.</p>
+    </div>
+  </section>
+
+  <section class="wrap band" id="partners">
+    <h2 class="rise">Who we work with</h2>
+
+    <div class="partner rise">
+      <h3>Pacific Empress</h3>
+      <p>One of Ecuador&rsquo;s oldest families in the shrimp business. Pacific Empress
+        packs commercial lines, spec packs, retail boxes and breaded items, so you can
+        buy the right product at a price you can afford. Farm raised Vannamei whites,
+        and Luis and his team hold the quality.</p>
+    </div>
+
+    <div class="partner rise">
+      <h3>Wide Foods</h3>
+      <p>A premier company with a wide selection, carrying everything from commodity
+        frozen fish to lobster tails, shipping from New Jersey or Florida. If you are
+        looking for something unusual, they can find it.</p>
+    </div>
+
+    <div class="partner rise">
+      <h3>Barrington Seafoods</h3>
+      <p>A small northeastern company with real depth in the industry: clams, mussels,
+        calamari and domestic Florida oysters. If you need a unique product line, they
+        can usually source it.</p>
     </div>
   </section>
 
