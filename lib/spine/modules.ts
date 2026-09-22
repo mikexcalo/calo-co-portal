@@ -770,22 +770,6 @@ export function navFor(
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {
-      heading: 'Running it',
-      defaultOpen: false,
-      items: [
-        /*
-          What keeping the doors open involves, as against the work itself.
-
-          The order you drive the day in, the filing cabinet, and what people
-          are asking you for. None of those is a client or a project, and all
-          three were sitting under The work making that heading meaningless.
-        */
-        { id: 'routes', label: 'Route', href: '/routes', icon: 'yardSign' },
-        { id: 'records', label: 'Records', href: '/records', icon: 'folder' },
-        { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'megaphone' },
-      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
-    },
-    {
       heading: 'Money',
       items: [
         // No row. It held one card, its stages are a funnel Proposals and
@@ -803,6 +787,22 @@ export function navFor(
         // Overheads and receipts are tabs inside this one.
         { id: 'pl', label: 'Profit & Loss', href: '/pl', icon: 'chart' },
         { id: 'account', label: 'Bills to You', href: '/account', icon: 'incoming' },
+      ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
+    },
+    {
+      heading: 'Running it',
+      defaultOpen: false,
+      items: [
+        /*
+          What keeping the doors open involves, as against the work itself.
+
+          The order you drive the day in, the filing cabinet, and what people
+          are asking you for. None of those is a client or a project, and all
+          three were sitting under The work making that heading meaningless.
+        */
+        { id: 'routes', label: 'Route', href: '/routes', icon: 'yardSign' },
+        { id: 'records', label: 'Records', href: '/records', icon: 'folder' },
+        { id: 'client_requests', label: 'Requests', href: '/requests', icon: 'megaphone' },
       ].filter((i) => has(i.id as ModuleId)) as NavGroup['items'],
     },
     {

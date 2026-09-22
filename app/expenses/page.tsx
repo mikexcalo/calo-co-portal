@@ -380,7 +380,7 @@ export default function ExpensesPage() {
           <DropShelf
             orgId={org.id}
             compact
-            label="Drop a receipt, a screenshot, a photo, a PDF"
+            label=""
             onChange={load}
           />
         </div>

@@ -65,6 +65,13 @@ function periodStart(p: Period, now: Date): Date | null {
   }
 }
 
+/** A cost with no job against it: what it takes to keep the doors open. */
+interface Overhead {
+  amount: number | string;
+  purchased_on: string | null;
+  recurrence: string | null;
+}
+
 export default function ProfitLossPage() {
   const router = useRouter();
   const { vocab, org } = useOrg();
@@ -86,7 +93,20 @@ export default function ProfitLossPage() {
     avgDays: number | null;
     months: number;
   } | null>(null);
-  const [overheadMonthly, setOverheadMonthly] = useState(0);
+  /*
+    The rows, not a run rate.
+
+    A single monthly figure multiplied by months-in-the-period charged every
+    subscription for the whole year regardless of when it started: Vercel Pro
+    began on 22 September and Profit and Loss billed it from January, inventing
+    $160 of cost that was never spent and turning a $136 profit into a $20
+    loss. And one-off costs were excluded from the run rate entirely, so the
+    $3.99 domain purchase, real money, appeared nowhere at all.
+
+    Each cost is counted for the months it has actually existed inside the
+    period, and one-offs count in the period they fall in.
+  */
+  const [overheads, setOverheads] = useState<Overhead[]>([]);
 
 
   useEffect(() => setTodayMs(Date.now()), []);
@@ -98,10 +118,10 @@ export default function ProfitLossPage() {
           listJobLedger(),
           listInvoices(),
           supabase.from('recovery_metrics').select('*').eq('org_id', await orgNow()),
-          supabase.from('overhead_summary').select('monthly_run_rate').maybeSingle(),
+          supabase.from('costs').select('amount, purchased_on, recurrence').is('job_id', null),
         ]);
 
-        if (!oh.error && oh.data) setOverheadMonthly(Number(oh.data.monthly_run_rate) || 0);
+        if (!oh.error && oh.data) setOverheads(oh.data as Overhead[]);
 
         if (!rec.error && rec.data?.length) {
           const rows = rec.data as Array<Record<string, unknown>>;
@@ -164,7 +184,30 @@ export default function ProfitLossPage() {
         // whole year of subscriptions in February would invent costs.
         ? (todayMs ? new Date(todayMs).getMonth() + 1 : 1)
         : 12;
-    const overhead = overheadMonthly * months;
+    const periodEnd = todayMs ? new Date(todayMs) : new Date();
+    const monthsBetween = (from: Date, to: Date) =>
+      Math.max(0, (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth()) + 1);
+
+    const overhead = overheads.reduce((sum, o) => {
+      const amount = Number(o.amount) || 0;
+      const bought = o.purchased_on ? new Date(o.purchased_on) : null;
+      if (!bought) return sum;
+
+      // A one-off is spent once, on the day it was spent.
+      if (!o.recurrence || o.recurrence === 'once') {
+        return start && bought < start ? sum : sum + amount;
+      }
+
+      // A subscription is charged from the later of its start and the period's.
+      const from = start && bought < start ? start : bought;
+      if (from > periodEnd) return sum;
+      const active = monthsBetween(from, periodEnd);
+      const perMonth =
+        o.recurrence === 'quarterly' ? amount / 3
+        : o.recurrence === 'yearly' ? amount / 12
+        : amount;
+      return sum + perMonth * active;
+    }, 0);
     const costs = jobCosts + overhead;
 
     /**
@@ -190,7 +233,7 @@ export default function ProfitLossPage() {
       margin: revenue > 0 ? ((revenue - costs) / revenue) * 100 : 0,
       count: inPeriod.length,
     };
-  }, [invoices, ledger, period, todayMs, overheadMonthly, taxPct]);
+  }, [invoices, ledger, period, todayMs, overheads, taxPct]);
 
   /**
    * Work being paid for in something other than money.
@@ -234,7 +277,7 @@ export default function ProfitLossPage() {
       title="Profit &amp; Loss"
       subtitle={`Built from logged hours, filed receipts and issued invoices${
         org ? ` for ${org.name}` : ''
-      }. Nothing is typed in here.`}
+      }.`}
       action={
         <select
           value={period}

@@ -159,6 +159,10 @@ export default async function PublicEstimate({ params }: { params: { token: stri
     — the word is already decided per business, and the header was ignoring it
     on the right hand side.
   */
+  const senderName =
+    (((org?.settings as Record<string, unknown>)?.signature as { name?: string } | undefined)?.name ?? '').trim()
+    || null;
+
   const vocabWord = (org as { kind?: string } | null)?.kind === 'agency' ? 'Proposal' : 'Estimate';
 
   const decided = ['accepted', 'declined'].includes(estimate.status);
@@ -216,6 +220,15 @@ export default async function PublicEstimate({ params }: { params: { token: stri
             </div>
             <div style={{ textAlign: 'right', fontSize: 13.5, color: '#666' }}>
               <div style={{ fontWeight: 600, color: '#111' }}>{org?.name}</div>
+              {/*
+                A person, not just a company.
+
+                An elite proposal says who you will actually be dealing with.
+                "CALO&CO" is who invoices; a name is who answers the phone when
+                something goes wrong, and putting it here is the cheapest
+                possible signal that somebody is accountable for this.
+              */}
+              {senderName && <div style={{ marginTop: 2 }}>Prepared by {senderName}</div>}
               {estimate.valid_until && <div style={{ marginTop: 4 }}>Valid until {fmtDate(estimate.valid_until)}</div>}
               {/*
                 One word for the document.
