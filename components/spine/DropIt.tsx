@@ -186,7 +186,7 @@ export function DropIt({ onClose }: { onClose: () => void }) {
             )}
 
             <Button onClick={distill} disabled={busy || text.trim().length < 40} >
-              {busy ? 'Reading…' : 'Sort it out'}
+              {busy ? 'Scanning…' : 'Scan and sort'}
             </Button>
           </div>
 

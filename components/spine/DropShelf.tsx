@@ -261,11 +261,11 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
             the outcome, not the mechanism.
           */}
           <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>
-            {items.filter((d) => !d.filed_at).length} waiting to be sorted
+            {items.filter((d) => !d.filed_at).length} waiting to be scanned
           </div>
           <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2, lineHeight: 1.5 }}>
-            Press Sort it and the names, prices and line items come out onto the right records.
-            You see what it found before anything is saved.
+            Press Scan and sort. It reads the file, pulls out the names, prices and line
+            items, and shows you what it found before anything is saved.
           </div>
         </div>
       )}
@@ -362,7 +362,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                   </div>
                   {label.length > 150 && (
                     <div style={{ fontSize: 11.5, color: C.faint, marginTop: 3 }}>
-                      {label.length.toLocaleString()} characters, press Sort it to pull out what is in here
+                      {label.length.toLocaleString()} characters, press Scan and sort to pull out what is in here
                     </div>
                   )}
                   <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 3, flexWrap: 'wrap' }}>
@@ -463,7 +463,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                       fontFamily: 'inherit',
                     }}
                   >
-                    Sort it &rarr;
+                    Scan and sort &rarr;
                   </button>
                 )}
               </div>
