@@ -59,7 +59,30 @@ export async function addDrop(
       contentType: input.file.type,
       upsert: false,
     });
-    if (up.error) throw new Error(`Upload failed: ${up.error.message}`);
+    /*
+      Say which file, and why.
+
+      "Upload failed: mime type application/vnd.openxmlformats-officedocument
+      .wordprocessingml.document is not supported" is what John saw on his
+      first real use of this. He read it as "it did not work", assumed it was
+      him, and emailed the files instead.
+
+      The two things that actually stop an upload are the type and the size,
+      and both are worth saying in words somebody can act on.
+    */
+    if (up.error) {
+      const msg = up.error.message.toLowerCase();
+      if (msg.includes('mime') || msg.includes('not supported')) {
+        throw new Error(
+          `${input.file.name} is a kind of file this cannot take yet. Anything you can print, ` +
+            'photograph or export as a PDF will go through.'
+        );
+      }
+      if (msg.includes('size') || msg.includes('large') || msg.includes('exceed')) {
+        throw new Error(`${input.file.name} is over 25MB. Anything smaller goes straight in.`);
+      }
+      throw new Error(`${input.file.name} did not upload. ${up.error.message}`);
+    }
   }
 
   const { data: auth } = await supabase.auth.getUser();
