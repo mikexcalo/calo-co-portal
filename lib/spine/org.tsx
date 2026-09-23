@@ -71,8 +71,25 @@ const AGENCY: Vocab = {
  * So the business can override it, and the rest of the vocabulary still comes
  * from what kind of business it is.
  */
+/*
+  A rep's words are neither set.
+
+  He has no jobs and no customers in the sense either of the others mean. The
+  companies on his Clients screen are the ones he REPRESENTS — they pay him,
+  they do not buy from him — and what he sends a buyer is a quote off somebody
+  else's sheet, not an estimate for work he will do.
+*/
+const REP: Vocab = {
+  job: 'Project',
+  jobPlural: 'Projects',
+  customer: 'Principal',
+  customerPlural: 'Principals',
+  estimate: 'Quote',
+  lead: 'Buyer',
+};
+
 export const vocabFor = (kind: Org['kind'] | undefined, settings?: Record<string, unknown> | null): Vocab => {
-  const base = kind === 'agency' ? AGENCY : CONTRACTOR;
+  const base = kind === 'agency' ? AGENCY : kind === 'rep' ? REP : CONTRACTOR;
   const word = typeof settings?.estimate_word === 'string' ? settings.estimate_word.trim() : '';
   return word ? { ...base, estimate: word } : base;
 };

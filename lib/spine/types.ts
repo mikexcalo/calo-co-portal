@@ -78,7 +78,15 @@ export interface Org {
   id: string;
   name: string;
   slug: string;
-  kind: 'agency' | 'contractor';
+  /**
+   * agency  sells its own time and work.
+   * contractor  does the work on site.
+   * rep  sells somebody else's product for a commission.
+   *
+   * Chooses the module set, the vocabulary and the defaults, which makes it
+   * the template every like-for-like business inherits.
+   */
+  kind: 'agency' | 'contractor' | 'rep';
   /**
    * Sample data, for showing people.
    *

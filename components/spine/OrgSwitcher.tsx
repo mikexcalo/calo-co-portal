@@ -35,6 +35,12 @@ function brandOf(o: { settings?: Record<string, unknown> | null }) {
   return { logo, hex };
 }
 
+const KIND_LABEL: Record<string, string> = {
+  agency: 'Agency',
+  contractor: 'Contractor',
+  rep: 'Sales rep',
+};
+
 export function OrgSwitcher() {
   const { org, orgs, loading, switchOrg } = useOrg();
   const { viewAs } = useViewAs();
@@ -208,7 +214,11 @@ export function OrgSwitcher() {
                   word DEMO beside its own name.
                 */}
                 <span style={{ fontSize: 11, color: o.is_demo ? C.amber : C.faint, flexShrink: 0 }}>
-                  {o.is_demo ? 'Demo' : o.kind === 'agency' ? 'Agency' : 'Contractor'}
+                  {/* Contractor was the fallback for anything not an agency,
+                      so a seafood sales rep read as one beside a lawn care
+                      business. The kind chooses the whole template; the label
+                      should say which template. */}
+                  {o.is_demo ? 'Demo' : KIND_LABEL[o.kind] ?? 'Contractor'}
                 </span>
               </button>
             ))}

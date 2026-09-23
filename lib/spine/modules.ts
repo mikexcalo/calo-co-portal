@@ -112,6 +112,44 @@ const AGENCY: ModuleId[] = [
 ];
 
 /**
+ * A REP SELLS SOMEBODY ELSE'S PRODUCT FOR A CUT.
+ *
+ * Everything a contractor gets that a rep does not: Route, because there is no
+ * site to drive to; Receipts and Overheads job costing, because there is no
+ * job to cost; Price list, because the prices that matter are the principal's
+ * and they hang off the principal, not off you.
+ *
+ * What it adds is the catalog. A rep with no line card has nothing to sell.
+ */
+const REP: ModuleId[] = [
+  'learn',
+  'feedback',
+  'inbox',
+  'ask',
+  'targets',      // the distributors and chefs he is trying to place product with
+  'jobs',
+  'customers',    // the principals he represents
+  'catalog',      // their line card, which is the product
+  'people',
+  'notes',
+  'proposals',
+  'billing',
+  'pl',
+  'expenses',
+  'records',
+  'brand_kit',
+  'seo',
+  'reviews',
+  'traffic',
+  'website',
+  'pitches',
+  'stories',
+  'team',
+  'security',
+  'business',
+];
+
+/**
  * What each plan includes, on top of the business kind.
  *
  * Core is the spine: record the work, get paid, know whether the month made
@@ -362,7 +400,8 @@ export function planAllows(org: Org | null, feature: Feature): boolean {
 export function modulesFor(org: Org | null): Set<ModuleId> {
   if (!org) return new Set();
 
-  const kindBase = org.kind === 'agency' ? AGENCY : CONTRACTOR;
+  const kindBase =
+    org.kind === 'agency' ? AGENCY : org.kind === 'rep' ? REP : CONTRACTOR;
 
   /**
    * The plan narrows what the kind allows; it never widens it.
