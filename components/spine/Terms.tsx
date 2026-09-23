@@ -131,7 +131,7 @@ export function Terms({ orgId, customerId }: { orgId: string; customerId: string
       <div style={{ marginBottom: 26 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 10 }}>
           <SectionLabel>What you agreed</SectionLabel>
-          <Button variant="ghost" onClick={start}>{row ? 'Change it' : 'Write it down'}</Button>
+          <Button variant="ghost" onClick={start}>{row ? 'Edit' : 'Write it down'}</Button>
         </div>
         <Card>
           {!row ? (

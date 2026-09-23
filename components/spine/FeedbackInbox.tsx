@@ -61,7 +61,8 @@ const DONE_LABEL: Record<string, string> = {
 
 export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null }) {
   const router = useRouter();
-  const { switchOrg } = useOrg();
+  const { switchOrg, org } = useOrg();
+  const isAgency = org?.kind === 'agency';
   const [going, setGoing] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [open, setOpen] = useState<string | null>(null);
@@ -95,7 +96,19 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
    */
   const notMine = rows.filter((r) => r.author_id !== me);
   const others = notMine.filter((r) => r.org_id === currentOrgId);
-  const elsewhere = notMine.filter((r) => r.org_id !== currentOrgId);
+  /*
+    Other workspaces are the agency's business and nobody else's.
+
+    Standing in Mammoth, a note somebody left in Lakemere appeared on the
+    screen — two unrelated clients of the same agency, one being told about the
+    other. It is Mike's own book either way, but the workspace you are in is
+    supposed to be that business, and a line about a different company is
+    noise at best and reads as a leak at worst.
+
+    The cross-workspace view belongs on the agency's own Home, where looking
+    across clients is the job.
+  */
+  const elsewhere = isAgency ? notMine.filter((r) => r.org_id !== currentOrgId) : [];
   if (others.length === 0 && elsewhere.length === 0) return null;
 
   const orgName = (r: Row) => (Array.isArray(r.orgs) ? r.orgs[0]?.name : r.orgs?.name) ?? 'a workspace';

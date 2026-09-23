@@ -453,6 +453,17 @@ export default function Sidebar() {
    */
   const [parked, setParked] = useState<Set<string>>(new Set());
 
+  /*
+    Parked per workspace, not per person.
+
+    The key was one global list, so parking Price list on the agency parked it
+    inside Mammoth and Lakemere too — a client opened their own sidebar and
+    found a row they never touched filed under "Not using". What you use
+    depends entirely on which business you are in: Route is dead weight for an
+    agency and the whole morning for a lawn crew.
+  */
+  const parkKey = `nav.parked.v2.${org?.id ?? 'none'}`;
+
   useEffect(() => {
     try {
       /**
@@ -474,17 +485,21 @@ export default function Sidebar() {
     } catch {
       // A browser refusing storage is not a reason to render nothing.
     }
-    try {
-      const p = window.localStorage.getItem('nav.parked.v1');
-      if (p) setParked(new Set(JSON.parse(p) as string[]));
-    } catch {
-      // Same as above: no storage is not a reason to render nothing.
-    }
     setReady(true);
     // Runs once. Re-running on every nav change would reset the user's
     // choice every time they switch business.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /* Re-read when the workspace changes, because the list belongs to it. */
+  useEffect(() => {
+    try {
+      const p = window.localStorage.getItem(parkKey);
+      setParked(p ? new Set(JSON.parse(p) as string[]) : new Set());
+    } catch {
+      setParked(new Set());
+    }
+  }, [parkKey]);
 
   const togglePark = useCallback((href: string) => {
     setParked((prev) => {
@@ -492,7 +507,7 @@ export default function Sidebar() {
       if (next.has(href)) next.delete(href);
       else next.add(href);
       try {
-        window.localStorage.setItem('nav.parked.v1', JSON.stringify([...next]));
+        window.localStorage.setItem(parkKey, JSON.stringify([...next]));
       } catch {
         // The choice still applies for this session.
       }
@@ -608,7 +623,10 @@ export default function Sidebar() {
         {modulesFor(org).has('inbox') && navBtn('Drops', '/inbox', 'drop', false)}
 
         {groups.map((g0) => {
-          const g = { ...g0, items: g0.items.filter((i) => !parked.has(i.href) || isActive(i.href)) };
+          /* Parked stays parked, even when it is the page you are on. It was
+             popping back into its original group the moment you opened it, so
+             the sidebar visibly rearranged itself under the click. */
+          const g = { ...g0, items: g0.items.filter((i) => !parked.has(i.href)) };
           if (!g.items.length) return null;
           // A collapsed section that hides the page you are on would leave you
           // unable to see where you are. Force it open in that case.
@@ -671,9 +689,11 @@ export default function Sidebar() {
           here" without leaving the screen.
         */}
         {(() => {
-          const away = groups.flatMap((g) => g.items).filter((i) => parked.has(i.href) && !isActive(i.href));
+          const away = groups.flatMap((g) => g.items).filter((i) => parked.has(i.href));
           if (!away.length) return null;
-          const shut = ready && closed.has(PARKED_HEADING);
+          /* Open it if the page you are on lives in here, or you would be
+             standing somewhere the sidebar says you are not. */
+          const shut = ready && closed.has(PARKED_HEADING) && !away.some((i) => isActive(i.href));
           return (
             <div style={{ marginTop: 15 }}>
               <button
