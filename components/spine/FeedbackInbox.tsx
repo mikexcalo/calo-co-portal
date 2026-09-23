@@ -38,6 +38,8 @@ interface Row {
   status: string;
   reply: string | null;
   created_at: string;
+  /** Null means nobody has opened it. Not the same as status. */
+  read_at: string | null;
   orgs: { name: string }[] | { name: string } | null;
 }
 
@@ -73,7 +75,7 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
   const load = useCallback(async () => {
     const res = await supabase
       .from('feedback')
-      .select('id, org_id, author_id, kind, body, page, status, reply, created_at, orgs(name)')
+      .select('id, org_id, author_id, kind, body, page, status, reply, created_at, read_at, orgs(name)')
       .in('status', ['open', 'building'])
       .order('created_at', { ascending: false })
       .limit(25);
@@ -97,13 +99,31 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
   if (others.length === 0 && elsewhere.length === 0) return null;
 
   const orgName = (r: Row) => (Array.isArray(r.orgs) ? r.orgs[0]?.name : r.orgs?.name) ?? 'a workspace';
+  const unread = others.filter((r) => !r.read_at).length;
 
   /* One line per workspace, not one per note — the point is where to go. */
   const byOrg = elsewhere.reduce<Record<string, { name: string; n: number }>>((acc, r) => {
     const k = r.org_id;
+    if (r.read_at) return acc;
     acc[k] = { name: orgName(r), n: (acc[k]?.n ?? 0) + 1 };
     return acc;
   }, {});
+
+  /*
+    Opening it is reading it.
+
+    Mike has read Lakemere's message a dozen times and it still looked exactly
+    as new as the first time, because status — open, building, done — is what
+    HE is going to do about it and says nothing about whether he has seen it.
+    Every inbox ever built separates those two, and people already know how it
+    works, so this does what they expect and nothing more.
+  */
+  const markRead = async (r: Row) => {
+    if (r.read_at) return;
+    const now = new Date().toISOString();
+    setRows((p) => p.map((x) => (x.id === r.id ? { ...x, read_at: now } : x)));
+    await supabase.from('feedback').update({ read_at: now }).eq('id', r.id);
+  };
 
   const answer = async (id: string, status: string) => {
     setRows((p) => p.filter((r) => r.id !== id || status === 'building'));
@@ -155,7 +175,10 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
     then the one thing that is actually true. Three pieces of furniture around
     a single useful sentence.
   */
+  /* Nothing unread anywhere is nothing to show. The line existed to say
+     "go and look", and there is nothing to look at. */
   if (others.length === 0) {
+    if (!Object.keys(byOrg).length) return null;
     return (
       <div style={{ marginBottom: 18, display: 'flex', flexWrap: 'wrap', gap: 14 }}>
         {Object.entries(byOrg).map(([id, o]) => (
@@ -173,7 +196,11 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
 
   return (
     <div style={{ marginBottom: 22 }}>
-      <SectionLabel>Asked for ({others.length})</SectionLabel>
+      {/* The count is unread, not total. A number that never goes down is
+          not a number anybody acts on. */}
+      <SectionLabel>
+        Messages{unread > 0 ? ` (${unread} unread)` : ''}
+      </SectionLabel>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {others.map((r) => {
           const isOpen = open === r.id;
@@ -181,10 +208,25 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
           return (
             <Card key={r.id}>
               <div
-                onClick={() => { setOpen(isOpen ? null : r.id); setReply(r.reply ?? ''); }}
+                onClick={() => {
+                  setOpen(isOpen ? null : r.id);
+                  setReply(r.reply ?? '');
+                  markRead(r);
+                }}
                 style={{ cursor: 'pointer' }}
               >
                 <div style={{ display: 'flex', gap: 9, alignItems: 'baseline', flexWrap: 'wrap' }}>
+                  {/* The one marking an inbox needs. Present or absent, never
+                      a label saying "unread" in words. */}
+                  {!r.read_at && (
+                    <span
+                      aria-label="Unread"
+                      style={{
+                        width: 7, height: 7, borderRadius: '50%', background: C.blue,
+                        flexShrink: 0, alignSelf: 'center',
+                      }}
+                    />
+                  )}
                   <span
                     style={{
                       fontSize: 11, borderRadius: 999, padding: '1px 9px', flexShrink: 0,
@@ -199,7 +241,13 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
                   <span style={{ flex: 1 }} />
                   <span style={{ fontSize: 11.5, color: C.faint }}>{r.created_at.slice(0, 10)}</span>
                 </div>
-                <div style={{ fontSize: 13.5, color: C.text, marginTop: 5, lineHeight: 1.55 }}>
+                <div
+                  style={{
+                    fontSize: 13.5, marginTop: 5, lineHeight: 1.55,
+                    color: r.read_at ? C.dim : C.text,
+                    fontWeight: r.read_at ? 400 : 600,
+                  }}
+                >
                   {r.body}
                 </div>
               </div>

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * The order to drive today in.
+ * Today's stops, in order.
  *
  * Picks up every job with an address that is scheduled for the chosen day —
  * or, if nothing is scheduled, every open job with an address, because a

@@ -136,7 +136,7 @@ export default function CardPage() {
   return (
     <Page
       title="Card"
-      subtitle="A card you hold up instead of hand over."
+      subtitle="A business card people scan."
       tabs={brandTabsFor(org?.kind)}
       action={row ? <Button onClick={save} disabled={busy}>{busy ? 'Saving…' : 'Save'}</Button> : undefined}
     >

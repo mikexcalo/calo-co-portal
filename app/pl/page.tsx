@@ -286,9 +286,7 @@ export default function ProfitLossPage() {
     <Page
       tabs={MONEY_TABS}
       title="Profit &amp; Loss"
-      subtitle={`Built from logged hours, filed receipts and issued invoices${
-        org ? ` for ${org.name}` : ''
-      }.`}
+      subtitle="Built from your hours, receipts and invoices."
       action={
         <Select
           value={period}

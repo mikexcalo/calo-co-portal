@@ -642,7 +642,7 @@ export default function Dashboard() {
       subtitle={
         emptyApp
           ? `Nothing logged for ${org?.name ?? 'this business'} yet. A few minutes here and you're running.`
-          : `Everything ${org?.name ?? 'this business'} needs you to deal with, most costly first.`
+          : 'What needs you today.'
       }
       /* Learn is in the top bar on every screen. A second copy in the page
          header of the screen you land on is the same word twice, ten inches

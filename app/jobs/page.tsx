@@ -131,7 +131,7 @@ export default function JobsPage() {
         is everything at once, in the order it moves — the board you come to in
         order to move something along, not to find out what is on fire.
       */
-      subtitle={`Every ${vocab.job.toLowerCase()} you have on, in the order it moves. Home is what needs you today; this is the whole board.`}
+      subtitle={`Every ${vocab.job.toLowerCase()} you have on.`}
       action={
         <Button onClick={() => router.push('/jobs/new')}>New {vocab.job.toLowerCase()}</Button>
       }
