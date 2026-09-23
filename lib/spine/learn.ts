@@ -45,7 +45,7 @@ export const LESSONS: Lesson[] = [
       'Back in the Website module those notes appear inside the section, directly above the fields the person was talking about. So "the second bit reads oddly" never has to be decoded again: the comment and its subject travel together. Mark one done and it clears.',
       'For a website review this replaces the whole email thread. They look, they comment, you edit, you send the link again.',
     ],
-    href: '/website',
+    href: '/site-requests',
     caveat:
       'No email arrives when a note is left, so you find them by opening the module. Anybody with the link can leave notes, so treat it like an unlisted URL rather than a password.',
   },
@@ -59,7 +59,7 @@ export const LESSONS: Lesson[] = [
       'Nothing you type is live. Edits are saved as a draft beside the published version, so a half-finished thought is never on the internet.',
       'Send to build files a request holding both versions of every field that changed, and it lands in the Build queue. Somebody with the site checked out makes it real.',
     ],
-    href: '/website',
+    href: '/site-requests',
     caveat:
       'calo.company is a separate repository, so nothing in this platform changes the live site by itself. Preview is the real output until that is wired up.',
   },

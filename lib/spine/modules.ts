@@ -502,7 +502,9 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/seo', 'seo'],
   ['/targets', 'targets'],
   ['/market', 'market'],
-  ['/framework', 'brands'],
+  /* '/framework' was here for a page that no longer exists. Left out rather
+     than left in: an allow-list entry for a missing route is a 404 somebody
+     eventually links to. */
   ['/stories', 'stories'],
   ['/brands', 'brands'],
   ['/business', 'business'],

@@ -162,7 +162,7 @@ When that happens the value is left blank rather than guessed. A blank prompts y
     body: `Open "Your website". Some things — phone number, hours, headline text — you can edit yourself and they go live immediately.
 
 Anything bigger, hit "Request a change" and describe what you want. You'll see its status the whole way through, so you never have to chase it.`,
-    href: '/website',
+    href: '/site-requests',
     hrefLabel: 'Open Your website',
   },
   {

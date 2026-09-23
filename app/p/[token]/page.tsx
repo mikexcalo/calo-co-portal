@@ -14,6 +14,19 @@ import { createClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
+/*
+  force-dynamic is not enough on its own.
+
+  It stops the ROUTE being cached and does nothing about the fetches inside it,
+  so a document could be re-rendered on every request and still hand back a
+  body Next had stored earlier. That is exactly what made a proposal show
+  yesterday's figures three times in a row while everybody looked for the bug
+  in the data.
+
+  This is a document somebody outside the business is reading. Stale is worse
+  here than anywhere.
+*/
+export const fetchCache = 'force-no-store';
 
 interface Section { heading: string; body: string }
 
@@ -28,6 +41,31 @@ const INK = '#14161A';
 const BODY = '#3A424C';
 const MUTED = '#69727D';
 const RULE = '#E4E7EB';
+
+/*
+  A pitch is a link somebody pastes into an email.
+
+  Every other public document here sets its title. This one did not, so a pitch
+  shared in a message or a chat previewed as a bare URL — the one document in
+  the product whose entire job is to be passed around, arriving with no name on
+  it.
+*/
+export async function generateMetadata(
+  { params }: { params: { token: string } }
+): Promise<{ title: string }> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anon) return { title: 'Pitch' };
+  try {
+    const sb = createClient(url, anon, { auth: { persistSession: false } });
+    const { data } = await sb.rpc('read_pitch', { token: params.token });
+    const p = data as PitchPayload | null;
+    if (!p?.title) return { title: 'Pitch' };
+    return { title: p.org?.name ? `${p.title} — ${p.org.name}` : p.title };
+  } catch {
+    return { title: 'Pitch' };
+  }
+}
 
 export default async function PitchPage({ params }: { params: { token: string } }) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

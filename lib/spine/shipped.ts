@@ -86,7 +86,9 @@ export const SHIPPED: Array<{ group: string; items: Shipped[] }> = [
   {
     group: 'Brand',
     items: [
-      { name: 'Brand framework', where: 'Brand, Framework', href: '/framework',
+      /* Was href: '/framework', a route that no longer exists. The framework
+         moved onto each client's brand record; Client Brands is the door. */
+      { name: 'Brand framework', where: 'Brand, Client Brands', href: '/brands',
         what: 'Ten modules in the order the decisions have to be made, with what each one needs.',
         sells: 'The engagement itself. The framework is the deliverable and the process at once.' },
       { name: 'Source material', where: 'Inside any brand',

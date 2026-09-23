@@ -17,6 +17,7 @@ import { listJobs, listJobLedger } from '@/lib/spine/db';
 import { JOB_PIPELINE, JOB_STATUS_LABEL } from '@/lib/spine/types';
 import type { JobLedger, JobStatus, JobWithCustomer } from '@/lib/spine/types';
 import {
+  Tiles,
   Select,
   Sheet,
   inputStyle,
@@ -144,12 +145,27 @@ export default function JobsPage() {
         </Card>
       )}
 
-      {/* Context above a board, so a line rather than a row of cards. */}
-      <Figures
+      {/* The eighth screen, and the one the sweep missed. It was still a line
+          of figures with hideAtZero on all three, so on a quiet week the board
+          opened with nothing above it at all. */}
+      <Tiles
         items={[
-          { label: `Active ${vocab.jobPlural.toLowerCase()}`, value: String(active.length), hideAtZero: true },
-          { label: 'Unbilled work', value: money0(unbilled), tone: 'amber', hideAtZero: true },
-          { label: 'Awaiting payment', value: money0(outstanding), tone: 'red', hideAtZero: true },
+          {
+            label: `Active ${vocab.jobPlural.toLowerCase()}`,
+            value: String(active.length),
+            icon: 'work',
+            hint: jobs.length ? `${jobs.length} in total` : 'Nothing on',
+          },
+          {
+            label: 'Unbilled work', value: money0(unbilled), icon: 'receipt',
+            hint: 'Done, not yet asked for',
+            tone: unbilled > 0 ? C.amber : undefined,
+          },
+          {
+            label: 'Awaiting payment', value: money0(outstanding), icon: 'card',
+            hint: 'Invoiced, not paid',
+            tone: outstanding > 0 ? C.red : undefined,
+          },
         ]}
       />
 

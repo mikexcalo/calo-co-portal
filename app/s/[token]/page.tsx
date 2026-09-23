@@ -16,6 +16,19 @@
 import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
+/*
+  force-dynamic is not enough on its own.
+
+  It stops the ROUTE being cached and does nothing about the fetches inside it,
+  so a document could be re-rendered on every request and still hand back a
+  body Next had stored earlier. That is exactly what made a proposal show
+  yesterday's figures three times in a row while everybody looked for the bug
+  in the data.
+
+  This is a document somebody outside the business is reading. Stale is worse
+  here than anywhere.
+*/
+export const fetchCache = 'force-no-store';
 
 const INK = '#14161A';
 const BODY = '#3A424C';
