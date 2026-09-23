@@ -1,5 +1,7 @@
 'use client';
 
+import type { CSSProperties } from 'react';
+
 /**
  * What was agreed with this client.
  *
@@ -41,6 +43,16 @@ const EMPTY: Row = {
 
 const num = (v: string) => (v.trim() === '' ? null : Number.parseFloat(v) || 0);
 const str = (v: string) => (v.trim() === '' ? null : v.trim());
+
+/** Label left, figure right, a hairline between. How terms read off paper. */
+const termRow: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'baseline',
+  gap: 16,
+  padding: '10px 0',
+  borderTop: `1px solid ${C.border}`,
+};
 
 export function Terms({ orgId, customerId }: { orgId: string; customerId: string }) {
   const [row, setRow] = useState<Row | null>(null);
@@ -141,41 +153,54 @@ export function Terms({ orgId, customerId }: { orgId: string; customerId: string
             </p>
           ) : (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16 }}>
+              {/*
+                A list, not a two by two.
+
+                Four figures in a grid inside a bordered card was a fourth
+                layout on a screen that already had tiles, cards and a table,
+                and the quadrants meant the eye had to travel in two directions
+                to read four facts. They are four lines of one thing each now:
+                label on the left, number on the right, the way terms are read
+                off any agreement.
+              */}
+              <div style={{ display: 'flex', flexDirection: 'column' }} className="termList">
                 {row.hourly_rate != null && (
-                  <div>
-                    <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 2 }}>Their rate</div>
-                    <div style={{ fontSize: 19, color: C.text }}>{money(row.hourly_rate)}<span style={{ fontSize: 13, color: C.faint }}>/hr</span></div>
+                  <div style={termRow}>
+                    <div style={{ fontSize: 13, color: C.dim }}>Their rate</div>
+                    <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 16, color: C.text, fontVariantNumeric: 'tabular-nums' }}>{money(row.hourly_rate)}<span style={{ fontSize: 12.5, color: C.faint }}>/hr</span></div>
                     {saved != null && (
-                      <div style={{ fontSize: 11.5, color: C.green, marginTop: 2 }}>
-                        {saved}% off your {money(row.standard_rate ?? 0)}
+                      <div style={{ fontSize: 11.5, color: C.green, marginTop: 1 }}>
+                        {saved}% off {money(row.standard_rate ?? 0)}
                         {row.why_discounted ? `, ${row.why_discounted.toLowerCase()}` : ''}
                       </div>
                     )}
-                  </div>
-                )}
-                {row.monthly_fee != null && (
-                  <div>
-                    <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 2 }}>Every month</div>
-                    <div style={{ fontSize: 19, color: C.text }}>{money(row.monthly_fee)}</div>
-                    <div style={{ fontSize: 11.5, color: C.faint, marginTop: 2 }}>
-                      {row.monthly_fee_for ?? 'Flat fee'}, on the {nth}
                     </div>
                   </div>
                 )}
-                <div>
-                  <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 2 }}>Platform use</div>
-                  <div style={{ fontSize: 19, color: row.platform_fee == null ? C.faint : C.text }}>
+                {row.monthly_fee != null && (
+                  <div style={termRow}>
+                    <div style={{ fontSize: 13, color: C.dim }}>
+                      Every month
+                      <div style={{ fontSize: 11.5, color: C.faint }}>
+                        {row.monthly_fee_for ?? 'Flat fee'}, on the {nth}
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 16, color: C.text, fontVariantNumeric: 'tabular-nums' }}>
+                      {money(row.monthly_fee)}
+                    </div>
+                  </div>
+                )}
+                <div style={termRow}>
+                  <div style={{ fontSize: 13, color: C.dim }}>Platform use</div>
+                  <div style={{ fontSize: 16, color: row.platform_fee == null ? C.faint : C.text, fontVariantNumeric: 'tabular-nums' }}>
                     {row.platform_fee == null ? 'Not decided' : money(row.platform_fee)}
                   </div>
-                  {row.platform_fee == null && (
-                    <div style={{ fontSize: 11.5, color: C.faint, marginTop: 2 }}>On top of the above.</div>
-                  )}
                 </div>
                 {row.pay_by && (
-                  <div>
-                    <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 2 }}>They pay by</div>
-                    <div style={{ fontSize: 15, color: C.text, marginTop: 3 }}>{row.pay_by}</div>
+                  <div style={termRow}>
+                    <div style={{ fontSize: 13, color: C.dim }}>They pay by</div>
+                    <div style={{ fontSize: 14.5, color: C.text }}>{row.pay_by}</div>
                   </div>
                 )}
               </div>

@@ -340,11 +340,11 @@ export default function StoriesPage() {
     [claims]
   );
 
-  if (loading) return <Page title="Case studies"><Card><Empty>Loading…</Empty></Card></Page>;
+  if (loading) return <Page title="Case Studies"><Card><Empty>Loading…</Empty></Card></Page>;
 
   return (
     <Page
-      title="Case studies"
+      title="Case Studies"
       subtitle="Your past work, written up."
     >
       {unsourcedCount > 0 && (

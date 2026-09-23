@@ -566,7 +566,6 @@ export default function CustomersPage() {
             {
               label: 'Owed to you', value: money0(owing.reduce((a, r) => a + r.owed, 0)), icon: 'card',
               hint: owing.length ? `${owing.length} ${owing.length === 1 ? 'client' : 'clients'}` : 'Nobody owes you',
-              href: '/billing',
               tone: owing.length ? C.red : undefined,
             },
             {

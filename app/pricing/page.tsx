@@ -198,7 +198,7 @@ export default function PricingPage() {
 
   return (
     <Page
-      title="Price list"
+      title="Price List"
       subtitle={`What you charge.`}
       action={
         <>

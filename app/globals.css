@@ -4735,17 +4735,6 @@ input:focus, textarea:focus, select:focus {
   }
 }
 
-/*
-  The park control is only there when you are looking for it.
-
-  A permanent minus beside every nav row is fourteen pieces of chrome
-  competing with fourteen destinations. On hover it is discoverable; the rest
-  of the time the sidebar is a list of places.
-*/
-.navPark { opacity: 0; transition: opacity .12s ease; }
-.navRow:hover .navPark,
-.navPark:focus-visible { opacity: 1; }
-.navPark:hover { color: var(--nav-park-hover, #1A1A1A); }
 
 /* The card menu appears when you are looking at the card, the same way the
    sidebar's park control does. Permanent chrome on every card is a board you
@@ -4885,3 +4874,6 @@ input[type="date"] { cursor: pointer; }
 .rowBtnSkip:hover { border-color: #C2142A; color: #C2142A; background: #FDF0F1; }
 .rowBtn:focus-visible { outline: 2px solid #006AFF; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .rowBtn:active { transform: none; } }
+
+/* The first term has nothing above it to be divided from. */
+.termList > div:first-child { border-top: none !important; padding-top: 0 !important; }

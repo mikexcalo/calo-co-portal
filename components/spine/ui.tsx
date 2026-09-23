@@ -162,7 +162,7 @@ function PageTabs({ tabs }: { tabs: readonly PageTab[]; phone: boolean }) {
 export const SETUP_TABS: readonly PageTab[] = [
   { label: 'Settings', href: '/business', icon: 'business' },
   // Yours, the same way Access is theirs.
-  { label: 'What you see', href: '/what-you-see', icon: 'layers' },
+  { label: 'What You See', href: '/what-you-see', icon: 'layers' },
   // Was reachable only by typing the URL, which made inviting anybody a thing
   // you had to be told how to do.
   { label: 'Team', href: '/team', icon: 'people' },
@@ -212,7 +212,7 @@ export function clientTabs(kind: string | null | undefined): readonly PageTab[] 
 
 export const DIGITAL_TABS: readonly PageTab[] = [
   { label: 'Overview', href: '/digital', icon: 'globe' },
-  { label: 'Site requests', href: '/site-requests', icon: 'brief' },
+  { label: 'Site Requests', href: '/site-requests', icon: 'brief' },
   { label: 'Search', href: '/seo', icon: 'search' },
   { label: 'Traffic', href: '/traffic', icon: 'chart' },
   { label: 'Reviews', href: '/reviews', icon: 'star' },
@@ -273,7 +273,7 @@ export const BRAND_TABS: readonly PageTab[] = [
   { label: 'Brand', href: '/brand-kit', icon: 'swatches' },
   // Framework had no row and no tab once Brand pointed at the kit, which left
   // a whole module reachable only by typing the URL.
-  { label: 'Client brands', href: '/brands', icon: 'swatches' },
+  { label: 'Client Brands', href: '/brands', icon: 'swatches' },
   // What you claim, as opposed to how you sound. Its own tab because
   // everything you send is written out of it.
   { label: 'Messaging', href: '/messaging', icon: 'brief' },
@@ -313,7 +313,7 @@ export function brandTabs(id: string): readonly PageTab[] {
     { label: 'Framework', href: `/brands/${id}/messaging`, icon: 'layers' },
     // Was "Intel", which reads as a spy word and told you nothing about the
     // screen. It holds what the client gave us and what was read out of it.
-    { label: 'Source material', href: `/brands/${id}/intel`, icon: 'documents' },
+    { label: 'Source Material', href: `/brands/${id}/intel`, icon: 'documents' },
   ];
 }
 
@@ -961,8 +961,12 @@ export function Sheet({
  * strip that disappears when things are going well is a strip you cannot
  * learn the position of.
  *
- * A tile with an href is a button, because a figure you can act on should be
- * the thing you press.
+ * Only Home's tiles navigate, and that is deliberate. Home is a launcher: you
+ * open it to go somewhere. Everywhere else the tiles describe the screen you
+ * are already on, and sending somebody from Clients to Invoices is a sideways
+ * jump with no way back — the sidebar took them there, and nothing on the
+ * destination says where they came from. Worse, one tile out of four being
+ * pressable teaches that none of them are.
  */
 export interface TileItem {
   label: string;

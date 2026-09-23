@@ -37,6 +37,7 @@ import {
   type LogoVariant,
 } from '@/lib/spine/logos';
 import {
+  Select,
   Button,
   C,
   Card,
@@ -277,22 +278,27 @@ export default function BrandKitPage() {
         nothing else, and a dropdown offering one choice is furniture.
       */}
       {clientBrands.length > 0 && (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 20, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12.5, color: C.faint }}>Showing</span>
-          <select
+        /*
+          Three navigation controls stacked, on one screen.
+
+          A page tab strip, then a "Showing" dropdown, then a second tab strip,
+          before any brand appeared. Two of the three even overlapped: the page
+          strip offers Client Brands and this dropdown also switches to a
+          client's brand, so the same move had two controls eight pixels apart.
+
+          Whose brand you are looking at belongs beside the page title, not in
+          the body, and it is a Select like every other dropdown in the product
+          rather than a bare browser control.
+        */
+        <div style={{ maxWidth: 260, marginBottom: 18 }}>
+          <Select
             value={viewing}
-            onChange={(e) => { setViewing(e.target.value); setTab('brand'); }}
-            style={{
-              fontSize: 14, padding: '7px 11px', borderRadius: 8,
-              border: `1px solid ${C.border}`, background: C.panel, color: C.text,
-              fontFamily: 'inherit', cursor: 'pointer',
-            }}
-          >
-            <option value="">{org?.name ?? 'Your brand'}, yours</option>
-            {clientBrands.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
+            onChange={(v) => { setViewing(v); setTab('brand'); }}
+            options={[
+              { value: '', label: `${org?.name ?? 'Your brand'}, yours` },
+              ...clientBrands.map((b) => ({ value: b.id, label: b.name })),
+            ]}
+          />
         </div>
       )}
       {error && (
@@ -308,10 +314,10 @@ export default function BrandKitPage() {
         onChange={(id) => setTab(id as Tab)}
         style={{ marginBottom: 22 }}
         items={[
-          { id: 'brand', label: 'Colors & type', icon: 'star' },
+          { id: 'brand', label: 'Colors & Type', icon: 'star' },
           { id: 'logos', label: 'Logos', icon: 'swatches' },
-          { id: 'qr', label: 'QR codes', icon: 'card' },
-          { id: 'signature', label: 'Email signature', icon: 'mail' },
+          { id: 'qr', label: 'QR Codes', icon: 'card' },
+          { id: 'signature', label: 'Email Signature', icon: 'mail' },
         ]}
       />
 

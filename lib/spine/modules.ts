@@ -353,12 +353,19 @@ export const MODULE_KIND: Record<ModuleId, ModuleKind> = {
   reviews: 'capability',
 };
 
-/** Human names for every module, so a switchboard is readable. */
+/**
+ * Human names for every module, in Title Case.
+ *
+ * Half of these were sentence case and half were single words, so a sidebar of
+ * eighteen rows read "Price list" under "Invoices" next to "Case studies" —
+ * the same kind of thing, capitalised three different ways down one column.
+ * Every one of them is the name of a place, and names take capitals.
+ */
 export const MODULE_LABEL: Record<ModuleId, string> = {
-  feedback: 'Tell us',
+  feedback: 'Tell Us',
   routes: 'Route',
   inbox: 'Drops',
-  jobs: 'Jobs and engagements',
+  jobs: 'Jobs and Engagements',
   customers: 'Clients',
   people: 'People',
   traffic: 'Traffic',
@@ -367,26 +374,26 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   pitches: 'Pitches',
   proposals: 'Proposals',
   billing: 'Invoices',
-  pl: 'Profit and loss',
+  pl: 'Profit and Loss',
   expenses: 'Overheads',
-  pricing: 'Price list',
+  pricing: 'Price List',
   records: 'Records',
   brand_kit: 'Brand',
-  brands: 'Client brands',
-  stories: 'Case studies',
+  brands: 'Client Brands',
+  stories: 'Case Studies',
   ask: 'Ask',
   reviews: 'Reviews',
   seo: 'Digital',
   targets: 'Pipeline',
-  catalog: 'What they sell',
+  catalog: 'What They Sell',
   market: 'Market',
   client_requests: 'Requests',
-  website: 'Site requests',
+  website: 'Site Requests',
   learn: 'Learn',
   team: 'Team',
   security: 'Security',
   business: 'Settings',
-  account: 'Bills to you',
+  account: 'Bills to You',
 };
 
 export function planAllows(org: Org | null, feature: Feature): boolean {

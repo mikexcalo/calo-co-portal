@@ -18,6 +18,7 @@ import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import {
+  Tiles,
   Button,
   C,
   Card,
@@ -382,22 +383,21 @@ export default function ExpensesPage() {
         </Card>
       ) : (
         <>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-              gap: 12,
-              marginBottom: 24,
-            }}
-          >
-            <Metric
-              label="Every month"
-              value={money0(monthly)}
-              hint="Recurring costs, normalized"
-            />
-            <Metric label="Every year" value={money0(monthly * 12)} hint="The same, annually" />
-            <Metric label="Subscriptions" value={String(subs)} hint="Costs that repeat" />
-          </div>
+          {/* The same strip as every other screen. "Recurring costs,
+              normalized" is a sentence from an accounting textbook: the number
+              is what the monthly ones add up to, and saying so takes four
+              words. */}
+          <Tiles
+            items={[
+              {
+                label: 'Every month', value: money0(monthly), icon: 'card',
+                hint: subs ? `${subs} thing${subs === 1 ? '' : 's'} that renew` : 'Nothing renewing',
+                tone: monthly > 0 ? C.amber : undefined,
+              },
+              { label: 'Every year', value: money0(monthly * 12), icon: 'chart', hint: 'The same, over twelve months' },
+              { label: 'One-offs', value: money0(oneOffTotal), icon: 'receipt', hint: 'Not in the monthly figure' },
+            ]}
+          />
 
           <SectionLabel>Recorded</SectionLabel>
           <Table>
@@ -410,9 +410,26 @@ export default function ExpensesPage() {
             </Row>
             {rows.map((r) => (
               <Row key={r.id} cols="1fr 110px 110px 110px 70px" labels={['Expense', 'How often', 'Amount', 'Per month', '']}>
-                <div>
+                <div style={{ minWidth: 0 }}>
                   <div style={{ fontWeight: 500 }}>{r.vendor}</div>
-                  <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2 }}>
+                  {/*
+                    One line, clipped.
+
+                    A receipt's description is whatever was typed into it, and
+                    what was typed here was "Vercel Pro — hosting for the
+                    platform and client sites. $20/mo, includes $20 usage
+                    credit. Billing cycle starts 22nd." — a paragraph, wrapping
+                    across the width of the table and pushing the pill and both
+                    figures out of line with every other row. The whole row is
+                    hoverable for the rest of it.
+                  */}
+                  <div
+                    title={`${r.description || 'No description'} · from ${shortDate(r.purchased_on)}`}
+                    style={{
+                      fontSize: 12.5, color: C.faint, marginTop: 2,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}
+                  >
                     {r.description || 'No description'} · from {shortDate(r.purchased_on)}
                   </div>
                 </div>
@@ -423,22 +440,30 @@ export default function ExpensesPage() {
                 </div>
                 <div>{money(r.amount)}</div>
                 <div style={{ color: C.dim }}>
-                  {r.recurrence === 'once' ? ', ' : money(perMonth(r.amount, r.recurrence))}
+                  {/* A one-off has no monthly figure, and the placeholder for
+                      that was a bare comma — the fourth survivor of an em dash
+                      sweep that replaced them all with ", ". */}
+                  {r.recurrence === 'once' ? '–' : money(perMonth(r.amount, r.recurrence))}
                 </div>
                 <div>
-                  <Button variant="danger" onClick={() => setConfirmDelete(r)}>
-                    Delete
-                  </Button>
+                  {/* A full red Delete on every row makes the loudest thing in
+                      the table the one act you almost never want. */}
+                  <button
+                    onClick={() => setConfirmDelete(r)}
+                    className="rowBtn rowBtnSkip"
+                    title={`Delete ${r.vendor}`}
+                    aria-label={`Delete ${r.vendor}`}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+                      <path d="M4 4l8 8M12 4l-8 8" />
+                    </svg>
+                  </button>
                 </div>
               </Row>
             ))}
           </Table>
 
-          {oneOffTotal > 0 && (
-            <div style={{ fontSize: 13, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
-              Plus {money(oneOffTotal)} in one-off costs, which the monthly figure above excludes.
-            </div>
-          )}
+          {/* The One-offs tile above says this with a number. */}
         </>
       )}
 
