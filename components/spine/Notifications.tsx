@@ -138,6 +138,19 @@ export function Notifications() {
         // Only unanswered. Saying "working on it" is an answer, and a bell
         // that keeps ringing after you have replied is a bell you turn off.
         .eq('status', 'open')
+        /*
+          And only unread.
+
+          Dismissing one of these wrote to localStorage, which is a record of
+          what this browser has seen rather than what you have. So Marcie's
+          note came back on every other device, after every cache clear, and
+          on a list capped at two hundred entries — eight days of a bell for
+          something already settled with her by message.
+
+          read_at is on the row now, so reading it is a fact about the message
+          rather than about a browser.
+        */
+        .is('read_at', null)
         .order('created_at', { ascending: false })
         .limit(15),
     ]);
@@ -206,7 +219,14 @@ export function Notifications() {
   const markAllRead = async () => {
     // Requests are excluded: they are outstanding work, and dismissing them
     // would be the product pretending something was handled.
-    unread.filter((i) => i.id.startsWith('fb-')).forEach((i) => dismiss(i.id));
+    const fb = unread.filter((i) => i.id.startsWith('fb-'));
+    fb.forEach((i) => dismiss(i.id));
+    if (fb.length) {
+      await supabase
+        .from('feedback')
+        .update({ read_at: new Date().toISOString() })
+        .in('id', fb.map((i) => i.id.slice(3)));
+    }
     const dismissible = unread.filter((i) => !i.id.startsWith('req-') && !i.id.startsWith('fb-'));
     if (!dismissible.length) return;
     const ids = dismissible.map((i) => i.id);
@@ -244,6 +264,11 @@ export function Notifications() {
      */
     if (n.id.startsWith('fb-')) {
       dismiss(n.id);
+      /* Durably, not just in this browser. */
+      await supabase
+        .from('feedback')
+        .update({ read_at: new Date().toISOString() })
+        .eq('id', n.id.slice(3));
       if (n.orgId) await switchOrg(n.orgId);
       router.push('/');
       router.refresh();

@@ -1,5 +1,7 @@
 'use client';
 
+import type { CSSProperties } from 'react';
+
 /**
  * The things you owe the platform, with the steps.
  *
@@ -60,6 +62,11 @@ function StepText({ text }: { text: string }) {
   );
 }
 
+const rowBtn: CSSProperties = {
+  background: 'transparent', border: 'none', padding: '2px 4px',
+  color: '#8A949E', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+};
+
 export function YourSetup() {
   const { org } = useOrg();
   const { effectiveRole } = useViewAs();
@@ -97,6 +104,14 @@ export function YourSetup() {
     happened to fit. A thing worth calling urgent and then hiding behind a
     click is not being called urgent, it is being counted.
   */
+  /*
+    Open when something is urgent, and closable either way.
+
+    First attempt at surfacing the urgent one overrode the collapsed render
+    instead of the default, so Hide became a button that set a flag nothing
+    read. Pressing it did nothing, which is worse than not having it. The
+    urgency decides how it STARTS; the button still decides the rest.
+  */
   const [showAll, setShowAll] = useState(false);
 
   const load = useCallback(async () => {
@@ -113,6 +128,26 @@ export function YourSetup() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  /*
+    Open on arrival when something is urgent, and closable after that.
+
+    Urgency decides how the list STARTS. It must not decide whether Hide
+    works: the first attempt overrode the collapsed branch of the render
+    instead of the default, so pressing Hide set a flag nothing read and the
+    button did nothing, which is worse than not having one.
+  */
+  const anyUrgent = loaded && org
+    ? SETUP_ITEMS.some(
+        (i) =>
+          i.urgent &&
+          (!i.appliesTo || i.appliesTo === org.kind) &&
+          (!i.onlyOrg || i.onlyOrg === org.slug) &&
+          (state[i.key] ?? 'todo') !== 'done' &&
+          state[i.key] !== 'skipped'
+      )
+    : false;
+  useEffect(() => { if (anyUrgent) setShowAll(true); }, [anyUrgent]);
 
   const set = async (key: string, status: Status) => {
     if (!org) return;
@@ -164,7 +199,7 @@ export function YourSetup() {
 
   if (items.length === 0) return null;
 
-  if (!showAll && !items.some((i) => i.urgent)) {
+  if (!showAll) {
     return (
       <div style={{ marginBottom: 26 }}>
         <button
@@ -238,6 +273,30 @@ export function YourSetup() {
                   </span>
                 )}
                 <span style={{ fontSize: 12, color: C.blue }}>{isOpen ? 'Hide' : 'How'}</span>
+                {/*
+                  Done and Not doing, on the row.
+
+                  They existed, at the bottom of the How panel, under the
+                  steps — so getting rid of a task you were never going to do
+                  meant opening the instructions for it first and reading past
+                  them. A list you cannot clear is not a list, it is a wall,
+                  and the one on this screen has "retire mikecalo.co" on it for
+                  a domain that lapses on its own in four days.
+                */}
+                <button
+                  onClick={(e) => { e.stopPropagation(); set(i.key, 'done'); }}
+                  title="Mark done"
+                  style={rowBtn}
+                >
+                  Done
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); set(i.key, 'skipped'); }}
+                  title="Take it off the list"
+                  style={rowBtn}
+                >
+                  Not doing
+                </button>
               </div>
 
               {/*
