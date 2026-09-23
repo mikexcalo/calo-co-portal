@@ -31,6 +31,7 @@ import {
   Page,
   Pill,
   Row,
+  Select,
   Sheet,
   Table,
   money,
@@ -309,6 +310,16 @@ export default function BillingPage() {
               autoFocus
               style={{ ...inputStyle, fontSize: 18 }}
             />
+            {/* The other half of the same fact, asked here rather than by a
+                dropdown that threw its own answer away. */}
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontSize: 12.5, color: C.dim, marginBottom: 5 }}>How it arrived</div>
+              <Select
+                value={takingPayment.via}
+                onChange={(via) => setTakingPayment({ ...takingPayment, via })}
+                options={METHODS.map((m) => ({ value: m.id, label: m.label }))}
+              />
+            </div>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 16 }}>
               <Button
                 disabled={busy || !(Number(takingPayment.amount) > 0)}
@@ -635,39 +646,33 @@ export default function BillingPage() {
                             Approved, goes out {shortDate(inv.send_on)}
                           </span>
                         )}
+                        {/*
+                          One question at a time, in one place.
+
+                          This was a select acting as a menu: you picked a
+                          payment method from a dropdown, it reset itself, and
+                          then a panel opened asking how much. So the two
+                          halves of one fact — how much arrived and how it
+                          arrived — were collected by two different controls,
+                          and the dropdown's own value was thrown away the
+                          moment you used it. A select whose value is never
+                          read is not a select.
+
+                          It is a button, and the panel asks both.
+                        */}
                         {['sent', 'partial', 'overdue'].includes(inv.status) && (
-                          <select
-                            defaultValue=""
+                          <Button
                             disabled={busy}
-                            /*
-                              How much arrived, not just that something did.
-
-                              This wrote amount_paid = total whatever actually
-                              landed, so a customer paying $60 of $100 left a
-                              choice between calling it paid and pretending
-                              nothing came. The missing $40 was invisible: not
-                              overdue, nothing chasing it, and quietly inflating
-                              what Mike thought he was owed.
-
-                              It asks. The full amount is offered, because that
-                              is what usually arrives and nobody should have to
-                              type it, and the status works itself out from the
-                              number.
-                            */
-                            onChange={(e) => {
-                              const via = e.target.value;
-                              if (!via) return;
-                              const owedNow = inv.total - inv.amount_paid;
-                              setTakingPayment({ inv, via, amount: owedNow.toFixed(2) });
-                              e.target.value = '';
-                            }}
-                            style={{ ...inputStyle, width: 'auto', padding: '8px 10px' }}
+                            onClick={() =>
+                              setTakingPayment({
+                                inv,
+                                via: METHODS[0]?.id ?? '',
+                                amount: (inv.total - inv.amount_paid).toFixed(2),
+                              })
+                            }
                           >
-                            <option value="">Mark paid by…</option>
-                            {METHODS.map((m) => (
-                              <option key={m.id} value={m.id}>{m.label}</option>
-                            ))}
-                          </select>
+                            Record a payment
+                          </Button>
                         )}
                         <Button variant="ghost" disabled={busy} onClick={() => preview(inv)}>
                           Preview

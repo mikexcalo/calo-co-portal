@@ -24,6 +24,7 @@ import { BulkAction, BulkBar, RecordTable, type Column } from '@/components/spin
 import { SavedViews, type View } from '@/components/spine/SavedViews';
 import { ClientIntake } from '@/components/spine/ClientIntake';
 import {
+  Select,
   Avatar,
   Button,
   C,
@@ -618,17 +619,15 @@ export default function CustomersPage() {
         {/* Only appears once there is more than one brand to choose between.
             A filter with a single option is furniture. */}
         {brands.length > 1 && (
-          <select
+          <Select
             value={brandFilter}
-            onChange={(e) => setBrandFilter(e.target.value)}
-            aria-label="Filter by brand"
-            style={{ ...inputStyle, maxWidth: 190, background: C.panel, fontSize: 13.5 }}
-          >
-            <option value="all">All brands</option>
-            {brands.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
+            onChange={setBrandFilter}
+            style={{ maxWidth: 190 }}
+            options={[
+              { value: 'all', label: 'All brands' },
+              ...brands.map((b) => ({ value: b.id, label: b.name })),
+            ]}
+          />
         )}
         </>
         )}

@@ -43,6 +43,7 @@ import { ExtractionReview, type ReviewResult } from '@/components/spine/Extracti
 import { Confirm } from '@/components/spine/Confirm';
 import { DropZone } from '@/components/spine/DropZone';
 import {
+  Select,
   Button,
   C,
   Card,
@@ -496,16 +497,13 @@ function DocCard({
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flexWrap: 'wrap' }}>
           <Button variant="ghost" onClick={onView}>View</Button>
-          <select
+          <Select
             value={jobId}
-            onChange={(e) => setJobId(e.target.value)}
-            style={{ ...inputStyle, width: 180, padding: '7px 10px' }}
-          >
-            <option value="">File to…</option>
-            {jobs.map((j) => (
-              <option key={j.id} value={j.id}>{j.name}</option>
-            ))}
-          </select>
+            onChange={setJobId}
+            placeholder="File to…"
+            style={{ width: 180 }}
+            options={jobs.map((j) => ({ value: j.id, label: j.name }))}
+          />
           <Button
             onClick={() => onFile(jobId)}
             disabled={!jobId || busy || ex?.amount == null}

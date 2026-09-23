@@ -16,6 +16,7 @@ import { useOrg } from '@/lib/spine/org';
 import { planAllows } from '@/lib/spine/modules';
 import type { JobWithCustomer, LineKind } from '@/lib/spine/types';
 import {
+  Sheet,
   Button,
   C,
   Card,
@@ -55,6 +56,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [job, setJob] = useState<JobWithCustomer | null>(null);
   const [lines, setLines] = useState<DraftLine[]>([blank('labor')]);
+  const [picking, setPicking] = useState(false);
   const [notes, setNotes] = useState('');
   const [scopeIn, setScopeIn] = useState('');
   const [scopeOut, setScopeOut] = useState('');
@@ -326,19 +328,21 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
         ))}
 
         <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+          {/*
+            Adding a line from the price list is the same act as + Labor and
+            + Material, and it was the one of the three that looked like a
+            form field. It was also a select whose value is an instruction
+            rather than an answer: it fired and then reset itself, which is a
+            menu wearing a dropdown.
+
+            A list you pick from also has to survive a long price list, and a
+            native select of two hundred items is a scroll with no search in
+            it. This opens a panel, which has room for one later.
+          */}
           {catalog.length > 0 && (
-            <select
-              value=""
-              onChange={(e) => { addFromCatalog(e.target.value); e.target.value = ''; }}
-              style={{ ...inputStyle, width: 'auto', minWidth: 200, padding: '8px 10px' }}
-            >
-              <option value="">Add from price list…</option>
-              {catalog.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}, {c.unit_price.toFixed(2)}{c.unit ? `/${c.unit}` : ''}
-                </option>
-              ))}
-            </select>
+            <Button variant="ghost" onClick={() => setPicking(true)}>
+              + From price list
+            </Button>
           )}
           <Button variant="ghost" onClick={() => setLines((p) => [...p, blank('labor')])}>
             + Labor
@@ -419,6 +423,30 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
           {busy ? 'Saving…' : `Save ${vocab.estimate.toLowerCase()}`}
         </Button>
       </div>
+      {picking && (
+        <Sheet title="Add from price list" onClose={() => setPicking(false)} width={420}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {catalog.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => { addFromCatalog(c.id); setPicking(false); }}
+                style={{
+                  display: 'flex', justifyContent: 'space-between', gap: 14,
+                  background: 'transparent', border: 'none', borderRadius: 7,
+                  padding: '9px 10px', cursor: 'pointer', fontFamily: 'inherit',
+                  fontSize: 14, color: C.text, textAlign: 'left', width: '100%',
+                }}
+              >
+                <span>{c.name}</span>
+                <span style={{ color: C.faint, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                  {c.unit_price.toFixed(2)}{c.unit ? `/${c.unit}` : ''}
+                </span>
+              </button>
+            ))}
+          </div>
+        </Sheet>
+      )}
+
     </Page>
   );
 }

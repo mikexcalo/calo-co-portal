@@ -23,6 +23,7 @@ import { getCurrentOrg, getDocumentUrl } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import { Confirm } from '@/components/spine/Confirm';
 import {
+  Select,
   Button,
   C,
   Card,
@@ -351,15 +352,11 @@ export default function FilesPage() {
                       style={inputStyle}
                       placeholder="What is it?"
                     />
-                    <select
+                    <Select
                       value={item.category}
-                      onChange={(e) => setStaged((p) => p.map((x, j) => j === i ? { ...x, category: e.target.value } : x))}
-                      style={inputStyle}
-                    >
-                      {CATEGORIES.map((c) => (
-                        <option key={c.id} value={c.id}>{c.label}</option>
-                      ))}
-                    </select>
+                      onChange={(v) => setStaged((p) => p.map((x, j) => j === i ? { ...x, category: v } : x))}
+                      options={CATEGORIES.map((c) => ({ value: c.id, label: c.label }))}
+                    />
                     <input
                       type="date"
                       value={item.expires_on}
