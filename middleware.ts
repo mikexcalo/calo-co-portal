@@ -147,6 +147,20 @@ export async function middleware(request: NextRequest) {
   return supabaseResponse;
 }
 
+/*
+  A public document can only call a public endpoint.
+
+  /e/[token] posts to two routes: decide, which was on this list, and note,
+  which was not. So "Ask about this" on a proposal returned a 307 to the login
+  page for every client who tried it — which is every client, because a
+  proposal is read without an account. It has never worked.
+
+  Both are gated the same way, on the document's own token, which is the same
+  credential that let them read it in the first place. Anything /e or /i calls
+  belongs here; this is the second time a missing entry has silently broken a
+  client-facing feature, the first being the auth routes that stopped anybody
+  resetting a password.
+*/
 export const config = {
   matcher: [
     /*
@@ -203,6 +217,6 @@ export const config = {
      * on a public page cannot carry a session, so auth would 307 both the
      * script and every event it tries to send to /login.
      */
-    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/public/|api/calendar/|api/stripe/webhook|q/|p/|e/|i/|s/|r/|new/|api/enquiry|t\\.js|api/track|api/preview/|api/card/|api/version|api/cron/|reset|auth/|c/).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/estimates/note|api/public/|api/calendar/|api/stripe/webhook|q/|p/|e/|i/|s/|r/|new/|api/enquiry|t\\.js|api/track|api/preview/|api/card/|api/version|api/cron/|reset|auth/|c/).*)',
   ],
 };

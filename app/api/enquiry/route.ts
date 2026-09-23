@@ -8,11 +8,27 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { callerIp, overLimit } from '@/lib/spine/ratelimit';
 import { createClient } from '@supabase/supabase-js';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
+  /*
+    Five a minute from one address.
+
+    A real person filling in a form on a website sends one. Five leaves room
+    for a mistyped email and a retry, and a corrected phone number after that.
+    Anything past it is not somebody trying to get in touch.
+  */
+  const wait = overLimit(`enquiry:${callerIp(req.headers)}`, { max: 5, windowSec: 60 });
+  if (wait) {
+    return NextResponse.json(
+      { error: 'Too many messages just now. Try again in a minute.' },
+      { status: 429, headers: { 'Retry-After': String(wait) } }
+    );
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anon) return NextResponse.json({ error: 'Not configured.' }, { status: 500 });

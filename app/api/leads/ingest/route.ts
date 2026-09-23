@@ -18,6 +18,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { callerIp, overLimit } from '@/lib/spine/ratelimit';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { PRODUCT } from '@/lib/brand';
@@ -92,6 +93,21 @@ export async function OPTIONS() {
 }
 
 export async function POST(req: NextRequest) {
+  /*
+    Five a minute from one address.
+
+    A real person filling in a form on a website sends one. Five leaves room
+    for a mistyped email and a retry, and a corrected phone number after that.
+    Anything past it is not somebody trying to get in touch.
+  */
+  const wait = overLimit(`lead:${callerIp(req.headers)}`, { max: 5, windowSec: 60 });
+  if (wait) {
+    return NextResponse.json(
+      { error: 'Too many messages just now. Try again in a minute.' },
+      { status: 429, headers: { 'Retry-After': String(wait) } }
+    );
+  }
+
   try {
     const body = await req.json();
     const {
