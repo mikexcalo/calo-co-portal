@@ -21,6 +21,7 @@ import { useOrg } from '@/lib/spine/org';
 import type { JobInvoice, TimeEntry } from '@/lib/spine/types';
 import { INVOICE_STATUS_LABEL } from '@/lib/spine/types';
 import {
+  Tiles,
   Button,
   C,
   Card,
@@ -98,10 +99,23 @@ export default function AccountPage() {
               .select('*')
               .in('job_id', jobIds)
               .order('worked_on', { ascending: false }),
+            /*
+              A draft is not a bill, and this is the client's side.
+
+              There was no status filter, so every invoice came through
+              including drafts and voids. John would have opened this and found
+              GSEA-001 sitting there at a figure still being negotiated —
+              retroactive pricing that has not been agreed, presented to him as
+              something he owes.
+
+              A client sees what was sent to them. What is still being written
+              is not theirs to see, and a voided one never happened.
+            */
             supabase
               .from('job_invoices')
               .select('*')
               .in('job_id', jobIds)
+              .in('status', ['sent', 'partial', 'overdue', 'paid'])
               .order('issued_on', { ascending: false }),
           ]);
           if (!t.error) {
@@ -185,18 +199,25 @@ export default function AccountPage() {
         </Card>
       ) : (
         <>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-              gap: 12,
-              marginBottom: 26,
-            }}
-          >
-            <Metric label="Outstanding" value={money0(totalOwed)} tone={totalOwed > 0 ? 'amber' : undefined} hint="Invoiced, not yet paid" />
-            <Metric label="Accruing" value={money0(totalAccruing)} hint="Logged, not yet invoiced" />
-            <Metric label="Hours logged" value={fmtHours(totalHours)} hint="All time" />
-          </div>
+          {/* The same strip as every other screen, so a client reading their
+              own workspace is not reading a different product. */}
+          <Tiles
+            items={[
+              {
+                label: 'Outstanding', value: money0(totalOwed), icon: 'card',
+                hint: totalOwed > 0 ? 'Invoiced, not yet paid' : 'Nothing due',
+                tone: totalOwed > 0 ? C.amber : undefined,
+              },
+              {
+                label: 'Accruing', value: money0(totalAccruing), icon: 'work',
+                hint: 'Work done, not yet invoiced',
+              },
+              {
+                label: 'Hours logged', value: fmtHours(totalHours), icon: 'activity',
+                hint: 'All time',
+              },
+            ]}
+          />
 
           {rows.map((r) => (
             <div key={r.job_id} style={{ marginBottom: 10 }}>
