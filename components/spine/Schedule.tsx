@@ -14,7 +14,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
-import { Button, C, Card, Empty, Pill, SectionLabel, inputStyle, shortDate } from './ui';
+import { Select, Button, C, Card, Empty, Pill, SectionLabel, inputStyle, shortDate } from './ui';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 
@@ -143,23 +143,21 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
             {/* Free text on purpose: the drywall crew has no login and never
                 will, and demanding an account before a name can be written
                 down is how a schedule ends up half filled in. */}
-            <select
+            <Select
               value={draft.owner}
-              onChange={(e) => setDraft({ ...draft, owner: e.target.value })}
-              style={inputStyle}
-            >
-              <option value="us">On us</option>
-              <option value="client">On the client</option>
-              <option value="third_party">Someone else</option>
-            </select>
-            <select
+              onChange={(v) => setDraft({ ...draft, owner: v })}
+              options={[
+                { value: 'us', label: 'On us' },
+                { value: 'client', label: 'On the client' },
+                { value: 'third_party', label: 'Someone else' },
+              ]}
+            />
+            <Select
               value={draft.depends_on}
-              onChange={(e) => setDraft({ ...draft, depends_on: e.target.value })}
-              style={inputStyle}
-            >
-              <option value="">Starts on its own</option>
-              {rows.map((r) => <option key={r.id} value={r.id}>After {r.name}</option>)}
-            </select>
+              onChange={(v) => setDraft({ ...draft, depends_on: v })}
+              placeholder="Starts on its own"
+              options={rows.map((r) => ({ value: r.id, label: `After ${r.name}` }))}
+            />
           </div>
           <div style={{ marginTop: 10 }}>
             <Button onClick={add} disabled={busy || !draft.name.trim()}>
@@ -209,15 +207,14 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
                     }}
                   />
 
-                  <select
+                  <Select
                     value={t.status}
-                    onChange={(e) => patch(t, { status: e.target.value as Task['status'] })}
-                    style={{ ...inputStyle, width: 132, fontSize: 13, padding: '5px 8px' }}
-                  >
-                    {(Object.keys(STATUS) as Task['status'][]).map((k) => (
-                      <option key={k} value={k}>{STATUS[k].label}</option>
-                    ))}
-                  </select>
+                    onChange={(v) => patch(t, { status: v as Task['status'] })}
+                    style={{ width: 132 }}
+                    options={(Object.keys(STATUS) as Task['status'][]).map((k) => ({
+                      value: k, label: STATUS[k].label,
+                    }))}
+                  />
 
                   {/* Not ours reads differently: the date still matters, but
                       chasing it is a conversation rather than a task. */}

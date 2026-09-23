@@ -18,7 +18,7 @@ import supabase from '@/lib/supabase';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { createEstimate } from '@/lib/spine/db';
-import { Button, C, Card, SectionLabel, inputStyle, Field } from './ui';
+import { Select, Button, C, Card, SectionLabel, inputStyle, Field } from './ui';
 
 interface Contact { name: string; title: string; email: string; phone: string }
 interface Price { name: string; unit: string; price: string }
@@ -653,13 +653,17 @@ export function ClientIntake({
                 <input value={paidOn} onChange={(e) => setPaidOn(e.target.value)} type="date" style={inputStyle} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8, marginTop: 8 }}>
-                <select value={costKind} onChange={(e) => setCostKind(e.target.value)} style={inputStyle}>
-                  <option value="material">Materials</option>
-                  <option value="subcontractor">Subcontractor</option>
-                  <option value="equipment">Equipment</option>
-                  <option value="permit">Permit or license</option>
-                  <option value="other">Something else</option>
-                </select>
+                <Select
+                  value={costKind}
+                  onChange={setCostKind}
+                  options={[
+                    { value: 'material', label: 'Materials' },
+                    { value: 'subcontractor', label: 'Subcontractor' },
+                    { value: 'equipment', label: 'Equipment' },
+                    { value: 'permit', label: 'Permit or license' },
+                    { value: 'other', label: 'Something else' },
+                  ]}
+                />
                 <select value={costJob} onChange={(e) => setCostJob(e.target.value)} style={inputStyle}>
                   <option value="">Overhead, no job</option>
                   {jobs.map((j) => (

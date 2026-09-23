@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { createCustomer, createJob, getCurrentOrg, listCustomers } from '@/lib/spine/db';
 import type { BillingType, Consideration, Customer, JobStatus } from '@/lib/spine/types';
 import { CONSIDERATION_LABEL, JOB_STATUS_LABEL } from '@/lib/spine/types';
-import { Button, C, Card, Field, Page, inputStyle, useIsPhone } from '@/components/spine/ui';
+import {
+  Select, Button, C, Card, Field, Page, inputStyle, useIsPhone } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 
 export default function NewJobPage() {
@@ -92,16 +93,15 @@ export default function NewJobPage() {
         </Field>
 
         <Field label="Customer">
-          <select
+          {/* The blank option read ",  New customer , " — another survivor of
+              the em dash sweep, where the dashes either side of the label
+              became commas. */}
+          <Select
             value={customerId}
-            onChange={(e) => setCustomerId(e.target.value)}
-            style={inputStyle}
-          >
-            <option value="">,  New customer , </option>
-            {customers.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+            onChange={setCustomerId}
+            placeholder="New customer"
+            options={customers.map((c) => ({ value: c.id, label: c.name }))}
+          />
         </Field>
 
         {!customerId && (
@@ -126,27 +126,25 @@ export default function NewJobPage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: phone ? '1fr' : '1fr 1fr', gap: 12 }}>
           <Field label="Stage">
-            <select
+            <Select
               value={status}
-              onChange={(e) => setStatus(e.target.value as JobStatus)}
-              style={inputStyle}
-            >
-              {(['lead', 'estimating', 'won', 'active'] as JobStatus[]).map((s) => (
-                <option key={s} value={s}>{JOB_STATUS_LABEL[s]}</option>
-              ))}
-            </select>
+              onChange={(v) => setStatus(v as JobStatus)}
+              options={(['lead', 'estimating', 'won', 'active'] as JobStatus[]).map((s) => ({
+                value: s, label: JOB_STATUS_LABEL[s],
+              }))}
+            />
           </Field>
 
           <Field label="Billing">
-            <select
+            <Select
               value={billingType}
-              onChange={(e) => setBillingType(e.target.value as BillingType)}
-              style={inputStyle}
-            >
-              <option value="tm">Time &amp; materials</option>
-              <option value="fixed">Fixed price</option>
-              <option value="retainer">Monthly retainer</option>
-            </select>
+              onChange={(v) => setBillingType(v as BillingType)}
+              options={[
+                { value: 'tm', label: 'Time & materials' },
+                { value: 'fixed', label: 'Fixed price' },
+                { value: 'retainer', label: 'Monthly retainer' },
+              ]}
+            />
           </Field>
         </div>
 
@@ -177,15 +175,13 @@ export default function NewJobPage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 }}>
           <Field label="Paid in">
-            <select
+            <Select
               value={consideration}
-              onChange={(e) => setConsideration(e.target.value as Consideration)}
-              style={inputStyle}
-            >
-              {(Object.keys(CONSIDERATION_LABEL) as Consideration[]).map((k) => (
-                <option key={k} value={k}>{CONSIDERATION_LABEL[k]}</option>
-              ))}
-            </select>
+              onChange={(v) => setConsideration(v as Consideration)}
+              options={(Object.keys(CONSIDERATION_LABEL) as Consideration[]).map((k) => ({
+                value: k, label: CONSIDERATION_LABEL[k],
+              }))}
+            />
           </Field>
           {consideration !== 'cash' && (
             <Field label="On what terms">
