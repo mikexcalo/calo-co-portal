@@ -558,12 +558,29 @@ export default function Dashboard() {
       done: docs.length > 0,
       href: '/documents',
     },
+    /*
+      A rep does not have prices, and does not file receipts against a job.
+
+      John opened his own workspace and was offered "Add your prices", "Add a
+      receipt" and "Add a job" — a builder's first week, on a business that
+      sells other people's seafood for a commission. The module filter below
+      already hides rows he does not have, and a rep has neither pricing nor
+      receipts, so those two drop out on their own. What he needs instead is
+      the principal and their line card, which nothing offered.
+    */
     {
       module: 'pricing',
       label: 'Add your prices',
       why: 'What you sell, and what it costs.',
       done: false,
       href: '/pricing',
+    },
+    {
+      module: 'catalog',
+      label: 'Load a line card',
+      why: `What a ${vocab.customer.toLowerCase()} sells, and what it earns you.`,
+      done: false,
+      href: '/customers',
     },
     {
       module: 'billing',

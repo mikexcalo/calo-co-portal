@@ -82,6 +82,8 @@ export default function ProfitLossPage() {
   const taxPct = org?.tax_set_aside_pct ?? null;
 
   const [ledger, setLedger] = useState<JobLedger[]>([]);
+  const [clients, setClients] = useState<Record<string, string>>({});
+  const clientName = (id: string | null) => (id ? clients[id] : null);
   const [invoices, setInvoices] = useState<JobInvoice[]>([]);
   const [period, setPeriod] = useState<Period>('ytd');
   const [loading, setLoading] = useState(true);
@@ -116,12 +118,17 @@ export default function ProfitLossPage() {
   useEffect(() => {
     (async () => {
       try {
-        const [l, inv, rec, oh] = await Promise.all([
+        const orgId = await orgNow();
+        const [l, inv, rec, oh, cu] = await Promise.all([
           listJobLedger(),
           listInvoices(),
-          supabase.from('recovery_metrics').select('*').eq('org_id', await orgNow()),
+          supabase.from('recovery_metrics').select('*').eq('org_id', orgId),
           supabase.from('costs').select('amount, purchased_on, recurrence').is('job_id', null),
+          supabase.from('customers').select('id, name').eq('org_id', orgId),
         ]);
+        if (cu.data) {
+          setClients(Object.fromEntries((cu.data as Array<{ id: string; name: string }>).map((c) => [c.id, c.name])));
+        }
 
         if (!oh.error && oh.data) setOverheads(oh.data as Overhead[]);
 
@@ -523,8 +530,12 @@ export default function ProfitLossPage() {
             </Card>
           ) : (
             <Table>
-              <Row cols="1fr 110px 110px 110px 110px" header>
+              {/* Two projects called "Platform Access & Ongoing Development",
+                  one above the other, with nothing saying whose. A project
+                  name is only unique inside a client. */}
+              <Row cols="1fr 150px 110px 110px 110px 110px" header>
                 <div>{vocab.job}</div>
+                <div>{vocab.customer}</div>
                 <div>Invoiced</div>
                 <div>Costs</div>
                 <div>Unbilled</div>
@@ -535,7 +546,7 @@ export default function ProfitLossPage() {
                 return (
                   <Row
                     key={r.job_id}
-                    cols="1fr 110px 110px 110px 110px"
+                    cols="1fr 150px 110px 110px 110px 110px"
                     onClick={() => router.push(`/jobs/${r.job_id}`)}
                   >
                     <div>
@@ -545,6 +556,9 @@ export default function ProfitLossPage() {
                           {JOB_STATUS_LABEL[r.status]}
                         </Pill>
                       </span>
+                    </div>
+                    <div style={{ color: C.dim, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {clientName(r.customer_id) ?? '–'}
                     </div>
                     <div>{money(r.invoiced_total)}</div>
                     <div style={{ color: C.dim }}>{money(r.cost_total)}</div>

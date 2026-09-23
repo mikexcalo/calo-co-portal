@@ -28,8 +28,15 @@ interface Site {
   track_token: string | null;
 }
 
-/** Where the tracker is served from. Same origin as the portal. */
-const ORIGIN = 'https://calo-co-portal.vercel.app';
+/**
+ * Where the tracker is served from.
+ *
+ * It said "same origin as the portal" and named calo-co-portal, which is the
+ * stale Vercel project — every deploy for months has gone to nautilus. It
+ * answers 200, so nobody noticed, but a site carrying this tag loads a script
+ * from a host that stopped receiving changes.
+ */
+const ORIGIN = 'https://nautilusapp.vercel.app';
 
 export function TheirSite({
   customerId,

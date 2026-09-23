@@ -1,3 +1,17 @@
+/*
+  TITLES SAY WHAT IS WRONG. THE PANEL SAYS WHY AND WHAT TO DO.
+
+  These were written as instructions — "Let replies come back", "Set the review
+  link", "Claim the Google Business Profile" — which reads as a riddle on a
+  list you are scanning: you have to already know what the thing is to know
+  whether it matters. Half of them are not even obviously problems.
+
+  A title now states the problem in the reader's terms. "Email replies do not
+  reach the platform" is checkable in a glance; "Let replies come back" is a
+  puzzle. What it means, why it matters and the steps are behind How, which is
+  where somebody goes once they have decided it is worth their morning.
+*/
+
 /**
  * What the owner owes the platform.
  *
@@ -78,7 +92,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   {
     key: 'test_send',
     forRoles: ['owner', 'admin', 'finance'],
-    title: 'Send yourself a real update',
+    title: 'Sending has never been tested end to end',
     icon: 'send',
     urgent: true,
     blocks:
@@ -94,7 +108,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   {
     key: 'email_domain',
     forRoles: ['owner', 'admin', 'finance'],
-    title: 'Let replies come back',
+    title: 'Email replies do not reach the platform',
     icon: 'mail',
     urgent: true,
     blocks:
@@ -111,7 +125,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   {
     key: 'old_wix_site',
     forRoles: ['owner', 'admin'],
-    title: 'Retire mikecalo.co, and see what people actually search',
+    title: 'mikecalo.co expires on 27 September with no redirect',
     icon: 'globe',
     blocks:
       'The domain lapses on 27 September rather than being redirected, so the old result goes and hands nothing across.\n\nCheck the premise first. A search for Mike Calo run without your account returns an actor on IMDb, an Irish basketball player, a college pitcher and two data broker pages, and neither of your sites is in the top ten. Your LinkedIn is. The number two spot you see is probably your own history.\n\nNothing is technically wrong: robots.txt allows everything, the sitemap lists both pages, the founder page is linked from the home page and its title reads Mike Calo. This is an authority problem on a two page domain, not a configuration one.',
@@ -131,7 +145,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   {
     key: 'search_console',
     forRoles: ['owner', 'admin'],
-    title: 'Verify the site in Google Search Console',
+    title: 'You cannot see what people search to find you',
     icon: 'search',
     blocks:
       'You are guessing about search instead of reading it.\n\nSearch Console is the only place that tells you which queries showed your site, where you ranked on each, and what people actually clicked. Nothing else can tell you that, including the traffic numbers in here, because a visitor arrives without bringing their search along.\n\nThe reason it is not last on the list: it keeps no history from before the day you verify. Every day it is off is a day of data you cannot go back and get.',
@@ -145,7 +159,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   {
     key: 'invite_team',
     forRoles: ['owner', 'admin'],
-    title: 'Invite the people who need a login',
+    title: 'Nobody else can sign in yet',
     icon: 'people',
     blocks:
       'You are the only person who can see any of this, which is fine right up until it is not.\n\nMark is the live one. He has a workspace, his own client list and his own invoices sitting in here, and no way to open them, so everything you have built for Mammoth reaches him by you describing it. The invite is what turns this from something you show people into something they use.\n\nWorth doing after the email domain, not before. An invite from a shared address to a product he has never heard of reads exactly like phishing, and you only get one first impression of a login screen.',
@@ -158,7 +172,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   {
     key: 'supabase_pro',
     forRoles: ['owner'],
-    title: 'Upgrade Supabase to Pro',
+    title: 'The database pauses itself after a week idle',
     icon: 'records',
     blocks:
       'There are no backups of any of this, and the database sleeps if nobody touches it for a week.\n\nEvery client, brief, invoice, note and logo lives in one free Supabase project. Free projects get no daily backups at all, so a bad migration or a deleted row is gone with nothing to restore from. They also pause after seven idle days, which means the first person to open the portal after a quiet week finds it down.\n\nNeither has bitten yet because you are in here daily and nobody else depends on it. Both start mattering the morning Mark logs in. This is the only item on the list I cannot do for you, because it needs your card.',
@@ -172,7 +186,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   {
     key: 'stripe',
     forRoles: ['owner', 'admin', 'finance'],
-    title: 'Add Stripe keys',
+    title: 'Clients cannot pay an invoice by card',
     icon: 'card',
     blocks:
       'Invoices can be raised and sent, and then not paid by card.\n\nEverything else about billing already works: line items, totals, what has been collected, what is owed, and the reminder when something goes past due. The gap is only the Pay button, so today a client either sends a transfer or you chase them by hand.\n\nYou deferred this and that is still reasonable. Card payments cost roughly three percent, and at your volume a Venmo or a transfer costs nothing. This becomes worth it when a client asks to pay by card rather than when you feel behind for not having it.',
@@ -186,7 +200,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   {
     key: 'google_profile',
     forRoles: ['owner', 'admin'],
-    title: 'Claim the Google Business Profile',
+    title: 'You do not appear in Google Maps',
     icon: 'target',
     blocks:
       'You do not exist in map results, and until somebody claims the profile anybody can edit it.\n\nThat second part is the one people miss. An unclaimed profile is not an absent profile, it is an unowned one, and Google accepts edits to the hours, the category and the address from strangers.\n\nIt also gates the review link below, which gates asking finished jobs for a review. Start the verification early because it moves at the speed of a postcard, about a week, and everything else can be done while it is in the mail.',
@@ -200,7 +214,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   {
     key: 'review_link',
     forRoles: ['owner', 'admin'],
-    title: 'Set the review link',
+    title: 'Finished jobs are never asked for a review',
     icon: 'star',
     blocks:
       'Finished work never gets asked for a review, and asking is the whole trick.\n\nThe difference between a business with forty reviews and one with four is almost never the quality of the work. It is that one of them asks every time and the other asks when it remembers. Once this link is set, every job that is finished and paid up sends one request by itself and you never think about it again.\n\nNeeds the Google profile above claimed first, because the link comes from inside it.',
@@ -214,7 +228,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   {
     key: 'default_branch',
     forRoles: ['owner'],
-    title: 'Change the GitHub default branch to main',
+    title: 'GitHub still defaults to a stale branch',
     icon: 'layers',
     blocks:
       'Nothing is broken today, and this is the least urgent thing on the list.\n\nEvery change goes to main and main is what deploys. The old master branch still exists, still holds an outdated copy of the code, and cannot be deleted while GitHub treats it as the default. The sharp edge is later: anybody who clones this, including future me, lands on master by default and reads code that has not been true for months.',

@@ -687,6 +687,18 @@ export const MODULE_TAB_PARENT: Partial<Record<ModuleId, ModuleId>> = {
   */
   traffic:  'seo',
   reviews:  'seo',
+  /*
+    A case study is not a destination.
+
+    I promoted this to its own row on the rule that a tab is another view of
+    the same object, and a case study is not a view of a pitch. That was the
+    wrong read. Its only jobs are to go into a pitch, go into a proposal, or go
+    on the site — you never open it to do work, you open it to fetch one. That
+    is a library, and a library lives with whatever consumes it most.
+
+    One untitled draft did not earn a row in a sidebar of eighteen.
+  */
+  stories:  'pitches',
   // Not a tab: the Brand row already points at the kit, and a second row for
   // the same page under a different name is the duplication this map exists
   // to stop.

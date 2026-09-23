@@ -25,6 +25,7 @@ import { OutboundCheck } from '@/components/spine/OutboundCheck';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
 import {
+  PITCH_TABS,
   Button,
   C,
   Card,
@@ -344,6 +345,7 @@ export default function StoriesPage() {
 
   return (
     <Page
+      tabs={PITCH_TABS}
       title="Case Studies"
       subtitle="Your past work, written up."
     >

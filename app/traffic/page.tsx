@@ -110,7 +110,18 @@ export default function TrafficPage() {
   };
 
   const snippet = site?.track_token
-    ? `<script async src="https://calo-co-portal.vercel.app/t.js" data-site="${site.track_token}"></script>`
+    /*
+      The tag pointed at the wrong deployment.
+
+      calo-co-portal is the stale Vercel project — nothing has been pushed to
+      it in months, and every deploy since goes to nautilus. It answers 200, so
+      nobody noticed, but any site carrying this tag is loading a script from a
+      host that stopped receiving changes, and a fix to tracking would never
+      reach the pages already carrying it.
+
+      nautilusapp.vercel.app is where this app actually is.
+    */
+    ? `<script async src="https://nautilusapp.vercel.app/t.js" data-site="${site.track_token}"></script>`
     : '';
 
   const peak = Math.max(1, ...days.map((d) => d.visitors));

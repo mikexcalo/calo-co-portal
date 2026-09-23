@@ -288,9 +288,9 @@ export const BRAND_TABS: readonly PageTab[] = [
  * were about identity. They are about evidence, and the only reason to keep
  * them is to reuse them, which happens at the moment you write a pitch.
  */
-/* Case studies are not a view of pitches. They have their own row. */
 export const PITCH_TABS: readonly PageTab[] = [
   { label: 'Pitches', href: '/pitches', icon: 'send' },
+  { label: 'Case Studies', href: '/stories', icon: 'book' },
 ];
 
 /**
