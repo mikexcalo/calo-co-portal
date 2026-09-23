@@ -30,13 +30,22 @@ export const dynamic = 'force-dynamic';
  * claiming to be Mammoth must not be able to write into Mammoth's book just
  * by saying so. Unknown sources fall to the agency.
  */
-const SOURCE_ROUTING: Array<{ match: RegExp; slug: string; label: string; notify: string }> = [
+/*
+  notify takes a list.
+
+  It was one address, and John's was his personal Gmail — the one he reads, but
+  not the one in his own signature or the one he asked Wide Foods to reply to.
+  An enquiry off his own website landed somewhere he had not nominated, and
+  there was nowhere to put the business address without losing the personal
+  one he actually checks. Both, in the order they should be read.
+*/
+const SOURCE_ROUTING: Array<{ match: RegExp; slug: string; label: string; notify: string[] }> = [
   {
     match: /mammoth/i,
     slug: 'mammoth',
     label: 'Mammoth Construction',
     // Their own inbox, taken from the contact address on their site.
-    notify: 'info@mammothconstructiontx.com',
+    notify: ['info@mammothconstructiontx.com'],
   },
   {
     // John's own enquiries, into John's own book. Matched before the agency
@@ -44,17 +53,19 @@ const SOURCE_ROUTING: Array<{ match: RegExp; slug: string; label: string; notify
     match: /seafood|globalseafood/i,
     slug: 'global-seafood',
     label: 'Global Seafood Partners',
-    notify: 'john.littonny@gmail.com',
+    // The business address first, and his personal one kept because it is the
+    // one he actually reads.
+    notify: ['globalseafood.partners@gmail.com', 'john.littonny@gmail.com'],
   },
   {
     match: /calo|company|portfolio|mikecalo/i,
     slug: 'calo-co',
     label: 'CALO&CO',
-    notify: 'mikexcalo@gmail.com',
+    notify: ['mikexcalo@gmail.com'],
   },
 ];
 
-const FALLBACK = { slug: 'calo-co', label: 'CALO&CO', notify: 'mikexcalo@gmail.com' };
+const FALLBACK = { slug: 'calo-co', label: 'CALO&CO', notify: ['mikexcalo@gmail.com'] };
 
 function routeFor(source: string) {
   return SOURCE_ROUTING.find((r) => r.match.test(source)) ?? FALLBACK;

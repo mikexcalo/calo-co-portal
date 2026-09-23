@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useOrg } from '@/lib/spine/org';
 import { useViewAs } from '@/lib/spine/viewas';
 import { Avatar, C } from './ui';
+import supabase from '@/lib/supabase';
+import { brandAssetUrl } from '@/lib/spine/db';
 
 /**
  * Which business am I looking at right now.
@@ -26,6 +28,19 @@ import { Avatar, C } from './ui';
   on the brand's own colour looks deliberate where one on default grey looks
   like a placeholder nobody replaced.
 */
+/*
+  The logo a client is already shown by, not a second one.
+
+  This read the org's own brand kit. The Clients list reads the logo uploaded
+  against the customer record. Both exist for Mammoth, and they are different
+  pictures: the brand kit holds a wordmark, which at twenty pixels in a
+  switcher is a grey smear, while the customer record holds the mark, which is
+  the one you recognise. So the same company looked like two companies
+  depending on which screen you were on.
+
+  The customer record wins, because that is the one somebody chose while
+  looking at a list of clients at this size.
+*/
 function brandOf(o: { settings?: Record<string, unknown> | null }) {
   const b = ((o.settings ?? {}) as Record<string, unknown>).brand as
     | { logoLight?: string; logos?: string[]; colors?: Array<{ hex?: string }> }
@@ -43,6 +58,25 @@ const KIND_LABEL: Record<string, string> = {
 
 export function OrgSwitcher() {
   const { org, orgs, loading, switchOrg } = useOrg();
+
+  /* One query, once: the logo each linked client was given in Clients. */
+  const [clientLogos, setClientLogos] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let off = false;
+    (async () => {
+      const res = await supabase
+        .from('customer_summary')
+        .select('linked_org_id, logo_path')
+        .not('linked_org_id', 'is', null);
+      if (off || res.error) return;
+      const out: Record<string, string> = {};
+      for (const r of (res.data ?? []) as Array<{ linked_org_id: string; logo_path: string | null }>) {
+        if (r.logo_path) out[r.linked_org_id] = brandAssetUrl(r.logo_path) ?? '';
+      }
+      setClientLogos(out);
+    })();
+    return () => { off = true; };
+  }, []);
   const { viewAs } = useViewAs();
   const [open, setOpen] = useState(false);
 
@@ -88,7 +122,7 @@ export function OrgSwitcher() {
           textAlign: 'left',
         }}
       >
-        <Avatar name={org.name} src={brandOf(org).logo} tint={brandOf(org).hex} size={20} shape="company" />
+        <Avatar name={org.name} src={clientLogos[org.id] || brandOf(org).logo} tint={brandOf(org).hex} size={20} shape="company" />
         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {org.name}
         </span>
@@ -196,7 +230,7 @@ export function OrgSwitcher() {
                   textAlign: 'left',
                 }}
               >
-                <Avatar name={o.name} src={brandOf(o).logo} tint={brandOf(o).hex} size={22} shape="company" />
+                <Avatar name={o.name} src={clientLogos[o.id] || brandOf(o).logo} tint={brandOf(o).hex} size={22} shape="company" />
                 <span
                   style={{
                     flex: 1,
