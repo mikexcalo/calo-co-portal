@@ -17,6 +17,7 @@ import { getCurrentOrg, orgNow} from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import { modulesFor } from '@/lib/spine/modules';
 import {
+  Select,
   Button,
   C,
   Card,
@@ -227,21 +228,29 @@ export default function WebsitePage() {
           </Field>
           <div style={{ display: 'grid', gridTemplateColumns: phone ? '1fr' : '1fr 1fr', gap: 12 }}>
             <Field label="Type">
-              <select value={kind} onChange={(e) => setKind(e.target.value)} style={inputStyle}>
-                <option value="copy">Wording</option>
-                <option value="image">Photos</option>
-                <option value="change">Change something</option>
-                <option value="new_feature">Something new</option>
-                <option value="bug">Something's broken</option>
-                <option value="other">Other</option>
-              </select>
+              <Select
+                value={kind}
+                onChange={setKind}
+                options={[
+                  { value: 'copy', label: 'Wording' },
+                  { value: 'image', label: 'Photos' },
+                  { value: 'change', label: 'Change something' },
+                  { value: 'new_feature', label: 'Something new' },
+                  { value: 'bug', label: "Something's broken" },
+                  { value: 'other', label: 'Other' },
+                ]}
+              />
             </Field>
             <Field label="How soon">
-              <select value={urgency} onChange={(e) => setUrgency(e.target.value)} style={inputStyle}>
-                <option value="whenever">Whenever</option>
-                <option value="normal">Normal</option>
-                <option value="urgent">Urgent</option>
-              </select>
+              <Select
+                value={urgency}
+                onChange={setUrgency}
+                options={[
+                  { value: 'whenever', label: 'Whenever' },
+                  { value: 'normal', label: 'Normal' },
+                  { value: 'urgent', label: 'Urgent' },
+                ]}
+              />
             </Field>
           </div>
           <Button onClick={submit} disabled={busy || !title.trim() || !body.trim()}>

@@ -22,7 +22,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, C, money, inputStyle, Sheet } from '@/components/spine/ui';
+import { Button, C, money, inputStyle, Select, Sheet } from '@/components/spine/ui';
 import { createTimeEntry, listBillableJobs, orgNow } from '@/lib/spine/db';
 import { human } from '@/lib/spine/errors';
 import type { BillableJob } from '@/lib/spine/types';
@@ -153,13 +153,14 @@ export default function LogTime({ onClose }: { onClose: () => void }) {
         ) : (
           <>
             <Field label="Who">
-              <select value={jobId} onChange={(e) => setJobId(e.target.value)} style={inputStyle}>
-                {jobs.map((j) => (
-                  <option key={j.id} value={j.id}>
-                    {j.customer_name ? `${j.customer_name} · ${j.name}` : j.name}
-                  </option>
-                ))}
-              </select>
+              <Select
+                value={jobId}
+                onChange={setJobId}
+                options={jobs.map((j) => ({
+                  value: j.id,
+                  label: j.customer_name ? `${j.customer_name} · ${j.name}` : j.name,
+                }))}
+              />
             </Field>
 
             <Field label="How long">

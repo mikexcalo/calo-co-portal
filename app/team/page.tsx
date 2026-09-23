@@ -13,6 +13,7 @@ import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { InvitePerson } from '@/components/spine/InvitePerson';
 import {
+  Select,
   Button,
   C,
   Card,
@@ -192,15 +193,11 @@ export default function TeamPage() {
           client inside it. A destination this consequential is not a footnote.
         */}
         <Field label="Into which business">
-          <select
+          <Select
             value={targetOrg}
-            onChange={(e) => setTargetOrg(e.target.value)}
-            style={{ ...inputStyle, cursor: 'pointer' }}
-          >
-            {(orgs ?? []).map((o) => (
-              <option key={o.id} value={o.id}>{o.name}</option>
-            ))}
-          </select>
+            onChange={setTargetOrg}
+            options={(orgs ?? []).map((o) => ({ value: o.id, label: o.name }))}
+          />
         </Field>
 
         {targetOrg && targetOrg !== org?.id && (
@@ -234,15 +231,15 @@ export default function TeamPage() {
           />
         </Field>
         <Field label="Access">
-          <select
+          <Select
             value={role}
-            onChange={(e) => setRole(e.target.value as typeof role)}
-            style={inputStyle}
-          >
-            <option value="member">Member: can use everything in this business</option>
-            <option value="admin">Admin: can also invite others</option>
-            <option value="owner">Owner: full control</option>
-          </select>
+            onChange={(v) => setRole(v as typeof role)}
+            options={[
+              { value: 'member', label: 'Member: can use everything in this business' },
+              { value: 'admin', label: 'Admin: can also invite others' },
+              { value: 'owner', label: 'Owner: full control' },
+            ]}
+          />
         </Field>
 
         <Button onClick={invite} disabled={busy || !email.trim() || !org}>

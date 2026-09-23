@@ -19,6 +19,7 @@ import supabase from '@/lib/supabase';
 import { Processing } from '@/components/spine/Processing';
 import { useOrg } from '@/lib/spine/org';
 import {
+  Select,
   Button,
   C,
   Card,
@@ -204,16 +205,12 @@ export default function NotesPage() {
         <Card style={{ maxWidth: 720 }}>
           <div style={{ maxWidth: 320, marginBottom: 14 }}>
             <Field label={`Who is this about? · optional`}>
-              <select
+              <Select
                 value={customerId}
-                onChange={(e) => setCustomerId(e.target.value)}
-                style={inputStyle}
-              >
-                <option value="">Not about anyone in particular</option>
-                {customers.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+                onChange={setCustomerId}
+                placeholder="Not about anyone in particular"
+                options={customers.map((c) => ({ value: c.id, label: c.name }))}
+              />
             </Field>
           </div>
 
