@@ -14,6 +14,7 @@ import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { modulesFor } from '@/lib/spine/modules';
 import {
+  Tiles,
   Button,
   C,
   Card,
@@ -139,23 +140,20 @@ export default function PitchesPage() {
         </Card>
       ) : (
         <>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-              gap: 12,
-              marginBottom: 26,
-            }}
-          >
-            <Metric label="Live" value={String(live.length)} hint="Published and shareable" />
-            <Metric label="Reads" value={String(totalViews)} hint="Across every pitch" />
-            <Metric
-              label="Not opened"
-              value={String(unopened)}
-              tone={unopened > 0 ? 'amber' : undefined}
-              hint="Sent, never read"
-            />
-          </div>
+          {/* The same strip as everywhere else. These three were the
+              opposite failure to the money screens: no hideAtZero at all, so a
+              new workspace opened on three noughts in three boxes. */}
+          <Tiles
+            items={[
+              { label: 'Live', value: String(live.length), icon: 'globe', hint: 'Published and shareable' },
+              { label: 'Reads', value: String(totalViews), icon: 'activity', hint: 'Across every pitch' },
+              {
+                label: 'Not opened', value: String(unopened), icon: 'send',
+                hint: 'Sent, never read',
+                tone: unopened > 0 ? C.amber : undefined,
+              },
+            ]}
+          />
 
           <SectionLabel>All pitches</SectionLabel>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

@@ -26,6 +26,7 @@ import type { ClientHours } from '@/lib/spine/types';
 import { SavedViews, type View } from '@/components/spine/SavedViews';
 import { ClientIntake } from '@/components/spine/ClientIntake';
 import {
+  Tiles,
   hours,
   Select,
   Avatar,
@@ -560,47 +561,30 @@ export default function CustomersPage() {
         and a number you can act on should be the thing you press.
       */}
       {!loading && (
-        <div className="tiles">
-          {[
+        <Tiles
+          items={[
             {
-              label: 'Owed to you',
-              value: money0(owing.reduce((s, r) => s + r.owed, 0)),
+              label: 'Owed to you', value: money0(owing.reduce((a, r) => a + r.owed, 0)), icon: 'card',
               hint: owing.length ? `${owing.length} ${owing.length === 1 ? 'client' : 'clients'}` : 'Nobody owes you',
-              icon: 'card' as const,
+              href: '/billing',
               tone: owing.length ? C.red : undefined,
             },
             {
-              label: 'Unbilled',
-              value: money0(clients.reduce((s, r) => s + r.unbilled, 0)),
+              label: 'Unbilled', value: money0(clients.reduce((a, r) => a + r.unbilled, 0)), icon: 'work',
               hint: 'Done, not yet asked for',
-              icon: 'work' as const,
               tone: clients.some((r) => r.unbilled > 0) ? C.amber : undefined,
             },
             {
-              label: 'Time this month',
-              value: hours(monthHours),
+              label: 'Time this month', value: hours(monthHours), icon: 'activity',
               hint: monthHours > 0 ? `across ${clientHours.length} ${clientHours.length === 1 ? 'client' : 'clients'}` : 'Nothing logged yet',
-              icon: 'activity' as const,
-              tone: undefined,
             },
             {
-              label: 'Need a nudge',
-              value: String(dueNow.length + noEmail.length),
+              label: 'Need a nudge', value: String(dueNow.length + noEmail.length), icon: 'people',
               hint: noEmail.length ? `${noEmail.length} with no email` : dueNow.length ? 'Follow-ups due' : 'Nothing outstanding',
-              icon: 'people' as const,
               tone: dueNow.length + noEmail.length > 0 ? C.amber : undefined,
             },
-          ].map((t) => (
-            <div key={t.label} className={`tile${t.tone ? ' tileLive' : ''}`} style={{ cursor: 'default' }}>
-              <span className="tileTop">
-                <Glyph name={t.icon} size={16} color={t.tone ?? C.faint} />
-                <span className="tileLabel">{t.label}</span>
-              </span>
-              <span className="tileValue" style={t.tone ? { color: t.tone } : undefined}>{t.value}</span>
-              <span className="tileHint">{t.hint}</span>
-            </div>
-          ))}
-        </div>
+          ]}
+        />
       )}
 
       {/*

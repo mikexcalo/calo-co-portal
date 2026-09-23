@@ -949,6 +949,63 @@ export function Sheet({
 }
 
 /**
+ * THE STATE OF THE BUSINESS, AT THE TOP OF A SCREEN.
+ *
+ * Every list screen had its own version of this and no two agreed. Home had a
+ * line of figures, Clients had three of them, Invoices and Proposals used
+ * Metric with hideAtZero so the whole row vanished on a quiet morning, and
+ * Pitches showed three noughts in three boxes. Four treatments of one idea, so
+ * learning to read one screen taught you nothing about the next.
+ *
+ * They stay at zero. $0 owed is the answer, not the absence of one, and a
+ * strip that disappears when things are going well is a strip you cannot
+ * learn the position of.
+ *
+ * A tile with an href is a button, because a figure you can act on should be
+ * the thing you press.
+ */
+export interface TileItem {
+  label: string;
+  value: string;
+  hint?: string;
+  icon: IconName;
+  /** Set when the number wants attention. Colours the value and the ground. */
+  tone?: string;
+  href?: string;
+}
+
+export function Tiles({ items }: { items: readonly TileItem[] }) {
+  const router = useRouter();
+  if (!items.length) return null;
+  return (
+    <div className="tiles">
+      {items.map((t) => {
+        const inner = (
+          <>
+            <span className="tileTop">
+              <Glyph name={t.icon} size={16} color={t.tone ?? C.faint} />
+              <span className="tileLabel">{t.label}</span>
+            </span>
+            <span className="tileValue" style={t.tone ? { color: t.tone } : undefined}>
+              {t.value}
+            </span>
+            {t.hint && <span className="tileHint">{t.hint}</span>}
+          </>
+        );
+        const cls = `tile${t.tone ? ' tileLive' : ''}`;
+        return t.href ? (
+          <button key={t.label} className={cls} onClick={() => router.push(t.href as string)}>
+            {inner}
+          </button>
+        ) : (
+          <div key={t.label} className={cls} style={{ cursor: 'default' }}>{inner}</div>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
  * A dropdown that belongs to the same product as everything around it.
  *
  * A raw <select> renders as whatever the operating system feels like, which on

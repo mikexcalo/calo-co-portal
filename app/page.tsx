@@ -32,6 +32,7 @@ import { useTutorial } from '@/lib/spine/tutorial';
 import { JOB_STATUS_LABEL } from '@/lib/spine/types';
 import type { ClientHours, DocumentRecord, JobInvoice, JobLedger, JobWithCustomer } from '@/lib/spine/types';
 import {
+  Tiles,
   hours,
   Button,
   C,
@@ -839,61 +840,32 @@ export default function Dashboard() {
             answer, and hiding it is how Home came to open on "Active projects
             3" with a rule under it.
           */}
-          <div className="tiles">
-            {[
+          <Tiles
+            items={[
               {
-                label: 'Unbilled',
-                icon: 'work' as const,
-                value: money0(unbilled),
-                hint: 'Done, not yet asked for',
-                href: '/jobs',
+                label: 'Unbilled', value: money0(unbilled), icon: 'work',
+                hint: 'Done, not yet asked for', href: '/jobs',
                 tone: unbilled > 0 ? C.amber : undefined,
               },
               {
-                label: 'In draft',
-                icon: 'receipt' as const,
-                value: money0(draftTotal),
+                label: 'In draft', value: money0(draftTotal), icon: 'receipt',
                 hint: drafts.length ? `${drafts.length} written, going out on the 1st` : 'Nothing written',
                 href: '/billing',
                 tone: draftTotal > 0 ? C.amber : undefined,
               },
               {
-                label: 'Owed to you',
-                icon: 'card' as const,
-                value: money0(outstanding),
+                label: 'Owed to you', value: money0(outstanding), icon: 'card',
                 hint: overdue.length ? `${overdue.length} past due` : 'Nothing overdue',
                 href: '/billing',
                 tone: outstanding > 0 ? C.red : undefined,
               },
               {
-                label: 'Logged this month',
-                icon: 'activity' as const,
-                value: hours(monthHours),
+                label: 'Logged this month', value: hours(monthHours), icon: 'activity',
                 hint: monthValue > 0 ? `${money0(monthValue)} of time` : 'Nothing logged yet',
                 href: '/jobs',
-                tone: undefined,
               },
-            ].map((t) => (
-              <button
-                key={t.label}
-                className={`tile${t.tone ? ' tileLive' : ''}`}
-                onClick={() => router.push(t.href)}
-              >
-                {/* An icon per tile, so four boxes of money read as four
-                    different things before any of them is read. And the one
-                    with something in it gets a ground, because a number that
-                    needs you should not look the same as three that do not. */}
-                <span className="tileTop">
-                  <Glyph name={t.icon} size={16} color={t.tone ?? C.faint} />
-                  <span className="tileLabel">{t.label}</span>
-                </span>
-                <span className="tileValue" style={t.tone ? { color: t.tone } : undefined}>
-                  {t.value}
-                </span>
-                <span className="tileHint">{t.hint}</span>
-              </button>
-            ))}
-          </div>
+            ]}
+          />
 
           {/*
             One way to write a note, not three.

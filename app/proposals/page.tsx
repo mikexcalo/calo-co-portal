@@ -18,6 +18,7 @@ import { listAllEstimates } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import type { Estimate } from '@/lib/spine/types';
 import {
+  Tiles,
   Button,
   C,
   Card,
@@ -197,45 +198,37 @@ export default function ProposalsPage() {
         </Card>
       )}
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))',
-          gap: 12,
-          marginBottom: 26,
-        }}
-      >
-        <Metric
-          label="Out for decision"
-          value={money0(outValue)}
-          hideAtZero
-          tone={outValue > 0 ? 'blue' : undefined}
-          hint={`${out.length} waiting`}
-        />
-        {/*
-          A count, because the sum was not a number.
+      {/* The same strip as Home, Clients and Invoices. It was four Metrics
+          with hideAtZero, so the row emptied out exactly when you had nothing
+          outstanding and most wanted to see that. */}
+      <Tiles
+        items={[
+          {
+            label: 'Out for decision', value: money0(outValue), icon: 'send',
+            hint: out.length ? `${out.length} waiting` : 'Nothing out',
+            tone: outValue > 0 ? C.blue : undefined,
+          },
+          /*
+            A count, because the sum was not a number.
 
-          This added up every unsent proposal's total and printed $40, two
-          clients' monthly hosting fees, from two agreements that are mostly
-          an hourly rate, added together. Nobody is ever going to be invoiced
-          $40, and no decision gets made from it.
-
-          What is worth knowing at a glance is how many are sitting unsent,
-          which is the thing that costs something. The money is on each row,
-          where it belongs to one client and means what it says.
-        */}
-        <Metric
-          label="Unsent drafts"
-          value={String(drafts.length)}
-          hideAtZero
-          tone={drafts.length ? 'amber' : undefined}
-          hint="Written, never sent"
-        />
-        <Metric label="Won" value={String(won.length)} tone="green" hideAtZero />
-        {winRate != null && (
-          <Metric label="Win rate" value={`${winRate}%`} hint={`${decided} decided`} />
-        )}
-      </div>
+            This added up every unsent proposal's total and printed $40 — two
+            clients' monthly hosting fees from two agreements that are mostly
+            an hourly rate, added together. Nobody is ever invoiced $40 and no
+            decision comes out of it. The money is on each row, where it
+            belongs to one client and means what it says.
+          */
+          {
+            label: 'Unsent drafts', value: String(drafts.length), icon: 'brief',
+            hint: 'Written, never sent',
+            tone: drafts.length ? C.amber : undefined,
+          },
+          {
+            label: 'Won', value: String(won.length), icon: 'star',
+            hint: winRate != null ? `${winRate}% of ${decided} decided` : 'None decided yet',
+            tone: won.length ? C.green : undefined,
+          },
+        ]}
+      />
 
       {loading ? (
         <Empty>Loading…</Empty>

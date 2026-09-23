@@ -23,6 +23,7 @@ import { useOrg } from '@/lib/spine/org';
 import { INVOICE_STATUS_LABEL } from '@/lib/spine/types';
 import type { JobInvoice, JobInvoiceLine, JobWithCustomer } from '@/lib/spine/types';
 import {
+  Tiles,
   Button,
   C,
   Card,
@@ -278,7 +279,10 @@ export default function BillingPage() {
   const outstanding = live.reduce((s, i) => s + (i.total - i.amount_paid), 0);
   const collected = live.reduce((s, i) => s + i.amount_paid, 0);
   /* From every invoice, because live now deliberately excludes drafts. */
-  const drafts = invoices.filter((i) => i.status === 'draft').length;
+  const draftRows = invoices.filter((i) => i.status === 'draft');
+  const drafts = draftRows.length;
+  const draftValue = draftRows.reduce((a, i) => a + i.total, 0);
+  const overdueCount = live.filter((i) => i.status === 'overdue').length;
 
   return (
     <Page title="Invoices" subtitle="What you have invoiced, and what is still owed.">
@@ -406,19 +410,28 @@ export default function BillingPage() {
         </Card>
       )}
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-          gap: 12,
-          marginBottom: 26,
-        }}
-      >
-        {/* Owed to you, so red, the same rule as Home. */}
-        <Metric label="Outstanding" value={money0(outstanding)} tone={outstanding > 0 ? 'red' : undefined} hideAtZero />
-        <Metric label="Collected" value={money0(collected)} tone="green" hideAtZero />
-        <Metric label="Drafts" value={String(drafts)} tone={drafts > 0 ? 'amber' : undefined} hint="Not sent yet" hideAtZero />
-      </div>
+      {/* The same strip as Home and Clients. It was three Metrics with
+          hideAtZero, so on a month where everything is paid the row vanished
+          and Invoices opened on a bare table. */}
+      <Tiles
+        items={[
+          {
+            label: 'Owed to you', value: money0(outstanding), icon: 'card',
+            hint: overdueCount > 0 ? `${overdueCount} past due` : 'Nothing overdue',
+            tone: outstanding > 0 ? C.red : undefined,
+          },
+          {
+            label: 'In draft', value: money0(draftValue), icon: 'receipt',
+            hint: drafts ? `${drafts} not sent yet` : 'Nothing written',
+            tone: draftValue > 0 ? C.amber : undefined,
+          },
+          {
+            label: 'Collected', value: money0(collected), icon: 'chart',
+            hint: 'Paid so far',
+            tone: collected > 0 ? C.green : undefined,
+          },
+        ]}
+      />
 
       {loading ? (
         <Empty>Loading…</Empty>
