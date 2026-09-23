@@ -173,13 +173,44 @@
   /* -------------------------------------------------------------- header */
   header{position:sticky;top:0;z-index:40;background:rgba(4,24,47,.82);
     backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  /* ---------------------------------------------------------------------
+     The header, on a phone.
+
+     flex-wrap did what flex-wrap does: the name took a line, the three
+     section links took another, and the Get in touch pill took a third — a
+     header three rows tall, most of it above the fold, before anybody reached
+     the headline. On a 390px screen that is a quarter of the first thing they
+     see spent on navigation for a page you can scroll in five seconds.
+
+     The name and the button hold one row, because those are the two things
+     that matter: who this is and how to reach them. The section links go
+     underneath as a single row that scrolls sideways rather than wrapping,
+     and they are smaller because on a one-page site they are a convenience,
+     not the way anybody gets around.
+     --------------------------------------------------------------------- */
   .bar{display:flex;align-items:center;justify-content:space-between;
-    gap:1.5rem;flex-wrap:wrap;padding-block:1.1rem}
+    gap:1rem;flex-wrap:nowrap;padding-block:1rem}
   .mark{font-family:Fraunces,Georgia,serif;font-size:1.15rem;color:var(--white);
-    letter-spacing:-0.01em}
-  .nav{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
-  .nav a{color:var(--body);text-decoration:none;font-size:.93rem}
+    letter-spacing:-0.01em;white-space:nowrap}
+  .nav{display:flex;align-items:center;gap:1.5rem;flex-wrap:nowrap}
+  .nav a{color:var(--body);text-decoration:none;font-size:.93rem;white-space:nowrap}
   .nav a:hover{color:var(--shallows)}
+
+  @media(max-width:46rem){
+    .bar{flex-wrap:wrap;gap:.6rem 1rem;padding-block:.85rem}
+    .mark{font-size:1.02rem;flex:1 1 auto}
+    /* The button stays up with the name. */
+    .nav{order:1;flex:0 0 auto}
+    .nav a{display:none}
+    .nav .btn{padding:.5rem 1rem;font-size:.9rem}
+    /* And the anchors get their own thin row, side-scrolling, never wrapping. */
+    .jump{display:flex}
+  }
+  .jump{display:none;gap:1.3rem;overflow-x:auto;padding:0 0 .85rem;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .jump::-webkit-scrollbar{display:none}
+  .jump a{color:var(--muted);text-decoration:none;font-size:.82rem;
+    white-space:nowrap;letter-spacing:.02em}
   section[id]{scroll-margin-top:5rem}
 
   /* ------------------------------------------------------------- buttons */
@@ -257,6 +288,13 @@
       <a href="#services">Services</a>
       <a href="#partners">Partners</a>
       <button class="btn btn-ghost" type="button" data-open-form>Get in touch</button>
+    </nav>
+    <!-- Phone only. The same three anchors, on their own line, scrolling
+         sideways rather than pushing the headline down a third row. -->
+    <nav class="jump">
+      <a href="#what">What we do</a>
+      <a href="#services">Sound familiar?</a>
+      <a href="#partners">Who we work with</a>
     </nav>
   </div>
 </header>

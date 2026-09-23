@@ -9,6 +9,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import supabase from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
 import { useOrg } from '@/lib/spine/org';
 import { modulesFor, navFor } from '@/lib/spine/modules';
@@ -390,6 +391,24 @@ export default function Sidebar() {
           {NAV_ICONS[iconKey]}
         </span>
         {label}
+        {/* Not red. Red is for money that is late and things that are broken;
+            this is "somebody left you something", which is a different
+            feeling and should not borrow the alarm. */}
+        {!!counts[href] && (
+          <span
+            aria-label={`${counts[href]} waiting`}
+            style={{
+              marginLeft: 'auto', flexShrink: 0,
+              minWidth: 18, height: 18, borderRadius: 999,
+              padding: '0 5px', display: 'inline-flex',
+              alignItems: 'center', justifyContent: 'center',
+              background: C.accentSoft, color: C.accent,
+              fontSize: 11, fontWeight: 600, fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {counts[href]}
+          </span>
+        )}
       </button>
       {/*
         Appears on hover, so it is discoverable without being decoration.
@@ -463,6 +482,41 @@ export default function Sidebar() {
     agency and the whole morning for a lawn crew.
   */
   const parkKey = `nav.parked.v2.${org?.id ?? 'none'}`;
+
+  /**
+   * A BADGE IS A PROMISE THAT SOMETHING ARRIVED.
+   *
+   * The tempting version of this puts a count on every module — invoices,
+   * projects, clients, the lot. It fails, and it fails in a way that takes the
+   * useful badges down with it: a count derived from your own data never
+   * reaches zero. You will always have invoices. So the badge becomes
+   * permanent decoration, the eye stops reading any of them, and the one that
+   * actually meant "a client just asked you for something" stops working.
+   *
+   * The test is whether you could know without being told, and whether looking
+   * clears it. Drops and Requests both pass: somebody else put them there
+   * while you were elsewhere, and opening the screen is the end of it.
+   * Everything else on this sidebar is your own book, already counted on the
+   * screen it belongs to, and Home carries what needs you today.
+   *
+   * Two counts, fetched once when the workspace loads.
+   */
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  useEffect(() => {
+    if (!org?.id) { setCounts({}); return; }
+    let off = false;
+    (async () => {
+      const [drops, reqs] = await Promise.all([
+        supabase.from('documents').select('id', { count: 'exact', head: true })
+          .eq('org_id', org.id).is('job_id', null).is('customer_id', null),
+        supabase.from('site_requests').select('id', { count: 'exact', head: true })
+          .eq('org_id', org.id).eq('status', 'open'),
+      ]);
+      if (off) return;
+      setCounts({ '/inbox': drops.count ?? 0, '/requests': reqs.count ?? 0 });
+    })();
+    return () => { off = true; };
+  }, [org?.id]);
 
   useEffect(() => {
     try {
