@@ -35,6 +35,35 @@ export function AppShell({ children }: { children: React.ReactNode }) {
    */
   const [meOnboarded, setMeOnboarded] = useState(false);
   const [meLoaded, setMeLoaded] = useState(false);
+
+  /**
+   * A DATE FIELD OPENS WHEN YOU CLICK THE DATE FIELD.
+   *
+   * A native date input only opens its picker from the little calendar glyph
+   * at the right-hand end — about sixteen pixels of a three-hundred-pixel
+   * control. Clicking anywhere else drops a caret into one segment of a date
+   * you then have to type. Nobody aims for the glyph, because nothing about
+   * the rest of the box says it is inert.
+   *
+   * There are seventeen date inputs in this product with different styles,
+   * different props and different onChange shapes, and this is a browser
+   * deficiency rather than a design decision — so it is fixed once, here,
+   * rather than at seventeen call sites plus every one written after today.
+   * showPicker is the browser's own answer and has been supported everywhere
+   * that matters for years.
+   */
+  useEffect(() => {
+    const open = (e: MouseEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (!(el instanceof HTMLInputElement) || el.type !== 'date' || el.disabled || el.readOnly) return;
+      // Firefox throws rather than no-opping, and an exception on click would
+      // take the form down with it.
+      try { (el as HTMLInputElement & { showPicker?: () => void }).showPicker?.(); } catch { /* ignore */ }
+    };
+    document.addEventListener('click', open);
+    return () => document.removeEventListener('click', open);
+  }, []);
+
   useEffect(() => {
     (async () => {
       const { data: auth } = await supabase.auth.getUser();
