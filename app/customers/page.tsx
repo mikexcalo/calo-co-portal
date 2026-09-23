@@ -15,15 +15,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
-import { brandAssetUrl, orgNow} from '@/lib/spine/db';
+import { brandAssetUrl, hoursByClient, orgNow } from '@/lib/spine/db';
 import { createCustomer } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import { FirstSteps } from '@/components/spine/FirstSteps';
 import { STAGE, isClient, daysSince, type Stage } from '@/lib/spine/stage';
 import { BulkAction, BulkBar, RecordTable, type Column } from '@/components/spine/RecordTable';
+import { Glyph } from '@/components/spine/icons';
+import type { ClientHours } from '@/lib/spine/types';
 import { SavedViews, type View } from '@/components/spine/SavedViews';
 import { ClientIntake } from '@/components/spine/ClientIntake';
 import {
+  hours,
   Select,
   Avatar,
   Button,
@@ -103,6 +106,8 @@ export default function CustomersPage() {
   const router = useRouter();
   const { vocab, org } = useOrg();
   const [rows, setRows] = useState<Summary[]>([]);
+  /* Time per client, so the screen says something before you click into one. */
+  const [clientHours, setClientHours] = useState<ClientHours[]>([]);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -183,6 +188,12 @@ export default function CustomersPage() {
     (async () => {
       try {
         await load();
+        const orgId = await orgNow();
+        if (orgId) {
+          const now = new Date();
+          const since = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+          setClientHours(await hoursByClient(orgId, since));
+        }
       } catch (e) {
         setError(human((e as Error).message));
       } finally {
@@ -390,6 +401,28 @@ export default function CustomersPage() {
       ),
     },
     {
+      key: 'month',
+      label: 'This month',
+      width: '110px',
+      align: 'right',
+      sortBy: (r) => -(byClient.get(r.id)?.hours ?? 0),
+      /* Nobody has logged against them, so the column stays out of the way
+         until somebody does. */
+      hasValue: (r) => (byClient.get(r.id)?.hours ?? 0) > 0,
+      render: (r) => {
+        const h = byClient.get(r.id);
+        if (!h?.hours) return <span style={{ fontSize: 13, color: C.faint }}>–</span>;
+        return (
+          <span style={{ fontSize: 13, color: C.dim, fontVariantNumeric: 'tabular-nums' }}>
+            {hours(h.hours)}
+            {h.unbilled_value > 0 && (
+              <span style={{ color: C.amber }}> · {money0(h.unbilled_value)}</span>
+            )}
+          </span>
+        );
+      },
+    },
+    {
       key: 'owed',
       label: 'Owed',
       width: '92px',
@@ -447,6 +480,8 @@ export default function CustomersPage() {
     for (const r of rows) if (isClient(r.stage)) m[r.relationship ?? 'customer'] += 1;
     return m;
   }, [rows]);
+  const monthHours = clientHours.reduce((a, r) => a + r.hours, 0);
+  const byClient = new Map(clientHours.filter((h) => h.customer_id).map((h) => [h.customer_id as string, h]));
   const dueNow = today ? clients.filter((r) => r.next_action_on && r.next_action_on <= today) : [];
   const owing = clients.filter((r) => r.owed > 0);
   const noEmail = clients.filter((r) => !r.email);
@@ -512,27 +547,60 @@ export default function CustomersPage() {
         </Card>
       )}
 
-      {/* What needs doing, before the list of everyone */}
-      {!loading && (dueNow.length > 0 || owing.length > 0 || noEmail.length > 0) && (
-        /*
-          Context, on one line.
+      {/*
+        The same four tiles as Home, scoped to clients.
 
-          Three bordered cards above a list of four clients is a dashboard
-          bolted to the top of an address book. The numbers matter, they are
-          just not what this screen is for.
-        */
-        <Figures
-          items={[
-            { label: 'Follow up due', value: String(dueNow.length), tone: 'amber', hideAtZero: true },
+        This was three figures on one line, every one of them hideAtZero, so
+        on a book where nobody is overdue and nobody owes anything the strip
+        vanished and the screen opened straight onto a table of dashes. It told
+        you nothing until you clicked into somebody.
+
+        The shapes match Home deliberately. Two screens that show the state of
+        the same business should not teach two different ways of reading it,
+        and a number you can act on should be the thing you press.
+      */}
+      {!loading && (
+        <div className="tiles">
+          {[
             {
-              label: 'Owing you',
+              label: 'Owed to you',
               value: money0(owing.reduce((s, r) => s + r.owed, 0)),
-              tone: 'red',
-              hideAtZero: true,
+              hint: owing.length ? `${owing.length} ${owing.length === 1 ? 'client' : 'clients'}` : 'Nobody owes you',
+              icon: 'card' as const,
+              tone: owing.length ? C.red : undefined,
             },
-            { label: 'No email', value: String(noEmail.length), hideAtZero: true },
-          ]}
-        />
+            {
+              label: 'Unbilled',
+              value: money0(clients.reduce((s, r) => s + r.unbilled, 0)),
+              hint: 'Done, not yet asked for',
+              icon: 'work' as const,
+              tone: clients.some((r) => r.unbilled > 0) ? C.amber : undefined,
+            },
+            {
+              label: 'Time this month',
+              value: hours(monthHours),
+              hint: monthHours > 0 ? `across ${clientHours.length} ${clientHours.length === 1 ? 'client' : 'clients'}` : 'Nothing logged yet',
+              icon: 'activity' as const,
+              tone: undefined,
+            },
+            {
+              label: 'Need a nudge',
+              value: String(dueNow.length + noEmail.length),
+              hint: noEmail.length ? `${noEmail.length} with no email` : dueNow.length ? 'Follow-ups due' : 'Nothing outstanding',
+              icon: 'people' as const,
+              tone: dueNow.length + noEmail.length > 0 ? C.amber : undefined,
+            },
+          ].map((t) => (
+            <div key={t.label} className={`tile${t.tone ? ' tileLive' : ''}`} style={{ cursor: 'default' }}>
+              <span className="tileTop">
+                <Glyph name={t.icon} size={16} color={t.tone ?? C.faint} />
+                <span className="tileLabel">{t.label}</span>
+              </span>
+              <span className="tileValue" style={t.tone ? { color: t.tone } : undefined}>{t.value}</span>
+              <span className="tileHint">{t.hint}</span>
+            </div>
+          ))}
+        </div>
       )}
 
       {/*
