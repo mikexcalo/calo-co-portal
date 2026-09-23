@@ -339,6 +339,8 @@ export interface JobLedger {
   invoiced_total: number;
   collected: number;
   estimate_total: number;
+  /** Written but not sent. See the job_ledger view: a draft is not a debt. */
+  drafted_total: number;
   margin_to_date: number;
   /**
    * Hours left against what the retainer fee assumed. Null unless this is a

@@ -4746,3 +4746,11 @@ input:focus, textarea:focus, select:focus {
 .navRow:hover .navPark,
 .navPark:focus-visible { opacity: 1; }
 .navPark:hover { color: var(--nav-park-hover, #1A1A1A); }
+
+/* The card menu appears when you are looking at the card, the same way the
+   sidebar's park control does. Permanent chrome on every card is a board you
+   read past. */
+.jobCardMenu { opacity: 0; transition: opacity .12s ease; }
+.jobCard:hover .jobCardMenu,
+.jobCardMenu:focus-visible { opacity: 1; }
+.jobCardMenu:hover { background: rgba(0,0,0,.05); }

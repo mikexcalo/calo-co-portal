@@ -17,6 +17,9 @@ import { listJobs, listJobLedger } from '@/lib/spine/db';
 import { JOB_PIPELINE, JOB_STATUS_LABEL } from '@/lib/spine/types';
 import type { JobLedger, JobStatus, JobWithCustomer } from '@/lib/spine/types';
 import {
+  Select,
+  Sheet,
+  inputStyle,
   Button,
   C,
   Card,
@@ -28,6 +31,8 @@ import {
   money0,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { save as saveOrFail } from '@/lib/spine/save';
+import supabase from '@/lib/supabase';
 
 const TONE: Record<JobStatus, 'neutral' | 'blue' | 'green' | 'amber' | 'red'> = {
   lead: 'neutral',
@@ -47,6 +52,9 @@ export default function JobsPage() {
   const [ledger, setLedger] = useState<Record<string, JobLedger>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<JobWithCustomer | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     let canceled = false;
@@ -68,7 +76,7 @@ export default function JobsPage() {
     return () => {
       canceled = true;
     };
-  }, []);
+  }, [tick]);
 
   /**
    * Filtered here rather than in the query.
@@ -203,8 +211,10 @@ export default function JobsPage() {
                     return (
                       <div
                         key={job.id}
+                        className="jobCard"
                         onClick={() => router.push(`/jobs/${job.id}`)}
                         style={{
+                          position: 'relative',
                           background: C.panel,
                           border: `1px solid ${C.border}`,
                           borderRadius: 9,
@@ -212,6 +222,29 @@ export default function JobsPage() {
                           cursor: 'pointer',
                         }}
                       >
+                        {/*
+                          Renaming a project meant opening the client it
+                          belongs to, which is the wrong way round: the board
+                          is where you see all of them next to each other, and
+                          seeing them next to each other is what tells you one
+                          is named wrong or should not exist. Going somewhere
+                          else to act on what you just noticed loses the
+                          comparison that prompted it.
+                        */}
+                        <button
+                          className="jobCardMenu"
+                          onClick={(e) => { e.stopPropagation(); setEditing(job); }}
+                          title="Rename, move or remove"
+                          aria-label={`Manage ${job.name}`}
+                          style={{
+                            position: 'absolute', top: 8, right: 8,
+                            background: 'transparent', border: 'none', padding: '2px 5px',
+                            color: C.faint, cursor: 'pointer', fontSize: 15, lineHeight: 1,
+                            fontFamily: 'inherit', borderRadius: 5,
+                          }}
+                        >
+                          ⋯
+                        </button>
                         {/*
                           A card that says what is happening on it.
 
@@ -318,6 +351,100 @@ export default function JobsPage() {
           </div>
         </div>
       )}
+
+      {/*
+        Rename, move, or remove — from the board.
+
+        Remove only appears when the project has nothing on it. A project with
+        an hour or a receipt or an invoice against it is a record of work that
+        happened, and deleting it would take the evidence with it; those get
+        closed, not removed. The panel says which it is rather than hiding a
+        control and leaving you to wonder where it went.
+      */}
+      {editing && (() => {
+        const l = ledger[editing.id];
+        const used =
+          (l?.hours_logged ?? 0) > 0 ||
+          (l?.cost_total ?? 0) > 0 ||
+          (l?.invoiced_total ?? 0) > 0 ||
+          (l?.drafted_total ?? 0) > 0;
+        return (
+          <Sheet title={editing.name} onClose={() => setEditing(null)}>
+            <>
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 12.5, color: C.dim, marginBottom: 5 }}>Name</div>
+                <input
+                  defaultValue={editing.name}
+                  onBlur={(e) => setEditing({ ...editing, name: e.target.value })}
+                  style={inputStyle}
+                  id="job-name"
+                />
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 12.5, color: C.dim, marginBottom: 5 }}>Status</div>
+                <Select
+                  value={editing.status}
+                  onChange={(v) => setEditing({ ...editing, status: v as JobWithCustomer['status'] })}
+                  options={(Object.keys(JOB_STATUS_LABEL) as Array<keyof typeof JOB_STATUS_LABEL>).map((k) => ({
+                    value: k,
+                    label: JOB_STATUS_LABEL[k],
+                  }))}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <Button
+                  disabled={busy}
+                  onClick={async () => {
+                    const name = (document.getElementById('job-name') as HTMLInputElement)?.value?.trim();
+                    setBusy(true);
+                    const res = await saveOrFail(
+                      supabase.from('jobs')
+                        .update({ name: name || editing.name, status: editing.status })
+                        .eq('id', editing.id)
+                    );
+                    setBusy(false);
+                    if (res.error) { setError(human(res.error.message)); return; }
+                    setEditing(null);
+                    setTick((t) => t + 1);
+                  }}
+                >
+                  Save
+                </Button>
+                <button
+                  onClick={() => setEditing(null)}
+                  style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  Cancel
+                </button>
+                <span style={{ flex: 1 }} />
+                {used ? (
+                  <span style={{ fontSize: 12, color: C.faint, maxWidth: 210, lineHeight: 1.5 }}>
+                    Has work on it, so it can be closed but not removed.
+                  </span>
+                ) : (
+                  <Button
+                    variant="danger"
+                    disabled={busy}
+                    onClick={async () => {
+                      setBusy(true);
+                      const res = await saveOrFail(supabase.from('jobs').delete().eq('id', editing.id));
+                      setBusy(false);
+                      if (res.error) { setError(human(res.error.message)); return; }
+                      setEditing(null);
+                      setTick((t) => t + 1);
+                    }}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+            </>
+          </Sheet>
+        );
+      })()}
+
     </Page>
   );
 }
