@@ -32,7 +32,6 @@ import {
   inputStyle,
   money,
   useIsPhone,
-  MONEY_TABS,
 } from '@/components/spine/ui';
 import { DropZone } from '@/components/spine/DropZone';
 import { human } from '@/lib/spine/errors';
@@ -199,7 +198,6 @@ export default function PricingPage() {
 
   return (
     <Page
-      tabs={MONEY_TABS}
       title="Price list"
       subtitle={`What you charge.`}
       action={

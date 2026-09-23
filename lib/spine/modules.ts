@@ -610,17 +610,40 @@ export const MODULE_IN_TOPBAR: ModuleId[] = [
   'business',
 ];
 
+/**
+ * A TAB IS ANOTHER VIEW OF THE SAME THING. NOTHING ELSE.
+ *
+ * This map decided which screens get no sidebar row, and it had been used for
+ * "related to" rather than "the same object as". Nine screens ended up
+ * reachable only by landing on a sibling first: you got to Expenses by opening
+ * Profit & Loss and noticing a tab. If you did not already know it was there,
+ * it did not exist — which is the failure recorded in this file's own history,
+ * where folding everything into tabs "looked tidy and made the product
+ * unusable, because a tab is invisible until you are already on the page that
+ * holds it".
+ *
+ * Expenses is not a view of Profit & Loss. It is a different task that happens
+ * to be money-shaped, and it wants a row. Team and Security genuinely are two
+ * views of one object — your business — so they stay.
+ *
+ * The rule, applied: same object, tab. Different task, row. Length is handled
+ * by folding a section you do not use, or parking a row you do not want, not
+ * by making the screen unfindable.
+ */
 export const MODULE_TAB_PARENT: Partial<Record<ModuleId, ModuleId>> = {
-  receipts: 'pl',
-  expenses: 'pl',
-  traffic:  'seo',
-  reviews:  'seo',
-  stories:  'pitches',
-  pricing:  'pl',
+  // Two views of your business, which is one object.
   team:     'business',
   security: 'business',
-  // The Brand row already points at the kit; a second row for the same page
-  // under a different name is the exact duplication this map exists to stop.
+  /*
+    Digital's Overview is not a fifth sibling, it is the sum of the others:
+    four cards showing what Traffic, Search and Reviews each say. A parent that
+    summarises its children is the case tabs are for, so these stay.
+  */
+  traffic:  'seo',
+  reviews:  'seo',
+  // Not a tab: the Brand row already points at the kit, and a second row for
+  // the same page under a different name is the duplication this map exists
+  // to stop.
   brands: 'brand_kit',
   website: 'seo',
 };

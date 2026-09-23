@@ -34,7 +34,6 @@ import {
   Pill,
   SectionLabel,
   inputStyle,
-  PITCH_TABS,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -345,7 +344,6 @@ export default function StoriesPage() {
 
   return (
     <Page
-      tabs={PITCH_TABS}
       title="Case studies"
       subtitle="Your past work, written up."
     >

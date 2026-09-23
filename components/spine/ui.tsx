@@ -226,11 +226,16 @@ export const DIGITAL_TABS: readonly PageTab[] = [
  * They were three sidebar rows, which put "the receipt I photographed on
  * Tuesday" at the same level as "did this month make money".
  */
+/**
+ * Empty on purpose, and kept so the import sites do not all have to change.
+ *
+ * Overheads, Receipts and Price list were tabs of Profit & Loss, which made
+ * three ordinary tasks reachable only by opening a fourth screen and noticing
+ * a strip. None of them is a view of Profit & Loss; they are different jobs
+ * that happen to be money-shaped. They have rows now.
+ */
 export const MONEY_TABS: readonly PageTab[] = [
   { label: 'Profit & Loss', href: '/pl', icon: 'chart' },
-  { label: 'Overheads', href: '/expenses', icon: 'card' },
-  { label: 'Receipts', href: '/documents', icon: 'receipt' },
-  { label: 'Price list', href: '/pricing', icon: 'pricing' },
 ];
 
 /**
@@ -283,9 +288,9 @@ export const BRAND_TABS: readonly PageTab[] = [
  * were about identity. They are about evidence, and the only reason to keep
  * them is to reuse them, which happens at the moment you write a pitch.
  */
+/* Case studies are not a view of pitches. They have their own row. */
 export const PITCH_TABS: readonly PageTab[] = [
   { label: 'Pitches', href: '/pitches', icon: 'send' },
-  { label: 'Case studies', href: '/stories', icon: 'book' },
 ];
 
 /**

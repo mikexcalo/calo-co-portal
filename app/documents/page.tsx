@@ -55,7 +55,6 @@ import {
   money,
   shortDate,
   useIsPhone,
-  MONEY_TABS,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 
@@ -289,7 +288,6 @@ export default function DocumentsPage() {
 
   return (
     <Page
-      tabs={MONEY_TABS}
       title="Receipts"
       subtitle="Receipts, filed against jobs."
       action={

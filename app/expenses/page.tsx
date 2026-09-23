@@ -35,7 +35,6 @@ import {
   shortDate,
   today,
   Select,
-  MONEY_TABS,
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
 import { DropShelf } from '@/components/spine/DropShelf';
@@ -229,7 +228,6 @@ export default function ExpensesPage() {
 
   return (
     <Page
-      tabs={MONEY_TABS}
       title="Overheads"
       subtitle="What it costs to keep the doors open."
       action={
