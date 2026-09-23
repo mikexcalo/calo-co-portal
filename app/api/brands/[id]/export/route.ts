@@ -24,6 +24,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/spine/errors';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import JSZip from 'jszip';
@@ -66,7 +67,7 @@ export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
     return await buildExport(req, ctx);
   } catch (e) {
     return NextResponse.json(
-      { error: `Could not build the export: ${(e as Error).message}` },
+      apiError('brands/export', e, 'Could not build the export.'),
       { status: 500 }
     );
   }

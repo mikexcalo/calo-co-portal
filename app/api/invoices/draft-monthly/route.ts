@@ -10,6 +10,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse, type NextRequest } from 'next/server';
+import { apiError } from '@/lib/spine/errors';
 
 export const runtime = 'nodejs';
 
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest) {
     .select('id, number')
     .single();
   if (invErr || !invoice) {
-    return NextResponse.json({ error: invErr?.message ?? 'Could not draft' }, { status: 500 });
+    return NextResponse.json(apiError('invoices/draft-monthly', invErr, 'Could not draft that invoice.'), { status: 500 });
   }
 
   /*
@@ -89,7 +90,7 @@ export async function POST(req: NextRequest) {
   for (const r of [timeRes, costRes]) {
     if (r.error) {
       await db.from('job_invoices').delete().eq('id', invoice.id);
-      return NextResponse.json({ error: r.error.message }, { status: 500 });
+      return NextResponse.json(apiError('invoices/draft-monthly', r.error), { status: 500 });
     }
   }
   const time = timeRes.data;

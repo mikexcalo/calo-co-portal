@@ -12,6 +12,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/spine/errors';
 import { createClient } from '@supabase/supabase-js';
 
 export const runtime = 'nodejs';
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
   });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 502 });
+    return NextResponse.json(apiError('asks', error), { status: 502 });
   }
   return NextResponse.json({ ok: true });
 }

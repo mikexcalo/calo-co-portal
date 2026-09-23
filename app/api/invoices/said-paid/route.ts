@@ -18,6 +18,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse, type NextRequest } from 'next/server';
+import { apiError } from '@/lib/spine/errors';
 
 export const runtime = 'nodejs';
 
@@ -73,7 +74,7 @@ export async function POST(req: NextRequest) {
     status: 'open',
   });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json(apiError('invoices/said-paid', error), { status: 500 });
 
   // Stamped on the invoice as well, so the claim is visible where the money
   // is rather than only in a feed somebody has to be looking at.

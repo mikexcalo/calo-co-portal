@@ -24,6 +24,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/spine/errors';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import Anthropic from '@anthropic-ai/sdk';
@@ -146,7 +147,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { data, error } = await supabase.rpc('answer_question', { qid: q.id });
-  if (error) return NextResponse.json({ error: error.message }, { status: 502 });
+  if (error) return NextResponse.json(apiError('ask', error), { status: 502 });
 
   // The function returns one row holding a jsonb array.
   const raw = Array.isArray(data) ? (data[0]?.result ?? data[0]) : data;

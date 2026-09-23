@@ -14,6 +14,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/spine/errors';
 import { whoIsCalling, belongsToCaller } from '@/lib/spine/api-caller';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
@@ -131,7 +132,7 @@ export async function POST(req: NextRequest) {
       .select('number, send_on')
       .maybeSingle();
 
-    if (upd.error) return NextResponse.json({ error: upd.error.message }, { status: 500 });
+    if (upd.error) return NextResponse.json(apiError('invoices/send', upd.error), { status: 500 });
     if (!upd.data) {
       return NextResponse.json({ error: 'That one has already gone out.' }, { status: 409 });
     }

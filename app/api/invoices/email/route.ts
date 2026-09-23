@@ -22,6 +22,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/spine/errors';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 
@@ -168,6 +169,6 @@ ${org?.review_link ? `<p style="color:#666;font-size:13px;margin-top:18px;">Once
     return NextResponse.json({ ok: true, link, message: `Sent to ${to}.` });
   } catch (e) {
     console.error('[invoices/email]', (e as Error).message);
-    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+    return NextResponse.json(apiError('invoices/email', e), { status: 500 });
   }
 }

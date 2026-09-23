@@ -137,5 +137,55 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  /*
+    NOTHING APPROVED, AND THE MONTH IS ENDING.
+
+    The workflow is: work happens through the month, the run drafts on the last
+    day, somebody approves, and it goes out on the 1st. Approving is the only
+    human step and it is the one thing nothing asked for.
+
+    The notice above only fires when this run DRAFTED something. On a month
+    where the drafts already exist — which is every month after the first, and
+    was September — it drafted nothing, so it said nothing, and two correct
+    invoices would have sat unapproved through the 1st with no word from
+    anybody.
+
+    From the 26th, anything still unapproved gets said out loud, once a day,
+    until it is approved or it goes.
+  */
+  const dayOfMonth = Number(todayStr.slice(8, 10));
+  if (dayOfMonth >= 26) {
+    const { data: waiting } = await db
+      .from('job_invoices')
+      .select('id, org_id, number, total')
+      .eq('status', 'draft')
+      .is('send_on', null);
+
+    const byOrg = new Map<string, { n: number; total: number; numbers: string[] }>();
+    for (const inv of waiting ?? []) {
+      const e = byOrg.get(inv.org_id) ?? { n: 0, total: 0, numbers: [] };
+      e.n += 1;
+      e.total += Number(inv.total ?? 0);
+      if (e.numbers.length < 4) e.numbers.push(inv.number);
+      byOrg.set(inv.org_id, e);
+    }
+
+    for (const [orgId, e] of byOrg) {
+      await db.from('notifications').insert({
+        org_id: orgId,
+        kind: 'system',
+        title: `${e.n} invoice${e.n === 1 ? '' : 's'} still need approving`,
+        body:
+          `${e.numbers.join(', ')} — $${e.total.toFixed(2)} in total. ` +
+          'Nothing goes out on the 1st until these are approved. ' +
+          'Open Invoices and press Approve for the 1st.',
+        href: '/billing',
+      }).then(undefined, (err) => console.error('[cron/billing] approve notice:', err));
+    }
+  }
+
+  /* Say what happened even when nothing did. A run that only reports its
+     successes cannot be told apart from one that never fired. */
+  console.log('[cron/billing]', JSON.stringify({ ranOn: todayStr, drafted, sent }));
   return NextResponse.json({ ok: true, drafted, sent, ranOn: todayStr });
 }

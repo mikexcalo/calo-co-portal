@@ -21,6 +21,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/spine/errors';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import Anthropic from '@anthropic-ai/sdk';
@@ -198,7 +199,7 @@ export async function POST(req: NextRequest) {
     if (!res.ok) {
       const detail = await res.json().catch(() => null) as { message?: string } | null;
       return NextResponse.json(
-        { error: detail?.message ?? `The mail service refused it (${res.status}).` },
+        apiError('updates/send', detail, `The mail service refused it (${res.status}).`),
         { status: 502 }
       );
     }
@@ -299,6 +300,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (e) {
     console.error('[updates]', (e as Error).message);
-    return NextResponse.json({ error: `Could not draft that: ${(e as Error).message}` }, { status: 502 });
+    return NextResponse.json(apiError('updates/send', e, 'Could not draft that.'), { status: 502 });
   }
 }

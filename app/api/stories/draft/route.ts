@@ -24,6 +24,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/spine/errors';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import Anthropic from '@anthropic-ai/sdk';
@@ -125,7 +126,7 @@ export async function POST(req: NextRequest) {
     // impossible to diagnose from the screen.
     console.error('[stories/draft]', e);
     return NextResponse.json(
-      { error: `Could not draft that: ${(e as Error).message || 'unknown failure'}` },
+      apiError('stories/draft', e, 'Could not draft that.'),
       { status: 500 }
     );
   }
@@ -222,6 +223,6 @@ async function draft(req: NextRequest) {
     });
   } catch (e) {
     console.error('[stories/draft]', (e as Error).message);
-    return NextResponse.json({ error: `Could not draft that: ${(e as Error).message}` }, { status: 502 });
+    return NextResponse.json(apiError('stories/draft', e, 'Could not draft that.'), { status: 502 });
   }
 }

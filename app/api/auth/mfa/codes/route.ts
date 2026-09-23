@@ -19,6 +19,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/spine/errors';
 import { createClient } from '@supabase/supabase-js';
 import { createHash, randomInt } from 'crypto';
 
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest) {
     .from('mfa_recovery_codes')
     .insert(codes.map((c) => ({ user_id: userId, code_hash: hash(c) })));
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json(apiError('auth/mfa/codes', error), { status: 500 });
 
   // The only time these are ever readable. There is no second chance to see
   // them, which the screen showing them says plainly.
@@ -114,7 +115,7 @@ export async function PUT(req: NextRequest) {
     .is('used_at', null)
     .maybeSingle();
 
-  if (match.error) return NextResponse.json({ error: match.error.message }, { status: 500 });
+  if (match.error) return NextResponse.json(apiError('auth/mfa/codes', match.error), { status: 500 });
   if (!match.data) {
     return NextResponse.json(
       { error: 'That code is not valid, or it has already been used.' },
@@ -138,7 +139,7 @@ export async function PUT(req: NextRequest) {
   }
 
   const { data: factors, error: listErr } = await db.auth.admin.mfa.listFactors({ userId });
-  if (listErr) return NextResponse.json({ error: listErr.message }, { status: 500 });
+  if (listErr) return NextResponse.json(apiError('auth/mfa/codes', listErr), { status: 500 });
 
   for (const f of factors?.factors ?? []) {
     await db.auth.admin.mfa.deleteFactor({ id: f.id, userId });

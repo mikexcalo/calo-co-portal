@@ -11,6 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/spine/errors';
 import Anthropic from '@anthropic-ai/sdk';
 
 export const runtime = 'nodejs';
@@ -184,6 +185,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Rate limited — try again shortly.' }, { status: 429 });
     }
     console.error('[pricing/import]', err.message);
-    return NextResponse.json({ error: err.message || 'Import failed' }, { status: 502 });
+    return NextResponse.json(apiError('pricing/import', err, 'That import did not work.'), { status: 502 });
   }
 }

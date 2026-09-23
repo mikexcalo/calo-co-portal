@@ -17,6 +17,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/spine/errors';
 import Anthropic from '@anthropic-ai/sdk';
 
 export const runtime = 'nodejs';
@@ -212,7 +213,7 @@ export async function POST(req: NextRequest) {
 
     console.error('[documents/extract]', e.message);
     return NextResponse.json(
-      { error: e.message || 'Extraction failed' },
+      apiError('documents/extract', e, 'Could not read that document.'),
       { status: 502 }
     );
   }

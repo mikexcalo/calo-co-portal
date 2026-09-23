@@ -7,6 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/spine/errors';
 import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
@@ -165,6 +166,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, link, message: `Sent to ${to}.` });
   } catch (e) {
     console.error('[estimates/send]', (e as Error).message);
-    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+    return NextResponse.json(apiError('estimates/send', e), { status: 500 });
   }
 }

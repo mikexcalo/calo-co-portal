@@ -15,6 +15,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/spine/errors';
 import { createClient } from '@supabase/supabase-js';
 
 export const runtime = 'nodejs';
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
 
   if (memErr) {
-    return NextResponse.json({ error: memErr.message }, { status: 500 });
+    return NextResponse.json(apiError('team/invite', memErr), { status: 500 });
   }
   if (!membership || !['owner', 'admin'].includes(membership.role)) {
     return NextResponse.json(
@@ -129,7 +130,7 @@ export async function POST(req: NextRequest) {
         user_metadata: body.fullName?.trim() ? { full_name: body.fullName.trim() } : undefined,
       });
       if (createErr) {
-        return NextResponse.json({ error: `Could not create the account: ${createErr.message}` }, { status: 502 });
+        return NextResponse.json(apiError('team/invite', createErr, 'Could not create the account.'), { status: 502 });
       }
       userId = created.user?.id ?? null;
       invited = true;

@@ -15,6 +15,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/spine/errors';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
   let q = supabase.from('follow_ups').select('*');
   if (body.id) q = q.eq('id', body.id);
   const { data, error } = await q;
-  if (error) return NextResponse.json({ error: error.message }, { status: 502 });
+  if (error) return NextResponse.json(apiError('followups/send', error), { status: 502 });
 
   const rows = (data ?? []) as Row[];
   if (!rows.length) return NextResponse.json({ sent: 0, message: 'Nothing to chase.' });

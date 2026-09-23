@@ -12,6 +12,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/spine/errors';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
   let q = supabase.from('review_due').select('*');
   if (body.jobId) q = q.eq('job_id', body.jobId);
   const { data, error } = await q;
-  if (error) return NextResponse.json({ error: error.message }, { status: 502 });
+  if (error) return NextResponse.json(apiError('reviews/send', error), { status: 502 });
 
   const due = (data ?? []) as Due[];
   if (!due.length) return NextResponse.json({ sent: 0, message: 'Nobody to ask right now.' });

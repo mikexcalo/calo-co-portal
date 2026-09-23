@@ -47,3 +47,24 @@ export function human(raw: unknown, fallback = 'That did not work. Try again, an
   }
   return fallback;
 }
+
+/**
+ * WHAT AN API ROUTE SHOULD HAND BACK.
+ *
+ * Twenty-two of them returned error.message straight from Postgres or an
+ * upstream API, into the browser. It is how a JSON schema complaint and a
+ * request id ended up in the answer box on Home, and how a client could be
+ * shown "duplicate key value violates unique constraint".
+ *
+ * The real message is worth having, so it goes to the server log where it is
+ * searchable and nobody has to read it. What comes back is human(): the same
+ * translation the database layer has used for months.
+ *
+ * Returns the body to send, not a Response, so the caller keeps the status
+ * code — a 502 and a 500 mean different things to the thing that called it.
+ */
+export function apiError(where: string, raw: unknown, fallback?: string): { error: string } {
+  const detail = raw instanceof Error ? raw.message : String((raw as { message?: unknown })?.message ?? raw);
+  console.error(`[${where}]`, detail);
+  return { error: human(raw, fallback) };
+}
