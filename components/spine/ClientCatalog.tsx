@@ -25,7 +25,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
-import { Button, C, Card, Empty, SectionLabel, inputStyle } from './ui';
+import { Button, C, Card, Empty, SectionLabel, inputStyle, money0, today } from './ui';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 
@@ -43,9 +43,48 @@ interface Product {
   sells_to: string | null;
   note: string | null;
   sort: number;
+  /* What this line earns him, what is actually there, and when it was true. */
+  commission_per_unit: number | null;
+  cases_available: number | null;
+  lbs_available: number | null;
+  quoted_on: string | null;
 }
 
 const blank = { item: '', form: '', size: '', pack: '', price: '', fob: '', origin: '', species: '', sells_to: '' };
+
+interface Terms {
+  commission_per_unit: number | null;
+  commission_note: string | null;
+}
+
+/**
+ * What a sheet is worth to the person selling it.
+ *
+ * A rep's revenue is cents a pound on what moves, and until now nothing in
+ * here knew that. The sheet showed the principal's prices — which are what the
+ * BUYER pays — with no indication of what any of it earns the person holding
+ * the sheet. Wide Foods pays five cents a pound, twenty-five on crab meat, so
+ * one line of Emperor fillets at 786 cases of ten pounds is $393.
+ *
+ * Lifetime of the stock, not a forecast: it is what the whole line is worth if
+ * all of it sells, which is the number a rep uses to decide what to push.
+ */
+function earns(p: Product, standing: number | null): number | null {
+  const rate = p.commission_per_unit ?? standing;
+  if (rate == null) return null;
+  const lbs = p.lbs_available;
+  if (lbs == null) return null;
+  return rate * lbs;
+}
+
+/** Old enough to check before quoting from. */
+function staleness(iso: string | null, todayIso: string | null): number | null {
+  if (!iso || !todayIso) return null;
+  return Math.round((Date.parse(todayIso) - Date.parse(iso)) / 86400000);
+}
+
+/** Cents matter on a per-pound commission: 5c and 25c are both real rates. */
+const money2 = (n: number) => `$${n.toFixed(n < 1 ? 2 : 2)}`;
 
 const money = (n: number | null, unit: string | null) =>
   n === null ? null : `$${n.toFixed(2)}${unit ? ` / ${unit}` : ''}`;
@@ -67,15 +106,28 @@ export function ClientCatalog({
   /** Which row is being priced, and what has been typed into it. */
   const [editing, setEditing] = useState<string | null>(null);
   const [edit, setEdit] = useState({ price: '', fob: '', pack: '' });
+  const [terms, setTerms] = useState<Terms | null>(null);
+  /* Rendered on the client, so today cannot come from the server clock. */
+  const [todayIso, setTodayIso] = useState<string | null>(null);
+  useEffect(() => { setTodayIso(today()); }, []);
 
   const load = useCallback(async () => {
     const res = await supabase
       .from('client_products')
-      .select('id, item, form, size, pack, price, unit, fob, origin, species, sells_to, note, sort')
+      .select('id, item, form, size, pack, price, unit, fob, origin, species, sells_to, note, sort, commission_per_unit, cases_available, lbs_available, quoted_on')
       .eq('customer_id', customerId)
       .order('sort');
     if (res.error) setError(human(res.error.message));
     else setRows((res.data ?? []) as Product[]);
+
+    /* The standing deal, so a line with no rate of its own still shows what
+       it earns rather than showing nothing. */
+    const t = await supabase
+      .from('customer_terms')
+      .select('commission_per_unit, commission_note')
+      .eq('customer_id', customerId)
+      .maybeSingle();
+    setTerms((t.data as Terms) ?? null);
     setLoaded(true);
   }, [customerId]);
 
@@ -153,6 +205,46 @@ export function ClientCatalog({
             : `${rows.length - priced} of ${rows.length} still have no price.`}
         </div>
       )}
+
+      {/*
+        What the sheet is worth, and whether it is still true.
+
+        A price sheet shows what the BUYER pays. The person holding it is paid
+        cents a pound on whatever moves, and that number appeared nowhere — so
+        the screen told him everything except the only figure that is his.
+
+        The age sits beside it because these are live inventories. Wide Foods
+        says so in the email: they sell every day. A three week old sheet is
+        not a reference, it is something to check before you quote from it, and
+        it should say which one it is.
+      */}
+      {(() => {
+        const worth = rows.reduce((sum, r) => sum + (earns(r, terms?.commission_per_unit ?? null) ?? 0), 0);
+        const dates = rows.map((r) => r.quoted_on).filter(Boolean).sort() as string[];
+        const age = staleness(dates[dates.length - 1] ?? null, todayIso);
+        if (!worth && age === null) return null;
+        return (
+          <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'baseline', marginBottom: 12 }}>
+            {worth > 0 && (
+              <div style={{ fontSize: 13, color: C.dim }}>
+                Yours if it all sells{' '}
+                <span style={{ color: C.text, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                  {money0(worth)}
+                </span>
+                {terms?.commission_per_unit != null && (
+                  <span style={{ color: C.faint }}> · {money2(terms.commission_per_unit)} a unit unless the line says otherwise</span>
+                )}
+              </div>
+            )}
+            {age !== null && (
+              <div style={{ fontSize: 12.5, color: age > 7 ? C.amber : C.faint }}>
+                {age === 0 ? 'Priced today' : age === 1 ? 'Priced yesterday' : `Priced ${age} days ago`}
+                {age > 7 ? ', worth checking before you quote it' : ''}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {error && <div style={{ fontSize: 13, color: C.red, marginBottom: 10 }}>{error}</div>}
 
@@ -239,6 +331,39 @@ export function ClientCatalog({
                           {money(p.price, p.unit) ?? 'no price'}
                         </span>
                         <span style={{ fontSize: 12.5, color: C.faint, minWidth: 90 }}>{p.fob ?? ''}</span>
+                        {/*
+                          What is there, and what it earns him.
+
+                          Quoting from a sheet with no stock on it is how you
+                          sell something that went yesterday and hear about it
+                          from the buyer. And the commission is the only figure
+                          on this row that belongs to the person reading it.
+                        */}
+                        <span
+                          style={{
+                            fontSize: 12.5, color: C.faint, minWidth: 92, textAlign: 'right',
+                            fontVariantNumeric: 'tabular-nums',
+                          }}
+                        >
+                          {p.cases_available != null
+                            ? `${p.cases_available.toLocaleString('en-US')} cases`
+                            : ''}
+                        </span>
+                        {(() => {
+                          const e = earns(p, terms?.commission_per_unit ?? null);
+                          return (
+                            <span
+                              style={{
+                                fontSize: 12.5, minWidth: 74, textAlign: 'right',
+                                fontVariantNumeric: 'tabular-nums',
+                                color: e ? C.green : C.faint,
+                              }}
+                              title={e ? 'What this line earns you if it all sells' : undefined}
+                            >
+                              {e ? money0(e) : ''}
+                            </span>
+                          );
+                        })()}
                         <button
                           onClick={() => {
                             setEditing(isEditing ? null : p.id);
