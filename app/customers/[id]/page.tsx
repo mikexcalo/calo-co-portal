@@ -592,14 +592,15 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             which makes it an empty state, so it sits on its own under the
             tags rather than competing with them.
           */}
-          <div style={{ marginBottom: 18 }}>
-            <Tags tags={customer.tags ?? []} known={knownTags} onChange={saveTags} />
-            {!customer.website && (
-              <div style={{ maxWidth: 340, marginTop: 10 }}>
-                <Enrich customerId={params.id} currentName={customer.name} onSaved={load} />
-              </div>
-            )}
-          </div>
+          {/*
+            Tags under the tabs, not above them.
+
+            An empty tag field and an empty "fill this in from their website"
+            box were the first two things on a client record — two dotted
+            outlines asking to be typed into, above the name of the person you
+            came here to reach. Both are setup, done once and then never again,
+            and neither is why anybody opens this screen.
+          */}
 
           {/* Above everything. The first thing you read, and the only
               thing you could hand to somebody else. */}
@@ -636,6 +637,14 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
 
           {view === 'now' && (
             <>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
+                <Tags tags={customer.tags ?? []} known={knownTags} onChange={saveTags} />
+                {!customer.website && (
+                  <div style={{ flex: '1 1 260px', maxWidth: 340 }}>
+                    <Enrich customerId={params.id} currentName={customer.name} onSaved={load} />
+                  </div>
+                )}
+              </div>
               {/*
                 One strip, not two blocks.
                 
@@ -645,16 +654,10 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               */}
               <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
                 <Waiting customerId={params.id} />
+                {/* Was a grey "+ Add a note" with no edges, sitting beside
+                    another one, both looking like captions. */}
                 {orgId && !noting && (
-                  <button
-                    onClick={() => setNoting(true)}
-                    style={{
-                      border: 'none', background: 'transparent', padding: 0,
-                      fontSize: 12.5, color: C.faint, cursor: 'pointer', fontFamily: 'inherit',
-                    }}
-                  >
-                    + Add a note
-                  </button>
+                  <Button variant="ghost" onClick={() => setNoting(true)}>Add a note</Button>
                 )}
               </div>
               {orgId && noting && (
@@ -902,21 +905,24 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             schema change somebody has to ask for.
           */}
 
-          {orgId && <Terms orgId={orgId} customerId={params.id} />}
-          {orgId && <People orgId={orgId} customerId={params.id} />}
-
           {/*
-            Under the people, because that is what it is about.
-            
-            It floated unanchored between two cards, reading as a fact about
-            the company rather than about the last time anybody spoke to
-            anyone in it.
+            Who, then what you agreed.
+
+            The terms card was first and the people were under it, so the
+            answer to "who do I write to" sat below four figures about money.
+            You open a client record to reach a person far more often than to
+            check a rate, and the rate is not going anywhere.
           */}
+          {orgId && <People orgId={orgId} customerId={params.id} />}
+          {/* A fact about the last time anybody spoke to somebody in the
+              company, so it sits with the people rather than floating
+              unanchored between two cards as it was. */}
           {customer.last_contacted_on && (
-            <div style={{ fontSize: 12, color: C.faint, margin: '-6px 0 16px' }}>
+            <div style={{ fontSize: 12, color: C.faint, margin: '-14px 0 20px' }}>
               Last contact {shortDate(customer.last_contacted_on)}
             </div>
           )}
+          {orgId && <Terms orgId={orgId} customerId={params.id} />}
 
           {/*
             One line, not a stack of bars.

@@ -1,6 +1,5 @@
 'use client';
 
-import type { CSSProperties } from 'react';
 
 /**
  * The things you owe the platform, with the steps.
@@ -62,12 +61,6 @@ function StepText({ text }: { text: string }) {
   );
 }
 
-const rowBtn: CSSProperties = {
-  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  width: 26, height: 26, borderRadius: 7, flexShrink: 0,
-  background: 'transparent', border: 'none', padding: 0,
-  color: '#8A949E', cursor: 'pointer', fontFamily: 'inherit',
-};
 
 export function YourSetup() {
   const { org } = useOrg();
@@ -275,8 +268,17 @@ export function YourSetup() {
                     {ticks[i.key].length} of {i.steps.length}
                   </span>
                 )}
-                <span style={{ fontSize: 12, color: C.blue }}>{isOpen ? 'Less' : 'How'}</span>
+                {/* "How" was a blue word, and the tick and cross were bare
+                    marks. Three things you can press, none of which looked
+                    pressable. They are buttons with edges now. */}
                 <span className="rowActions">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setOpen(isOpen ? null : i.key); }}
+                    className="rowBtn rowBtnWide"
+                    title={isOpen ? 'Hide the steps' : 'Show the steps'}
+                  >
+                    {isOpen ? 'Less' : 'How'}
+                  </button>
                 {/*
                   Done and Not doing, on the row.
 
@@ -300,7 +302,7 @@ export function YourSetup() {
                   onClick={(e) => { e.stopPropagation(); set(i.key, 'done'); }}
                   title="Mark it done"
                   aria-label={`Mark "${i.title}" done`}
-                  style={rowBtn}
+                  className="rowBtn rowBtnDone"
                 >
                   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <path d="M3 8.6 6.2 12 13 4.6" />
@@ -310,7 +312,7 @@ export function YourSetup() {
                   onClick={(e) => { e.stopPropagation(); set(i.key, 'skipped'); }}
                   title="Take it off the list"
                   aria-label={`Take "${i.title}" off the list`}
-                  style={rowBtn}
+                  className="rowBtn rowBtnSkip"
                 >
                   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" aria-hidden>
                     <path d="M4 4l8 8M12 4l-8 8" />

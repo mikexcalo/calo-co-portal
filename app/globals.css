@@ -4828,3 +4828,60 @@ input[type="date"] { cursor: pointer; }
 .taskRow:hover .rowActions { opacity: 1; }
 .rowActions { opacity: .55; transition: opacity .15s ease; display: flex; gap: 2px; }
 .rowActions button:hover { background: rgba(0,0,0,.05); color: #1A1A1A; }
+
+/* ---------------------------------------------------------------------------
+   Buttons that behave like buttons.
+
+   The whole product shipped with no hover and no press state: the only
+   transition on Button was on opacity, and nothing ever changed the opacity.
+   Every control sat inert, which reads as a label somebody drew rather than
+   something to push.
+
+   Three signals, in the order a hand expects them. Hover says it is live.
+   Press moves it down a pixel, because a button that does not go in has not
+   been pressed. Focus draws a ring, because a keyboard needs the same answer
+   the mouse gets.
+   --------------------------------------------------------------------------- */
+.btn {
+  transition: background .15s ease, border-color .15s ease, color .15s ease,
+              transform .08s ease, box-shadow .15s ease, opacity .15s ease;
+}
+.btn:not(:disabled):hover { transform: translateY(-1px); }
+.btn:not(:disabled):active { transform: translateY(1px); transition-duration: .04s; }
+.btn:focus-visible { outline: 2px solid #006AFF; outline-offset: 2px; }
+
+.btn-primary:not(:disabled):hover { box-shadow: 0 2px 10px rgba(0,0,0,.16); filter: brightness(1.08); }
+.btn-primary:not(:disabled):active { filter: brightness(.95); box-shadow: none; }
+
+.btn-ghost:not(:disabled):hover { border-color: #9AA4AE !important; color: #1A1A1A !important; background: rgba(0,0,0,.02) !important; }
+.btn-ghost:not(:disabled):active { background: rgba(0,0,0,.05) !important; }
+
+.btn-danger:not(:disabled):hover { background: rgba(240,25,50,.07) !important; border-color: rgba(240,25,50,.5) !important; }
+.btn-danger:not(:disabled):active { background: rgba(240,25,50,.13) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:hover, .btn:active { transform: none; }
+}
+
+/* Everything else that is pressable and is not a Button. */
+.quickLink:active, .tile:active { transform: translateY(1px); }
+.tile { transition: border-color .18s ease, background .18s ease, transform .12s ease, box-shadow .18s ease; }
+.tile:hover { box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+
+/* The three controls on a task row, given edges so they read as controls. */
+.rowActions { display: flex; gap: 5px; align-items: center; opacity: .75; transition: opacity .15s ease; }
+.taskRow:hover .rowActions, .rowActions:focus-within { opacity: 1; }
+.rowBtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; padding: 0; border-radius: 8px; flex-shrink: 0;
+  background: #FFFFFF; border: 1px solid #E6E4DF; color: #6B7680;
+  font: inherit; font-size: 12px; cursor: pointer;
+  transition: background .14s ease, border-color .14s ease, color .14s ease, transform .08s ease;
+}
+.rowBtnWide { width: auto; padding: 0 11px; }
+.rowBtn:hover { border-color: #9AA4AE; color: #1A1A1A; }
+.rowBtn:active { transform: translateY(1px); }
+.rowBtnDone:hover { border-color: #00755E; color: #00755E; background: #E8F7F2; }
+.rowBtnSkip:hover { border-color: #C2142A; color: #C2142A; background: #FDF0F1; }
+.rowBtn:focus-visible { outline: 2px solid #006AFF; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .rowBtn:active { transform: none; } }

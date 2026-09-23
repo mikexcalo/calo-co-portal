@@ -227,9 +227,28 @@ export function Brief({ customerId, clientName }: { customerId: string; clientNa
                       than one you could open. The row was always clickable;
                       nothing on it ever said so.
                     */}
+                    {/*
+                      A chevron, not "Show the rest" eight times.
+
+                      Every row is truncated, so every row carried the same
+                      three words, and the page read as a column of the phrase
+                      "Show the rest" with some client information wrapped
+                      around it. The whole row has always been the target; a
+                      mark at the end of it says so without being read, and
+                      turning to point down says which one is open.
+                    */}
                     {hasMore && (
-                      <span style={{ fontSize: 12, color: C.accent, marginTop: 3, display: 'block' }}>
-                        {isOpen ? 'Show less' : 'Show the rest'}
+                      <span
+                        aria-hidden
+                        style={{
+                          display: 'inline-block', marginTop: 4, color: C.faint,
+                          fontSize: 10, lineHeight: 1,
+                          transform: isOpen ? 'rotate(90deg)' : 'none',
+                          transformOrigin: '40% 50%',
+                          transition: 'transform .18s ease, color .15s ease',
+                        }}
+                      >
+                        ▶
                       </span>
                     )}
                   </div>

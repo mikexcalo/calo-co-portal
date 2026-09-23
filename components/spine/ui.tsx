@@ -450,6 +450,20 @@ export function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
+      /*
+        Buttons that behave like buttons.
+
+        The only interaction in the product was `transition: opacity .15s`,
+        which does nothing unless something changes the opacity, and nothing
+        did. So every button on every screen sat completely inert: no hover, no
+        press, no sign it had registered the click. A control that does not
+        move under the pointer reads as a label somebody drew.
+
+        Hover and press cannot be done in an inline style, which is why they
+        were never there. The class carries them; the inline styles stay for
+        the colours, which vary by variant.
+      */
+      className={`btn btn-${variant}`}
       style={{
         ...styles[variant],
         /**
@@ -471,7 +485,6 @@ export function Button({
         opacity: disabled ? 0.45 : 1,
         fontFamily: 'inherit',
         whiteSpace: 'nowrap',
-        transition: 'opacity .15s',
       }}
     >
       {children}
