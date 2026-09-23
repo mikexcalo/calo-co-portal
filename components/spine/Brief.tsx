@@ -218,9 +218,18 @@ export function Brief({ customerId, clientName }: { customerId: string; clientNa
                     <div style={{ fontSize: 14, color: C.text, lineHeight: 1.6 }}>
                       {isOpen ? full : head}
                     </div>
-                    {hasMore && !isOpen && (
-                      <span style={{ fontSize: 12, color: C.faint, marginTop: 2, display: 'block' }}>
-                        …
+                    {/*
+                      A bare ellipsis was the expand control.
+
+                      No underline, no arrow, nothing saying it could be
+                      pressed, and it repeated down every truncated row, so the
+                      brief read as a table whose data had been cut off rather
+                      than one you could open. The row was always clickable;
+                      nothing on it ever said so.
+                    */}
+                    {hasMore && (
+                      <span style={{ fontSize: 12, color: C.accent, marginTop: 3, display: 'block' }}>
+                        {isOpen ? 'Show less' : 'Show the rest'}
                       </span>
                     )}
                   </div>

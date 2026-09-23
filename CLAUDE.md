@@ -12,7 +12,7 @@ Everything real lives under `lib/spine/`:
 
 | File | What it holds |
 |---|---|
-| `ui.tsx` | `Page`, `Card`, `Button`, `Empty`, `SectionLabel`, `Table`, `Row`, `Pill`, `DropZone`, the tab strips |
+| `ui.tsx` | `Page`, `Card`, `Button`, `Tabs`, `Sheet`, `Select`, `Empty`, `SectionLabel`, `Table`, `Row`, `Pill`, `Field` |
 | `tokens.ts` | `C` (colors), `DISPLAY`, `radius`. Import these; never hardcode a hex |
 | `modules.ts` | What each business sees: `navFor`, `pathAllowed`, `modulesFor`, and the `MODULE_*` maps |
 | `db.ts` | Plain query functions. Writes go through `unwrap`, which throws |
@@ -20,6 +20,16 @@ Everything real lives under `lib/spine/`:
 | `save.ts` | `save(builder)` — wraps a write so its failure is visible |
 
 Screens are in `app/`, shared pieces in `components/spine/`.
+
+**Use the primitives.** This table used to say `ui.tsx` held "the tab strips".
+It did not — it exported tab *data* (`CLIENT_TABS`, `MONEY_TABS` and the rest)
+and no component to render it, so 53 files hand-wrote the pill strip, 29
+dropped a raw `<select>` into otherwise custom controls, and every overlay in
+the product was built from scratch with its own backdrop and its own idea of
+whether escape should close it.
+
+`Tabs`, `Sheet` and `Select` exist now. A new tab strip, dialog or dropdown
+written by hand is a bug, not a style choice.
 
 ## Navigation is generated, not hand-written
 

@@ -31,6 +31,7 @@ import {
   Page,
   Pill,
   Row,
+  Sheet,
   Table,
   money,
   money0,
@@ -295,21 +296,9 @@ export default function BillingPage() {
         rather than somebody's choice of menu item.
       */}
       {takingPayment && (
-        <div
-          onClick={() => setTakingPayment(null)}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 210, background: 'rgba(0,0,0,.45)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{ background: C.panel, borderRadius: 12, padding: 22, width: 'min(380px, 100%)' }}
-          >
-            <div style={{ fontSize: 16, fontWeight: 600, color: C.text, marginBottom: 4 }}>
-              How much arrived?
-            </div>
-            <div style={{ fontSize: 13, color: C.faint, marginBottom: 14 }}>
+        <Sheet title="How much arrived?" onClose={() => setTakingPayment(null)} width={380}>
+          <>
+            <div style={{ fontSize: 13, color: C.faint, marginBottom: 14, marginTop: -8 }}>
               {takingPayment.inv.number} &middot; {money(takingPayment.inv.total - takingPayment.inv.amount_paid)} outstanding
             </div>
             <input
@@ -345,8 +334,8 @@ export default function BillingPage() {
                 Cancel
               </button>
             </div>
-          </div>
-        </div>
+          </>
+        </Sheet>
       )}
 
       {previewing && (

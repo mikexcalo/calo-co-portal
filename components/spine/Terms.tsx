@@ -49,13 +49,43 @@ export function Terms({ orgId, customerId }: { orgId: string; customerId: string
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
+  /*
+    Whether they are being billed is a fact about their invoices.
+
+    This read billing_live, a flag somebody has to remember to set, and the
+    flag was false for Global Seafood while GSEA-001 sat in their own Invoices
+    screen billing the $20 printed directly above the banner. So the client
+    record said "nothing is invoiced from this yet" about money that was on an
+    invoice. A record that contradicts the bill is worse than no record.
+
+    An invoice that exists and is not void is the answer, and nobody has to
+    remember anything.
+  */
+  const [invoiced, setInvoiced] = useState<{ count: number; draft: number } | null>(null);
+
   const load = useCallback(async () => {
-    const res = await supabase
-      .from('customer_terms')
-      .select('hourly_rate, standard_rate, why_discounted, monthly_fee, monthly_fee_for, platform_fee, bills_on, pay_by, billing_live, note')
-      .eq('customer_id', customerId)
-      .maybeSingle();
-    if (!res.error) setRow((res.data as Row) ?? null);
+    const [termRes, jobRes] = await Promise.all([
+      supabase
+        .from('customer_terms')
+        .select('hourly_rate, standard_rate, why_discounted, monthly_fee, monthly_fee_for, platform_fee, bills_on, pay_by, billing_live, note')
+        .eq('customer_id', customerId)
+        .maybeSingle(),
+      supabase.from('jobs').select('id').eq('customer_id', customerId),
+    ]);
+    if (!termRes.error) setRow((termRes.data as Row) ?? null);
+
+    const jobIds = ((jobRes.data ?? []) as Array<{ id: string }>).map((j) => j.id);
+    if (!jobIds.length) { setInvoiced({ count: 0, draft: 0 }); return; }
+    const inv = await supabase
+      .from('job_invoices')
+      .select('status')
+      .in('job_id', jobIds)
+      .neq('status', 'void');
+    const rows = (inv.data ?? []) as Array<{ status: string }>;
+    setInvoiced({
+      count: rows.filter((r) => r.status !== 'draft').length,
+      draft: rows.filter((r) => r.status === 'draft').length,
+    });
   }, [customerId]);
 
   useEffect(() => { load(); }, [load]);
@@ -150,7 +180,14 @@ export function Terms({ orgId, customerId }: { orgId: string; customerId: string
                 )}
               </div>
 
-              {row.note && (
+              {/*
+                The note used to sit here saying "platform use will be charged
+                once the amount is decided" underneath a platform fee of $20,
+                because it was typed when the amount was not decided and free
+                text does not update itself. It is still shown, but only while
+                it is not being contradicted by a number directly above it.
+              */}
+              {row.note && row.platform_fee == null && (
                 <p style={{ fontSize: 13, color: C.dim, margin: '14px 0 0', lineHeight: 1.6 }}>{row.note}</p>
               )}
 
@@ -163,12 +200,17 @@ export function Terms({ orgId, customerId }: { orgId: string; customerId: string
               <div
                 style={{
                   marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.border}`,
-                  fontSize: 12.5, color: row.billing_live ? C.green : C.amber,
+                  fontSize: 12.5,
+                  color: invoiced && (invoiced.count || invoiced.draft) ? C.green : C.amber,
                 }}
               >
-                {row.billing_live
-                  ? `Billing on the ${nth} of each month.`
-                  : 'Written down, not being charged. Nothing is invoiced from this yet.'}
+                {!invoiced
+                  ? 'Checking their invoices…'
+                  : invoiced.count
+                    ? `Being billed. ${invoiced.count} invoice${invoiced.count === 1 ? '' : 's'} sent.`
+                    : invoiced.draft
+                      ? `Drafted and waiting for you. Goes out on the ${nth}.`
+                      : 'Written down, not being charged. Nothing is invoiced from this yet.'}
               </div>
             </>
           )}

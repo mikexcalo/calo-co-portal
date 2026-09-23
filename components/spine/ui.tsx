@@ -779,6 +779,251 @@ export const inputStyle: React.CSSProperties = {
   boxSizing: 'border-box',
 };
 
+/* ===========================================================================
+   TABS, SHEET, SELECT — the three that were missing.
+
+   This file exported tab DATA (CLIENT_TABS, MONEY_TABS, BRAND_TABS and the
+   rest) and no component to render any of it, so 53 files hand-wrote the pill
+   strip: each with its own padding, its own radius, its own idea of what an
+   active tab looks like. There was no dialog either, so every overlay in the
+   product was built from scratch with its own backdrop, its own width and its
+   own escape handling — some of which had escape and some of which did not.
+   And 29 files dropped a raw browser <select> into the middle of otherwise
+   custom controls.
+
+   Three components. They are the difference between a design system and a
+   folder of screens that resemble each other.
+   =========================================================================== */
+
+export interface TabItem {
+  /** For state tabs. Omit when the tab navigates. */
+  id?: string;
+  label: string;
+  icon?: IconName;
+  /** For navigating tabs. Omit when the tab switches state. */
+  href?: string;
+  /** Shown after the label when there is something in there. */
+  count?: number;
+}
+
+/**
+ * One strip, for both kinds of tab.
+ *
+ * Some tabs go somewhere (Clients, Access) and some change what is under them
+ * (Brief, Work, Documents). They looked slightly different from each other on
+ * every screen for no reason anybody chose. Pass href and it navigates; pass
+ * id and onChange and it switches.
+ */
+export function Tabs({
+  items,
+  active,
+  onChange,
+  style,
+}: {
+  items: readonly TabItem[];
+  /** The active id, for state tabs. Navigating tabs read the path instead. */
+  active?: string;
+  onChange?: (id: string) => void;
+  style?: React.CSSProperties;
+}) {
+  const pathname = usePathname();
+  const router = useRouter();
+  if (!items.length) return null;
+
+  return (
+    <div
+      role="tablist"
+      style={{
+        display: 'inline-flex',
+        gap: 3,
+        padding: 3,
+        borderRadius: radius.pill,
+        background: C.panelAlt,
+        border: `1px solid ${C.border}`,
+        maxWidth: '100%',
+        overflowX: 'auto',
+        ...style,
+      }}
+    >
+      {items.map((t) => {
+        const on = t.href
+          ? pathname === t.href || pathname.startsWith(t.href + '/')
+          : active === t.id;
+        return (
+          <button
+            key={t.id ?? t.href ?? t.label}
+            role="tab"
+            aria-selected={on}
+            onClick={() => (t.href ? router.push(t.href) : onChange?.(t.id as string))}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 7,
+              padding: '7px 13px',
+              borderRadius: radius.pill,
+              border: `1px solid ${on ? C.border : 'transparent'}`,
+              background: on ? C.panel : 'transparent',
+              boxShadow: on ? '0 1px 2px rgba(0,0,0,.06)' : 'none',
+              color: on ? C.text : C.dim,
+              fontSize: 13.5,
+              fontWeight: on ? 600 : 400,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {t.icon && <Glyph name={t.icon} color={on ? C.accent : C.faint} />}
+            {t.label}
+            {!!t.count && t.count > 0 && (
+              <span style={{ fontSize: 11.5, color: C.faint, fontVariantNumeric: 'tabular-nums' }}>
+                {t.count}
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * Everything overlay-shaped.
+ *
+ * Escape closes it, clicking the backdrop closes it, focus moves into it when
+ * it opens and goes back where it came from when it closes, and on a phone it
+ * comes up from the bottom because that is where a thumb is. Written once so
+ * the next one cannot quietly ship without the escape key.
+ */
+export function Sheet({
+  title,
+  onClose,
+  children,
+  width = 460,
+}: {
+  title?: string;
+  onClose: () => void;
+  children: React.ReactNode;
+  width?: number;
+}) {
+  const phone = useIsPhone();
+  const card = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const returnTo = document.activeElement as HTMLElement | null;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    // The first thing you can type in, or the panel itself.
+    const first = card.current?.querySelector<HTMLElement>(
+      'input, textarea, select, button, [tabindex]:not([tabindex="-1"])'
+    );
+    (first ?? card.current)?.focus();
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      returnTo?.focus?.();
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 300,
+        background: 'rgba(0,0,0,.45)',
+        display: 'flex',
+        alignItems: phone ? 'flex-end' : 'flex-start',
+        justifyContent: 'center',
+        padding: phone ? 0 : '10vh 20px 20px',
+      }}
+    >
+      <div
+        ref={card}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: C.panel,
+          borderRadius: phone ? `${radius.lg}px ${radius.lg}px 0 0` : radius.lg,
+          padding: 22,
+          width: phone ? '100%' : `min(${width}px, 100%)`,
+          maxHeight: phone ? '92vh' : '80vh',
+          overflowY: 'auto',
+          outline: 'none',
+        }}
+      >
+        {title && (
+          <div style={{ fontSize: 16, fontWeight: 600, color: C.text, marginBottom: 16 }}>
+            {title}
+          </div>
+        )}
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * A dropdown that belongs to the same product as everything around it.
+ *
+ * A raw <select> renders as whatever the operating system feels like, which on
+ * a screen of custom pills and custom buttons is the one control the design
+ * does not reach. Same box as a text field, because it is the same kind of
+ * thing: somewhere you put an answer.
+ */
+export function Select({
+  value,
+  onChange,
+  options,
+  placeholder,
+  disabled,
+  style,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: ReadonlyArray<{ value: string; label: string }>;
+  placeholder?: string;
+  disabled?: boolean;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <div style={{ position: 'relative', display: 'inline-block', width: '100%', ...style }}>
+      <select
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          ...inputStyle,
+          appearance: 'none',
+          WebkitAppearance: 'none',
+          paddingRight: 30,
+          cursor: disabled ? 'default' : 'pointer',
+          opacity: disabled ? 0.6 : 1,
+        }}
+      >
+        {placeholder && <option value="">{placeholder}</option>}
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+      <span
+        aria-hidden
+        style={{
+          position: 'absolute', right: 11, top: '50%', transform: 'translateY(-50%)',
+          pointerEvents: 'none', color: C.faint, fontSize: 10, lineHeight: 1,
+        }}
+      >
+        ▼
+      </span>
+    </div>
+  );
+}
+
+
 /**
  * A search box that looks like one.
  *

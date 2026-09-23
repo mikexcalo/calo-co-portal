@@ -52,7 +52,9 @@ import {
   Pill,
   Row,
   SectionLabel,
+  Select,
   Table,
+  Tabs,
   inputStyle,
   money,
   radius,
@@ -393,10 +395,27 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
       subtitle={
         customer.website?.replace(/^https?:\/\//, '').replace(/\/$/, '') || undefined
       }
+      /*
+        "All" pushed to /customers. So does the back link, two inches to the
+        left of it, in different words. Two controls, one destination,
+        opposite corners of the same header.
+
+        And the page-level Edit was a black primary pill, which made the
+        loudest thing on the screen a mode toggle whose scope you could only
+        learn by pressing it. Every card owns its own edit now, so this is
+        the details card's edit and says which card it is for.
+      */
       action={
         <>
-          <Button variant="ghost" onClick={() => router.push('/customers')}>All</Button>
-          <Button onClick={() => setEditing((v) => !v)}>{editing ? 'Cancel' : 'Edit'}</Button>
+          {/* An action, so it sits with the actions. It was in a row below
+              with two text fields, where the only thing the three had in
+              common was being pill-shaped. */}
+          {customer.linked_org_id && (
+            <AskThem orgId={customer.linked_org_id} clientName={customer.name} />
+          )}
+          <Button variant="ghost" onClick={() => setEditing((v) => !v)}>
+            {editing ? 'Cancel' : 'Edit details'}
+          </Button>
         </>
       }
     >
@@ -551,26 +570,21 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           />
 
           {/*
-            One row, not two stacked empty fields.
-            
-            Filling the record in from a website and tagging it are the same
-            kind of act, small, optional, done once, and giving each its own
-            full-width row put two unfilled inputs between the name and
-            anything worth reading.
+            Three controls on one row, and no two of them were the same kind
+            of thing: a tag field, a button that sends a message, and a field
+            that fills the record in from a website. All pill-shaped, all the
+            same size, so you could not tell what was typeable from what was
+            pressable.
+
+            Ask them is an action and has gone to the actions. Filling the
+            record in from a website only exists while the website is missing,
+            which makes it an empty state, so it sits on its own under the
+            tags rather than competing with them.
           */}
-          <div
-            style={{
-              display: 'flex', gap: 12, alignItems: 'center',
-              flexWrap: 'wrap', marginBottom: 18,
-            }}
-          >
+          <div style={{ marginBottom: 18 }}>
             <Tags tags={customer.tags ?? []} known={knownTags} onChange={saveTags} />
-            {/* Only when they can actually sign in and read it. */}
-            {customer.linked_org_id && (
-              <AskThem orgId={customer.linked_org_id} clientName={customer.name} />
-            )}
             {!customer.website && (
-              <div style={{ flex: '1 1 260px', minWidth: 220 }}>
+              <div style={{ maxWidth: 340, marginTop: 10 }}>
                 <Enrich customerId={params.id} currentName={customer.name} onSaved={load} />
               </div>
             )}
@@ -585,72 +599,29 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             none of them told you what was behind it. Nouns are checkable: you
             can be wrong about whether Documents holds documents.
           */}
-          <div
-            style={{
-              display: 'inline-flex',
-              gap: 3,
-              marginBottom: 20,
-              padding: 3,
-              borderRadius: 999,
-              background: C.panelAlt,
-              border: `1px solid ${C.border}`,
-              maxWidth: '100%',
-              overflowX: 'auto',
-            }}
-          >
-            {([
-              ['now', 'Brief', 'brief'],
-              ['work', 'Work', 'work'],
+          <Tabs
+            active={view}
+            onChange={(id) => setView(id as typeof view)}
+            style={{ marginBottom: 20 }}
+            items={[
+              { id: 'now', label: 'Brief', icon: 'brief' },
+              { id: 'work', label: 'Work', icon: 'work' },
               /**
                * Only for businesses that sell a list of things.
                *
                * A tab strip is not free. Every business gets Brief and Work
                * and nobody has to be told what they are; a Catalog tab on a
                * client who sells services is a tab that opens empty forever,
-               * which teaches people the strip is full of dead ends. Switched
-               * on per business in Access, off everywhere else.
+               * which teaches people the strip is full of dead ends.
                */
-              ...(hasCatalog ? [['catalog', 'Catalog', 'pricing'] as const] : []),
-              ['given', 'Documents', 'documents'],
+              ...(hasCatalog ? [{ id: 'catalog', label: 'Catalog', icon: 'pricing' as const }] : []),
+              { id: 'given', label: 'Documents', icon: 'documents', count: counts.given },
               // A client's brand belongs to that client. The module in the
               // sidebar is your own; this is theirs.
-              ['brand', 'Brand', 'swatches'],
-              ['history', 'Activity', 'activity'],
-            ] as const).map(([id, label, icon]) => {
-              const on = view === id;
-              const count = id === 'given' ? counts.given : id === 'history' ? notes.length : 0;
-              return (
-                <button
-                  key={id}
-                  onClick={() => setView(id)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 7,
-                    padding: '6px 14px',
-                    borderRadius: 999,
-                    border: `1px solid ${on ? C.border : 'transparent'}`,
-                    background: on ? C.panel : 'transparent',
-                    boxShadow: on ? '0 1px 2px rgba(0,0,0,.06)' : 'none',
-                    color: on ? C.text : C.dim,
-                    fontSize: 13.5,
-                    fontWeight: on ? 600 : 400,
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  <Glyph name={icon} color={on ? C.accent : C.faint} />
-                  {label}
-                  {count > 0 && (
-                    <span style={{ fontSize: 11.5, color: C.faint, fontVariantNumeric: 'tabular-nums' }}>
-                      {count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+              { id: 'brand', label: 'Brand', icon: 'swatches' },
+              { id: 'history', label: 'Activity', icon: 'activity', count: notes.length },
+            ]}
+          />
 
           {view === 'now' && (
             <>
@@ -1041,26 +1012,23 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                       and cannot change is a status that stays wrong, which is
                       how a record stops being trusted.
                     */}
-                    <select
-                      value={j.status}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={async (e) => {
-                        const next = e.target.value as JobRow['status'];
-                        setJobs((prev) => prev.map((x) => (x.id === j.id ? { ...x, status: next } : x)));
-                        const res = await saveOrFail(supabase.from('jobs').update({ status: next }).eq('id', j.id));
-                        if (res.error) { setError(human(res.error.message)); load(); }
-                      }}
-                      style={{
-                        background: C.panelAlt, color: C.dim,
-                        border: `1px solid ${C.border}`, borderRadius: 999,
-                        padding: '2px 8px', fontSize: 12, fontFamily: 'inherit',
-                        cursor: 'pointer', width: '100%',
-                      }}
-                    >
-                      {(Object.keys(JOB_STATUS_LABEL) as Array<keyof typeof JOB_STATUS_LABEL>).map((k) => (
-                        <option key={k} value={k}>{JOB_STATUS_LABEL[k]}</option>
-                      ))}
-                    </select>
+                    {/* Was a raw browser dropdown, sitting between custom
+                        pills and a custom tab strip as the one control the
+                        design did not reach. */}
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <Select
+                        value={j.status}
+                        onChange={async (next) => {
+                          setJobs((prev) => prev.map((x) => (x.id === j.id ? { ...x, status: next as JobRow['status'] } : x)));
+                          const res = await saveOrFail(supabase.from('jobs').update({ status: next }).eq('id', j.id));
+                          if (res.error) { setError(human(res.error.message)); load(); }
+                        }}
+                        options={(Object.keys(JOB_STATUS_LABEL) as Array<keyof typeof JOB_STATUS_LABEL>).map((k) => ({
+                          value: k,
+                          label: JOB_STATUS_LABEL[k],
+                        }))}
+                      />
+                    </div>
                   </Row>
                 ))}
               </Table>

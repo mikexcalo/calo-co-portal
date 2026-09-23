@@ -22,7 +22,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, C, money, inputStyle, radius } from '@/components/spine/ui';
+import { Button, C, money, inputStyle, Sheet } from '@/components/spine/ui';
 import { createTimeEntry, listBillableJobs, orgNow } from '@/lib/spine/db';
 import { human } from '@/lib/spine/errors';
 import type { BillableJob } from '@/lib/spine/types';
@@ -136,20 +136,12 @@ export default function LogTime({ onClose }: { onClose: () => void }) {
     }
   }, [job, hours, day, what]);
 
+  /* Was a hand-built overlay with its own backdrop and no escape key. I wrote
+     it yesterday and copied the numbers out of another file, which is exactly
+     the drift the audit found. */
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,.45)',
-        display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '12vh 20px 20px',
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{ background: C.panel, borderRadius: radius.lg, padding: 22, width: 'min(460px, 100%)' }}
-      >
-        <div style={{ fontSize: 16, fontWeight: 600, color: C.text, marginBottom: 16 }}>Log time</div>
-
+    <Sheet title="Log time" onClose={onClose}>
+      <>
         {done ? (
           <>
             <div style={{ fontSize: 14.5, color: C.text, lineHeight: 1.6, marginBottom: 16 }}>{done}</div>
@@ -244,8 +236,8 @@ export default function LogTime({ onClose }: { onClose: () => void }) {
             </div>
           </>
         )}
-      </div>
-    </div>
+      </>
+    </Sheet>
   );
 }
 
