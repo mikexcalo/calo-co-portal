@@ -90,13 +90,16 @@ export default function TopBar() {
     };
     const onAsk = () => setDropping(true);
     const onLog = () => setLogging(true);
+    const onLearn = () => openPanel();
     window.addEventListener('keydown', onKey);
     window.addEventListener('calo:drop-note', onAsk);
     window.addEventListener('calo:log-time', onLog);
+    window.addEventListener('calo:learn', onLearn);
     return () => {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('calo:drop-note', onAsk);
       window.removeEventListener('calo:log-time', onLog);
+      window.removeEventListener('calo:learn', onLearn);
     };
   }, []);
 
@@ -187,7 +190,7 @@ export default function TopBar() {
         */}
         <button
           onClick={() => setDropping(true)}
-          title="Drop a note, talk or paste  (⌘J)"
+          title="Add a note — type, talk or paste  (⌘J)"
           style={{
             display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
             background: 'transparent', border: `1px solid ${C.border}`,
@@ -211,7 +214,17 @@ export default function TopBar() {
             <path d="M13.6 9.3H10.3a1 1 0 0 0-1 1v3.3" />
             <path d="M5.1 6h5.8M5.1 8.4h3.1" />
           </svg>
-          Drop a note
+          {/*
+            "Drops" and "Drop a note" are two different things sharing a word.
+
+            Drops is the shelf of files you have not filed. This writes a note
+            against a client. Same verb, unrelated destinations, one of them in
+            the sidebar and one in the chrome directly above it — so the first
+            genuine question anybody asks is which is which.
+
+            Files go in Drops. Words are a note.
+          */}
+          Add a note
         </button>
 
         {/*
@@ -338,7 +351,7 @@ export default function TopBar() {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <span style={{ fontSize: 15, fontWeight: 500, color: C.text }}>Drop a note</span>
+                <span style={{ fontSize: 15, fontWeight: 500, color: C.text }}>Add a note</span>
                 <button
                   onClick={() => setDropping(false)}
                   style={{ background: 'transparent', border: 'none', color: C.faint, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
@@ -352,40 +365,19 @@ export default function TopBar() {
         )}
         {/* Was a dark/light toggle. A theme switch doubled every color
             decision and taught nobody anything; guided paths do. */}
-        <button
-          onClick={openPanel}
-          title={`Learn ${PRODUCT}`}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 7,
-            height: 32,
-            padding: '0 12px',
-            borderRadius: 999,
-            border: `1px solid ${C.border}`,
-            background: 'transparent',
-            cursor: 'pointer',
-            color: C.dim,
-            fontSize: 13.5,
-            fontWeight: 500,
-            fontFamily: 'inherit',
-          }}
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M2 3.5h4.5A1.5 1.5 0 0 1 8 5v8a1.2 1.2 0 0 0-1.2-1.2H2z" />
-            <path d="M14 3.5H9.5A1.5 1.5 0 0 0 8 5v8a1.2 1.2 0 0 1 1.2-1.2H14z" />
-          </svg>
-          Learn
-        </button>
+        {/*
+          Learn was permanent chrome pointing at a first-run walkthrough.
+
+          The paths are "set your hourly rate", "add a customer", "create your
+          first job". Useful on day one. A button in the top bar of every
+          screen forever, on a workspace with three live clients and invoices
+          going out, is the product not noticing it has been used — and it was
+          the second Learn on Home, which had its own in the page header.
+
+          Onboarding belongs where onboarding happens: Home's empty state
+          already offers "Walk me through it", and the command bar has it for
+          anybody who wants it later.
+        */}
 
         <AccountMenu />
       </div>

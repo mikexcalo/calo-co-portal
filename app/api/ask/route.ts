@@ -36,14 +36,27 @@ const MODEL = 'claude-haiku-4-5';
 const INPUT_PER_MTOK = 1.0;
 const OUTPUT_PER_MTOK = 5.0;
 
+/*
+  A nullable enum is not a thing the API accepts.
+
+  This declared type ['string','null'] with an enum containing the ids and
+  null, and every call came back 400: "Enum value 'who_owes_money' does not
+  match declared type". So the matcher has never worked — any question that
+  was not an exact match for a canned example fell through to the error path,
+  and the error path printed the raw API response at the user.
+
+  A string enum with an explicit "none" says the same thing and validates.
+*/
+const NO_MATCH = 'none';
+
 const SCHEMA = {
   type: 'object' as const,
   additionalProperties: false,
   properties: {
     id: {
-      type: ['string', 'null'] as const,
-      enum: [...QUESTION_IDS, null],
-      description: 'The question being asked. Null if none of them fit.',
+      type: 'string' as const,
+      enum: [...QUESTION_IDS, NO_MATCH],
+      description: 'The question being asked. "none" if none of them fit.',
     },
   },
   required: ['id'],
@@ -53,7 +66,7 @@ const SYSTEM = `You match a question about a small business to one of the questi
 
 ${QUESTIONS.map((q) => `${q.id}: ${q.description} (e.g. "${q.example}")`).join('\n')}
 
-Return the single closest id. If the question is about something not on this list, return null rather than forcing a poor match: a confident wrong answer is worse than saying you cannot answer it.`;
+Return the single closest id. If the question is about something not on this list, return "none" rather than forcing a poor match: a confident wrong answer is worse than saying you cannot answer it.`;
 
 /** Cheap normalizing, so an exact ask never pays for a model call. */
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
@@ -103,7 +116,10 @@ export async function POST(req: NextRequest) {
     });
     const block = msg.content.find((b) => b.type === 'text');
     if (block?.type === 'text') {
-      try { id = (JSON.parse(block.text).id as string | null) ?? null; } catch { id = null; }
+      try {
+        const got = JSON.parse(block.text).id as string | null;
+        id = got && got !== NO_MATCH ? got : null;
+      } catch { id = null; }
     }
     costCents =
       (msg.usage.input_tokens / 1_000_000) * INPUT_PER_MTOK * 100 +
@@ -111,7 +127,9 @@ export async function POST(req: NextRequest) {
     } catch (e) {
       console.error('[ask]', (e as Error).message);
       return NextResponse.json(
-        { error: `Could not work out what you were asking: ${(e as Error).message}` },
+        /* The raw API response was printed at the user: a 400 with a request
+           id and a schema complaint, inside the little answer box on Home. */
+        { error: 'Could not work out what you were asking. Try it in fewer words.' },
         { status: 502 }
       );
     }

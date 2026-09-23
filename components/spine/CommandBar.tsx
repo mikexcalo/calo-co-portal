@@ -54,7 +54,8 @@ interface Item {
 
 const NAV: Item[] = [
   { id: 'a-log', label: 'Log time', hint: 'against a client', href: '', group: 'Do', fire: 'calo:log-time' },
-  { id: 'a-note', label: 'Drop a note', hint: 'type, talk or paste', href: '', group: 'Do', fire: 'calo:drop-note' },
+  { id: 'a-learn', label: 'Walk me through it', hint: 'the setup steps', href: '', group: 'Do', fire: 'calo:learn' },
+  { id: 'a-note', label: 'Add a note', hint: 'type, talk or paste', href: '', group: 'Do', fire: 'calo:drop-note' },
   { id: 'n-today', label: 'Home', href: '/', group: 'Go to' },
   { id: 'n-jobs', label: 'Projects', href: '/jobs', group: 'Go to' },
   { id: 'n-clients', label: 'Clients', href: '/customers', group: 'Go to' },
