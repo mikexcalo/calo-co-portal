@@ -324,25 +324,19 @@ export default function ExpensesPage() {
           <Card>
             <div style={{ display: 'flex', gap: 30, flexWrap: 'wrap', alignItems: 'flex-start' }}>
               <div>
-                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
-                  This month
-                </div>
+                <SectionLabel>This month</SectionLabel>
                 <div style={{ fontSize: 21, marginTop: 5, color: C.text, fontVariantNumeric: 'tabular-nums' }}>
                   {ai.thisMonth < 100 ? `${ai.thisMonth.toFixed(1)}¢` : money(ai.thisMonth / 100)}
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
-                  All time
-                </div>
+                <SectionLabel>All time</SectionLabel>
                 <div style={{ fontSize: 21, marginTop: 5, color: C.text, fontVariantNumeric: 'tabular-nums' }}>
                   {ai.cents < 100 ? `${ai.cents.toFixed(1)}¢` : money(ai.cents / 100)}
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
-                  Files read
-                </div>
+                <SectionLabel>Files read</SectionLabel>
                 <div style={{ fontSize: 21, marginTop: 5, color: C.text, fontVariantNumeric: 'tabular-nums' }}>
                   {ai.reads}
                 </div>

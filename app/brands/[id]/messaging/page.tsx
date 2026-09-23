@@ -158,26 +158,20 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
         }}
       >
         <Card>
-          <div style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '.08em', color: C.faint, fontWeight: 600 }}>
-            Locked
-          </div>
+          <SectionLabel>Locked</SectionLabel>
           <div style={{ fontSize: 21, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
             {locked} <span style={{ fontSize: 14, color: C.faint }}>of {modules.length}</span>
           </div>
         </Card>
         <Card>
-          <div style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '.08em', color: C.faint, fontWeight: 600 }}>
-            Proof not cleared
-          </div>
+          <SectionLabel>Proof not cleared</SectionLabel>
           <div style={{ fontSize: 21, marginTop: 4, color: notCleared ? C.red : C.text, fontVariantNumeric: 'tabular-nums' }}>
             {notCleared}
           </div>
           <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2 }}>Cannot go in front of a customer</div>
         </Card>
         <Card>
-          <div style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '.08em', color: C.faint, fontWeight: 600 }}>
-            Banned terms
-          </div>
+          <SectionLabel>Banned terms</SectionLabel>
           <div style={{ fontSize: 21, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
             {(brand.guardrails?.never ?? []).length}
           </div>

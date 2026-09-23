@@ -372,9 +372,7 @@ export default function DocumentsPage() {
       */}
       <Card style={{ marginBottom: 22, display: 'flex', gap: 28, flexWrap: 'wrap' }}>
         <div>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.07em', color: C.faint, fontWeight: 600 }}>
-            Documents read
-          </div>
+          <SectionLabel>Documents read</SectionLabel>
           <div style={{ fontSize: 20, marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>
             {spend.documents}
           </div>

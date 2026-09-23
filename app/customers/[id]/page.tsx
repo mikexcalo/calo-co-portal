@@ -136,6 +136,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
   const [jobs, setJobs] = useState<JobRow[]>([]);
+  const [renaming, setRenaming] = useState<string | null>(null);
   const [orgId, setOrgId] = useState<string | null>(null);
   /** Resolved from the brand kit, or the override. A function, not a column. */
   const [logoPath, setLogoPath] = useState<string | null>(null);
@@ -266,6 +267,16 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
       .update({ stage: next, stage_why: null, stage_changed_on: new Date().toISOString().slice(0, 10) })
       .eq('id', params.id));
     setStageBusy(false);
+    if (res.error) { setError(human(res.error.message)); load(); }
+  };
+
+  const renameJob = async (id: string, raw: string) => {
+    const name = raw.trim();
+    setRenaming(null);
+    const was = jobs.find((x) => x.id === id)?.name;
+    if (!name || name === was) return;
+    setJobs((prev) => prev.map((x) => (x.id === id ? { ...x, name } : x)));
+    const res = await saveOrFail(supabase.from('jobs').update({ name }).eq('id', id));
     if (res.error) { setError(human(res.error.message)); load(); }
   };
 
@@ -1001,8 +1012,43 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             ) : (
               <Table>
                 {jobs.map((j) => (
-                  <Row key={j.id} cols="1fr 118px" onClick={() => router.push(`/jobs/${j.id}`)}>
-                    <div>{j.name}</div>
+                  <Row key={j.id} cols="1fr 118px 30px">
+                    {/*
+                      The name is editable where you are reading it.
+
+                      This row opened the job on click and nothing said so, and
+                      the only thing you could actually change from here was
+                      the status. So a project called the wrong thing — or two
+                      projects that should have been one — meant leaving the
+                      client, finding the job, renaming it, and coming back to
+                      see whether it looked right next to the other one. The
+                      comparison is the whole reason you are on this screen.
+                    */}
+                    {renaming === j.id ? (
+                      <input
+                        autoFocus
+                        defaultValue={j.name}
+                        onClick={(e) => e.stopPropagation()}
+                        onBlur={(e) => renameJob(j.id, e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') renameJob(j.id, (e.target as HTMLInputElement).value);
+                          if (e.key === 'Escape') setRenaming(null);
+                        }}
+                        style={{ ...inputStyle, padding: '4px 8px', fontSize: 13.5 }}
+                      />
+                    ) : (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setRenaming(j.id); }}
+                        title="Rename"
+                        style={{
+                          background: 'transparent', border: 'none', padding: 0, textAlign: 'left',
+                          font: 'inherit', color: C.text, cursor: 'text', width: '100%',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {j.name}
+                      </button>
+                    )}
                     {/*
                       The status is editable here, where it is wrong.
 
@@ -1029,6 +1075,20 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                         }))}
                       />
                     </div>
+                    {/* Opening it was the whole row and invisible. Now it is
+                        one target that looks like one. */}
+                    <button
+                      onClick={() => router.push(`/jobs/${j.id}`)}
+                      title="Open"
+                      aria-label={`Open ${j.name}`}
+                      style={{
+                        background: 'transparent', border: 'none', padding: 0,
+                        color: C.faint, cursor: 'pointer', fontSize: 15, lineHeight: 1,
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      →
+                    </button>
                   </Row>
                 ))}
               </Table>

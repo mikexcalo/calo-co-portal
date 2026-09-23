@@ -323,17 +323,13 @@ export function Discovery({ customerId }: { customerId: string }) {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16, marginBottom: 14 }}>
                 <div>
-                  <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.09em', color: C.faint, fontWeight: 600, marginBottom: 6 }}>
-                    Covers
-                  </div>
+                  <SectionLabel>Covers</SectionLabel>
                   <ul style={{ margin: 0, paddingLeft: 17, fontSize: 13, color: C.dim, lineHeight: 1.65 }}>
                     {draft.scope_in.map((x, i) => <li key={i}>{x}</li>)}
                   </ul>
                 </div>
                 <div>
-                  <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.09em', color: C.faint, fontWeight: 600, marginBottom: 6 }}>
-                    Does not
-                  </div>
+                  <SectionLabel>Does not</SectionLabel>
                   <ul style={{ margin: 0, paddingLeft: 17, fontSize: 13, color: C.dim, lineHeight: 1.65 }}>
                     {draft.scope_out.map((x, i) => <li key={i}>{x}</li>)}
                   </ul>

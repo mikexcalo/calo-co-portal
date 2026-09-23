@@ -428,9 +428,7 @@ export default function StoriesPage() {
 
           {proposed.claims.length > 0 && (
             <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.09em', color: C.faint, fontWeight: 600, marginBottom: 6 }}>
-                Numbers it found
-              </div>
+              <SectionLabel>Numbers it found</SectionLabel>
               {proposed.claims.map((c, i) => (
                 <div key={i} style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.6, marginBottom: 4 }}>
                   {c.claim} <span style={{ color: C.faint }}>({c.where_from})</span>

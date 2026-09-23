@@ -36,6 +36,7 @@ import {
   money,
   money0,
   shortDate,
+  SectionLabel,
   inputStyle,
 } from '@/components/spine/ui';
 import { METHODS } from '@/lib/spine/payments';
@@ -720,9 +721,7 @@ export default function BillingPage() {
                         */}
                         {inv.status === 'draft' && (
                           <div style={{ flexBasis: '100%' }}>
-                            <div style={{ fontSize: 11, letterSpacing: '.06em', textTransform: 'uppercase', color: C.faint, marginBottom: 8 }}>
-                              Other ways to send it
-                            </div>
+                            <SectionLabel>Other ways to send it</SectionLabel>
                             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                               <Button variant="ghost" disabled={busy} onClick={() => sendAsLink(inv)}>
                                 Copy link

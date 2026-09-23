@@ -8,7 +8,7 @@ import supabase from '@/lib/supabase';
 import { useTutorial } from '@/lib/spine/tutorial';
 import { useOrg } from '@/lib/spine/org';
 import { OrgSwitcher } from '@/components/spine/OrgSwitcher';
-import { useIsPhone, radius } from '@/components/spine/ui';
+import { useIsPhone, radius, SectionLabel } from '@/components/spine/ui';
 import { C } from '@/components/spine/ui';
 import { Notifications } from '@/components/spine/Notifications';
 import { DropIt } from '@/components/spine/DropIt';
@@ -491,9 +491,7 @@ function AccountMenu() {
             }}
           >
             <div style={{ padding: '9px 12px', borderBottom: `1px solid ${C.border}`, marginBottom: 4 }}>
-              <div style={{ fontSize: 11.5, color: C.faint, textTransform: 'uppercase', letterSpacing: '.07em', fontWeight: 600 }}>
-                Signed in as
-              </div>
+              <SectionLabel>Signed in as</SectionLabel>
               <div style={{ fontSize: 13.5, color: C.text, marginTop: 3, wordBreak: 'break-all' }}>
                 {email ?? '–'}
               </div>
@@ -504,9 +502,7 @@ function AccountMenu() {
               the whole business is configured. Somebody looking for Team was
               looking under a face.
             */}
-            <div style={{ padding: '4px 12px 5px', fontSize: 11, color: C.faint, textTransform: 'uppercase', letterSpacing: '.07em', fontWeight: 600 }}>
-              Settings
-            </div>
+            <SectionLabel>Settings</SectionLabel>
             <button
               style={item}
               onClick={() => { setOpen(false); router.push('/business'); }}
