@@ -34,6 +34,7 @@ import {
   money0,
   shortDate,
   today,
+  Select,
   MONEY_TABS,
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
@@ -280,17 +281,11 @@ export default function ExpensesPage() {
               </div>
               <div style={{ flex: '1 1 150px' }}>
                 <Field label="How often">
-                  <select
+                  <Select
                     value={recurrence}
-                    onChange={(e) => setRecurrence(e.target.value)}
-                    style={inputStyle}
-                  >
-                    {RECURRENCE.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setRecurrence}
+                    options={RECURRENCE.map((r) => ({ value: r.id, label: r.label }))}
+                  />
                 </Field>
               </div>
               <div style={{ flex: '1 1 150px' }}>

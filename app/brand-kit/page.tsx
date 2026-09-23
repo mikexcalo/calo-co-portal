@@ -48,6 +48,7 @@ import {
   inputStyle,
   numeric,
   useIsPhone,
+  Tabs,
   brandTabsFor,
 } from '@/components/spine/ui';
 import { FontSpecimen } from '@/components/spine/FontSpecimen';
@@ -300,29 +301,19 @@ export default function BrandKitPage() {
         </Card>
       )}
 
-      <div style={{ display: 'flex', gap: 6, marginBottom: 22 }}>
-        {(['brand', 'logos', 'qr', 'signature'] as Tab[]).map((tb) => (
-          <button
-            key={tb}
-            onClick={() => setTab(tb)}
-            style={{
-              padding: '8px 14px',
-              borderRadius: 999,
-              border: `1px solid ${tab === tb ? C.blue : C.border}`,
-              background: tab === tb ? C.blueSoft : 'transparent',
-              color: tab === tb ? C.text : C.dim,
-              fontSize: 14,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-            }}
-          >
-            {tb === 'brand' ? 'Colors & type'
-              : tb === 'logos' ? 'Logos'
-              : tb === 'qr' ? 'QR codes'
-              : 'Email signature'}
-          </button>
-        ))}
-      </div>
+      {/* Was a third style of tab strip: detached pills in blue outline,
+          different again from the two above it on the same screen. */}
+      <Tabs
+        active={tab}
+        onChange={(id) => setTab(id as Tab)}
+        style={{ marginBottom: 22 }}
+        items={[
+          { id: 'brand', label: 'Colors & type', icon: 'star' },
+          { id: 'logos', label: 'Logos', icon: 'swatches' },
+          { id: 'qr', label: 'QR codes', icon: 'card' },
+          { id: 'signature', label: 'Email signature', icon: 'mail' },
+        ]}
+      />
 
       {!mine ? (
         <BrandSpecimen kit={shown} />

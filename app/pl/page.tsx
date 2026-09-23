@@ -34,6 +34,7 @@ import {
   money,
   money0,
   hours as fmtHours,
+  Select,
   MONEY_TABS,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
@@ -289,24 +290,15 @@ export default function ProfitLossPage() {
         org ? ` for ${org.name}` : ''
       }.`}
       action={
-        <select
+        <Select
           value={period}
-          onChange={(e) => setPeriod(e.target.value as Period)}
-          style={{
-            background: C.panel,
-            border: `1px solid ${C.borderStrong}`,
-            borderRadius: 6,
-            padding: '9px 12px',
-            fontSize: 14,
-            color: C.text,
-            fontFamily: 'inherit',
-            cursor: 'pointer',
-          }}
-        >
-          {(Object.keys(PERIOD_LABEL) as Period[]).map((p) => (
-            <option key={p} value={p}>{PERIOD_LABEL[p]}</option>
-          ))}
-        </select>
+          onChange={(v) => setPeriod(v as Period)}
+          style={{ width: 'auto', minWidth: 150 }}
+          options={(Object.keys(PERIOD_LABEL) as Period[]).map((p) => ({
+            value: p,
+            label: PERIOD_LABEL[p],
+          }))}
+        />
       }
     >
       {error && (

@@ -231,7 +231,9 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
       subtitle={[job.customer?.name, tidyAddress(job.address)].filter(Boolean).join(' · ') || undefined}
       action={
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <Button variant="ghost" onClick={() => router.push('/jobs')}>All jobs</Button>
+          {/* The back link at the top of this page already goes to /jobs.
+              Two controls, one destination, opposite corners of the same
+              header — the same duplicate the client screen had. */}
 
           {/*
             A greyed-out button reading "Nothing to invoice" looks like a
@@ -499,9 +501,18 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         <SectionHead
           action={
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <Button variant="ghost" onClick={() => router.push('/documents')}>
+            {/* Goes to another screen rather than doing something here, so it
+                reads as a link. Two ghost buttons side by side say the two
+                acts are alike; one of them leaves the page. */}
+            <button
+              onClick={() => router.push('/documents')}
+              style={{
+                background: 'transparent', border: 'none', padding: '6px 4px',
+                color: C.dim, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
               Add from receipt
-            </Button>
+            </button>
             <Button variant="ghost" onClick={() => setShowCost((v) => !v)}>
               {showCost ? 'Cancel' : 'Add cost'}
             </Button>

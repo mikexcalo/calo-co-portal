@@ -122,66 +122,22 @@ export function Page({
  * module — so clicking it was bounced home by pathAllowed and looked like a
  * dead link. The sidebar has always filtered; the tab strips never did.
  */
-function PageTabs({ tabs, phone }: { tabs: readonly PageTab[]; phone: boolean }) {
+function PageTabs({ tabs }: { tabs: readonly PageTab[]; phone: boolean }) {
   const { org } = useOrg();
-  tabs = tabs.filter((t) => pathAllowed(org, t.href));
-  if (tabs.length < 2) return null;
-  const pathname = usePathname();
-  const router = useRouter();
+  const allowed = tabs.filter((t) => pathAllowed(org, t.href));
+  if (allowed.length < 2) return null;
 
-  return (
-    <div
-      style={{
-        display: 'inline-flex',
-        gap: 3,
-        marginBottom: 24,
-        padding: 3,
-        /**
-         * A pill inside a rounded rectangle is two shapes disagreeing.
-         *
-         * The tray was drawn before the buttons were, so it kept a 10px corner
-         * while the thing sitting in it went fully round. At three pixels of
-         * padding the mismatch is visible on every screen with tabs.
-         */
-        borderRadius: 999,
-        background: C.panelAlt,
-        border: `1px solid ${C.border}`,
-        overflowX: phone ? 'auto' : 'visible',
-        maxWidth: '100%',
-      }}
-    >
-      {tabs.map((t) => {
-        // Exact match only. Prefix matching is what lit every Library tab at
-        // once, because /pricing, /records and /brand-kit all belong to it.
-        const active = pathname === t.href;
-        return (
-          <button
-            key={t.href}
-            onClick={() => router.push(t.href)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 7,
-              padding: '7px 13px',
-              borderRadius: 999,
-              border: `1px solid ${active ? C.border : 'transparent'}`,
-              background: active ? C.panel : 'transparent',
-              boxShadow: active ? '0 1px 2px rgba(0,0,0,.06)' : 'none',
-              color: active ? C.text : C.dim,
-              fontSize: 13.5,
-              fontWeight: active ? 600 : 400,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <Glyph name={t.icon} color={active ? C.accent : C.faint} />
-            {t.label}
-          </button>
-        );
-      })}
-    </div>
-  );
+  /*
+    This was a second copy of the same strip.
+
+    It predated Tabs and was the better of the two — it is where the exact-match
+    rule was learned — so Tabs took that rule and this now renders through it.
+    One strip in the product, and the filtering that belongs to a page-level
+    strip stays here where it belongs: Digital listed Site requests to
+    everybody, and an agency does not have that module, so clicking it was
+    bounced home by pathAllowed and looked like a dead link.
+  */
+  return <Tabs items={allowed} style={{ marginBottom: 24 }} />;
 }
 
 /** The Library's three screens. One place so nav and tabs cannot drift. */
@@ -846,9 +802,16 @@ export function Tabs({
       }}
     >
       {items.map((t) => {
-        const on = t.href
-          ? pathname === t.href || pathname.startsWith(t.href + '/')
-          : active === t.id;
+        /*
+          Exact match, not prefix.
+
+          Prefix matching is what lit every Library tab at once, because
+          /pricing, /records and /brand-kit all sit under it, and it lights a
+          parent tab on every child route besides. The strip inside Page has
+          been exact since that was found; this is the same rule, written
+          down in the one place now rather than in each copy.
+        */
+        const on = t.href ? pathname === t.href : active === t.id;
         return (
           <button
             key={t.id ?? t.href ?? t.label}
