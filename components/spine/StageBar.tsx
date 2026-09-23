@@ -121,8 +121,8 @@ export function StageBar({
                   </button>
                 </>
               ) : (
-                {/* One word for one act, everywhere. Change, Change it and
-                    Edit were three labels for the same thing on one screen. */}
+                /* One word for one act. Change, Change it and Edit were
+                   three labels for the same thing on one screen. */
                 <button onClick={() => setChanging(true)} style={{ ...quiet, color: C.faint }}>
                   Edit
                 </button>
