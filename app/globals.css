@@ -4754,3 +4754,22 @@ input:focus, textarea:focus, select:focus {
 .jobCard:hover .jobCardMenu,
 .jobCardMenu:focus-visible { opacity: 1; }
 .jobCardMenu:hover { background: rgba(0,0,0,.05); }
+
+/*
+  Home's two columns.
+
+  Your move is wider because it is the one you act on; waiting-on-others is
+  reference. Below the breakpoint they stack in that same order, so the thing
+  you can do about today is always first.
+*/
+.homeSplit { display: grid; gap: 30px; grid-template-columns: 1fr; }
+@media (min-width: 62rem) {
+  .homeSplit { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 40px; }
+}
+.colHead {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  font-size: 11px; font-weight: 600; letter-spacing: .09em;
+  text-transform: uppercase; color: #9AA4AE;
+  padding-bottom: 8px; margin-bottom: 16px;
+  border-bottom: 2px solid #1A1A1A;
+}

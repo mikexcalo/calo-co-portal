@@ -214,6 +214,9 @@ export default function Dashboard() {
 
   /* From every invoice, because live now deliberately excludes drafts. */
   const drafts = invoices.filter((i) => i.status === 'draft');
+  /* Written and not sent. The one number on this screen that is entirely
+     within your gift to fix. */
+  const draftTotal = drafts.reduce((s, i) => s + i.total, 0);
 
   const attention: Attention[] = [];
 
@@ -606,12 +609,10 @@ export default function Dashboard() {
           ? `Nothing logged for ${org?.name ?? 'this business'} yet. A few minutes here and you're running.`
           : `Everything ${org?.name ?? 'this business'} needs you to deal with, most costly first.`
       }
-      action={
-        <>
-          <Button variant="ghost" onClick={openPanel}>Learn</Button>
-          <Button onClick={() => router.push('/jobs/new')}>New {vocab.job.toLowerCase()}</Button>
-        </>
-      }
+      /* Learn is in the top bar on every screen. A second copy in the page
+         header of the screen you land on is the same word twice, ten inches
+         apart, doing the same thing. */
+      action={<Button onClick={() => router.push('/jobs/new')}>New {vocab.job.toLowerCase()}</Button>}
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
@@ -785,12 +786,28 @@ export default function Dashboard() {
             a third of the visible page. On a screen whose point is a list of
             things to do, the figures are context. Context is a line.
           */}
+          {/*
+            Money stays on the screen at zero.
+
+            Every figure here was hideAtZero, so on a morning where nothing is
+            owed and nothing is unbilled the whole band vanished and Home
+            opened on "Active projects 3" — a number with a rule under it and
+            nothing to compare it to. Same mistake as hiding Revenue on Profit
+            and Loss: $0 owed is not missing information, it is the answer, and
+            it is the answer you want to be able to see without going to look
+            for it.
+
+            Three states of the same money, in the order it moves: work done
+            and not billed, billed and not sent, sent and not paid. Each one is
+            a different person's fault and each has a different fix, which is
+            why they are three figures rather than one.
+          */}
           <Figures
             items={[
-              { label: `Active ${vocab.jobPlural.toLowerCase()}`, value: String(activeJobs.length), hideAtZero: true },
-              { label: vocab.lead + 's', value: String(leads.length), hideAtZero: true },
-              { label: 'Unbilled', value: money0(unbilled), tone: 'amber', hideAtZero: true },
-              { label: 'Owed to you', value: money0(outstanding), tone: 'red', hideAtZero: true },
+              { label: 'Unbilled', value: money0(unbilled), tone: unbilled > 0 ? 'amber' : undefined },
+              { label: 'In draft', value: money0(draftTotal), tone: draftTotal > 0 ? 'amber' : undefined },
+              { label: 'Owed to you', value: money0(outstanding), tone: outstanding > 0 ? 'red' : undefined },
+              { label: `Active ${vocab.jobPlural.toLowerCase()}`, value: String(activeJobs.length) },
               { label: 'Collected', value: money0(collected), tone: 'green', hideAtZero: true },
             ]}
           />
@@ -808,84 +825,52 @@ export default function Dashboard() {
             button too.
           */}
 
-          {/* Somebody is waiting on you. First, because it is the only
-              thing here that somebody else is blocked by. */}
-          <AskedOfYou />
-
-          <Unresolved />
-
-          <SoldNotLive />
-          {/* What other people have asked for, above your own tasks: somebody
-              waiting on you outranks a job you set yourself. */}
-          <FeedbackInbox currentOrgId={org?.id ?? null} />
-
           {/*
-            Platform setup, for the business that runs the platform.
-            
-            These are real and they are Mike's, Stripe keys, Supabase Pro,
-            the search console. What was wrong was showing them inside
-            Lakemere, whose owner cannot do any of them and did not ask. The
-            agency workspace, and only its owners.
+            YOUR COURT, AND THEIRS.
+
+            Home was a vertical stack of eleven self-contained widgets, each
+            one a heading and a list, all the same weight, in an order nobody
+            could have told you. So the page had no shape: you read it top to
+            bottom every morning because there was no way to know where the
+            thing you cared about would be.
+
+            There are only two kinds of thing on it. Some are waiting on you
+            and some are waiting on somebody else, and that difference decides
+            whether you act or wait. Two columns say it in the layout, which
+            means it does not have to be read to be understood — and it puts
+            something in the third of the screen that was empty.
           */}
-          {org?.kind === 'agency' && canSetUp && <YourSetup />}
+          <div className="homeSplit">
+            <div>
+              <div className="colHead">Your move</div>
+              <AskedOfYou />
+              <FeedbackInbox currentOrgId={org?.id ?? null} />
+              <Unresolved />
+              {/*
+                Platform setup, for the business that runs the platform.
 
-          {/* And the way to send one, on the screen everybody opens first. */}
-          {/*
-            Not on Home as well.
-
-            Tell Us is a button at the foot of the sidebar on every screen, and
-            this put a second copy of the same thing in the middle of the page
-            somebody lands on. One way to say something, in the place it always
-            lives.
-          */}
-
-          <FollowUps />
-
-          <WeekAhead />
-
-          {activeJobs.length > 0 && (
-            <div style={{ marginBottom: 30 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <SectionLabel>In progress</SectionLabel>
-                <Button variant="ghost" onClick={() => router.push('/jobs')}>See all</Button>
-              </div>
-              <Table>
-                <Row cols="1fr 150px 110px 110px" header>
-                  <div>{vocab.job}</div>
-                  <div>{vocab.customer}</div>
-                  <div>Unbilled</div>
-                  <div>Margin</div>
-                </Row>
-                {activeJobs.slice(0, 6).map((j) => {
-                  const l = ledger.find((r) => r.job_id === j.id);
-                  const u = l ? l.unbilled_labor + l.unbilled_cost : 0;
-                  return (
-                    <Row
-                      key={j.id}
-                      cols="1fr 150px 110px 110px"
-                      onClick={() => router.push(`/jobs/${j.id}`)}
-                    >
-                      <div>
-                        <span style={{ ...DISPLAY, fontSize: 16.5 }}>{j.name}</span>
-                        <span style={{ marginLeft: 8 }}>
-                          <Pill tone={j.status === 'active' ? 'blue' : 'neutral'}>
-                            {JOB_STATUS_LABEL[j.status]}
-                          </Pill>
-                        </span>
-                      </div>
-                      <div style={{ color: C.dim }}>{j.customer?.name ?? '–'}</div>
-                      <div style={{ color: u > 0 ? C.amber : C.faint }}>
-                        {u > 0 ? money(u) : '–'}
-                      </div>
-                      <div style={{ color: (l?.margin_to_date ?? 0) >= 0 ? C.green : C.red }}>
-                        {money(l?.margin_to_date ?? 0)}
-                      </div>
-                    </Row>
-                  );
-                })}
-              </Table>
+                These are real and they are Mike's: Stripe keys, Supabase Pro,
+                the search console. What was wrong was showing them inside
+                Lakemere, whose owner cannot do any of them and did not ask.
+              */}
+              {org?.kind === 'agency' && canSetUp && <YourSetup />}
             </div>
-          )}
+
+            <div>
+              <div className="colHead">Waiting on others</div>
+              <FollowUps />
+              <SoldNotLive />
+              <WeekAhead />
+            </div>
+          </div>
+
+          {/*
+            In progress lived here as a table of every active project with its
+            client, unbilled and margin — which is the Projects board, rendered
+            again, one screen below a link to it. Two of the three rows were
+            called the same thing, so it could not even be scanned. The count
+            is in the figures above and the board is one click away.
+          */}
 
           {overdue.length > 0 && (
             <div>

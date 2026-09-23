@@ -38,7 +38,7 @@ function brandOf(o: { settings?: Record<string, unknown> | null }) {
 const KIND_LABEL: Record<string, string> = {
   agency: 'Agency',
   contractor: 'Contractor',
-  rep: 'Sales rep',
+  rep: 'Rep',
 };
 
 export function OrgSwitcher() {
