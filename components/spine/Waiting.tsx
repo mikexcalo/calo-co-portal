@@ -15,7 +15,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
-import { C, inputStyle } from './ui';
+import { Button, C, inputStyle } from './ui';
 import { save as saveOrFail } from '@/lib/spine/save';
 
 /** Whole days, floored. Same-day reads as today rather than 0 days. */
@@ -73,15 +73,12 @@ export function Waiting({ customerId }: { customerId: string }) {
 
   if (!what && !editing) {
     return (
-      <button
-        onClick={() => setEditing(true)}
-        style={{
-          border: 'none', background: 'transparent', padding: 0, marginBottom: 14,
-          fontSize: 12.5, color: C.faint, cursor: 'pointer', fontFamily: 'inherit',
-        }}
-      >
-        + Waiting on something?
-      </button>
+      /* Was a grey "+ Waiting on something?" with no edges, sitting next to
+         an actual button, so two controls doing the same kind of thing looked
+         like a caption and a button. */
+      <Button variant="ghost" onClick={() => setEditing(true)}>
+        Waiting on something?
+      </Button>
     );
   }
 

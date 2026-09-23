@@ -20,6 +20,7 @@ import type { JobInvoice, JobLedger } from '@/lib/spine/types';
 import { CONSIDERATION_LABEL, JOB_STATUS_LABEL } from '@/lib/spine/types';
 import { PRODUCT } from '@/lib/brand';
 import {
+  Tiles,
   Button,
   C,
   Card,
@@ -309,91 +310,59 @@ export default function ProfitLossPage() {
         <Empty>Loading…</Empty>
       ) : (
         <>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))',
-              gap: 12,
-              marginBottom: 14,
-            }}
-          >
-            {/*
-              Revenue is the number you came for.
+          {/*
+            The same strip as Home, Clients, Invoices, Proposals and Pitches.
 
-              hideAtZero removed the card entirely when nothing had been
-              issued, which left Costs and Profit sitting alone and no way to
-              tell whether revenue was zero or simply missing. $0 is the
-              answer, and a $-24 profit next to no revenue at all reads as a
-              bug rather than a month that has not started.
-            */}
-            <Metric
-              label="Revenue"
-              value={money0(scoped.revenue)}
-              hint={
-                scoped.count
-                  ? `${scoped.count} invoice${scoped.count === 1 ? '' : 's'}`
-                  : 'Nothing issued yet'
-              }
-            />
-            <Metric
-              label="Costs"
-              hideAtZero
-              value={money0(scoped.costs)}
-              hint={
-                scoped.overhead > 0
+            These were six Metrics, five of them hideAtZero, at a different
+            size and weight to the tiles on every other screen — so Profit and
+            Loss both looked like a different product and emptied itself out on
+            the month you most wanted to check.
+          */}
+          <Tiles
+            items={[
+              {
+                label: 'Revenue', value: money0(scoped.revenue), icon: 'chart',
+                hint: scoped.count ? `${scoped.count} invoice${scoped.count === 1 ? '' : 's'}` : 'Nothing issued yet',
+              },
+              {
+                label: 'Costs', value: money0(scoped.costs), icon: 'receipt',
+                hint: scoped.overhead > 0
                   ? `${money0(scoped.jobCosts)} jobs + ${money0(scoped.overhead)} overheads`
-                  : 'Materials, subs, permits'
-              }
-            />
-            <Metric
-              label="Profit"
-              hideAtZero
-              value={money0(scoped.profit)}
-              tone={scoped.profit >= 0 ? 'green' : 'red'}
-              /* There is no margin on no revenue. "0% margin" beside a
-                 negative number reads as break-even, which is the opposite. */
-              hint={scoped.revenue > 0 ? `${scoped.margin.toFixed(0)}% margin` : 'Overheads only'}
-            />
-            <Metric
-              label="Collected"
-              hideAtZero
-              value={money0(scoped.collected)}
-              tone="green"
-              hint="Money actually in"
-            />
-            {/* Red, like every other place money owed to you is shown. */}
-            <Metric
-              label="Owed to you"
-              hideAtZero
-              value={money0(scoped.outstanding)}
-              tone={scoped.outstanding > 0 ? 'red' : undefined}
-              hint="Invoiced, not paid"
-            />
-            {/* Sits beside profit rather than inside it. Tax is not a cost of
-                doing the work, it is a share of the money that was never
-                yours. */}
-            {/*
-              Nothing collected, nothing to hold back.
-
-              Every other card here hides at zero, so on a business that has
-              not invoiced yet this was the only one left, the words "Not set"
-              stretched across the full width of an otherwise empty screen,
-              nagging about a rate that would apply to no money. It asks once
-              there is something for it to take a share of.
-            */}
-            {scoped.collected > 0 && (
-            <Metric
-              label="Hold back for tax"
-              value={scoped.setAside == null ? 'Not set' : money0(scoped.setAside)}
-              tone={scoped.setAside == null ? undefined : 'amber'}
-              hint={
-                taxPct == null
-                  ? 'Set a rate in Business'
-                  : `${taxPct}% of what you collected`
-              }
-            />
-            )}
-          </div>
+                  : 'Materials, subs, permits',
+              },
+              {
+                label: 'Profit', value: money0(scoped.profit), icon: 'star',
+                /* There is no margin on no revenue. "0% margin" beside a
+                   negative number reads as break-even, which is the opposite. */
+                hint: scoped.revenue > 0 ? `${scoped.margin.toFixed(0)}% margin` : 'Overheads only',
+                tone: scoped.profit < 0 ? C.red : scoped.profit > 0 ? C.green : undefined,
+              },
+              {
+                label: 'Collected', value: money0(scoped.collected), icon: 'card',
+                hint: 'Money actually in',
+                tone: scoped.collected > 0 ? C.green : undefined,
+              },
+              {
+                label: 'Owed to you', value: money0(scoped.outstanding), icon: 'business',
+                hint: 'Invoiced, not paid',
+                tone: scoped.outstanding > 0 ? C.red : undefined,
+              },
+              /*
+                Nothing collected, nothing to hold back. On a business that has
+                not invoiced yet this said "Not set", nagging about a rate that
+                would apply to no money.
+              */
+              ...(scoped.collected > 0
+                ? [{
+                    label: 'Hold back for tax',
+                    value: scoped.setAside == null ? 'Not set' : money0(scoped.setAside),
+                    icon: 'layers' as const,
+                    hint: taxPct == null ? 'Set a rate in Business' : `${taxPct}% of what you collected`,
+                    tone: scoped.setAside == null ? undefined : C.amber,
+                  }]
+                : []),
+            ]}
+          />
 
           {overdelivering.length > 0 && (
             <Card style={{ marginBottom: 26, borderColor: C.amber, background: C.amberSoft }}>

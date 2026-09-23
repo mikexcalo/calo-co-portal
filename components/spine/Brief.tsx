@@ -215,8 +215,27 @@ export function Brief({ customerId, clientName }: { customerId: string; clientNa
                 >
                   <div style={{ fontSize: 12.5, color: C.faint, paddingTop: 1 }}>{f.label}</div>
                   <div style={{ minWidth: 0 }}>
+                    {/*
+                      The chevron sat on its own line under every value, which
+                      put a floating triangle in the left margin of eight rows
+                      and made the block twice as tall as its text. It belongs
+                      at the end of the sentence it opens.
+                    */}
                     <div style={{ fontSize: 14, color: C.text, lineHeight: 1.6 }}>
                       {isOpen ? full : head}
+                      {hasMore && (
+                        <span
+                          aria-hidden
+                          style={{
+                            display: 'inline-block', marginLeft: 7, color: C.faint,
+                            fontSize: 9, lineHeight: 1, verticalAlign: 'middle',
+                            transform: isOpen ? 'rotate(90deg)' : 'none',
+                            transition: 'transform .18s ease',
+                          }}
+                        >
+                          ▶
+                        </span>
+                      )}
                     </div>
                     {/*
                       A bare ellipsis was the expand control.
@@ -237,20 +256,7 @@ export function Brief({ customerId, clientName }: { customerId: string; clientNa
                       mark at the end of it says so without being read, and
                       turning to point down says which one is open.
                     */}
-                    {hasMore && (
-                      <span
-                        aria-hidden
-                        style={{
-                          display: 'inline-block', marginTop: 4, color: C.faint,
-                          fontSize: 10, lineHeight: 1,
-                          transform: isOpen ? 'rotate(90deg)' : 'none',
-                          transformOrigin: '40% 50%',
-                          transition: 'transform .18s ease, color .15s ease',
-                        }}
-                      >
-                        ▶
-                      </span>
-                    )}
+
                   </div>
                 </div>
               );

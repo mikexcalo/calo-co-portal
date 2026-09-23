@@ -181,7 +181,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
   const [view, setView] = useState<'now' | 'work' | 'given' | 'history' | 'brand' | 'catalog'>(
     (typeof window !== 'undefined' &&
       (new URLSearchParams(window.location.search).get('tab') as
-        | 'now' | 'work' | 'given' | 'history' | 'brand' | 'catalog')) || 'now'
+        | 'now' | 'work' | 'given' | 'history' | 'brand' | 'catalog')) || 'history'
   );
   /**
    * Counts on the tabs, from the one view that already has them.
@@ -524,6 +524,14 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               <Field label="Website">
                 <input value={draft.website ?? ''} onChange={(e) => setDraft({ ...draft, website: e.target.value })} style={inputStyle} />
               </Field>
+              {/* Where it belongs: it reads their site and fills in the fields
+                  directly above it. On the Brief tab it was a dotted box
+                  competing with the client's own information. */}
+              {!customer.website && (
+                <div style={{ marginBottom: 14, maxWidth: 420 }}>
+                  <Enrich customerId={params.id} currentName={customer.name} onSaved={load} />
+                </div>
+              )}
               {/* Their mark, not their face. Faces are on the people, in
                   People, because a client is a company and a company does not
                   have a head. */}
@@ -615,9 +623,19 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             active={view}
             onChange={(id) => setView(id as typeof view)}
             style={{ marginBottom: 20 }}
+            /*
+              Activity first, because that is what you came for.
+
+              Brief led, and a brief is reference: eight fields about what this
+              company sells and who buys it, written once and read when you are
+              preparing for a call. Opening a client you already know and being
+              shown static notes answers a question nobody asked. What changed
+              since last time is the question, and it was four tabs along.
+            */
             items={[
-              { id: 'now', label: 'Brief', icon: 'brief' },
+              { id: 'history', label: 'Activity', icon: 'activity', count: notes.length },
               { id: 'work', label: 'Work', icon: 'work' },
+              { id: 'now', label: 'Brief', icon: 'brief' },
               /**
                * Only for businesses that sell a list of things.
                *
@@ -631,19 +649,23 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               // A client's brand belongs to that client. The module in the
               // sidebar is your own; this is theirs.
               { id: 'brand', label: 'Brand', icon: 'swatches' },
-              { id: 'history', label: 'Activity', icon: 'activity', count: notes.length },
             ]}
           />
 
           {view === 'now' && (
             <>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
+              {/*
+                Two dotted outlines side by side, both empty, both asking to be
+                typed into, on the tab you land on. Tags are a label you add
+                once; filling the record in from a website is setup that stops
+                existing the moment it is done. Neither is worth the width of
+                the screen above the brief.
+
+                Tags stay, small. Enrich moved into Edit details, which is
+                where the rest of the company's details are.
+              */}
+              <div style={{ marginBottom: 16 }}>
                 <Tags tags={customer.tags ?? []} known={knownTags} onChange={saveTags} />
-                {!customer.website && (
-                  <div style={{ flex: '1 1 260px', maxWidth: 340 }}>
-                    <Enrich customerId={params.id} currentName={customer.name} onSaved={load} />
-                  </div>
-                )}
               </div>
               {/*
                 One strip, not two blocks.

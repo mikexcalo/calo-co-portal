@@ -224,7 +224,14 @@ export default function ProposalsPage() {
           },
           {
             label: 'Won', value: String(won.length), icon: 'star',
-            hint: winRate != null ? `${winRate}% of ${decided} decided` : 'None decided yet',
+            /* Said "None decided yet" above a Won count of 1, because the
+               win rate needs three decisions before it means anything and the
+               fallback described the rate rather than the number above it. */
+            hint: winRate != null
+              ? `${winRate}% of ${decided} decided`
+              : decided
+                ? `of ${decided} decided`
+                : 'Nothing decided yet',
             tone: won.length ? C.green : undefined,
           },
         ]}
@@ -400,7 +407,14 @@ export default function ProposalsPage() {
                   >
                     <div>{r.job?.name ?? '–'}</div>
                     <div style={{ color: C.dim }}>{r.job?.customer?.name ?? '–'}</div>
-                    <div><Pill tone={STATUS_TONE[r.status]}>{r.status}</Pill></div>
+                    <div>
+                      {/* The raw column value was printed straight into the
+                          pill, so the table read "accepted" in lower case
+                          beside headings in caps. */}
+                      <Pill tone={STATUS_TONE[r.status]}>
+                        {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
+                      </Pill>
+                    </div>
                     <div style={{ color: C.dim }}>{shortDate(r.decided_at)}</div>
                     <div>{money(r.total)}</div>
                   </Row>
