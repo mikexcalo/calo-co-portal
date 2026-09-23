@@ -16,27 +16,17 @@ set -euo pipefail
 q="${1:?usage: ask-db.sh \"select ...\"}"
 
 # ---------------------------------------------------------------------------
-# Why the migrations get moved aside.
+# The migrations used to be moved aside here.
 #
-# db push refuses with LegacyDbPushMissingRemoteError, because the migrations
-# are named with 8-digit dates and the CLI therefore believes none of the 98
-# are applied. It suggests --include-all, which would try to re-run all of
-# them against production. So the ask file is pushed on its own: everything
-# else is moved out for the length of one command and put straight back.
+# db push refused with LegacyDbPushMissingRemoteError, because 216 of the 343
+# files were byte-identical duplicates — 8-digit copies of 14-digit originals,
+# and a second set ending " 2.sql" from Finder. The CLI saw a hundred local
+# migrations it believed were never applied and would not do anything.
 #
-# The trap restores on any exit, including a kill. The files are in git, so
-# the worst case is a git checkout.
-#
-# This used to end in `|| true` with the error piped into a sed that matched
-# nothing, so a broken connection and an empty table looked identical: both
-# printed nothing at all. It is louder now.
+# They are deleted. The folder now matches what the remote has tracked, so the
+# ask file can go in alongside them like any other.
 # ---------------------------------------------------------------------------
 d="supabase/migrations"
-hold="$(mktemp -d)"
-restore() { [ -d "$hold" ] && mv "$hold"/* "$d"/ 2>/dev/null || true; rm -rf "$hold"; }
-trap restore EXIT INT TERM
-
-mv "$d"/*.sql "$hold"/ 2>/dev/null || true
 
 f="$d/99999999999999_ask.sql"
 cat > "$f" <<EOF

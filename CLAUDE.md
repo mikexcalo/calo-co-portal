@@ -77,16 +77,22 @@ failing.
 
 `supabase/migrations/`, named `YYYYMMDD_lower_case_phrase.sql`.
 
-They are **8-digit dates, not 14-digit timestamps**, so the Supabase CLI will
-not track them — `supabase db push` believes none have been applied and would
-try to re-run all 98. Apply new ones by pasting into the dashboard SQL editor:
+14-digit timestamps, one file each. For most of this project there were three
+copies of everything — an 8-digit original, a 14-digit rename, and a set of
+Finder duplicates ending ` 2.sql` — 216 of 343 files, all byte-identical to a
+twin. `supabase db push` refused to do anything while they existed, so every
+migration went in by hand through the dashboard. That is what produced a
+migration nobody ran and an afternoon spent misdiagnosing why.
+
+They are deleted. The CLI works:
 
 ```
-https://supabase.com/dashboard/project/qwncdybiluseypcovitd/sql/new
+npx supabase db push --linked      # apply anything new
+scripts/ask-db.sh "select ..."     # read production
 ```
 
-Renaming them all to 14-digit versions would fix this properly and has not been
-done.
+Name a new one `YYYYMMDDHHMMSS_lower_case_phrase.sql`, and sort it after the
+last one the remote has tracked or push will refuse it.
 
 ## Deploys
 
