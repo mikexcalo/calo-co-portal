@@ -423,3 +423,13 @@ export interface BillableJob {
   draft_number: string | null;
   draft_total: number | null;
 }
+
+/** Time this month, grouped by whose it was. */
+export interface ClientHours {
+  customer_id: string | null;
+  name: string;
+  hours: number;
+  value: number;
+  unbilled_hours: number;
+  unbilled_value: number;
+}

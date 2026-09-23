@@ -13,6 +13,7 @@
 import supabase from '@/lib/supabase';
 import type {
   BillableJob,
+  ClientHours,
   Cost,
   CostKind,
   DocumentRecord,
@@ -487,6 +488,60 @@ export async function listTimeEntries(jobId: string): Promise<TimeEntry[]> {
  * was set up with, which beats the workspace default. If all three are unset
  * it comes back zero and the logger says so rather than inventing a number.
  */
+/**
+ * Hours this month, by who they went on.
+ *
+ * An agency's whole question is whether the time is going where the money is,
+ * and nothing anywhere answered it. Hours existed per job, buried a click into
+ * each one, so the comparison — the only reason to ask — needed a trip to
+ * every job and a memory good enough to hold the answers.
+ *
+ * Billed and unbilled are separated because they are different problems. Time
+ * that is unbilled is money you have earned and not asked for; time that is
+ * billed is just the month so far.
+ */
+export async function hoursByClient(orgId: string, sinceIso: string): Promise<ClientHours[]> {
+  const [teRes, jobRes, custRes] = await Promise.all([
+    supabase.from('time_entries')
+      .select('job_id, hours, rate, invoiced_on, billable')
+      .eq('org_id', orgId).gte('worked_on', sinceIso),
+    supabase.from('jobs').select('id, customer_id').eq('org_id', orgId),
+    supabase.from('customers').select('id, name').eq('org_id', orgId),
+  ]);
+  for (const r of [teRes, jobRes, custRes]) if (r.error) throw new Error(r.error.message);
+
+  const jobOwner = new Map(
+    (jobRes.data ?? []).map((j: { id: string; customer_id: string | null }) => [j.id, j.customer_id])
+  );
+  const names = new Map((custRes.data ?? []).map((c: { id: string; name: string }) => [c.id, c.name]));
+
+  const out = new Map<string, ClientHours>();
+  for (const e of (teRes.data ?? []) as Array<Record<string, unknown>>) {
+    const cid = jobOwner.get(String(e.job_id)) ?? null;
+    const key = cid ?? 'none';
+    const row = out.get(key) ?? {
+      customer_id: cid,
+      /* Time with no client on it is still time, and hiding it is how a
+         quarter of a week goes missing. */
+      name: cid ? names.get(cid) ?? 'Unknown' : 'Not against a client',
+      hours: 0,
+      value: 0,
+      unbilled_hours: 0,
+      unbilled_value: 0,
+    };
+    const h = num(e.hours);
+    const v = h * num(e.rate);
+    row.hours += h;
+    row.value += v;
+    if (!e.invoiced_on && e.billable) {
+      row.unbilled_hours += h;
+      row.unbilled_value += v;
+    }
+    out.set(key, row);
+  }
+  return [...out.values()].sort((a, b) => b.hours - a.hours);
+}
+
 export async function listBillableJobs(orgId: string): Promise<BillableJob[]> {
   const [jobRes, custRes, termRes, invRes] = await Promise.all([
     supabase.from('jobs').select('id, name, customer_id, labor_rate, updated_at')

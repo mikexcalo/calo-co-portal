@@ -23,14 +23,15 @@ import { WeekAhead } from '@/components/spine/WeekAhead';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CLIENT_STAGES } from '@/lib/spine/stage';
-import { listDocuments, listInvoices, listJobLedger, listJobs, orgNow} from '@/lib/spine/db';
+import { hoursByClient, listDocuments, listInvoices, listJobLedger, listJobs, orgNow } from '@/lib/spine/db';
 import { modulesFor } from '@/lib/spine/modules';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { useTutorial } from '@/lib/spine/tutorial';
 import { JOB_STATUS_LABEL } from '@/lib/spine/types';
-import type { DocumentRecord, JobInvoice, JobLedger, JobWithCustomer } from '@/lib/spine/types';
+import type { ClientHours, DocumentRecord, JobInvoice, JobLedger, JobWithCustomer } from '@/lib/spine/types';
 import {
+  hours,
   Button,
   C,
   Card,
@@ -61,6 +62,11 @@ interface Attention {
   tone: 'amber' | 'red' | 'blue' | 'neutral';
 }
 
+/** Whole days between two date-only strings. */
+function daysBetween(a: string, b: string): number {
+  return Math.round((Date.parse(b) - Date.parse(a)) / 86400000);
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const { org, vocab, loading: orgLoading } = useOrg();
@@ -68,6 +74,7 @@ export default function Dashboard() {
 
   const [jobs, setJobs] = useState<JobWithCustomer[]>([]);
   const [ledger, setLedger] = useState<JobLedger[]>([]);
+  const [clientHours, setClientHours] = useState<ClientHours[]>([]);
   const [invoices, setInvoices] = useState<JobInvoice[]>([]);
   const [docs, setDocs] = useState<DocumentRecord[]>([]);
   /** Retainers whose billing period has come round with work sitting on them. */
@@ -132,9 +139,15 @@ export default function Dashboard() {
           The eleven counts are one function call now, and everything that does
           not depend on anything else goes at once.
         */
-        const [bd, sig] = await Promise.all([
-          supabase.from('billing_due').select('*').eq('org_id', await orgNow()),
+        const orgId = await orgNow();
+        /* Since the 1st, because "this month" is the period everything else
+           on this screen is counted in. */
+        const now = new Date();
+        const since = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+        const [bd, sig, ch] = await Promise.all([
+          supabase.from('billing_due').select('*').eq('org_id', orgId),
           supabase.rpc('home_signals').maybeSingle(),
+          orgId ? hoursByClient(orgId, since) : Promise.resolve([]),
         ]);
 
         if (canceled) return;
@@ -142,6 +155,7 @@ export default function Dashboard() {
         setLedger(l);
         setInvoices(inv);
         setDocs(d);
+        setClientHours(ch);
         const c = (sig.data ?? {}) as Record<string, number>;
         setSignals({
           customersNoEmail: c.customers_no_email ?? 0,
@@ -188,6 +202,8 @@ export default function Dashboard() {
     Issued means sent. An invoice sitting in draft is a document, not a debt.
   */
   const live = invoices.filter((i) => i.status !== 'void' && i.status !== 'draft');
+  const monthHours = clientHours.reduce((s, r) => s + r.hours, 0);
+  const monthValue = clientHours.reduce((s, r) => s + r.value, 0);
   const unbilled = ledger.reduce((s, r) => s + r.unbilled_labor + r.unbilled_cost, 0);
   const outstanding = live.reduce((s, i) => s + (i.total - i.amount_paid), 0);
   const collected = live.reduce((s, i) => s + i.amount_paid, 0);
@@ -269,12 +285,31 @@ export default function Dashboard() {
       tone: 'blue',
     });
   }
-  if (drafts.length) {
+  /*
+    A draft is only a problem when it should already have gone.
+
+    This flagged every draft, which means it flagged the billing run doing
+    exactly what it was built to do: drafts appear on the last day of the month
+    and go out on the 1st. Telling somebody their invoices are in draft on the
+    23rd is telling them the system works. An alert that fires on the normal
+    case teaches you to skim the alerts.
+
+    Approved and past its date, or sitting unapproved a week after it was
+    written, is a different thing and still worth saying.
+  */
+  const stuckDrafts = todayIso
+    ? drafts.filter((i) =>
+        i.send_on
+          ? i.send_on < todayIso
+          : !!i.issued_on && daysBetween(i.issued_on, todayIso) > 7
+      )
+    : [];
+  if (stuckDrafts.length) {
     attention.push({
       key: 'drafts',
-      weight: drafts.reduce((s, i) => s + i.total, 0),
-      title: `${drafts.length} invoice${drafts.length === 1 ? '' : 's'} still in draft`,
-      detail: 'Written but never sent. Nobody can pay an invoice they have not received.',
+      weight: stuckDrafts.reduce((s, i) => s + i.total, 0),
+      title: `${stuckDrafts.length} invoice${stuckDrafts.length === 1 ? '' : 's'} should have gone out`,
+      detail: 'Written, dated, and still sitting here. Nobody can pay an invoice they have not received.',
       cta: 'Open billing',
       href: '/billing',
       tone: 'amber',
@@ -787,30 +822,64 @@ export default function Dashboard() {
             things to do, the figures are context. Context is a line.
           */}
           {/*
-            Money stays on the screen at zero.
+            Tiles, and each one goes somewhere.
 
-            Every figure here was hideAtZero, so on a morning where nothing is
-            owed and nothing is unbilled the whole band vanished and Home
-            opened on "Active projects 3" — a number with a rule under it and
-            nothing to compare it to. Same mistake as hiding Revenue on Profit
-            and Loss: $0 owed is not missing information, it is the answer, and
-            it is the answer you want to be able to see without going to look
-            for it.
+            These were a line of figures, on the reasoning that on a screen
+            whose point is a list of things to do, numbers are context and
+            context is a line. That is true of numbers you only read. It is not
+            true of these: every one of them is a pile of money in a particular
+            state, and every state has a screen where you do something about
+            it. A number you can act on should be the thing you press.
 
-            Three states of the same money, in the order it moves: work done
-            and not billed, billed and not sent, sent and not paid. Each one is
-            a different person's fault and each has a different fix, which is
-            why they are three figures rather than one.
+            Three states of the same money, in the order it moves — work done
+            and not billed, billed and not sent, sent and not paid — plus the
+            hours behind the first one. Each is a different person's fault and
+            has a different fix, which is why they are four tiles and not one.
+
+            They stay at zero. $0 owed is not missing information, it is the
+            answer, and hiding it is how Home came to open on "Active projects
+            3" with a rule under it.
           */}
-          <Figures
-            items={[
-              { label: 'Unbilled', value: money0(unbilled), tone: unbilled > 0 ? 'amber' : undefined },
-              { label: 'In draft', value: money0(draftTotal), tone: draftTotal > 0 ? 'amber' : undefined },
-              { label: 'Owed to you', value: money0(outstanding), tone: outstanding > 0 ? 'red' : undefined },
-              { label: `Active ${vocab.jobPlural.toLowerCase()}`, value: String(activeJobs.length) },
-              { label: 'Collected', value: money0(collected), tone: 'green', hideAtZero: true },
-            ]}
-          />
+          <div className="tiles">
+            {[
+              {
+                label: 'Unbilled',
+                value: money0(unbilled),
+                hint: 'Done, not yet asked for',
+                href: '/jobs',
+                tone: unbilled > 0 ? C.amber : undefined,
+              },
+              {
+                label: 'In draft',
+                value: money0(draftTotal),
+                hint: drafts.length ? `${drafts.length} written, going out on the 1st` : 'Nothing written',
+                href: '/billing',
+                tone: draftTotal > 0 ? C.amber : undefined,
+              },
+              {
+                label: 'Owed to you',
+                value: money0(outstanding),
+                hint: overdue.length ? `${overdue.length} past due` : 'Nothing overdue',
+                href: '/billing',
+                tone: outstanding > 0 ? C.red : undefined,
+              },
+              {
+                label: 'Logged this month',
+                value: hours(monthHours),
+                hint: monthValue > 0 ? `${money0(monthValue)} of time` : 'Nothing logged yet',
+                href: '/jobs',
+                tone: undefined,
+              },
+            ].map((t) => (
+              <button key={t.label} className="tile" onClick={() => router.push(t.href)}>
+                <span className="tileLabel">{t.label}</span>
+                <span className="tileValue" style={t.tone ? { color: t.tone } : undefined}>
+                  {t.value}
+                </span>
+                <span className="tileHint">{t.hint}</span>
+              </button>
+            ))}
+          </div>
 
           {/*
             One way to write a note, not three.
@@ -861,6 +930,85 @@ export default function Dashboard() {
               <FollowUps />
               <SoldNotLive />
               <WeekAhead />
+
+              {/*
+                WHERE THE TIME WENT.
+
+                An agency's whole question is whether the hours are going where
+                the money is, and nothing anywhere answered it. Hours lived per
+                job, a click into each one, so the comparison — the only reason
+                to ask — needed a trip to every job and a memory good enough to
+                hold the answers.
+
+                Unbilled is called out separately because it is a different
+                problem: that is work you have done and not asked for, which is
+                the quietest way an agency loses money.
+              */}
+              {clientHours.length > 0 && (
+                <div style={{ marginBottom: 26 }}>
+                  <SectionLabel>Time this month</SectionLabel>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {clientHours.map((r) => (
+                      <button
+                        key={r.customer_id ?? 'none'}
+                        onClick={() => r.customer_id && router.push(`/customers/${r.customer_id}`)}
+                        style={{
+                          display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 12,
+                          alignItems: 'baseline', textAlign: 'left', width: '100%',
+                          background: 'transparent', border: 'none',
+                          borderTop: `1px solid ${C.border}`, padding: '9px 2px',
+                          cursor: r.customer_id ? 'pointer' : 'default', fontFamily: 'inherit',
+                        }}
+                      >
+                        <span style={{ fontSize: 13.5, color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {r.name}
+                        </span>
+                        <span style={{ fontSize: 13, color: C.dim, fontVariantNumeric: 'tabular-nums' }}>
+                          {hours(r.hours)}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 13, minWidth: 68, textAlign: 'right',
+                            fontVariantNumeric: 'tabular-nums',
+                            color: r.unbilled_value > 0 ? C.amber : C.faint,
+                          }}
+                          title={r.unbilled_value > 0 ? 'Not yet on an invoice' : 'All of it billed'}
+                        >
+                          {r.unbilled_value > 0 ? money0(r.unbilled_value) : money0(r.value)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: 12, color: C.faint, marginTop: 8 }}>
+                    Amber is unbilled. Press <kbd style={{ fontFamily: 'inherit' }}>⌘L</kbd> to log more.
+                  </div>
+                </div>
+              )}
+
+              {/*
+                The places you go, on the screen you land on.
+
+                Everything here is one click from the sidebar, which is the
+                argument against it and also the reason it is worth having:
+                Home is where somebody starts, and starting means going
+                somewhere. Four, not fourteen — a second sidebar is not a
+                shortcut.
+              */}
+              <div style={{ marginBottom: 26 }}>
+                <SectionLabel>Go to</SectionLabel>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {[
+                    { label: `Active ${vocab.jobPlural.toLowerCase()} (${activeJobs.length})`, href: '/jobs' },
+                    { label: `${vocab.customerPlural}`, href: '/customers' },
+                    { label: 'Invoices', href: '/billing' },
+                    { label: 'Drops', href: '/inbox' },
+                  ].map((q) => (
+                    <button key={q.href} className="quickLink" onClick={() => router.push(q.href)}>
+                      {q.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 

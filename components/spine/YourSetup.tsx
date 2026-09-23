@@ -89,6 +89,14 @@ export function YourSetup() {
     somebody opens Home to see were separated by a wall of text about things
     they are not doing right now.
   */
+  /*
+    Urgent means you can see it without pressing anything.
+
+    Everything collapsed to one line by default, so "1 urgent" sat inside a
+    summary of six tasks and the urgent one was whichever of the three titles
+    happened to fit. A thing worth calling urgent and then hiding behind a
+    click is not being called urgent, it is being counted.
+  */
   const [showAll, setShowAll] = useState(false);
 
   const load = useCallback(async () => {
@@ -156,7 +164,7 @@ export function YourSetup() {
 
   if (items.length === 0) return null;
 
-  if (!showAll) {
+  if (!showAll && !items.some((i) => i.urgent)) {
     return (
       <div style={{ marginBottom: 26 }}>
         <button

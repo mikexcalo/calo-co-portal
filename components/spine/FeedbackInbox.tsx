@@ -164,7 +164,7 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
             onClick={async () => { await switchOrg(id); router.push('/'); router.refresh(); }}
             style={{ background: 'transparent', border: 'none', padding: 0, color: C.dim, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
           >
-            {o.n} waiting in {o.name} &rarr;
+            {o.n} unread message{o.n === 1 ? '' : 's'} in {o.name} &rarr;
           </button>
         ))}
       </div>
@@ -275,7 +275,7 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
               onClick={async () => { await switchOrg(id); router.push('/'); router.refresh(); }}
               style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
             >
-              {o.n} waiting in {o.name} →
+              {o.n} unread message{o.n === 1 ? '' : 's'} in {o.name} →
             </button>
           ))}
         </div>
