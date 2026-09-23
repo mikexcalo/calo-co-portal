@@ -63,8 +63,10 @@ function StepText({ text }: { text: string }) {
 }
 
 const rowBtn: CSSProperties = {
-  background: 'transparent', border: 'none', padding: '2px 4px',
-  color: '#8A949E', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  width: 26, height: 26, borderRadius: 7, flexShrink: 0,
+  background: 'transparent', border: 'none', padding: 0,
+  color: '#8A949E', cursor: 'pointer', fontFamily: 'inherit',
 };
 
 export function YourSetup() {
@@ -249,6 +251,7 @@ export function YourSetup() {
             <Card key={i.key}>
               <div
                 onClick={() => setOpen(isOpen ? null : i.key)}
+                className="taskRow"
                 style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', cursor: 'pointer' }}
               >
                 {/* Recognized rather than read. Nine identical lines of text
@@ -272,7 +275,8 @@ export function YourSetup() {
                     {ticks[i.key].length} of {i.steps.length}
                   </span>
                 )}
-                <span style={{ fontSize: 12, color: C.blue }}>{isOpen ? 'Hide' : 'How'}</span>
+                <span style={{ fontSize: 12, color: C.blue }}>{isOpen ? 'Less' : 'How'}</span>
+                <span className="rowActions">
                 {/*
                   Done and Not doing, on the row.
 
@@ -283,20 +287,36 @@ export function YourSetup() {
                   and the one on this screen has "retire mikecalo.co" on it for
                   a domain that lapses on its own in four days.
                 */}
+                {/*
+                  Marks, not sentences.
+
+                  "How  Done  Not doing" in three identical grey words at the
+                  end of every row is nine words per task and fifty-four on the
+                  screen, none of which look like anything you can press. A
+                  tick and a cross are understood without being read, and they
+                  stop the row from ending in a paragraph.
+                */}
                 <button
                   onClick={(e) => { e.stopPropagation(); set(i.key, 'done'); }}
-                  title="Mark done"
+                  title="Mark it done"
+                  aria-label={`Mark "${i.title}" done`}
                   style={rowBtn}
                 >
-                  Done
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M3 8.6 6.2 12 13 4.6" />
+                  </svg>
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); set(i.key, 'skipped'); }}
                   title="Take it off the list"
+                  aria-label={`Take "${i.title}" off the list`}
                   style={rowBtn}
                 >
-                  Not doing
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" aria-hidden>
+                    <path d="M4 4l8 8M12 4l-8 8" />
+                  </svg>
                 </button>
+                </span>
               </div>
 
               {/*
@@ -309,14 +329,25 @@ export function YourSetup() {
                 none of it is worth re-reading every morning. The first
                 sentence says which task this is; opening it says why.
               */}
-              <div
-                style={{
-                  fontSize: 12.5, color: C.faint, marginTop: 5, lineHeight: 1.6,
-                  maxWidth: 640, whiteSpace: 'pre-line', paddingLeft: 26,
-                }}
-              >
-                {isOpen ? i.blocks : i.blocks.split('\n')[0]}
-              </div>
+              {/*
+                Closed means closed.
+
+                The first sentence of "why it matters" printed on every row,
+                always, which is two or three lines of reasoning per task and
+                six tasks on the screen at once — a page of prose you re-read
+                every morning to find the four words that are the task. The
+                title says which task it is. That is the row's whole job.
+              */}
+              {isOpen && (
+                <div
+                  style={{
+                    fontSize: 12.5, color: C.faint, marginTop: 8, lineHeight: 1.6,
+                    maxWidth: 640, whiteSpace: 'pre-line', paddingLeft: 26,
+                  }}
+                >
+                  {i.blocks}
+                </div>
+              )}
 
               {isOpen && (
                 <div style={{ marginTop: 12, paddingLeft: 26 }}>

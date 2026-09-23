@@ -27,6 +27,7 @@ import { hoursByClient, listDocuments, listInvoices, listJobLedger, listJobs, or
 import { modulesFor } from '@/lib/spine/modules';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
+import { Glyph } from '@/components/spine/icons';
 import { useTutorial } from '@/lib/spine/tutorial';
 import { JOB_STATUS_LABEL } from '@/lib/spine/types';
 import type { ClientHours, DocumentRecord, JobInvoice, JobLedger, JobWithCustomer } from '@/lib/spine/types';
@@ -807,11 +808,9 @@ export default function Dashboard() {
             silence is ambiguous: an empty dashboard could mean all clear or
             could mean nothing loaded.
           */}
-          {attention.length === 0 && (
-            <div style={{ fontSize: 12.5, color: C.faint, marginBottom: 18 }}>
-              Nothing billable unbilled, no receipts outstanding, nothing expiring.
-            </div>
-          )}
+          {/* The tiles below say this, with numbers, and they are always
+              there. A sentence listing three nothings above four figures
+              reporting the same three nothings is the sentence going. */}
 
           {/*
             Numbers as a line, not a wall.
@@ -844,6 +843,7 @@ export default function Dashboard() {
             {[
               {
                 label: 'Unbilled',
+                icon: 'work' as const,
                 value: money0(unbilled),
                 hint: 'Done, not yet asked for',
                 href: '/jobs',
@@ -851,6 +851,7 @@ export default function Dashboard() {
               },
               {
                 label: 'In draft',
+                icon: 'receipt' as const,
                 value: money0(draftTotal),
                 hint: drafts.length ? `${drafts.length} written, going out on the 1st` : 'Nothing written',
                 href: '/billing',
@@ -858,6 +859,7 @@ export default function Dashboard() {
               },
               {
                 label: 'Owed to you',
+                icon: 'card' as const,
                 value: money0(outstanding),
                 hint: overdue.length ? `${overdue.length} past due` : 'Nothing overdue',
                 href: '/billing',
@@ -865,14 +867,26 @@ export default function Dashboard() {
               },
               {
                 label: 'Logged this month',
+                icon: 'activity' as const,
                 value: hours(monthHours),
                 hint: monthValue > 0 ? `${money0(monthValue)} of time` : 'Nothing logged yet',
                 href: '/jobs',
                 tone: undefined,
               },
             ].map((t) => (
-              <button key={t.label} className="tile" onClick={() => router.push(t.href)}>
-                <span className="tileLabel">{t.label}</span>
+              <button
+                key={t.label}
+                className={`tile${t.tone ? ' tileLive' : ''}`}
+                onClick={() => router.push(t.href)}
+              >
+                {/* An icon per tile, so four boxes of money read as four
+                    different things before any of them is read. And the one
+                    with something in it gets a ground, because a number that
+                    needs you should not look the same as three that do not. */}
+                <span className="tileTop">
+                  <Glyph name={t.icon} size={16} color={t.tone ?? C.faint} />
+                  <span className="tileLabel">{t.label}</span>
+                </span>
                 <span className="tileValue" style={t.tone ? { color: t.tone } : undefined}>
                   {t.value}
                 </span>

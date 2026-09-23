@@ -4786,13 +4786,16 @@ input:focus, textarea:focus, select:focus {
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
 }
 .tile {
-  display: flex; flex-direction: column; gap: 3px; align-items: flex-start;
+  display: flex; flex-direction: column; gap: 4px; align-items: flex-start;
   text-align: left; font-family: inherit; cursor: pointer;
   background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 12px;
-  padding: 14px 15px 15px;
+  padding: 15px 16px 16px;
   transition: border-color .18s ease, transform .18s cubic-bezier(.22,.8,.3,1);
 }
+/* The one with something in it does not look like the three that do not. */
+.tile.tileLive { background: #FDFAF4; border-color: #EFE3CB; }
 .tile:hover { border-color: #C9C5BC; transform: translateY(-2px); }
+.tileTop { display: flex; align-items: center; gap: 7px; }
 @media (prefers-reduced-motion: reduce) { .tile:hover { transform: none; } }
 .tileLabel {
   font-size: 11px; font-weight: 600; letter-spacing: .07em;
@@ -4800,8 +4803,8 @@ input:focus, textarea:focus, select:focus {
 }
 .tileValue {
   font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
-  font-size: 26px; line-height: 1.15; letter-spacing: -0.02em; color: #1A1A1A;
-  font-variant-numeric: tabular-nums;
+  font-size: 30px; line-height: 1.1; letter-spacing: -0.025em; color: #1A1A1A;
+  font-variant-numeric: tabular-nums; margin-top: 2px;
 }
 .tileHint { font-size: 12px; color: #8A949E; line-height: 1.45; }
 
@@ -4814,3 +4817,14 @@ input:focus, textarea:focus, select:focus {
 
 /* The whole box is the target, so it should look like one. */
 input[type="date"] { cursor: pointer; }
+
+/*
+  The task rows, quieted down.
+
+  Six of them with a paragraph each and three grey words on the end was a page
+  of prose where a list belongs. The reasoning is behind How, the actions are
+  marks, and the row is a line again.
+*/
+.taskRow:hover .rowActions { opacity: 1; }
+.rowActions { opacity: .55; transition: opacity .15s ease; display: flex; gap: 2px; }
+.rowActions button:hover { background: rgba(0,0,0,.05); color: #1A1A1A; }
