@@ -73,16 +73,20 @@ export function ClientWork({ customerId }: { customerId: string }) {
     // workspace when he got one. The view still counts them and always says
     // zero, which is correct and not worth a row.
 
-    if (n('brands')) next.push({ label: 'Brand', count: n('brands'), href: `/brands/${o.brand_id}` });
-    /**
-     * Stays on the client.
-     *
-     * This used to jump to a screen headed Intel inside a brand, which is a
-     * different object with a different breadcrumb, and you arrived with no
-     * idea how you got there. The documents belong to the client, so the tile
-     * opens the client's own Documents tab.
-     */
-    if (n('documents')) next.push({ label: 'Documents', count: n('documents'), href: `?tab=given` });
+    /*
+      "1 Brand" and "4 Documents" are not numbers anybody needs.
+
+      A tile earns its place by answering a question you would otherwise have
+      to go and ask. "Owed to you $110" does that. "1 Brand" counts a thing
+      that is either there or not, next to a tab called Brand that opens it —
+      and a client has one brand, so the number is always 1 or the tile is
+      absent. Documents is the same shape: the count tells you nothing you act
+      on, and Documents is a tab three inches away with its own count on it.
+
+      Both are still one click away, on the tabs named after them. What is
+      left here is money and work: what they owe, what is unbilled, how many
+      projects are live.
+    */
     if (n('case_studies')) next.push({ label: 'Case studies', count: n('case_studies') });
     if (n('pitches')) next.push({ label: 'Pitches', count: n('pitches') });
     if (n('reviews_asked')) next.push({ label: 'Reviews asked', count: n('reviews_asked'), hint: `${n('reviews_followed')} followed` });

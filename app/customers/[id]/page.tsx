@@ -39,6 +39,8 @@ import { ClientWork } from '@/components/spine/ClientWork';
 import { Reminders } from '@/components/spine/Reminders';
 import { BrandCard } from '@/components/spine/BrandCard';
 import { HowTheyStart } from '@/components/spine/HowTheyStart';
+import { ClientGrowth } from '@/components/spine/ClientGrowth';
+import { Messaging } from '@/components/spine/Messaging';
 import { JOB_STATUS_LABEL } from '@/lib/spine/types';
 import type { JobStatus } from '@/lib/spine/types';
 import {
@@ -138,6 +140,8 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
   const [jobs, setJobs] = useState<JobRow[]>([]);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [orgId, setOrgId] = useState<string | null>(null);
+  /* Their own brand row, for the messaging framework on the Brand tab. */
+  const [brandId, setBrandId] = useState<string | null>(null);
   /** Resolved from the brand kit, or the override. A function, not a column. */
   const [logoPath, setLogoPath] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -178,14 +182,14 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
    * navigation, and should not cost a page load. The query string is only read
    * once, to honor where somebody was sent.
    */
-  const [view, setView] = useState<'now' | 'given' | 'history' | 'brand' | 'catalog'>(() => {
+  const [view, setView] = useState<'now' | 'given' | 'history' | 'brand' | 'catalog' | 'growth'>(() => {
     if (typeof window === 'undefined') return 'history';
     const t = new URLSearchParams(window.location.search).get('tab');
     /* ?tab=work is in links that were sent before Work folded into Activity,
        and it is where that content now lives. A bookmark should not open a
        blank tab. */
     if (t === 'work') return 'history';
-    return (t as 'now' | 'given' | 'history' | 'brand' | 'catalog') || 'history';
+    return (t as 'now' | 'given' | 'history' | 'brand' | 'catalog' | 'growth') || 'history';
   });
   /**
    * Counts on the tabs, from the one view that already has them.
@@ -291,6 +295,13 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
     if (res.error) { setError(human(res.error.message)); load(); }
     else setKnownTags((k) => Array.from(new Set([...k, ...next])).sort());
   };
+
+  useEffect(() => {
+    (async () => {
+      const res = await supabase.from('brands').select('id').eq('customer_id', params.id).maybeSingle();
+      setBrandId((res.data as { id?: string } | null)?.id ?? null);
+    })();
+  }, [params.id]);
 
   useEffect(() => {
     (async () => {
@@ -469,7 +480,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
            * wrong shape for it.
            */
           gridTemplateColumns:
-            phone || view === 'given' || view === 'brand' || view === 'catalog'
+            phone || view === 'given' || view === 'brand' || view === 'catalog' || view === 'growth'
               ? '1fr'
               : 'minmax(0, 1.25fr) minmax(340px, 1fr)',
           gap: 22,
@@ -663,6 +674,20 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                * which teaches people the strip is full of dead ends.
                */
               ...(hasCatalog ? [{ id: 'catalog', label: 'Catalog', icon: 'pricing' as const }] : []),
+              /*
+                Growth: what has been done to get them found.
+
+                The pieces existed and were scattered. Their website and the
+                tracking tag sat in the middle of Activity; the search
+                checklist was a 13px text link called "Search setup" in a row
+                of links, next to one called "Their site" that just opened
+                their homepage. Neither read as work, so neither got done.
+
+                One tab, in the order it happens: put the tag on, get them
+                into Search Console, work the checklist. It is also the thing
+                you show them when they ask what they are paying for.
+              */
+              { id: 'growth', label: 'Growth', icon: 'chart' },
               { id: 'given', label: 'Documents', icon: 'documents', count: counts.given },
               // A client's brand belongs to that client. The module in the
               // sidebar is your own; this is theirs.
@@ -732,14 +757,22 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           {view === 'brand' && (
             <>
               <BrandCard customerId={params.id} />
-              <ClientBrandFiles customerId={params.id} />
               {/*
-                A button reading "Where {name} sits on the ten module
-                framework" used to sit here and push /brands — the wall of
-                every brand at once, which is neither this client nor a
-                framework. The card above links to the right brand, and the
-                framework is on it.
+                Their messaging, on their record.
+
+                Colette's framework was written this morning and lived only at
+                /brands/{id} — reachable by opening the client, the Brand tab,
+                then Open brand kit, then scrolling. Three clicks from the
+                place anybody would look for what a client says about
+                themselves. It is the same component and the same row; this is
+                just where you are when you want it.
               */}
+              {orgId && brandId && (
+                <div style={{ marginTop: 22, marginBottom: 22 }}>
+                  <Messaging orgId={orgId} brandId={brandId} name={customer.name} />
+                </div>
+              )}
+              <ClientBrandFiles customerId={params.id} />
             </>
           )}
 
@@ -759,6 +792,11 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                   it opened as "THE PLAN (0 OF 0 DONE)" above an empty box and
                   a button. A heading counting to zero, on every client. */}
               <ClientWork customerId={params.id} />
+            </>
+          )}
+
+          {view === 'growth' && (
+            <>
               {orgId && (
                 <TheirSite
                   customerId={params.id}
@@ -767,6 +805,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                   website={customer.website}
                 />
               )}
+              <ClientGrowth customerId={params.id} clientName={customer.name} website={customer.website} />
             </>
           )}
 
@@ -931,7 +970,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           </>)}
         </div>
 
-        <div style={{ display: view === 'given' || view === 'brand' || view === 'catalog' ? 'none' : undefined }}>
+        <div style={{ display: view === 'given' || view === 'brand' || view === 'catalog' || view === 'growth' ? 'none' : undefined }}>
           {/*
             The business, then whoever you talk to there.
             
@@ -1002,17 +1041,9 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                     Their site
                   </a>
                 )}
-                {customer.website && (
-                  <button
-                    onClick={() => router.push(`/seo?client=${params.id}`)}
-                    style={{
-                      background: 'transparent', border: 'none', padding: 0,
-                      fontSize: 13, color: C.accent, cursor: 'pointer', fontFamily: 'inherit',
-                    }}
-                  >
-                    Search setup
-                  </button>
-                )}
+                {/* "Search setup" was a text link here, the same size and
+                    colour as the link beside it that just opens their
+                    homepage. It is the Growth tab. */}
                 {/*
                   An address with a label on it.
 

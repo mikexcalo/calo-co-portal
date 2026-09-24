@@ -186,10 +186,22 @@ export function TheirSite({
               >
                 {copied ? 'Copied' : 'Copy the tag'}
               </Button>
+              {/*
+                Three things wrong in two sentences.
+
+                It named Wix, on a site we built and host ourselves. It said
+                "collect for a fortnight" — a word nobody uses out loud, about
+                a thing the sentence never named. And "start collecting" was
+                never explained at all, so the button read as a mystery: what
+                is being collected, and where does it go.
+
+                Say what the button does and where the answer shows up.
+              */}
               <span style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.55, flex: '1 1 260px' }}>
-                Head of every page. On Wix that is Settings, then Custom Code. Collect for a
-                fortnight before setting their traffic module live, so the screen has something
-                in it the day they first open it.
+                Already on any site we build. Start collecting turns on visitor counts &mdash;
+                who arrives, what page they land on, where they came from &mdash; and they show
+                up under Traffic. Give it two weeks before you show the client, so there is
+                something to look at.
               </span>
             </div>
           </>
