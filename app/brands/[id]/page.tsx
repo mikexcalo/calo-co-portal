@@ -16,6 +16,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { Swatch, Pairings } from '@/components/spine/BrandSpecimen';
+import { Messaging } from '@/components/spine/Messaging';
+import { useOrg } from '@/lib/spine/org';
 import { kitFromBrand } from '@/lib/spine/brandkit';
 import {
   Button,
@@ -133,6 +135,7 @@ const kb = (n?: number) =>
 
 export default function BrandDetail({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { org } = useOrg();
   const [brand, setBrand] = useState<Brand | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState<string | null>(null);
@@ -255,8 +258,11 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
           <Button onClick={() => { window.location.href = `/api/brands/${brand.id}/export`; }}>
             Export kit
           </Button>
+          {/* Renamed. The framework is on this page now, so the screen
+              behind this button is the proof register and the banned-term
+              checker, which is what it was actually for. */}
           <Button variant="ghost" onClick={() => router.push(`/brands/${brand.id}/messaging`)}>
-            Messaging
+            Proof &amp; guardrails
           </Button>
           {brand.customer && (
             <Button variant="ghost" onClick={() => router.push(`/customers/${brand.customer!.id}`)}>
@@ -275,6 +281,18 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
       )}
 
       {hostedFaces && <style>{hostedFaces}</style>}
+
+      {/*
+        What this brand says, in the same framework as every other one.
+
+        A client's brand row held colors, fonts and logos and had no opinion
+        about the words — so the part every pitch and homepage is written out
+        of existed for your own brand and for none of theirs. Same component,
+        same six statements, same pillars.
+      */}
+      <div style={{ marginBottom: 30 }}>
+        <Messaging orgId={org?.id ?? null} brandId={brand.id} name={brand.name} />
+      </div>
 
       {colors.length > 0 && (
         <div style={{ marginBottom: 26 }}>

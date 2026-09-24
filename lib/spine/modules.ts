@@ -103,7 +103,9 @@ const AGENCY: ModuleId[] = [
   'pricing',
   'records',
   'brand_kit',
-  'brands',
+  // 'brands' is reachable, not listed. It was kept out of the sidebar by
+  // being a tab of brand_kit; that tab is gone, so without this it would
+  // have claimed a row of its own. The door to a brand is on the client.
   'stories',
   'client_requests',
   'team',
@@ -495,8 +497,8 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/digital', 'seo'],
   ['/requests', 'client_requests'],
   ['/brand-kit', 'brand_kit'],
-  ['/messaging', 'brand_kit'],
-  ['/card', 'brand_kit'],
+  ['/card', 'pitches'],
+  ['/signature', 'pitches'],
   ['/ask', 'ask'],
   ['/reviews', 'reviews'],
   ['/seo', 'seo'],
@@ -701,10 +703,6 @@ export const MODULE_TAB_PARENT: Partial<Record<ModuleId, ModuleId>> = {
     One untitled draft did not earn a row in a sidebar of eighteen.
   */
   stories:  'pitches',
-  // Not a tab: the Brand row already points at the kit, and a second row for
-  // the same page under a different name is the duplication this map exists
-  // to stop.
-  brands: 'brand_kit',
   website: 'seo',
 };
 

@@ -269,15 +269,20 @@ export function brandTabsFor(kind: string | null | undefined): readonly PageTab[
   return BRAND_TABS.filter((t) => t.href !== '/brands' || kind === 'agency');
 }
 
+/*
+  Brand is one row again.
+
+  It held four tabs: Brand, Client Brands, Messaging and Card. Card is a
+  growth tool and went to Pitches with the email signature. Messaging is not
+  a sibling of the brand, it is part of it, so it became a tab inside the
+  brand itself next to Colors and Logos. Client Brands was a list you reached
+  past your own brand to get to somebody else's — a client's brand belongs on
+  the client, and there is a tile for it on their record now.
+
+  What is left does not need a strip over it.
+*/
 export const BRAND_TABS: readonly PageTab[] = [
   { label: 'Brand', href: '/brand-kit', icon: 'swatches' },
-  // Framework had no row and no tab once Brand pointed at the kit, which left
-  // a whole module reachable only by typing the URL.
-  { label: 'Client Brands', href: '/brands', icon: 'swatches' },
-  // What you claim, as opposed to how you sound. Its own tab because
-  // everything you send is written out of it.
-  { label: 'Messaging', href: '/messaging', icon: 'brief' },
-  { label: 'Card', href: '/card', icon: 'card' },
 ];
 
 
@@ -288,9 +293,18 @@ export const BRAND_TABS: readonly PageTab[] = [
  * were about identity. They are about evidence, and the only reason to keep
  * them is to reuse them, which happens at the moment you write a pitch.
  */
+/*
+  Growth, with the things you send in it.
+
+  A business card and an email signature are not brand assets you file, they
+  are how you get introduced — the same job as a pitch and a case study. They
+  were tabs of Brand, two clicks from the funnel that uses them.
+*/
 export const PITCH_TABS: readonly PageTab[] = [
   { label: 'Pitches', href: '/pitches', icon: 'send' },
   { label: 'Case Studies', href: '/stories', icon: 'book' },
+  { label: 'Card', href: '/card', icon: 'card' },
+  { label: 'Email Signature', href: '/signature', icon: 'mail' },
 ];
 
 /**

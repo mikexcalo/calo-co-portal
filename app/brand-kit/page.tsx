@@ -54,8 +54,9 @@ import { FontSpecimen } from '@/components/spine/FontSpecimen';
 import { Pairings } from '@/components/spine/BrandSpecimen';
 import { kitFromOrg, type Kit } from '@/lib/spine/brandkit';
 import { human } from '@/lib/spine/errors';
+import { Messaging } from '@/components/spine/Messaging';
 
-type Tab = 'brand' | 'logos' | 'qr' | 'signature';
+type Tab = 'brand' | 'logos' | 'qr' | 'messaging';
 
 interface BrandColor {
   name: string;
@@ -279,7 +280,7 @@ export default function BrandKitPage() {
           { id: 'brand', label: 'Colors & Type', icon: 'star' },
           { id: 'logos', label: 'Logos', icon: 'swatches' },
           { id: 'qr', label: 'QR Codes', icon: 'card' },
-          { id: 'signature', label: 'Email Signature', icon: 'mail' },
+          { id: 'messaging', label: 'Messaging', icon: 'brief' },
         ]}
       />
 
@@ -479,133 +480,19 @@ export default function BrandKitPage() {
           onChange={(patch) => setBrand((b) => ({ ...b, ...patch }))}
         />
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: phone ? '1fr' : 'minmax(0,1fr) minmax(0,1fr)', gap: 18 }}>
-          <div>
-            <Card style={{ marginBottom: 16 }}>
-              <SectionLabel>Details</SectionLabel>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <Field label="Name">
-                  <input value={sig.name} onChange={(e) => setSig({ ...sig, name: e.target.value })} style={inputStyle} />
-                </Field>
-                <Field label="Title">
-                  <input value={sig.title} onChange={(e) => setSig({ ...sig, title: e.target.value })} style={inputStyle} />
-                </Field>
-                <Field label="Company">
-                  <input value={sig.company} onChange={(e) => setSig({ ...sig, company: e.target.value })} style={inputStyle} />
-                </Field>
-                <Field label="Phone">
-                  <input value={sig.phone} onChange={(e) => setSig({ ...sig, phone: e.target.value })} style={inputStyle} />
-                </Field>
-                <Field label="Email">
-                  <input value={sig.email} onChange={(e) => setSig({ ...sig, email: e.target.value })} style={inputStyle} />
-                </Field>
-                <Field label="Website">
-                  <input value={sig.website} onChange={(e) => setSig({ ...sig, website: e.target.value })} style={inputStyle} />
-                </Field>
-              </div>
-              <Field label="Logo URL">
-                <input
-                  value={sig.logoUrl}
-                  onChange={(e) => setSig({ ...sig, logoUrl: e.target.value })}
-                  style={inputStyle}
-                  placeholder={brand.logoLight || 'https://…'}
-                />
-              </Field>
-              <Field label="Tagline (optional)">
-                <input value={sig.tagline} onChange={(e) => setSig({ ...sig, tagline: e.target.value })} style={inputStyle} />
-              </Field>
-            </Card>
+        /*
+          Messaging, inside the brand rather than beside it.
 
-            <Card>
-              <SectionLabel>Layout</SectionLabel>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {SIGNATURE_STYLES.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => setStyle(s.id)}
-                    style={{
-                      textAlign: 'left', padding: '10px 12px', borderRadius: 999,
-                      border: `1px solid ${style === s.id ? C.blue : C.border}`,
-                      background: style === s.id ? C.blueSoft : 'transparent',
-                      cursor: 'pointer', fontFamily: 'inherit',
-                    }}
-                  >
-                    <div style={{ fontSize: 14, color: C.text }}>{s.name}</div>
-                    <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2 }}>{s.note}</div>
-                  </button>
-                ))}
-              </div>
-            </Card>
-          </div>
+          It was its own page under a Messaging tab, on the reasoning that
+          what you say is not a brand asset you file. That reasoning was
+          right about the old six-box version and wrong about where it goes:
+          the palette, the type and the words are one identity, and the words
+          are the part everything else gets written out of. A tab away is
+          fine. A sibling page is a second place to remember.
 
-          <div>
-            <Card style={{ marginBottom: 16 }}>
-              <SectionLabel>Preview</SectionLabel>
-              <div
-                style={{
-                  background: '#ffffff',
-                  borderRadius: 7,
-                  padding: 20,
-                  border: `1px solid ${C.border}`,
-                  overflowX: 'auto',
-                }}
-                dangerouslySetInnerHTML={{ __html: html }}
-              />
-              <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
-                <Button onClick={copyRendered}>
-                  {copied === 'signature' ? 'Copied' : 'Copy signature'}
-                </Button>
-                <Button variant="ghost" onClick={() => copyText(html, 'html')}>
-                  {copied === 'html' ? 'Copied' : 'Copy HTML'}
-                </Button>
-              </div>
-              <div style={{ fontSize: 12.5, color: C.faint, marginTop: 10 }}>
-                &quot;Copy signature&quot; puts the rendered version on your clipboard, that&apos;s
-                what mail clients want. &quot;Copy HTML&quot; gives you the source, for anything with
-                a code view.
-              </div>
-            </Card>
-
-            <Card>
-              <SectionLabel>Install it</SectionLabel>
-              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 14 }}>
-                {INSTALL_GUIDES.map((g) => (
-                  <button
-                    key={g.id}
-                    onClick={() => setGuideId(g.id)}
-                    style={{
-                      padding: '5px 10px', borderRadius: 999, fontSize: 12.5,
-                      border: `1px solid ${guideId === g.id ? C.blue : C.border}`,
-                      background: guideId === g.id ? C.blueSoft : 'transparent',
-                      color: guideId === g.id ? C.text : C.dim,
-                      cursor: 'pointer', fontFamily: 'inherit',
-                    }}
-                  >
-                    {g.name}
-                  </button>
-                ))}
-              </div>
-
-              <ol style={{ margin: 0, paddingLeft: 20, fontSize: 13.5, color: C.dim, lineHeight: 1.7 }}>
-                {guide.steps.map((s, i) => (
-                  <li key={i} style={{ marginBottom: 4 }}>{s}</li>
-                ))}
-              </ol>
-
-              {guide.gotcha && (
-                <div
-                  style={{
-                    marginTop: 14, padding: 11, borderRadius: 7,
-                    background: C.amberSoft, border: `1px solid ${C.amber}44`,
-                    fontSize: 13, color: C.amber, lineHeight: 1.55,
-                  }}
-                >
-                  {guide.gotcha}
-                </div>
-              )}
-            </Card>
-          </div>
-        </div>
+          Same component as a client's, so the framework is one framework.
+        */
+        <Messaging orgId={org?.id ?? null} name={org?.name ?? 'your brand'} />
       )}
     </Page>
   );

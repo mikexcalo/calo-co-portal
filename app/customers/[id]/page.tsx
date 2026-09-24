@@ -668,6 +668,16 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                 <Tags tags={customer.tags ?? []} known={knownTags} onChange={saveTags} />
               </div>
               {/*
+                The brand, on the page you land on.
+
+                It was behind the Brand tab, which meant the palette and the
+                type of the business you are looking at were one click away on
+                the screen whose whole job is telling you who they are. It
+                renders nothing when there is no brand on file, so a client
+                without one loses nothing.
+              */}
+              <BrandCard customerId={params.id} />
+              {/*
                 One strip, not two blocks.
                 
                 A permanently open note field and a separate "waiting on
@@ -722,23 +732,12 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               <BrandCard customerId={params.id} />
               <ClientBrandFiles customerId={params.id} />
               {/*
-                The framework describes this client, so the door to it is here.
-
-                It was a tab of the Brand module, which put a grid of every
-                client at once inside the section about your own identity. The
-                method is applied to somebody; you open it from them.
+                A button reading "Where {name} sits on the ten module
+                framework" used to sit here and push /brands — the wall of
+                every brand at once, which is neither this client nor a
+                framework. The card above links to the right brand, and the
+                framework is on it.
               */}
-              <button
-                onClick={() => router.push(`/brands`)}
-                style={{
-                  border: `1px dashed ${C.border}`, background: 'transparent',
-                  borderRadius: 10, padding: '10px 14px', width: '100%',
-                  textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit',
-                  fontSize: 13.5, color: C.dim,
-                }}
-              >
-                Where {customer.name} sits on the ten module framework
-              </button>
             </>
           )}
 
