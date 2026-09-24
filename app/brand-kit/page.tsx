@@ -57,7 +57,7 @@ import { human } from '@/lib/spine/errors';
 import { Messaging } from '@/components/spine/Messaging';
 import { PlatformVoice } from '@/components/spine/PlatformVoice';
 
-type Tab = 'brand' | 'logos' | 'qr' | 'messaging' | 'platform';
+type Tab = 'brand' | 'logos' | 'messaging' | 'platform';
 
 interface BrandColor {
   name: string;
@@ -280,7 +280,6 @@ export default function BrandKitPage() {
         items={[
           { id: 'brand', label: 'Colors & Type', icon: 'star' },
           { id: 'logos', label: 'Logos', icon: 'swatches' },
-          { id: 'qr', label: 'QR Codes', icon: 'card' },
           { id: 'messaging', label: 'Messaging', icon: 'brief' },
           /* The product's own voice and type, which are not the brand's. */
           { id: 'platform', label: 'Platform', icon: 'layers' },
@@ -469,13 +468,14 @@ export default function BrandKitPage() {
           </div>
 
         </div>
-      ) : tab === 'qr' ? (
-        <QrStudio
-          orgId={org?.id}
-          colors={brand.colors}
-          company={org?.name ?? 'brand'}
-          defaultUrl={siteUrl}
-        />
+      /*
+        QR Codes moved to Pitches with the card and the signature.
+
+        A QR code is not an identity you hold, it is a thing you print on
+        something and hand over — same job as a business card, which already
+        went. It was a tab of Brand because it uses the brand colors, which is
+        a reason to read the palette, not a reason to live there.
+      */
       ) : tab === 'logos' ? (
         <LogosTab
           brand={brand}

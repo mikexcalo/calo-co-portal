@@ -100,10 +100,49 @@ export async function middleware(request: NextRequest) {
    * outage on this project was middleware waiting on Supabase until Vercel
    * gave up at 25 seconds.
    */
-  const profile = user
-    ? (await supabase.from('profiles').select('id, mfa_enabled').eq('id', user.id).maybeSingle())
-        .data
-    : null;
+  /*
+    Skipped once we have seen it, which is almost every request.
+
+    This is a database round trip on every page load, for every signed-in
+    person, to read one flag that changes about once in an account's life.
+    Combined with the getUser() above it meant two network hops before any
+    page began rendering — and db.ts already learned this lesson, in a comment
+    that says a round trip per call "is the whole of why the app got slow".
+
+    Two facts are needed: does a profile exist, and is two-factor on. Both are
+    stable, so the first time they are read they go in a cookie and the query
+    stops running. The cookie decides nothing on its own — every read is still
+    filtered by current_org_id() server-side, and the worst a forged value
+    buys is skipping a redirect to a setup screen.
+  */
+  /*
+    Only the safe state is cached.
+
+    Two things could be remembered here and only one of them is safe to get
+    wrong. If the cookie said "two-factor is on" and it had since been turned
+    off, mfaPending would be true forever and the person would be bounced to
+    /login on every request — a lockout, caused by a cache.
+
+    The other way round is harmless: a stale "off" skips a redirect, and
+    current_org_id() still refuses to return anything until the second step is
+    done, because it checks the assurance level server-side where the
+    signature has been verified. So the app looks empty rather than open.
+
+    So: cache only "profile exists, two-factor off". Anyone with two-factor on
+    pays the query every time, which is correct and rare.
+  */
+  const seen = request.cookies.get('nautilus_p')?.value;
+  let profile: { id: string; mfa_enabled: boolean | null } | null = null;
+  let learned = false;
+
+  if (user && seen === '1') {
+    profile = { id: user.id, mfa_enabled: false };
+  } else if (user) {
+    profile = (
+      await supabase.from('profiles').select('id, mfa_enabled').eq('id', user.id).maybeSingle()
+    ).data;
+    learned = true;
+  }
 
   /**
    * Owes a code: two-factor is on, but this session never finished the
@@ -142,6 +181,17 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = '/welcome';
     return NextResponse.redirect(url);
+  }
+
+  /* Remember what we just paid a query for, so the next request does not. */
+  if (learned && profile && !profile.mfa_enabled) {
+    supabaseResponse.cookies.set('nautilus_p', '1', {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: true,
+      path: '/',
+      maxAge: 60 * 60 * 12,
+    });
   }
 
   return supabaseResponse;

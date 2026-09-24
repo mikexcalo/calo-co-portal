@@ -65,6 +65,15 @@ type Draft = Pick<PriceItem, 'name' | 'description' | 'unit' | 'unit_price' | 'k
   The three tiers, in the order a price rises through them. Keys match
   rate_tiers.key, which is what tier_prices is keyed by.
 */
+/* What each kind is called out loud. 'other' is not a word anybody would
+   choose for a monthly fee. */
+const KIND_LABEL: Record<string, string> = {
+  labor: 'Time',
+  material: 'Materials',
+  subcontractor: 'Subcontractor',
+  other: 'Service',
+};
+
 const TIERS = [
   { key: 'friends', label: 'Friends' },
   { key: 'standard', label: 'Standard' },
@@ -445,7 +454,10 @@ export default function PricingPage() {
                     <div>
                       {i.name}
                       <span style={{ marginLeft: 8 }}>
-                        <Pill tone={i.kind === 'labor' ? 'blue' : 'neutral'}>{i.kind}</Pill>
+                        {/* The raw column value went straight into the pill, so the table
+                            read "labor" and "other" in lower case beside headings
+                            in caps. Same fault the proposals table had. */}
+                        <Pill tone={i.kind === 'labor' ? 'blue' : 'neutral'}>{KIND_LABEL[i.kind] ?? i.kind}</Pill>
                       </span>
                       {i.varies && (
                         <span style={{ marginLeft: 6 }}>

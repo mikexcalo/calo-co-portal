@@ -172,12 +172,18 @@ export function OrgSwitcher() {
   ];
 
   return (
-    <div
-      style={{ position: 'relative' }}
-      onMouseEnter={openNow}
-      onMouseLeave={closeSoon}
-    >
+    /*
+      The hover handlers are on the pill and the panel, not on this wrapper.
+
+      They were on the wrapper, and the wrapper also contains the click-outside
+      backdrop, which is position:fixed inset:0. So the wrapper's hit area was
+      the entire viewport and mouseleave could never fire — the menu opened on
+      hover and then stayed open forever.
+    */
+    <div style={{ position: 'relative' }}>
       <button
+        onMouseEnter={openNow}
+        onMouseLeave={closeSoon}
         onClick={() => !single && setOpen((v) => !v)}
         style={{
           display: 'flex',
@@ -229,6 +235,8 @@ export function OrgSwitcher() {
             style={{ position: 'fixed', inset: 0, zIndex: 40 }}
           />
           <div
+            onMouseEnter={openNow}
+            onMouseLeave={closeSoon}
             style={{
               /*
                 It opens upward, because it lives at the bottom.

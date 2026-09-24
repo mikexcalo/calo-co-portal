@@ -229,7 +229,7 @@ export function Messaging({
                 />
                 <button
                   onClick={() => setM((v) => ({ ...v, pillars: v.pillars.filter((_, n) => n !== i) }))}
-                  className="rowBtn"
+                  className="rowBtn rowBtnWide"
                   title="Remove this pillar"
                 >
                   Remove

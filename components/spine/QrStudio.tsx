@@ -19,7 +19,7 @@ import { Button, C, Card, Field, SectionLabel, inputStyle, radius } from './ui';
 import { QrCampaigns, type Campaign } from './QrCampaigns';
 import { human } from '@/lib/spine/errors';
 
-interface BrandColor {
+export interface BrandColor {
   name: string;
   hex: string;
 }

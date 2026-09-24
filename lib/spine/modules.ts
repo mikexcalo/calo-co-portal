@@ -104,13 +104,17 @@ const AGENCY: ModuleId[] = [
   'records',
   'brand_kit',
   /*
-    Back on the list. It came off an hour ago on the reasoning that the door
-    to a brand is on the client, which is true — and it took a row out of a
-    sidebar that is deliberately a map of everything this platform can do.
-    Seeing a module you rarely open is the point; not being able to find one
-    that exists is not.
+    'brands' is off the sidebar, for the third and last time.
+
+    It came off for being a duplicate, went back on for "show every module so
+    I know what exists", and the two rules genuinely collided: it IS a module
+    and it DOES read as a second Brand. The tie-break is that it is not a
+    destination — every brand belongs to one client and the door is on that
+    client's record. A row for the wall of all of them is a row for a view
+    nobody navigates to on purpose.
+
+    Still reachable at /brands, still in ALWAYS_ALLOWED.
   */
-  'brands',
   'stories',
   'client_requests',
   'team',
@@ -514,6 +518,7 @@ const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/brand-kit', 'brand_kit'],
   ['/card', 'pitches'],
   ['/signature', 'pitches'],
+  ['/qr', 'pitches'],
   ['/ask', 'ask'],
   ['/reviews', 'reviews'],
   ['/seo', 'seo'],

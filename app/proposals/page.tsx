@@ -511,7 +511,10 @@ export default function ProposalsPage() {
                       {(r as WithProof).decided_words ? (
                         <button
                           onClick={() => setProof(proof?.id === r.id ? null : (r as WithProof))}
-                          className="rowBtn"
+                          /* rowBtn alone is a fixed 28px square, built for a
+                             tick or a cross. A five letter word does not fit
+                             in it and spills out the sides. */
+                          className="rowBtn rowBtnWide"
                           title="What they said, and how it reached you"
                         >
                           {proof?.id === r.id ? 'Hide' : 'Proof'}
