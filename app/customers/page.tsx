@@ -323,6 +323,25 @@ export default function CustomersPage() {
    * far along they are, it is whether they owe you anything and whether you
    * owe them a reply. Same table, same grammar, different facts.
    */
+  /*
+    Worst first, and only things that are actually yours to do.
+
+    Owed money outranks unbilled work outranks silence, because that is the
+    order they cost you. A client with nothing outstanding gets a dash rather
+    than a cheerful sentence — the row is a scan, not a conversation.
+  */
+  const needsYou = (r: Summary): { text: string; tone?: string; rank: number } => {
+    if (r.owed > 0) return { text: `${money0(r.owed)} owed`, tone: C.red, rank: 5 };
+    if (!r.email && !r.contact_name) return { text: 'No way to reach them', tone: C.amber, rank: 4 };
+    if (r.waiting_on) return { text: `Waiting: ${r.waiting_on}`, tone: C.amber, rank: 3 };
+    if (r.next_action) return { text: r.next_action, tone: C.dim, rank: 2 };
+    if (r.unbilled > 0) return { text: `${money0(r.unbilled)} to bill`, tone: C.amber, rank: 2 };
+    const quiet = daysSince(r.last_contacted_on);
+    if (quiet != null && quiet >= 21) return { text: `Quiet ${quiet} days`, tone: C.amber, rank: 1 };
+    return { text: '–', rank: 0 };
+  };
+  const needsRank = (r: Summary) => needsYou(r).rank;
+
   const columns: Column<Summary>[] = [
     {
       key: 'name',
@@ -389,17 +408,29 @@ export default function CustomersPage() {
         );
       },
     },
+    /*
+      The reason you were about to click.
+
+      This column counted open jobs, which is a number you cannot act on: "1"
+      tells you there is something without telling you whether it needs you or
+      is simply under way. Every visit to this screen started by clicking a
+      client to find out what was going on with them.
+
+      One phrase, worst first. Nothing to do says so, which is also an answer.
+    */
     {
-      key: 'work',
-      label: 'Open',
-      width: '64px',
-      align: 'right',
-      sortBy: (r) => -r.open_jobs,
-      render: (r) => (
-        <span style={{ fontSize: 12.5, color: r.open_jobs ? C.dim : C.faint, fontVariantNumeric: 'tabular-nums' }}>
-          {r.open_jobs || '–'}
-        </span>
-      ),
+      key: 'needs',
+      label: 'Needs you',
+      width: 'minmax(150px, 1fr)',
+      sortBy: (r) => -needsRank(r),
+      render: (r) => {
+        const n = needsYou(r);
+        return (
+          <span style={{ fontSize: 12.5, color: n.tone ?? C.faint }}>
+            {n.text}
+          </span>
+        );
+      },
     },
     {
       key: 'month',
@@ -560,31 +591,16 @@ export default function CustomersPage() {
         the same business should not teach two different ways of reading it,
         and a number you can act on should be the thing you press.
       */}
-      {!loading && (
-        <Tiles
-          items={[
-            {
-              label: 'Owed to you', value: money0(owing.reduce((a, r) => a + r.owed, 0)), icon: 'card',
-              hint: owing.length ? `${owing.length} ${owing.length === 1 ? 'client' : 'clients'}` : 'Nobody owes you',
-              tone: owing.length ? C.red : undefined,
-            },
-            {
-              label: 'Unbilled', value: money0(clients.reduce((a, r) => a + r.unbilled, 0)), icon: 'work',
-              hint: 'Done, not yet asked for',
-              tone: clients.some((r) => r.unbilled > 0) ? C.amber : undefined,
-            },
-            {
-              label: 'Time this month', value: hours(monthHours), icon: 'activity',
-              hint: monthHours > 0 ? `across ${clientHours.length} ${clientHours.length === 1 ? 'client' : 'clients'}` : 'Nothing logged yet',
-            },
-            {
-              label: 'Need a nudge', value: String(dueNow.length + noEmail.length), icon: 'people',
-              hint: noEmail.length ? `${noEmail.length} with no email` : dueNow.length ? 'Follow-ups due' : 'Nothing outstanding',
-              tone: dueNow.length + noEmail.length > 0 ? C.amber : undefined,
-            },
-          ]}
-        />
-      )}
+      {/*
+        Four tiles used to sit here, and they pushed the list below the fold.
+
+        Owed to you, Unbilled, Time this month, Need a nudge — three of those
+        four are on Home, one screen away, and summed across every client they
+        answer nothing you act on. On a list of three you scrolled past $0, $0
+        and 0 to reach the only content on the page.
+
+        The money that matters is per client, and it is on their row.
+      */}
 
       {/*
         Tools appear when there is something to search.

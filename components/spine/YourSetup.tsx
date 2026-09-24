@@ -249,19 +249,28 @@ export function YourSetup() {
               >
                 {/* Recognized rather than read. Nine identical lines of text
                     is a paragraph you parse; nine marks is a list you scan. */}
-                <Glyph name={i.icon} size={16} color={i.urgent ? C.red : C.faint} />
-                <span style={{ fontSize: 14.5, color: C.text, flex: 1, minWidth: 200 }}>{i.title}</span>
+                {/*
+                  Urgency leads, it does not trail.
+
+                  The badge sat after the title and before the controls, so it
+                  read as a third button and the eye reached it last — you had
+                  to read every title to find out which rows were urgent. On
+                  the left of the icon, one scan down the column catches all
+                  of them.
+                */}
                 {i.urgent && (
                   <span
                     style={{
-                      fontSize: 10.5, fontWeight: 600, letterSpacing: '.06em',
-                      textTransform: 'uppercase', color: C.red,
-                      border: `1px solid ${C.red}55`, borderRadius: 5, padding: '2px 7px',
+                      fontSize: 10, fontWeight: 600, letterSpacing: '.07em',
+                      textTransform: 'uppercase', color: '#fff', background: C.red,
+                      borderRadius: 4, padding: '2px 6px', flexShrink: 0,
                     }}
                   >
                     Urgent
                   </span>
                 )}
+                <Glyph name={i.icon} size={16} color={i.urgent ? C.red : C.faint} />
+                <span style={{ fontSize: 14.5, color: C.text, flex: 1, minWidth: 200 }}>{i.title}</span>
                 {i.cost && <span style={{ fontSize: 12.5, color: C.faint }}>{i.cost}</span>}
                 {(ticks[i.key]?.length ?? 0) > 0 && (
                   <span style={{ fontSize: 12, color: C.amber }}>
