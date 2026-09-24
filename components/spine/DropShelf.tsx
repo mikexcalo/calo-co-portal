@@ -166,7 +166,27 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
     if (!orgId) return;
     setBusy(true); setError('');
     try {
-      for (const f of Array.from(files)) {
+      /*
+        Catch the second copy at the door.
+
+        The shelf already noticed duplicates and said so on the row, which is
+        a label on a mess rather than not making one. By then there are two
+        rows, two Scan buttons and two chances to create two jobs for one
+        fireplace — and a browser that silently renamed the file to "(1)" is
+        the usual reason it happened at all.
+
+        Dropped again, it is not added. The file that is already here is the
+        one that stays, and the message names it so there is no doubt which.
+      */
+      const bareName = (t: string) =>
+        t.replace(/\s*\(\d+\)(?=\.[^.]+$|$)/, '').trim().toLowerCase();
+      const here = new Set(items.map((d) => bareName(d.title ?? '')));
+
+      const incoming = Array.from(files);
+      const fresh = incoming.filter((f) => !here.has(bareName(f.name)));
+      const skipped = incoming.length - fresh.length;
+
+      for (const f of fresh) {
         const meta = isImage(f) ? { palette: await paletteOf(f) } : {};
         await addDrop(orgId, {
           kind: isImage(f) ? 'image' : 'file',
@@ -177,6 +197,21 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
       }
       await load();
       onChange?.();
+
+      if (skipped && !fresh.length) {
+        setDone(
+          incoming.length === 1
+            ? `${incoming[0].name} is already on the shelf, so nothing was added.`
+            : `All ${skipped} were already on the shelf, so nothing was added.`
+        );
+        setBusy(false);
+        return;
+      }
+      if (skipped) {
+        setDone(`${fresh.length} in. ${skipped} skipped, already on the shelf.`);
+        setBusy(false);
+        return;
+      }
       /*
         Say it worked.
 
@@ -367,8 +402,16 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
             */
             const bare = (t: string | null | undefined) =>
               (t ?? '').replace(/\s*\(\d+\)(?=\.[^.]+$|$)/, '').trim().toLowerCase();
-            const twin =
-              d.title && items.find((o) => o.id !== d.id && bare(o.title) === bare(d.title));
+            /*
+              Only the later one is the copy.
+
+              Both rows used to carry "Already here, same file, dropped twice",
+              which is true of neither and unhelpful on both: it says there is
+              a duplicate without saying which one to get rid of. The first one
+              in is the one that stays.
+            */
+            const first = items.find((o) => bare(o.title) === bare(d.title));
+            const twin = d.title && first && first.id !== d.id ? first : null;
             const palette = Array.isArray(d.meta?.palette) ? (d.meta.palette as string[]) : [];
             const label =
               d.kind === 'note' ? (d.body ?? 'Note')
@@ -505,7 +548,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                     >{removing === d.id ? 'Removing…' : 'Remove'}</button>
                     {twin && (
                       <span style={{ fontSize: 11.5, color: C.amber }}>
-                        Already here, same file, dropped twice
+                        Copy of one above &mdash; safe to remove
                       </span>
                     )}
                     {palette.length > 0 && (

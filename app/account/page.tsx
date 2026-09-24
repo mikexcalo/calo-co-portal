@@ -35,8 +35,7 @@ import {
   hours as fmtHours,
   money,
   money0,
-  shortDate,
-} from '@/components/spine/ui';
+  shortDate, INVOICE_TABS } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 import { orgNow } from '@/lib/spine/db';
 
@@ -78,7 +77,19 @@ export default function AccountPage() {
   useEffect(() => {
     (async () => {
       try {
-        const acct = await supabase.from('client_account').select('*').eq('org_id', await orgNow());
+        /*
+          The view's column is client_org_id, not org_id.
+
+          It is named that because the row is about the client being billed,
+          not the agency doing the billing, and both ids are in scope. Querying
+          org_id came back as "column does not exist", which human() correctly
+          reads as an unapplied migration — so the screen accused the database
+          of being out of date when the view had been right all along.
+        */
+        const acct = await supabase
+          .from('client_account')
+          .select('*')
+          .eq('client_org_id', await orgNow());
         if (acct.error) throw new Error(acct.error.message);
 
         const list = (acct.data ?? []).map((r: Record<string, unknown>) => ({
@@ -173,7 +184,8 @@ export default function AccountPage() {
 
   return (
     <Page
-      title="Bills to You"
+      tabs={INVOICE_TABS}
+      title="You Owe"
       subtitle={
         rows.length
           ? `What ${agency} has logged against your account, and what's outstanding.`

@@ -8,7 +8,7 @@ import supabase from '@/lib/supabase';
 import { useTutorial } from '@/lib/spine/tutorial';
 import { useOrg } from '@/lib/spine/org';
 import { OrgSwitcher } from '@/components/spine/OrgSwitcher';
-import { useIsPhone, radius, SectionLabel } from '@/components/spine/ui';
+import { useIsPhone, radius, SectionLabel, useModKey } from '@/components/spine/ui';
 import { C } from '@/components/spine/ui';
 import { Notifications } from '@/components/spine/Notifications';
 import { DropIt } from '@/components/spine/DropIt';
@@ -55,6 +55,7 @@ export default function TopBar() {
   const { org, orgs, vocab } = useOrg();
   const orgCount = orgs?.length ?? 0;
   const phone = useIsPhone();
+  const mod = useModKey();
   const { viewAs, setViewAs } = useViewAs();
 
   /**
@@ -190,7 +191,7 @@ export default function TopBar() {
         */}
         <button
           onClick={() => setDropping(true)}
-          title="Add a note — type, talk or paste  (⌘J)"
+          title={`Add a note — type, talk or paste  (${mod}J)`}
           style={{
             display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
             background: 'transparent', border: `1px solid ${C.border}`,
@@ -241,7 +242,7 @@ export default function TopBar() {
         */}
         <button
           onClick={() => setLogging(true)}
-          title="Log time against a client  (⌘L)"
+          title={`Log time against a client  (${mod}L)`}
           style={{
             display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
             background: 'transparent', border: `1px solid ${C.border}`,

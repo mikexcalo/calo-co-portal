@@ -51,6 +51,7 @@ import {
   money0,
   radius,
   shortDate,
+  useModKey,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 
@@ -84,6 +85,7 @@ function daysBetween(a: string, b: string): number {
 export default function Dashboard() {
   const router = useRouter();
   const { org, vocab, loading: orgLoading } = useOrg();
+  const mod = useModKey();
   const { openPanel } = useTutorial();
 
   const [jobs, setJobs] = useState<JobWithCustomer[]>([]);
@@ -1099,7 +1101,7 @@ export default function Dashboard() {
                     {clientHours.some((r) => r.unbilled_value > 0)
                       ? 'Amber is not on an invoice yet. '
                       : 'All of it is on an invoice. '}
-                    Press <kbd style={{ fontFamily: 'inherit' }}>⌘L</kbd> to log more.
+                    Press <kbd style={{ fontFamily: 'inherit' }}>{mod}L</kbd> to log more.
                   </div>
                 </div>
               )}

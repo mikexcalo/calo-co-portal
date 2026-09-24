@@ -62,11 +62,11 @@ export default function InboxPage() {
       ) : (
         <div style={{ display: 'grid', gap: 18, maxWidth: 860 }}>
           <Card>
+            {/* "Nothing here is lost, it just has not been said who it is
+                about. Answer that on any item and it moves onto their record."
+                Two sentences of reassurance about a list you are looking at,
+                above a heading that already says Not filed yet. */}
             <SectionLabel>Not filed yet</SectionLabel>
-            <p style={{ fontSize: 12.5, color: C.faint, margin: '6px 0 12px' }}>
-              Nothing here is lost, it just has not been said who it is about.
-              Answer that on any item and it moves onto their record.
-            </p>
             <DropShelf
               orgId={org.id}
               filingOptions={options}

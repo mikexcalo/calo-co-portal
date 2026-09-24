@@ -30,7 +30,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
-import { C, useIsPhone } from './ui';
+import { C, useIsPhone, useModKey } from './ui';
 import { orgNow } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 
@@ -91,6 +91,7 @@ export function CommandBar({ trigger = true }: { trigger?: boolean } = {}) {
   const [answerError, setAnswerError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const phone = useIsPhone();
+  const mod = useModKey();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -396,7 +397,7 @@ export function CommandBar({ trigger = true }: { trigger?: boolean } = {}) {
           <circle cx="7.2" cy="7.2" r="4.6" /><path d="M10.6 10.6 13.6 13.6" />
         </svg>
         {!phone && <span>Search or ask</span>}
-        {!phone && <span style={{ marginLeft: 'auto', fontSize: 11.5, color: C.faint }}>⌘K</span>}
+        {!phone && <span style={{ marginLeft: 'auto', fontSize: 11.5, color: C.faint }}>{mod}K</span>}
       </button>
       )}
 

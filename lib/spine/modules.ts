@@ -103,9 +103,14 @@ const AGENCY: ModuleId[] = [
   'pricing',
   'records',
   'brand_kit',
-  // 'brands' is reachable, not listed. It was kept out of the sidebar by
-  // being a tab of brand_kit; that tab is gone, so without this it would
-  // have claimed a row of its own. The door to a brand is on the client.
+  /*
+    Back on the list. It came off an hour ago on the reasoning that the door
+    to a brand is on the client, which is true — and it took a row out of a
+    sidebar that is deliberately a map of everything this platform can do.
+    Seeing a module you rarely open is the point; not being able to find one
+    that exists is not.
+  */
+  'brands',
   'stories',
   'client_requests',
   'team',
@@ -381,7 +386,7 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   pricing: 'Price List',
   records: 'Records',
   brand_kit: 'Brand',
-  brands: 'Client Brands',
+  brands: 'Brands',
   stories: 'Case Studies',
   ask: 'Ask',
   reviews: 'Reviews',
@@ -395,7 +400,7 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   team: 'Team',
   security: 'Security',
   business: 'Settings',
-  account: 'Bills to You',
+  account: 'You Owe',
 };
 
 export function planAllows(org: Org | null, feature: Feature): boolean {
@@ -703,6 +708,20 @@ export const MODULE_TAB_PARENT: Partial<Record<ModuleId, ModuleId>> = {
     One untitled draft did not earn a row in a sidebar of eighteen.
   */
   stories:  'pitches',
+  /*
+    Bills to You is the other direction of the same thing.
+
+    It sat directly under Invoices in Money as its own row, and both rows are
+    a list of invoices — one you raised, one somebody raised at you. Two
+    invoice-shaped rows, eight pixels apart, is a reader working out which is
+    which every single time. It only exists for a workspace an agency set up,
+    so for a client it is one of very few money rows and still ambiguous.
+
+    One row called Invoices, two tabs: Owed to you, and You owe. The parent
+    does sum up its children — it is all invoices, and the direction is the
+    tab.
+  */
+  account: 'billing',
   website: 'seo',
 };
 

@@ -441,13 +441,24 @@ export default function FilesPage() {
                         )}
                         {f.shared_with_client && <Pill tone="blue">Shared</Pill>}
                       </div>
+                      {/*
+                        One sentence, then the file facts.
+
+                        The description had grown into provenance and an
+                        apology: page count, who sent it, when, and a note
+                        that the embedded fonts are not machine-readable so
+                        it is "stored as-is for reference rather than
+                        indexed". None of that is why somebody opens a manual.
+                        What it is and why it matters, then the name, the size
+                        and when it arrived, which is what you scan a shelf by.
+                      */}
                       {f.description && (
-                        <div style={{ fontSize: 12.5, color: C.faint, marginTop: 4, lineHeight: 1.5 }}>
+                        <div style={{ fontSize: 13, color: C.dim, marginTop: 4, lineHeight: 1.55, maxWidth: '58ch' }}>
                           {f.description}
                         </div>
                       )}
-                      <div style={{ fontSize: 12, color: C.faint, marginTop: 4 }}>
-                        {f.file_name} · {mb(f.size_bytes)}
+                      <div style={{ fontSize: 11.5, color: C.faint, marginTop: 8 }}>
+                        {f.file_name} · {mb(f.size_bytes)} · added {shortDate(f.created_at)}
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>

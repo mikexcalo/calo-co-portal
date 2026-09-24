@@ -35,6 +35,30 @@ export function useIsPhone(): boolean {
   return phone;
 }
 
+/**
+ * The modifier key this person actually has.
+ *
+ * Every shortcut hint in the product was written as a command glyph, and the
+ * handlers behind them have always accepted metaKey OR ctrlKey — so the
+ * shortcuts worked everywhere and the labels only told the truth on a Mac.
+ * Anybody on Windows read a symbol that is not on their keyboard and
+ * concluded the feature was not for them.
+ *
+ * Starts as Ctrl and corrects on mount, rather than the other way round: it
+ * has to be decided in the browser, and guessing Mac would mean the larger
+ * group is the one that sees the wrong thing flash.
+ */
+export function useModKey(): string {
+  const [mod, setMod] = React.useState('Ctrl');
+  React.useEffect(() => {
+    const mac = /mac|iphone|ipad|ipod/i.test(
+      navigator.platform || navigator.userAgent || ''
+    );
+    if (mac) setMod('\u2318');
+  }, []);
+  return mod;
+}
+
 export interface PageTab {
   label: string;
   href: string;
@@ -236,6 +260,18 @@ export const DIGITAL_TABS: readonly PageTab[] = [
  */
 export const MONEY_TABS: readonly PageTab[] = [
   { label: 'Profit & Loss', href: '/pl', icon: 'chart' },
+];
+
+/*
+  Invoices, both directions.
+
+  Bills to You was its own row directly under Invoices, and both are a list of
+  invoices — one you raised, one raised at you. Two invoice-shaped rows eight
+  pixels apart means working out which is which every time you look.
+*/
+export const INVOICE_TABS: readonly PageTab[] = [
+  { label: 'Owed to You', href: '/billing', icon: 'receipt' },
+  { label: 'You Owe', href: '/account', icon: 'card' },
 ];
 
 /**

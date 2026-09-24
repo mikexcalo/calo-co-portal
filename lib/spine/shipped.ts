@@ -105,9 +105,9 @@ export const SHIPPED: Array<{ group: string; items: Shipped[] }> = [
   {
     group: 'Running it',
     items: [
-      { name: 'Ask', where: 'Top bar, or ⌘K', href: '/ask',
+      { name: 'Ask', where: 'Top bar, or Ctrl/Cmd K', href: '/ask',
         what: 'Questions about your own numbers. The model picks the question, the database answers it.' },
-      { name: 'Search everything', where: 'Top bar, ⌘K',
+      { name: 'Search everything', where: 'Top bar, Ctrl/Cmd K',
         what: 'Clients, jobs, brand colors, typefaces and case studies. Instant and free.' },
       { name: 'What each client can reach', where: 'A client, then Work', href: '/customers',
         what: 'Modules per client: follows plan, sold, building, live, off. Sell a buildout, then set it live once it has something in it.' },

@@ -39,8 +39,7 @@ import {
   money0,
   shortDate,
   SectionLabel,
-  inputStyle,
-} from '@/components/spine/ui';
+  inputStyle, INVOICE_TABS } from '@/components/spine/ui';
 import { METHODS } from '@/lib/spine/payments';
 import { human } from '@/lib/spine/errors';
 
@@ -285,7 +284,7 @@ export default function BillingPage() {
   const overdueCount = live.filter((i) => i.status === 'overdue').length;
 
   return (
-    <Page title="Invoices" subtitle="What you have invoiced, and what is still owed.">
+    <Page title="Invoices" subtitle="What you have invoiced, and what is still owed." tabs={INVOICE_TABS}>
       {/*
         The invoice, exactly as the client gets it, without leaving.
 
