@@ -967,3 +967,85 @@ export function navFor(
 
   return groups.filter((g) => g.items.length > 0);
 }
+
+/* ===========================================================================
+   HOW A CLIENT IS STARTING.
+ 
+   Three people arrived at this platform in the same week and needed three
+   different amounts of it. Marcie is looking on her husband's behalf. Mark is
+   a real client using one narrow slice on purpose. John is being built end to
+   end and should be loading his own prices.
+ 
+   All three got the full module list for their kind of business, because the
+   only way to tailor a workspace was to open What You See and flip fourteen
+   switches correctly from memory, per client, and remember what you did.
+ 
+   The machinery was all here. What was missing is the one field that says
+   which of the three somebody is. This is that field and the map from it.
+ 
+   It only ever turns things OFF. Anything a path does not name keeps whatever
+   the business kind already decided, so this cannot hand somebody a module
+   their kind of business has no use for.
+   =========================================================================== */
+
+export type OnboardingPath = 'looking' | 'one_thing' | 'whole';
+
+export const ONBOARDING_PATHS: Array<{
+  id: OnboardingPath;
+  label: string;
+  /** What they get, said to Mike, who is choosing. */
+  blurb: string;
+  /** Modules switched off for this path. Empty means "their kind decides". */
+  off: ModuleId[];
+}> = [
+  {
+    id: 'looking',
+    label: 'Taking a look',
+    blurb: 'Somewhere to click around. Nothing that asks for a rate or a bank detail.',
+    off: [
+      'pricing', 'records', 'routes', 'expenses', 'pl', 'catalog', 'market',
+      'seo', 'traffic', 'reviews', 'website', 'pitches', 'stories', 'targets',
+      'brand_kit', 'brands', 'proposals', 'client_requests', 'team', 'account',
+    ],
+  },
+  {
+    id: 'one_thing',
+    label: 'Running one thing',
+    blurb: 'Proposals, invoices and messages. The rest stays off until you turn it on.',
+    off: [
+      'pricing', 'records', 'routes', 'expenses', 'pl', 'catalog', 'market',
+      'seo', 'traffic', 'reviews', 'pitches', 'stories', 'targets',
+      'brand_kit', 'brands', 'client_requests',
+    ],
+  },
+  {
+    id: 'whole',
+    label: 'Whole business',
+    blurb: 'Everything their kind of business has, and a first list to work through.',
+    off: [],
+  },
+];
+
+/**
+ * The modules jsonb for a path, merged over whatever is already set.
+ *
+ * Switching path clears the previous path's overrides rather than stacking
+ * them, so going from Taking a look to Whole business actually gives
+ * everything back instead of leaving twenty rows off with no way to tell why.
+ */
+export function modulesForPath(
+  path: OnboardingPath,
+  current: Record<string, unknown> = {}
+): Record<string, unknown> {
+  const everyPathTouches = new Set<string>(
+    ONBOARDING_PATHS.flatMap((p) => p.off as string[])
+  );
+  const next: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(current)) {
+    if (!everyPathTouches.has(k)) next[k] = v;
+  }
+  for (const id of ONBOARDING_PATHS.find((p) => p.id === path)?.off ?? []) {
+    next[id] = 'off';
+  }
+  return next;
+}

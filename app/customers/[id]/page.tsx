@@ -39,6 +39,7 @@ import { Plan } from '@/components/spine/Plan';
 import { ClientWork } from '@/components/spine/ClientWork';
 import { Reminders } from '@/components/spine/Reminders';
 import { BrandCard } from '@/components/spine/BrandCard';
+import { HowTheyStart } from '@/components/spine/HowTheyStart';
 import { JOB_STATUS_LABEL } from '@/lib/spine/types';
 import type { JobStatus } from '@/lib/spine/types';
 import {
@@ -494,6 +495,13 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                 </Button>
               </div>
             </Card>
+          )}
+
+          {/* Above the fields, because it decides what the rest of their
+              platform even contains. Only shows once they have a workspace to
+              sign into — there is nothing to set otherwise. */}
+          {editing && (
+            <HowTheyStart orgId={customer.linked_org_id} clientName={customer.name} />
           )}
 
           {editing ? (
