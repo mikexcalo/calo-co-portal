@@ -868,7 +868,19 @@ export default function Dashboard() {
             click, no longer shouting.
           */}
           {(() => {
-            const gaps = attention.filter((a) => a.setup);
+            /*
+              Somebody taking a look is not setting anything up.
+
+              Marcie is looking on her husband's behalf. Telling her to set an
+              hourly rate and add payment methods for a business that is not
+              hers is asking her to do admin to evaluate a product, and it is
+              the fastest way to make her close the tab. The gaps are real and
+              they are not hers, so on a "looking" workspace they are not shown
+              at all rather than shown quietly.
+            */
+            const gaps = org?.onboarding_path === 'looking'
+              ? []
+              : attention.filter((a) => a.setup);
             if (!gaps.length) return null;
             return (
               <div style={{ marginBottom: 30 }}>

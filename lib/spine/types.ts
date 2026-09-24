@@ -75,6 +75,13 @@ export type InvoiceStatus =
   | 'void';
 
 export interface Org {
+  /**
+   * How this workspace is starting: looking, one_thing, whole.
+   *
+   * Null means nobody chose and the business kind decides on its own, which
+   * is every workspace that existed before the field did.
+   */
+  onboarding_path?: 'looking' | 'one_thing' | 'whole' | null;
   id: string;
   name: string;
   slug: string;

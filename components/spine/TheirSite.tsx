@@ -77,8 +77,23 @@ export function TheirSite({
     const clean = (url.trim() || website || '').trim();
     if (!clean) return;
     setBusy(true);
+    /*
+      managed_by_org_id is the one the write policy checks.
+
+      client_sites_manage is `managed_by_org_id = current_org_id()`, both in
+      USING and WITH CHECK. This insert set org_id and customer_id and never
+      set that, so every attempt failed the check and came back as "You do not
+      have access to do that here" — which reads as a permissions problem with
+      your account rather than a column nobody filled in. Adding a client's
+      website from this screen has never worked once.
+
+      org_id is who the site belongs to. managed_by_org_id is who looks after
+      it. For an agency adding a site for a client they are the same agency,
+      and it is the second one that grants the write.
+    */
     await saveOrFail(supabase.from('client_sites').insert({
       org_id: orgId,
+      managed_by_org_id: orgId,
       customer_id: customerId,
       name: clientName,
       url: clean.startsWith('http') ? clean : `https://${clean}`,

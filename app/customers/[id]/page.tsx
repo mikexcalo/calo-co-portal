@@ -35,7 +35,6 @@ import { Waiting } from '@/components/spine/Waiting';
 import { ClientBrandFiles } from '@/components/spine/ClientBrandFiles';
 import { ClientCatalog } from '@/components/spine/ClientCatalog';
 import { SayIt } from '@/components/spine/SayIt';
-import { Plan } from '@/components/spine/Plan';
 import { ClientWork } from '@/components/spine/ClientWork';
 import { Reminders } from '@/components/spine/Reminders';
 import { BrandCard } from '@/components/spine/BrandCard';
@@ -687,15 +686,13 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                 <Tags tags={customer.tags ?? []} known={knownTags} onChange={saveTags} />
               </div>
               {/*
-                The brand, on the page you land on.
-
-                It was behind the Brand tab, which meant the palette and the
-                type of the business you are looking at were one click away on
-                the screen whose whole job is telling you who they are. It
-                renders nothing when there is no brand on file, so a client
-                without one loses nothing.
+                BrandCard was here for about an hour. "A brand tile on the
+                client overview" turned into a BRAND heading at the top of the
+                Brief, eight pixels from a tab literally called Brand — two
+                doors to one thing, side by side, which is the exact
+                duplication being cleared out everywhere else. The tab is the
+                door.
               */}
-              <BrandCard customerId={params.id} />
               {/*
                 One strip, not two blocks.
                 
@@ -758,7 +755,9 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               the log are about the work rather than instead of it. */}
           {view === 'history' && (
             <>
-              <Plan customerId={params.id} clientName={customer.name} />
+              {/* The plan came across when Work folded into Activity, and
+                  it opened as "THE PLAN (0 OF 0 DONE)" above an empty box and
+                  a button. A heading counting to zero, on every client. */}
               <ClientWork customerId={params.id} />
               {orgId && (
                 <TheirSite

@@ -168,11 +168,28 @@ export function Terms({ orgId, customerId }: { orgId: string; customerId: string
                   <div style={termRow}>
                     <div style={{ fontSize: 13, color: C.dim }}>Their rate</div>
                     <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 16, color: C.text, fontVariantNumeric: 'tabular-nums' }}>{money(row.hourly_rate)}<span style={{ fontSize: 12.5, color: C.faint }}>/hr</span></div>
-                    {saved != null && (
+                    {/*
+                      A discount is a price with a line through it.
+
+                      This read "50% off $120.00, friends and family" — the
+                      arithmetic written out underneath the answer, in a
+                      sentence, when the whole convention for showing a
+                      discount is the old number struck through beside the new
+                      one. You see it rather than read it, and the percentage
+                      was never the point: what you want at a glance is what
+                      they pay and what they would have paid.
+                    */}
+                    <div style={{ fontSize: 16, color: C.text, fontVariantNumeric: 'tabular-nums', display: 'flex', gap: 7, alignItems: 'baseline', justifyContent: 'flex-end' }}>
+                      {saved != null && (
+                        <span style={{ fontSize: 13, color: C.faint, textDecoration: 'line-through' }}>
+                          {money(row.standard_rate ?? 0)}
+                        </span>
+                      )}
+                      <span>{money(row.hourly_rate)}<span style={{ fontSize: 12.5, color: C.faint }}>/hr</span></span>
+                    </div>
+                    {saved != null && row.why_discounted && (
                       <div style={{ fontSize: 11.5, color: C.green, marginTop: 1 }}>
-                        {saved}% off {money(row.standard_rate ?? 0)}
-                        {row.why_discounted ? `, ${row.why_discounted.toLowerCase()}` : ''}
+                        {row.why_discounted.toLowerCase()}
                       </div>
                     )}
                     </div>
