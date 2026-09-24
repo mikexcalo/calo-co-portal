@@ -628,11 +628,23 @@ export default function Sidebar() {
           // A collapsed section that hides the page you are on would leave you
           // unable to see where you are. Force it open in that case.
           const holdsCurrent = g.items.some((i) => isActive(i.href));
-          const isClosed = ready && g.heading && closed.has(g.heading) && !holdsCurrent;
+          /*
+            A heading over two rows is heavier than the two rows.
+
+            These labels were written for the agency sidebar, where Money is
+            seven rows and The Work is four and the headings genuinely sort
+            them. Mark's workspace has three modules in total, so he was
+            getting THE WORK over one row and MONEY over two — more chrome
+            than content, and nothing being organised.
+
+            Three rows earns a label. Under that the rows stand on their own.
+          */
+          const worthLabelling = g.items.length >= 3;
+          const isClosed = ready && g.heading && worthLabelling && closed.has(g.heading) && !holdsCurrent;
 
           return (
-            <div key={g.heading || g.items[0]?.href} style={{ marginTop: g.heading ? 15 : 6 }}>
-              {g.heading && (
+            <div key={g.heading || g.items[0]?.href} style={{ marginTop: g.heading && worthLabelling ? 15 : 6 }}>
+              {g.heading && worthLabelling && (
                 <button
                   onClick={() => toggleGroup(g.heading as string)}
                   aria-expanded={!isClosed}
