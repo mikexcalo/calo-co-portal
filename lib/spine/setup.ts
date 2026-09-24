@@ -172,10 +172,29 @@ export const SETUP_ITEMS: SetupItem[] = [
     icon: 'card',
     blocks:
       'Invoices can be raised and sent, and then not paid by card.\n\nEverything else about billing already works: line items, totals, what has been collected, what is owed, and the reminder when something goes past due. The gap is only the Pay button, so today a client either sends a transfer or you chase them by hand.\n\nYou deferred this and that is still reasonable. Card payments cost roughly three percent, and at your volume a Venmo or a transfer costs nothing. This becomes worth it when a client asks to pay by card rather than when you feel behind for not having it.',
+    /*
+      These steps were wrong in two ways.
+
+      They pointed at the calo-co-portal Vercel project, which has had no push
+      in months — the same stale project the tracking tag pointed at. Anything
+      added there would have sat in a dead environment while the live app went
+      on without it.
+
+      And they asked for NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, which no code in
+      this repo reads. Nautilus never mounts Stripe's browser SDK; it creates
+      a hosted invoice server-side and sends the link. The publishable key has
+      nothing to do and asking for it makes the real step look optional.
+
+      The webhook is the part that was missing entirely. Without it an invoice
+      paid by card stays open in here forever, which is worse than no card
+      payments at all.
+    */
     steps: [
-      'Open [Stripe API keys](https://dashboard.stripe.com/apikeys).',
-      'Copy the secret key and the publishable key.',
-      'Add them in [Vercel environment variables](https://vercel.com/mikexcalo-7384s-projects/calo-co-portal/settings/environment-variables) as STRIPE_SECRET_KEY and NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, then redeploy.',
+      'Open [Stripe API keys](https://dashboard.stripe.com/apikeys) and copy the secret key. Only the secret key — nothing here uses a publishable one.',
+      'Add it in [Vercel, project nautilus](https://vercel.com/mikexcalo-7384s-projects/nautilus/settings/environment-variables) as STRIPE_SECRET_KEY, Production.',
+      'In [Stripe webhooks](https://dashboard.stripe.com/webhooks), add an endpoint at https://nautilusapp.vercel.app/api/stripe/webhook and subscribe it to invoice.paid, invoice.payment_failed, invoice.updated and invoice.voided.',
+      'Copy that endpoint\u2019s signing secret and add it as STRIPE_WEBHOOK_SECRET, also Production. Without it every webhook is rejected and a card payment never marks the invoice paid.',
+      'Redeploy, then send yourself a test invoice and pay it with 4242 4242 4242 4242 in test mode.',
       'One account pays one business. If a client needs card payments into their own account, that is Stripe Connect and a separate piece of work.',
     ],
   },
