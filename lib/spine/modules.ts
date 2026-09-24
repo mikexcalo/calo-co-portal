@@ -386,7 +386,17 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   pricing: 'Price List',
   records: 'Records',
   brand_kit: 'Brand',
-  brands: 'Brands',
+  /*
+    Two rows called Brand.
+
+    It came off the sidebar earlier today for being a duplicate, went back on
+    when the rule "show every module so I know what exists" won, and landed
+    directly under Brand with almost the same name. Both were right: it should
+    be visible, and it should not be called the same thing as your own brand.
+
+    Client Brands says which one it is in the two words that distinguish them.
+  */
+  brands: 'Client Brands',
   stories: 'Case Studies',
   ask: 'Ask',
   reviews: 'Reviews',

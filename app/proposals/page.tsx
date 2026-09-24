@@ -26,6 +26,7 @@ import {
   Metric,
   Page,
   Pill,
+  Sheet,
   Row,
   SectionLabel,
   Table,
@@ -43,6 +44,13 @@ const VIA_SAID = {
   in_person: 'agreed in person',
   paper: 'signed on paper',
 } as const;
+
+/** The evidence columns, which the shared Estimate type does not carry. */
+type WithProof = Row_ & {
+  decided_via?: string | null;
+  decided_by_email?: string | null;
+  decided_words?: string | null;
+};
 
 type Row_ = Estimate & {
   job: { id: string; name: string; customer: { id: string; name: string; email: string | null; contact_name: string | null } | null } | null;
@@ -62,6 +70,7 @@ export default function ProposalsPage() {
   const [rows, setRows] = useState<Row_[]>([]);
   const [previewing, setPreviewing] = useState<string | null>(null);
   const [recording, setRecording] = useState<Row_ | null>(null);
+  const [proof, setProof] = useState<WithProof | null>(null);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -158,6 +167,44 @@ export default function ProposalsPage() {
         iframe, so nothing here can drift from what they actually see, and
         Open in a tab is still there for anybody who wants one.
       */}
+      {/*
+        The proof in full, when asked for.
+
+        A sheet rather than an expanded row: the wording is often several
+        paragraphs of somebody's email, and pushing the table apart to hold it
+        makes the list unreadable for the sake of one row.
+      */}
+      {proof && (
+        <Sheet title="How this was agreed" onClose={() => setProof(null)}>
+          <div style={{ fontSize: 15, color: C.text, marginBottom: 4 }}>
+            {proof.job?.customer?.name} &mdash; {money(proof.total)}
+          </div>
+          <div style={{ fontSize: 12.5, color: C.faint, marginBottom: 16 }}>
+            {proof.decided_by_name}
+            {proof.decided_by_email ? ` <${proof.decided_by_email}>` : ''}
+            {' · '}
+            {VIA_SAID[proof.decided_via as keyof typeof VIA_SAID] ?? 'accepted on the proposal'}
+            {' · '}{shortDate(proof.decided_at)}
+          </div>
+          {proof.decided_words && (
+            <div
+              style={{
+                fontSize: 14, color: C.dim, lineHeight: 1.7,
+                paddingLeft: 13, borderLeft: `2px solid ${C.border}`,
+                whiteSpace: 'pre-line',
+              }}
+            >
+              {proof.decided_words}
+            </div>
+          )}
+          <div style={{ fontSize: 12.5, color: C.faint, marginTop: 18, lineHeight: 1.55, maxWidth: '52ch' }}>
+            {proof.decided_via === 'platform'
+              ? 'Accepted on the proposal itself, which this platform recorded as it happened.'
+              : 'Recorded by hand. The wording is kept exactly as they sent it.'}
+          </div>
+        </Sheet>
+      )}
+
       {recording && orgId && (
         <SaidYesElsewhere
           estimateId={recording.id}
@@ -426,18 +473,19 @@ export default function ProposalsPage() {
             <Card><Empty>Nothing decided yet. Estimates you send appear here once answered.</Empty></Card>
           ) : (
             <Table>
-              <Row cols="1fr 150px 110px 110px 110px" header>
+              <Row cols="1fr 150px 110px 110px 110px 72px" header>
                 <div>{vocab.job}</div>
                 <div>{vocab.customer}</div>
                 <div>Status</div>
                 <div>Decided</div>
                 <div>Value</div>
+                <div />
               </Row>
               {[...won, ...lost]
                 .sort((a, b) => (b.decided_at ?? '').localeCompare(a.decided_at ?? ''))
                 .map((r) => (
                   <Row
-                    key={r.id} cols="1fr 150px 110px 110px 110px" labels={['', '', 'Status', 'Decided', 'Value']}
+                    key={r.id} cols="1fr 150px 110px 110px 110px 72px" labels={['', '', 'Status', 'Decided', 'Value', '']}
                     onClick={() =>
                       r.public_token
                         ? setPreviewing(`/e/${r.public_token}?preview=1`)
@@ -456,56 +504,33 @@ export default function ProposalsPage() {
                     </div>
                     <div style={{ color: C.dim }}>{shortDate(r.decided_at)}</div>
                     <div>{money(r.total)}</div>
+                    {/* Only where there is something to show. A word that does
+                        nothing on four rows out of five is a word you stop
+                        reading. */}
+                    <div onClick={(e) => e.stopPropagation()}>
+                      {(r as WithProof).decided_words ? (
+                        <button
+                          onClick={() => setProof(proof?.id === r.id ? null : (r as WithProof))}
+                          className="rowBtn"
+                          title="What they said, and how it reached you"
+                        >
+                          {proof?.id === r.id ? 'Hide' : 'Proof'}
+                        </button>
+                      ) : null}
+                    </div>
                   </Row>
                 ))}
             </Table>
           )}
 
           {/*
-            The paper trail, where you would look for it.
+            The proof used to be a section of its own down here, repeating the
+            client and the value that are already on the row above it. One
+            client's approval took the height of four table rows.
 
-            A status and a name are what the table shows, and they are the
-            same two facts whether somebody pressed the button on the document
-            or sent a one-line reply from an address you have never verified.
-            The channel and the wording are what hold up if it is ever
-            questioned, so they are printed rather than buried on a row.
+            It is on the row now, behind a word, because it is a thing you
+            reach for once a year and need in full when you do.
           */}
-          {won.some((r) => (r as Row_ & { decided_via?: string }).decided_via && (r as Row_ & { decided_via?: string }).decided_via !== 'platform') && (
-            <div style={{ marginTop: 24 }}>
-              <SectionLabel>Agreed away from the platform</SectionLabel>
-              <div style={{ display: 'grid', gap: 8 }}>
-                {won
-                  .map((r) => r as Row_ & { decided_via?: string; decided_by_email?: string; decided_words?: string })
-                  .filter((r) => r.decided_via && r.decided_via !== 'platform')
-                  .map((r) => (
-                    <Card key={r.id}>
-                      <div style={{ fontSize: 14, color: C.text }}>
-                        {r.job?.customer?.name} &mdash; {money(r.total)}
-                      </div>
-                      <div style={{ fontSize: 12.5, color: C.faint, marginTop: 3 }}>
-                        {r.decided_by_name}
-                        {r.decided_by_email ? ` <${r.decided_by_email}>` : ''}
-                        {' · '}
-                        {VIA_SAID[r.decided_via as keyof typeof VIA_SAID] ?? r.decided_via}
-                        {' · '}{shortDate(r.decided_at)}
-                      </div>
-                      {r.decided_words && (
-                        <div
-                          style={{
-                            fontSize: 13, color: C.dim, lineHeight: 1.6, marginTop: 9,
-                            paddingLeft: 11, borderLeft: `2px solid ${C.border}`,
-                            whiteSpace: 'pre-line', maxWidth: '58ch',
-                          }}
-                        >
-                          {r.decided_words}
-                        </div>
-                      )}
-                    </Card>
-                  ))}
-              </div>
-            </div>
-          )}
-
           {lost.some((r) => r.decline_reason) && (
             <div style={{ marginTop: 24 }}>
               <SectionLabel>Why people said no</SectionLabel>
