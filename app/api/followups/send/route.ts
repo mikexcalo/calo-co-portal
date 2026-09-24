@@ -18,6 +18,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/spine/errors';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { postEmail } from '@/lib/spine/deliverable';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -95,7 +96,7 @@ export async function POST(req: NextRequest) {
 <p>The invoice for ${r.job_name ?? 'your job'} came due ${r.days} ${r.days === 1 ? 'day' : 'days'} ago. ${money(Number(r.amount))} outstanding.</p>
 <p>If it is already on its way, ignore this. If something is holding it up, let me know.</p>`;
 
-    const res = await fetch('https://api.resend.com/emails', {
+    const res = await postEmail(r.customer_email, {
       method: 'POST',
       headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({

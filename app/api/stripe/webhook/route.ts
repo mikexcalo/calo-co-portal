@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import { postEmail } from '@/lib/spine/deliverable';
 
 export const runtime = 'nodejs';
 
@@ -59,7 +60,7 @@ async function notifyByEmail(subject: string, body: string): Promise<void> {
   if (!key) return;
 
   try {
-    await fetch('https://api.resend.com/emails', {
+    await postEmail(to, {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({

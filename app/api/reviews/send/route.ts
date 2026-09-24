@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/spine/errors';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { postEmail } from '@/lib/spine/deliverable';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
     const first = (d.customer_name ?? '').split(' ')[0] || 'Hello';
     const link = `${site}/r/${ins.data.token}`;
 
-    const res = await fetch('https://api.resend.com/emails', {
+    const res = await postEmail(d.customer_email, {
       method: 'POST',
       headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({

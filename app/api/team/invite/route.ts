@@ -17,6 +17,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/spine/errors';
 import { createClient } from '@supabase/supabase-js';
+import { postEmail } from '@/lib/spine/deliverable';
 
 export const runtime = 'nodejs';
 
@@ -212,7 +213,7 @@ export async function POST(req: NextRequest) {
 
     if (link && resendKey && from) {
       const who = body.fullName?.trim() || email.split('@')[0];
-      const res = await fetch('https://api.resend.com/emails', {
+      const res = await postEmail(email, {
         method: 'POST',
         headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({

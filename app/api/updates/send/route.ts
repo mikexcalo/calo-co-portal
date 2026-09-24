@@ -25,6 +25,7 @@ import { apiError } from '@/lib/spine/errors';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import Anthropic from '@anthropic-ai/sdk';
+import { postEmail } from '@/lib/spine/deliverable';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -160,7 +161,7 @@ export async function POST(req: NextRequest) {
 
     const { data: org } = await supabase.from('orgs').select('name').eq('id', customer.org_id).maybeSingle();
 
-    const res = await fetch('https://api.resend.com/emails', {
+    const res = await postEmail(target.email, {
       method: 'POST',
       headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({

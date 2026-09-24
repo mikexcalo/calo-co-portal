@@ -14,6 +14,7 @@ import { apiError } from '@/lib/spine/errors';
 import { whoIsCalling, belongsToCaller } from '@/lib/spine/api-caller';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import { postEmail } from '@/lib/spine/deliverable';
 
 export const runtime = 'nodejs';
 
@@ -127,7 +128,7 @@ export async function POST(req: NextRequest) {
     }
 
     const greeting = customer?.contact_name || customer?.name || 'Hello';
-    const res = await fetch('https://api.resend.com/emails', {
+    const res = await postEmail(recipient, {
       method: 'POST',
       headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({

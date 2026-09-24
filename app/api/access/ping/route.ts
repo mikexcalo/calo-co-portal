@@ -17,6 +17,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { postEmail } from '@/lib/spine/deliverable';
 
 export const runtime = 'nodejs';
 
@@ -76,7 +77,7 @@ export async function POST(req: NextRequest) {
   const org = typeof data.org === 'string' && data.org ? data.org : 'no business selected';
 
   try {
-    await fetch('https://api.resend.com/emails', {
+    await postEmail(to, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${resendKey}`,
