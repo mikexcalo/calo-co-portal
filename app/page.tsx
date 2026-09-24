@@ -791,6 +791,38 @@ export default function Dashboard() {
         </div>
       ) : busy ? (
         <Empty>Loading…</Empty>
+      ) : /*
+        A client's first day is one question, not a dashboard.
+
+        Mark signed in to a workspace where nothing had happened yet: four
+        figures reading zero, a list of setup tasks about a business that is
+        not his, and the proposal he was actually there for as one card among
+        them. A new workspace does not need a dashboard. It needs a next step.
+
+        While the only thing on the record is an unanswered proposal, that is
+        the whole screen. Everything else arrives once there is something to
+        put in it.
+      */ awaiting.length > 0 && !attention.some((a) => !a.setup && !a.key.startsWith('awaiting-')) ? (
+        <div style={{ maxWidth: 620, margin: '6vh auto 0', textAlign: 'center' }}>
+          {awaiting.map((a) => (
+            <div key={a.id}>
+              <div style={{ ...DISPLAY, fontSize: 30, color: C.text, lineHeight: 1.2, marginBottom: 10 }}>
+                {a.agency_name} sent you a proposal
+              </div>
+              <div style={{ fontSize: 16, color: C.dim, lineHeight: 1.6, marginBottom: 6 }}>
+                {a.engagement}
+              </div>
+              <div style={{ ...DISPLAY, fontSize: 34, color: C.text, marginBottom: 18 }}>
+                {money0(Number(a.total ?? 0))}
+              </div>
+              <div style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.6, marginBottom: 22 }}>
+                Read it and accept or decline. Nothing happens until you do, and
+                the rest of your workspace fills in once it is answered.
+              </div>
+              <Button onClick={() => router.push(`/e/${a.public_token}`)}>Open the proposal</Button>
+            </div>
+          ))}
+        </div>
       ) : (
         <>
           {/* Work above, setup below. Split here rather than at the source so
@@ -966,32 +998,16 @@ export default function Dashboard() {
             answer, and hiding it is how Home came to open on "Active projects
             3" with a rule under it.
           */}
-          <Tiles
-            items={[
-              {
-                label: 'Unbilled', value: money0(unbilled), icon: 'work',
-                hint: 'Done, not yet asked for', href: '/jobs',
-                tone: unbilled > 0 ? C.amber : undefined,
-              },
-              {
-                label: 'In draft', value: money0(draftTotal), icon: 'receipt',
-                hint: drafts.length ? `${drafts.length} written, going out on the 1st` : 'Nothing written',
-                href: '/billing',
-                tone: draftTotal > 0 ? C.amber : undefined,
-              },
-              {
-                label: 'Owed to you', value: money0(outstanding), icon: 'card',
-                hint: overdue.length ? `${overdue.length} past due` : 'Nothing overdue',
-                href: '/billing',
-                tone: outstanding > 0 ? C.red : undefined,
-              },
-              {
-                label: 'Logged this month', value: hours(monthHours), icon: 'activity',
-                hint: monthValue > 0 ? `${money0(monthValue)} of time` : 'Nothing logged yet',
-                href: '/jobs',
-              },
-            ]}
-          />
+          {/*
+            The figures moved below the work.
+
+            Home opened on four numbers and then told you what needed doing.
+            But the numbers are context you check, and Your move is the reason
+            you opened the tab — so every morning started by reading past $0,
+            $190, $0 and 2.5h to reach the list. Money is not less important
+            than the work; it is less urgent than it, which is a different
+            thing and is what an order is for.
+          */}
 
           {/*
             One way to write a note, not three.
@@ -1132,6 +1148,34 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+
+          {/* The money, under the work rather than over it. */}
+          <Tiles
+            items={[
+              {
+                label: 'Unbilled', value: money0(unbilled), icon: 'work',
+                hint: 'Done, not yet asked for', href: '/jobs',
+                tone: unbilled > 0 ? C.amber : undefined,
+              },
+              {
+                label: 'In draft', value: money0(draftTotal), icon: 'receipt',
+                hint: drafts.length ? `${drafts.length} written, going out on the 1st` : 'Nothing written',
+                href: '/billing',
+                tone: draftTotal > 0 ? C.amber : undefined,
+              },
+              {
+                label: 'Owed to you', value: money0(outstanding), icon: 'card',
+                hint: overdue.length ? `${overdue.length} past due` : 'Nothing overdue',
+                href: '/billing',
+                tone: outstanding > 0 ? C.red : undefined,
+              },
+              {
+                label: 'Logged this month', value: hours(monthHours), icon: 'activity',
+                hint: monthValue > 0 ? `${money0(monthValue)} of time` : 'Nothing logged yet',
+                href: '/jobs',
+              },
+            ]}
+          />
 
           {/*
             In progress lived here as a table of every active project with its
