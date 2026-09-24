@@ -94,6 +94,29 @@ scripts/ask-db.sh "select ..."     # read production
 Name a new one `YYYYMMDDHHMMSS_lower_case_phrase.sql`, and sort it after the
 last one the remote has tracked or push will refuse it.
 
+## Never hand-write an INSERT into auth.users
+
+`auth` is Supabase's schema and we do not own it, so `ALTER TABLE auth.users`
+is refused. That matters because four of its token columns —
+`confirmation_token`, `recovery_token`, `email_change`,
+`email_change_token_new` — have **no default**, while the four beside them do.
+
+GoTrue reads those columns into plain Go strings, not nullable ones. A single
+NULL makes the lookup fail before it reaches anything useful, so password
+reset returns a 500 and the sign-in page says "That did not work". The account
+looks fine in every other respect.
+
+That is how the demo account shipped broken: the INSERT named none of the
+eight, four defaulted to `''`, four came out NULL.
+
+```sql
+select public.new_auth_user('someone@example.com', 'Their Name');
+```
+
+`new_auth_user` names every column GoTrue reads, sets a password nobody can
+know so the account is only reachable by reset, and creates the email identity
+without which sign-in fails outright. Use it, or use the Supabase dashboard.
+
 ## Deploys
 
 Vercel builds on push to `main`. Every route redirects to `/login` when signed
