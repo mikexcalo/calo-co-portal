@@ -198,34 +198,50 @@ export const SEO_TASKS: SeoTask[] = [
  * how somebody spends an afternoon writing service pages and then waits a week
  * before any of it can help.
  */
+/*
+  Steps that say where to click.
+
+  These were written as principles — "decide whether you are hiding your
+  address", "set the primary category to the narrowest true one", "work the
+  directory list with the copied address block". Every one is true and not one
+  tells you where to go or what to press, so the list reads as a set of riddles
+  you have to already know the answer to.
+
+  A step names the place, the button and what you type. The reasoning stays,
+  underneath, where it explains rather than instructs.
+*/
 export const SETUP_ORDER: Array<{ step: string; note: string }> = [
   {
-    step: 'Decide whether you are hiding your address',
-    note: 'If customers do not come to you, choose "I deliver goods and services to my customers" and Google hides the address while still using it to verify you. Most agencies, trades and consultants should do this. You still have to give Google an address; you are choosing not to publish it, which is a different thing and the part nobody explains.',
+    step: 'Go to business.google.com and search for your business name',
+    note: 'If it is already listed, press it and choose Claim this business. If it is not, press Add your business. Either way you end up in the same place.',
   },
   {
-    step: 'Claim the Google Business Profile and start verification',
-    note: 'A postcard to the address you gave, roughly a week, whether or not it is published. Everything else waits on it, so start it before anything else here.',
+    step: 'When it asks "Do you want to add a location customers can visit?", say No',
+    note: 'Unless people actually come to an office or a yard. Saying no means Google still takes an address to verify you but does not publish it. That is the question people get wrong, because it reads as if saying no hides you from search. It does not.',
   },
   {
-    step: 'Set the primary category to the narrowest true one',
-    note: 'This decides which searches you are eligible for at all. Narrow competes with people who do your thing; broad competes with everybody.',
+    step: 'Pick the narrowest category that is genuinely true',
+    note: 'Type what you do and take the most specific match. "Marketing agency" competes with everybody; "Brand consultant" competes with people who do your job. You can add more categories later, but this first one decides which searches you appear in at all.',
   },
   {
-    step: 'Fill in the details below',
-    note: 'Five minutes, and it generates the address block, the structured data and every page title.',
+    step: 'Request verification and leave it — the postcard takes about a week',
+    note: 'Nothing else on this page finishes until the code arrives, so start it now and do the rest while you wait. The card goes to the address you gave even when it is hidden.',
   },
   {
-    step: 'Paste the structured data into the website head',
-    note: 'Once per site, not per page. Check it afterwards with the Google Rich Results Test.',
+    step: 'Fill in the form below, then press Save',
+    note: 'Name, phone, address, website, category, services and towns. Five minutes, and it writes the address block, the structured data and the page titles for you rather than you writing them three times.',
   },
   {
-    step: 'Work the directory list with the copied address block',
-    note: 'Copy it every time. Retyping is how the same business ends up listed three slightly different ways.',
+    step: 'Copy the structured data and paste it into your site\u2019s head tag',
+    note: 'Once for the whole site, not per page. On Wix that is Settings, then Custom Code, then Add Code, Head, All pages. On Vercel it goes in the page layout. Then paste your homepage URL into Google\u2019s Rich Results Test to confirm it reads.',
   },
   {
-    step: 'Turn on the review link and let it ask by itself',
-    note: 'Reviews are the only lever on this page that keeps paying after the setup is done.',
+    step: 'Open each directory below and paste the address block in unchanged',
+    note: 'Copy it every time rather than retyping. Retyping is how one business ends up listed as Ltd, Limited and nothing, and Google treats those as three businesses that each know a third as much about you.',
+  },
+  {
+    step: 'Paste your Google review link into Reviews, and it will ask for you',
+    note: 'Get it from your profile: Read reviews, then Get more reviews, which gives you a short g.page link. Once it is in, every finished and paid job asks automatically. It is the only thing here that keeps working after the setup is done.',
   },
 ];
 

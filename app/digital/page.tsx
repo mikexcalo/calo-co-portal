@@ -43,6 +43,14 @@ export default function DigitalPage() {
   const [panels, setPanels] = useState<Panel[] | null>(null);
   const [gbp, setGbp] = useState<string | null>(null);
 
+  /* Counted from today rather than hardcoded, so it goes quiet on its own. */
+  const EXPIRES = '2026-09-28';
+  const daysLeft = Math.max(
+    0,
+    Math.ceil((Date.parse(`${EXPIRES}T23:59:59Z`) - Date.now()) / 86400000)
+  );
+  const oldDomainLive = daysLeft > 0;
+
   const load = useCallback(async () => {
     const [sites, tasks, reviews, profile] = await Promise.all([
       supabase.from('client_sites').select('id, name, analytics_on, customer_id').eq('org_id', await orgNow()),
@@ -113,6 +121,30 @@ export default function DigitalPage() {
         href: gbpUrl ?? '/seo',
         tone: gbpUrl ? 'green' : 'amber',
       },
+      /*
+        The old domain, while there is still time to do anything about it.
+
+        This belongs on the screen called "how people find you online", because
+        that is exactly what it is: every link anybody has ever sent to
+        mikecalo.co, and every result Google holds for it. It is on Home as a
+        task with the full steps; this is the same thing where somebody looking
+        at their web presence would expect to trip over it.
+
+        It is dated, so it disappears once the date has passed rather than
+        sitting there as a permanent reminder of something nobody can act on.
+      */
+      ...(oldDomainLive
+        ? [{
+            icon: 'globe' as const,
+            title: 'mikecalo.co',
+            headline: `${daysLeft} day${daysLeft === 1 ? '' : 's'} left`,
+            detail:
+              'Expires 28 September and redirects nowhere, so every link to it breaks and every result Google holds for it disappears rather than moving to calo.company. Renewing is the part that matters: a redirect only passes anything while somebody can still follow it.',
+            cta: 'The steps are on Home',
+            href: '/',
+            tone: 'amber' as const,
+          }]
+        : []),
     ]);
   }, []);
 
