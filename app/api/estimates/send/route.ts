@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
   try {
     const { data: est, error } = await db
       .from('estimates')
-      .select('id, public_token, total, org_id, job:jobs(name, customer:customers(name, contact_name, email))')
+      .select('id, public_token, total, org_id, job:jobs(name, customer_id, customer:customers(name, contact_name, email, linked_org_id))')
       .eq('id', estimateId)
       .maybeSingle();
 
@@ -98,9 +98,9 @@ export async function POST(req: NextRequest) {
 
     const job = one<{
       name: string;
-      customer: { name: string; contact_name: string | null; email: string | null } | null;
+      customer: { name: string; contact_name: string | null; email: string | null; linked_org_id: string | null } | null;
     }>(est.job);
-    const customer = one<{ name: string; contact_name: string | null; email: string | null }>(
+    const customer = one<{ name: string; contact_name: string | null; email: string | null; linked_org_id: string | null }>(
       job?.customer
     );
 
@@ -125,6 +125,32 @@ export async function POST(req: NextRequest) {
       .update({ public_token: token, status: 'sent', sent_at: new Date().toISOString(), sent_to: to })
       .eq('id', est.id);
     if (upd.error) throw new Error(upd.error.message);
+
+    /*
+      TELL THEM IN THE PLATFORM, NOT ONLY BY EMAIL.
+
+      decide notifies the agency the moment a client accepts. send notified the
+      client of nothing, so the whole flow ran one way: they could answer you
+      in here, but they could only hear from you by email.
+
+      Mark has a workspace and an address on file. The proposal went out on the
+      22nd, the email was never opened, and signing in told him nothing —
+      because nothing had been written anywhere he could see. It ended with it
+      being sent again by hand as a PDF.
+
+      A notification in their own workspace, with the link, so the email is the
+      convenience rather than the only route.
+    */
+    const clientOrgId = (customer as { linked_org_id?: string | null } | null)?.linked_org_id ?? null;
+    if (clientOrgId) {
+      await db.from('notifications').insert({
+        org_id: clientOrgId,
+        kind: 'system',
+        title: `${org?.name ?? 'Your agency'} sent you a proposal`,
+        body: `${job?.name ?? 'A proposal'} — nothing happens until you read it and accept or decline.`,
+        href: `/e/${token}`,
+      }).then(undefined, (e) => console.error('[estimates/send] client notice:', e));
+    }
 
     const resendKey = process.env.RESEND_API_KEY;
     if (!resendKey) {

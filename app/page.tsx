@@ -77,6 +77,10 @@ export default function Dashboard() {
   const [jobs, setJobs] = useState<JobWithCustomer[]>([]);
   const [ledger, setLedger] = useState<JobLedger[]>([]);
   const [clientHours, setClientHours] = useState<ClientHours[]>([]);
+  /* Proposals the agency has sent to THIS workspace and nobody has answered. */
+  const [awaiting, setAwaiting] = useState<Array<{
+    id: string; public_token: string; total: number; engagement: string; agency_name: string; sent_at: string;
+  }>>([]);
   const [invoices, setInvoices] = useState<JobInvoice[]>([]);
   const [docs, setDocs] = useState<DocumentRecord[]>([]);
   /** Retainers whose billing period has come round with work sitting on them. */
@@ -158,6 +162,8 @@ export default function Dashboard() {
         setInvoices(inv);
         setDocs(d);
         setClientHours(ch);
+        const aw = await supabase.from('client_awaiting').select('*').order('sent_at', { ascending: false });
+        if (!aw.error) setAwaiting((aw.data ?? []) as typeof awaiting);
         const c = (sig.data ?? {}) as Record<string, number>;
         setSignals({
           customersNoEmail: c.customers_no_email ?? 0,
@@ -306,6 +312,30 @@ export default function Dashboard() {
           : !!i.issued_on && daysBetween(i.issued_on, todayIso) > 7
       )
     : [];
+  /*
+    A PROPOSAL WAITING ON YOU GOES FIRST.
+
+    Mark signed in and his Home told him about his own rate, his own customer
+    with no email and his own unsent draft — and said nothing at all about the
+    proposal sent to him on the 22nd, which is the only thing on that screen
+    somebody else is blocked by. The email was the only route to it and he did
+    not see it.
+
+    Weighted above everything because it is the one item here that is not about
+    tidying your own workspace. Somebody is waiting for an answer.
+  */
+  for (const a of awaiting) {
+    attention.push({
+      key: `awaiting-${a.id}`,
+      weight: 1e12,
+      title: `${a.agency_name} sent you a proposal`,
+      detail: `${a.engagement} — ${money0(a.total)}. Read it and accept or decline; nothing happens until you do.`,
+      cta: 'Open it',
+      href: `/e/${a.public_token}`,
+      tone: 'blue',
+    });
+  }
+
   if (stuckDrafts.length) {
     attention.push({
       key: 'drafts',

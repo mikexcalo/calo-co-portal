@@ -21,6 +21,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { SEO_TASKS } from '@/lib/spine/seo';
+import { DIGITAL_PLAN } from '@/lib/spine/digital-plan';
 import { Button, C, Card, DIGITAL_TABS, Empty, Page, SectionLabel } from '@/components/spine/ui';
 import { Glyph, type IconName } from '@/components/spine/icons';
 import { orgNow } from '@/lib/spine/db';
@@ -50,6 +51,26 @@ export default function DigitalPage() {
     Math.ceil((Date.parse(`${EXPIRES}T23:59:59Z`) - Date.now()) / 86400000)
   );
   const oldDomainLive = daysLeft > 0;
+
+  /*
+    Progress lives in seo_tasks, which already exists and already stores a
+    key and a status per workspace. A second table for the same idea is how
+    you end up with two places that disagree about what is done.
+  */
+  const [ticks, setTicks] = useState<Record<string, boolean>>({});
+  const [loaded, setLoaded] = useState(false);
+  const [openTrack, setOpenTrack] = useState<string | null>(null);
+  const [openStep, setOpenStep] = useState<string | null>(null);
+
+  const tick = useCallback(async (key: string, on: boolean) => {
+    setTicks((t) => ({ ...t, [key]: on }));
+    const org = await orgNow();
+    if (!org) return;
+    await supabase.from('seo_tasks').upsert(
+      { org_id: org, customer_id: null, key, status: on ? 'done' : 'todo' },
+      { onConflict: 'org_id,customer_id,key' }
+    );
+  }, []);
 
   const load = useCallback(async () => {
     const [sites, tasks, reviews, profile] = await Promise.all([
@@ -150,8 +171,25 @@ export default function DigitalPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const tone = (t: Panel['tone']) =>
-    t === 'green' ? C.green : t === 'amber' ? C.amber : C.faint;
+  useEffect(() => {
+    (async () => {
+      const org = await orgNow();
+      if (org) {
+        const res = await supabase
+          .from('seo_tasks')
+          .select('key, status')
+          .eq('org_id', org)
+          .is('customer_id', null);
+        const out: Record<string, boolean> = {};
+        for (const r of (res.data ?? []) as Array<{ key: string; status: string }>) {
+          out[r.key] = r.status === 'done';
+        }
+        setTicks(out);
+      }
+      setLoaded(true);
+    })();
+  }, []);
+
 
   return (
     <Page
@@ -159,65 +197,163 @@ export default function DigitalPage() {
       subtitle="How people find you online."
       tabs={DIGITAL_TABS}
     >
-      {!panels ? (
+      {/*
+        One ordered plan, not four overlapping lists.
+
+        This screen showed four status cards, and behind them sat a seven-step
+        setup order, a seven-item checklist saying much the same thing, a
+        directory list, and a set of Home tasks covering the same ground again.
+        Two of them contradicted each other on whether to keep the old domain.
+        None of them said what to do first.
+
+        Three tracks, in the order they are worth doing: there is no point
+        measuring traffic to a site nobody can find, or claiming a map listing
+        for a business nobody searches by name. Closed by default, open the one
+        you are on.
+      */}
+      {!loaded ? (
         <Empty>Loading…</Empty>
       ) : (
-        <>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
-              gap: 12,
-            }}
-          >
-            {panels.map((p) => (
-              <Card key={p.title}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 9 }}>
-                  <Glyph name={p.icon} color={tone(p.tone)} size={16} />
-                  <span style={{ fontSize: 13, color: C.dim, fontWeight: 500 }}>{p.title}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 820 }}>
+          {DIGITAL_PLAN.map((track, ti) => {
+            const total = track.steps.length;
+            const done = track.steps.filter((st) => st.done === 'built' || ticks[st.key]).length;
+            const open = openTrack === track.key;
+            const finished = done === total;
+            return (
+              <Card key={track.key} style={{ padding: 0, overflow: 'hidden' }}>
+                <button
+                  onClick={() => setOpenTrack(open ? null : track.key)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12, width: '100%',
+                    background: 'transparent', border: 'none', textAlign: 'left',
+                    padding: '16px 18px', cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
                   <span
                     style={{
-                      width: 6, height: 6, borderRadius: '50%', background: tone(p.tone),
-                      marginLeft: 'auto', flexShrink: 0,
+                      width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 12, fontWeight: 600,
+                      background: finished ? C.greenSoft : C.panelAlt,
+                      color: finished ? C.green : C.dim,
+                      border: `1px solid ${finished ? C.green + '55' : C.border}`,
                     }}
-                  />
-                </div>
-
-                <div style={{ fontSize: 18, fontWeight: 600, color: C.text, marginBottom: 5 }}>
-                  {p.headline}
-                </div>
-
-                <div style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.6, marginBottom: 12 }}>
-                  {p.detail}
-                </div>
-
-                {/* An external profile opens in a tab; everything else is a
-                    route, and the two should not look identical. */}
-                {p.href.startsWith('http') ? (
-                  <a
-                    href={p.href}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    style={{ fontSize: 13, color: C.accent, textDecoration: 'none' }}
                   >
-                    {p.cta} ↗
-                  </a>
-                ) : (
-                  <button
-                    onClick={() => router.push(p.href)}
+                    {finished ? '\u2713' : ti + 1}
+                  </span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: 15.5, fontWeight: 600, color: C.text }}>
+                      {track.title}
+                    </span>
+                    <span style={{ display: 'block', fontSize: 12.5, color: C.faint, marginTop: 2, lineHeight: 1.5 }}>
+                      {track.promise}
+                    </span>
+                  </span>
+                  <span style={{ fontSize: 12.5, color: finished ? C.green : C.faint, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+                    {done} of {total}
+                  </span>
+                  <span
+                    aria-hidden
                     style={{
-                      background: 'transparent', border: 'none', padding: 0,
-                      color: C.accent, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
+                      fontSize: 10, color: C.faint, flexShrink: 0,
+                      transform: open ? 'rotate(90deg)' : 'none',
+                      transition: 'transform .18s ease',
                     }}
                   >
-                    {p.cta} →
-                  </button>
+                    \u25b6
+                  </span>
+                </button>
+
+                {open && (
+                  <div style={{ borderTop: `1px solid ${C.border}` }}>
+                    {track.steps.map((st, si) => {
+                      const built = st.done === 'built';
+                      const ticked = built || !!ticks[st.key];
+                      const showing = openStep === st.key;
+                      return (
+                        <div key={st.key} style={{ borderTop: si === 0 ? 'none' : `1px solid ${C.border}` }}>
+                          <div style={{ display: 'flex', gap: 11, alignItems: 'flex-start', padding: '12px 18px' }}>
+                            {/* Anything already done is ticked and not
+                                clickable, because unticking it would not undo
+                                it and a checkbox that lies is worse than none. */}
+                            <button
+                              onClick={() => !built && tick(st.key, !ticks[st.key])}
+                              disabled={built}
+                              aria-label={ticked ? 'Done' : `Mark "${st.do}" done`}
+                              style={{
+                                width: 18, height: 18, borderRadius: 5, flexShrink: 0, marginTop: 2,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                border: `1.5px solid ${ticked ? C.green : C.borderStrong}`,
+                                background: ticked ? C.green : 'transparent',
+                                color: '#fff', fontSize: 11, lineHeight: 1,
+                                cursor: built ? 'default' : 'pointer', padding: 0,
+                              }}
+                            >
+                              {ticked ? '\u2713' : ''}
+                            </button>
+
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <button
+                                onClick={() => setOpenStep(showing ? null : st.key)}
+                                style={{
+                                  background: 'transparent', border: 'none', padding: 0, textAlign: 'left',
+                                  font: 'inherit', cursor: 'pointer', width: '100%',
+                                  color: ticked ? C.faint : C.text,
+                                  textDecoration: ticked ? 'line-through' : 'none',
+                                  textDecorationColor: C.border,
+                                }}
+                              >
+                                {st.do}
+                                {built && (
+                                  <span style={{ marginLeft: 8, fontSize: 11, color: C.green, textDecoration: 'none', display: 'inline-block' }}>
+                                    already done
+                                  </span>
+                                )}
+                              </button>
+
+                              {showing && st.note && (
+                                <div style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, marginTop: 7, maxWidth: '62ch' }}>
+                                  {st.note}
+                                </div>
+                              )}
+
+                              {showing && st.where && (
+                                <div style={{ marginTop: 10 }}>
+                                  {st.where.href.startsWith('http') ? (
+                                    <a
+                                      href={st.where.href}
+                                      target="_blank"
+                                      rel="noreferrer noopener"
+                                      style={{ fontSize: 13, color: C.blue, textDecoration: 'none' }}
+                                    >
+                                      {st.where.label} &nearr;
+                                    </a>
+                                  ) : (
+                                    <button
+                                      onClick={() => router.push(st.where!.href)}
+                                      style={{ background: 'transparent', border: 'none', padding: 0, fontSize: 13, color: C.blue, cursor: 'pointer', fontFamily: 'inherit' }}
+                                    >
+                                      {st.where.label} &rarr;
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            {!showing && st.note && (
+                              <span style={{ fontSize: 12, color: C.faint, flexShrink: 0 }}>How</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </Card>
-            ))}
-          </div>
-
-        </>
+            );
+          })}
+        </div>
       )}
     </Page>
   );
