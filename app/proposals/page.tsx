@@ -14,7 +14,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { listAllEstimates } from '@/lib/spine/db';
+import { listAllEstimates, orgNow } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import type { Estimate } from '@/lib/spine/types';
 import {
@@ -35,9 +35,17 @@ import {
   shortDate,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { SaidYesElsewhere } from '@/components/spine/SaidYesElsewhere';
+
+const VIA_SAID = {
+  email: 'replied to the email',
+  phone: 'said so on the phone',
+  in_person: 'agreed in person',
+  paper: 'signed on paper',
+} as const;
 
 type Row_ = Estimate & {
-  job: { id: string; name: string; customer: { name: string } | null } | null;
+  job: { id: string; name: string; customer: { id: string; name: string; email: string | null; contact_name: string | null } | null } | null;
 };
 
 const STATUS_TONE = {
@@ -53,6 +61,8 @@ export default function ProposalsPage() {
   const { vocab } = useOrg();
   const [rows, setRows] = useState<Row_[]>([]);
   const [previewing, setPreviewing] = useState<string | null>(null);
+  const [recording, setRecording] = useState<Row_ | null>(null);
+  const [orgId, setOrgId] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -61,6 +71,8 @@ export default function ProposalsPage() {
   const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => setNow(Date.now()), []);
+
+  useEffect(() => { orgNow().then(setOrgId); }, []);
 
   const load = useCallback(async () => {
     const data = await listAllEstimates();
@@ -146,6 +158,20 @@ export default function ProposalsPage() {
         iframe, so nothing here can drift from what they actually see, and
         Open in a tab is still there for anybody who wants one.
       */}
+      {recording && orgId && (
+        <SaidYesElsewhere
+          estimateId={recording.id}
+          jobId={recording.job?.id ?? null}
+          customerId={recording.job?.customer?.id ?? null}
+          orgId={orgId}
+          clientName={recording.job?.customer?.name ?? 'this client'}
+          defaultName={recording.job?.customer?.contact_name}
+          defaultEmail={recording.sent_to ?? recording.job?.customer?.email}
+          onDone={load}
+          onClose={() => setRecording(null)}
+        />
+      )}
+
       {previewing && (
         <div
           onClick={() => setPreviewing(null)}
@@ -375,6 +401,19 @@ export default function ProposalsPage() {
                       <div style={{ fontSize: 16, minWidth: 90, textAlign: 'right' }}>
                         {money(r.total)}
                       </div>
+                      {/*
+                        The other way a proposal gets accepted.
+
+                        Pressing the button on the document was the only route
+                        into "accepted", so Mark replying to the email left
+                        this sitting on Waiting on the customer while the work
+                        was agreed and the invoice had nothing to point at.
+                      */}
+                      <span onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" onClick={() => setRecording(r)}>
+                          They said yes
+                        </Button>
+                      </span>
                     </div>
                   );
                 })}
@@ -420,6 +459,51 @@ export default function ProposalsPage() {
                   </Row>
                 ))}
             </Table>
+          )}
+
+          {/*
+            The paper trail, where you would look for it.
+
+            A status and a name are what the table shows, and they are the
+            same two facts whether somebody pressed the button on the document
+            or sent a one-line reply from an address you have never verified.
+            The channel and the wording are what hold up if it is ever
+            questioned, so they are printed rather than buried on a row.
+          */}
+          {won.some((r) => (r as Row_ & { decided_via?: string }).decided_via && (r as Row_ & { decided_via?: string }).decided_via !== 'platform') && (
+            <div style={{ marginTop: 24 }}>
+              <SectionLabel>Agreed away from the platform</SectionLabel>
+              <div style={{ display: 'grid', gap: 8 }}>
+                {won
+                  .map((r) => r as Row_ & { decided_via?: string; decided_by_email?: string; decided_words?: string })
+                  .filter((r) => r.decided_via && r.decided_via !== 'platform')
+                  .map((r) => (
+                    <Card key={r.id}>
+                      <div style={{ fontSize: 14, color: C.text }}>
+                        {r.job?.customer?.name} &mdash; {money(r.total)}
+                      </div>
+                      <div style={{ fontSize: 12.5, color: C.faint, marginTop: 3 }}>
+                        {r.decided_by_name}
+                        {r.decided_by_email ? ` <${r.decided_by_email}>` : ''}
+                        {' · '}
+                        {VIA_SAID[r.decided_via as keyof typeof VIA_SAID] ?? r.decided_via}
+                        {' · '}{shortDate(r.decided_at)}
+                      </div>
+                      {r.decided_words && (
+                        <div
+                          style={{
+                            fontSize: 13, color: C.dim, lineHeight: 1.6, marginTop: 9,
+                            paddingLeft: 11, borderLeft: `2px solid ${C.border}`,
+                            whiteSpace: 'pre-line', maxWidth: '58ch',
+                          }}
+                        >
+                          {r.decided_words}
+                        </div>
+                      )}
+                    </Card>
+                  ))}
+              </div>
+            </div>
           )}
 
           {lost.some((r) => r.decline_reason) && (

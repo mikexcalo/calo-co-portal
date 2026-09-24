@@ -101,6 +101,10 @@ export async function POST(req: NextRequest) {
         status: decision,
         decided_at: now,
         decided_by_name: body.name?.trim() || null,
+        /* The one route the system witnessed itself. Anything accepted by
+           email or over the phone gets recorded by hand with the channel and
+           the words, because a status alone cannot tell the two apart. */
+        decided_via: 'platform',
         decline_reason: decision === 'declined' ? body.reason?.trim() || null : null,
       })
       .eq('id', estimate.id);

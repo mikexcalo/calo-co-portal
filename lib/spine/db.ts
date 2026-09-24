@@ -1286,15 +1286,18 @@ export async function invoiceFromEstimate(
 
 /** Every estimate across every job — the proposals overview. */
 export async function listAllEstimates(): Promise<
-  Array<Estimate & { job: { id: string; name: string; customer: { name: string } | null } | null }>
+  Array<Estimate & { job: { id: string; name: string; customer: { id: string; name: string; email: string | null; contact_name: string | null } | null } | null }>
 > {
+  /* The customer's id and contact come along now: recording an acceptance
+     that happened by email has to write a note on their record, and pre-fill
+     who it was from. */
   return unwrap(
     await supabase
       .from('estimates')
-      .select('*, job:jobs(id, name, customer:customers(name))')
+      .select('*, job:jobs(id, name, customer:customers(id, name, email, contact_name))')
       .eq('org_id', await orgNow())
       .order('created_at', { ascending: false })
-  ) as Array<Estimate & { job: { id: string; name: string; customer: { name: string } | null } | null }>;
+  ) as Array<Estimate & { job: { id: string; name: string; customer: { id: string; name: string; email: string | null; contact_name: string | null } | null } | null }>;
 }
 
 export async function updateInvoice(
