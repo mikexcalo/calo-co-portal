@@ -171,12 +171,36 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, skipped: 'nothing to bill' });
   }
 
-  await db.from('job_invoice_lines').insert(
+  /*
+    These two were fire and forget, on the run that bills every client.
+
+    If the lines fail to insert, the invoice exists with a total and nothing
+    itemised. If the total fails to update, it goes out at zero. Both would
+    have been discovered by a client reading an invoice, and the run would
+    have reported ok either way — which is how the last billing bug survived
+    a month.
+  */
+  const ins = await db.from('job_invoice_lines').insert(
     lines.map((l) => ({ ...l, invoice_id: invoice.id }))
   );
+  if (ins.error) {
+    console.error('[draft-monthly] lines failed, removing the empty invoice:', ins.error.message);
+    await db.from('job_invoices').delete().eq('id', invoice.id);
+    return NextResponse.json(
+      { ok: false, error: 'Could not write the invoice lines. Nothing was left half-made.' },
+      { status: 500 }
+    );
+  }
 
   const total = round2(lines.reduce((s, l) => s + num(l.total), 0));
-  await db.from('job_invoices').update({ subtotal: total, total }).eq('id', invoice.id);
+  const upd = await db.from('job_invoices').update({ subtotal: total, total }).eq('id', invoice.id);
+  if (upd.error) {
+    console.error('[draft-monthly] total failed:', upd.error.message);
+    return NextResponse.json(
+      { ok: false, error: 'The lines are in but the total did not save. Open the invoice before it sends.' },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({ ok: true, number: invoice.number, total });
 }

@@ -77,7 +77,7 @@ export function AskThem({ orgId, clientName }: { orgId: string; clientName: stri
         <textarea
           value={detail}
           onChange={(e) => setDetail(e.target.value)}
-          placeholder="Anything they need in order to do it, where to go, what to pick, what it costs"
+          placeholder="Anything they need to do it, where to go, what to pick, what it costs"
           rows={3}
           style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }}
         />

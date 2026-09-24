@@ -1150,9 +1150,24 @@ export async function draftInvoiceFromActuals(
         .single()
     ) as JobInvoice;
   } catch (e) {
-    // Release anything claimed so the work isn't stranded on a dead invoice.
-    await supabase.from('time_entries').update({ invoiced_on: null }).eq('invoiced_on', invoice.id);
-    await supabase.from('costs').update({ invoiced_on: null }).eq('invoiced_on', invoice.id);
+    /*
+      Release anything claimed so the work isn't stranded on a dead invoice.
+
+      Both of these discarded their result, which is the worst place in the
+      product to do it: this is the recovery path. If the release fails, the
+      hours stay marked as billed against an invoice that no longer exists,
+      no future run will pick them up, and nobody finds out because the only
+      symptom is money quietly never invoiced.
+    */
+    const rel = await Promise.all([
+      supabase.from('time_entries').update({ invoiced_on: null }).eq('invoiced_on', invoice.id),
+      supabase.from('costs').update({ invoiced_on: null }).eq('invoiced_on', invoice.id),
+    ]);
+    for (const r of rel) {
+      if (r.error) {
+        console.error('[voidInvoice] work left claimed on a dead invoice:', invoice.id, r.error.message);
+      }
+    }
     await cleanup();
     throw e;
   }

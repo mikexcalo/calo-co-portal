@@ -24,7 +24,7 @@ interface Props {
 }
 
 const ROLE_NOTE: Record<Swatch['role'], string> = {
-  primary: 'The colour the brand is known by',
+  primary: 'The color the brand is known by',
   secondary: 'Second most present',
   accent: 'Used sparingly',
   ink: 'Text and dark marks',
@@ -72,7 +72,7 @@ export function PaletteFromImage({ onAdd }: Props) {
           // card the logo was sitting on.
           setPicked(new Set(found.filter((s) => s.role === 'primary' || s.role === 'secondary' || s.role === 'accent').map((s) => s.hex)));
           setPreview(src);
-          if (!found.length) setError('No solid colour in that image.');
+          if (!found.length) setError('No solid color in that image.');
         } catch {
           setError('That image could not be read. An SVG with no fixed size is the usual cause, export it as PNG.');
         }

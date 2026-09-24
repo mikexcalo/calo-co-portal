@@ -111,7 +111,9 @@ export function Notifications() {
       supabase.from('notification_reads').select('notification_id'),
       supabase
         .from('site_requests')
-        .select('id, title, detail, status, submitted_at')
+        /* The column is body. This asked for detail, so the query errored and
+           the bell has never once shown a site request. */
+        .select('id, title, body, status, submitted_at')
         .not('status', 'in', '("shipped","declined")')
         .order('submitted_at', { ascending: false })
         .limit(15),
@@ -159,7 +161,7 @@ export function Notifications() {
       id: `req-${r.id}`,
       kind: 'site_request',
       title: r.title ?? 'A request',
-      body: r.detail ?? null,
+      body: r.body ?? null,
       href: '/requests',
       // Never read. A request is open until the work is done.
       read_at: null,

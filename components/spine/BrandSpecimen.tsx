@@ -250,7 +250,7 @@ export function BrandSpecimen({ kit }: { kit: Kit }) {
 
       {kit.colors.length > 0 && (
         <Card>
-          <SectionLabel>Colour</SectionLabel>
+          <SectionLabel>Color</SectionLabel>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: 12, marginTop: 10 }}>
             {kit.colors.map((c, i) => <Swatch key={`${c.hex}-${i}`} c={c} />)}
           </div>
