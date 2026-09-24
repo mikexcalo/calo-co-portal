@@ -62,6 +62,18 @@ interface Attention {
   cta: string;
   href: string;
   tone: 'amber' | 'red' | 'blue' | 'neutral';
+  /**
+   * Setup, not work.
+   *
+   * A rate of zero and no payment methods are real gaps, and neither one
+   * stops you doing anything until the day you send an invoice. Mark opened a
+   * brand-new workspace to five red cards telling him to fix things he had
+   * not reached yet, which is how somebody decides the alerts on this screen
+   * are wallpaper — and then misses the one that matters.
+   *
+   * These come out of Needs you and go in a quiet strip of their own.
+   */
+  setup?: true;
 }
 
 /** Whole days between two date-only strings. */
@@ -371,6 +383,7 @@ export default function Dashboard() {
   if (signals.customersNoEmail > 0) {
     attention.push({
       key: 'noemail',
+      setup: true,
       weight: 5e8,
       title: `${signals.customersNoEmail} ${signals.customersNoEmail === 1 ? vocab.customer.toLowerCase() : vocab.customerPlural.toLowerCase()} with no email`,
       detail: "You can't send an invoice or an estimate to someone with no email address.",
@@ -468,24 +481,26 @@ export default function Dashboard() {
   if (org && !(org.payment_methods as unknown[])?.length) {
     attention.push({
       key: 'nopay',
+      setup: true,
       weight: 4e8,
       title: 'No payment methods set',
       detail: 'Invoices go out with no instructions on how to pay them.',
       cta: 'Set them up',
       href: '/business',
-      tone: 'red',
+      tone: 'neutral',
     });
   }
 
   if (org && Number(org.default_labor_rate) === 0) {
     attention.push({
       key: 'rate',
+      setup: true,
       weight: 1e9, // nothing else matters if invoices come out at zero
       title: 'Your hourly rate is still $0',
       detail: 'Every invoice will total zero until this is set.',
       cta: 'Set your rates',
       href: '/business',
-      tone: 'red',
+      tone: 'neutral',
     });
   }
 
@@ -776,9 +791,11 @@ export default function Dashboard() {
         <Empty>Loading…</Empty>
       ) : (
         <>
-          {attention.length > 0 && (
+          {/* Work above, setup below. Split here rather than at the source so
+              the ordering and weighting stay in one place. */}
+          {(() => { const live = attention.filter((a) => !a.setup); return live.length > 0 && (
             <div style={{ marginBottom: 30 }}>
-              <SectionLabel>Needs you ({attention.length})</SectionLabel>
+              <SectionLabel>Needs you ({live.length})</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {/*
                   The tone is a word, not a bent stripe.
@@ -794,7 +811,7 @@ export default function Dashboard() {
                   the size the rest of the system already uses for status. The
                   card underneath goes back to being a plain card.
                 */}
-                {attention.map((a) => (
+                {live.map((a) => (
                   <div
                     key={a.key}
                     style={{
@@ -836,7 +853,55 @@ export default function Dashboard() {
                 ))}
               </div>
             </div>
-          )}
+          ); })()}
+
+          {/*
+            Setup, said once and quietly.
+
+            These are the gaps that only bite on the day you send something:
+            no rate, no payment methods, a customer with no email address. As
+            full-width cards with a red Fix pill they were indistinguishable
+            from a client waiting on an answer, and on a new workspace there
+            were five of them before anything had happened.
+
+            One line each, in a row, no tone color. Still there, still one
+            click, no longer shouting.
+          */}
+          {(() => {
+            const gaps = attention.filter((a) => a.setup);
+            if (!gaps.length) return null;
+            return (
+              <div style={{ marginBottom: 30 }}>
+                <SectionLabel>Finish setting up ({gaps.length})</SectionLabel>
+                <div
+                  style={{
+                    border: `1px solid ${C.border}`, borderRadius: radius.lg,
+                    background: C.panel, overflow: 'hidden',
+                  }}
+                >
+                  {gaps.map((a, i) => (
+                    <button
+                      key={a.key}
+                      onClick={() => router.push(a.href)}
+                      style={{
+                        display: 'flex', width: '100%', gap: 12, alignItems: 'baseline',
+                        textAlign: 'left', background: 'transparent', border: 'none',
+                        borderTop: i === 0 ? 'none' : `1px solid ${C.border}`,
+                        padding: '11px 16px', cursor: 'pointer', fontFamily: 'inherit',
+                      }}
+                    >
+                      <span style={{ fontSize: 13.5, color: C.text, flex: 1, minWidth: 0 }}>
+                        {a.title}
+                      </span>
+                      <span style={{ fontSize: 12.5, color: C.faint, flexShrink: 0 }}>
+                        {a.cta} →
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           {/*
             The all-clear now says what it actually checked.

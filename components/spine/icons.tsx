@@ -33,6 +33,7 @@ export type IconName =
   | 'layers'
   | 'book'
   | 'swatches'
+  | 'palette'
   | 'globe'
   | 'target'
   | 'send'
@@ -135,6 +136,17 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <path d="M7.5 1.9h5.5a1.1 1.1 0 0 1 1.1 1.1v5.5a1.1 1.1 0 0 1-.32.78l-5.2 5.2a1.1 1.1 0 0 1-1.56 0L2.02 10.5a1.1 1.1 0 0 1 0-1.56l5.2-5.2" />
       <circle cx="11" cy="5" r="1.05" />
+    </>
+  ),
+  /* The same palette the Brand row draws in the sidebar. The client's Brand
+     tab was using `swatches`, which is a price tag — the identical shape
+     Price List uses — so the same idea was two different pictures. */
+  palette: (
+    <>
+      <path d="M8 1.6c-3.5 0-6.4 2.7-6.4 6.1 0 3.4 2.9 6.1 6.4 6.1.9 0 1.6-.6 1.6-1.4 0-.4-.2-.7-.4-1a1.3 1.3 0 0 1 1-2.2h1.1c1.8 0 3.1-1.3 3.1-3 0-2.6-2.8-4.6-6.4-4.6Z" />
+      <circle cx="4.9" cy="7.7" r=".85" />
+      <circle cx="6.9" cy="4.8" r=".85" />
+      <circle cx="10.4" cy="5.3" r=".85" />
     </>
   ),
   globe: (

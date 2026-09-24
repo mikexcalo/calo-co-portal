@@ -282,7 +282,7 @@ export function brandTabsFor(kind: string | null | undefined): readonly PageTab[
   What is left does not need a strip over it.
 */
 export const BRAND_TABS: readonly PageTab[] = [
-  { label: 'Brand', href: '/brand-kit', icon: 'swatches' },
+  { label: 'Brand', href: '/brand-kit', icon: 'palette' },
 ];
 
 

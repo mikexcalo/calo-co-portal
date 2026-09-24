@@ -70,12 +70,21 @@ export const NAV_ICONS: Record<string, React.ReactNode> = {
       <path d="M10.1 4.3l4.1-1.8v9.2l-4.1 1.8z" />
     </svg>
   ),
-  // A hard hat — the people a contractor deals with.
+  /*
+    Was a hard hat: a dome, a tab on top, a brim line under it. Drawn back
+    when every client was a contractor, and at seventeen pixels the tab and
+    the dome stop reading as headgear and start reading as something else
+    entirely. Said out loud, once, and it cannot be unseen.
+
+    A client is a business you work for, so it is a building — two of them,
+    one behind, because a client list is more than one.
+  */
   clients: (
     <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2.2 11.4a5.8 5.8 0 0 1 11.6 0" />
-      <path d="M6.2 6.1V3.4a.9.9 0 0 1 .9-.9h1.8a.9.9 0 0 1 .9.9v2.7" />
-      <path d="M1.4 11.4h13.2" />
+      <path d="M2 14V5.3l4.6-2.1V14" />
+      <path d="M6.6 6.6H13a.9.9 0 0 1 .9.9V14" />
+      <path d="M1 14h14" />
+      <path d="M4 7.3v0M4 9.6v0M9.2 9.2v0M11.6 9.2v0M9.2 11.5v0M11.6 11.5v0" />
     </svg>
   ),
   // A receipt, torn edge and all.

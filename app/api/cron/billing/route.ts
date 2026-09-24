@@ -150,11 +150,17 @@ export async function GET(req: NextRequest) {
     invoices would have sat unapproved through the 1st with no word from
     anybody.
 
-    From the 26th, anything still unapproved gets said out loud, once a day,
-    until it is approved or it goes.
+    It fired from the 26th, every day, which is five or six identical
+    notifications for a decision that is deliberately made at the end of the
+    month. Work is still being billed on the 26th — a reminder to approve an
+    invoice that is not finished yet is not a reminder, it is noise, and a
+    thing that nags before you could act teaches you to ignore it by the time
+    you could.
+
+    Last day only. That is when the drafting happens and when the approving
+    actually happens, so it asks once, on the day it is a real question.
   */
-  const dayOfMonth = Number(todayStr.slice(8, 10));
-  if (dayOfMonth >= 26) {
+  if (isLastDayOfMonth(today)) {
     const { data: waiting } = await db
       .from('job_invoices')
       .select('id, org_id, number, total')
@@ -174,11 +180,11 @@ export async function GET(req: NextRequest) {
       await db.from('notifications').insert({
         org_id: orgId,
         kind: 'system',
-        title: `${e.n} invoice${e.n === 1 ? '' : 's'} still need approving`,
+        title: `${e.n} invoice${e.n === 1 ? '' : 's'} ready for the 1st`,
         body:
           `${e.numbers.join(', ')} — $${e.total.toFixed(2)} in total. ` +
-          'Nothing goes out on the 1st until these are approved. ' +
-          'Open Invoices and press Approve for the 1st.',
+          'Last day of the month, so this is the moment to check the hours are ' +
+          'all on and approve. Anything not approved simply waits.',
         href: '/billing',
       }).then(undefined, (err) => console.error('[cron/billing] approve notice:', err));
     }

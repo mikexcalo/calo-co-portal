@@ -178,11 +178,15 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
    * navigation, and should not cost a page load. The query string is only read
    * once, to honor where somebody was sent.
    */
-  const [view, setView] = useState<'now' | 'work' | 'given' | 'history' | 'brand' | 'catalog'>(
-    (typeof window !== 'undefined' &&
-      (new URLSearchParams(window.location.search).get('tab') as
-        | 'now' | 'work' | 'given' | 'history' | 'brand' | 'catalog')) || 'history'
-  );
+  const [view, setView] = useState<'now' | 'given' | 'history' | 'brand' | 'catalog'>(() => {
+    if (typeof window === 'undefined') return 'history';
+    const t = new URLSearchParams(window.location.search).get('tab');
+    /* ?tab=work is in links that were sent before Work folded into Activity,
+       and it is where that content now lives. A bookmark should not open a
+       blank tab. */
+    if (t === 'work') return 'history';
+    return (t as 'now' | 'given' | 'history' | 'brand' | 'catalog') || 'history';
+  });
   /**
    * Counts on the tabs, from the one view that already has them.
    *
@@ -634,7 +638,14 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             */
             items={[
               { id: 'history', label: 'Activity', icon: 'activity', count: notes.length },
-              { id: 'work', label: 'Work', icon: 'work' },
+              /*
+                Work used to be its own tab. It held the plan, the work items
+                and their site — all of which are the answer to "what is going
+                on with this client", which is the question Activity exists
+                for. Two tabs splitting one question meant landing on Activity,
+                seeing three reminders and a log, and having to go looking for
+                the actual work.
+              */
               { id: 'now', label: 'Brief', icon: 'brief' },
               /**
                * Only for businesses that sell a list of things.
@@ -648,7 +659,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               { id: 'given', label: 'Documents', icon: 'documents', count: counts.given },
               // A client's brand belongs to that client. The module in the
               // sidebar is your own; this is theirs.
-              { id: 'brand', label: 'Brand', icon: 'swatches' },
+              { id: 'brand', label: 'Brand', icon: 'palette' },
             ]}
           />
 
@@ -705,20 +716,6 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             </>
           )}
 
-          {view === 'work' && (
-            <>
-              <Plan customerId={params.id} clientName={customer.name} />
-              <ClientWork customerId={params.id} />
-              {orgId && (
-                <TheirSite
-                  customerId={params.id}
-                  clientName={customer.name}
-                  orgId={orgId}
-                  website={customer.website}
-                />
-              )}
-            </>
-          )}
 
           {view === 'given' && (
             <>
@@ -747,6 +744,23 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               orgId={orgId}
               clientName={customer.name}
             />
+          )}
+
+          {/* The work first, because it is what is happening. Reminders and
+              the log are about the work rather than instead of it. */}
+          {view === 'history' && (
+            <>
+              <Plan customerId={params.id} clientName={customer.name} />
+              <ClientWork customerId={params.id} />
+              {orgId && (
+                <TheirSite
+                  customerId={params.id}
+                  clientName={customer.name}
+                  orgId={orgId}
+                  website={customer.website}
+                />
+              )}
+            </>
           )}
 
           {view === 'history' && orgId && <Reminders orgId={orgId} customerId={params.id} />}
@@ -863,8 +877,11 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
             <button
               onClick={() => setShowHistory(true)}
               style={{
+                /* borderRadius 999 on a two-line block. A pill is for one
+                   short word; wrapped around a date and two lines of body it
+                   bulges at the ends and matches nothing else on the page. */
                 width: '100%', textAlign: 'left', background: C.panel,
-                border: `1px solid ${C.border}`, borderRadius: 999, padding: '12px 14px',
+                border: `1px solid ${C.border}`, borderRadius: radius.md, padding: '12px 14px',
                 cursor: 'pointer', fontFamily: 'inherit',
               }}
             >

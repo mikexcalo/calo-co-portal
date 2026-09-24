@@ -118,9 +118,15 @@ export function Reminders({
           marginBottom: 10,
         }}
       >
-        <SectionLabel>Reminders ({open.length})</SectionLabel>
+        {/* "REMINDERS (0)" and a button, on a full row, for a list with
+            nothing in it. A heading counting to zero is a heading about
+            nothing — the affordance alone says the same thing and costs a
+            line instead of three. */}
+        {open.length > 0
+          ? <SectionLabel>Reminders ({open.length})</SectionLabel>
+          : <span />}
         <Button variant="ghost" onClick={() => setAdding((v) => !v)}>
-          {adding ? 'Cancel' : 'Add a reminder'}
+          {adding ? 'Cancel' : open.length ? 'Add a reminder' : 'Remind me about this client'}
         </Button>
       </div>
 
