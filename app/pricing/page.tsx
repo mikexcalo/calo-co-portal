@@ -49,6 +49,8 @@ interface PriceItem {
   kind: 'labor' | 'material' | 'subcontractor' | 'other';
   active: boolean;
   public: boolean;
+  /** Price per rate tier, keyed by rate_tiers.key. Missing means unit_price. */
+  tier_prices?: Record<string, number> | null;
   /** Someone who sets prices has verified this. */
   confirmed: boolean;
   /** No single rate is honest — quote it per job. */
@@ -58,6 +60,16 @@ interface PriceItem {
 }
 
 type Draft = Pick<PriceItem, 'name' | 'description' | 'unit' | 'unit_price' | 'kind' | 'category'>;
+
+/*
+  The three tiers, in the order a price rises through them. Keys match
+  rate_tiers.key, which is what tier_prices is keyed by.
+*/
+const TIERS = [
+  { key: 'friends', label: 'Friends' },
+  { key: 'standard', label: 'Standard' },
+  { key: 'enterprise', label: 'Enterprise' },
+] as const;
 
 const num = (v: unknown) => {
   const n = typeof v === 'number' ? v : parseFloat(String(v ?? 0));
@@ -409,11 +421,26 @@ export default function PricingPage() {
           <div key={category} style={{ marginBottom: 22 }}>
             <SectionLabel>{category}</SectionLabel>
             <Table>
-              <Row cols="1fr 100px 130px 100px 80px" header>
-                <div>Item</div><div>Unit</div><div>Price</div><div>Status</div><div>On site</div>
+              {/*
+                A service is a row, a tier is a column.
+
+                Standard, Friends and family and Enterprise were three rows,
+                which is the same hour of work listed three times. Adding a
+                second service meant adding three more rows, and nothing tied
+                the three figures together, so changing one quietly left the
+                others no longer half and one and a half of it.
+
+                A price that does not vary shows the same figure across, which
+                is information rather than repetition: it says the discount is
+                on your time, not on your costs.
+              */}
+              <Row cols="1fr 84px 96px 96px 96px 96px 74px" header>
+                <div>Item</div><div>Unit</div>
+                {TIERS.map((t) => <div key={t.key}>{t.label}</div>)}
+                <div>Status</div><div>On site</div>
               </Row>
               {rows.map((i) => (
-                <Row key={i.id} cols="1fr 100px 130px 100px 80px">
+                <Row key={i.id} cols="1fr 84px 96px 96px 96px 96px 74px">
                   <div style={{ opacity: i.active ? 1 : 0.5 }}>
                     <div>
                       {i.name}
@@ -433,17 +460,34 @@ export default function PricingPage() {
                     )}
                   </div>
                   <div style={{ color: C.dim }}>{i.unit || '–'}</div>
-                  <div style={{ color: i.confirmed ? C.text : C.faint }}>
-                    {i.varies && !i.price_high ? (
-                      <span title="Quote this per job">
-                        {money(i.unit_price)} <span style={{ fontSize: 11.5 }}>ref.</span>
-                      </span>
-                    ) : i.price_high ? (
-                      `${money(i.unit_price)}–${money(i.price_high)}`
-                    ) : (
-                      money(i.unit_price)
-                    )}
-                  </div>
+                  {/*
+                    One cell per tier. A price that does not vary prints the
+                    same figure across all three, which is information rather
+                    than repetition: it says the discount is on your time, not
+                    on your costs.
+                  */}
+                  {TIERS.map((t) => {
+                    const p = i.tier_prices?.[t.key];
+                    return (
+                      <div
+                        key={t.key}
+                        style={{
+                          textAlign: 'right',
+                          fontVariantNumeric: 'tabular-nums',
+                          color: i.confirmed ? C.text : C.faint,
+                          opacity: i.active ? 1 : 0.5,
+                        }}
+                      >
+                        {i.varies && !i.price_high ? (
+                          <span title="Quote this per job" style={{ fontSize: 12.5, color: C.faint }}>by job</span>
+                        ) : i.price_high ? (
+                          `${money(p ?? i.unit_price)}–${money(i.price_high)}`
+                        ) : (
+                          money(p ?? i.unit_price)
+                        )}
+                      </div>
+                    );
+                  })}
                   <div>
                     <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: i.confirmed ? C.green : C.amber, cursor: 'pointer' }}>
                       <input
@@ -477,6 +521,7 @@ export default function PricingPage() {
 
       {items.length > 0 && (
         <div style={{ fontSize: 12.5, color: C.faint, marginTop: 6, maxWidth: 640, lineHeight: 1.6 }}>
+          A price that reads the same across all three tiers does not vary by tier.{' '}
           <strong>Confirm</strong> means someone who sets prices has stood behind the number.
           Only confirmed items appear when building an{' '}
           {vocab.estimate?.toLowerCase() ?? 'estimate'}. <strong>Varies by job</strong> marks
