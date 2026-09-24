@@ -257,7 +257,7 @@ export function DropIt({ onClose }: { onClose: () => void }) {
                     place you cannot name is a note you will write once. */}
                 <span style={{ fontSize: 13, color: C.green }}>
                   {chosen
-                    ? `Filed on ${chosen.name}, under Activity.`
+                    ? `Filed on ${chosen.name}, under Now.`
                     : 'Filed. Not attached to a client, so it lives in your notes.'}
                 </span>
                 {chosen && (

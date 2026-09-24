@@ -193,15 +193,42 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
   if (others.length === 0) {
     if (!Object.keys(byOrg).length) return null;
     return (
+      /*
+        Readable from here, not only from over there.
+
+        This line survived four rounds of being complained about, and every
+        fix was to the wording, because the thing driving it is a row whose
+        read_at could only be set by switching workspace and opening the
+        message in its own inbox. Following the link changes workspace;
+        reading it in passing did not count. Marcie's note from 15 September
+        sat on Home every day for nine days after it had been dealt with in
+        person.
+
+        Two affordances now: go there, or mark it read from here. An alert you
+        cannot dismiss from where it is shown is a bug, however true it is.
+      */
       <div style={{ marginBottom: 18, display: 'flex', flexWrap: 'wrap', gap: 14 }}>
         {Object.entries(byOrg).map(([id, o]) => (
-          <button
-            key={id}
-            onClick={async () => { await switchOrg(id); router.push('/'); router.refresh(); }}
-            style={{ background: 'transparent', border: 'none', padding: 0, color: C.dim, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
-          >
-            {o.n} unread message{o.n === 1 ? '' : 's'} in {o.name} &rarr;
-          </button>
+          <span key={id} style={{ display: 'inline-flex', alignItems: 'baseline', gap: 10 }}>
+            <button
+              onClick={async () => { await switchOrg(id); router.push('/'); router.refresh(); }}
+              style={{ background: 'transparent', border: 'none', padding: 0, color: C.dim, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              {o.n} unread message{o.n === 1 ? '' : 's'} in {o.name} &rarr;
+            </button>
+            <button
+              onClick={async () => {
+                const now = new Date().toISOString();
+                const ids = elsewhere.filter((r) => r.org_id === id && !r.read_at).map((r) => r.id);
+                setRows((p) => p.map((x) => (ids.includes(x.id) ? { ...x, read_at: now } : x)));
+                await supabase.from('feedback').update({ read_at: now }).in('id', ids);
+              }}
+              style={{ background: 'transparent', border: 'none', padding: 0, color: C.faint, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}
+              title="Seen it, stop telling me"
+            >
+              Mark read
+            </button>
+          </span>
         ))}
       </div>
     );

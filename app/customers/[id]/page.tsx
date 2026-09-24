@@ -189,6 +189,9 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
        and it is where that content now lives. A bookmark should not open a
        blank tab. */
     if (t === 'work') return 'history';
+    /* Brief, Brand and Documents merged into Them. Links to the old three
+       still exist in notifications and in people's bookmarks. */
+    if (t === 'given' || t === 'brand') return 'now';
     return (t as 'now' | 'given' | 'history' | 'brand' | 'catalog' | 'growth') || 'history';
   });
   /**
@@ -480,7 +483,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
            * wrong shape for it.
            */
           gridTemplateColumns:
-            phone || view === 'given' || view === 'brand' || view === 'catalog' || view === 'growth'
+            phone || view === 'catalog' || view === 'growth'
               ? '1fr'
               : 'minmax(0, 1.25fr) minmax(340px, 1fr)',
           gap: 22,
@@ -654,44 +657,25 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               shown static notes answers a question nobody asked. What changed
               since last time is the question, and it was four tabs along.
             */
+            /*
+              Five tabs for one client, and three of them were one question.
+
+              Activity, Brief, Growth, Documents, Brand. Opening a client you
+              are asking one of three things: what is happening, who are they,
+              or what are we doing to get them found. Brief, Brand and
+              Documents are all the second one — reference material about the
+              company — and splitting them across three tabs meant checking
+              three places to answer it.
+
+              Now, Them, Growth. The right-hand rail does not move: the
+              contact, the terms and the projects are what you need whichever
+              tab you are on, so they are not on a tab at all.
+            */
             items={[
-              { id: 'history', label: 'Activity', icon: 'activity', count: notes.length },
-              /*
-                Work used to be its own tab. It held the plan, the work items
-                and their site — all of which are the answer to "what is going
-                on with this client", which is the question Activity exists
-                for. Two tabs splitting one question meant landing on Activity,
-                seeing three reminders and a log, and having to go looking for
-                the actual work.
-              */
-              { id: 'now', label: 'Brief', icon: 'brief' },
-              /**
-               * Only for businesses that sell a list of things.
-               *
-               * A tab strip is not free. Every business gets Brief and Work
-               * and nobody has to be told what they are; a Catalog tab on a
-               * client who sells services is a tab that opens empty forever,
-               * which teaches people the strip is full of dead ends.
-               */
-              ...(hasCatalog ? [{ id: 'catalog', label: 'Catalog', icon: 'pricing' as const }] : []),
-              /*
-                Growth: what has been done to get them found.
-
-                The pieces existed and were scattered. Their website and the
-                tracking tag sat in the middle of Activity; the search
-                checklist was a 13px text link called "Search setup" in a row
-                of links, next to one called "Their site" that just opened
-                their homepage. Neither read as work, so neither got done.
-
-                One tab, in the order it happens: put the tag on, get them
-                into Search Console, work the checklist. It is also the thing
-                you show them when they ask what they are paying for.
-              */
+              { id: 'history', label: 'Now', icon: 'activity', count: notes.length },
+              { id: 'now', label: 'Them', icon: 'brief' },
               { id: 'growth', label: 'Growth', icon: 'chart' },
-              { id: 'given', label: 'Documents', icon: 'documents', count: counts.given },
-              // A client's brand belongs to that client. The module in the
-              // sidebar is your own; this is theirs.
-              { id: 'brand', label: 'Brand', icon: 'palette' },
+              ...(hasCatalog ? [{ id: 'catalog', label: 'Catalog', icon: 'pricing' as const }] : []),
             ]}
           />
 
@@ -743,36 +727,30 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
               )}
               <Brief customerId={params.id} clientName={customer.name} />
               <ClientUpdate customerId={params.id} clientName={customer.name} />
-            </>
-          )}
 
-
-          {view === 'given' && (
-            <>
-              <Discovery customerId={params.id} />
-              <ClientDocs customerId={params.id} />
-            </>
-          )}
-
-          {view === 'brand' && (
-            <>
-              <BrandCard customerId={params.id} />
               {/*
-                Their messaging, on their record.
+                Brand, messaging and documents used to be two more tabs.
 
-                Colette's framework was written this morning and lived only at
-                /brands/{id} — reachable by opening the client, the Brand tab,
-                then Open brand kit, then scrolling. Three clicks from the
-                place anybody would look for what a client says about
-                themselves. It is the same component and the same row; this is
-                just where you are when you want it.
+                All three answer "who are they" — the brief says what the
+                business does, the brand says what it looks and sounds like,
+                the documents are what they sent. Three tabs meant checking
+                three places for one question, and the messaging framework was
+                a further two clicks past that.
               */}
+              <div style={{ marginTop: 26 }}>
+                <BrandCard customerId={params.id} />
+              </div>
               {orgId && brandId && (
                 <div style={{ marginTop: 22, marginBottom: 22 }}>
                   <Messaging orgId={orgId} brandId={brandId} name={customer.name} />
                 </div>
               )}
               <ClientBrandFiles customerId={params.id} />
+
+              <div style={{ marginTop: 26 }}>
+                <Discovery customerId={params.id} />
+                <ClientDocs customerId={params.id} />
+              </div>
             </>
           )}
 
@@ -970,7 +948,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
           </>)}
         </div>
 
-        <div style={{ display: view === 'given' || view === 'brand' || view === 'catalog' || view === 'growth' ? 'none' : undefined }}>
+        <div style={{ display: view === 'catalog' || view === 'growth' ? 'none' : undefined }}>
           {/*
             The business, then whoever you talk to there.
             
