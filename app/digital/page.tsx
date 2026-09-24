@@ -57,17 +57,20 @@ export default function DigitalPage() {
     key and a status per workspace. A second table for the same idea is how
     you end up with two places that disagree about what is done.
   */
-  const [ticks, setTicks] = useState<Record<string, boolean>>({});
+  const [ticks, setTicks] = useState<Record<string, 'done' | 'skipped' | false>>({});
+  const skipped = Object.fromEntries(
+    Object.entries(ticks).map(([k, v]) => [k, v === 'skipped'])
+  ) as Record<string, boolean>;
   const [loaded, setLoaded] = useState(false);
   const [openTrack, setOpenTrack] = useState<string | null>(null);
   const [openStep, setOpenStep] = useState<string | null>(null);
 
-  const tick = useCallback(async (key: string, on: boolean) => {
-    setTicks((t) => ({ ...t, [key]: on }));
+  const tick = useCallback(async (key: string, next: 'done' | 'skipped' | false) => {
+    setTicks((t) => ({ ...t, [key]: next }));
     const org = await orgNow();
     if (!org) return;
     await supabase.from('seo_tasks').upsert(
-      { org_id: org, customer_id: null, key, status: on ? 'done' : 'todo' },
+      { org_id: org, customer_id: null, key, status: next || 'todo' },
       { onConflict: 'org_id,customer_id,key' }
     );
   }, []);
@@ -180,9 +183,9 @@ export default function DigitalPage() {
           .select('key, status')
           .eq('org_id', org)
           .is('customer_id', null);
-        const out: Record<string, boolean> = {};
+        const out: Record<string, 'done' | 'skipped' | false> = {};
         for (const r of (res.data ?? []) as Array<{ key: string; status: string }>) {
-          out[r.key] = r.status === 'done';
+          if (r.status === 'done' || r.status === 'skipped') out[r.key] = r.status;
         }
         setTicks(out);
       }
@@ -217,9 +220,10 @@ export default function DigitalPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 820 }}>
           {DIGITAL_PLAN.map((track, ti) => {
             const total = track.steps.length;
-            const done = track.steps.filter((st) => st.done === 'built' || ticks[st.key]).length;
+            const done = track.steps.filter((st) => st.done === 'built' || ticks[st.key] === 'done').length;
+            const put = track.steps.filter((st) => ticks[st.key] === 'skipped').length;
             const open = openTrack === track.key;
-            const finished = done === total;
+            const finished = done + put === total && done > 0;
             return (
               <Card key={track.key} style={{ padding: 0, overflow: 'hidden' }}>
                 <button
@@ -240,7 +244,7 @@ export default function DigitalPage() {
                       border: `1px solid ${finished ? C.green + '55' : C.border}`,
                     }}
                   >
-                    {finished ? '\u2713' : ti + 1}
+                    {finished ? '✓' : ti + 1}
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: 'block', fontSize: 15.5, fontWeight: 600, color: C.text }}>
@@ -251,7 +255,7 @@ export default function DigitalPage() {
                     </span>
                   </span>
                   <span style={{ fontSize: 12.5, color: finished ? C.green : C.faint, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
-                    {done} of {total}
+                    {done} of {total}{put ? ` · ${put} skipped` : ''}
                   </span>
                   <span
                     aria-hidden
@@ -261,7 +265,7 @@ export default function DigitalPage() {
                       transition: 'transform .18s ease',
                     }}
                   >
-                    \u25b6
+                    ▶
                   </span>
                 </button>
 
@@ -269,16 +273,23 @@ export default function DigitalPage() {
                   <div style={{ borderTop: `1px solid ${C.border}` }}>
                     {track.steps.map((st, si) => {
                       const built = st.done === 'built';
-                      const ticked = built || !!ticks[st.key];
+                      const ticked = built || ticks[st.key] === 'done';
+                      const isSkipped = ticks[st.key] === 'skipped';
                       const showing = openStep === st.key;
                       return (
                         <div key={st.key} style={{ borderTop: si === 0 ? 'none' : `1px solid ${C.border}` }}>
-                          <div style={{ display: 'flex', gap: 11, alignItems: 'flex-start', padding: '12px 18px' }}>
+                          <div
+                            className="taskRow"
+                            style={{
+                              display: 'flex', gap: 11, alignItems: 'flex-start', padding: '12px 18px',
+                              opacity: isSkipped ? 0.45 : 1,
+                            }}
+                          >
                             {/* Anything already done is ticked and not
                                 clickable, because unticking it would not undo
                                 it and a checkbox that lies is worse than none. */}
                             <button
-                              onClick={() => !built && tick(st.key, !ticks[st.key])}
+                              onClick={() => !built && tick(st.key, ticked ? false : 'done')}
                               disabled={built}
                               aria-label={ticked ? 'Done' : `Mark "${st.do}" done`}
                               style={{
@@ -290,7 +301,7 @@ export default function DigitalPage() {
                                 cursor: built ? 'default' : 'pointer', padding: 0,
                               }}
                             >
-                              {ticked ? '\u2713' : ''}
+                              {ticked ? '✓' : ''}
                             </button>
 
                             <div style={{ flex: 1, minWidth: 0 }}>
@@ -312,8 +323,21 @@ export default function DigitalPage() {
                                 )}
                               </button>
 
+                              {/* The stake, always visible. It was inside the
+                                  How panel, so the list read as chores with no
+                                  stated reason — and somebody deciding what to
+                                  do on a Tuesday needs the why before the
+                                  instructions, not after. */}
+                              {!ticked && !isSkipped && (
+                                <div style={{ fontSize: 12.5, color: C.faint, marginTop: 3, lineHeight: 1.5 }}>
+                                  {st.why}
+                                </div>
+                              )}
+
+                              {/* Numbered steps arrive as real lines, not one
+                                  paragraph with the digits buried in it. */}
                               {showing && st.note && (
-                                <div style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, marginTop: 7, maxWidth: '62ch' }}>
+                                <div style={{ fontSize: 13, color: C.dim, lineHeight: 1.7, marginTop: 7, maxWidth: '62ch', whiteSpace: 'pre-line' }}>
                                   {st.note}
                                 </div>
                               )}
@@ -327,22 +351,49 @@ export default function DigitalPage() {
                                       rel="noreferrer noopener"
                                       style={{ fontSize: 13, color: C.blue, textDecoration: 'none' }}
                                     >
-                                      {st.where.label} &nearr;
+                                      {st.where.label} ↗
                                     </a>
                                   ) : (
                                     <button
                                       onClick={() => router.push(st.where!.href)}
                                       style={{ background: 'transparent', border: 'none', padding: 0, fontSize: 13, color: C.blue, cursor: 'pointer', fontFamily: 'inherit' }}
                                     >
-                                      {st.where.label} &rarr;
+                                      {st.where.label} →
                                     </button>
                                   )}
                                 </div>
                               )}
                             </div>
 
-                            {!showing && st.note && (
-                              <span style={{ fontSize: 12, color: C.faint, flexShrink: 0 }}>How</span>
+                            {/*
+                              How, and a way to put it aside.
+
+                              Not every step is for this week — the map listing
+                              waits on a postcard, and John's tag waits on
+                              John. A list you can only ever add to is a list
+                              you stop opening. Skipped stays visible and
+                              greyed rather than disappearing, because the
+                              point is to stop it nagging, not to pretend it
+                              was never there.
+                            */}
+                            {!built && (
+                              <span className="rowActions" style={{ flexShrink: 0 }}>
+                                {st.note && (
+                                  <button
+                                    onClick={() => setOpenStep(showing ? null : st.key)}
+                                    className="rowBtn rowBtnWide"
+                                  >
+                                    {showing ? 'Less' : 'How'}
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => tick(st.key, ticks[st.key] ? false : 'skipped')}
+                                  className="rowBtn rowBtnWide"
+                                  title={skipped[st.key] ? 'Put it back on the list' : 'Not this week'}
+                                >
+                                  {skipped[st.key] ? 'Undo' : 'Skip'}
+                                </button>
+                              </span>
                             )}
                           </div>
                         </div>
