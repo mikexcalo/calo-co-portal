@@ -11,7 +11,6 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { getCurrentOrg, updateOrg, orgNow} from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
@@ -37,7 +36,6 @@ import {
   type LogoVariant,
 } from '@/lib/spine/logos';
 import {
-  Select,
   Button,
   C,
   Card,
@@ -53,8 +51,8 @@ import {
   brandTabsFor,
 } from '@/components/spine/ui';
 import { FontSpecimen } from '@/components/spine/FontSpecimen';
-import { BrandSpecimen, Pairings } from '@/components/spine/BrandSpecimen';
-import { kitFromOrg, kitFromBrand, type Kit } from '@/lib/spine/brandkit';
+import { Pairings } from '@/components/spine/BrandSpecimen';
+import { kitFromOrg, type Kit } from '@/lib/spine/brandkit';
 import { human } from '@/lib/spine/errors';
 
 type Tab = 'brand' | 'logos' | 'qr' | 'signature';
@@ -91,7 +89,6 @@ export default function BrandKitPage() {
   const phone = useIsPhone();
   const { org, refresh } = useOrg();
   const mods = modulesFor(org);
-  const router = useRouter();
   const [tab, setTab] = useState<Tab>('brand');
 
   /*
@@ -105,32 +102,31 @@ export default function BrandKitPage() {
     An agency holds several identities and swaps between them constantly. That
     is a picker at the top of one screen, not a journey. '' means your own.
   */
-  const [viewing, setViewing] = useState('');
-  const [clientBrands, setClientBrands] = useState<Array<{ id: string; name: string; kit: unknown }>>([]);
+  /*
+    The picker is gone, and with it the third level of navigation.
 
-  useEffect(() => {
-    if (org?.kind !== 'agency') return;
-    let dead = false;
-    (async () => {
-      const { data } = await supabase.from('brands').select('id, name, kit').order('name');
-      if (!dead && data) setClientBrands(data as Array<{ id: string; name: string; kit: unknown }>);
-    })();
-    return () => { dead = true; };
-  }, [org?.id, org?.kind]);
+    This screen had a page tab strip, then a "whose brand" dropdown, then a
+    second tab strip, before a single color appeared. The comment that used to
+    sit on the dropdown said all of that out loud — including that the page
+    strip's Client Brands tab and the dropdown were the same move eight pixels
+    apart — and then kept the dropdown anyway.
 
+    Two of them overlapping is the part that decided it. A client's brand is
+    reached through Client Brands, which is a real list screen that already
+    exists and which the dropdown's own "Open" button was sending you to. So
+    the dropdown was a shortcut to a place one tab away, bought with a whole
+    row of chrome on every visit.
+
+    Two levels now. Brand, Client Brands, Messaging, Card are different
+    things. Colors, Logos, QR Codes, Signature are facets of one brand.
+  */
   const [brand, setBrand] = useState<BrandSettings>(EMPTY_BRAND);
 
-  /* Whatever is being looked at, in one shape. */
-  const shown: Kit = useMemo(() => {
-    if (viewing) {
-      const row = clientBrands.find((b) => b.id === viewing);
-      if (row) return kitFromBrand(row);
-    }
-    return kitFromOrg(org?.name ?? 'Your brand', { brand });
-  }, [viewing, clientBrands, org?.name, brand]);
-
-  /* Somebody else's identity is read here and edited on its own screens. */
-  const mine = !viewing;
+  /* This screen is your own brand. Somebody else's is on Client Brands. */
+  const shown: Kit = useMemo(
+    () => kitFromOrg(org?.name ?? 'Your brand', { brand }),
+    [org?.name, brand]
+  );
   const [sig, setSig] = useState<SignatureFields>(EMPTY_SIGNATURE);
   const [style, setStyle] = useState<SignatureStyle>('stacked');
   const [guideId, setGuideId] = useState('gmail');
@@ -254,53 +250,19 @@ export default function BrandKitPage() {
     <Page
       tabs={brandTabsFor(org?.kind)}
       title="Brand"
-      subtitle={mine ? 'Your logos, colors, type and voice.' : `${shown.name}, held by you, edited on its own screens.`}
+      subtitle="Your logos, colors, type and voice."
       action={
         <>
-          {saved && mine && <Pill tone="green">Saved</Pill>}
-          {mine ? (
-            <Button
-              onClick={() => save(tab === 'brand' ? { brand } : { signature: sig })}
-              disabled={busy || !org}
-            >
-              {busy ? 'Saving…' : 'Save'}
-            </Button>
-          ) : (
-            <Button onClick={() => router.push(`/brands/${viewing}`)}>Open {shown.name}</Button>
-          )}
+          {saved && <Pill tone="green">Saved</Pill>}
+          <Button
+            onClick={() => save(tab === 'brand' ? { brand } : { signature: sig })}
+            disabled={busy || !org}
+          >
+            {busy ? 'Saving…' : 'Save'}
+          </Button>
         </>
       }
     >
-      {/*
-        The picker, where the identities are.
-
-        Only where there is more than one, a contractor holds their own and
-        nothing else, and a dropdown offering one choice is furniture.
-      */}
-      {clientBrands.length > 0 && (
-        /*
-          Three navigation controls stacked, on one screen.
-
-          A page tab strip, then a "Showing" dropdown, then a second tab strip,
-          before any brand appeared. Two of the three even overlapped: the page
-          strip offers Client Brands and this dropdown also switches to a
-          client's brand, so the same move had two controls eight pixels apart.
-
-          Whose brand you are looking at belongs beside the page title, not in
-          the body, and it is a Select like every other dropdown in the product
-          rather than a bare browser control.
-        */
-        <div style={{ maxWidth: 260, marginBottom: 18 }}>
-          <Select
-            value={viewing}
-            onChange={(v) => { setViewing(v); setTab('brand'); }}
-            options={[
-              { value: '', label: `${org?.name ?? 'Your brand'}, yours` },
-              ...clientBrands.map((b) => ({ value: b.id, label: b.name })),
-            ]}
-          />
-        </div>
-      )}
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
@@ -321,9 +283,7 @@ export default function BrandKitPage() {
         ]}
       />
 
-      {!mine ? (
-        <BrandSpecimen kit={shown} />
-      ) : tab === 'brand' ? (
+      {tab === 'brand' ? (
         <div style={{ display: 'grid', gap: 18, maxWidth: 720 }}>
           <Card>
             <SectionLabel>Colors</SectionLabel>

@@ -263,9 +263,8 @@ export async function POST(req: NextRequest) {
       pdfUrl: sent.invoice_pdf ?? null,
     });
   } catch (e) {
-    const msg = (e as Error).message;
-    console.error('[invoices/send]', msg);
-    return NextResponse.json({ error: msg }, { status: 502 });
+    /* The real message goes to the log; the caller gets a sentence. */
+    return NextResponse.json(apiError('invoices/send', e, 'Could not send that invoice.'), { status: 502 });
   }
 }
 

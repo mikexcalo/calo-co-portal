@@ -243,8 +243,7 @@ export async function POST(req: NextRequest) {
         : `Account ready for ${email}, but the email did not send. Copy the link below and send it yourself.`,
     });
   } catch (e) {
-    const msg = (e as Error).message;
-    console.error('[team/invite]', msg);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    /* The real message goes to the log; the caller gets a sentence. */
+    return NextResponse.json(apiError('team/invite', e, 'Could not send that invite.'), { status: 500 });
   }
 }

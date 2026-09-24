@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { whoIsCalling, belongsToCaller } from '@/lib/spine/api-caller';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { apiError } from '@/lib/spine/errors';
 
 export const runtime = 'nodejs';
 
@@ -125,8 +126,7 @@ export async function POST(req: NextRequest) {
       message: payload.hosted_invoice_url ? undefined : 'No payment page is available yet.',
     });
   } catch (e) {
-    const msg = (e as Error).message;
-    console.error('[invoices/pay-link]', msg);
-    return NextResponse.json({ error: msg }, { status: 502 });
+    /* The real message goes to the log; the caller gets a sentence. */
+    return NextResponse.json(apiError('invoices/pay-link', e, 'Could not build a payment link.'), { status: 502 });
   }
 }

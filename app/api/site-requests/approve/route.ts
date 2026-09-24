@@ -25,6 +25,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { PRODUCT } from '@/lib/brand';
+import { apiError } from '@/lib/spine/errors';
 
 export const runtime = 'nodejs';
 
@@ -179,8 +180,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, issueUrl, brief: markdown, note: handoffNote });
   } catch (e) {
-    const msg = (e as Error).message;
-    console.error('[site-requests/approve]', msg);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    /* The real message goes to the log; the caller gets a sentence. */
+    return NextResponse.json(apiError('site-requests/approve', e, 'Could not approve that request.'), { status: 500 });
   }
 }
