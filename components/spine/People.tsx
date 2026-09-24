@@ -26,12 +26,13 @@ interface Person {
   avatar_url?: string | null;
   title: string | null;
   email: string | null;
+  email_alt: string | null;
   phone: string | null;
   note: string | null;
   is_primary: boolean;
 }
 
-const blank = { name: '', title: '', email: '', phone: '', note: '' };
+const blank = { name: '', title: '', email: '', email_alt: '', phone: '', note: '' };
 
 export function People({ orgId, customerId }: { orgId: string; customerId: string }) {
   const [rows, setRows] = useState<Person[]>([]);
@@ -42,12 +43,12 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
   const [confirmDelete, setConfirmDelete] = useState<Person | null>(null);
   /** Who is being edited, and the fields as they stand. */
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [edit, setEdit] = useState({ email: '', phone: '', title: '' });
+  const [edit, setEdit] = useState({ email: '', email_alt: '', phone: '', title: '' });
 
   const load = useCallback(async () => {
     const res = await supabase
       .from('customer_contacts')
-      .select('id, name, title, email, phone, note, is_primary, avatar_url')
+      .select('id, name, title, email, email_alt, phone, note, is_primary, avatar_url')
       .eq('customer_id', customerId)
       .order('is_primary', { ascending: false })
       .order('name');
@@ -66,6 +67,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
       name: draft.name.trim(),
       title: draft.title.trim() || null,
       email: draft.email.trim() || null,
+      email_alt: draft.email_alt.trim() || null,
       phone: draft.phone.trim() || null,
       note: draft.note.trim() || null,
       // The first person added becomes the default. After that it is a
@@ -228,7 +230,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
                   <button
                     onClick={() => {
                       setEditingId(p.id);
-                      setEdit({ email: '', phone: p.phone ?? '', title: p.title ?? '' });
+                      setEdit({ email: '', email_alt: p.email_alt ?? '', phone: p.phone ?? '', title: p.title ?? '' });
                     }}
                     style={{
                       border: 'none',
@@ -242,6 +244,18 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
                   >
                     No email, so you can&apos;t invoice them. Add one
                   </button>
+                )}
+                {/* The other address they also read. John runs a business
+                    out of one gmail and a life out of another, and which one
+                    gets answered is not something the domain tells you. */}
+                {p.email_alt && (
+                  <a
+                    href={`mailto:${p.email_alt}`}
+                    style={{ fontSize: 13, color: C.faint, textDecoration: 'none' }}
+                    title="Also reads this one"
+                  >
+                    also {p.email_alt}
+                  </a>
                 )}
                 {/* A tel: link, because half the time this is being read on a
                     phone with the person's number right there. */}
@@ -258,7 +272,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
                     variant="ghost"
                     onClick={() => {
                       setEditingId(editingId === p.id ? null : p.id);
-                      setEdit({ email: p.email ?? '', phone: p.phone ?? '', title: p.title ?? '' });
+                      setEdit({ email: p.email ?? '', email_alt: p.email_alt ?? '', phone: p.phone ?? '', title: p.title ?? '' });
                     }}
                   >
                     {editingId === p.id ? 'Cancel' : 'Edit'}
@@ -314,6 +328,14 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
                     type="email"
                     placeholder="Email"
                     autoFocus
+                    style={{ ...inputStyle, fontSize: 13.5, padding: '6px 9px' }}
+                  />
+                  <input
+                    value={edit.email_alt}
+                    onChange={(e) => setEdit({ ...edit, email_alt: e.target.value })}
+                    onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(p); }}
+                    type="email"
+                    placeholder="Other email they read"
                     style={{ ...inputStyle, fontSize: 13.5, padding: '6px 9px' }}
                   />
                   <input

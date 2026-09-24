@@ -521,7 +521,7 @@ export default function ProfitLossPage() {
             up top, because the one that is losing money is the one to look at
 , which is what the heading should say.
           */}
-          <SectionLabel>Every {vocab.job.toLowerCase()}, lowest margin first</SectionLabel>
+          <SectionLabel>Every {vocab.job.toLowerCase()}, worst first</SectionLabel>
           {ranked.length === 0 ? (
             <Card>
               <Empty>

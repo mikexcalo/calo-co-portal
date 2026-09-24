@@ -320,23 +320,22 @@ export default function Sidebar() {
    * un-highlights Money and nothing in the sidebar is lit — so the app looks
    * like it has lost track of where you are, on the screen you are looking at.
    */
-  /**
-   * Only Library covers more than one screen.
-   *
-   * This map is left over from the version where Money and Grow were single
-   * rows with tabs behind them. Those became visible rows again and the
-   * families stayed, so standing on Profit & Loss lit Profit & Loss AND
-   * Invoices — two rows claiming to be where you are.
-   */
-  const GROUPS: Record<string, string[]> = {
-    '/pricing': ['/pricing', '/records'],
-    '/records': ['/pricing', '/records'],
-  };
+  /*
+    There was a GROUPS map here, and the comment above it described exactly
+    the bug it still had:
 
+      '/pricing': ['/pricing', '/records'],
+      '/records': ['/pricing', '/records'],
+
+    Left over from when Money was one row with tabs behind it. Those became
+    real rows and the family stayed, so standing on Price List lit Price List
+    AND Records — two rows both claiming to be where you are, which is what
+    makes the sidebar feel like it moves under you when you click.
+
+    A row is where you are, or it is not. There is no family.
+  */
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
-    const family = GROUPS[href];
-    if (family) return family.some((h) => pathname === h || pathname.startsWith(h + '/'));
     return pathname === href || pathname.startsWith(href + '/');
   };
 

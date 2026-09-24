@@ -397,11 +397,13 @@ export default function PricingPage() {
       {loading ? (
         <Empty>Loading…</Empty>
       ) : items.length === 0 ? (
-        <Card>
-          <Empty>
-            No prices yet. Import the list you already have, or add items one at a time.
-          </Empty>
-        </Card>
+        /*
+          Nothing here. The drop zone directly above already says there are no
+          prices and offers both ways to add some, so a second empty state
+          underneath it repeating "import the list you already have, or add
+          items one at a time" was the same sentence twice in two boxes.
+        */
+        null
       ) : (
         Object.entries(grouped).map(([category, rows]) => (
           <div key={category} style={{ marginBottom: 22 }}>

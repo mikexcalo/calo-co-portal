@@ -139,19 +139,6 @@ export const SETUP_ITEMS: SetupItem[] = [
     The plan is one plan, and it lives in DIGITAL_PLAN.
   */
   {
-    key: 'search_console',
-    forRoles: ['owner', 'admin'],
-    title: 'You cannot see what people search to find you',
-    icon: 'search',
-    blocks:
-      'You are guessing about search instead of reading it.\n\nSearch Console is the only place that tells you which queries showed your site, where you ranked on each, and what people actually clicked. Nothing else can tell you that, including the traffic numbers in here, because a visitor arrives without bringing their search along.\n\nThe reason it is not last on the list: it keeps no history from before the day you verify. Every day it is off is a day of data you cannot go back and get.',
-    steps: [
-      'Open [Search Console](https://search.google.com/search-console), add a property, and choose Domain rather than URL prefix so subdomains are covered.',
-      'Add the TXT record it gives you at your registrar. Verification usually lands within the hour.',
-      'Submit the sitemap once it verifies.',
-    ],
-  },
-  {
     key: 'invite_team',
     forRoles: ['owner', 'admin'],
     title: 'Nobody else can sign in yet',
@@ -192,34 +179,24 @@ export const SETUP_ITEMS: SetupItem[] = [
       'One account pays one business. If a client needs card payments into their own account, that is Stripe Connect and a separate piece of work.',
     ],
   },
-  {
-    key: 'google_profile',
-    forRoles: ['owner', 'admin'],
-    title: 'You do not appear in Google Maps',
-    icon: 'target',
-    blocks:
-      'You do not exist in map results, and until somebody claims the profile anybody can edit it.\n\nThat second part is the one people miss. An unclaimed profile is not an absent profile, it is an unowned one, and Google accepts edits to the hours, the category and the address from strangers.\n\nIt also gates the review link below, which gates asking finished jobs for a review. Start the verification early because it moves at the speed of a postcard, about a week, and everything else can be done while it is in the mail.',
-    steps: [
-      'Decide first whether to publish an address. If customers do not come to you, choose that you deliver to them and Google hides it.',
-      'Open [Google Business Profile](https://business.google.com/), then claim or create.',
-      'Verification is a postcard, about a week. Start it and do the rest while it is in the mail.',
-      'The full checklist and the generated address block are in Digital, under Search.',
-    ],
-  },
-  {
-    key: 'review_link',
-    forRoles: ['owner', 'admin'],
-    title: 'Finished jobs are never asked for a review',
-    icon: 'star',
-    blocks:
-      'Finished work never gets asked for a review, and asking is the whole trick.\n\nThe difference between a business with forty reviews and one with four is almost never the quality of the work. It is that one of them asks every time and the other asks when it remembers. Once this link is set, every job that is finished and paid up sends one request by itself and you never think about it again.\n\nNeeds the Google profile above claimed first, because the link comes from inside it.',
-    steps: [
-      'Needs the Google profile claimed first.',
-      'In the profile, Ask for reviews, and copy the link.',
-      'Paste it into Business, What you charge.',
-      'From then on every finished, paid-up job gets one request automatically.',
-    ],
-  },
+  /*
+    'search_console', 'google_profile' and 'review_link' lived here.
+
+    All three were steps in DIGITAL_PLAN already — name_console, the whole map
+    track, and map_review. Home listed them as "You cannot see what people
+    search to find you", "You do not appear in Google Maps" and "Finished jobs
+    are never asked for a review"; Digital listed the same work, in order,
+    with boxes that remember. google_profile's own last step said "the full
+    checklist is in Digital, under Search", which is a task admitting it is a
+    signpost to the real list.
+
+    Two of anything is the problem. Ticking one did nothing to the other, so
+    Home kept asking for work already marked done on Digital.
+
+    The plan is DIGITAL_PLAN. Home keeps the tasks that are not in it —
+    email replies, Stripe, the team invite — and the Digital row carries the
+    rest.
+  */
   {
     key: 'default_branch',
     forRoles: ['owner'],

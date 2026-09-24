@@ -979,7 +979,11 @@ export default function Dashboard() {
               */}
               {clientHours.length > 0 && (
                 <div style={{ marginBottom: 26 }}>
-                  <SectionLabel>Time this month</SectionLabel>
+                  {/* Its own head. It was under "Waiting on others", which it
+                      is not — nor are the quick links below it. One column
+                      heading had quietly become a lid on everything that
+                      happened to be in the right-hand column. */}
+                  <div className="colHead" style={{ marginTop: 26 }}>Where the time went</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     {clientHours.map((r) => (
                       <button
@@ -1012,8 +1016,13 @@ export default function Dashboard() {
                       </button>
                     ))}
                   </div>
+                  {/* A key for a color that is not on screen teaches you to
+                      distrust the key. */}
                   <div style={{ fontSize: 12, color: C.faint, marginTop: 8 }}>
-                    Amber is unbilled. Press <kbd style={{ fontFamily: 'inherit' }}>⌘L</kbd> to log more.
+                    {clientHours.some((r) => r.unbilled_value > 0)
+                      ? 'Amber is not on an invoice yet. '
+                      : 'All of it is on an invoice. '}
+                    Press <kbd style={{ fontFamily: 'inherit' }}>⌘L</kbd> to log more.
                   </div>
                 </div>
               )}

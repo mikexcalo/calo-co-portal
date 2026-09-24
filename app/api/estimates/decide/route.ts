@@ -165,6 +165,27 @@ export async function POST(req: NextRequest) {
         .then(undefined, (e) => console.error('[estimates/decide] billing_live:', e));
     }
 
+    /*
+      Last contact was stale by three weeks.
+
+      The client record said "Last contact Sep 1" directly above a history
+      entry reading "Sep 23 — Accepted the estimate, signed John Litton".
+      Somebody signing your proposal is the strongest contact there is.
+
+      last_contacted_on had exactly one writer: the Log something button. So
+      it only ever recorded the contact you remembered to type in, and every
+      client who actually did something stayed frozen at whenever you last
+      filed a note about them. Clients sorts by this, so the list was ordering
+      by your filing habits rather than by who has gone quiet.
+    */
+    if (job?.customer_id) {
+      await db
+        .from('customers')
+        .update({ last_contacted_on: now.slice(0, 10) })
+        .eq('id', job.customer_id)
+        .then(undefined, (e) => console.error('[estimates/decide] last_contacted_on:', e));
+    }
+
     if (job?.customer_id) {
       await db.from('customer_notes').insert({
         org_id: estimate.org_id,
