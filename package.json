@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "sitemap": "tsx scripts/sitemap-check.ts"
+    "sitemap": "tsx scripts/sitemap-check.ts",
+    "tidy": "find . -path ./node_modules -prune -o \\( -name '* 2.*' -o -name '* 3.*' \\) -print -delete"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",

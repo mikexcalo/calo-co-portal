@@ -44,3 +44,17 @@ next-env.d.ts
 # supabase cli scratch
 supabase/.temp/
 .env*
+
+# iCloud conflict copies.
+#
+# This project lives in a synced Desktop folder, so iCloud periodically writes
+# "<name> 2.sql" and "<name> 3.sql" next to files it thinks diverged. 216 of
+# them accumulated in supabase/migrations and broke the Supabase CLI for
+# months, which is why every migration went in by hand through the dashboard.
+#
+# Ignoring them keeps git clean. It does not stop them appearing, and the CLI
+# still chokes on them: `npm run tidy` clears them, and moving this repo out of
+# the Desktop is the actual fix.
+* 2.*
+* 3.*
+* [0-9].sql
