@@ -233,7 +233,7 @@ export const SETUP_ORDER: Array<{ step: string; note: string }> = [
   },
   {
     step: 'Copy the structured data and paste it into your site\u2019s head tag',
-    note: 'Once for the whole site, not per page. On Wix that is Settings, then Custom Code, then Add Code, Head, All pages. On Vercel it goes in the page layout. Then paste your homepage URL into Google\u2019s Rich Results Test to confirm it reads.',
+    note: 'Once for the whole site, not per page \u2014 in the head, or in the page layout on a site built here. Then paste your homepage URL into Google\u2019s Rich Results Test to confirm it reads.',
   },
   {
     step: 'Open each directory below and paste the address block in unchanged',

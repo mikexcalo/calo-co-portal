@@ -11,11 +11,11 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import {
-  DEFAULT_CITATIONS, SEO_TASKS, SETUP_ORDER, gbpDescription, napBlock, schemaMarkup, titleTags,
+  DEFAULT_CITATIONS, SEO_TASKS, gbpDescription, napBlock, schemaMarkup, titleTags,
   type Profile,
 } from '@/lib/spine/seo';
 import {
@@ -39,6 +39,7 @@ export default function SeoPage() {
    * have to be kept in step.
    */
   const clientId = useSearchParams().get('client');
+  const router = useRouter();
   const [clientName, setClientName] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile>({});
   const [tasks, setTasks] = useState<Record<string, TaskRow['status']>>({});
@@ -159,22 +160,26 @@ export default function SeoPage() {
         <Metric label="Directories claimed" value={`${claimed} / ${citations.length}`} />
       </div>
 
-      {/* The order, which is not the order the checklist is written in.
-          Verification is a postcard, so it starts first and the rest happens
-          while it is in the mail. */}
-      <div style={{ marginBottom: 26 }}>
-        <SectionLabel>Do it in this order</SectionLabel>
-        <Card>
-          <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {SETUP_ORDER.map((s2) => (
-              <li key={s2.step} style={{ fontSize: 14.5, color: C.text, lineHeight: 1.5 }}>
-                {s2.step}
-                <div style={{ fontSize: 13, color: C.faint, marginTop: 3, lineHeight: 1.6 }}>{s2.note}</div>
-              </li>
-            ))}
-          </ol>
+      {/*
+        "Do it in this order" lived here: eight numbered steps that were the
+        map track from DIGITAL_PLAN written out again, on a different tab,
+        as plain text with nothing to tick. Two lists of the same work, and
+        only one of them could remember you had done any of it.
+
+        The plan is on Overview. This tab keeps what is genuinely only here:
+        the details form, the blocks it generates, and the directories.
+      */}
+      {!clientId && (
+        <Card style={{ marginBottom: 26 }}>
+          <div style={{ fontSize: 14, color: C.text, lineHeight: 1.6 }}>
+            The steps are on Overview, in order, with the boxes that remember.
+            This tab is the details and the blocks they generate.
+          </div>
+          <div style={{ marginTop: 10 }}>
+            <Button variant="ghost" onClick={() => router.push('/digital')}>Open the plan</Button>
+          </div>
         </Card>
-      </div>
+      )}
 
       {editing && (
         <Card style={{ marginBottom: 24 }}>
@@ -252,9 +257,11 @@ export default function SeoPage() {
         </div>
       )}
 
-      <SectionLabel>The checklist ({done} of {visible.length})</SectionLabel>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 26 }}>
-        {visible.map((t) => {
+      {/* A client's checklist is the only one they have. Mike's is on
+          Overview, so showing it again here is the third copy. */}
+      {clientId && <SectionLabel>The checklist ({done} of {visible.length})</SectionLabel>}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: clientId ? 26 : 0 }}>
+        {(clientId ? visible : []).map((t) => {
           const status = tasks[t.key] ?? 'todo';
           const open = openTask === t.key;
           return (

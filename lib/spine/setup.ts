@@ -122,29 +122,22 @@ export const SETUP_ITEMS: SetupItem[] = [
       'Then reply to your own test email and watch it file itself against the client and move them to Talking without you touching anything.',
     ],
   },
-  {
-    key: 'old_wix_site',
-    forRoles: ['owner', 'admin'],
-    title: 'mikecalo.co expires on 28 September and redirects nowhere',
-    icon: 'globe',
-    urgent: true,
-    blocks:
-      'Everything anybody has ever linked to mikecalo.co stops working on Monday, and every result Google holds for it disappears rather than moving to calo.company.\n\n'
-      + 'The thing that decides whether this works is not the redirect. It is whether the domain is still paid for afterwards. A 301 only passes anything while somebody can still follow it: Google has to re-crawl the old address, see the redirect, and move each signal across one at a time, which takes weeks and often months. Google\u2019s own guidance is to keep a move redirect up for at least a year and to keep paying for the old domain for at least that long.\n\n'
-      + 'Let it lapse on Monday and the redirect will have been live for four days. Almost nothing will have transferred, and the name becomes available to whoever wants it.\n\n'
-      + 'Two things are worth knowing before you start. The registration is at Network Solutions, not Wix \u2014 Wix only runs the DNS, so renewing inside Wix is not a thing you can do. And calo.company is on Vercel, so the Wix option called \u201credirect to your primary domain\u201d does not apply either; it assumes both ends are Wix sites.',
-    steps: [
-      'Renew it, and nothing else on this list matters if you skip it. [Network Solutions](https://www.networksolutions.com/manage-it/index.jsp) holds the registration \u2014 not Wix, which only runs the DNS. A .co is roughly $20 to $40 for the year. Buy a year; you can drop it next September once the redirect has done its work.',
-      'Write down where you have linked it, before anything changes. Your LinkedIn profile, your email signature, anything printed, and any client site that credits you. Then search Google for ["mikecalo.co" -site:mikecalo.co](https://www.google.com/search?q=%22mikecalo.co%22+-site%3Amikecalo.co) to find the ones somebody else controls. A redirect covers all of these, which is the point of keeping it up \u2014 but the ones you own are worth changing at the source.',
-      'Add the domain to Vercel as a redirect. [calo-co-site, Domains](https://vercel.com/mikexcalo-7384s-projects/calo-co-site/settings/domains), Add Domain, type mikecalo.co, and choose Redirect to calo.company with status 308. Repeat for www.mikecalo.co \u2014 the live site serves on www, so missing it would break the half of the links that use it.',
-      'Vercel will show you the nameservers it wants. Take them to Network Solutions, open the domain, and change the nameservers from ns10.wixdns.net and ns11.wixdns.net to the two Vercel gives you. This is the moment the domain leaves Wix.',
-      'Wait for it to take. Nameserver changes are usually minutes and occasionally a few hours. Vercel will say Valid Configuration when it is done, and it issues the certificate itself.',
-      'Check it by hand rather than trusting the dashboard: open a terminal and run curl -I https://mikecalo.co and curl -I https://www.mikecalo.co. You want 301 or 308 and a Location of https://calo.company. A 200 means you are still hitting Wix.',
-      'Unpublish the Wix site once the redirect answers. In [Wix domains](https://manage.wix.com/account/domains), or Site then Unpublish in the editor. Leaving a second live copy of an outdated site with your name on it is the thing you were trying to avoid.',
-      'Tell Google it moved. In [Search Console](https://search.google.com/search-console) add mikecalo.co as a Domain property, verify it, then use Settings and Change of Address to point it at calo.company. This is the one step that asks Google to move the signals deliberately rather than waiting to be noticed. It needs both properties verified, which is why the calo.company task above comes first.',
-      'Put a reminder in for next September to decide whether to renew again. By then the redirect will have done what it can, and you will be able to see in Search Console whether anything still arrives through the old name.',
-    ],
-  },
+  /*
+    'old_wix_site' lived here: nine steps to renew mikecalo.co, move its
+    nameservers off Wix to Vercel, stand up a 308 and keep paying for a year
+    so Google could walk the signals across.
+
+    It is gone because the decision went the other way. The old site is four
+    pages, two of them Wix template leftovers, and a redirect only passes
+    anything while somebody can still follow it — which is why Google asks
+    for a year, which means buying a domain you do not want in order to
+    inherit an abandoned one. Changing the single link on Stevie's site
+    catches everything that actually points at it.
+
+    Leaving it here left Home telling you to renew and Digital telling you to
+    let it lapse, in the same product, about the same domain, four days out.
+    The plan is one plan, and it lives in DIGITAL_PLAN.
+  */
   {
     key: 'search_console',
     forRoles: ['owner', 'admin'],
@@ -156,7 +149,6 @@ export const SETUP_ITEMS: SetupItem[] = [
       'Open [Search Console](https://search.google.com/search-console), add a property, and choose Domain rather than URL prefix so subdomains are covered.',
       'Add the TXT record it gives you at your registrar. Verification usually lands within the hour.',
       'Submit the sitemap once it verifies.',
-      'Do this before the Wix redirect, not after. Having both the before and after is how you can tell whether the redirect worked.',
     ],
   },
   {

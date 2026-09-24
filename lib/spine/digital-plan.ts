@@ -188,6 +188,37 @@ export const DIGITAL_PLAN: PlanTrack[] = [
         note:
           'It goes to the address you gave even though it is hidden. Nothing else here finishes until the code arrives, so start it and carry on.',
       },
+      /*
+        These three were the tail of SETUP_ORDER, which rendered as a plain
+        numbered list on the Search tab with no checkboxes on it — a second
+        copy of this track, in a second place, that could not record that you
+        had done any of it. They are steps here, and the tools they need still
+        live on Search, which is what `where` is for.
+      */
+      {
+        key: 'map_details',
+        do: 'Fill in the details form on Search, then Save',
+        why: 'Write your name, phone and address once and three other things get written for you.',
+        note:
+          'Name, phone, address, website, category, services and towns. Five minutes. It writes the address block, the structured data and the page titles from what you enter, so you are not typing the same business three times and getting it slightly different each time.',
+        where: { label: 'Search', href: '/seo' },
+      },
+      {
+        key: 'map_schema',
+        do: 'Put the structured data into your site',
+        why: 'It is how Google reads your hours and phone number instead of guessing them.',
+        note:
+          'Search generates it from the form above. Once for the whole site, not per page \u2014 in the head, or the page layout on a site built here, which means calo.company is mine to do. Paste your homepage into Google\u2019s Rich Results Test afterwards to confirm it reads.',
+        where: { label: 'Search', href: '/seo' },
+      },
+      {
+        key: 'map_directories',
+        do: 'Paste the address block into each directory, unchanged',
+        why: 'Three slightly different spellings read to Google as three businesses.',
+        note:
+          'Copy it every time rather than retyping. Retyping is how one business ends up listed as Ltd, Limited and nothing at all, and Google treats those as three separate businesses that each know a third as much about you. The list and the block are both on Search.',
+        where: { label: 'Search', href: '/seo' },
+      },
       {
         key: 'map_review',
         do: 'Paste your review link into Reviews so it asks by itself',

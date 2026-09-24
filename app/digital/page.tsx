@@ -25,6 +25,7 @@ import { DIGITAL_PLAN } from '@/lib/spine/digital-plan';
 import { Button, C, Card, DIGITAL_TABS, Empty, Page, SectionLabel } from '@/components/spine/ui';
 import { Glyph, type IconName } from '@/components/spine/icons';
 import { orgNow } from '@/lib/spine/db';
+import { save } from '@/lib/spine/save';
 
 interface Panel {
   icon: IconName;
@@ -64,16 +65,45 @@ export default function DigitalPage() {
   const [loaded, setLoaded] = useState(false);
   const [openTrack, setOpenTrack] = useState<string | null>(null);
   const [openStep, setOpenStep] = useState<string | null>(null);
+  /*
+    Settled steps fold away.
 
+    A step you have finished is not information any more, it is furniture, and
+    a track that opens onto four struck-through lines buries the one thing
+    left to do. They collapse into a count you can open, which is not the same
+    as deleting them: the whole reason this is a checklist and not a to-do
+    list is that "already done" is an answer worth being able to check.
+
+    Tracks themselves keep their order even when finished, because they are
+    numbered and each one genuinely depends on the one above it.
+  */
+  const [showSettled, setShowSettled] = useState<Record<string, boolean>>({});
+
+  /*
+    This threw the write away, and the write had never once succeeded.
+
+    seo_tasks carried a unique index built on an expression —
+    (org_id, COALESCE(customer_id, '000...'), key) — because customer_id is
+    nullable and NULL never equals NULL. PostgREST can only name plain columns
+    in onConflict, so it matched nothing and Postgres rejected every upsert
+    with 42P10. Nothing looked at the result, so the box went green and the
+    row was never written. Tick two, reload, both gone. The table was empty.
+
+    The index is a real one now. This reverts the tick if the write still
+    fails, because a checkbox that lies about what it saved is worse than a
+    checkbox that refuses.
+  */
   const tick = useCallback(async (key: string, next: 'done' | 'skipped' | false) => {
+    const before = ticks[key] ?? false;
     setTicks((t) => ({ ...t, [key]: next }));
     const org = await orgNow();
     if (!org) return;
-    await supabase.from('seo_tasks').upsert(
+    const res = await save(supabase.from('seo_tasks').upsert(
       { org_id: org, customer_id: null, key, status: next || 'todo' },
       { onConflict: 'org_id,customer_id,key' }
-    );
-  }, []);
+    ));
+    if (res.error) setTicks((t) => ({ ...t, [key]: before }));
+  }, [ticks]);
 
   const load = useCallback(async () => {
     const [sites, tasks, reviews, profile] = await Promise.all([
@@ -271,11 +301,32 @@ export default function DigitalPage() {
 
                 {open && (
                   <div style={{ borderTop: `1px solid ${C.border}` }}>
+                    {(() => {
+                      const settledCount = track.steps.filter(
+                        (st) => st.done === 'built' || ticks[st.key] === 'done' || ticks[st.key] === 'skipped'
+                      ).length;
+                      if (!settledCount || showSettled[track.key]) return null;
+                      return (
+                        <button
+                          onClick={() => setShowSettled((v) => ({ ...v, [track.key]: true }))}
+                          style={{
+                            display: 'block', width: '100%', textAlign: 'left',
+                            padding: '10px 18px', background: 'transparent',
+                            border: 'none', borderBottom: `1px solid ${C.border}`,
+                            fontFamily: 'inherit', fontSize: 12.5, color: C.faint,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {settledCount} settled · show
+                        </button>
+                      );
+                    })()}
                     {track.steps.map((st, si) => {
                       const built = st.done === 'built';
                       const ticked = built || ticks[st.key] === 'done';
                       const isSkipped = ticks[st.key] === 'skipped';
                       const showing = openStep === st.key;
+                      if ((ticked || isSkipped) && !showSettled[track.key]) return null;
                       return (
                         <div key={st.key} style={{ borderTop: si === 0 ? 'none' : `1px solid ${C.border}` }}>
                           <div
@@ -399,6 +450,20 @@ export default function DigitalPage() {
                         </div>
                       );
                     })}
+                    {showSettled[track.key] && (
+                      <button
+                        onClick={() => setShowSettled((v) => ({ ...v, [track.key]: false }))}
+                        style={{
+                          display: 'block', width: '100%', textAlign: 'left',
+                          padding: '10px 18px', background: 'transparent',
+                          border: 'none', borderTop: `1px solid ${C.border}`,
+                          fontFamily: 'inherit', fontSize: 12.5, color: C.faint,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Hide what is settled
+                      </button>
+                    )}
                   </div>
                 )}
               </Card>

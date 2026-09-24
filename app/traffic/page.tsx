@@ -186,8 +186,9 @@ export default function TrafficPage() {
           </div>
 
           <div style={{ fontSize: 12.5, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
-            On Wix: Settings, then Custom Code, add it to the head on all pages. Turning
-            this on before the tag is live is harmless; it just records nothing.
+            It goes in the head of every page. On a site built here it is already in,
+            so you only need this for one somebody else runs. Pressing Start before the
+            tag is live is harmless — it just records nothing until it is.
           </div>
         </Card>
       ) : !loaded ? (
