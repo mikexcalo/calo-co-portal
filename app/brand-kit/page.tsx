@@ -55,8 +55,9 @@ import { Pairings } from '@/components/spine/BrandSpecimen';
 import { kitFromOrg, type Kit } from '@/lib/spine/brandkit';
 import { human } from '@/lib/spine/errors';
 import { Messaging } from '@/components/spine/Messaging';
+import { PlatformVoice } from '@/components/spine/PlatformVoice';
 
-type Tab = 'brand' | 'logos' | 'qr' | 'messaging';
+type Tab = 'brand' | 'logos' | 'qr' | 'messaging' | 'platform';
 
 interface BrandColor {
   name: string;
@@ -281,6 +282,8 @@ export default function BrandKitPage() {
           { id: 'logos', label: 'Logos', icon: 'swatches' },
           { id: 'qr', label: 'QR Codes', icon: 'card' },
           { id: 'messaging', label: 'Messaging', icon: 'brief' },
+          /* The product's own voice and type, which are not the brand's. */
+          { id: 'platform', label: 'Platform', icon: 'layers' },
         ]}
       />
 
@@ -479,6 +482,8 @@ export default function BrandKitPage() {
           company={org?.name ?? 'brand'}
           onChange={(patch) => setBrand((b) => ({ ...b, ...patch }))}
         />
+      ) : tab === 'platform' ? (
+        <PlatformVoice />
       ) : (
         /*
           Messaging, inside the brand rather than beside it.
