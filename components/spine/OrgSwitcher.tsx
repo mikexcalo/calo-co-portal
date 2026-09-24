@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useOrg } from '@/lib/spine/org';
 import { useViewAs } from '@/lib/spine/viewas';
-import { Avatar, C } from './ui';
+import { Avatar, C, useModKey } from './ui';
 import supabase from '@/lib/supabase';
 import { brandAssetUrl } from '@/lib/spine/db';
 
@@ -80,6 +80,71 @@ export function OrgSwitcher() {
   const { viewAs } = useViewAs();
   const [open, setOpen] = useState(false);
 
+  /*
+    Click, read five, click. Four times an hour.
+
+    Switching workspace is the most repeated action in the product and it cost
+    two clicks and a read every time, because the menu had to be opened before
+    it would tell you anything. Three changes, none of them clever:
+
+    Hover opens it, so looking is free and the click is only for choosing.
+
+    The one you were last in sits directly under your own, because switching
+    is almost always a bounce between two — the agency and whichever client
+    you are working on this afternoon — and that pair was buried in
+    alphabetical order.
+
+    Ctrl or Cmd and a number jumps straight there. The handlers for J, K and L
+    already existed; this is the same shape.
+  */
+  const mod = useModKey();
+  const [previous, setPrevious] = useState<string | null>(null);
+  const hoverOff = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /* The keydown handler is registered once. Refs keep it reading the current
+     list instead of the one that existed when it was bound. */
+  const orgsRef = useRef<typeof orgs>(orgs);
+  const orgRef = useRef<string | null>(org?.id ?? null);
+  useEffect(() => {
+    orgsRef.current = [
+      ...orgs.filter((o) => o.id === org?.id),
+      ...orgs.filter((o) => o.id === previous && o.id !== org?.id),
+      ...orgs.filter((o) => o.id !== org?.id && o.id !== previous),
+    ];
+    orgRef.current = org?.id ?? null;
+  }, [orgs, org?.id, previous]);
+
+  const openNow = () => {
+    if (hoverOff.current) clearTimeout(hoverOff.current);
+    if (!single) setOpen(true);
+  };
+  /* A short grace period. A menu that vanishes the instant the pointer
+     crosses a 2px gap is a menu you fight. */
+  const closeSoon = () => {
+    if (hoverOff.current) clearTimeout(hoverOff.current);
+    hoverOff.current = setTimeout(() => setOpen(false), 220);
+  };
+
+  /*
+    Ctrl/Cmd + 1..9 jumps straight to a workspace, in the order they are
+    listed. Both modifiers, because the handlers for J, K and L already accept
+    either and a shortcut that only works on a Mac is a shortcut that lies.
+  */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
+      const n = Number(e.key);
+      if (!n || n < 1 || n > 9) return;
+      const target = orgsRef.current[n - 1];
+      if (!target || target.id === orgRef.current) return;
+      e.preventDefault();
+      setPrevious(orgRef.current);
+      switchOrg(target.id);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [switchOrg]);
+
   if (loading || !org) return null;
 
   /*
@@ -99,8 +164,19 @@ export function OrgSwitcher() {
   */
   const single = orgs.length <= 1 || viewAs !== null;
 
+  /* Where you are, then where you just were, then everybody else. */
+  const ordered = [
+    ...orgs.filter((o) => o.id === org.id),
+    ...orgs.filter((o) => o.id === previous && o.id !== org.id),
+    ...orgs.filter((o) => o.id !== org.id && o.id !== previous),
+  ];
+
   return (
-    <div style={{ position: 'relative' }}>
+    <div
+      style={{ position: 'relative' }}
+      onMouseEnter={openNow}
+      onMouseLeave={closeSoon}
+    >
       <button
         onClick={() => !single && setOpen((v) => !v)}
         style={{
@@ -206,12 +282,12 @@ export function OrgSwitcher() {
               is the same shape either way, and real logos appear as they land
               without the layout moving.
             */}
-            {orgs.map((o) => (
+            {ordered.map((o, n) => (
               <button
                 key={o.id}
                 onClick={() => {
                   setOpen(false);
-                  if (o.id !== org.id) switchOrg(o.id);
+                  if (o.id !== org.id) { setPrevious(org.id); switchOrg(o.id); }
                 }}
                 style={{
                   display: 'flex',
@@ -254,6 +330,19 @@ export function OrgSwitcher() {
                       should say which template. */}
                   {o.is_demo ? 'Demo' : KIND_LABEL[o.kind] ?? 'Contractor'}
                 </span>
+                {/* The shortcut, where you find it by accident. A key hint
+                    nobody can see is a key hint nobody uses. */}
+                {n < 9 && (
+                  <span
+                    style={{
+                      fontSize: 10.5, color: C.faint, flexShrink: 0,
+                      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                      border: `1px solid ${C.border}`, borderRadius: 4, padding: '1px 4px',
+                    }}
+                  >
+                    {mod}{n + 1}
+                  </span>
+                )}
               </button>
             ))}
           </div>
