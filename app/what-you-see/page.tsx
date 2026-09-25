@@ -22,6 +22,7 @@ import { ModuleSwitchboard } from '@/components/spine/ModuleSwitchboard';
 import { C, Card, Empty, Page, SETUP_TABS } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
+import { workspaceColor } from '@/lib/spine/workspace-color';
 
 /** What each one is, to you rather than to a client. */
 const WHAT: Partial<Record<ModuleId, string>> = {
@@ -95,6 +96,19 @@ export default function WhatYouSeePage() {
 
   const off = Object.values(state).filter((v) => v === 'off' || v === false).length;
 
+  /* Merged into settings rather than replacing it, or saving a colour would
+     wipe the brand kit sitting beside it. */
+  const saveColor = async (hex: string) => {
+    if (!org) return;
+    const cur = await supabase.from('orgs').select('settings').eq('id', org.id).maybeSingle();
+    const next = {
+      ...(((cur.data as { settings?: Record<string, unknown> } | null)?.settings) ?? {}),
+      workspace_color: hex,
+    };
+    const res = await saveOrFail(supabase.from('orgs').update({ settings: next }).eq('id', org.id));
+    if (!res.error) refresh();
+  };
+
   return (
     <Page
       title="What you see"
@@ -104,6 +118,49 @@ export default function WhatYouSeePage() {
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 14 }}>
           <div style={{ color: C.red, fontSize: 13.5 }}>{error}</div>
+        </Card>
+      )}
+
+      {/*
+        The colour this workspace is identified by.
+
+        It drives the strip across the top of the app and the plate in the
+        sidebar, which together answer "whose data am I about to change". A
+        workspace with a brand kit is coloured from it automatically; this is
+        for the ones without, and for correcting an automatic pick that reads
+        badly at four pixels.
+
+        Same gate as the modules below: when the agency runs this workspace,
+        the client is told to ask rather than shown a control that refuses.
+      */}
+      {loaded && org && org.kind !== 'agency' && org.self_serve_modules !== false && (
+        <Card style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+            <span
+              aria-hidden
+              style={{
+                width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+                background: workspaceColor(org), border: `1px solid ${C.border}`,
+              }}
+            />
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <div style={{ fontSize: 14, color: C.text }}>Workspace colour</div>
+              <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2, lineHeight: 1.5 }}>
+                The strip at the top of every screen, so nobody edits the wrong business
+                by mistake.
+              </div>
+            </div>
+            <input
+              type="color"
+              value={workspaceColor(org)}
+              onChange={(e) => saveColor(e.target.value)}
+              aria-label="Workspace colour"
+              style={{
+                width: 46, height: 34, padding: 0, borderRadius: 8,
+                border: `1px solid ${C.border}`, background: 'transparent', cursor: 'pointer',
+              }}
+            />
+          </div>
         </Card>
       )}
 

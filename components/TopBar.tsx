@@ -172,11 +172,15 @@ export default function TopBar() {
           ignore. Switching business is the most frequent action of the day for
           the person who has more than one, so it sits in the chrome.
         */}
-        {orgCount > 1 && (
-          <div style={{ minWidth: 170, maxWidth: 240 }}>
-            <OrgSwitcher />
-          </div>
-        )}
+        {/*
+          The pill moved to the sidebar and became the name plate.
+
+          Two controls carried the identity: a pill here and a product name in
+          the sidebar corner. The corner had the size and the weight and named
+          the software; the pill had the actual answer and sat across the
+          screen from it. The plate is both, in the place the eye already goes
+          first, and pressing it opens this same switcher.
+        */}
 
         <CommandBar trigger={phone} />
 

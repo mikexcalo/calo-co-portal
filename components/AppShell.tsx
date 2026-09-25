@@ -16,6 +16,7 @@ import { useOrg } from '@/lib/spine/org';
 import { BottomBar } from '@/components/spine/BottomBar';
 import { AddSheet } from '@/components/spine/AddSheet';
 import { pathAllowed } from '@/lib/spine/modules';
+import { workspaceColor } from '@/lib/spine/workspace-color';
 import { PRODUCT } from '@/lib/brand';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -185,10 +186,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   */
   const blocked = !orgLoading && org && !pathAllowed(org, pathname);
 
+  /* One resolver, shared with the name plate, so the two can never disagree
+     about which business you are standing in. */
+  const stripColor = workspaceColor(org);
+
   // Phone: the sidebar becomes a drawer. Desktop is unchanged.
   if (phone) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', paddingTop: 4 }}>
+        <IdentityStrip color={stripColor} />
         <div
           style={{
             display: 'flex',
@@ -271,7 +277,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       is showing you what somebody else sees. The shell is VIEW_AS_BAR shorter
       while it is on, so the bar has its own strip and nothing is underneath it.
     */
-    <div style={{ display: 'flex', height: '100vh', paddingTop: viewAs ? VIEW_AS_BAR : 0 }}>
+    <div style={{ display: 'flex', height: '100vh', paddingTop: viewAs ? VIEW_AS_BAR : 4 }}>
+      <IdentityStrip color={stripColor} />
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <TopBar />
@@ -308,5 +315,35 @@ function ModuleOff() {
         Nothing is lost. Whoever set this workspace up can turn it back on.
       </div>
     </div>
+  );
+}
+
+/**
+ * Four pixels of "which business is this".
+ *
+ * The one thing on screen that cannot be mistaken for content, in the one
+ * place your eye passes over on the way to everything else. Near-black in the
+ * studio, the client's own colour in a client — so switching workspace
+ * changes something you notice without reading.
+ *
+ * Signed-in pages only. A proposal or an invoice belongs to the business that
+ * sent it, and a stranger reading one should see their document, not a strip
+ * from the software it was written in.
+ */
+function IdentityStrip({ color }: { color: string }) {
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 4,
+        background: color,
+        zIndex: 200,
+        pointerEvents: 'none',
+      }}
+    />
   );
 }

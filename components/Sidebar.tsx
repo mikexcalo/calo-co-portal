@@ -12,6 +12,14 @@ import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
 import { useOrg } from '@/lib/spine/org';
+import { OrgSwitcher } from '@/components/spine/OrgSwitcher';
+import {
+  workspaceColor,
+  workspaceKindLabel,
+  workspaceInitials,
+  workspaceLogo,
+  readableOn,
+} from '@/lib/spine/workspace-color';
 import { modulesFor, navFor } from '@/lib/spine/modules';
 import { C, radius } from '@/components/spine/ui';
 import { PRODUCT } from '@/lib/brand';
@@ -554,23 +562,18 @@ export default function Sidebar() {
         }}
       >
         {/*
-          The product, because the workspace is named in the bar.
+          The workspace, not the product.
 
-          This showed the business name and so did the switcher two inches to
-          the right: the same words twice on one line, which is what made the
-          top of the app feel cluttered. The switcher is the identity and the
-          control; this is just the roof over it.
+          This said CALO&CO on every screen of every business, because the
+          switcher in the top bar was carrying the identity. That put the one
+          fact you most need — whose data am I about to change — in a pill on
+          the far side of the screen, and the biggest, boldest thing in the
+          corner named the software instead.
+
+          The plate is the identity and the control. The pill in the top bar
+          is gone, so there is one of these and not two.
         */}
-        <span
-          onClick={() => router.push('/')}
-          style={{
-            fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
-            fontSize: 15.5, fontWeight: 700, color: C.text,
-            letterSpacing: '-0.2px', cursor: 'pointer',
-          }}
-        >
-          {PRODUCT}
-        </span>
+        <NamePlate />
       </div>
 
       {/*
@@ -779,6 +782,121 @@ export default function Sidebar() {
         send this to see", and that person owns their business. It is one
         button in the top bar now, beside the rest of the controls.
       */}
+    </div>
+  );
+}
+
+/**
+ * Who you are working as, at the top of the sidebar.
+ *
+ * Colour, mark, name, and what kind of business it is. The colour is the same
+ * one the strip across the top uses, from the same resolver, so the two
+ * cannot drift apart.
+ *
+ * Pressing it opens the switcher that used to live in the top bar. The plate
+ * shows where you are; the switcher is how you leave.
+ */
+function NamePlate() {
+  const { org } = useOrg();
+  const color = workspaceColor(org);
+  const logo = workspaceLogo(org);
+  const [open, setOpen] = useState(false);
+
+  if (!org) {
+    return <span style={{ fontSize: 13, color: C.faint }}>Loading…</span>;
+  }
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        title="Switch workspace"
+        style={{
+          display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+          background: 'transparent', border: 'none', padding: 0,
+          cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
+        }}
+      >
+        {/*
+          The mark. A logo when the business has one, its initials when not,
+          on the workspace colour either way — so the shape and the position
+          never move between workspaces, only the colour and the letters.
+        */}
+        <span
+          style={{
+            width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+            background: color,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            overflow: 'hidden',
+          }}
+        >
+          {logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logo}
+              alt=""
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : (
+            <span
+              style={{
+                fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
+                fontSize: 13, fontWeight: 700, letterSpacing: '-0.2px',
+                color: readableOn(color),
+              }}
+            >
+              {workspaceInitials(org.name)}
+            </span>
+          )}
+        </span>
+
+        <span style={{ minWidth: 0, flex: 1 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span
+              style={{
+                fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
+                fontSize: 14, fontWeight: 600, color: C.text,
+                letterSpacing: '-0.1px',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}
+            >
+              {org.name}
+            </span>
+            {/* Stays on the plate, where it was on the pill. Nobody should
+                have to remember which of these is not a real business. */}
+            {org.is_demo && (
+              <span
+                style={{
+                  fontSize: 9, fontWeight: 600, letterSpacing: '.06em',
+                  textTransform: 'uppercase', color: C.amber,
+                  border: `1px solid ${C.amber}55`, borderRadius: 4,
+                  padding: '1px 4px', flexShrink: 0,
+                }}
+              >
+                Demo
+              </span>
+            )}
+          </span>
+          <span
+            style={{
+              display: 'block', fontSize: 11, color: C.faint, marginTop: 1,
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}
+          >
+            {workspaceKindLabel(org.kind)}
+          </span>
+        </span>
+      </button>
+
+      {/* The existing switcher, unchanged, hung off the plate. */}
+      {open && (
+        <>
+          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
+          <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, zIndex: 50 }}>
+            <OrgSwitcher />
+          </div>
+        </>
+      )}
     </div>
   );
 }
