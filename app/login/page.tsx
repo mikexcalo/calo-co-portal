@@ -594,11 +594,18 @@ function LoginForm() {
         >
           Don&apos;t have an account yet?
           <br />
-          Workspaces are set up for you.{' '}
-          <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: ACCENT, textDecoration: 'none' }}>
-            get in touch
-          </a>
-          .
+          {/* Was a mailto to a personal Gmail, on the page every stranger
+              reaches first. */}
+          Workspaces are set up for you.
+          {SUPPORT_EMAIL ? (
+            <>
+              {' '}
+              <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: ACCENT, textDecoration: 'none' }}>
+                get in touch
+              </a>
+              .
+            </>
+          ) : null}
           <div style={{ marginTop: 14 }}>
             <a href="/trust" style={{ color: FAINT, textDecoration: 'underline' }}>
               How we look after your data

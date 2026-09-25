@@ -52,6 +52,18 @@ export interface SetupItem {
    * label stops meaning anything the second time it is used loosely.
    */
   urgent?: boolean;
+  /**
+   * Maintenance of the platform itself, not of a business using it.
+   *
+   * Every item in this file is one of these: a GitHub default branch, a
+   * Supabase plan that pauses when idle, DNS for inbound mail, whether
+   * sending has been tested end to end. None of it is work a roofer or a
+   * studio owner would ever do, and two of them name real clients.
+   *
+   * They were showing on every workspace's Home, six at a time, several
+   * marked URGENT. Flagged so they stay with whoever builds this.
+   */
+  platformOnly?: true;
   /** Real money, per month, where there is any. */
   cost?: string;
   /** Only shown when the business actually needs it. */
@@ -72,6 +84,7 @@ export interface SetupItem {
 export const SETUP_ITEMS: SetupItem[] = [
   {
     key: 'tester_brief',
+    platformOnly: true,
     onlyOrg: 'lakemere',
     forRoles: ['looking', 'delivery'],
     title: 'What we are actually asking you to do',
@@ -91,6 +104,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   },
   {
     key: 'test_send',
+    platformOnly: true,
     forRoles: ['owner', 'admin', 'finance'],
     title: 'Sending has never been tested end to end',
     icon: 'send',
@@ -107,6 +121,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   },
   {
     key: 'email_domain',
+    platformOnly: true,
     forRoles: ['owner', 'admin', 'finance'],
     title: 'Email replies do not reach the platform',
     icon: 'mail',
@@ -140,6 +155,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   */
   {
     key: 'invite_team',
+    platformOnly: true,
     forRoles: ['owner', 'admin'],
     title: 'Nobody else can sign in yet',
     icon: 'people',
@@ -153,6 +169,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   },
   {
     key: 'supabase_pro',
+    platformOnly: true,
     forRoles: ['owner'],
     title: 'The database pauses itself after a week idle',
     icon: 'records',
@@ -167,6 +184,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   },
   {
     key: 'stripe',
+    platformOnly: true,
     forRoles: ['owner', 'admin', 'finance'],
     title: 'Clients cannot pay an invoice by card',
     icon: 'card',
@@ -218,6 +236,7 @@ export const SETUP_ITEMS: SetupItem[] = [
   */
   {
     key: 'default_branch',
+    platformOnly: true,
     forRoles: ['owner'],
     title: 'GitHub still defaults to a stale branch',
     icon: 'layers',

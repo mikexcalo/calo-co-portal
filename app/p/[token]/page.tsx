@@ -52,18 +52,22 @@ const RULE = '#E4E7EB';
 */
 export async function generateMetadata(
   { params }: { params: { token: string } }
-): Promise<{ title: string }> {
+): Promise<{ title: string; description: string }> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anon) return { title: 'Pitch' };
+  /* description too, or it inherits the product's own strapline. */
+  if (!url || !anon) return { title: 'Pitch', description: '' };
   try {
     const sb = createClient(url, anon, { auth: { persistSession: false } });
     const { data } = await sb.rpc('read_pitch', { token: params.token });
     const p = data as PitchPayload | null;
-    if (!p?.title) return { title: 'Pitch' };
-    return { title: p.org?.name ? `${p.title} — ${p.org.name}` : p.title };
+    if (!p?.title) return { title: 'Pitch', description: '' };
+    return {
+      title: p.org?.name ? `${p.title} \u2014 ${p.org.name}` : p.title,
+      description: p.org?.name ? `A pitch from ${p.org.name}.` : '',
+    };
   } catch {
-    return { title: 'Pitch' };
+    return { title: 'Pitch', description: '' };
   }
 }
 

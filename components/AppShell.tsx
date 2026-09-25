@@ -163,6 +163,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   if (isBarePage) return <>{children}</>;
 
+  /*
+    A module switched off has to stop rendering, not redirect after rendering.
+
+    The effect above calls router.replace('/'), which fires after the page has
+    already painted. So typing the address of a switched-off module showed the
+    module — its heading, its data, its buttons — and then bounced. Long
+    enough to read, and on a slow connection long enough to click.
+
+    Blocked before children mount. The redirect above still runs and is what
+    actually moves you; this is what stops you seeing the page while it does.
+
+    Worth being straight about the limit: this is a product control, not a
+    security boundary. A switched-off module is still the workspace's own
+    data, so row-level security has no reason to refuse it and someone
+    determined could read it through the API. Enforcing it server-side would
+    mean a database lookup in middleware on every request, which is the cost
+    that was just taken out. Hiding it in the interface is the right level for
+    "you did not buy this"; it is not the right level for a secret, and
+    nothing secret is behind one of these.
+  */
+  const blocked = !orgLoading && org && !pathAllowed(org, pathname);
+
   // Phone: the sidebar becomes a drawer. Desktop is unchanged.
   if (phone) {
     return (
@@ -216,7 +238,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </>
         )}
 
-        <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>{children}</main>
+        <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          {blocked ? <ModuleOff /> : children}
+        </main>
 
         {/*
           A bar at the bottom rather than a drawer at the top. A hamburger
@@ -252,7 +276,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <TopBar />
         <main style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
-          {children}
+          {blocked ? <ModuleOff /> : children}
         </main>
       </div>
       <TutorialPanel />
@@ -262,6 +286,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <ViewAsBar />
       <TourRunner />
       <SaveFailed />
+    </div>
+  );
+}
+
+/**
+ * What a switched-off module shows instead of itself.
+ *
+ * Says who can change it rather than just refusing, because the person
+ * reading this is usually a client and the answer is always "ask the studio".
+ * No data, no heading from the module, nothing that hints at what is behind
+ * it — the point is that it is not theirs to see yet.
+ */
+function ModuleOff() {
+  return (
+    <div style={{ padding: '64px 28px', maxWidth: 480, margin: '0 auto', textAlign: 'center' }}>
+      <div style={{ fontSize: 16, color: '#1a1a1a', marginBottom: 8 }}>
+        This part is switched off
+      </div>
+      <div style={{ fontSize: 14, color: '#69727D', lineHeight: 1.6 }}>
+        Nothing is lost. Whoever set this workspace up can turn it back on.
+      </div>
     </div>
   );
 }

@@ -22,6 +22,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Button, C, money, inputStyle, Select, Sheet } from '@/components/spine/ui';
 import { createTimeEntry, listBillableJobs, orgNow } from '@/lib/spine/db';
 import { human } from '@/lib/spine/errors';
@@ -68,6 +69,7 @@ export function parseDuration(raw: string): number | null {
 const QUICK = ['15m', '30m', '45m', '1h', '2h'];
 
 export default function LogTime({ onClose }: { onClose: () => void }) {
+  const pathname = usePathname();
   const [jobs, setJobs] = useState<BillableJob[]>([]);
   const [jobId, setJobId] = useState('');
   const [dur, setDur] = useState('');
@@ -86,13 +88,33 @@ export default function LogTime({ onClose }: { onClose: () => void }) {
         if (!org) return;
         const rows = await listBillableJobs(org);
         setJobs(rows);
-        // Most recently touched, because that is nearly always the one.
-        if (rows.length) setJobId(rows[0].id);
+
+        /*
+          The job you are looking at, not the one you touched last.
+
+          This picked rows[0] — most recently updated across the whole
+          workspace — no matter where it was opened from. Open Log time on
+          Costa Residence's page and the hour went to Brandt & Sons, at
+          Brandt's rate, because Brandt's job had been edited more recently.
+          Two clients wrong in one action: the wrong job and the wrong money.
+
+          Nothing was passed in because the dialog lives in the top bar, so it
+          reads the address instead. /jobs/<id> means that job. /customers/<id>
+          means that client's most recent job. Anywhere else keeps the old
+          behaviour, which is a reasonable guess when there is nothing to go on.
+        */
+        const onJob = pathname.match(/^\/jobs\/([0-9a-f-]{36})/i)?.[1];
+        const onClient = pathname.match(/^\/customers\/([0-9a-f-]{36})/i)?.[1];
+
+        const fromJob = onJob ? rows.find((r) => r.id === onJob) : undefined;
+        const fromClient = onClient ? rows.find((r) => r.customer_id === onClient) : undefined;
+        const pick = fromJob ?? fromClient ?? rows[0];
+        if (pick) setJobId(pick.id);
       } catch (e) {
         setErr(human(e));
       }
     })();
-  }, []);
+  }, [pathname]);
 
   const job = useMemo(() => jobs.find((j) => j.id === jobId) ?? null, [jobs, jobId]);
   const hours = parseDuration(dur);

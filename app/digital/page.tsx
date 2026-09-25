@@ -22,6 +22,8 @@ import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { SEO_TASKS } from '@/lib/spine/seo';
 import { DIGITAL_PLAN } from '@/lib/spine/digital-plan';
+import { isPlatformOrg } from '@/lib/spine/platform';
+import { useOrg } from '@/lib/spine/org';
 import { Button, C, Card, DIGITAL_TABS, Empty, Page, SectionLabel } from '@/components/spine/ui';
 import { Glyph, type IconName } from '@/components/spine/icons';
 import { orgNow } from '@/lib/spine/db';
@@ -42,6 +44,8 @@ interface Panel {
 
 export default function DigitalPage() {
   const router = useRouter();
+  const { org } = useOrg();
+  const mine = isPlatformOrg(org?.slug);
   const [panels, setPanels] = useState<Panel[] | null>(null);
   const [gbp, setGbp] = useState<string | null>(null);
 
@@ -244,9 +248,21 @@ export default function DigitalPage() {
         for a business nobody searches by name. Closed by default, open the one
         you are on.
       */}
+      {/*
+        The plan below is one person's, not every business's.
+
+        DIGITAL_PLAN names a specific domain, a specific friend's website and
+        a specific person's name in search results — "So searching Mike Calo
+        finds you rather than an actor, a basketball player and a college
+        pitcher." It was rendering in every workspace with Digital switched
+        on, which included Lakemere, a real client.
+
+        The cards above are real state and belong to whoever is looking. The
+        plan is the platform owner's own to-do list and stays with them.
+      */}
       {!loaded ? (
         <Empty>Loading…</Empty>
-      ) : (
+      ) : !mine ? null : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 820 }}>
           {DIGITAL_PLAN.map((track, ti) => {
             const total = track.steps.length;

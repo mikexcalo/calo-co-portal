@@ -11,6 +11,34 @@ import { Form } from './Form';
 
 export const dynamic = 'force-dynamic';
 
+/*
+  The tab said "CALO&CO".
+
+  This page sets no metadata, so it inherited the root layout's, which names
+  the product. A stranger filling in Harbor Light Roofing's enquiry form saw
+  another company's name in the browser tab, and anybody sharing the link got
+  "CALO&CO, run the work, bill the work." as the preview text.
+
+  The business whose form it is, and nothing else.
+*/
+export async function generateMetadata(
+  { params }: { params: { token: string } }
+): Promise<{ title: string; description: string }> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anon) return { title: 'Get in touch', description: '' };
+  try {
+    const db = createClient(url, anon, { auth: { persistSession: false } });
+    const { data } = await db.rpc('business_name_for_intake', { t: params.token });
+    const name = (data as string | null) ?? null;
+    return name
+      ? { title: `Get in touch · ${name}`, description: `Send ${name} a message.` }
+      : { title: 'Get in touch', description: '' };
+  } catch {
+    return { title: 'Get in touch', description: '' };
+  }
+}
+
 export default async function EnquiryPage({ params }: { params: { token: string } }) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

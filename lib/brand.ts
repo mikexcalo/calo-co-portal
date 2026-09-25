@@ -33,5 +33,15 @@ export const PROVIDER = 'CALO&CO';
  */
 export const AUTH_ISSUER = 'CALO&CO';
 
-/** Where to write when something is wrong. */
-export const SUPPORT_EMAIL = 'mikexcalo@gmail.com';
+/**
+ * Where to write when something is wrong.
+ *
+ * This was one person's personal Gmail, hardcoded, printed as a mailto on the
+ * sign-in page and the public trust page — both of which a stranger reaches
+ * before they have any relationship with anybody.
+ *
+ * Empty unless SUPPORT_EMAIL is set. A missing contact link is better than
+ * one that hands out somebody's private address, and every place that uses
+ * this now hides the link rather than rendering a broken one.
+ */
+export const SUPPORT_EMAIL = (process.env.NEXT_PUBLIC_SUPPORT_EMAIL || '').trim();

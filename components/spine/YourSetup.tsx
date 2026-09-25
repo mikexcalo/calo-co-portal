@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { SETUP_ITEMS } from '@/lib/spine/setup';
+import { isPlatformOrg } from '@/lib/spine/platform';
 import { useOrg } from '@/lib/spine/org';
 import { useViewAs } from '@/lib/spine/viewas';
 import { Button, C, Card, SectionLabel } from './ui';
@@ -136,6 +137,7 @@ export function YourSetup() {
     ? SETUP_ITEMS.some(
         (i) =>
           i.urgent &&
+          (!i.platformOnly || isPlatformOrg(org.slug)) &&
           (!i.appliesTo || i.appliesTo === org.kind) &&
           (!i.onlyOrg || i.onlyOrg === org.slug) &&
           (state[i.key] ?? 'todo') !== 'done' &&
@@ -183,6 +185,8 @@ export function YourSetup() {
    */
   const items = SETUP_ITEMS
     .filter((i) =>
+      // Platform maintenance stays with whoever builds the platform.
+      (!i.platformOnly || isPlatformOrg(org.slug)) &&
       (!i.appliesTo || i.appliesTo === org.kind) &&
       // Anything addressed to one workspace stays there.
       (!i.onlyOrg || i.onlyOrg === org.slug) &&

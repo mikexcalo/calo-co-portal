@@ -147,11 +147,20 @@ export default function TrustPage() {
             lineHeight: 1.7,
           }}
         >
+          {/* The address was one person's Gmail. Without one configured the
+              sentence stands on its own rather than offering a link that
+              hands out somebody's private inbox. */}
           Have a question this page doesn&apos;t answer, or a security concern to report?{' '}
-          <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: ACCENT, textDecoration: 'none' }}>
-            Tell us
-          </a>
-          . Security reports are welcome and always answered.
+          {SUPPORT_EMAIL ? (
+            <>
+              <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: ACCENT, textDecoration: 'none' }}>
+                Tell us
+              </a>
+              . Security reports are welcome and always answered.
+            </>
+          ) : (
+            <>Security reports are welcome and always answered.</>
+          )}
           <div style={{ marginTop: 14 }}>
             <Link href="/login" style={{ color: ACCENT, textDecoration: 'none', fontSize: 14 }}>
               ← Back to sign in
