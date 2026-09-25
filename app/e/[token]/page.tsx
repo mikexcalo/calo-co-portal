@@ -191,6 +191,28 @@ export default async function PublicEstimate({
   const options = rows.filter((l) => l.optional);
   const subtotal = required.reduce((s, l) => s + Number(l.total), 0);
 
+  /*
+    What shape is this arrangement? Worked out once, here.
+
+    It was worked out three times — in the on-screen totals, in the PDF
+    totals, and not at all for the note, which was simply hardcoded. That is
+    how the total came to be labelled Monthly on a roofer's one-off job while
+    the note underneath named a $40 fee that was nowhere on the document.
+
+      recurringLines   priced per month
+      ratedLines       a rate with no quantity, charged when used
+      fixedLines       everything else: the actual one-off work
+
+    isRetainer means every priced line recurs, which is the only case where
+    the word Monthly is true of the total.
+  */
+  const recurringLines = required.filter((l) => l.unit === 'month');
+  const ratedLines = required.filter((l) => Number(l.qty) === 0 && Number(l.unit_price) > 0);
+  const fixedLines = required.filter(
+    (l) => !recurringLines.includes(l) && !ratedLines.includes(l)
+  );
+  const isRetainer = recurringLines.length > 0 && fixedLines.length === 0;
+
   // Defensive: these are jsonb, and a hand-edited row could hold anything.
   // This page is public, so a bad value must render as nothing rather than
   // throw a 500 at a client who is trying to accept.
@@ -260,14 +282,19 @@ export default async function PublicEstimate({
               };
             }),
             totals: (() => {
-              const recurring = required.filter((l) => l.unit === 'month');
-              const rated = required.filter((l) => Number(l.qty) === 0 && Number(l.unit_price) > 0);
-              const monthly = recurring.reduce((t, l) => t + Number(l.total), 0);
-              const out = [{ label: 'Monthly', value: money(monthly || Number(estimate.total) || subtotal) }];
-              for (const r of rated) out.push({ label: `Per ${r.unit ?? 'hour'} of work`, value: money(Number(r.unit_price)) });
+              const monthly = recurringLines.reduce((t, l) => t + Number(l.total), 0);
+              const out = [{
+                label: isRetainer ? 'Monthly' : 'Total',
+                value: money(isRetainer ? monthly : (Number(estimate.total) || subtotal)),
+              }];
+              for (const r of ratedLines) out.push({ label: `Per ${r.unit ?? 'hour'} of work`, value: money(Number(r.unit_price)) });
               return out;
             })(),
-            note: 'The $40 covers the platform and your hosting. The hourly only gets charged when you actually ask for work, so plenty of months that\'s nothing.',
+            /* Same reasoning as the on-screen copy: no sentence is true for
+               every business, so there is no hardcoded one. */
+            note: (isRetainer && ratedLines.length > 0)
+              ? 'The monthly amount is charged every month. The hourly rate is only charged for work you ask for.'
+              : undefined,
             included: scopeIn,
             sections: [
               ...asQuestions(estimate.notes),
@@ -478,11 +505,9 @@ export default async function PublicEstimate({
             summed as zero.
           */}
           {(() => {
-            const recurring = required.filter((l) => l.unit === 'month');
-            const rated = required.filter((l) => Number(l.qty) === 0 && Number(l.unit_price) > 0);
-            const fixed = required.filter((l) => !recurring.includes(l) && !rated.includes(l));
-            const monthly = recurring.reduce((t, l) => t + Number(l.total), 0);
-            const isRate = recurring.length > 0 && fixed.length === 0;
+            const monthly = recurringLines.reduce((t, l) => t + Number(l.total), 0);
+            const isRate = isRetainer;
+            const rated = ratedLines;
             return (
               /*
                 Two numbers, at the same weight, because there are two.
@@ -504,9 +529,21 @@ export default async function PublicEstimate({
                     flexWrap: 'wrap', borderTop: '2px solid #1a1a1a', paddingTop: 14,
                   }}
                 >
+                  {/*
+                    The label follows the lines. It used to say Monthly always.
+
+                    This document is sent by every business on the platform,
+                    and the word was hardcoded from the one arrangement it was
+                    first written for — a $40 monthly platform fee. So a
+                    roofer's $24,680 re-roof printed as $24,680 MONTHLY, in
+                    24px, on the page the customer signs from.
+
+                    Monthly only when every priced line is monthly. Otherwise
+                    it is a total, because that is what it is.
+                  */}
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.07em', color: '#777', fontWeight: 600 }}>
-                      Monthly
+                      {isRate ? 'Monthly' : 'Total'}
                     </div>
                     <div style={{ fontSize: 26, fontWeight: 600, color: '#111', marginTop: 3 }}>
                       {money(isRate ? monthly : Number(estimate.total) || subtotal)}
@@ -537,10 +574,24 @@ export default async function PublicEstimate({
             is throat-clearing. This is the line that answers the question
             somebody actually has when they see two prices.
           */}
-          <div style={{ marginTop: 16, padding: '13px 15px', background: '#f7f7f5', borderRadius: 8, fontSize: 14.5, color: '#333', lineHeight: 1.6 }}>
-            The $40 covers the platform and your hosting. The hourly only gets charged when you
-            actually ask for work, so plenty of months that's nothing.
-          </div>
+          {/*
+            This was one studio's own retainer wording, printed on every
+            proposal every business on the platform sends. "The $40 covers the
+            platform and your hosting" appeared above a roofer's re-roof and a
+            startup's pilot, naming a price that was not on the document.
+
+            There is no sentence that is true for all of them, so there is no
+            hardcoded sentence. When an arrangement genuinely has a standing
+            fee and a rate, the two prices above already say so, and anything
+            further belongs in the estimate's own notes where whoever sent it
+            wrote it.
+          */}
+          {isRetainer && ratedLines.length > 0 && (
+            <div style={{ marginTop: 16, padding: '13px 15px', background: '#f7f7f5', borderRadius: 8, fontSize: 14.5, color: '#333', lineHeight: 1.6 }}>
+              The monthly amount is charged every month. The hourly rate is only charged
+              for work you ask for, so a quiet month costs the monthly amount alone.
+            </div>
+          )}
 
           {/*
             What you get folds like everything else, and starts open.
