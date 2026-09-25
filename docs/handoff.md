@@ -142,6 +142,33 @@ DEFINER with the scope moved *inside* the view.
 After: Mark sees his own two jobs, no time, no invoices, and Bills to You
 still renders. Mike sees everything he did before.
 
+### Was anyone exposed during the twenty-minute view leak?
+
+**No real client was signed in.** Checked afterwards, on request.
+
+The window opened at **18:36:53 UTC on 24 September** — the timestamp of the
+backfill in `20260924300000`, the migration that rebuilt `customer_summary`
+and silently dropped `security_invoker` — and closed about twenty minutes
+later when `20260924320000` put it back.
+
+Every `access_events` row between 18:30 and 19:10 UTC belongs to
+`mikexcalo@gmail.com`, and the only two inside the window itself are Mike in
+CALO&CO at 18:44. The client accounts were nowhere near it:
+
+| Account | Last active | Relative to the window |
+|---|---|---|
+| mark@mammothconstructiontx.com | 24 Sep 16:49 UTC | 1h 47m before it opened |
+| john.littonny@gmail.com | 22 Sep 16:13 UTC | two days before |
+| marcietomlinson@gmail.com | never signed in | — |
+
+**One caveat, stated rather than glossed:** `access_events` records page
+loads. A client holding an already-open tab that fired a background query
+without a navigation would not appear. `customer_summary` is read by the
+workspace switcher on page load, so a load is what it would have taken — and
+the nearest client load was Mark's, nearly two hours earlier. The practical
+answer is no exposure; the precise answer is no exposure that this table
+could have recorded.
+
 ### Speed, so far
 
 Measured, not guessed:
