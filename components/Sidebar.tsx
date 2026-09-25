@@ -12,6 +12,8 @@ import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
 import { useOrg } from '@/lib/spine/org';
+import { useViewAs } from '@/lib/spine/viewas';
+import { clientOwner, type ClientOwner } from '@/lib/spine/client-view';
 import { OrgSwitcher } from '@/components/spine/OrgSwitcher';
 import {
   workspaceColor,
@@ -547,7 +549,13 @@ export default function Sidebar() {
         borderRight: `1px solid ${C.border}`,
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
+        /* The row that holds it decides how tall it is. It used to say 100vh,
+           which is right until something sits above it: in View mode the
+           column starts below a 48px bar and inside an 8px frame, and a
+           viewport-height sidebar in a shorter box hangs its own foot off the
+           bottom. Stretching to the parent is correct in both layouts. */
+        height: '100%',
+        minHeight: 0,
         fontFamily: 'inherit',
       }}
     >
@@ -776,6 +784,22 @@ export default function Sidebar() {
       )}
 
       {/*
+        Whose account it is, which in View mode is not yours.
+
+        The client's own sidebar ends with the person signed into it. Yours
+        ends with an avatar in the top bar, and in View mode the top bar is not
+        drawn, so without this the one thing on screen that says whose session
+        this is would be missing from a mode whose whole claim is "exactly as
+        they see it".
+
+        Only in View mode, and only when there is a real name to print. A
+        workspace the studio set up and has not handed over has no second
+        person in it, and a tile reading "Mike Calo, Owner" at the foot of a
+        client's sidebar would say the opposite of what this mode means.
+      */}
+      <ClientIdentity />
+
+      {/*
         Whose software this is, where an attribution belongs.
 
         "Powered by" was wrong in both workspaces it appeared in.
@@ -901,6 +925,72 @@ function ProductName() {
         }}
       >
         {label}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * The person whose screen this is, at the foot of it.
+ *
+ * View mode only. See the note at the call site for why it exists and why it
+ * declines to draw itself rather than guess at a name.
+ */
+function ClientIdentity() {
+  const { org } = useOrg();
+  const { viewAs } = useViewAs();
+  const [owner, setOwner] = useState<ClientOwner | null>(null);
+
+  useEffect(() => {
+    let off = false;
+    setOwner(null);
+    if (!viewAs || !org?.id) return;
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      const found = await clientOwner(org.id, data.session?.user?.id ?? null);
+      if (!off) setOwner(found);
+    })();
+    return () => { off = true; };
+  }, [viewAs, org?.id]);
+
+  if (!viewAs || !owner) return null;
+
+  const initials = owner.name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase();
+
+  return (
+    <div
+      style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '10px 14px 8px', margin: '0 0 0',
+        borderTop: `1px solid ${C.border}`,
+      }}
+    >
+      <span
+        aria-hidden
+        style={{
+          width: 28, height: 28, borderRadius: 999, flexShrink: 0,
+          background: C.panelAlt, color: C.dim,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 11, fontWeight: 700,
+        }}
+      >
+        {initials}
+      </span>
+      <span style={{ minWidth: 0 }}>
+        <span
+          style={{
+            display: 'block', fontSize: 13.5, fontWeight: 600, color: C.text,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}
+        >
+          {owner.name}
+        </span>
+        <span style={{ display: 'block', fontSize: 11.5, color: C.faint }}>{owner.role}</span>
       </span>
     </div>
   );

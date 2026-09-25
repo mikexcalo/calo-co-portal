@@ -19,6 +19,17 @@ export function human(raw: unknown, fallback = 'That did not work. Try again, an
 
   if (!msg) return fallback;
 
+  /*
+    View mode's refusal, passed through word for word.
+
+    Everything else in this function translates a database message into a
+    person's sentence. This one was already written as a person's sentence, and
+    running it through the fallback turned "nothing was saved, and here is how
+    to save it" into "that did not work, try again" — advice that is wrong,
+    because trying again in View mode does the same thing forever.
+  */
+  if (/^Nothing was saved\. View mode/.test(msg)) return msg;
+
   // A missing table or column means a database change has not been applied.
   // Nothing the person did, and nothing trying again will fix.
   if (/schema cache|does not exist|relation .* does not exist|column .* does not exist/i.test(msg)) {

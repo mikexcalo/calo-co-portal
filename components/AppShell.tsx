@@ -2,14 +2,14 @@
 
 import { TourRunner } from '@/components/spine/TourRunner';
 import { SaveFailed } from '@/components/spine/SaveFailed';
-import { ViewAsBar } from '@/components/spine/ViewAsBar';
 import { useViewAs } from '@/lib/spine/viewas';
-import { VIEW_AS_BAR } from '@/components/spine/ViewAsBar';
+import { ViewModeBar, VIEW_BAR, VIEW_BAR_PHONE } from '@/components/spine/ViewModeBar';
+import { ClientPanel } from '@/components/spine/ClientPanel';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import TopBar from '@/components/TopBar';
-import { useIsPhone, C } from '@/components/spine/ui';
+import { useIsPhone, C, radius } from '@/components/spine/ui';
 import { TutorialPanel } from '@/components/spine/TutorialPanel';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
@@ -207,11 +207,45 @@ export function AppShell({ children }: { children: React.ReactNode }) {
      about which business you are standing in. */
   const stripColor = workspaceColor(org);
 
+  /*
+    View mode only means anything inside somebody else's workspace.
+
+    In your own studio "what they see" previews you, which is why the control
+    is hidden there. Checking the org's kind here as well means a stale flag in
+    session storage cannot frame your own screen in blue and refuse your own
+    writes.
+  */
+  const viewing = Boolean(viewAs) && !!org && org.kind !== 'agency';
+
   // Phone: the sidebar becomes a drawer. Desktop is unchanged.
   if (phone) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', paddingTop: 4 }}>
-        <IdentityStrip color={stripColor} />
+      /*
+        View mode on a phone.
+
+        Same promise, laid out for a thumb: the blue bar wraps onto two rows
+        and its buttons sit under the sentence, and the frame becomes an 8px
+        blue edge around the whole column rather than a border beside a panel.
+
+        The private column cannot sit beside anything at this width, so it goes
+        underneath, below the client's screen, still outside the framed part.
+        Scrolling to it is a deliberate move, which is the right shape: you
+        came here to look at their screen, and your own notes are a step
+        further down rather than something covering it.
+      */
+      <div
+        style={{
+          display: 'flex', flexDirection: 'column', minHeight: '100vh',
+          paddingTop: viewing ? VIEW_BAR_PHONE + 8 : 4,
+          background: viewing ? C.viewing : undefined,
+          boxSizing: 'border-box',
+          gap: viewing ? 8 : 0,
+          paddingLeft: viewing ? 8 : 0,
+          paddingRight: viewing ? 8 : 0,
+          paddingBottom: viewing ? 8 : 0,
+        }}
+      >
+        {viewing ? <ViewModeBar /> : <IdentityStrip color={stripColor} />}
         <div
           style={{
             display: 'flex',
@@ -220,7 +254,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             padding: '10px 14px',
             borderBottom: `1px solid ${C.border}`,
             background: C.bg,
-            position: 'sticky',
+            /* In View mode it is the top of a framed box rather than the top
+               of the window, so it rounds, carries the client's colour as its
+               own edge, and stops sticking: the blue bar above it is already
+               fixed, and two stacked sticky rows on a phone is most of the
+               screen. */
+            borderTop: viewing ? `4px solid ${stripColor}` : undefined,
+            borderTopLeftRadius: viewing ? radius.lg : undefined,
+            borderTopRightRadius: viewing ? radius.lg : undefined,
+            position: viewing ? 'relative' : 'sticky',
             top: 0,
             zIndex: 25,
           }}
@@ -287,9 +329,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               onClick={() => setNavOpen(false)}
               style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', zIndex: 45 }}
             />
+            {/*
+              Below the blue bar, not underneath it.
+
+              The drawer is fixed to the top of the window and so is the View
+              mode bar, and the bar wins on z-index, so at phone width the
+              first two rows of the drawer — the product name and the workspace
+              plate — were sitting behind it. Measured in a 390px frame: the
+              drawer opened at "Search or ask".
+            */}
             <div
               onClick={() => setNavOpen(false)}
-              style={{ position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 46 }}
+              style={{
+                position: 'fixed',
+                top: viewing ? VIEW_BAR_PHONE : 0,
+                left: 0,
+                bottom: 0,
+                zIndex: 46,
+              }}
             >
               <Sidebar />
             </div>
@@ -305,9 +362,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           down and builds it again when the key changes, which is exactly the
           guarantee the old full reload was buying at the cost of ten seconds.
         */}
-        <main key={org?.id ?? 'none'} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <main
+          key={org?.id ?? 'none'}
+          style={{
+            flex: 1, display: 'flex', flexDirection: 'column',
+            background: viewing ? C.bg : undefined,
+            borderBottomLeftRadius: viewing ? radius.lg : undefined,
+            borderBottomRightRadius: viewing ? radius.lg : undefined,
+          }}
+        >
           {blocked ? <ModuleOff /> : children}
         </main>
+
+        {/* Outside the client's screen, under it. Comment above the
+            conditional: {x && (...)} takes exactly one child. */}
+        {viewing && <ClientPanel />}
 
         {/*
           A bar at the bottom rather than a drawer at the top. A hamburger
@@ -328,17 +397,71 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return (
-    /*
-      The preview bar takes its own room rather than sitting on top of things.
+  /*
+    View mode: the whole workspace inside a blue frame, and your notes outside it.
 
-      It is position: fixed at the top of the window, which put it over the top
-      bar: search, the workspace name and every control up there were sliced in
-      half the moment you turned the preview on — on the screen whose whole job
-      is showing you what somebody else sees. The shell is VIEW_AS_BAR shorter
-      while it is on, so the bar has its own strip and nothing is underneath it.
-    */
-    <div style={{ display: 'flex', height: '100vh', paddingTop: viewAs ? VIEW_AS_BAR : 4 }}>
+    The frame is the point. A banner can be scrolled past and a tinted corner
+    can be missed; a border around everything cannot, and it draws the line
+    this mode depends on — inside is theirs, outside is yours. The private
+    panel sits outside the frame for that reason and no other.
+
+    The top bar does not render. It is the studio's row of controls — Add a
+    note, Log time, what they see, your site, your notifications, your avatar —
+    and none of it is on the client's screen or usable while nothing can be
+    written. The two things worth keeping from it, leaving and switching, are
+    in the blue bar.
+
+    The strip stays, in the client's own colour, at the top of their workspace
+    rather than the top of the window, because in here it belongs to the box it
+    labels.
+  */
+  if (viewing) {
+    return (
+      <div
+        style={{
+          display: 'flex', flexDirection: 'column', height: '100vh',
+          paddingTop: phone ? VIEW_BAR_PHONE : VIEW_BAR,
+          background: C.viewing, boxSizing: 'border-box',
+        }}
+      >
+        <ViewModeBar />
+        <div
+          style={{
+            flex: 1, minHeight: 0, display: 'flex',
+            gap: 8, padding: 8, boxSizing: 'border-box',
+          }}
+        >
+          <div
+            style={{
+              flex: 1, minWidth: 0, display: 'flex', position: 'relative',
+              background: C.bg, borderRadius: radius.lg, overflow: 'hidden',
+            }}
+          >
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute', top: 0, left: 0, right: 0, height: 4,
+                background: stripColor, zIndex: 3,
+              }}
+            />
+            <Sidebar />
+            <main style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+              <div key={org?.id ?? 'none'} style={{ display: 'contents' }}>
+                {blocked ? <ModuleOff /> : children}
+              </div>
+            </main>
+          </div>
+          {/* Never on a phone: 316px of notes beside a 212px sidebar on a
+              360px screen is neither. It goes under the workspace instead. */}
+          {!phone && <ClientPanel />}
+        </div>
+        <SaveFailed />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', height: '100vh', paddingTop: 4 }}>
       <IdentityStrip color={stripColor} />
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -353,7 +476,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* A tour walks across screens, so its dock lives above all of them. */}
       {/* Fixed rather than sticky, so where it sits in the tree cannot
           quietly stop it being visible. */}
-      <ViewAsBar />
       <TourRunner />
       <SaveFailed />
     </div>

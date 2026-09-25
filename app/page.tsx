@@ -27,6 +27,8 @@ import { hoursByClient, listDocuments, listInvoices, listJobLedger, listJobs, or
 import { modulesFor } from '@/lib/spine/modules';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
+import { useViewAs } from '@/lib/spine/viewas';
+import { clientOwner } from '@/lib/spine/client-view';
 import { Glyph } from '@/components/spine/icons';
 import { useTutorial } from '@/lib/spine/tutorial';
 import { JOB_STATUS_LABEL } from '@/lib/spine/types';
@@ -85,6 +87,7 @@ function daysBetween(a: string, b: string): number {
 export default function Dashboard() {
   const router = useRouter();
   const { org, vocab, loading: orgLoading } = useOrg();
+  const { viewAs } = useViewAs();
   const mod = useModKey();
   const { openPanel } = useTutorial();
 
@@ -671,14 +674,29 @@ export default function Dashboard() {
       if (!org?.id) { setCanSetUp(null); return; }
       const { data: auth } = await supabase.auth.getUser();
       if (!auth?.user) return;
-      const profile = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', auth.user.id)
-        .maybeSingle();
-      if (!canceled) {
-        const whole = (profile.data?.full_name ?? '').trim();
-        setFirstName(whole ? whole.split(/\s+/)[0] : '');
+
+      /*
+        In View mode the greeting is theirs, not yours.
+
+        "Hey, Mike" at the top of a screen the bar promises is exactly what
+        Dana sees is the single line that would give the whole mode away, and
+        it is the first thing on the page. When there is no second person in
+        the workspace the name resolver returns null and the heading falls back
+        to "Home", which is what somebody with no name set sees anyway.
+      */
+      if (viewAs) {
+        const them = await clientOwner(org.id, auth.user.id);
+        if (!canceled) setFirstName(them?.firstName ?? '');
+      } else {
+        const profile = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', auth.user.id)
+          .maybeSingle();
+        if (!canceled) {
+          const whole = (profile.data?.full_name ?? '').trim();
+          setFirstName(whole ? whole.split(/\s+/)[0] : '');
+        }
       }
 
       const membership = await supabase
@@ -691,7 +709,7 @@ export default function Dashboard() {
       setCanSetUp(['owner', 'admin'].includes(membership.data?.role ?? ''));
     })();
     return () => { canceled = true; };
-  }, [org?.id]);
+  }, [org?.id, viewAs]);
 
   const emptyApp = !busy && jobs.length === 0 && invoices.length === 0 && docs.length === 0;
 

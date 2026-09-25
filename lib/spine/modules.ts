@@ -496,7 +496,10 @@ export const MODULE_STATES: { id: ModuleState; label: string; note: string }[] =
  * looking at a page, switch to a business that doesn't have it, and end up
  * stranded on a screen that isn't in their nav.
  */
-const ROUTE_MODULE: Array<[string, ModuleId]> = [
+/* Exported so the client panel can map a recorded path back to a module by the
+   same table the nav and the route guard use. Two copies of this would drift,
+   and the one that drifted would be the one nobody was looking at. */
+export const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/feedback', 'feedback'],
   ['/routes', 'routes'],
   ['/inbox', 'inbox'],

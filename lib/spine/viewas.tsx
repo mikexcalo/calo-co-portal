@@ -23,6 +23,7 @@
  */
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { guardApiWrites, setReadOnly } from './readonly';
 
 const KEY = 'calo.viewas';
 
@@ -73,8 +74,53 @@ export function ViewAsProvider({ children }: { children: React.ReactNode }) {
   const setViewAs = useCallback((v: ViewAs | null) => {
     if (v) window.sessionStorage.setItem(KEY, JSON.stringify(v));
     else window.sessionStorage.removeItem(KEY);
+    /*
+      Thrown here, in the same tick, and not left to the effect below.
+
+      "Back to your studio" turns View mode off and immediately switches
+      workspace, and switching writes profiles.active_org_id. A React state
+      update does not flush before the next line of the handler runs, so the
+      effect had not fired yet and the guard was still armed: the write was
+      refused by a mode the user had just left. The visible result was the
+      worst thing this app can do — the plate saying Blank Co over the studio's
+      numbers, because the name had moved on and the write had not.
+
+      The effect stays as the backstop for the other direction and for a value
+      restored from session storage on load.
+    */
+    setReadOnly(Boolean(v));
     setState(v);
   }, []);
+
+  /*
+    The read-only switch, thrown here rather than at the call sites.
+
+    It is module state in readonly.ts, not React state, because a write can be
+    fired by a debounce or an unmount effect that no component is waiting on,
+    and those have to be refused too. This effect is the only thing that ever
+    sets it, so the flag and the bar can never disagree about whether you are
+    looking or working.
+
+    The fetch guard is installed once, on mount, and does nothing at all while
+    View mode is off.
+  */
+  useEffect(() => {
+    guardApiWrites();
+  }, []);
+
+  useEffect(() => {
+    setReadOnly(Boolean(viewAs));
+    return () => setReadOnly(false);
+  }, [viewAs]);
+
+  /*
+    Leaving the page leaves the mode.
+
+    Session storage survives a reload, which is what makes the mode hold while
+    you click around. It also means a tab left in View mode overnight comes
+    back in View mode, which is correct, and that the flag must be re-armed on
+    load rather than assumed off. The effect above does that.
+  */
 
   const value = useMemo<Ctx>(
     () => ({ viewAs, effectiveRole: viewAs?.role ?? myRole, setViewAs, myRole, setMyRole }),

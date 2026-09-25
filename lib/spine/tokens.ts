@@ -45,6 +45,19 @@ export const C = {
    */
   quiet: '#6B7280',
 
+  /**
+   * View mode, and nothing else, ever.
+   *
+   * The one saturated colour in a product that deliberately has no accent,
+   * spent on the one state where mistaking whose screen you are on has a cost
+   * a client pays. It frames the whole workspace rather than tinting a corner,
+   * because the failure mode of a preview is forgetting you are in one.
+   *
+   * If this colour turns up on a button, the button is wrong.
+   */
+  viewing: '#1B4DE4',
+  viewingInk: '#FFFFFF',
+
   border: '#E7E8EB',
   borderStrong: '#DFE0E5',
 
