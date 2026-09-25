@@ -14,6 +14,7 @@
  */
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { forgetOrg } from '@/lib/spine/db';
 import type { Org } from './types';
@@ -115,6 +116,7 @@ const OrgContext = createContext<OrgContextValue>({
 });
 
 export function OrgProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [org, setOrg] = useState<Org | null>(null);
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [loading, setLoading] = useState(true);
@@ -200,6 +202,25 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
     };
   }, [load]);
 
+  /*
+    The name on the plate and the data on the page read from two places.
+
+    This context resolves the workspace for display. orgNow() in db.ts keeps
+    its own module-level cache, and nearly every query filters on that. They
+    query the same column, so they agree — until one of them is stale, and
+    then the sidebar says one business while the screen shows another's rows.
+    That is the single worst thing this app could do, and nothing was stopping
+    it structurally; it was only ever prevented by the old full page reload
+    clearing both.
+
+    Now the switch is client-side, so: whenever the displayed workspace
+    changes, for any reason, the query cache is dropped. The name cannot lead
+    the data.
+  */
+  useEffect(() => {
+    forgetOrg();
+  }, [org?.id]);
+
   const switchOrg = useCallback(
     async (orgId: string) => {
       /*
@@ -232,12 +253,45 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      /*
+        This was window.location.reload(), and that was the six to thirteen
+        seconds.
+
+        A full document load: fetch the HTML, parse it, download and execute
+        every script, run middleware again, hydrate, then let every page on
+        screen re-query from nothing. The reasoning written here was sound —
+        every open page is showing the other business's data — but the answer
+        to "this page is stale" is to leave the page, not to rebuild the
+        browser.
+
+        It also reloaded the CURRENT url, which is the second half of the
+        complaint: switching from a client's Settings landed you on the next
+        client's Settings, with a Save button over a form you had not filled
+        in.
+
+        Now: forget the cached org id, swap the context in memory, and
+        navigate to Home. AppShell keys its children on the workspace id, so
+        every page unmounts and the new one mounts clean — no carried-over
+        form, no open panel, no stale row. One client-side navigation instead
+        of a cold start.
+      */
       forgetOrg();
-      // Full reload rather than swapping state: every open page is showing
-      // the other business's data and needs to re-fetch from scratch.
-      window.location.reload();
+
+      const next = orgs.find((o) => o.id === orgId) ?? null;
+      if (next) setOrg(next);   // instant: the plate and strip change now
+      setError(null);
+
+      /* replace, not push: the workspace you just left is not a place to go
+         back to, and Back should leave the app rather than silently return
+         you to another business's screen. */
+      router.replace('/');
+
+      /* Reconcile against the database afterwards. If the optimistic pick was
+         somehow wrong, this corrects it a moment later rather than blocking
+         the switch on a round trip. */
+      void load();
     },
-    []
+    [orgs, router, load]
   );
 
   return (

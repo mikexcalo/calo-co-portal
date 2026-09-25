@@ -17,6 +17,7 @@ import { BottomBar } from '@/components/spine/BottomBar';
 import { AddSheet } from '@/components/spine/AddSheet';
 import { pathAllowed } from '@/lib/spine/modules';
 import { workspaceColor } from '@/lib/spine/workspace-color';
+import { OrgSwitcher } from '@/components/spine/OrgSwitcher';
 import { PRODUCT } from '@/lib/brand';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -189,6 +190,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   /* One resolver, shared with the name plate, so the two can never disagree
      about which business you are standing in. */
   const stripColor = workspaceColor(org);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   // Phone: the sidebar becomes a drawer. Desktop is unchanged.
   if (phone) {
@@ -224,10 +226,45 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             ☰
           </button>
-          <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.3px' }}>
-            {PRODUCT}
-          </span>
+          {/*
+            The workspace, and a way out of it, without opening the drawer.
+
+            This said the product name, so on a phone the one fact you need
+            was two taps away behind ☰ — and the switcher itself was in a top
+            bar that does not render at this width, which is why switching on
+            a phone was not possible at all.
+
+            Tapping the name opens the same picker as the plate, which draws
+            itself as a sheet from the bottom on a narrow screen.
+          */}
+          <button
+            onClick={() => setPickerOpen(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1,
+              background: 'transparent', border: 'none', padding: 0,
+              cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
+            }}
+          >
+            <span
+              aria-hidden
+              style={{
+                width: 24, height: 24, borderRadius: 7, flexShrink: 0,
+                background: stripColor,
+              }}
+            />
+            <span
+              style={{
+                fontSize: 17, fontWeight: 600, letterSpacing: '-0.3px',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}
+            >
+              {org?.name ?? PRODUCT}
+            </span>
+            <span style={{ fontSize: 11, color: C.faint, flexShrink: 0 }}>▾</span>
+          </button>
         </div>
+
+        {pickerOpen && <OrgSwitcher onClose={() => setPickerOpen(false)} />}
 
         {navOpen && (
           <>
@@ -244,7 +281,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </>
         )}
 
-        <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {/*
+          Keyed on the workspace, so switching unmounts everything.
+
+          Without this a client-side switch leaves the current page mounted
+          with the previous business's rows in its state, and any half-filled
+          form still holding what you typed. React tears the whole subtree
+          down and builds it again when the key changes, which is exactly the
+          guarantee the old full reload was buying at the cost of ten seconds.
+        */}
+        <main key={org?.id ?? 'none'} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           {blocked ? <ModuleOff /> : children}
         </main>
 
@@ -283,7 +329,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <TopBar />
         <main style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
-          {blocked ? <ModuleOff /> : children}
+          <div key={org?.id ?? 'none'} style={{ display: 'contents' }}>
+            {blocked ? <ModuleOff /> : children}
+          </div>
         </main>
       </div>
       <TutorialPanel />

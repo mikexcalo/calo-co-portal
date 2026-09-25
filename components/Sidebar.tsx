@@ -851,39 +851,43 @@ function NamePlate() {
         </span>
 
         <span style={{ minWidth: 0, flex: 1 }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {/* The name gets the whole line. The DEMO tag sat beside it and
+              truncated "Harbor Light Roofing" to "Harbor Ligh…" — the tag
+              costing more than it is worth on the one word that identifies
+              the business. It sits on the second line now, next to the
+              business type, where there is room. */}
+          <span
+            style={{
+              display: 'block',
+              fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
+              fontSize: 14, fontWeight: 600, color: C.text,
+              letterSpacing: '-0.1px',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}
+          >
+            {org.name}
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
             <span
               style={{
-                fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
-                fontSize: 14, fontWeight: 600, color: C.text,
-                letterSpacing: '-0.1px',
+                fontSize: 11, color: C.faint,
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}
             >
-              {org.name}
+              {workspaceKindLabel(org.kind)}
             </span>
-            {/* Stays on the plate, where it was on the pill. Nobody should
-                have to remember which of these is not a real business. */}
             {org.is_demo && (
               <span
                 style={{
                   fontSize: 9, fontWeight: 600, letterSpacing: '.06em',
                   textTransform: 'uppercase', color: C.amber,
                   border: `1px solid ${C.amber}55`, borderRadius: 4,
-                  padding: '1px 4px', flexShrink: 0,
+                  padding: '0 4px', flexShrink: 0, lineHeight: '14px',
                 }}
               >
                 Demo
               </span>
             )}
-          </span>
-          <span
-            style={{
-              display: 'block', fontSize: 11, color: C.faint, marginTop: 1,
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}
-          >
-            {workspaceKindLabel(org.kind)}
           </span>
         </span>
       </button>

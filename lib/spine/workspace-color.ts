@@ -71,10 +71,12 @@ export function workspaceKindLabel(kind: string | null | undefined): string {
  * monogram and starts competing with the name beside it.
  */
 export function workspaceInitials(name: string | null | undefined): string {
+  /* First letter of the first two words. This took the first and LAST word,
+     so Harbor Light Roofing came out HR — which is a different company. */
   const words = (name ?? '').trim().split(/\s+/).filter(Boolean);
   if (!words.length) return '?';
   if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
-  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
 }
 
 /**
