@@ -18,16 +18,52 @@
  * lose anybody's data.
  */
 
-export interface KitColor {
+/**
+ * How settled a thing is, and who settled it.
+ *
+ * Three words with precise meanings, and the distance between them is the
+ * whole point. "Decided" means the studio committed to it. "Proposed" means
+ * somebody drew it and nobody has argued. "Not decided" means there is no
+ * answer yet and anybody acting as if there were is guessing.
+ *
+ * Deliberately not a boolean. A brand mid-flight is mostly the middle value,
+ * and collapsing it into done/not-done is how a proposal ends up on a crate.
+ */
+export type ItemStatus = 'Decided by CALO&CO' | 'Proposed' | 'Not decided';
+
+/**
+ * A stamp any item in a kit can carry.
+ *
+ * Separate from the status because they answer different questions. The studio
+ * deciding something and the client agreeing to it are two events, and a kit
+ * that cannot tell them apart will eventually present the first as the second
+ * in front of the person who never said yes.
+ *
+ * Both optional. An item with no stamp is an item nobody has ruled on, which
+ * is a real state and is shown as nothing rather than as a guess.
+ */
+export interface Stamped {
+  status?: ItemStatus;
+  /** Whether the client has signed off. Absent means nobody recorded either way. */
+  clientApproved?: boolean;
+  /** A caveat that belongs with the status, where one was written down. */
+  statusNote?: string;
+}
+
+export interface KitColor extends Stamped {
   hex: string;
   name: string;
   /** What it is for, in words. */
   role?: string;
   /** The CSS custom property it ships as, where the brand has been built. */
   token?: string;
+  /** Print and screen values, as written down. Absent where never specified. */
+  rgb?: string;
+  cmyk?: string;
+  pantone?: string;
 }
 
-export interface KitFont {
+export interface KitFont extends Stamped {
   family: string;
   role: string;
   weight?: string;
@@ -56,7 +92,31 @@ export interface KitFont {
  * invented for each brand and would still not express "never as text on", so
  * the sentence as written is kept and shown.
  */
-export type KitPairing = string;
+export interface KitPairing extends Stamped {
+  /** The sentence, as the brand wrote it. */
+  rule: string;
+}
+
+/**
+ * The logo, as rules rather than as files.
+ *
+ * Every field is optional and an empty one renders nothing, because most
+ * brands have some of this and almost none have all of it. A brand with only
+ * a don'ts list is a brand with a don'ts list, not a broken record.
+ */
+export interface KitLogoRules {
+  /** Each version, what it is for, and whether anybody signed it off. */
+  versions?: Array<Stamped & { name: string; use?: string; files?: string }>;
+  /** The measured construction, one row per rule. */
+  construction?: Array<Stamped & { rule: string; spec: string }>;
+  clearSpace?: Stamped & { rule: string };
+  minimumSizes?: Array<Stamped & { item: string; screen?: string; print?: string }>;
+  colorVersions?: Array<Stamped & { name: string; rule: string }>;
+  /** Prohibitions, as written. Rarely stamped: they follow from the rest. */
+  donts?: string[];
+  /** Anything that qualifies the above without being a rule itself. */
+  notes?: string[];
+}
 
 export interface Kit {
   name: string;
@@ -64,6 +124,16 @@ export interface Kit {
   fonts: KitFont[];
   /** Stated colour rules, shown under the palette. Empty for most brands. */
   pairings: KitPairing[];
+  /** How the logo may be built and used. Absent for most brands. */
+  logoRules?: KitLogoRules;
+  /**
+   * Where the brand stands with the person whose brand it is.
+   *
+   * Brand level rather than per item, because "the client has not seen any of
+   * this" is one fact about the whole thing and repeating it eighteen times
+   * would make it easy to stop reading.
+   */
+  approval?: { client?: string; note?: string };
   logos: string[];
   voice: string;
   /** Where this came from, so the page knows whether it can be edited here. */
@@ -73,7 +143,99 @@ export interface Kit {
 }
 
 const asArray = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
+const obj = (v: unknown): Record<string, unknown> =>
+  (v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {});
+
+const STATUSES: ItemStatus[] = ['Decided by CALO&CO', 'Proposed', 'Not decided'];
+
+/** The stamp on any item, read leniently: an unknown status is no status. */
+function stamp(v: unknown): Stamped {
+  const o = obj(v);
+  const status = STATUSES.find((x) => x === str(o.status));
+  const approved =
+    typeof o.client_approved === 'boolean' ? o.client_approved
+    : typeof o.clientApproved === 'boolean' ? (o.clientApproved as boolean)
+    : undefined;
+  const note = str(o.status_note) || str(o.statusNote) || undefined;
+  return {
+    ...(status ? { status } : {}),
+    ...(approved === undefined ? {} : { clientApproved: approved }),
+    ...(note ? { statusNote: note } : {}),
+  };
+}
+
+/**
+ * A rule that may be a bare sentence or a stamped object.
+ *
+ * kit.pairings shipped as an array of strings and the first brand to use it
+ * still has them that way. Widening in the reader rather than migrating the
+ * row keeps that brand working and costs four lines; the alternative is a
+ * migration per brand and a window where one of them is broken.
+ */
+function pairing(v: unknown): KitPairing | null {
+  if (typeof v === 'string') return v.trim() ? { rule: v.trim() } : null;
+  const o = obj(v);
+  const rule = str(o.rule).trim();
+  return rule ? { rule, ...stamp(o) } : null;
+}
+
 const str = (v: unknown): string => (typeof v === 'string' ? v : '');
+
+/**
+ * The logo rules, read the same lenient way as everything else.
+ *
+ * Every branch drops what it cannot read rather than throwing, so a kit typed
+ * by hand in the dashboard degrades to the parts that parsed instead of taking
+ * the brand page down.
+ */
+function logoRules(v: unknown): KitLogoRules | undefined {
+  const o = obj(v);
+  if (!Object.keys(o).length) return undefined;
+
+  const versions = asArray(o.versions).map((x) => {
+    const r = obj(x);
+    return str(r.name) ? { name: str(r.name), use: str(r.use) || undefined, files: str(r.files) || undefined, ...stamp(r) } : null;
+  }).filter(Boolean) as NonNullable<KitLogoRules['versions']>;
+
+  const construction = asArray(o.construction).map((x) => {
+    const r = obj(x);
+    return str(r.rule) ? { rule: str(r.rule), spec: str(r.spec), ...stamp(r) } : null;
+  }).filter(Boolean) as NonNullable<KitLogoRules['construction']>;
+
+  const minimumSizes = asArray(o.minimum_sizes).map((x) => {
+    const r = obj(x);
+    return str(r.item) ? { item: str(r.item), screen: str(r.screen) || undefined, print: str(r.print) || undefined, ...stamp(r) } : null;
+  }).filter(Boolean) as NonNullable<KitLogoRules['minimumSizes']>;
+
+  const colorVersions = asArray(o.color_versions).map((x) => {
+    const r = obj(x);
+    return str(r.name) ? { name: str(r.name), rule: str(r.rule), ...stamp(r) } : null;
+  }).filter(Boolean) as NonNullable<KitLogoRules['colorVersions']>;
+
+  const cs = obj(o.clear_space);
+  const clearSpace = str(cs.rule) ? { rule: str(cs.rule), ...stamp(cs) } : undefined;
+
+  const donts = asArray(o.donts).map(str).map((x) => x.trim()).filter(Boolean);
+  const notes = asArray(o.notes).map(str).map((x) => x.trim()).filter(Boolean);
+
+  const out: KitLogoRules = {
+    ...(versions.length ? { versions } : {}),
+    ...(construction.length ? { construction } : {}),
+    ...(clearSpace ? { clearSpace } : {}),
+    ...(minimumSizes.length ? { minimumSizes } : {}),
+    ...(colorVersions.length ? { colorVersions } : {}),
+    ...(donts.length ? { donts } : {}),
+    ...(notes.length ? { notes } : {}),
+  };
+  return Object.keys(out).length ? out : undefined;
+}
+
+function approval(v: unknown): Kit['approval'] {
+  const o = obj(v);
+  const client = str(o.client).trim();
+  const note = str(o.note).trim();
+  return client || note ? { ...(client ? { client } : {}), ...(note ? { note } : {}) } : undefined;
+}
 
 /** An org's own identity, widened into the client shape. */
 export function kitFromOrg(name: string, settings: unknown): Kit {
@@ -91,7 +253,7 @@ export function kitFromOrg(name: string, settings: unknown): Kit {
       return { hex: str(o.hex), name: str(o.name), role: str(o.role) || undefined };
     }).filter((c) => c.hex),
     fonts,
-    pairings: asArray(b.pairings).map(str).map((x) => x.trim()).filter(Boolean),
+    pairings: asArray(b.pairings).map(pairing).filter(Boolean) as KitPairing[],
     logos: [str(b.logoLight), ...asArray(b.logos).map(str)].map((u) => u.trim()).filter(Boolean),
     voice: str(b.voice),
     origin: 'org',
@@ -110,6 +272,10 @@ export function kitFromBrand(row: { id: string; name: string; kit: unknown }): K
         name: str(o.name),
         role: str(o.role) || undefined,
         token: str(o.token) || undefined,
+        rgb: str(o.rgb) || undefined,
+        cmyk: str(o.cmyk) || undefined,
+        pantone: str(o.pantone) || undefined,
+        ...stamp(o),
       };
     }).filter((c) => c.hex),
     fonts: asArray(k.fonts).map((f) => {
@@ -121,9 +287,12 @@ export function kitFromBrand(row: { id: string; name: string; kit: unknown }): K
         tracking: str(o.tracking) || undefined,
         source: str(o.source) || undefined,
         case: (['uppercase', 'lowercase', 'sentence', 'title'] as const).find((c) => c === str(o.case)),
+        ...stamp(o),
       };
     }).filter((f) => f.family),
-    pairings: asArray(k.pairings).map(str).map((x) => x.trim()).filter(Boolean),
+    pairings: asArray(k.pairings).map(pairing).filter(Boolean) as KitPairing[],
+    logoRules: logoRules(k.logo_rules),
+    approval: approval(k.approval),
     logos: asArray(k.assets).map(str).filter(Boolean),
     voice: str(k.voice),
     origin: 'client',

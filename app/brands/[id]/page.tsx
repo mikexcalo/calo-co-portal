@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
-import { Swatch, ColorRules, Pairings } from '@/components/spine/BrandSpecimen';
+import { Swatch, ColorRules, LogoRules, Pairings, ApprovalBanner, StatusChip } from '@/components/spine/BrandSpecimen';
 import { Messaging } from '@/components/spine/Messaging';
 import { useOrg } from '@/lib/spine/org';
 import { kitFromBrand } from '@/lib/spine/brandkit';
@@ -39,11 +39,18 @@ interface Font {
   source?: string;
   /** How the brand sets it. Optional, and most brands never say. */
   case?: string;
+  status?: 'Decided by CALO&CO' | 'Proposed' | 'Not decided';
+  client_approved?: boolean;
+  status_note?: string;
   /** Where the file lives, for a face we host rather than fetch from Google. */
   storage_path?: string;
   files?: Array<{ label: string; storage_path?: string; url?: string }>;
 }
 interface Asset {
+  /** Provenance, where somebody recorded it. Most assets have none. */
+  status?: 'Decided by CALO&CO' | 'Proposed' | 'Not decided';
+  client_approved?: boolean;
+  status_note?: string;
   name?: string;
   path: string;
   group?: string;
@@ -226,6 +233,8 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
   if (!brand) return <Page title="Brand"><Card><Empty>Not found.</Empty></Card></Page>;
 
   const { colors = [], fonts = [], assets = [] } = brand.kit ?? {};
+  /* Read once. Three components wanted it and each was rebuilding it. */
+  const kit = kitFromBrand({ id: brand.id, name: brand.name, kit: brand.kit });
   const grouped = assets.reduce<Record<string, Asset[]>>((acc, a) => {
     const g = a.group || 'other';
     (acc[g] ??= []).push(a);
@@ -309,6 +318,15 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
       {hostedFaces && <style>{hostedFaces}</style>}
 
       {/*
+        Before the artwork, not after it.
+
+        Whether the client has seen any of this changes what everything below
+        means, and a kit read as finished and a kit read as a proposal are the
+        same pixels. One line, passed before the swatches.
+      */}
+      <ApprovalBanner kit={kit} />
+
+      {/*
         What this brand says, in the same framework as every other one.
 
         A client's brand row held colors, fonts and logos and had no opinion
@@ -344,13 +362,13 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
         wins, and the rules block says so.
       */}
       <div style={{ marginBottom: 26 }}>
-        <ColorRules kit={kitFromBrand({ id: brand.id, name: brand.name, kit: brand.kit })} />
+        <ColorRules kit={kit} />
       </div>
 
       {colors.length > 1 && (
         <div style={{ marginBottom: 26 }}>
           {/* Derived from the colors above, never typed, so it cannot drift. */}
-          <Pairings kit={kitFromBrand({ id: brand.id, name: brand.name, kit: brand.kit })} />
+          <Pairings kit={kit} />
         </div>
       )}
 
@@ -389,6 +407,9 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                             wordmark set in uppercase is wrong in sentence case
                             and the person who needs to know is reading this. */}
                         {[f.role, f.weight, f.tracking, f.case].filter(Boolean).join(' · ')}
+                      </span>
+                      <span style={{ marginLeft: 8 }}>
+                        <StatusChip of={{ status: f.status, clientApproved: f.client_approved, statusNote: f.status_note }} />
                       </span>
                     </div>
                     {!loadable && f.source && (
@@ -454,6 +475,17 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
         than its name does, and forty of them is a wall you scan rather than
         read. Filed and named, you find the file you came for.
       */}
+      {/*
+        Beside the files it governs, not in a document beside the product.
+
+        With the artwork already downloaded the questions are which one goes
+        here, how small it can go, and what is not allowed. Those belong next
+        to the download, which is the last place anybody looks before using it.
+      */}
+      <div style={{ marginBottom: 26 }}>
+        <LogoRules kit={kit} />
+      </div>
+
       {assets.length > 0 && (
         <div style={{ marginBottom: 26 }}>
           <SectionLabel>Assets ({assets.length})</SectionLabel>
@@ -565,6 +597,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                               {ext}
                             </span>
                           )}
+                          <StatusChip of={{ status: a.status, clientApproved: a.client_approved, statusNote: a.status_note }} />
                           <span
                             style={{
                               fontSize: 13.5,

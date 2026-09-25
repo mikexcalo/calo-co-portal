@@ -18,8 +18,8 @@
  */
 
 import { useEffect, useState } from 'react';
-import { C, Card, SectionLabel, numeric } from './ui';
-import { contrast, grade, readableOn, type Kit, type KitColor } from '@/lib/spine/brandkit';
+import { C, Card, SectionLabel, numeric, radius } from './ui';
+import { contrast, grade, readableOn, type Kit, type KitColor, type Stamped } from '@/lib/spine/brandkit';
 
 /** Load a Google face so a specimen is the face and not a fallback. */
 function useFace(families: string[]) {
@@ -154,8 +154,74 @@ export function Swatch({ c }: { c: KitColor }) {
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '9px 10px' }}>
         <Copyable text={c.hex.toUpperCase()} />
         {c.token && <Copyable text={c.token} />}
+        {c.rgb && <Copyable text={c.rgb} />}
       </div>
+      {/*
+        Print values and provenance, under the copyable ones.
+
+        "Not decided" is printed rather than omitted, because a blank where a
+        Pantone should be reads as an oversight and somebody fills it in from
+        a converter. Saying it was never decided is the thing that stops that.
+      */}
+      {(c.cmyk || c.pantone || c.status || c.clientApproved !== undefined) && (
+        <div
+          style={{
+            display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center',
+            padding: '0 10px 10px', fontSize: 11, color: C.faint,
+          }}
+        >
+          {c.cmyk && <span>CMYK {c.cmyk}</span>}
+          {c.pantone && <span>Pantone {c.pantone}</span>}
+          <StatusChip of={c} />
+        </div>
+      )}
     </div>
+  );
+}
+
+/**
+ * How settled one thing is, in the smallest space that can carry it.
+ *
+ * Two facts, and they are not the same fact: who decided it, and whether the
+ * client agreed. A brand mid-flight is almost entirely "decided by us, never
+ * shown to them", and a kit that prints only the first half will eventually
+ * put a proposal in front of the person who never said yes.
+ *
+ * Renders nothing when nobody has ruled. That is a real state - most items in
+ * most kits - and inventing a label for it would be the one thing this whole
+ * pattern exists to prevent.
+ *
+ * Grey rather than green, amber and red. These are not health, they are
+ * provenance, and a green "decided" would read as approved, which is precisely
+ * the confusion being avoided.
+ */
+export function StatusChip({ of, size = 'sm' }: { of: Stamped; size?: 'sm' | 'md' }) {
+  const bits: string[] = [];
+  if (of.status) bits.push(of.status);
+  if (of.clientApproved === false) bits.push('not client-approved');
+  else if (of.clientApproved === true) bits.push('client-approved');
+  if (bits.length === 0) return null;
+
+  return (
+    <span
+      title={of.statusNote || undefined}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 5,
+        fontSize: size === 'md' ? 11.5 : 10.5,
+        lineHeight: 1.4,
+        color: C.faint,
+        background: C.panelAlt,
+        border: `1px solid ${C.border}`,
+        borderRadius: 4,
+        padding: size === 'md' ? '2px 7px' : '1px 5px',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {bits.join(' · ')}
+      {/* An asterisk rather than the caveat itself: the note is a sentence and
+          this is a chip. It is on the title attribute for whoever hovers. */}
+      {of.statusNote ? <span aria-hidden>*</span> : null}
+    </span>
   );
 }
 
@@ -188,9 +254,9 @@ export function ColorRules({ kit }: { kit: Kit }) {
         disagrees with the contrast table below, this wins.
       </div>
       <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: 8 }}>
-        {kit.pairings.map((rule) => (
+        {kit.pairings.map((p) => (
           <li
-            key={rule}
+            key={p.rule}
             style={{
               display: 'flex', alignItems: 'flex-start', gap: 10,
               fontSize: 14, color: C.text, lineHeight: 1.5,
@@ -205,11 +271,174 @@ export function ColorRules({ kit }: { kit: Kit }) {
                 borderRadius: 2, background: C.text,
               }}
             />
-            <span>{rule}</span>
+            <span style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+              <span>{p.rule}</span>
+              <StatusChip of={p} />
+            </span>
           </li>
         ))}
       </ul>
     </Card>
+  );
+}
+
+/**
+ * How the logo may be built and used, beside the files it governs.
+ *
+ * The files answer "what is the logo". This answers the questions somebody
+ * actually has with the files already downloaded: which one goes here, how
+ * small can it go, what am I not allowed to do. A kit that ships the artwork
+ * and leaves those in a PDF gets the artwork used wrongly by people acting in
+ * good faith.
+ *
+ * Every section is optional and an absent one renders nothing, because almost
+ * no brand has all of this and a brand with only a don'ts list has a don'ts
+ * list rather than a broken record.
+ */
+export function LogoRules({ kit }: { kit: Kit }) {
+  const r = kit.logoRules;
+  if (!r) return null;
+
+  return (
+    <Card>
+      <SectionLabel>Using the logo</SectionLabel>
+
+      {r.versions?.length ? (
+        <Section title="Versions">
+          {r.versions.map((v) => (
+            <Line key={v.name} left={v.name} right={v.use} stamp={v} />
+          ))}
+        </Section>
+      ) : null}
+
+      {r.construction?.length ? (
+        <Section title="Construction of the stacked lockup">
+          {r.construction.map((c) => (
+            <Line key={c.rule} left={c.rule} right={c.spec} stamp={c} />
+          ))}
+        </Section>
+      ) : null}
+
+      {r.clearSpace ? (
+        <Section title="Clear space">
+          <Line left={r.clearSpace.rule} stamp={r.clearSpace} />
+        </Section>
+      ) : null}
+
+      {r.minimumSizes?.length ? (
+        <Section title="Minimum sizes">
+          {r.minimumSizes.map((m) => (
+            <Line
+              key={m.item}
+              left={m.item}
+              right={[m.screen, m.print].filter(Boolean).join(' · ')}
+              stamp={m}
+            />
+          ))}
+        </Section>
+      ) : null}
+
+      {r.colorVersions?.length ? (
+        <Section title="Color versions">
+          {r.colorVersions.map((c) => (
+            <Line key={c.name} left={c.name} right={c.rule} stamp={c} />
+          ))}
+        </Section>
+      ) : null}
+
+      {r.donts?.length ? (
+        <Section title="Don'ts">
+          <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: 6 }}>
+            {r.donts.map((d) => (
+              <li key={d} style={{ display: 'flex', gap: 9, fontSize: 13.5, color: C.text, lineHeight: 1.5 }}>
+                <span aria-hidden style={{ color: C.red, flexShrink: 0, fontWeight: 700 }}>&times;</span>
+                <span>{d}</span>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
+
+      {r.notes?.length ? (
+        <Section title="Notes">
+          <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: 6 }}>
+            {r.notes.map((n) => (
+              <li key={n} style={{ fontSize: 13, color: C.faint, lineHeight: 1.55 }}>{n}</li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
+    </Card>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div
+        style={{
+          fontSize: 12, fontWeight: 700, color: C.dim,
+          textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 7,
+        }}
+      >
+        {title}
+      </div>
+      <div style={{ display: 'grid', gap: 5 }}>{children}</div>
+    </div>
+  );
+}
+
+/** One rule: what it governs on the left, what it says on the right. */
+function Line({ left, right, stamp }: { left: string; right?: string; stamp?: Stamped }) {
+  return (
+    <div
+      style={{
+        display: 'flex', gap: 12, alignItems: 'baseline', flexWrap: 'wrap',
+        fontSize: 13.5, lineHeight: 1.5,
+        borderBottom: `1px solid ${C.border}`, paddingBottom: 5,
+      }}
+    >
+      <span style={{ color: C.dim, minWidth: 150, flexShrink: 0 }}>{left}</span>
+      {right ? <span style={{ color: C.text, flex: 1, minWidth: 180 }}>{right}</span> : null}
+      {stamp ? <StatusChip of={stamp} /> : null}
+    </div>
+  );
+}
+
+/**
+ * Where the brand stands with the person whose brand it is.
+ *
+ * At the top, before any of the artwork, because it changes what everything
+ * below means. A kit read as finished and a kit read as a proposal are the
+ * same pixels and different objects, and the difference is one line that has
+ * to be passed before the swatches.
+ */
+export function ApprovalBanner({ kit }: { kit: Kit }) {
+  const a = kit.approval;
+  if (!a?.client && !a?.note) return null;
+
+  return (
+    <div
+      style={{
+        display: 'flex', alignItems: 'flex-start', gap: 10,
+        border: `1px solid ${C.amber}55`, background: C.amberSoft,
+        borderRadius: radius.lg, padding: '12px 14px', marginBottom: 22,
+      }}
+    >
+      <span aria-hidden style={{ color: C.amber, fontWeight: 700, fontSize: 14, lineHeight: 1.5 }}>!</span>
+      <div>
+        {a.client ? (
+          <div style={{ fontSize: 14.5, fontWeight: 600, color: C.text }}>
+            Client approval: {a.client}
+          </div>
+        ) : null}
+        {a.note ? (
+          <div style={{ fontSize: 13, color: C.dim, marginTop: 3, lineHeight: 1.55, maxWidth: '72ch' }}>
+            {a.note}
+          </div>
+        ) : null}
+      </div>
+    </div>
   );
 }
 
