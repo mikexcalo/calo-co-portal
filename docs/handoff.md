@@ -235,6 +235,17 @@ says so. A server-enforced version is a separate brief below.
 
 ## Open
 
+**Nothing links a client workspace to the agency that set it up, and Work in
+it guesses.** `orgs` has `kind = 'agency'` and no parent column, so
+`GetHelp.tsx` and `workin.ts` resolve "the studio" with
+`.eq('kind','agency').limit(1)` - whichever row comes back first. The demo has
+two agency workspaces, CALO&CO and Northwind Studio, and it only behaves
+correctly because Mike's demo account owns both, so the grant lands on the
+right person either way. With two real studios a client's request for help
+would be addressed to the wrong one. The fix is a column saying who set a
+workspace up, not a cleverer query; it is a schema decision and wants its own
+brief.
+
 **Switching: profiled in a browser, fixed, built, NOT measured, parked on
 branch `speed-fix`.** Do not merge it on anybody's say-so, including this
 file's. It typechecks and builds; it has never been run in a browser and the
