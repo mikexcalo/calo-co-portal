@@ -122,6 +122,28 @@ status.** Type to filter, arrows, Enter, Escape. On a phone it is a bottom
 sheet, and the phone header shows the workspace instead of the product name —
 switching at that width was previously impossible.
 
+### Signing in crashed the app, for 2h 47m
+
+Shipped as `30bf90a`. `AppShell` declared one `useState` *after*
+`if (isBarePage) return children`, so a bare page ran twelve hooks and an
+in-app page ran thirteen. The first client-side move across that line renders
+more hooks than the render before it and React throws #310: "Application
+error: a client-side exception has occurred", and nothing else on the page.
+
+Signing in is that move. `/login` is bare, the login page ends with
+`router.push('/')`, and `/` is not. Every other way into the app is a full
+document load, which resets the count, which is why it hid.
+
+It went live at 13:40 UTC with `645d0d4` and was fixed at 16:27 UTC.
+**No real client was affected.** The crash fires *after*
+`signInWithPassword` succeeds, so anyone who typed a correct password would
+have left a session row and a fresh `last_sign_in_at` even though the app died
+in front of them. There are none: every session created that day belongs to
+the demo account, and `access_events` since 13:00 UTC is Mike and the demo
+account only. The caveat, stated rather than glossed: `auth.audit_log_entries`
+holds **zero rows** on this project, so somebody who opened the login page and
+never finished leaves no trace anywhere that can be read.
+
 ### The studio's work stopped leaking into client workspaces
 
 The serious one. Tested as Mark in Mammoth, he could read:
@@ -187,12 +209,31 @@ setting. **About 1 second.**
 
 ## Open
 
-**Switching still feels ~5 seconds to Mike.** About 1s has been removed. The
-next step is **profiling in a real browser** — the Chrome extension was not
-connected for this entire session, so nothing was ever verified visually.
-Remaining suspects, in order: the middleware `getUser()` on the RSC
-navigation, Home's two query waves, and whatever the sidebar, notifications
-and feedback inbox each fire on mount. Count the hops, then cut them.
+**Switching: profiled in a browser, fixed, built, NOT measured, parked on
+branch `speed-fix`.** Do not merge it on anybody's say-so, including this
+file's. It typechecks and builds; it has never been run in a browser and the
+"after" number does not exist yet.
+
+Measured before, on the live site, Chrome, tab visible and focused, demo
+account, click to the new workspace's Home fully rendered: 1.03s, 1.62s,
+1.68s, 2.42s, 2.96s across five switches. Median 1.7s. Not the database and
+not the amount of data, because Blank Co is empty and took 2.4s. Seven serial
+round trips at 150-500ms each: the `profiles` write, the RSC payload for `/`,
+two `auth.getUser()` calls, then Home's three query waves.
+
+The one worth carrying forward even if the branch is thrown away:
+**`auth.getUser()` in a mount effect stalls the whole screen.** It is a
+network call to the auth server, and gotrue holds its lock while it runs, so
+every other Supabase query queues behind it. Four panels were doing it. Use
+`getSession()`; the id is already in the browser and nothing on that path is a
+permission decision. Same lesson as `orgNow()` in db.ts.
+
+**Measure with the tab actually visible.** The first four runs read 5.8s to
+10.1s and were all wrong: the MCP tab was `visibilityState: hidden`, and
+Chrome de-prioritizes network in a background tab, so every Supabase call
+inflated three to sevenfold. The control that proved it: fourteen parallel
+unauthenticated requests to the same origin, in that same hidden tab, all
+returned in about 85ms. `osascript` can bring the right tab to the front.
 
 **The product-name row is held and not started.** Mike sent the brief, then
 said explicitly to hold it and do it as a separate piece with its own report.
@@ -201,6 +242,16 @@ plate, Figtree 13px semibold `#6B7280`, both from a single setting, not
 clickable, not on public pages. Plus: in client workspaces change "Powered by
 CALO&CO" to "Set up by CALO&CO", and remove that line entirely in the studio.
 **Do not start it without being asked.**
+
+**Signing out signs you out everywhere, on every device.**
+`components/TopBar.tsx:549` calls `supabase.auth.signOut()` with no scope, and
+Supabase's default scope is global: it revokes every session that user holds.
+Found the hard way. Signing out of the demo account on the live site killed a
+demo session running against a local build at the same moment, and
+`auth.sessions` showed all four of that day's demo sessions gone at once. So
+if Mark signs out on his phone, his laptop is signed out too. If that is not
+wanted it is `signOut({ scope: 'local' })`. Nobody has asked for either
+behaviour yet, so it is written down rather than changed.
 
 **Never verified in a browser this session:** the strip, the plate, the
 switcher, phone width, and the switch timing. All were verified in code, in
@@ -311,6 +362,12 @@ first.
 pushing. **Run `npm run sitemap`** — it catches orphan routes and label
 mismatches, and is deliberately not in `prebuild` because a failure there once
 killed deploys silently.
+
+**A hook cannot sit behind a conditional return.** `AppShell` had one
+`useState` below `if (isBarePage) return children`, which crashed the app on
+sign-in for nearly three hours. A component with an early return needs every
+hook declared above it. `npm run build` does not catch this and neither does
+`tsc`; it only shows on a client-side navigation across the branch.
 
 **JSX: `{cond && (...)}` accepts exactly one child, and a `{/* comment */}`
 counts as a child.** Broke the build three times today. Put the comment above
