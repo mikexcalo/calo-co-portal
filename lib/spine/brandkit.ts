@@ -33,12 +33,37 @@ export interface KitFont {
   weight?: string;
   tracking?: string;
   source?: string;
+  /**
+   * How the face is set, where the brand has decided.
+   *
+   * Not a preference. A wordmark specified in uppercase is wrong in sentence
+   * case, and the person who needs to know that is reading the kit rather than
+   * the brand document it came from.
+   */
+  case?: 'uppercase' | 'lowercase' | 'sentence' | 'title';
 }
+
+/**
+ * A rule about which colours may sit on which, in the brand's own words.
+ *
+ * Distinct from the contrast matrix, and both belong. The matrix is
+ * arithmetic: it will tell you Wet slate on Buoy is 3.9:1 and let you draw
+ * your own conclusion. This is the decision somebody made, which can be
+ * stricter than the arithmetic, can be a rule the arithmetic has no opinion
+ * about, and is the thing that actually gets broken.
+ *
+ * Free text on purpose. A structured grammar of allowed pairs would have to be
+ * invented for each brand and would still not express "never as text on", so
+ * the sentence as written is kept and shown.
+ */
+export type KitPairing = string;
 
 export interface Kit {
   name: string;
   colors: KitColor[];
   fonts: KitFont[];
+  /** Stated colour rules, shown under the palette. Empty for most brands. */
+  pairings: KitPairing[];
   logos: string[];
   voice: string;
   /** Where this came from, so the page knows whether it can be edited here. */
@@ -66,6 +91,7 @@ export function kitFromOrg(name: string, settings: unknown): Kit {
       return { hex: str(o.hex), name: str(o.name), role: str(o.role) || undefined };
     }).filter((c) => c.hex),
     fonts,
+    pairings: asArray(b.pairings).map(str).map((x) => x.trim()).filter(Boolean),
     logos: [str(b.logoLight), ...asArray(b.logos).map(str)].map((u) => u.trim()).filter(Boolean),
     voice: str(b.voice),
     origin: 'org',
@@ -94,8 +120,10 @@ export function kitFromBrand(row: { id: string; name: string; kit: unknown }): K
         weight: str(o.weight) || undefined,
         tracking: str(o.tracking) || undefined,
         source: str(o.source) || undefined,
+        case: (['uppercase', 'lowercase', 'sentence', 'title'] as const).find((c) => c === str(o.case)),
       };
     }).filter((f) => f.family),
+    pairings: asArray(k.pairings).map(str).map((x) => x.trim()).filter(Boolean),
     logos: asArray(k.assets).map(str).filter(Boolean),
     voice: str(k.voice),
     origin: 'client',

@@ -243,6 +243,22 @@ clickable, not on public pages. Plus: in client workspaces change "Powered by
 CALO&CO" to "Set up by CALO&CO", and remove that line entirely in the studio.
 **Do not start it without being asked.**
 
+**There is no logo uploader, and Global Seafood Partners' marks went in by
+CLI.** Deliberately deferred to its own brief. Nothing in the product can put
+an SVG into a brand kit today: the only brand-adjacent file input is the intel
+drop box, and `lib/spine/intel.ts` gates on jpeg/png/gif/webp, so an SVG is
+rejected by name. `app/documents` rejects it too. The three GSP marks were
+uploaded with `npx supabase storage cp ... --content-type image/svg+xml
+--linked --experimental`, which is how Colette's assets must have got there as
+well, and the kit rows were written by migration `20261027000010`.
+
+That is fine for three files from a designer and wrong as a permanent answer.
+The brief when it comes: a real uploader on the brand page, SVG allowed
+through validation, the file stored byte for byte because these carry C2PA
+content credentials that any optimizer would silently strip, and the storage
+path built from `brands.asset_prefix` so `client_asset_org()` can resolve it.
+A brand with no prefix cannot store assets at all under the current policy.
+
 **Signing out signs you out everywhere, on every device.**
 `components/TopBar.tsx:549` calls `supabase.auth.signOut()` with no scope, and
 Supabase's default scope is global: it revokes every session that user holds.

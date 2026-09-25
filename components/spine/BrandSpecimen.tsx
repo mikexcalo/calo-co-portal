@@ -159,6 +159,60 @@ export function Swatch({ c }: { c: KitColor }) {
   );
 }
 
+/**
+ * The colour rules the brand actually wrote down.
+ *
+ * Sits directly under the palette, above the contrast matrix, because it is
+ * the stricter of the two and the one a designer is answerable to. The matrix
+ * below will happily report that Wet slate on Buoy clears 3:1 for large text;
+ * it has no way of knowing somebody decided white on Buoy is never acceptable
+ * whatever the number says.
+ *
+ * Any brand can have these. Most will not, and a brand without them renders
+ * nothing here rather than an empty heading — same rule as everywhere else in
+ * this product: a line appears when there is something behind it.
+ */
+export function ColorRules({ kit }: { kit: Kit }) {
+  if (!kit.pairings?.length) return null;
+
+  return (
+    <Card>
+      <SectionLabel>Rules for these colors</SectionLabel>
+      <div
+        style={{
+          fontSize: 12.5, color: C.faint, marginTop: 4, marginBottom: 12,
+          lineHeight: 1.6, maxWidth: '64ch',
+        }}
+      >
+        Decided for this brand, not derived from the numbers. Where one of these
+        disagrees with the contrast table below, this wins.
+      </div>
+      <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: 8 }}>
+        {kit.pairings.map((rule) => (
+          <li
+            key={rule}
+            style={{
+              display: 'flex', alignItems: 'flex-start', gap: 10,
+              fontSize: 14, color: C.text, lineHeight: 1.5,
+            }}
+          >
+            {/* A mark rather than a bullet: these are prohibitions more often
+                than permissions, and a list of dots reads as options. */}
+            <span
+              aria-hidden
+              style={{
+                flexShrink: 0, marginTop: 6, width: 6, height: 6,
+                borderRadius: 2, background: C.text,
+              }}
+            />
+            <span>{rule}</span>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
 export function Pairings({ kit }: { kit: Kit }) {
   // Grounds worth testing: the darkest and the lightest few. Every colour
   // against every colour is a hundred cells nobody reads.

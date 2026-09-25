@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
-import { Swatch, Pairings } from '@/components/spine/BrandSpecimen';
+import { Swatch, ColorRules, Pairings } from '@/components/spine/BrandSpecimen';
 import { Messaging } from '@/components/spine/Messaging';
 import { useOrg } from '@/lib/spine/org';
 import { kitFromBrand } from '@/lib/spine/brandkit';
@@ -37,6 +37,8 @@ interface Font {
   weight?: string;
   tracking?: string;
   source?: string;
+  /** How the brand sets it. Optional, and most brands never say. */
+  case?: string;
   /** Where the file lives, for a face we host rather than fetch from Google. */
   storage_path?: string;
   files?: Array<{ label: string; storage_path?: string; url?: string }>;
@@ -73,6 +75,18 @@ const ASSET_CANON = [
   'Fonts',
   'Documents',
 ];
+
+/**
+ * Can this be shown as a picture rather than described as a file.
+ *
+ * By extension rather than by sniffing, because the name is what we have and
+ * the browser decides the rest. SVG is in deliberately: it is served from a
+ * private bucket through a signed url into an img tag, which does not execute
+ * script even if one were present, and these marks are vector originals whose
+ * whole point is that they are exact.
+ */
+const PREVIEWABLE = /\.(svg|png|jpe?g|gif|webp|avif)$/i;
+const isPreviewable = (name: string) => PREVIEWABLE.test(name);
 
 const ASSET_LABEL: Record<string, string> = {
   Video: 'Hero video',
@@ -182,14 +196,26 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
     if (paths.length === 0) return;
 
     let cancelled = false;
+    /*
+      Strip the brand's own prefix, not Colette's.
+
+      storage_path in the kit is relative to asset_prefix, so the request has
+      to prepend it and the reply has to have it taken off again to match the
+      key the renderer looks up. The second half was hardcoded to `colette/`,
+      which is the only prefix that existed when it was written. For any other
+      brand the signed url came back under a key nothing asked for, every
+      lookup missed, and the assets rendered as dead links with no error
+      anywhere. Found on the first brand to have a prefix that was not Colette.
+    */
+    const prefix = brand?.asset_prefix ?? 'colette';
     supabase.storage
       .from('client-assets')
-      .createSignedUrls(paths.map((p) => `${brand?.asset_prefix ?? 'colette'}/${p}`), 3600)
+      .createSignedUrls(paths.map((p) => `${prefix}/${p}`), 3600)
       .then(({ data }) => {
         if (cancelled || !data) return;
         const map: Record<string, string> = {};
         data.forEach((d) => {
-          if (d.signedUrl && d.path) map[d.path.replace(/^colette\//, '')] = d.signedUrl;
+          if (d.signedUrl && d.path) map[d.path.replace(new RegExp(`^${prefix}/`), '')] = d.signedUrl;
         });
         setSigned(map);
       });
@@ -309,6 +335,18 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
         </div>
       )}
 
+      {/*
+        Two different things, in the order they should be read.
+
+        The brand's own rules first, because they are decisions and they are
+        stricter. The contrast table second, because it is arithmetic and
+        arithmetic does not know what was agreed. Where they disagree the rule
+        wins, and the rules block says so.
+      */}
+      <div style={{ marginBottom: 26 }}>
+        <ColorRules kit={kitFromBrand({ id: brand.id, name: brand.name, kit: brand.kit })} />
+      </div>
+
       {colors.length > 1 && (
         <div style={{ marginBottom: 26 }}>
           {/* Derived from the colors above, never typed, so it cannot drift. */}
@@ -347,7 +385,10 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                         {f.family}
                       </span>
                       <span style={{ fontSize: 13, color: C.faint, marginLeft: 8 }}>
-                        {[f.role, f.weight, f.tracking].filter(Boolean).join(' · ')}
+                        {/* Case sits with the other specifications, because a
+                            wordmark set in uppercase is wrong in sentence case
+                            and the person who needs to know is reading this. */}
+                        {[f.role, f.weight, f.tracking, f.case].filter(Boolean).join(' · ')}
                       </span>
                     </div>
                     {!loadable && f.source && (
@@ -469,25 +510,61 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
                             background: a.needs_approval ? C.amberSoft : 'transparent',
                           }}
                         >
-                          {/* The extension, because it is the one thing that
-                              tells you what you are about to open. */}
-                          <span
-                            style={{
-                              fontFamily: 'ui-monospace, monospace',
-                              fontSize: 10.5,
-                              fontWeight: 700,
-                              letterSpacing: '.04em',
-                              color: C.faint,
-                              background: C.panelAlt,
-                              borderRadius: 4,
-                              padding: '3px 5px',
-                              minWidth: 34,
-                              textAlign: 'center',
-                              flexShrink: 0,
-                            }}
-                          >
-                            {ext}
-                          </span>
+                          {/*
+                            The file, where the file can be shown.
+
+                            A list of names with an extension chip answers
+                            "what is in the kit" and not "is this the right
+                            one", which is the question somebody opening a mark
+                            actually has. A logo you cannot see is a filename.
+
+                            Checkered ground because these are transparent, and
+                            a white mark on a white card is an empty square.
+                            Anything not an image keeps the chip, which is
+                            still the most useful thing to say about a PDF.
+                          */}
+                          {href && isPreviewable(name) ? (
+                            <span
+                              style={{
+                                flexShrink: 0,
+                                width: 34,
+                                height: 34,
+                                borderRadius: 4,
+                                background:
+                                  'repeating-conic-gradient(#EDEEF0 0% 25%, #FFFFFF 0% 50%) 50% / 10px 10px',
+                                border: `1px solid ${C.border}`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={href}
+                                alt=""
+                                style={{ maxWidth: '100%', maxHeight: '100%', display: 'block' }}
+                              />
+                            </span>
+                          ) : (
+                            <span
+                              style={{
+                                fontFamily: 'ui-monospace, monospace',
+                                fontSize: 10.5,
+                                fontWeight: 700,
+                                letterSpacing: '.04em',
+                                color: C.faint,
+                                background: C.panelAlt,
+                                borderRadius: 4,
+                                padding: '3px 5px',
+                                minWidth: 34,
+                                textAlign: 'center',
+                                flexShrink: 0,
+                              }}
+                            >
+                              {ext}
+                            </span>
+                          )}
                           <span
                             style={{
                               fontSize: 13.5,
