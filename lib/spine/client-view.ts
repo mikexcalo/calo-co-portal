@@ -53,25 +53,41 @@ export function clientOwner(orgId: string, meId: string | null): Promise<ClientO
 }
 
 async function resolveOwner(orgId: string, meId: string | null): Promise<ClientOwner | null> {
-  const res = await supabase
+  /*
+    Two queries, because there is no relationship to embed through.
+
+    memberships.user_id references auth.users, not public.profiles, so asking
+    PostgREST for `profiles(full_name)` off a membership is asking it to follow
+    a foreign key that does not exist. It does not error loudly: the embed
+    fails, the data comes back unusable, and the caller gets null. Which is
+    exactly what happened - the View mode bar said "exactly as they see it" for
+    every workspace including the ones with a real second person in them, and
+    the sidebar identity tile never drew at all. It read as "the demo has one
+    user" and was a broken join.
+  */
+  const members = await supabase
     .from('memberships')
-    .select('user_id, role, profiles(full_name)')
+    .select('user_id, role')
     .eq('org_id', orgId)
     .in('role', ['owner', 'admin']);
 
-  if (res.error) return null;
+  if (members.error) return null;
+  const rows = (members.data ?? []) as Array<{ user_id: string; role: string }>;
+  if (!rows.length) return null;
 
-  const rows = (res.data ?? []) as Array<{
-    user_id: string;
-    role: string;
-    profiles: { full_name: string | null } | { full_name: string | null }[] | null;
-  }>;
+  const profiles = await supabase
+    .from('profiles')
+    .select('id, full_name')
+    .in('id', rows.map((r) => r.user_id));
+  if (profiles.error) return null;
+
+  const nameById = new Map(
+    ((profiles.data ?? []) as Array<{ id: string; full_name: string | null }>)
+      .map((p) => [p.id, (p.full_name ?? '').trim()])
+  );
 
   const named = rows
-    .map((r) => {
-      const p = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles;
-      return { userId: r.user_id, role: r.role, name: (p?.full_name ?? '').trim() };
-    })
+    .map((r) => ({ userId: r.user_id, role: r.role, name: nameById.get(r.user_id) ?? '' }))
     .filter((r) => r.name.length > 0);
 
   const them = named.find((r) => r.userId !== meId);

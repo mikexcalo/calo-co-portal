@@ -58,6 +58,20 @@ export const C = {
   viewing: '#1B4DE4',
   viewingInk: '#FFFFFF',
 
+  /**
+   * Working in somebody else's workspace. The other saturated colour.
+   *
+   * Nothing like the blue at a glance, which is the entire requirement: the
+   * two modes must not be told apart by reading. Blue is looking and changes
+   * nothing; this one writes to a business that is not yours.
+   *
+   * Burnt rather than bright. It sits behind white text at 5.3:1 and is not
+   * the amber already used for warnings, so a warning inside a work session
+   * still reads as a warning.
+   */
+  working: '#B4470E',
+  workingInk: '#FFFFFF',
+
   border: '#E7E8EB',
   borderStrong: '#DFE0E5',
 

@@ -36,6 +36,7 @@ import {
   shortDate,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { SendLock, useSendLocked } from '@/components/spine/SendLock';
 import { SaidYesElsewhere } from '@/components/spine/SaidYesElsewhere';
 
 const VIA_SAID = {
@@ -65,6 +66,7 @@ const STATUS_TONE = {
 } as const;
 
 export default function ProposalsPage() {
+  const sendLocked = useSendLocked();
   const router = useRouter();
   const { vocab } = useOrg();
   const [rows, setRows] = useState<Row_[]>([]);
@@ -388,12 +390,26 @@ export default function ProposalsPage() {
                         with no way to send one. The only send button lived on
                         the project page, three clicks away, under Estimate.
                       */}
-                      <Button
-                        onClick={() => { void sendIt(r); }}
-                        disabled={busy === r.id}
-                      >
-                        {busy === r.id ? 'Sending…' : 'Send it'}
-                      </Button>
+                      {/*
+                        Disabled, with the reason beside it.
+
+                        A send button that silently does nothing during a work
+                        session is how somebody decides the product is broken
+                        and mails the estimate from their own account instead,
+                        which puts a document in front of a client's customer
+                        from the wrong business. SendLock draws nothing when
+                        sending is allowed, so this is one component and no
+                        condition.
+                      */}
+                      <div>
+                        <Button
+                          onClick={() => { void sendIt(r); }}
+                          disabled={busy === r.id || sendLocked}
+                        >
+                          {busy === r.id ? 'Sending…' : 'Send it'}
+                        </Button>
+                        <SendLock />
+                      </div>
                     </div>
                   </Row>
                 ))}

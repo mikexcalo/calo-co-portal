@@ -49,6 +49,7 @@ import {
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
+import { ChangedBy, useChangedHere } from '@/components/spine/SendLock';
 
 interface Summary {
   /** Same value as customer_id. The shared table keys every list on `id`. */
@@ -106,6 +107,15 @@ const STAGE_TONE: Record<string, 'amber' | 'green' | 'neutral'> = {
 export default function CustomersPage() {
   const router = useRouter();
   const { vocab, org } = useOrg();
+  /*
+    What this session has already touched, marked on the list itself.
+
+    The client gets told at the end; the person doing the work needs it during,
+    or the same customer gets "fixed" twice by somebody who has lost track of
+    which ones they opened. Renders nothing outside a work session, so the list
+    is unchanged for the client whose list it is.
+  */
+  const changed = useChangedHere('customers');
   const [rows, setRows] = useState<Summary[]>([]);
   /* Time per client, so the screen says something before you click into one. */
   const [clientHours, setClientHours] = useState<ClientHours[]>([]);
@@ -355,6 +365,7 @@ export default function CustomersPage() {
             {r.name}
           </span>
           {r.stage === 'past' && <Pill tone="neutral">past</Pill>}
+          {changed.has(r.id) && <ChangedBy who={changed.who} />}
         </span>
       ),
     },

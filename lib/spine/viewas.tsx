@@ -23,9 +23,19 @@
  */
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { guardApiWrites, setReadOnly } from './readonly';
+import { guardApiWrites, setMode, setWorkOrg } from './readonly';
+import type { Grant } from './workin';
 
 const KEY = 'calo.viewas';
+/**
+ * The open work session, by id, so a page load does not end it.
+ *
+ * Only the id is stored. The grant itself is re-read on every load, which is
+ * what makes "you can take this back at any time" work across a refresh: a
+ * revoked or ended grant simply does not come back, and a client who turned
+ * sending off between one page and the next is obeyed on the next page.
+ */
+const WORK_KEY = 'calo.workin';
 
 export interface ViewAs {
   /** The role being previewed. Empty means you, as yourself. */
@@ -41,6 +51,16 @@ interface Ctx {
   setViewAs: (v: ViewAs | null) => void;
   myRole: string | null;
   setMyRole: (r: string | null) => void;
+  /**
+   * The open work session, when there is one.
+   *
+   * Held here rather than in a provider of its own because looking and working
+   * are two values of one thing, not two things. Two providers could both be
+   * on, and "viewing and editing at the same time" is not a state anybody
+   * should be able to reach.
+   */
+  work: Grant | null;
+  setWork: (g: Grant | null) => void;
 }
 
 const ViewAsContext = createContext<Ctx>({
@@ -49,10 +69,13 @@ const ViewAsContext = createContext<Ctx>({
   setViewAs: () => {},
   myRole: null,
   setMyRole: () => {},
+  work: null,
+  setWork: () => {},
 });
 
 export function ViewAsProvider({ children }: { children: React.ReactNode }) {
   const [viewAs, setState] = useState<ViewAs | null>(null);
+  const [work, setWorkState] = useState<Grant | null>(null);
   const [myRole, setMyRole] = useState<string | null>(null);
 
   useEffect(() => {
@@ -62,6 +85,31 @@ export function ViewAsProvider({ children }: { children: React.ReactNode }) {
     } catch {
       /* a corrupt value is the same as none */
     }
+  }, []);
+
+  /**
+   * Put an open session back after a reload, by asking the database.
+   *
+   * Not from storage: storage holds an id, and the answer to "may I still edit
+   * here" belongs to the row. Re-reading it is what makes revocation take
+   * effect on the next page rather than the next login, and it means a session
+   * that ended in another tab does not come back to life in this one.
+   */
+  useEffect(() => {
+    const id = (() => {
+      try { return window.sessionStorage.getItem(WORK_KEY); } catch { return null; }
+    })();
+    if (!id) return;
+
+    let off = false;
+    void (async () => {
+      const { grantById } = await import('./workin');
+      const g = await grantById(id);
+      if (off) return;
+      if (g) setWorkState(g);
+      else window.sessionStorage.removeItem(WORK_KEY);
+    })();
+    return () => { off = true; };
   }, []);
 
   /**
@@ -88,8 +136,39 @@ export function ViewAsProvider({ children }: { children: React.ReactNode }) {
       The effect stays as the backstop for the other direction and for a value
       restored from session storage on load.
     */
-    setReadOnly(Boolean(v));
+    setMode(v ? 'view' : null);
+    /* Looking and working cannot both be on. Entering one leaves the other. */
+    if (v) setWorkState(null);
     setState(v);
+  }, []);
+
+  /**
+   * Starting or ending a work session, in the same tick.
+   *
+   * The flag has to be set before the next line of the caller runs, for the
+   * same reason View mode learned the hard way: a React state update does not
+   * flush, and the handler that starts a session usually writes something
+   * immediately afterwards.
+   */
+  const setWork = useCallback((g: Grant | null) => {
+    setMode(g ? 'work' : null, g ? { canSend: g.canSend, grantId: g.id, actorId: g.grantedTo } : undefined);
+    setWorkOrg(g ? g.orgId : null);
+    if (g) {
+      window.sessionStorage.setItem(WORK_KEY, g.id);
+      /*
+        Clear the STORED preview, not just the state.
+
+        Setting React state to null left the session-storage key in place, so
+        the next full page load restored View mode and the work session was
+        gone. You pressed "Work in it", navigated once, and were quietly back
+        to read-only with an open grant nobody was using.
+      */
+      window.sessionStorage.removeItem(KEY);
+      setState(null);
+    } else {
+      window.sessionStorage.removeItem(WORK_KEY);
+    }
+    setWorkState(g);
   }, []);
 
   /*
@@ -109,9 +188,15 @@ export function ViewAsProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    setReadOnly(Boolean(viewAs));
-    return () => setReadOnly(false);
-  }, [viewAs]);
+    if (work) {
+      setMode('work', { canSend: work.canSend, grantId: work.id, actorId: work.grantedTo });
+      setWorkOrg(work.orgId);
+    } else {
+      setMode(viewAs ? 'view' : null);
+      setWorkOrg(null);
+    }
+    return () => { setMode(null); setWorkOrg(null); };
+  }, [viewAs, work]);
 
   /*
     Leaving the page leaves the mode.
@@ -123,8 +208,8 @@ export function ViewAsProvider({ children }: { children: React.ReactNode }) {
   */
 
   const value = useMemo<Ctx>(
-    () => ({ viewAs, effectiveRole: viewAs?.role ?? myRole, setViewAs, myRole, setMyRole }),
-    [viewAs, myRole, setViewAs]
+    () => ({ viewAs, effectiveRole: viewAs?.role ?? myRole, setViewAs, myRole, setMyRole, work, setWork }),
+    [viewAs, myRole, setViewAs, work, setWork]
   );
 
   return <ViewAsContext.Provider value={value}>{children}</ViewAsContext.Provider>;

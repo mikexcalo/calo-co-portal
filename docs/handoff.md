@@ -205,6 +205,32 @@ forcing a re-read of a column we had just written, `load()` re-confirming what
 the UPDATE already confirmed, and the cache-honesty effect clearing instead of
 setting. **About 1 second.**
 
+### Work in it, the second way in
+
+Shipped. View mode answers "what do they see"; this one edits, with consent
+and in the open.
+
+Two ways in. The client asks - **Get help from CALO&CO** in their sidebar,
+built on `feedback` with `kind = 'help'`, with two permission checkboxes whose
+answers are written to `work_grants` at the moment of asking, not at the
+moment of accepting. Or the studio chooses: View mode's bar has **Work in it**,
+which opens a grant with `granted_by` null and `can_send` false, because a
+session nobody requested cannot reach their customers.
+
+While it is open: an amber bar and frame at every width, every write recorded
+in `work_changes` at the same choke point that refuses writes in View mode,
+and a notice to the client on the way out with a link to `/changed/<grant>`.
+
+**What it actually permits.** The app refuses to send. The database does not.
+The studio owner holds an `owner` membership in every client workspace - CALO&CO,
+Global Seafood Partners, Lakemere Services, Mammoth Construction are all `owner`
+- so row-level security cannot tell "Mike, working with permission to edit" from
+"Mike, working with permission to send". The lock is at `postEmail()` and the
+readonly guard: one honest boundary, the same one View mode has, and the bar
+says so. A server-enforced version is a separate brief below.
+
+---
+
 ---
 
 ## Open
@@ -242,6 +268,29 @@ plate, Figtree 13px semibold `#6B7280`, both from a single setting, not
 clickable, not on public pages. Plus: in client workspaces change "Powered by
 CALO&CO" to "Set up by CALO&CO", and remove that line entirely in the studio.
 **Do not start it without being asked.**
+
+**The send lock is app-level. A server-enforced version is its own brief.**
+Work in it stops the product from sending to a client's customers without
+their permission, in two places: `lib/spine/readonly.ts` refuses the send
+routes in the browser, and `postEmail()` in `lib/spine/deliverable.ts` refuses
+them again on the server by reading `work_grants` with the service role. That
+is a real boundary and it cannot be turned off from dev tools.
+
+It is still not a wall against the studio owner, and the reason is structural:
+Mike holds an `owner` membership in every client workspace CALO&CO set up, so
+the database already permits every edit and every send in all of them, grant
+or no grant. Verified, not assumed - `memberships` shows owner on Mammoth,
+Lakemere and Global Seafood. The grant is a record of consent and a switch the
+product obeys; it does not narrow what is possible.
+
+The version that holds against the person needs two things this one does not
+do. Every send routed through a server that checks the grant, with no
+client-callable path that skips it. And the studio's own membership in client
+workspaces narrowed from `owner` to something that cannot send, with the grant
+widening it temporarily. The second half is the hard one: it touches the
+three-tier shape the whole product is built on, and getting it wrong locks the
+studio out of workspaces it has to administer. Do not start it as a side
+effect of something else.
 
 **There is no logo uploader, and Global Seafood Partners' marks went in by
 CLI.** Deliberately deferred to its own brief. Nothing in the product can put
@@ -324,6 +373,19 @@ These were learned the hard way. They are not style preferences.
 ---
 
 ## Traps that cost real time today
+
+**A unique index can silently eat a notification.**
+`notifications_one_per_title` was unique on `(org_id, title)` for unread
+`system` rows. Every hand-back notice carries the same title, so the client
+was told about the first work session and about none after it until they
+happened to read the first. It failed as a rejected insert nobody looked at,
+which made it look intermittent: it "worked" whenever the earlier notice had
+been read. Fixed in `20261027000017` - the index now skips rows that carry a
+`dedupe_key`, because a row with its own key has already said what makes it
+unique. Two lessons, both old ones here: wrap the write in `save()`, and when
+something works sometimes, look for state that changes between the runs rather
+than for a race.
+
 
 **`scripts/ask-db.sh` is read-only by design.** It wraps the query in a
 migration that deliberately raises, so nothing commits. Writes need a real

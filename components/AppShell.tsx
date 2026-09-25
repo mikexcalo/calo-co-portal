@@ -5,6 +5,7 @@ import { SaveFailed } from '@/components/spine/SaveFailed';
 import { useViewAs } from '@/lib/spine/viewas';
 import { ViewModeBar, VIEW_BAR, VIEW_BAR_PHONE } from '@/components/spine/ViewModeBar';
 import { ClientPanel } from '@/components/spine/ClientPanel';
+import { WorkModeBar, WorkRequest, WORK_BAR, WORK_BAR_PHONE } from '@/components/spine/WorkModeBar';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
@@ -25,7 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const phone = useIsPhone();
   const { org, vocab, loading: orgLoading, orgs } = useOrg();
-  const { setMyRole, viewAs } = useViewAs();
+  const { setMyRole, viewAs, work } = useViewAs();
   const orgCount = orgs?.length ?? 0;
 
   /**
@@ -82,6 +83,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
   const [navOpen, setNavOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+
+  /*
+    The request behind an open work session, loaded once.
+
+    Only when there is one: a session the studio started on its own has no
+    feedback row, and the top of the page stays empty rather than showing a
+    heading with nothing under it.
+  */
+  const [request, setRequest] = useState<{ body: string; created_at: string } | null>(null);
+  useEffect(() => {
+    let off = false;
+    setRequest(null);
+    const id = work?.feedbackId;
+    if (!id) return;
+    (async () => {
+      const res = await supabase.from('feedback').select('body, created_at').eq('id', id).maybeSingle();
+      if (!off && res.data) setRequest(res.data as { body: string; created_at: string });
+    })();
+    return () => { off = true; };
+  }, [work?.feedbackId]);
   /*
     Above the early return, and it has to stay there.
 
@@ -216,6 +237,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     writes.
   */
   const viewing = Boolean(viewAs) && !!org && org.kind !== 'agency';
+  /*
+    Working is the same test with a grant instead of a preview, and the two
+    can never both be true: the provider clears one when the other is set.
+  */
+  const working = !!work && !!org && work.orgId === org.id;
+  /* One flag for "inside somebody else's workspace", and the colour that says
+     which kind. The phone layout below is the same for both. */
+  const framed = viewing || working;
+  const frameColor = viewing ? C.viewing : C.working;
 
   // Phone: the sidebar becomes a drawer. Desktop is unchanged.
   if (phone) {
@@ -236,16 +266,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div
         style={{
           display: 'flex', flexDirection: 'column', minHeight: '100vh',
-          paddingTop: viewing ? VIEW_BAR_PHONE + 8 : 4,
-          background: viewing ? C.viewing : undefined,
+          paddingTop: framed ? (viewing ? VIEW_BAR_PHONE : WORK_BAR_PHONE) + 8 : 4,
+          background: framed ? frameColor : undefined,
           boxSizing: 'border-box',
-          gap: viewing ? 8 : 0,
-          paddingLeft: viewing ? 8 : 0,
-          paddingRight: viewing ? 8 : 0,
-          paddingBottom: viewing ? 8 : 0,
+          gap: framed ? 8 : 0,
+          paddingLeft: framed ? 8 : 0,
+          paddingRight: framed ? 8 : 0,
+          paddingBottom: framed ? 8 : 0,
         }}
       >
-        {viewing ? <ViewModeBar /> : <IdentityStrip color={stripColor} />}
+        {/*
+          Both modes, one layout.
+
+          The phone branch returns before the desktop ones, so handling only
+          View mode here meant Work mode had no frame and no bar at this width:
+          a session that looked from a phone exactly like standing in the
+          client's workspace as yourself, which is the one thing the colour
+          exists to prevent.
+        */}
+        {viewing ? <ViewModeBar /> : working ? <WorkModeBar /> : <IdentityStrip color={stripColor} />}
         <div
           style={{
             display: 'flex',
@@ -259,10 +298,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                own edge, and stops sticking: the blue bar above it is already
                fixed, and two stacked sticky rows on a phone is most of the
                screen. */
-            borderTop: viewing ? `4px solid ${stripColor}` : undefined,
-            borderTopLeftRadius: viewing ? radius.lg : undefined,
-            borderTopRightRadius: viewing ? radius.lg : undefined,
-            position: viewing ? 'relative' : 'sticky',
+            borderTop: framed ? `4px solid ${stripColor}` : undefined,
+            borderTopLeftRadius: framed ? radius.lg : undefined,
+            borderTopRightRadius: framed ? radius.lg : undefined,
+            position: framed ? 'relative' : 'sticky',
             top: 0,
             zIndex: 25,
           }}
@@ -342,7 +381,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               onClick={() => setNavOpen(false)}
               style={{
                 position: 'fixed',
-                top: viewing ? VIEW_BAR_PHONE : 0,
+                top: framed ? (viewing ? VIEW_BAR_PHONE : WORK_BAR_PHONE) : 0,
                 left: 0,
                 bottom: 0,
                 zIndex: 46,
@@ -366,11 +405,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           key={org?.id ?? 'none'}
           style={{
             flex: 1, display: 'flex', flexDirection: 'column',
-            background: viewing ? C.bg : undefined,
-            borderBottomLeftRadius: viewing ? radius.lg : undefined,
-            borderBottomRightRadius: viewing ? radius.lg : undefined,
+            background: framed ? C.bg : undefined,
+            borderBottomLeftRadius: framed ? radius.lg : undefined,
+            borderBottomRightRadius: framed ? radius.lg : undefined,
           }}
         >
+          {/* What they asked for, above the page, for the whole session. */}
+          {working && request && (
+            <div style={{ padding: '14px 14px 0' }}>
+              <WorkRequest body={request.body} at={request.created_at} canSend={work?.canSend ?? false} />
+            </div>
+          )}
           {blocked ? <ModuleOff /> : children}
         </main>
 
@@ -393,6 +438,62 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {addOpen && <AddSheet vocab={vocab} onClose={() => setAddOpen(false)} />}
 
         <TutorialPanel />
+      </div>
+    );
+  }
+
+  /*
+    Work mode: the same frame, a different colour, and the request pinned.
+
+    Deliberately the same shape as View mode rather than a second layout. The
+    two are one idea - you are inside somebody else's workspace and the screen
+    says so - and building them differently would make the difference between
+    looking and editing a matter of noticing which controls are present.
+
+    No private panel. That column is a View mode thing: it exists so you can
+    read a client without touching them. Here you are touching them, and the
+    thing that belongs at the top is what they asked for.
+  */
+  if (working && work) {
+    return (
+      <div
+        style={{
+          display: 'flex', flexDirection: 'column', height: '100vh',
+          paddingTop: phone ? WORK_BAR_PHONE : WORK_BAR,
+          background: C.working, boxSizing: 'border-box',
+        }}
+      >
+        <WorkModeBar />
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', padding: 8, boxSizing: 'border-box' }}>
+          <div
+            style={{
+              flex: 1, minWidth: 0, display: 'flex', position: 'relative',
+              background: C.bg, borderRadius: radius.lg, overflow: 'hidden',
+            }}
+          >
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute', top: 0, left: 0, right: 0, height: 4,
+                background: stripColor, zIndex: 3,
+              }}
+            />
+            <Sidebar />
+            <main style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+              {/* Above the page, not inside it, so it survives every
+                  navigation for the length of the session. */}
+              {request && (
+                <div style={{ padding: '18px 28px 0' }}>
+                  <WorkRequest body={request.body} at={request.created_at} canSend={work.canSend} />
+                </div>
+              )}
+              <div key={org?.id ?? 'none'} style={{ display: 'contents' }}>
+                {blocked ? <ModuleOff /> : children}
+              </div>
+            </main>
+          </div>
+        </div>
+        <SaveFailed />
       </div>
     );
   }

@@ -25,6 +25,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
+import { useViewAs } from '@/lib/spine/viewas';
+import { openGrant } from '@/lib/spine/workin';
 import { Button, C, Card, SectionLabel, inputStyle } from './ui';
 import { save as saveOrFail } from '@/lib/spine/save';
 
@@ -62,8 +64,10 @@ const DONE_LABEL: Record<string, string> = {
 export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null }) {
   const router = useRouter();
   const { switchOrg, org } = useOrg();
+  const { setWork } = useViewAs();
   const isAgency = org?.kind === 'agency';
   const [going, setGoing] = useState<string | null>(null);
+  const [accepting, setAccepting] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [open, setOpen] = useState<string | null>(null);
   const [reply, setReply] = useState('');
@@ -136,6 +140,40 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
     const now = new Date().toISOString();
     setRows((p) => p.map((x) => (x.id === r.id ? { ...x, read_at: now } : x)));
     await supabase.from('feedback').update({ read_at: now }).eq('id', r.id);
+  };
+
+  /**
+   * Take the job, on the terms they set.
+   *
+   * The grant already exists: the client wrote it when they sent the request,
+   * which is the only order that makes sense for a record of consent. So this
+   * does not create permission, it switches into the workspace the permission
+   * is for and turns the mode on.
+   *
+   * Switching first, then setting the mode, because the mode is keyed on the
+   * workspace and setting it before the switch would arm it against the one
+   * you are standing in.
+   */
+  const accept = async (r: Row) => {
+    setAccepting(r.id);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const me = data.session?.user?.id;
+      if (!me) return;
+
+      const grant = await openGrant(r.org_id, me);
+      if (!grant) {
+        /* They asked without allowing changes. Nothing to accept: answer it
+           in words instead, which is what the other three buttons are for. */
+        return;
+      }
+
+      if (org?.id !== r.org_id) await switchOrg(r.org_id);
+      setWork(grant);
+      router.push('/');
+    } finally {
+      setAccepting(null);
+    }
   };
 
   const answer = async (id: string, status: string) => {
@@ -267,14 +305,22 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
                       }}
                     />
                   )}
+                  {/*
+                    A help request is not feedback about the software and must
+                    not read like it. Same row, same inbox - one place to look
+                    is the point - but the tag says what it is in words rather
+                    than showing the raw kind.
+                  */}
                   <span
                     style={{
                       fontSize: 11, borderRadius: 999, padding: '1px 9px', flexShrink: 0,
-                      color: tone === 'red' ? C.red : tone === 'amber' ? C.amber : C.faint,
-                      border: `1px solid ${tone === 'red' ? `${C.red}55` : tone === 'amber' ? `${C.amber}55` : C.border}`,
+                      fontWeight: r.kind === 'help' ? 600 : 400,
+                      color: r.kind === 'help' ? C.working : tone === 'red' ? C.red : tone === 'amber' ? C.amber : C.faint,
+                      border: `1px solid ${r.kind === 'help' ? `${C.working}55` : tone === 'red' ? `${C.red}55` : tone === 'amber' ? `${C.amber}55` : C.border}`,
+                      background: r.kind === 'help' ? `${C.working}12` : 'transparent',
                     }}
                   >
-                    {r.kind}
+                    {r.kind === 'help' ? 'Asked for help' : r.kind}
                   </span>
                   <span style={{ fontSize: 12.5, color: C.faint }}>{orgName(r)}</span>
                   {r.page && <span style={{ fontSize: 12, color: C.faint }}>{r.page}</span>}
@@ -309,7 +355,21 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
                     apart from the three that are.
                   */}
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 10, flexWrap: 'wrap' }}>
-                    <Button onClick={() => answer(r.id, 'done')}>
+                    {/*
+                      Accepting is not answering.
+
+                      A request for help is answered by doing the thing, in
+                      their workspace, which is a different act from typing a
+                      reply. So it gets its own button, first, and the three
+                      reply buttons stay for the case where the answer really
+                      is a sentence.
+                    */}
+                    {r.kind === 'help' && (
+                      <Button onClick={() => accept(r)} disabled={accepting === r.id}>
+                        {accepting === r.id ? 'Opening…' : 'Work in it'}
+                      </Button>
+                    )}
+                    <Button variant={r.kind === 'help' ? 'ghost' : 'primary'} onClick={() => answer(r.id, 'done')}>
                       {DONE_LABEL[r.kind] ?? 'Sorted it'}
                     </Button>
                     <Button variant="ghost" onClick={() => answer(r.id, 'building')}>

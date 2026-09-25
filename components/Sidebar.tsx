@@ -14,6 +14,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useOrg } from '@/lib/spine/org';
 import { useViewAs } from '@/lib/spine/viewas';
 import { clientOwner, type ClientOwner } from '@/lib/spine/client-view';
+import { GetHelp } from '@/components/spine/GetHelp';
 import { OrgSwitcher } from '@/components/spine/OrgSwitcher';
 import {
   workspaceColor,
@@ -752,6 +753,20 @@ export default function Sidebar() {
         is worse than one that is missing.
       */}
       <div style={{ flex: 1, minHeight: 12 }} />
+
+      {/*
+        Asking the studio for help, at the foot of their own sidebar.
+
+        Client workspaces only. In the studio's own workspace it would be
+        CALO&CO asking CALO&CO, which is the same mistake "Powered by" made.
+
+        Above Tell Us on purpose, and they are not the same thing. Tell Us is
+        about the software: something is broken, something is missing. This is
+        about their business: the numbers on an estimate are wrong and they
+        want somebody to fix them. Putting the second inside the first would
+        put "my invoice is wrong" in a queue with "I could not find the button".
+      */}
+      {org?.kind !== 'agency' && <GetHelp />}
 
       {/*
         A button, shaped like one.

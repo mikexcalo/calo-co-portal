@@ -42,6 +42,8 @@ import type { Org } from '@/lib/spine/types';
 interface Status {
   overdue: number;
   lastIn: string | null;
+  /** They have asked the studio for help and nobody has picked it up. */
+  asked: boolean;
 }
 
 function ago(iso: string | null): string | null {
@@ -65,6 +67,9 @@ function ago(iso: string | null): string | null {
  */
 function statusLine(s: Status | undefined): string | null {
   if (!s) return null;
+  /* Above the money, because an overdue invoice is a fact about their week
+     and this is a person waiting on you. */
+  if (s.asked) return 'Asked for help';
   if (s.overdue > 0) return `${s.overdue} overdue invoice${s.overdue === 1 ? '' : 's'}`;
   return ago(s.lastIn);
 }
@@ -87,7 +92,7 @@ export function OrgSwitcher({ onClose }: { onClose?: () => void }) {
   useEffect(() => {
     let dead = false;
     (async () => {
-      const [inv, seen] = await Promise.all([
+      const [inv, seen, help] = await Promise.all([
         supabase
           .from('job_invoices')
           .select('org_id, status, due_on')
@@ -97,21 +102,39 @@ export function OrgSwitcher({ onClose }: { onClose?: () => void }) {
           .select('org_id, at')
           .order('at', { ascending: false })
           .limit(400),
+        /* Open requests across every workspace you belong to, which is the
+           same row filter the inbox on Home reads through. */
+        supabase
+          .from('feedback')
+          .select('org_id')
+          .eq('kind', 'help')
+          .in('status', ['open', 'building']),
       ]);
       if (dead) return;
 
       const out: Record<string, Status> = {};
       const today = new Date().toISOString().slice(0, 10);
+      const asked = new Set(
+        ((help.data ?? []) as Array<{ org_id: string }>).map((r) => r.org_id)
+      );
 
       for (const r of (inv.data ?? []) as Array<{ org_id: string; status: string; due_on: string | null }>) {
         const late = r.status === 'overdue' || (r.status === 'sent' && !!r.due_on && r.due_on < today);
         if (!late) continue;
-        out[r.org_id] = { overdue: (out[r.org_id]?.overdue ?? 0) + 1, lastIn: out[r.org_id]?.lastIn ?? null };
+        out[r.org_id] = {
+          overdue: (out[r.org_id]?.overdue ?? 0) + 1,
+          lastIn: out[r.org_id]?.lastIn ?? null,
+          asked: asked.has(r.org_id),
+        };
       }
       for (const r of (seen.data ?? []) as Array<{ org_id: string; at: string }>) {
         const cur = out[r.org_id];
         if (cur?.lastIn) continue;                       // ordered desc, so the first is newest
-        out[r.org_id] = { overdue: cur?.overdue ?? 0, lastIn: r.at };
+        out[r.org_id] = { overdue: cur?.overdue ?? 0, lastIn: r.at, asked: asked.has(r.org_id) };
+      }
+      /* A workspace with a request and nothing else has no row yet. */
+      for (const orgId of asked) {
+        out[orgId] = { overdue: out[orgId]?.overdue ?? 0, lastIn: out[orgId]?.lastIn ?? null, asked: true };
       }
       setStatus(out);
     })();

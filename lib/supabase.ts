@@ -12,10 +12,13 @@
 import { createBrowserClient } from '@supabase/ssr';
 import { SupabaseClient } from '@supabase/supabase-js';
 import {
+  currentMode,
   isReadOnly,
+  recordWrite,
   refusedWrite,
   rpcAllowedInViewMode,
   STORAGE_WRITE_METHODS,
+  writableWhileViewing,
   WRITE_METHODS,
 } from '@/lib/spine/readonly';
 
@@ -51,16 +54,84 @@ function getSupabase(): SupabaseClient {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/** insert / update / upsert / delete, refused before any request is made. */
-function guardTable(builder: any): any {
+/**
+ * insert / update / upsert / delete.
+ *
+ * Refused outright while looking. While working, allowed and written down: the
+ * same wrapper that says no in View mode is the one that keeps the record in
+ * Work mode, so a screen cannot do one without the other.
+ */
+function guardTable(builder: any, table: string): any {
   return new Proxy(builder, {
     get(target, prop, receiver) {
       const value = Reflect.get(target, prop, receiver);
       if (typeof prop === 'string' && WRITE_METHODS.has(prop) && typeof value === 'function') {
-        return (...args: unknown[]) =>
-          isReadOnly() ? refusedWrite() : (value as (...a: unknown[]) => unknown).apply(target, args);
+        return (...args: unknown[]) => {
+          if (isReadOnly() && !writableWhileViewing(table)) return refusedWrite();
+          const out = (value as (...a: unknown[]) => unknown).apply(target, args);
+          if (currentMode() !== 'work') return out;
+          /* Watched rather than awaited: the caller's promise is handed back
+             untouched and the log happens beside it. */
+          return watched(out, table, prop, { id: null });
+        };
       }
       return typeof value === 'function' ? value.bind(target) : value;
+    },
+  });
+}
+
+/**
+ * Hand back the builder, and record what it did when somebody awaits it.
+ *
+ * A Supabase builder is a thenable that is usually chained before it is
+ * awaited, so wrapping `then` rather than the builder keeps every chain
+ * working and catches the one moment the write actually resolves.
+ */
+function watched(
+  builder: any,
+  table: string,
+  action: string,
+  /*
+    The row being written, picked up off the chain rather than the reply.
+
+    An update without `.select()` resolves with no data at all, so the change
+    row went in with entity_id null and the list could not mark what had been
+    touched. The id is nearly always right there in the filter — `.eq('id', x)`
+    — so it is read as the chain is built, and the reply still wins when it
+    carries one.
+  */
+  found: { id: string | null }
+): any {
+  if (!builder || typeof builder.then !== 'function') return builder;
+  return new Proxy(builder, {
+    get(target, prop, receiver) {
+      const value = Reflect.get(target, prop, receiver);
+      if (prop === 'then' && typeof value === 'function') {
+        return (onOk: any, onErr: any) =>
+          (value as any).call(
+            target,
+            (res: unknown) => {
+              recordWrite(table, action, res, found.id);
+              return onOk ? onOk(res) : res;
+            },
+            onErr
+          );
+      }
+      if (typeof value === 'function') {
+        return (...args: unknown[]) => {
+          if (prop === 'eq' && args[0] === 'id' && typeof args[1] === 'string') found.id = args[1];
+          if (prop === 'match' && args[0] && typeof args[0] === 'object') {
+            const id = (args[0] as Record<string, unknown>).id;
+            if (typeof id === 'string') found.id = id;
+          }
+          const next = (value as (...a: unknown[]) => unknown).apply(target, args);
+          /* Still the same write: keep watching down the chain. */
+          return next && typeof (next as any).then === 'function'
+            ? watched(next, table, action, found)
+            : next;
+        };
+      }
+      return value;
     },
   });
 }
@@ -105,7 +176,7 @@ const supabase = new Proxy({} as SupabaseClient, {
     const client = getSupabase();
 
     if (prop === 'from') {
-      return (table: string) => guardTable(client.from(table));
+      return (table: string) => guardTable(client.from(table), table);
     }
 
     /*

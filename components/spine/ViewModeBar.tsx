@@ -28,6 +28,7 @@
 import { useEffect, useState } from 'react';
 import { useOrg } from '@/lib/spine/org';
 import { useViewAs } from '@/lib/spine/viewas';
+import { startOwnSession } from '@/lib/spine/workin';
 import { clientOwner, type ClientOwner } from '@/lib/spine/client-view';
 import supabase from '@/lib/supabase';
 import { C, radius, useIsPhone } from './ui';
@@ -39,9 +40,30 @@ export const VIEW_BAR_PHONE = 92;
 
 export function ViewModeBar() {
   const { org, orgs, switchOrg } = useOrg();
-  const { viewAs, setViewAs } = useViewAs();
+  const { viewAs, setViewAs, setWork } = useViewAs();
   const phone = useIsPhone();
   const [owner, setOwner] = useState<ClientOwner | null>(null);
+  const [starting, setStarting] = useState(false);
+
+  /**
+   * Looking becomes working, and the provider makes sure it is not both.
+   *
+   * setWork clears View mode in the same call, so there is no instant where
+   * the guard has been told to allow writes and the bar still says read-only.
+   */
+  const startWorking = async () => {
+    if (!org?.id) return;
+    setStarting(true);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const uid = data.session?.user?.id;
+      if (!uid) return;
+      const grant = await startOwnSession(org.id, uid);
+      if (grant) setWork(grant);
+    } finally {
+      setStarting(false);
+    }
+  };
 
   useEffect(() => {
     let off = false;
@@ -103,26 +125,31 @@ export function ViewModeBar() {
         }}
       >
         {/*
-          Disabled, and disabled honestly.
+          The way from looking to working, without going back out first.
 
-          Working in a client's workspace is the next brief, so this is not a
-          button that will do something once the data loads. The title says
-          which, because a control that never responds and never explains is
-          the thing people file bugs about.
+          Nobody decides to edit somebody else's workspace from a menu two
+          screens away. They decide it here, looking at the thing that is
+          wrong, which is why the door is on this bar.
+
+          A session started this way carries no grant from the client, so it
+          cannot send, and the amber bar says so rather than implying an
+          invitation that was never issued.
         */}
         <button
-          disabled
-          title="Not built yet. View mode is read-only for now."
+          onClick={startWorking}
+          disabled={starting}
+          title="Edit in this workspace. Every change is recorded and they are told."
           style={{
             background: 'transparent',
             border: `1px solid rgba(255,255,255,.45)`,
-            color: C.viewingInk, opacity: 0.55,
+            color: C.viewingInk,
             borderRadius: radius.pill, padding: '6px 15px',
             fontSize: 13.5, fontWeight: 500, fontFamily: 'inherit',
-            cursor: 'not-allowed', whiteSpace: 'nowrap',
+            cursor: starting ? 'wait' : 'pointer', whiteSpace: 'nowrap',
+            opacity: starting ? 0.6 : 1,
           }}
         >
-          Work in it
+          {starting ? 'Opening…' : 'Work in it'}
         </button>
         {/*
           Back to your studio, not just out of View mode.
