@@ -97,10 +97,37 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     These routes are the product's front door for people who do not have an
     account. They are bare, by definition.
   */
-  const PUBLIC = ['/e/', '/i/', '/s/', '/c/', '/preview/'];
+  /*
+    Pages a stranger can open, which must not render the app around them.
+
+    Five were missing: pitches, the enquiry form, the QR hop, the review hop
+    and the public trust page. So somebody who had never heard of this
+    software opened a pitch and got the CALO&CO logo, a workspace chip,
+    "Search or ask", and working-looking Add a note and Log time buttons.
+
+    Nothing could actually be saved — every write is refused by row-level
+    security with no session, verified against the live API — so this was a
+    trust problem rather than a hole. It still cannot happen: a document sent
+    to somebody else's customer should look like a document.
+
+    /security is deliberately NOT here. It is the two-factor screen for a
+    signed-in person and belongs inside the app. /trust is the public one.
+  */
+  const PUBLIC = [
+    '/e/',        // a proposal
+    '/i/',        // an invoice
+    '/p/',        // a pitch
+    '/s/',        // a case study
+    '/c/',        // a contact card
+    '/q/',        // a scanned QR code
+    '/r/',        // the review hop
+    '/new/',      // an enquiry form
+    '/preview/',
+  ];
   const isBarePage =
     pathname === '/login' ||
     pathname === '/welcome' ||
+    pathname === '/trust' ||
     PUBLIC.some((p) => pathname.startsWith(p));
 
   /**
