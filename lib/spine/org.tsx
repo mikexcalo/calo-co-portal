@@ -16,7 +16,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
-import { forgetOrg } from '@/lib/spine/db';
+import { forgetOrg, setKnownOrg } from '@/lib/spine/db';
 import type { Org } from './types';
 
 export interface Vocab {
@@ -218,7 +218,16 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
     the data.
   */
   useEffect(() => {
-    forgetOrg();
+    if (!org?.id) { forgetOrg(); return; }
+    /* Set rather than clear: same guarantee that the query cache can never
+       lag the name on screen, without the round trip that re-reading it
+       would cost. */
+    void (async () => {
+      const { data } = await supabase.auth.getSession();
+      const uid = data.session?.user?.id;
+      if (uid) setKnownOrg(uid, org.id);
+      else forgetOrg();
+    })();
   }, [org?.id]);
 
   const switchOrg = useCallback(
@@ -275,7 +284,18 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
         form, no open panel, no stale row. One client-side navigation instead
         of a cold start.
       */
-      forgetOrg();
+      /*
+        Tell the query cache, do not make it ask.
+
+        Measured: every Supabase round trip from a browser to this project is
+        230-800ms, averaging about 350, while the database work behind it is
+        under 20ms. So the cost of a switch is not the work, it is the number
+        of serial hops — and three of them were avoidable.
+
+        forgetOrg() made the next query re-read profiles.active_org_id, a
+        column we had just written and whose value is in the variable above.
+      */
+      setKnownOrg(userId, orgId);
 
       const next = orgs.find((o) => o.id === orgId) ?? null;
       if (next) setOrg(next);   // instant: the plate and strip change now
@@ -286,12 +306,17 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
          you to another business's screen. */
       router.replace('/');
 
-      /* Reconcile against the database afterwards. If the optimistic pick was
-         somehow wrong, this corrects it a moment later rather than blocking
-         the switch on a round trip. */
-      void load();
+      /*
+        No reconcile pass. It used to call load(), which is getUser() plus two
+        more queries — three hops to confirm something the UPDATE above
+        already confirmed: it wrote the value and read it back with .select(),
+        and refuses to continue if the two disagree.
+
+        The orgs list is already in memory and did not change; only which one
+        is active did, and that is set above.
+      */
     },
-    [orgs, router, load]
+    [orgs, router]
   );
 
   return (

@@ -107,6 +107,24 @@ export function forgetOrg(): void {
 }
 
 /**
+ * Tell the cache the answer instead of making it go and ask.
+ *
+ * forgetOrg() alone costs a round trip: the next query calls orgNow(), finds
+ * nothing cached, and fetches profiles.active_org_id — a column we just wrote
+ * ourselves and already know the value of. At roughly 350ms per hop to this
+ * project, that is a third of a second of nothing.
+ *
+ * The heavier fullOrg cache is still cleared, because that holds the whole
+ * row and we only know the id.
+ */
+export function setKnownOrg(userId: string, orgId: string): void {
+  known = { user: userId, org: orgId };
+  asking = null;
+  fullOrg = null;
+  fullAsking = null;
+}
+
+/**
  * The org you're currently looking at. Reads active_org_id, which the
  * database only honors when a matching membership exists — so this can
  * never return an org you don't belong to.
