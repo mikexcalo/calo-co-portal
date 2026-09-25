@@ -82,6 +82,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
   const [navOpen, setNavOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  /*
+    Above the early return, and it has to stay there.
+
+    This was declared further down, after `if (isBarePage) return children`.
+    A bare page therefore ran twelve hooks and an in-app page ran thirteen, so
+    the first CLIENT-SIDE move across that line rendered more hooks than the
+    render before it and React threw #310 — "Application error: a client-side
+    exception has occurred", nothing else on screen.
+
+    Signing in is exactly that move: /login is bare, the login page finishes
+    with router.push('/'), and / is not. A hard load of either page is fine,
+    which is why it hid — every other way into the app reloads the document.
+
+    Hooks cannot sit behind a conditional return. Not a style rule.
+  */
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   /*
     Five public routes were being wrapped in the signed-in app.
@@ -190,7 +206,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   /* One resolver, shared with the name plate, so the two can never disagree
      about which business you are standing in. */
   const stripColor = workspaceColor(org);
-  const [pickerOpen, setPickerOpen] = useState(false);
 
   // Phone: the sidebar becomes a drawer. Desktop is unchanged.
   if (phone) {
