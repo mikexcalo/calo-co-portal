@@ -22,7 +22,7 @@ import {
 } from '@/lib/spine/workspace-color';
 import { modulesFor, navFor } from '@/lib/spine/modules';
 import { C, radius } from '@/components/spine/ui';
-import { PRODUCT } from '@/lib/brand';
+import { PRODUCT_MARK, PROVIDER } from '@/lib/brand';
 
 /**
  * Nav icons.
@@ -551,6 +551,25 @@ export default function Sidebar() {
         fontFamily: 'inherit',
       }}
     >
+      {/*
+        The product's name, above the business's.
+
+        The plate answers "whose data is this", which is the question that
+        costs money to get wrong, so it keeps the size and the weight. This
+        answers "what am I in", which somebody asks once and then never again,
+        so it sits above it small and grey and takes no room.
+
+        Not a button. Everything else in this column goes somewhere, and a row
+        that looks like the rest and does nothing when pressed is worse than no
+        row. There is nowhere for it to go: the product has no page about
+        itself.
+
+        Never on a public page, and not by a rule written here. The shell
+        returns bare children for /login, /e/, /i/, /p/ and the rest, so the
+        sidebar is not built at all on any page a client or a stranger opens.
+      */}
+      <ProductName />
+
       <div
         style={{
           minHeight: 56,
@@ -605,14 +624,26 @@ export default function Sidebar() {
       </div>
 
       {/*
-        The nav stops where it stops.
+        The nav takes the room it needs, and gives it back when there is none.
 
-        This took every spare pixel, so on a business with eight rows the
+        It used to take every spare pixel, so on a business with eight rows the
         controls at the foot were shoved to the bottom of a tall empty column
-        and the sidebar read as half-loaded. It takes the room it needs and no
-        more; the gap below is just gap.
+        and the sidebar read as half-loaded. Hence "no more than it needs", and
+        the gap below being just gap.
+
+        But it was also `flexShrink: 0`, which is the other half of that
+        sentence and was missing. A column fixed at 100vh whose contents cannot
+        shrink does not scroll, it overflows: on Harbor Light, at a 763px
+        window, "Set up by CALO&CO" sat at 806px. Off the bottom of the screen,
+        in a workspace whose owner is the one person that line is written for.
+        Measured in Chrome, not reasoned about.
+
+        `0 1 auto` keeps "no more than it needs" and adds "less, if that is all
+        there is". `minHeight: 0` is what actually permits it, because a flex
+        item will not shrink below its content without it, and then the rows
+        scroll inside the nav rather than pushing the foot off the screen.
       */}
-      <div style={{ flexShrink: 0, padding: '8px 8px 8px', overflowY: 'auto', maxHeight: '100%' }}>
+      <div style={{ flex: '0 1 auto', minHeight: 0, padding: '8px 8px 8px', overflowY: 'auto' }}>
         {navBtn('Home', '/', 'dashboard')}
         {/*
           Drops belongs beside Home, not inside The work.
@@ -747,21 +778,37 @@ export default function Sidebar() {
       {/*
         Whose software this is, where an attribution belongs.
 
-        The product name came off the top of the sidebar so a client sees their
-        own business there. It is not gone, it is at the foot, which is where
-        "powered by" has lived on every white-labelled thing ever made, and it
-        links out to the people who built it.
+        "Powered by" was wrong in both workspaces it appeared in.
+
+        In the studio it was CALO&CO telling CALO&CO who powers CALO&CO. An
+        attribution is for somebody else's benefit; there is nobody else here,
+        and a line of small print saying your own name back to you is noise at
+        the bottom of every screen you work on. Gone.
+
+        In a client's workspace "powered by" describes a hosting arrangement.
+        The relationship is not that. Mike sat down with these people, set the
+        workspace up and still runs it, and "Set up by" is what actually
+        happened. It also reads as a person having done something rather than
+        an infrastructure credit, which is the difference worth paying for.
+
+        Still a link out, because the one person who clicks it is a client
+        wondering who to call.
+
+        The comment sits above the conditional rather than inside it: an
+        `{x && (...)}` takes exactly one child and a comment counts as one.
       */}
-      <div style={{ padding: '4px 14px 8px' }}>
-        <a
-          href="https://calo.company"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ fontSize: 11.5, color: C.faint, textDecoration: 'none' }}
-        >
-          Powered by {PRODUCT}
-        </a>
-      </div>
+      {org?.kind !== 'agency' && (
+        <div style={{ padding: '4px 14px 8px' }}>
+          <a
+            href="https://calo.company"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: 11.5, color: C.faint, textDecoration: 'none' }}
+          >
+            Set up by {PROVIDER}
+          </a>
+        </div>
+      )}
 
       {/*
         Switching moved to the top bar.
@@ -782,6 +829,79 @@ export default function Sidebar() {
         send this to see", and that person owns their business. It is one
         button in the top bar now, beside the rest of the controls.
       */}
+    </div>
+  );
+}
+
+/**
+ * What this software is called, in the one place it gets to say so.
+ *
+ * Same in every workspace. It is not the client's, it is not the studio's, it
+ * is the product's, and it does not change when you switch. That is the only
+ * thing on this column that is true everywhere, which is why it sits above
+ * the line rather than inside the navigation.
+ *
+ * Both the mark and the words come from PRODUCT_MARK in lib/brand.ts, so
+ * naming the product is one edit in one file. Until there is a name it draws
+ * a dashed outline and the words `[Product name]`: a blank that reads as a
+ * blank. A real mark goes in the same place at the same size the moment the
+ * logo exists.
+ *
+ * An empty name removes the row, which is the escape hatch if the answer
+ * turns out to be that the product should not sign its own name at all.
+ */
+function ProductName() {
+  const label = PRODUCT_MARK.name.trim();
+  if (!label) return null;
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '12px 18px 0',
+        flexShrink: 0,
+      }}
+    >
+      {PRODUCT_MARK.logo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={PRODUCT_MARK.logo}
+          alt=""
+          aria-hidden
+          style={{ width: 16, height: 16, borderRadius: 4, objectFit: 'cover', flexShrink: 0 }}
+        />
+      ) : (
+        <span
+          aria-hidden
+          style={{
+            width: 16,
+            height: 16,
+            borderRadius: 4,
+            border: `1px dashed ${C.quiet}`,
+            flexShrink: 0,
+          }}
+        />
+      )}
+      <span
+        style={{
+          fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
+          fontSize: 13,
+          fontWeight: 600,
+          color: C.quiet,
+          letterSpacing: '-0.1px',
+          /* The sidebar is 212px wide and a real product name could be long.
+             It gets cut rather than wrapping the row onto a second line and
+             pushing the plate down. */
+          minWidth: 0,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {label}
+      </span>
     </div>
   );
 }

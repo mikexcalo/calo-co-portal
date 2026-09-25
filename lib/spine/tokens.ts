@@ -32,6 +32,19 @@ export const C = {
                     //  a threshold and being comfortable to read are not
                     //  the same thing.
 
+  /**
+   * The product's own name, above the workspace plate.
+   *
+   * Lighter than `faint` on purpose, and the only place that is true. That row
+   * names the software; the plate under it names the business whose money is
+   * on the screen. If the two sat at the same weight the eye would have to
+   * read both to find out which one it needs, so the software recedes.
+   *
+   * 5.3:1 on white. Below `faint` but above the 4.5:1 floor, which is the
+   * whole of the allowance being spent here.
+   */
+  quiet: '#6B7280',
+
   border: '#E7E8EB',
   borderStrong: '#DFE0E5',
 

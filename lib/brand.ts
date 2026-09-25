@@ -17,6 +17,28 @@
 export const PRODUCT = 'CALO&CO';
 
 /**
+ * The product's own name and mark, as shown at the top of the sidebar.
+ *
+ * Separate from PRODUCT, and that separation is the point. PRODUCT is
+ * 'CALO&CO' because that is what the software is called today; the row above
+ * the workspace plate is where the product's OWN name will go once it has
+ * one, and it does not have one yet. Writing 'CALO&CO' there would say the
+ * company name twice on one screen and quietly claim the question is settled.
+ *
+ * So it is a placeholder, and it is honest about being one. `[Product name]`
+ * in brackets reads as a blank to be filled rather than as a name, and `logo`
+ * being null draws a dashed outline rather than a mark nobody chose.
+ *
+ * Both come from here so naming the product is one edit. Set `name` to the
+ * name and `logo` to a 16px square image, or leave `logo` null and keep the
+ * outline. An empty `name` removes the row entirely.
+ */
+export const PRODUCT_MARK: { name: string; logo: string | null } = {
+  name: '[Product name]',
+  logo: null,
+};
+
+/**
  * Who provides it. Usually the same as PRODUCT today, but they come apart the
  * moment the product has a name of its own and CALO&CO is merely the company
  * behind it.
