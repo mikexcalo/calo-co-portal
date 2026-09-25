@@ -59,12 +59,25 @@ export async function generateMetadata(
   if (!url || !anon) return { title: 'Pitch', description: '' };
   try {
     const sb = createClient(url, anon, { auth: { persistSession: false } });
-    const { data } = await sb.rpc('read_pitch', { token: params.token });
-    const p = data as PitchPayload | null;
+    /*
+      pitch_heading, not read_pitch.
+
+      This called read_pitch(token) and the function is
+      read_pitch(is_mobile, token), so it 404'd, the catch swallowed it, and
+      every pitch tab has always read "Pitch" with the product's own strapline
+      as the shared-link preview.
+
+      Passing is_mobile would fix the title and break the view count:
+      read_pitch records a read, and this pass runs on every open, so every
+      pitch would count twice. pitch_heading answers the question metadata
+      actually has and records nothing.
+    */
+    const { data } = await sb.rpc('pitch_heading', { token: params.token });
+    const p = data as { title?: string; org?: string } | null;
     if (!p?.title) return { title: 'Pitch', description: '' };
     return {
-      title: p.org?.name ? `${p.title} \u2014 ${p.org.name}` : p.title,
-      description: p.org?.name ? `A pitch from ${p.org.name}.` : '',
+      title: p.org ? `${p.title} \u2014 ${p.org}` : p.title,
+      description: p.org ? `A pitch from ${p.org}.` : '',
     };
   } catch {
     return { title: 'Pitch', description: '' };
