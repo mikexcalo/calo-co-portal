@@ -6,6 +6,18 @@ appear anywhere in the app — it described an architecture that was replaced an
 then kept giving instructions about it. What follows is checked against the
 code.
 
+## Read the rulebook first
+
+**`docs/ux-rulebook.md` before changing any screen.** Every session, every
+time. It is the one written answer to "how do we do this here" — the shell,
+the type scale, one of each component with its exact values, the phone rules,
+how errors are worded, and what a brief has to verify before it is called
+done. Without it every brief re-decides, which is how the product came to have
+sixteen kinds of button.
+
+`docs/consistency-backlog.md` is the list of screens that break it today,
+grouped so each group is one brief.
+
 ## The spine
 
 Everything real lives under `lib/spine/`:

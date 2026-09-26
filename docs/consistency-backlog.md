@@ -1,0 +1,202 @@
+# Consistency backlog
+
+Every screen that breaks `docs/ux-rulebook.md` as of 26 Sept 2026, grouped so
+each group is one brief. Ordered by what clients and their customers see most.
+
+Counted against the code, not against Cowork's audit — several of the audit's
+findings have since been fixed (public pages no longer render inside the app
+shell, invoices carry pay methods, the proposal's retainer copy is conditional,
+the phone can switch workspace, the sidebar says who actually set the workspace
+up). Anything still listed here was verified present today.
+
+Sizes: **S** an afternoon · **M** a day · **L** more than a day, or needs a
+decision first.
+
+---
+
+## 1. Public and customer-facing pages don't use the design system at all — L
+
+**Twelve pages, every one of them something a client or their customer sees,
+and not one imports `spine/ui` or `spine/tokens`.**
+
+`app/login`, `app/welcome`, `app/reset`, `app/not-found.tsx`, `app/trust`,
+`app/c/[slug]`, `app/e/[token]` (proposal), `app/i/[token]` (invoice),
+`app/p/[token]` (pitch), `app/s/[token]` (case study), `app/preview/[token]`,
+`app/new/[token]/Form.tsx` (enquiry).
+
+They carry **194 hardcoded hex values** between them — 28 in `welcome`, 18 each
+in `login` and `/c`, 16 in `preview`, 13 in the invoice, 11 in the proposal.
+Every colour, radius, font size and input style is typed in by hand, which is
+why these pages are the ones that look least like each other and least like the
+product.
+
+This is the single largest break in the rulebook and it is on the pages with
+the widest audience. It is **L** because some of it is deliberate — a customer
+document should not inherit app chrome — so the brief has to decide what a
+public page may take from the spine (tokens, type scale, `Button`, `Field`,
+`Pill`) and what it must not (`Page`, the shell). Until that is decided,
+nothing here should be "tidied".
+
+Also in this group:
+- The enquiry form uses placeholder-only labels that vanish when you type.
+- `not-found.tsx` shows the customer's expired-link wording to a signed-in
+  owner who mistyped a URL. Wrong audience, wrong advice.
+
+---
+
+## 2. Errors: the banned sentence is the default — S
+
+`lib/spine/errors.ts`, one line.
+
+`human()`'s fallback is **"That did not work. Try again, and tell us if it
+keeps happening."** — the exact sentence the rulebook bans. It reaches a screen
+every time a database message doesn't match one of the nine known patterns, and
+it answers none of the three questions: what happened, was anything saved, what
+now.
+
+Small to change, wide blast radius: `human()` is called from every `save()` in
+the product. The brief is to write a fallback that admits it does not know the
+cause but still says whether anything was written and who to ask, then check
+the nine specific messages against the three-question rule.
+
+---
+
+## 3. Fifteen hand-written overlays instead of `Sheet` — M
+
+`Sheet` exists, handles escape, the backdrop, focus return and the phone
+bottom-sheet shape. Fifteen files still build their own from
+`position: fixed; inset: 0`:
+
+`app/card`, `app/people`, `app/billing`, `app/proposals`, `components/TopBar`
+(the Add a note overlay), `components/Sidebar`, `components/AppShell`,
+`spine/TutorialPanel`, `spine/Notifications`, `spine/Confirm`,
+`spine/GetHelp`, `spine/InvitePerson`, `spine/OrgSwitcher`,
+`spine/CommandBar`, `spine/ExtractionReview`.
+
+Some are legitimate — `AppShell`'s mode frames and `OrgSwitcher` are shell, not
+dialogs, and `CommandBar` is a palette. The rest are dialogs that should be
+`Sheet`. Splitting that list is most of the work; the swaps are mechanical.
+
+Do `TopBar`'s note overlay first: it is the same `DropIt` the capture sheet
+already renders inside a `Sheet`, so the two currently disagree about what a
+note dialog looks like on the same account.
+
+---
+
+## 4. Fifteen raw `<select>` instead of `Select` — M
+
+`app/traffic`, `app/brand-kit` (2), `app/brands/[id]/intel`, `app/jobs/[id]`,
+`app/jobs/[id]/estimate`, `app/seo`, `app/pricing` (2), `spine/QrStudio`,
+`spine/DropIt`, `spine/QrCampaigns`, `spine/ClientUpdate`, `spine/ClientIntake`,
+`spine/InvitePerson`, `spine/ExtractionReview` (2), `spine/ClientDocs`.
+
+Each is a native dropdown with its own padding and border beside spine controls
+that have neither. Mechanical, but `Select`'s API has to cover every case
+before the sweep, so check the awkward ones (`pricing`, `estimate`) first.
+
+---
+
+## 5. Forty-seven bare "Loading…" screens — M
+
+Two spellings, `Loading…` and `Loading...`, across 47 files including
+`app/page.tsx`, `customers`, `customers/[id]`, `pl`, `records`, `billing`,
+`brands`, `business`, `team`, `targets` and the shell itself.
+
+The rulebook asks for the shape of what is coming and no placeholder zeros. The
+zeros matter more than the word: the phone Invoices tiles read "$0 · Nothing
+overdue" while loading, which is a false reassurance about money.
+
+One brief: a shared skeleton, then a sweep. Do the money screens first —
+`billing`, `pl`, `page.tsx` — because those are the ones where a wrong number
+shown for two seconds is believed.
+
+---
+
+## 6. Job screens on a phone — M
+
+`app/jobs/[id]` and `app/jobs/[id]/estimate`.
+
+The estimate line builder collapses below about 420px: the kind dropdown and
+quantity overlap, the description field disappears and the remove control is
+pushed off-screen. The Hours and Costs tables lose their right-hand columns
+with no scroll hint. The `OPTIONAL` checkbox is 12×12, a quarter of the 48px
+floor.
+
+These are the screens a contractor is most likely to open standing up, and they
+are the ones the phone shell brief did not reach. Needs the rulebook's table
+rule — scroll in its own container, or stack.
+
+---
+
+## 7. Tab strips drawn by hand — S
+
+`app/pl` and `app/site-requests` still map over tab data and draw the pill
+strip themselves, against `Tabs` used in three files. Two files, mechanical.
+
+Worth doing early because it is small and it removes the last of the three tab
+styles the audit found.
+
+---
+
+## 8. Home: a heading with nothing under it — S
+
+`app/page.tsx`. "Waiting on others" renders `FollowUps`, `SoldNotLive` and
+`WeekAhead`, each of which returns null when empty, so on a quiet morning the
+heading stands alone over white space. The rulebook says render the empty state
+or drop the heading.
+
+Same screen, same brief: check that every `colHead` has either content or a
+line under it.
+
+---
+
+## 9. Words that aren't the workspace's own — M
+
+Screens that type a noun instead of reading `vocab`. The audit found a SaaS
+customer record with a Photos card about "a problem you found behind a wall", a
+roofer's pipeline with a "Free trial" stage, and estimate placeholders written
+for an agency ("Brand and messaging framework") shown to a roofer.
+
+This is a sweep with judgement in it: every hardcoded "job", "client",
+"estimate" and every placeholder string, checked against `vocabFor`. Needs one
+pass per business kind on the demo, which is why it is M rather than S.
+
+---
+
+## 10. Destructive actions with no word on them — S
+
+Bare `×` beside Download and Open on Records rows, on job Hours rows and on
+Costs rows. The rulebook asks for `variant="danger"` and a word. Whether any of
+them confirms first is unverified — the audit's rules forbade clicking them and
+nothing since has checked.
+
+Confirm-or-not is the real question here; the glyph is the easy half.
+
+---
+
+## Smaller, not yet grouped
+
+- **Price list tiers** (Friends / Standard / Enterprise) are identical for every
+  business and unused by the estimate picker. Probably deletion, not a fix. S
+- **Stage chips wrap badly** on a customer record: "Won" takes a full row. S
+- **The profile menu email breaks mid-word.** S
+- **Browser tab titles are generic** ("CALO&CO" on every page). S
+- **`/whats-new`** is an internal feature catalogue with sales notes in it,
+  reachable by anybody who types the address. Decide whether it should exist. S
+- **Wide screens**: `Page` caps at 1100px, leaving a third of a 1512px screen
+  empty. A decision, not a bug — but it is the rulebook's silence, not its
+  rule, so it belongs in a brief.
+
+---
+
+## Known gaps that are not backlog
+
+Written up as their own briefs in `docs/handoff.md`, not counted here because
+nothing is broken — the features are absent on purpose:
+
+- Hold to talk on the capture sheet.
+- Saving on the phone and sending when signal returns.
+- A server-enforced send lock.
+- A general logo uploader.
+- A column saying which studio set a workspace up (`studio_for` reads it from
+  `customers.linked_org_id` today, which works but is a join, not a fact).
