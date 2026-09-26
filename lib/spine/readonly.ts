@@ -162,6 +162,9 @@ const READ_ONLY_RPCS = new Set([
   'mfa_enabled',
   'mfa_pending',
   'mfa_recovery_remaining',
+  /* Reads which studio set a workspace up. The Get help button is in every
+     client sidebar, so View mode reaches it too. */
+  'studio_for',
 ]);
 
 export const rpcAllowedInViewMode = (fn: string): boolean => READ_ONLY_RPCS.has(fn);

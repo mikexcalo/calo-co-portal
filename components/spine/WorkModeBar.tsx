@@ -22,9 +22,8 @@ import { useEffect, useState } from 'react';
 import { useOrg } from '@/lib/spine/org';
 import { useViewAs } from '@/lib/spine/viewas';
 import { clientOwner, type ClientOwner } from '@/lib/spine/client-view';
-import { handBack } from '@/lib/spine/workin';
+import { handBack, studioFor, type Studio } from '@/lib/spine/workin';
 import supabase from '@/lib/supabase';
-import { PROVIDER } from '@/lib/brand';
 import { C, radius, useIsPhone } from './ui';
 
 /** How tall the bar is, so the shell can lay the frame out under it. */
@@ -38,6 +37,7 @@ export function WorkModeBar() {
   const phone = useIsPhone();
   const [owner, setOwner] = useState<ClientOwner | null>(null);
   const [me, setMe] = useState<string>('');
+  const [studio, setStudio] = useState<Studio | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -46,16 +46,20 @@ export function WorkModeBar() {
       if (!org?.id) return;
       const { data } = await supabase.auth.getSession();
       const uid = data.session?.user?.id ?? null;
-      const [found, mine] = await Promise.all([
+      const [found, mine, mystudio] = await Promise.all([
         clientOwner(org.id, uid),
         uid
           ? supabase.from('profiles').select('full_name').eq('id', uid).maybeSingle()
           : Promise.resolve({ data: null }),
+        /* The same lookup the client's own Get help button uses, so the
+           notice names the business they think they are dealing with. */
+        studioFor(org.id),
       ]);
       if (off) return;
       setOwner(found);
       const whole = ((mine as { data: { full_name?: string } | null }).data?.full_name ?? '').trim();
       setMe(whole ? whole.split(/\s+/)[0] : '');
+      setStudio(mystudio.studio);
     })();
     return () => { off = true; };
   }, [org?.id]);
@@ -78,13 +82,16 @@ export function WorkModeBar() {
   const done = async () => {
     setBusy(true);
     /*
-      The studio's name, not "Somebody", when the person's has not loaded.
+      The studio that set this workspace up, and never a stand-in word.
 
       A notice reading "Somebody from CALO&CO worked in your workspace" is the
-      sentence a client screenshots and asks about. The business name is
-      always known and always true, so the vague word never has to appear.
+      sentence a client screenshots and asks about, and a hard-coded name is
+      the same problem one step earlier: it could be the wrong studio
+      entirely. Both come from the data, and where the person's name has not
+      loaded the studio's stands alone.
     */
-    const out = await handBack(work, { person: me || PROVIDER, studio: PROVIDER });
+    const house = studio?.name ?? '';
+    const out = await handBack(work, { person: me || house, studio: house });
     /*
       Still in it, if they could not be told.
 
@@ -95,8 +102,15 @@ export function WorkModeBar() {
     */
     if (out.error) { setBusy(false); return; }
     setWork(null);
-    const studio = orgs.find((o) => o.kind === 'agency');
-    if (studio && studio.id !== org.id) await switchOrg(studio.id);
+    /*
+      Back to the studio you came from, which is the one that set this
+      workspace up rather than whichever agency row happened to be first in
+      your list. Falls back to any agency you belong to, for the case where
+      you were working in somebody else's client.
+    */
+    const home =
+      orgs.find((o) => o.id === studio?.orgId) ?? orgs.find((o) => o.kind === 'agency');
+    if (home && home.id !== org.id) await switchOrg(home.id);
     setBusy(false);
   };
 

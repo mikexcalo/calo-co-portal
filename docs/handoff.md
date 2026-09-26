@@ -221,6 +221,13 @@ While it is open: an amber bar and frame at every width, every write recorded
 in `work_changes` at the same choke point that refuses writes in View mode,
 and a notice to the client on the way out with a link to `/changed/<grant>`.
 
+**Which studio.** Resolved from `customers.linked_org_id` through
+`studio_for`, not from `kind = 'agency'`: the studio is the org whose customer
+record points at the workspace. No linking record means no Get help button
+rather than a guess, and two linking records mean the product says nothing and
+the data gets sorted out. Nothing is ambiguous today - all six linked
+workspaces have exactly one studio.
+
 **What it actually permits.** The app refuses to send. The database does not.
 The studio owner holds an `owner` membership in every client workspace - CALO&CO,
 Global Seafood Partners, Lakemere Services, Mammoth Construction are all `owner`
@@ -235,16 +242,13 @@ says so. A server-enforced version is a separate brief below.
 
 ## Open
 
-**Nothing links a client workspace to the agency that set it up, and Work in
-it guesses.** `orgs` has `kind = 'agency'` and no parent column, so
-`GetHelp.tsx` and `workin.ts` resolve "the studio" with
-`.eq('kind','agency').limit(1)` - whichever row comes back first. The demo has
-two agency workspaces, CALO&CO and Northwind Studio, and it only behaves
-correctly because Mike's demo account owns both, so the grant lands on the
-right person either way. With two real studios a client's request for help
-would be addressed to the wrong one. The fix is a column saying who set a
-workspace up, not a cleverer query; it is a schema decision and wants its own
-brief.
+**`PROVIDER` is still hard-coded in places a client reads.** Work in it now
+resolves the studio from `customers.linked_org_id`, so in Harbor Light the
+help dialog correctly says Northwind Studio - while the line at the bottom of
+the same sidebar still says "Set up by CALO&CO", because that one is the
+constant in `lib/brand.ts`. Two different studio names on one screen. The
+resolver exists now (`studioFor`), so it is a small change, but it alters the
+client-facing footer of every workspace and is Mike's call.
 
 **Switching: profiled in a browser, fixed, built, NOT measured, parked on
 branch `speed-fix`.** Do not merge it on anybody's say-so, including this

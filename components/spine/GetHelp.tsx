@@ -24,48 +24,13 @@
  * means, rather than only what ticking it does.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
-import { PROVIDER } from '@/lib/brand';
+import { studioFor, type Studio } from '@/lib/spine/workin';
 import { Button, C, radius, inputStyle } from './ui';
 import { save as saveOrFail } from '@/lib/spine/save';
-
-/**
- * Who the client is asking, by name where there is one.
- *
- * The studio's own name comes from the brand constant, which is one edit away
- * from being right for anybody. The person's first name comes from whoever
- * owns the agency workspace, and when that cannot be resolved the dialog says
- * the studio's name alone rather than inventing somebody.
- */
-async function studioPerson(): Promise<string | null> {
-  const res = await supabase
-    .from('orgs')
-    .select('id, kind')
-    .eq('kind', 'agency')
-    .limit(1)
-    .maybeSingle();
-  const agencyId = (res.data as { id?: string } | null)?.id;
-  if (!agencyId) return null;
-
-  /* Two queries: memberships.user_id points at auth.users, not profiles, so
-     there is no relationship for PostgREST to embed through. */
-  const m = await supabase
-    .from('memberships')
-    .select('user_id')
-    .eq('org_id', agencyId)
-    .eq('role', 'owner')
-    .limit(1)
-    .maybeSingle();
-  const uid = (m.data as { user_id?: string } | null)?.user_id;
-  if (!uid) return null;
-
-  const prof = await supabase.from('profiles').select('full_name').eq('id', uid).maybeSingle();
-  const whole = ((prof.data as { full_name?: string } | null)?.full_name ?? '').trim();
-  return whole ? whole.split(/\s+/)[0] : null;
-}
 
 export function GetHelp() {
   const { org } = useOrg();
@@ -77,10 +42,39 @@ export function GetHelp() {
   const [canSend, setCanSend] = useState(false);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
-  const [who, setWho] = useState<string | null>(null);
   const [pending, setPending] = useState(0);
+  const line = useRef<HTMLParagraphElement>(null);
+  /*
+    The subtitle is sized to fit, not guessed at.
 
-  useEffect(() => { studioPerson().then(setWho); }, []);
+    It has to be one line at every width, and half of it is a name we do not
+    choose: "Northwind Studio" overflows a 390px dialog at any readable size,
+    and a clamp tuned until this one name fitted would be a fit for this data
+    rather than a design. So it is measured, once per open and on resize, and
+    stepped down to the smallest size that still holds.
+
+    The floor matters more than the ceiling. Below 11px it stops shrinking and
+    wraps instead, because two readable lines beat one line with somebody's
+    company name cut off mid-word - an ellipsis through a business's name is
+    the kind of detail a client notices and nobody can explain.
+  */
+  const [fit, setFit] = useState<{ size: number; wrap: boolean }>({ size: 15, wrap: false });
+  /*
+    Undefined while the lookup is in flight, so the button does not flash in
+    and out on every page load. Null once we know there is nobody to ask.
+  */
+  const [studio, setStudio] = useState<Studio | null | undefined>(undefined);
+
+  useEffect(() => {
+    let off = false;
+    setStudio(undefined);
+    if (!org?.id) return;
+    (async () => {
+      const found = await studioFor(org.id);
+      if (!off) setStudio(found.studio);
+    })();
+    return () => { off = true; };
+  }, [org?.id]);
 
   /** How many of their own requests are still open, for the button's label. */
   const load = useCallback(async () => {
@@ -96,7 +90,34 @@ export function GetHelp() {
 
   useEffect(() => { load(); }, [load]);
 
-  const person = who ?? PROVIDER;
+  useLayoutEffect(() => {
+    const el = line.current;
+    if (!el) return;
+
+    const measure = () => {
+      const was = el.style.cssText;
+      el.style.whiteSpace = 'nowrap';
+      for (let size = 15; size >= 11; size -= 0.25) {
+        el.style.fontSize = `${size}px`;
+        if (el.scrollWidth <= el.clientWidth) {
+          el.style.cssText = was;
+          setFit({ size, wrap: false });
+          return;
+        }
+      }
+      el.style.cssText = was;
+      setFit({ size: 11, wrap: true });
+    };
+
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [open, studio?.name]);
+
+  /* The person where the studio has one, the studio itself where it does not.
+     Never a stand-in word: every sentence here is read by somebody deciding
+     what another business may do inside theirs. */
+  const person = studio?.person ?? studio?.name ?? '';
 
   const send = async () => {
     if (!org || !body.trim()) return;
@@ -125,17 +146,10 @@ export function GetHelp() {
     */
     const request = res.data as { id: string };
     if (canEdit) {
-      const agency = await supabase.from('orgs').select('id').eq('kind', 'agency').limit(1).maybeSingle();
-      const owner = agency.data
-        ? await supabase
-            .from('memberships')
-            .select('user_id')
-            .eq('org_id', (agency.data as { id: string }).id)
-            .eq('role', 'owner')
-            .limit(1)
-            .maybeSingle()
-        : { data: null };
-      const grantedTo = (owner.data as { user_id?: string } | null)?.user_id;
+      /* Whoever owns the studio that set this workspace up, named by
+         studio_for. The client cannot read that themselves and should not
+         have to: it is the studio's own record, not theirs. */
+      const grantedTo = studio?.ownerId;
       if (grantedTo) {
         await saveOrFail(
           supabase.from('work_grants').insert({
@@ -158,6 +172,17 @@ export function GetHelp() {
     load();
   };
 
+  /*
+    No button where there is nobody to ask.
+
+    A workspace with no studio linking to it is a business running the product
+    on its own, and "Get help from" with a blank after it is worse than no
+    button. Two studios linking to it is a data problem, and picking one of
+    them would put a client's request, and a standing permission to edit their
+    business, in front of a company they never chose.
+  */
+  if (!studio) return null;
+
   if (!open) {
     return (
       <div style={{ padding: '0 14px 10px' }}>
@@ -176,7 +201,7 @@ export function GetHelp() {
             <path d="M6.1 6.2a2 2 0 1 1 2.6 2.3c-.5.2-.8.6-.8 1.1v.3" />
             <path d="M8 12.1h.01" />
           </svg>
-          Get help from {PROVIDER}
+          Get help from {studio.name}
           {pending > 0 && <span style={{ color: C.faint, fontSize: 12 }}>· {pending} open</span>}
         </button>
       </div>
@@ -191,12 +216,18 @@ export function GetHelp() {
       />
       <div
         role="dialog"
-        aria-label={`Get help from ${PROVIDER}`}
+        aria-label={`Get help from ${studio.name}`}
         style={{
           position: 'fixed', zIndex: 121,
           left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
-          width: 'min(560px, calc(100vw - 32px))', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto',
-          background: C.panel, borderRadius: 18, padding: 26,
+          /*
+            Narrower margins and tighter padding on a phone, so the one line
+            below the title has somewhere to be. At 390px this is the
+            difference between the sentence fitting and the studio's name
+            wrapping onto a second line.
+          */
+          width: 'min(560px, calc(100vw - 20px))', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto',
+          background: C.panel, borderRadius: 18, padding: 'clamp(17px, 4.6vw, 26px)',
           boxShadow: '0 24px 70px rgba(0,0,0,.28)',
         }}
       >
@@ -206,19 +237,27 @@ export function GetHelp() {
           </div>
         ) : (
           <>
-            <h2 style={{ ...DISPLAY_TITLE, margin: 0 }}>Get help from {PROVIDER}</h2>
-            <p style={{ fontSize: 15, color: C.faint, margin: '6px 0 20px', lineHeight: 1.5 }}>
-              {/*
-                "they make", for everybody, always.
+            <h2 style={{ ...DISPLAY_TITLE, margin: 0 }}>Get help from {studio.name}</h2>
+            {/*
+              One line, and it stays one line.
 
-                Nothing in this product records anybody's pronouns, and a name
-                does not supply them. The approved design says "he makes"
-                because the studio owner wrote it about himself; a component
-                that renders for whoever owns the agency cannot assume that,
-                and getting it wrong misgenders a real person on their own
-                client's screen. "They" is correct for everyone.
-              */}
-              {person} sees this right away. You&rsquo;ll be told about every change they make.
+              The studio's name is in it, so its length is not ours to
+              choose, which is why the size is measured rather than picked. A
+              subtitle that breaks into two lines on a phone pushes down the
+              box everything else is measured from, and this one sits directly
+              above the question.
+            */}
+            <p
+              ref={line}
+              style={{
+                fontSize: fit.size,
+                color: C.faint,
+                margin: '6px 0 20px',
+                lineHeight: 1.5,
+                whiteSpace: fit.wrap ? 'normal' : 'nowrap',
+              }}
+            >
+              You&rsquo;ll be told about every change {studio.name} makes.
             </p>
 
             <label htmlFor="gethelp-body" style={{ display: 'block', fontSize: 14.5, color: C.text, marginBottom: 7 }}>

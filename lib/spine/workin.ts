@@ -56,6 +56,62 @@ const row = (r: Record<string, unknown>): Grant => ({
   grantedAt: String(r.granted_at),
 });
 
+/**
+ * The studio that set a workspace up.
+ *
+ * Not `kind = 'agency' limit 1`, which is what this used to do and which is a
+ * guess: it returned whichever agency row came back first, and behaved only
+ * because one demo account owns both of them. The link has always been in the
+ * data - a studio keeps its clients in `customers`, and the client's own
+ * workspace is the one `linked_org_id` points at.
+ *
+ * Read through `studio_for`, because two thirds of the answer is deliberately
+ * unreadable from the client's side: `memberships_own` and
+ * `profiles_self_select` return only your own rows, so a client cannot see
+ * who owns the studio. Without the function the browser could not name them
+ * in a grant, and the permission the client had just ticked would be recorded
+ * nowhere at all.
+ *
+ * Returns null when nothing links to the workspace, and `ambiguous` when more
+ * than one studio does. Neither is an error and neither is guessed at: no
+ * link means no studio to ask, and two links mean the data has to be sorted
+ * out before the product can say whose name goes on the request.
+ */
+export interface Studio {
+  orgId: string;
+  name: string;
+  ownerId: string | null;
+  /** First name only, for a sentence. Null when the studio has no owner row. */
+  person: string | null;
+}
+
+export async function studioFor(
+  clientOrgId: string
+): Promise<{ studio: Studio | null; ambiguous: boolean }> {
+  const res = await supabase.rpc('studio_for', { client_org: clientOrgId });
+  const rows = (res.data ?? []) as Array<{
+    org_id: string;
+    org_name: string;
+    owner_id: string | null;
+    owner_name: string | null;
+  }>;
+
+  if (res.error || rows.length === 0) return { studio: null, ambiguous: false };
+  if (rows.length > 1) return { studio: null, ambiguous: true };
+
+  const r = rows[0];
+  const whole = (r.owner_name ?? '').trim();
+  return {
+    studio: {
+      orgId: r.org_id,
+      name: r.org_name,
+      ownerId: r.owner_id,
+      person: whole ? whole.split(/\s+/)[0] : null,
+    },
+    ambiguous: false,
+  };
+}
+
 /** The open session for this person in this workspace, if there is one. */
 export async function openGrant(orgId: string, userId: string): Promise<Grant | null> {
   const res = await supabase
@@ -261,9 +317,14 @@ export async function handBack(
       supabase.from('notifications').insert({
         org_id: grant.orgId,
         kind: 'system',
-        title:
-        studio.person === studio.studio
-          ? `${studio.studio} worked in your workspace today`
+        /*
+        Whoever it was, and which business they are from, with no word
+        standing in for either. An empty studio name means nothing links this
+        workspace to one, and the person's name alone is still true.
+      */
+      title:
+        !studio.studio || studio.person === studio.studio
+          ? `${studio.person || studio.studio} worked in your workspace today`
           : `${studio.person} from ${studio.studio} worked in your workspace today`,
         body: `${studio.person} changed ${summary}${asked}.`,
         href: `/changed/${grant.id}`,

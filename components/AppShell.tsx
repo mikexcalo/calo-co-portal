@@ -378,7 +378,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               drawer opened at "Search or ask".
             */}
             <div
-              onClick={() => setNavOpen(false)}
+              /*
+                Close on going somewhere, not on every tap.
+
+                This closed on any click at all, which is right for a nav row
+                and wrong for everything else in here: "Get help from …" and
+                "Tell Us" both open a dialog rendered inside this subtree, so
+                the tap that opened one also unmounted it. On a phone the two
+                buttons did nothing whatsoever - no dialog, no error, just the
+                drawer sliding shut - and the client had no way to ask for
+                help at all.
+
+                A link is the one thing that genuinely leaves this screen.
+              */
+              onClick={(e) => {
+                if ((e.target as HTMLElement).closest('a')) setNavOpen(false);
+              }}
               style={{
                 position: 'fixed',
                 top: framed ? (viewing ? VIEW_BAR_PHONE : WORK_BAR_PHONE) : 0,
