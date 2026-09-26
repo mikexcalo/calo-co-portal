@@ -161,25 +161,64 @@ thing it is about to remove and tells the truth about whether it can be
 undone. Buttons meet the 48px floor on a phone, which the confirmation itself
 was failing.
 
-## 11. The acceptance email goes to us, not to the business — S
+## 11. The acceptance email goes to us, not to the business — DONE 26 Sept 2026
 
 When a customer accepts a proposal, `app/api/estimates/decide/route.ts` sends
 the alert to `ALERT_EMAIL`, which is CALO&CO. The person who needs to know is
 the owner of the business whose customer just accepted: it is their proposal,
 their customer, and their deposit draft waiting to be reviewed.
 
-It should go to that owner. The studio is copied at most, and only where a
-studio is linked. Until this is fixed, a business whose customer accepts is
-told by a card on Home and by nothing else.
+`whoToTell()` resolves it now: the business's own senior person, with the
+studio copied. It asks `memberships.origin`, not `role` - `role = 'owner'` in
+a client workspace is still the studio, so the obvious query would have sent
+the mail straight back where it came from. The six em dashes went with it.
+
+With nobody reachable in the business it falls back to the studio and logs
+which workspace could not be written to, rather than passing in silence.
+
+---
+
+## 12. The client does not own their own workspace — M
+
+In every client workspace the studio is `owner` and the client is `admin`:
+
+| Lakemere Services | Mike `owner` · Marcie `admin` |
+| Mammoth Construction | Mike `owner` · Mark `admin` |
+| Global Seafood Partners | Mike `owner` · John `admin` |
+
+That is backwards, and now that `memberships.origin` exists it is also
+unnecessary. The studio needed `owner` when `owner` was the only role that
+could do anything; a standing grant is what actually carries the studio's
+access today, and it is the thing the client can take back.
+
+**How to do it safely.** The order matters, because every step in the wrong
+direction locks somebody out of their own business.
+
+1. **Check what `owner` is load-bearing for first.** Grep every policy and
+   guard for `role = 'owner'`. Some of them almost certainly mean "the one
+   person who set this up" and some mean "anybody senior". Until that is
+   separated, promoting the client changes more than it looks.
+2. **Promote the client before demoting the studio.** Two owners for a moment
+   is safe. Zero owners is a workspace nobody can administer, and it is one
+   failed statement away if the order is reversed.
+3. **Demote the studio to a plain member**, not remove it. The membership is
+   how the studio can open the workspace at all; the standing grant is what
+   lets it change anything. Removing the row would break View mode, the change
+   log and Get help all at once.
+4. **Check `new_auth_user` and the setup flow** stamp the new shape, or the
+   next workspace created undoes this by hand.
+
+**What the studio keeps**: its membership (so it can open the workspace), its
+standing grant (edit yes, send no), View mode, the change log, and Get help.
+**What it gives up**: the `owner` role, and with it whatever that role is
+quietly load-bearing for - which is step 1's whole point. **What the client
+gains**: the ability to remove the studio entirely, which today they cannot.
+
+Worth doing on one real workspace first, with the owner watching.
 
 ---
 
 ## Smaller, not yet grouped
-
-- **Em dashes in the decide route.** `app/api/estimates/decide/route.ts` still has
-  six in strings a person reads, in the note written on a customer's record and
-  in the subject line of the acceptance email. The sweep in `f3b5c6d` took 181
-  of them out of everything else and missed this file. S
 
 - **Price list tiers** (Friends / Standard / Enterprise) are identical for every
   business and unused by the estimate picker. Probably deletion, not a fix. S

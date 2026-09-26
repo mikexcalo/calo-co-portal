@@ -14,6 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { postEmail } from '@/lib/spine/deliverable';
+import { whoToTell } from '@/lib/spine/who-to-tell';
 
 export const runtime = 'nodejs';
 
@@ -253,7 +254,7 @@ export async function POST(req: NextRequest) {
       Last contact was stale by three weeks.
 
       The client record said "Last contact Sep 1" directly above a history
-      entry reading "Sep 23 — Accepted the estimate, signed John Litton".
+      entry reading "Sep 23, Accepted the estimate, signed John Litton".
       Somebody signing your proposal is the strongest contact there is.
 
       last_contacted_on had exactly one writer: the Log something button. So
@@ -304,7 +305,7 @@ export async function POST(req: NextRequest) {
       /*
         Written the way somebody would say it.
 
-        "Estimate accepted — Platform Access & Ongoing Development" is a log
+        "Estimate accepted: Platform Access & Ongoing Development" is a log
         line. The thing that actually happened is that John said yes, and the
         person reading this has been waiting to hear it. Use his name, say it
         first, and let the record underneath carry the detail.
@@ -328,15 +329,37 @@ export async function POST(req: NextRequest) {
         kind: 'system',
         body:
           decision === 'accepted'
-            ? `Accepted the estimate ($${acceptedTotal.toFixed(2)})${body.name?.trim() ? ` — signed ${body.name.trim()}` : ''}.`
+            ? `Accepted the estimate ($${acceptedTotal.toFixed(2)})${body.name?.trim() ? `, signed ${body.name.trim()}` : ''}.`
             : `Declined the estimate.${body.reason?.trim() ? ` Reason: ${body.reason.trim()}` : ''}`,
       });
     }
 
-    // Tell Mark straight away — a signed estimate is worth an interruption.
+    /*
+      Told to whoever it happened to.
+
+      This sent to ALERT_EMAIL, which is us: every acceptance from every
+      client's customer landed in the studio's inbox and nowhere else. The
+      proposal is the business's, the customer is theirs, and the deposit
+      draft is sitting in their Invoices waiting for them to send it. They are
+      the ones who need to know today; we are copied.
+    */
     const resendKey = process.env.RESEND_API_KEY;
-    const alertTo = process.env.ALERT_EMAIL || 'mikexcalo@gmail.com';
-    if (resendKey) {
+    const tell = await whoToTell(db, estimate.org_id as string | null);
+    /*
+      A fallback, not a default.
+
+      With nobody reachable in the business the mail still has to go
+      somewhere, or an acceptance passes in silence - so it falls back to the
+      studio, and the log says which business could not be written to. That is
+      a setup problem somebody can fix, and it stays visible until they do.
+    */
+    const alertTo = tell.to ?? tell.cc ?? process.env.ALERT_EMAIL ?? null;
+    if (!tell.to) {
+      console.warn(
+        `[estimates/decide] no owner to tell for org ${estimate.org_id}: ${tell.why}. Fell back to ${alertTo ?? 'nobody'}.`
+      );
+    }
+    if (resendKey && alertTo) {
       try {
         await postEmail(alertTo, {
           method: 'POST',
@@ -344,12 +367,14 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             from: process.env.MAIL_FROM || 'CALO&CO <onboarding@resend.dev>',
             to: alertTo,
+            /* Copied only when they are not already the recipient. */
+            ...(tell.to && tell.cc ? { cc: tell.cc } : {}),
             subject:
               decision === 'accepted'
-                ? `Estimate accepted — ${job?.name ?? ''}`
-                : `Estimate declined — ${job?.name ?? ''}`,
+                ? `Estimate accepted: ${job?.name ?? ''}`
+                : `Estimate declined: ${job?.name ?? ''}`,
             html: `<div style="font-family:-apple-system,sans-serif;font-size:15px;line-height:1.6;">
-<p><strong>${job?.name ?? 'Job'}</strong> — ${decision}${body.name?.trim() ? ` by ${body.name.trim()}` : ''}.</p>
+<p><strong>${job?.name ?? 'Job'}</strong>, ${decision}${body.name?.trim() ? ` by ${body.name.trim()}` : ''}.</p>
 ${decision === 'accepted' ? `<p>$${acceptedTotal.toFixed(2)}</p>` : ''}
 ${depositDraft ? `<p><strong>Deposit invoice ${depositDraft.number} for $${depositDraft.amount.toFixed(2)} is drafted and waiting.</strong> It has not been sent. Review it in Invoices and send it when you are ready.</p>` : ''}
 ${body.reason?.trim() ? `<p style="color:#555;">${body.reason.trim().replace(/</g, '&lt;')}</p>` : ''}

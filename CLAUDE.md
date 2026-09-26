@@ -84,6 +84,11 @@ failing.
 - **Never guess a financial parameter.** An obviously wrong number is safer than
   a plausible one.
 - **Rates are per-org.** One business having them unset says nothing about another.
+- **`role = 'owner'` is not the business.** In a client workspace the studio
+  holds that seat and the client is `admin`. To reach the business's own
+  people, ask `memberships.origin = 'own'`. Backlog #12 is the plan to undo
+  the arrangement; until then, every query that means "them" and asks for
+  "owner" gets us.
 
 ## View mode, Work in it and sending are database rules
 
@@ -121,10 +126,9 @@ guards only bound people who declared a mode, and declaring nothing was the
 one route past every check. The studio's own workspace is unaffected: nothing
 links to it, so everybody in it is `own`.
 
-Not yet on for real workspaces. `studio_rule_applies()` gates it on the demo
-flag, because switching it on for a workspace with no standing grant locks the
-studio out of work it does every day. Replacing that function's body with
-`true` is the whole switch.
+On everywhere since 26 Sept 2026. `studio_rule_applies()` is kept as the one
+switch if it ever has to come off, rather than an emergency migration dropping
+triggers off 37 tables.
 
 **A standing grant has no end.** `work_grants.standing` survives handing back
 — `handBack` skips it and `keep_standing_grants_open()` holds the line if
