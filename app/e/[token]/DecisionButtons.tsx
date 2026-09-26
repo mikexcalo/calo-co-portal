@@ -220,10 +220,13 @@ export function DecisionButtons({
           >
             {busy ? 'One moment…' : 'Send'}
           </button>
+          {/* Back to the accept form, which is now the resting state. Going
+              to 'idle' would land somebody on a screen they never saw on the
+              way in. */}
           <button
-            onClick={() => setMode('idle')}
+            onClick={() => setMode('accepting')}
             style={{
-              background: 'transparent', border: 'none', padding: '12px 8px',
+              background: 'transparent', border: 'none', minHeight: 48, padding: '0 10px',
               fontSize: 15, color: '#777', cursor: 'pointer', fontFamily: 'inherit',
             }}
           >
