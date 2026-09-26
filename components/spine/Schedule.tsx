@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Select, Button, C, Card, Empty, Pill, SectionLabel, inputStyle, shortDate } from './ui';
+import { Confirm } from './Confirm';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 
@@ -96,8 +97,23 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
     load();
   };
 
+  /*
+    A step is not a draft.
+
+    This deleted on the first click, with the word only in an aria-label. The
+    schedule is the thing everything else on a job waits on - moving a date
+    here moves everything behind it - so losing a step by brushing a 26px
+    circle costs more than one row.
+
+    No undo here, unlike hours and costs, so the confirmation says so.
+  */
+  const [confirming, setConfirming] = useState<Task | null>(null);
+
   const remove = async (t: Task) => {
+    setBusy(true);
     await saveOrFail(supabase.from('job_tasks').delete().eq('id', t.id));
+    setBusy(false);
+    setConfirming(null);
     load();
   };
 
@@ -105,6 +121,16 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
 
   return (
     <div style={{ marginBottom: 26 }}>
+      {confirming && (
+        <Confirm
+          title={`Remove "${confirming.name}"?`}
+          body="It comes off the schedule and anything waiting on it stops waiting. This cannot be undone."
+          confirmLabel="Remove step"
+          busy={busy}
+          onConfirm={() => remove(confirming)}
+          onCancel={() => setConfirming(null)}
+        />
+      )}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 10 }}>
         <SectionLabel>Schedule ({rows.length})</SectionLabel>
         <Button variant="ghost" onClick={() => setAdding((v) => !v)}>
@@ -224,18 +250,9 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
                   {late && t.owner === 'us' && <Pill tone="red">late</Pill>}
                   {late && t.owner !== 'us' && <Pill tone="amber">waiting on them</Pill>}
 
-                  <button
-                    onClick={() => remove(t)}
-                    aria-label={`Remove ${t.name}`}
-                    style={{
-                      width: 26, height: 26, borderRadius: 999,
-                      border: `1px solid ${C.border}`, background: 'transparent',
-                      color: C.faint, fontSize: 14, lineHeight: 1, cursor: 'pointer',
-                      fontFamily: 'inherit',
-                    }}
-                  >
-                    ×
-                  </button>
+                  <Button variant="danger" onClick={() => setConfirming(t)}>
+                    Remove
+                  </Button>
                 </div>
               </Card>
             );

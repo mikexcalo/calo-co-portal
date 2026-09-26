@@ -258,7 +258,7 @@ export function Photos({
 
       {confirmDelete && (
         <Confirm
-          title="Delete this photo?"
+          title={`Delete "${confirmDelete.file_name}"?`}
           body="It is removed from storage as well as from this list, and cannot be recovered."
           confirmLabel="Delete"
           busy={busy}

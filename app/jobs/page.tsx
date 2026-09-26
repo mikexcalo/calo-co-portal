@@ -33,6 +33,7 @@ import {
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
+import { Confirm } from '@/components/spine/Confirm';
 import supabase from '@/lib/supabase';
 
 const TONE: Record<JobStatus, 'neutral' | 'blue' | 'green' | 'amber' | 'red'> = {
@@ -56,6 +57,7 @@ export default function JobsPage() {
   const [editing, setEditing] = useState<JobWithCustomer | null>(null);
   const [busy, setBusy] = useState(false);
   const [tick, setTick] = useState(0);
+  const [confirmRemove, setConfirmRemove] = useState(false);
 
   useEffect(() => {
     let canceled = false;
@@ -440,23 +442,39 @@ export default function JobsPage() {
                     Has work on it, so it can be closed but not removed.
                   </span>
                 ) : (
-                  <Button
-                    variant="danger"
-                    disabled={busy}
-                    onClick={async () => {
-                      setBusy(true);
-                      const res = await saveOrFail(supabase.from('jobs').delete().eq('id', editing.id));
-                      setBusy(false);
-                      if (res.error) { setError(human(res.error.message)); return; }
-                      setEditing(null);
-                      setTick((t) => t + 1);
-                    }}
-                  >
+                  /*
+                    Ask first.
+
+                    This deleted the job on the click. It is guarded by
+                    `used`, so nothing with hours or receipts on it can go
+                    this way - but an empty job is still a name, a customer, an
+                    address and a date somebody typed, and there is no undo
+                    anywhere near it.
+                  */
+                  <Button variant="danger" disabled={busy} onClick={() => setConfirmRemove(true)}>
                     Remove
                   </Button>
                 )}
               </div>
             </>
+          {confirmRemove && (
+              <Confirm
+                title={`Remove "${editing.name}"?`}
+                body="Nothing has been logged against it, so nothing else goes with it. This cannot be undone."
+                confirmLabel="Remove"
+                busy={busy}
+                onConfirm={async () => {
+                  setBusy(true);
+                  const res = await saveOrFail(supabase.from('jobs').delete().eq('id', editing.id));
+                  setBusy(false);
+                  setConfirmRemove(false);
+                  if (res.error) { setError(human(res.error.message)); return; }
+                  setEditing(null);
+                  setTick((t) => t + 1);
+                }}
+                onCancel={() => setConfirmRemove(false)}
+              />
+            )}
           </Sheet>
         );
       })()}

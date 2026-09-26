@@ -19,7 +19,16 @@ export function SaveFailed() {
     let timer: ReturnType<typeof setTimeout>;
     const on = (e: Event) => {
       const d = (e as CustomEvent<{ message: string; what: string | null }>).detail;
-      setMsg(d?.what ? `${d.what}, ${d.message}` : d?.message ?? 'That did not save.');
+      /* An em dash, not a comma: `what` is a phrase and `message` is a
+             sentence, and "Saving the estimate, Nothing was saved" reads as a
+             typo. The fallback answers the three questions too, because a
+             banner that appears only when something went wrong is the worst
+             place to be vague. */
+          setMsg(
+            d?.message
+              ? d.what ? `${d.what} — ${d.message}` : d.message
+              : 'Nothing was saved, and we could not tell why. Try again, and use Tell Us if it keeps happening.'
+          );
       clearTimeout(timer);
       timer = setTimeout(() => setMsg(null), 9000);
     };

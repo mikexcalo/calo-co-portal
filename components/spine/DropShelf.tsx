@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { C } from '@/lib/spine/tokens';
 import { ClientIntake, type IntakeSeed } from './ClientIntake';
-import { human } from '@/lib/spine/errors';
+import { human, READ_FAILED } from '@/lib/spine/errors';
 import { Confirm } from './Confirm';
 import { sheetToText, isSpreadsheet } from '@/lib/spine/spreadsheet';
 import { DropZone } from './DropZone';
@@ -156,7 +156,8 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
       }));
       setUrls(next);
     } catch (e) {
-      setError(human(e));
+      /* A read, so the message must not claim anything about saving. */
+      setError(human(e, READ_FAILED));
     }
   }, [orgId, target?.person_id, target?.customer_id, target?.job_id]); // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -448,16 +448,9 @@ export default function ExpensesPage() {
                 <div>
                   {/* A full red Delete on every row makes the loudest thing in
                       the table the one act you almost never want. */}
-                  <button
-                    onClick={() => setConfirmDelete(r)}
-                    className="rowBtn rowBtnSkip"
-                    title={`Delete ${r.vendor}`}
-                    aria-label={`Delete ${r.vendor}`}
-                  >
-                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
-                      <path d="M4 4l8 8M12 4l-8 8" />
-                    </svg>
-                  </button>
+                  <Button variant="danger" onClick={() => setConfirmDelete(r)}>
+                    Delete
+                  </Button>
                 </div>
               </Row>
             ))}
@@ -469,8 +462,8 @@ export default function ExpensesPage() {
 
       {confirmDelete && (
         <Confirm
-          title={`Delete ${confirmDelete.vendor}?`}
-          body="This removes it from your overheads and from Profit & Loss."
+          title={`Delete ${confirmDelete.vendor}, ${money(confirmDelete.amount)}?`}
+          body="It comes off your overheads and out of Profit & Loss. This cannot be undone."
           confirmLabel="Delete"
           busy={busy}
           onConfirm={remove}

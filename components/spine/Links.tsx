@@ -207,8 +207,8 @@ export function Links({
 
       {confirmDelete && (
         <Confirm
-          title="Remove this link?"
-          body={confirmDelete.title || confirmDelete.url}
+          title={`Remove "${confirmDelete.title || confirmDelete.url}"?`}
+          body="Anybody who already has the address will stop being able to open it. This cannot be undone."
           confirmLabel="Remove"
           busy={busy}
           onConfirm={remove}

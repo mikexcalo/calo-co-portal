@@ -4892,3 +4892,20 @@ input[type="date"] { cursor: pointer; }
 @media (max-width: 720px) {
   .deskOnly { display: none; }
 }
+
+/*
+  48px, everywhere a thumb lands.
+
+  The rulebook's floor for anything touchable. It was being met by the things
+  built for a phone - tabs, steppers, the capture button - and missed by every
+  ordinary Button, including the two in the delete confirmation, which is the
+  worst place in the product to mis-tap: Cancel and Delete were 40px and eight
+  pixels apart.
+
+  Here rather than in the inline styles because every Button already carries
+  this class, so one rule covers the product and no call site gets to have its
+  own idea of how big a target is. 720px is the same line useIsPhone draws.
+*/
+@media (max-width: 720px) {
+  .btn { min-height: 48px; }
+}

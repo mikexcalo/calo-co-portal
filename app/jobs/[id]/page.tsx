@@ -268,8 +268,19 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
       {confirming && (
         <Confirm
-          title={confirming.kind === 'time' ? 'Delete these hours?' : 'Delete this cost?'}
-          body={`${confirming.label}. This removes it from the job and from anything not yet invoiced.`}
+          /*
+            The title names what is about to go.
+
+            "Delete these hours?" is a question about a row you can no longer
+            see, because the dialog is covering it. The label is already built
+            from the row, so it belongs in the sentence you are answering.
+
+            And it does not say "this cannot be undone", because it can: both
+            branches below keep the row and offer Undo. A warning that is not
+            true is how people learn to stop reading them.
+          */
+          title={`Delete ${confirming.label}?`}
+          body="It comes off the job and off anything not yet invoiced. You can undo it straight after."
           confirmLabel="Delete"
           busy={busy}
           onConfirm={() =>
@@ -457,7 +468,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         */}
         <Table>
           {entries.length > 0 && (
-            <Row cols="100px 1fr 90px 90px 110px 40px" header>
+            <Row cols="100px 1fr 90px 90px 110px 88px" header>
               <div>Date</div><div>Work</div><div>Hours</div><div>Rate</div><div>Value</div><div />
             </Row>
           )}
@@ -465,7 +476,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
             <Empty>No hours logged yet.</Empty>
           ) : (
             entries.map((e) => (
-              <Row key={e.id} cols="100px 1fr 90px 90px 110px 40px">
+              <Row key={e.id} cols="100px 1fr 90px 90px 110px 88px">
                 <div style={{ color: C.dim }}>{shortDate(e.worked_on)}</div>
                 <div>
                   {e.description || 'Labor'}
@@ -477,17 +488,26 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                 <div>{money(e.hours * e.rate)}</div>
                 <div>
                   {!e.invoiced_on && (
-                    <button
+                    /*
+                      A word, not a glyph.
+
+                      This was a bare × with the word only in a title
+                      attribute, which is a tooltip nobody on a phone can
+                      reach. A destructive control has to say what it does
+                      where you can read it.
+                    */
+                    <Button
+                      variant="danger"
                       onClick={() =>
                         setConfirming({
                           kind: 'time',
                           id: e.id,
-                          label: `${e.hours}h on ${e.worked_on}`,
+                          label: `${fmtHours(e.hours)} on ${job.name}`,
                         })
                       }
-                      style={{ background: 'none', border: 'none', color: C.faint, cursor: 'pointer', fontSize: 16 }}
-                      title="Delete"
-                    >×</button>
+                    >
+                      Delete
+                    </Button>
                   )}
                 </div>
               </Row>
@@ -539,7 +559,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
         <Table>
           {costs.length > 0 && (
-            <Row cols="100px 1fr 130px 110px 40px" header>
+            <Row cols="100px 1fr 130px 110px 88px" header>
               <div>Date</div><div>What</div><div>Type</div><div>Amount</div><div />
             </Row>
           )}
@@ -547,7 +567,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
             <Empty>No costs yet. Receipts dropped in Documents land here.</Empty>
           ) : (
             costs.map((c) => (
-              <Row key={c.id} cols="100px 1fr 130px 110px 40px">
+              <Row key={c.id} cols="100px 1fr 130px 110px 88px">
                 <div style={{ color: C.dim }}>{shortDate(c.purchased_on)}</div>
                 <div>
                   {c.description || c.vendor || 'Cost'}
@@ -558,7 +578,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                 <div>{money(c.amount)}</div>
                 <div>
                   {!c.invoiced_on && (
-                    <button
+                    <Button
+                      variant="danger"
                       onClick={() =>
                         setConfirming({
                           kind: 'cost',
@@ -566,9 +587,9 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                           label: `${c.description || c.vendor || 'cost'}, ${money(c.amount)}`,
                         })
                       }
-                      style={{ background: 'none', border: 'none', color: C.faint, cursor: 'pointer', fontSize: 16 }}
-                      title="Delete"
-                    >×</button>
+                    >
+                      Delete
+                    </Button>
                   )}
                 </div>
               </Row>

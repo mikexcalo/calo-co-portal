@@ -354,7 +354,7 @@ export default function DocumentsPage() {
 
       {confirmingDelete && (
         <Confirm
-          title="Delete this document?"
+          title={`Delete "${confirmingDelete.file_name}"?`}
           body="The original file is removed too. If it has already become a job cost, that cost stays but loses its receipt, which is what you would need if the charge is ever questioned."
           confirmLabel="Delete document"
           onConfirm={() => removeDoc(confirmingDelete)}

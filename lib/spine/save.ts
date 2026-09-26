@@ -7,7 +7,7 @@
  * says so, once, in words, without every screen needing its own error state.
  */
 
-import { human } from './errors';
+import { human, WRITE_FAILED } from './errors';
 
 export const SAVE_FAILED = 'nautilus:save-failed';
 
@@ -21,10 +21,10 @@ export async function save<T extends { error?: { message?: string } | null }>(
   try {
     res = await op;
   } catch (e) {
-    announce(human(e), what);
+    announce(human(e, WRITE_FAILED), what);
     throw e;
   }
-  if (res?.error) announce(human(res.error), what);
+  if (res?.error) announce(human(res.error, WRITE_FAILED), what);
   return res;
 }
 

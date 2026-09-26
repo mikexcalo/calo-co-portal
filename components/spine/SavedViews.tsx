@@ -22,6 +22,7 @@ import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { C } from './ui';
 import { save as saveOrFail } from '@/lib/spine/save';
+import { Confirm } from './Confirm';
 import { orgNow } from '@/lib/spine/db';
 
 export interface View {
@@ -87,9 +88,18 @@ export function SavedViews({
     setNaming(false);
   };
 
+  /*
+    A saved view is a filter somebody built and named, and it goes on the
+    first click with no way back. Cheap to rebuild, annoying to lose, and it
+    sits inside the chip you press to USE the view - so the miss that deletes
+    it is the same gesture as the one that applies it.
+  */
+  const [confirming, setConfirming] = useState<View | null>(null);
+
   const remove = async (id: string) => {
     setViews((v) => v.filter((x) => x.id !== id));
     if (active === id) onApply(null);
+    setConfirming(null);
     await saveOrFail(supabase.from('saved_views').delete().eq('id', id));
   };
 
@@ -119,13 +129,14 @@ export function SavedViews({
       {onX && on && (
         <button
           onClick={onX}
-          aria-label={`Delete view ${label}`}
+          aria-label={`Delete the view "${label}"`}
           style={{
             background: 'transparent', border: 'none', padding: 0,
-            color: C.faint, cursor: 'pointer', fontSize: 13, lineHeight: 1, fontFamily: 'inherit',
+            color: C.faint, cursor: 'pointer', fontSize: 12, lineHeight: 1,
+            fontFamily: 'inherit', textDecoration: 'underline',
           }}
         >
-          ×
+          Delete
         </button>
       )}
     </span>
@@ -133,13 +144,22 @@ export function SavedViews({
 
   return (
     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
+      {confirming && (
+        <Confirm
+          title={`Delete the view "${confirming.name}"?`}
+          body="The filters go with it. Nothing you have filtered is deleted. This cannot be undone."
+          confirmLabel="Delete view"
+          onConfirm={() => remove(confirming.id)}
+          onCancel={() => setConfirming(null)}
+        />
+      )}
       {views.length > 0 && (
         <span style={{ fontSize: 11.5, color: C.faint, letterSpacing: '.04em', textTransform: 'uppercase' }}>
           Views
         </span>
       )}
 
-      {views.map((v) => chip(v.name, active === v.id, () => onApply(active === v.id ? null : v), () => remove(v.id)))}
+      {views.map((v) => chip(v.name, active === v.id, () => onApply(active === v.id ? null : v), () => setConfirming(v)))}
 
       {naming ? (
         <span style={{ display: 'inline-flex', gap: 5, alignItems: 'center' }}>

@@ -466,28 +466,13 @@ export default function FilesPage() {
                       <Button variant="ghost" onClick={() => download(f)}>Download</Button>
                       {/* Small and quiet. Destroying a record should take
                           deliberate aim, not sit under your thumb. */}
-                      <button
-                        onClick={() => setConfirming(f)}
-                        aria-label={`Delete ${f.name}`}
-                        title="Delete"
-                        style={{
-                          width: 26,
-                          height: 26,
-                          borderRadius: 999,
-                          border: `1px solid ${C.border}`,
-                          background: 'transparent',
-                          color: C.faint,
-                          cursor: 'pointer',
-                          fontSize: 14,
-                          lineHeight: 1,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: 0,
-                        }}
-                      >
-                        ×
-                      </button>
+                      {/* The word, not a circle with a cross in it. Small
+                          and quiet is still right - destroying a record
+                          should take deliberate aim - but quiet is a matter
+                          of weight, not of hiding what the button does. */}
+                      <Button variant="danger" onClick={() => setConfirming(f)}>
+                        Delete
+                      </Button>
                     </div>
                   </div>
                 );

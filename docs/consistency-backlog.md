@@ -44,22 +44,13 @@ Also in this group:
 
 ---
 
-## 2. Errors: the banned sentence is the default — S
+## 2. Errors — DONE 26 Sept 2026
 
-`lib/spine/errors.ts`, one line.
-
-`human()`'s fallback is **"That did not work. Try again, and tell us if it
-keeps happening."** — the exact sentence the rulebook bans. It reaches a screen
-every time a database message doesn't match one of the nine known patterns, and
-it answers none of the three questions: what happened, was anything saved, what
-now.
-
-Small to change, wide blast radius: `human()` is called from every `save()` in
-the product. The brief is to write a fallback that admits it does not know the
-cause but still says whether anything was written and who to ask, then check
-the nine specific messages against the three-question rule.
-
----
+`human()` no longer falls back to "That did not work". Every branch says what
+happened, whether anything was saved and what to do next; `save()` passes a
+write-specific fallback and reads get one that claims nothing about saving.
+The five save paths get named causes wherever Postgres names a constraint or
+a column. Verified against a real refusal on the demo.
 
 ## 3. Fifteen hand-written overlays instead of `Sheet` — M
 
@@ -163,16 +154,13 @@ pass per business kind on the demo, which is why it is M rather than S.
 
 ---
 
-## 10. Destructive actions with no word on them — S
+## 10. Destructive actions — DONE 26 Sept 2026
 
-Bare `×` beside Download and Open on Records rows, on job Hours rows and on
-Costs rows. The rulebook asks for `variant="danger"` and a word. Whether any of
-them confirms first is unverified — the audit's rules forbade clicking them and
-nothing since has checked.
-
-Confirm-or-not is the real question here; the glyph is the easy half.
-
----
+Bare glyphs replaced with the word. Three deletes that did not confirm now do
+(schedule steps, saved views, an unused job). Every confirmation names the
+thing it is about to remove and tells the truth about whether it can be
+undone. Buttons meet the 48px floor on a phone, which the confirmation itself
+was failing.
 
 ## Smaller, not yet grouped
 
