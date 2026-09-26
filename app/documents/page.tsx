@@ -58,6 +58,7 @@ import {
   useIsPhone,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { useSearchParams } from 'next/navigation';
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ACCEPTED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
@@ -73,6 +74,26 @@ export default function DocumentsPage() {
   const [working, setWorking] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
+
+  /*
+    ?capture=1 opens the camera on arrival.
+
+    The capture sheet's "Snap a receipt" has to reach the camera in one tap,
+    and this pipeline - upload, read, show what was read, wait for a yes - is
+    the receipts flow. Sending the phone here with a flag reuses all of it
+    rather than growing a second, simpler uploader that skips the approval
+    step and quietly writes numbers nobody checked.
+
+    Fires once: `opened` guards against the effect running again on a
+    re-render and reopening the camera over a photo somebody is reviewing.
+  */
+  const params = useSearchParams();
+  const opened = useRef(false);
+  useEffect(() => {
+    if (opened.current || params.get('capture') !== '1') return;
+    opened.current = true;
+    cameraRef.current?.click();
+  }, [params]);
   const [confirmingDelete, setConfirmingDelete] = useState<DocumentRecord | null>(null);
   /**
    * Documents waiting on human sign-off. Nothing is written to the document

@@ -15,7 +15,7 @@ import { TutorialPanel } from '@/components/spine/TutorialPanel';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { BottomBar } from '@/components/spine/BottomBar';
-import { AddSheet } from '@/components/spine/AddSheet';
+import { Capture, type CaptureJob } from '@/components/spine/Capture';
 import { pathAllowed } from '@/lib/spine/modules';
 import { workspaceColor } from '@/lib/spine/workspace-color';
 import { OrgSwitcher } from '@/components/spine/OrgSwitcher';
@@ -83,6 +83,39 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
   const [navOpen, setNavOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+
+  /*
+    The job the capture sheet should assume, worked out before it opens.
+
+    The job page you are standing on wins over the one on the schedule,
+    because being on a job's screen is a stronger statement about what you are
+    doing than a date is. Neither exists on most screens, and then the sheet
+    asks rather than guessing - a pre-picked job that is the wrong job files
+    somebody's afternoon against the wrong customer, which is worse than one
+    extra tap.
+  */
+  const [captureJob, setCaptureJob] = useState<CaptureJob | null>(null);
+  useEffect(() => {
+    let off = false;
+    setCaptureJob(null);
+    if (!org?.id || !phone) return;
+
+    const onJob = pathname.match(/^\/jobs\/([0-9a-f-]{36})/);
+    (async () => {
+      if (onJob) {
+        const res = await supabase.from('jobs').select('id, name').eq('id', onJob[1]).maybeSingle();
+        const j = res.data as { id: string; name: string } | null;
+        if (!off && j) setCaptureJob({ id: j.id, name: j.name, reason: "You're on this job" });
+        return;
+      }
+      const { loadToday } = await import('@/lib/spine/today');
+      const t = await loadToday(org.id);
+      if (!off && t.next) {
+        setCaptureJob({ id: t.next.id, name: t.next.name, reason: "On today's schedule" });
+      }
+    })();
+    return () => { off = true; };
+  }, [org?.id, pathname, phone]);
 
   /*
     The request behind an open work session, loaded once.
@@ -445,12 +478,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           driveway permanently under the thumb.
         */}
         <BottomBar
+          org={org}
           vocab={vocab}
           onMore={() => setNavOpen(true)}
           onAdd={() => setAddOpen(true)}
         />
 
-        {addOpen && <AddSheet vocab={vocab} onClose={() => setAddOpen(false)} />}
+        {addOpen && (
+          <Capture orgId={org?.id ?? null} job={captureJob} onClose={() => setAddOpen(false)} />
+        )}
 
         <TutorialPanel />
       </div>

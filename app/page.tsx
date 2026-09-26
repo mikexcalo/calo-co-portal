@@ -53,9 +53,11 @@ import {
   money0,
   radius,
   shortDate,
+  useIsPhone,
   useModKey,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
+import { LaterThisWeek, NextJob, useToday } from '@/components/spine/Today';
 
 interface Attention {
   key: string;
@@ -90,6 +92,17 @@ export default function Dashboard() {
   const { viewAs } = useViewAs();
   const mod = useModKey();
   const { openPanel } = useTutorial();
+
+  /*
+    Today is Home at phone width, not a second screen.
+
+    A /today route would mean two pages computing the same Needs you list from
+    the same six queries, and the day one of them learned about a new signal
+    the other would not. This is the same page with the schedule card on top
+    and the desk work folded away under a media query.
+  */
+  const phone = useIsPhone();
+  const today = useToday();
 
   const [jobs, setJobs] = useState<JobWithCustomer[]>([]);
   const [ledger, setLedger] = useState<JobLedger[]>([]);
@@ -739,6 +752,8 @@ export default function Dashboard() {
         </Card>
       )}
 
+      {phone && !emptyApp && <NextJob data={today} />}
+
       {emptyApp ? (
         /**
          * Not a checklist.
@@ -907,6 +922,19 @@ export default function Dashboard() {
             </div>
           ); })()}
 
+          {phone && <LaterThisWeek data={today} />}
+
+          {/*
+            Everything below here is desk work.
+
+            Setup gaps, the two columns, the figures and the past-due table are
+            all things somebody does sitting down with the whole picture in
+            front of them. On a phone they turn the one screen you open in a
+            driveway into a scroll, so they are folded away by a media query
+            rather than by a second component - the desktop markup is
+            untouched, and there is no phone copy of it to keep in step.
+          */}
+          <div className="deskOnly">
           {/*
             Setup, said once and quietly.
 
@@ -1227,6 +1255,7 @@ export default function Dashboard() {
               </Table>
             </div>
           )}
+          </div>
         </>
       )}
     </Page>

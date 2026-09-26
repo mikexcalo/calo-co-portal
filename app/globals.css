@@ -4877,3 +4877,18 @@ input[type="date"] { cursor: pointer; }
 
 /* The first term has nothing above it to be divided from. */
 .termList > div:first-child { border-top: none !important; padding-top: 0 !important; }
+
+/*
+  Desk work, hidden on a phone.
+
+  720px is the same line useIsPhone draws, and it has to be: a component that
+  thinks it is on a phone while the stylesheet thinks otherwise produces a
+  screen with both layouts on it. Changing one without the other is the bug
+  this comment exists to prevent.
+
+  A media query rather than a conditional render, so the desktop markup on
+  Home is untouched and there is no second copy of it to keep in step.
+*/
+@media (max-width: 720px) {
+  .deskOnly { display: none; }
+}

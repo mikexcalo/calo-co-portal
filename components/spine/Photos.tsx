@@ -19,8 +19,9 @@ import supabase from '@/lib/supabase';
 import { Button, C, Card, Empty, SectionLabel } from './ui';
 import { Confirm } from './Confirm';
 import { Processing } from './Processing';
-import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
+import { human } from '@/lib/spine/errors';
+import { uploadPhotos } from '@/lib/spine/photos';
 
 interface Photo {
   id: string;
@@ -29,9 +30,6 @@ interface Photo {
   created_at: string;
   url?: string;
 }
-
-const MAX_BYTES = 15_000_000;
-const OK_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 
 export function Photos({
   orgId,
@@ -84,56 +82,12 @@ export function Photos({
   useEffect(() => { load(); }, [load]);
 
   const upload = async (files: FileList | File[]) => {
-    const list = Array.from(files);
-    const bad = list.filter((f) => !OK_TYPES.includes(f.type) && !/\.(jpe?g|png|webp|heic)$/i.test(f.name));
-    if (bad.length) {
-      setError(`${bad.map((f) => f.name).join(', ')}: not an image we can show.`);
-      return;
-    }
-    const tooBig = list.filter((f) => f.size > MAX_BYTES);
-    if (tooBig.length) {
-      setError(`${tooBig.map((f) => f.name).join(', ')}: larger than 15MB.`);
-      return;
-    }
-
     setError(null);
     setBusy(true);
-    setUploading(list.length);
-
-    for (const file of list) {
-      // Path includes the org so a stray listing can never span businesses,
-      // and a timestamp so two photos named IMG_0001 do not overwrite one
-      // another. Phones produce that name constantly.
-      const safe = file.name.replace(/[^\w.\-]+/g, '_');
-      const path = `${orgId}/photos/${Date.now()}-${safe}`;
-
-      const up = await supabase.storage.from('documents').upload(path, file, {
-        contentType: file.type || 'image/jpeg',
-        upsert: false,
-      });
-      if (up.error) { setError(human(up.error.message)); break; }
-
-      const row = await saveOrFail(supabase.from('documents').insert({
-        org_id: orgId,
-        customer_id: customerId ?? null,
-        job_id: jobId ?? null,
-        storage_path: path,
-        file_name: file.name,
-        mime_type: file.type || 'image/jpeg',
-        size_bytes: file.size,
-        kind: 'photo',
-        // Nothing to review: no extraction ran.
-        status: 'filed',
-      }));
-      if (row.error) {
-        // Don't leave the file orphaned in storage if the record failed.
-        await supabase.storage.from('documents').remove([path]);
-        setError(human(row.error.message));
-        break;
-      }
-      setUploading((n) => n - 1);
-    }
-
+    /* The filing itself lives in lib/spine/photos.ts, because the capture
+       sheet on a phone does the same thing and two copies would drift. */
+    const res = await uploadPhotos({ orgId, customerId, jobId }, files, setUploading);
+    if (res.error) setError(res.error);
     setBusy(false);
     setUploading(0);
     if (inputRef.current) inputRef.current.value = '';

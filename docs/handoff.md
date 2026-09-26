@@ -238,9 +238,62 @@ says so. A server-enforced version is a separate brief below.
 
 ---
 
+### The phone shell
+
+Shipped, under 720px only. Desktop is untouched: the same Home page, the same
+components, one media query.
+
+Bottom tabs replace the drawer as the main navigation - four at most, from
+`modulesFor` and the workspace's own words rather than a list written into the
+bar, so a service business gets Today / Jobs / Money / More and the studio gets
+Today / Clients / Money / More, and a module that is off simply has no tab. The
+drawer is still there under More. The + in the middle opens Capture: Log hours,
+Snap a receipt, Photo to the job, Quick note, each one routed into the flow
+that already existed rather than a phone-shaped copy of it.
+
+Today is Home at phone width, not a second route. Next job on top with
+Directions and Call, then Needs you, then Later this week; everything below -
+setup gaps, the two columns, the figures, past due - is desk work and is folded
+away by `.deskOnly`.
+
+**Nothing is inferred on that card.** The approved design shows "Crew A ·
+7:30 AM". `jobs` has `scheduled_start` and `scheduled_end` as dates, there is
+no time-of-day column and no crew table anywhere, so neither is drawn.
+Directions and Call follow the same rule one level down: address and phone are
+real columns that are often empty, and a Call button that dials nothing is
+worse than a card with one button on it. The design's "I'm here" is out for the
+same reason - nothing records arrival.
+
+---
+
 ---
 
 ## Open
+
+**Hold to talk is not built.** It is the black panel across the top of the
+approved capture sheet: hold, say "four hours, three guys, found rot on the
+north side", and it sorts itself into hours, a note and a flag. It needs
+speech to text and then the same distilling `DropIt` already does, and it is
+the one thing on that sheet somebody would use with gloves on. Left out
+rather than stubbed: a button that does nothing teaches people the screen is
+broken.
+
+**Saving on the phone and sending later is not built.** The design's footer
+says "Weak signal? Everything saves on the phone and sends when you're back
+online", and the Log hours screen repeats it above Save. Both lines are out,
+because the writes go straight to Supabase and fail if there is no signal. A
+promise about offline saving that is not true is the worst kind: it is
+believed at exactly the moment it fails, standing in a basement with four
+hours to log. Doing it properly means a queue in IndexedDB, a replay on
+reconnect, and an answer for a write that is refused when it finally lands.
+The "Signal: weak" chip in the header belongs to the same brief.
+
+**Two demo jobs now have schedule dates, set through the product on 26 Sept
+2026.** Airport Blvd warehouse on the 26th and Wickersham block D on the 30th,
+both in Harbor Light. Nothing in the database was scheduled at all, so Today's
+whole top half could not be seen. They are ordinary demo data and can be
+cleared from the job screen; the point of noting it is that the schedule was
+empty on purpose until somebody made it not be.
 
 **`PROVIDER` is still hard-coded in places a client reads.** Work in it now
 resolves the studio from `customers.linked_org_id`, so in Harbor Light the

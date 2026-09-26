@@ -8,25 +8,32 @@
  * at the top of the screen, which is the part of a phone a thumb reaches
  * last.
  *
- * A contractor standing in a driveway does four things: check what needs
- * doing, open a job, look somebody up, and put something in — a receipt, a
- * photo, a note about what was just said. Those four are here, permanently
- * visible, at the bottom where the thumb already is. Everything else is behind
- * More, which is honest: it is the desk work.
+ * Four tabs and a capture button, permanently visible, at the bottom where
+ * the thumb already is. Everything else is behind More, which is honest: it
+ * is the desk work. The drawer stays for More rather than being replaced,
+ * because it already holds the full navigation and duplicating that list here
+ * would mean two places to keep in step.
  *
- * The drawer stays for More rather than being replaced, because it already
- * holds the full navigation and duplicating that list here would mean two
- * places to keep in step.
+ * THE TABS ARE THE WORKSPACE'S OWN
+ *
+ * They are not a fixed list. A roofer's second tab is Jobs and a studio's is
+ * Clients, and both come from `modulesFor` and the workspace's vocabulary
+ * rather than from a switch on `kind` written here - which means a business
+ * with billing turned off gets three tabs and a gap where Money would have
+ * been, instead of a tab that leads to a screen it is not allowed to open.
  */
 
 import { usePathname, useRouter } from 'next/navigation';
+import { MODULE_HREF, modulesFor, type ModuleId } from '@/lib/spine/modules';
+import type { Org } from '@/lib/spine/types';
 import { C } from './ui';
 
 const ICON = {
   today: (
     <>
-      <path d="M2 6.6 8 2l6 4.6" />
-      <path d="M3.4 7.6V13a.8.8 0 0 0 .8.8h7.6a.8.8 0 0 0 .8-.8V7.6" />
+      <rect x="2.2" y="3" width="11.6" height="10.6" rx="1.4" />
+      <path d="M2.2 6.2h11.6" />
+      <path d="M5.4 1.8v2.4M10.6 1.8v2.4" />
     </>
   ),
   jobs: (
@@ -40,6 +47,12 @@ const ICON = {
     <>
       <path d="M2.2 11.4a5.8 5.8 0 0 1 11.6 0" />
       <path d="M6.2 6.1V3.4a.9.9 0 0 1 .9-.9h1.8a.9.9 0 0 1 .9.9v2.7" />
+    </>
+  ),
+  money: (
+    <>
+      <rect x="1.8" y="4" width="12.4" height="8" rx="1.4" />
+      <circle cx="8" cy="8" r="1.9" />
     </>
   ),
   more: (
@@ -69,23 +82,63 @@ function Glyph({ d }: { d: React.ReactNode }) {
   );
 }
 
+interface Tab {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+}
+
+/**
+ * Which three destinations sit either side of the capture button.
+ *
+ * Today is always there; it is this screen. The middle one is whatever this
+ * business spends its day inside - jobs for somebody who goes to sites,
+ * clients for a studio - and falls back to the other if the first is off.
+ * Money is billing. Any of them that the workspace does not have simply does
+ * not appear; the brief's four is the maximum, not a quota to fill.
+ */
+export function phoneTabs(
+  org: Org | null,
+  vocab: { jobPlural: string; customerPlural: string }
+): Tab[] {
+  const on = modulesFor(org);
+  const has = (id: ModuleId) => on.has(id);
+
+  const tabs: Tab[] = [{ label: 'Today', href: '/', icon: ICON.today }];
+
+  const work =
+    org?.kind === 'agency'
+      ? ([
+          ['customers', vocab.customerPlural, ICON.people],
+          ['jobs', vocab.jobPlural, ICON.jobs],
+        ] as const)
+      : ([
+          ['jobs', vocab.jobPlural, ICON.jobs],
+          ['customers', vocab.customerPlural, ICON.people],
+        ] as const);
+
+  const pick = work.find(([id]) => has(id as ModuleId));
+  if (pick) tabs.push({ label: pick[1], href: MODULE_HREF[pick[0] as ModuleId], icon: pick[2] });
+
+  if (has('billing')) tabs.push({ label: 'Money', href: MODULE_HREF.billing, icon: ICON.money });
+
+  return tabs;
+}
+
 export function BottomBar({
+  org,
   vocab,
   onMore,
   onAdd,
 }: {
+  org: Org | null;
   vocab: { jobPlural: string; customerPlural: string };
   onMore: () => void;
   onAdd: () => void;
 }) {
   const pathname = usePathname();
   const router = useRouter();
-
-  const items = [
-    { label: 'Home', href: '/', icon: ICON.today },
-    { label: vocab.jobPlural, href: '/jobs', icon: ICON.jobs },
-    { label: vocab.customerPlural, href: '/customers', icon: ICON.people },
-  ];
+  const tabs = phoneTabs(org, vocab);
 
   const active = (href: string) =>
     href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
@@ -99,8 +152,8 @@ export function BottomBar({
     gap: 3,
     background: 'transparent',
     border: 'none',
-    // 56px of height so the tap target clears the 44px minimum with room to
-    // spare, because this gets used with gloves on.
+    // 56px, so the tap target clears the 48px minimum with room to spare.
+    // This gets used with gloves on.
     minHeight: 56,
     padding: '6px 2px',
     fontSize: 11.5,
@@ -108,6 +161,26 @@ export function BottomBar({
     cursor: 'pointer',
     fontFamily: 'inherit',
   };
+
+  const tab = (t: Tab) => {
+    const on = active(t.href);
+    return (
+      <button
+        key={t.href}
+        onClick={() => router.push(t.href)}
+        aria-current={on ? 'page' : undefined}
+        style={{ ...cell, color: on ? C.text : C.faint, fontWeight: on ? 700 : 500 }}
+      >
+        <Glyph d={t.icon} />
+        {t.label}
+      </button>
+    );
+  };
+
+  /* Split around the capture button so it sits in the middle of the bar
+     rather than in the middle of the list, whatever the list turned out to
+     be. With three tabs it lands between the second and the third. */
+  const half = Math.ceil(tabs.length / 2);
 
   return (
     <nav
@@ -124,46 +197,45 @@ export function BottomBar({
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
-      {items.map((i) => {
-        const on = active(i.href);
-        return (
-          <button
-            key={i.href}
-            onClick={() => router.push(i.href)}
-            style={{ ...cell, color: on ? C.accent : C.faint }}
-          >
-            <Glyph d={i.icon} />
-            {i.label}
-          </button>
-        );
-      })}
+      {tabs.slice(0, half).map(tab)}
 
       {/*
-        Add sits in the middle-right rather than being buried, because putting
-        something in is the single most common thing anybody does on a phone
-        here, and it was previously three taps deep.
+        Putting something in is the single most common thing anybody does on a
+        phone here, so it is not a tab among tabs. It sits raised in the
+        middle of the bar, a thumb's width across, and it is the only filled
+        shape on the screen.
       */}
-      <button onClick={onAdd} style={{ ...cell, color: C.accent }}>
-        <span
+      <div style={{ width: 84, position: 'relative', flexShrink: 0 }}>
+        <button
+          onClick={onAdd}
+          aria-label="Capture"
           style={{
-            width: 26,
-            height: 26,
-            borderRadius: 13,
-            background: C.accent,
-            color: '#fff',
+            position: 'absolute',
+            left: '50%',
+            top: -20,
+            transform: 'translateX(-50%)',
+            width: 60,
+            height: 60,
+            borderRadius: 30,
+            background: C.text,
+            color: C.panel,
+            border: `4px solid ${C.panel}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 18,
+            fontSize: 30,
             lineHeight: 1,
-            fontWeight: 400,
+            fontWeight: 300,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            boxShadow: '0 4px 16px rgba(0,0,0,.18)',
           }}
-          aria-hidden
         >
           +
-        </span>
-        Add
-      </button>
+        </button>
+      </div>
+
+      {tabs.slice(half).map(tab)}
 
       <button onClick={onMore} style={{ ...cell, color: C.faint }}>
         <Glyph d={ICON.more} />

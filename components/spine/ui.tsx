@@ -479,12 +479,23 @@ export function Button({
   children,
   onClick,
   variant = 'primary',
+  size = 'default',
   disabled,
   type = 'button',
 }: {
   children: React.ReactNode;
   onClick?: () => void;
   variant?: 'primary' | 'ghost' | 'danger';
+  /**
+   * `thumb` is the phone size: full width, 56px tall, 17px text.
+   *
+   * A named size rather than a style prop. The moment this takes arbitrary
+   * CSS, every screen gets its own idea of how big a button is, and the thing
+   * the spine exists to prevent starts happening one call site at a time.
+   * There are two sizes in this product because there are two ways of
+   * pressing things.
+   */
+  size?: 'default' | 'thumb';
   disabled?: boolean;
   type?: 'button' | 'submit';
 }) {
@@ -527,10 +538,17 @@ export function Button({
          * beside 13.5px text everywhere and were quietly the heaviest thing on
          * most screens.
          */
-        padding: '6px 15px',
+        ...(size === 'thumb'
+          ? {
+              display: 'block',
+              width: '100%',
+              minHeight: 56,
+              padding: '0 20px',
+              fontSize: 17,
+              fontWeight: 600,
+            }
+          : { padding: '6px 15px', fontSize: 13.5, fontWeight: 500 }),
         borderRadius: 999,
-        fontSize: 13.5,
-        fontWeight: 500,
         lineHeight: 1.45,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.45 : 1,

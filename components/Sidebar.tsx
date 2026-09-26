@@ -24,6 +24,7 @@ import {
   readableOn,
 } from '@/lib/spine/workspace-color';
 import { modulesFor, navFor } from '@/lib/spine/modules';
+import { studioFor, type Studio } from '@/lib/spine/workin';
 import { C, radius } from '@/components/spine/ui';
 import { PRODUCT_MARK, PROVIDER } from '@/lib/brand';
 
@@ -463,6 +464,20 @@ export default function Sidebar() {
   const [closed, setClosed] = useState<Set<string>>(new Set());
   const [ready, setReady] = useState(false);
 
+  /* Who set this workspace up, for the attribution at the foot of it. */
+  const [studio, setStudio] = useState<Studio | null>(null);
+
+  useEffect(() => {
+    let off = false;
+    setStudio(null);
+    if (!org?.id) return;
+    (async () => {
+      const found = await studioFor(org.id);
+      if (!off) setStudio(found.studio);
+    })();
+    return () => { off = true; };
+  }, [org?.id]);
+
 
 
   /**
@@ -833,10 +848,21 @@ export default function Sidebar() {
         Still a link out, because the one person who clicks it is a client
         wondering who to call.
 
+        The name is the studio that actually set this workspace up, read the
+        same way the Get help button reads it. It was the PROVIDER constant,
+        which meant Harbor Light's sidebar said "Get help from Northwind
+        Studio" at the top and "Set up by CALO&CO" at the bottom: two
+        different studios on one screen, one of them wrong.
+
+        No line at all where nothing links to the workspace, which also
+        replaces the old `kind !== 'agency'` test - a studio's own workspace
+        has no customer record pointing at it, so it falls out for free rather
+        than needing to be excluded by hand.
+
         The comment sits above the conditional rather than inside it: an
         `{x && (...)}` takes exactly one child and a comment counts as one.
       */}
-      {org?.kind !== 'agency' && (
+      {studio && (
         <div style={{ padding: '4px 14px 8px' }}>
           <a
             href="https://calo.company"
@@ -844,7 +870,7 @@ export default function Sidebar() {
             rel="noopener noreferrer"
             style={{ fontSize: 11.5, color: C.faint, textDecoration: 'none' }}
           >
-            Set up by {PROVIDER}
+            Set up by {studio.name}
           </a>
         </div>
       )}
