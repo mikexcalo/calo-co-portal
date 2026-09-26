@@ -279,7 +279,7 @@ export default function TopBar() {
         {org && org.kind !== 'agency' && (
           <button
             onClick={() =>
-              setViewAs(viewAs ? null : { role: 'owner', label: 'somebody who owns it' })
+              setViewAs(viewAs ? null : { role: 'owner', label: 'somebody who owns it', orgId: org?.id })
             }
             title={
               viewAs

@@ -280,7 +280,18 @@ export function setWorkOrg(orgId: string | null): void {
  * and every actual edit still has to pass the guard afterwards with the mode
  * set to work. Refusing it only prevented the transition, never a change.
  */
-const WRITABLE_WHILE_VIEWING = new Set(['work_grants']);
+const WRITABLE_WHILE_VIEWING = new Set([
+  'work_grants',
+  /*
+    And the session row itself, or the guard could never be switched off.
+
+    work_sessions is how the SERVER knows the mode. Closing one is the act of
+    leaving View mode, and a browser guard that refused it would leave
+    somebody read-only in their own workspace with no way out. The database
+    exempts this table for the same reason.
+  */
+  'work_sessions',
+]);
 
 export const writableWhileViewing = (table: string): boolean =>
   WRITABLE_WHILE_VIEWING.has(table);

@@ -24,6 +24,16 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { guardApiWrites, setMode, setWorkOrg } from './readonly';
+import { closeSession, openSession } from './work-session';
+import { SAVE_FAILED } from './save';
+
+/** Say it on the same banner a failed save uses, rather than inventing one. */
+function announce(message: string) {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(
+    new CustomEvent(SAVE_FAILED, { detail: { message, what: null } })
+  );
+}
 import type { Grant } from './workin';
 
 const KEY = 'calo.viewas';
@@ -42,6 +52,14 @@ export interface ViewAs {
   role: string;
   /** Who you picked, for the banner. Not used for permissions. */
   label: string;
+  /**
+   * Which workspace is being looked at.
+   *
+   * Needed because the server-side session is per workspace: a row saying
+   * "viewing" has to say viewing what. The caller knows it; this provider
+   * sits above useOrg and does not.
+   */
+  orgId?: string;
 }
 
 interface Ctx {
@@ -137,6 +155,31 @@ export function ViewAsProvider({ children }: { children: React.ReactNode }) {
       restored from session storage on load.
     */
     setMode(v ? 'view' : null);
+    /*
+      And tell the server, which is the half that actually refuses anything.
+      Not awaited: the flag above has already armed the browser guard, and
+      the screen should not wait on a round trip to become read-only.
+    */
+    if (v?.orgId) {
+      void openSession(v.orgId, 'view').then((known) => {
+        /*
+          A View mode the server does not know about is not View mode.
+
+          The browser guard would still grey the buttons, and the database
+          would still take every write, which is the exact gap this replaced.
+          Better to refuse to enter it and say so than to stand behind a
+          padlock that is painted on.
+        */
+        if (!known) {
+          setMode(null);
+          window.sessionStorage.removeItem(KEY);
+          setState(null);
+          announce(
+            'Nothing changed. View mode could not be started, so it would not have been enforced. Try again.'
+          );
+        }
+      });
+    } else void closeSession();
     /* Looking and working cannot both be on. Entering one leaves the other. */
     if (v) setWorkState(null);
     setState(v);
@@ -153,6 +196,21 @@ export function ViewAsProvider({ children }: { children: React.ReactNode }) {
   const setWork = useCallback((g: Grant | null) => {
     setMode(g ? 'work' : null, g ? { canSend: g.canSend, grantId: g.id, actorId: g.grantedTo } : undefined);
     setWorkOrg(g ? g.orgId : null);
+    if (g) {
+      void openSession(g.orgId, 'work', g.id).then((known) => {
+        /* Same bargain as View mode, and it matters more here: an unrecorded
+           work session is one the database cannot hold to the grant. */
+        if (!known) {
+          setMode(null);
+          setWorkOrg(null);
+          window.sessionStorage.removeItem(WORK_KEY);
+          setWorkState(null);
+          announce(
+            'Nothing changed. The work session could not be started, so your changes would not have been recorded against it. Try again.'
+          );
+        }
+      });
+    } else void closeSession();
     if (g) {
       window.sessionStorage.setItem(WORK_KEY, g.id);
       /*

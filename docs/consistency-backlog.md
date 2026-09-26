@@ -161,6 +161,19 @@ thing it is about to remove and tells the truth about whether it can be
 undone. Buttons meet the 48px floor on a phone, which the confirmation itself
 was failing.
 
+## 11. The acceptance email goes to us, not to the business — S
+
+When a customer accepts a proposal, `app/api/estimates/decide/route.ts` sends
+the alert to `ALERT_EMAIL`, which is CALO&CO. The person who needs to know is
+the owner of the business whose customer just accepted: it is their proposal,
+their customer, and their deposit draft waiting to be reviewed.
+
+It should go to that owner. The studio is copied at most, and only where a
+studio is linked. Until this is fixed, a business whose customer accepts is
+told by a card on Home and by nothing else.
+
+---
+
 ## Smaller, not yet grouped
 
 - **Em dashes in the decide route.** `app/api/estimates/decide/route.ts` still has
@@ -181,6 +194,16 @@ was failing.
 
 ---
 
+## Done since this list was written
+
+- **Server-enforced View mode, work grants and send lock** (26 Sept 2026).
+  `work_sessions` records which mode somebody is in, and
+  `guard_session_writes()` on 37 tables plus `guard_sending()` on `estimates`
+  and `job_invoices` refuse the write in the database rather than in the
+  browser. Verified by writing directly to PostgREST in all four states.
+
+---
+
 ## Known gaps that are not backlog
 
 Written up as their own briefs in `docs/handoff.md`, not counted here because
@@ -188,7 +211,6 @@ nothing is broken — the features are absent on purpose:
 
 - Hold to talk on the capture sheet.
 - Saving on the phone and sending when signal returns.
-- A server-enforced send lock.
 - A general logo uploader.
 - A column saying which studio set a workspace up (`studio_for` reads it from
   `customers.linked_org_id` today, which works but is a join, not a fact).

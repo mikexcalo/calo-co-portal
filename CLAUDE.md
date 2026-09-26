@@ -85,6 +85,38 @@ failing.
   a plausible one.
 - **Rates are per-org.** One business having them unset says nothing about another.
 
+## View mode, Work in it and sending are database rules
+
+`lib/spine/readonly.ts` holds the mode in a module variable and greys the
+buttons. That is the browser telling itself a rule, and it is not the
+enforcement — the same user is an owner of the client workspace either way, so
+PostgREST took every write View mode was hiding.
+
+The fact now lives in a row. `work_sessions` says who is in which workspace in
+which mode, and under which grant. `guard_session_writes()` is on 37
+org-scoped tables and `guard_sending()` is on `estimates` and `job_invoices`:
+
+| Situation | What the database does |
+|---|---|
+| View mode | Refuses every write |
+| Work in it, no grant | Refuses every write |
+| Work in it, grant revoked or expired | Refuses every write, immediately |
+| Work in it, `can_send = false` | Takes the edit, refuses the send |
+| No session | Normal. RLS is the only rule |
+
+Two consequences for anything you write:
+
+- **`work_sessions` is exempt from the browser write guard**, in
+  `WRITABLE_WHILE_VIEWING`. Closing a session is the act of leaving the mode;
+  a guard that blocked it would strand somebody read-only with no way out.
+- **A mode that cannot be recorded is not entered.** `openSession` returns
+  false and `viewas.tsx` drops straight back out with a message, rather than
+  showing a padlock the database will ignore.
+
+The service role has no session and is exempt by design — `auth.uid()` is null
+and the trigger returns early. Anything running with the service key is
+already past every check in this product.
+
 ## Migrations
 
 `supabase/migrations/`, named `YYYYMMDD_lower_case_phrase.sql`.
