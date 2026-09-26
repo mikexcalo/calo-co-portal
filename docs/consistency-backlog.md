@@ -163,6 +163,11 @@ was failing.
 
 ## Smaller, not yet grouped
 
+- **Em dashes in the decide route.** `app/api/estimates/decide/route.ts` still has
+  six in strings a person reads, in the note written on a customer's record and
+  in the subject line of the acceptance email. The sweep in `f3b5c6d` took 181
+  of them out of everything else and missed this file. S
+
 - **Price list tiers** (Friends / Standard / Enterprise) are identical for every
   business and unused by the estimate picker. Probably deletion, not a fix. S
 - **Stage chips wrap badly** on a customer record: "Won" takes a full row. S

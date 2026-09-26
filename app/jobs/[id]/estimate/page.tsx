@@ -18,6 +18,7 @@ import { useOrg } from '@/lib/spine/org';
 import { planAllows } from '@/lib/spine/modules';
 import type { JobWithCustomer, LineKind } from '@/lib/spine/types';
 import {
+  useIsPhone,
   Select,
   Sheet,
   Button,
@@ -55,6 +56,7 @@ const blank = (kind: LineKind = 'labor'): DraftLine => ({
 export default function EstimatePage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const { vocab, org } = useOrg();
+  const phone = useIsPhone();
   const canOptional = planAllows(org, 'optional_lines');
   const [orgId, setOrgId] = useState<string | null>(null);
   const [job, setJob] = useState<JobWithCustomer | null>(null);
@@ -245,13 +247,27 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
         {lines.map((line, i) => (
           <div
             key={i}
+            /*
+              Six columns on a desk, three rows on a phone.
+
+              The desktop grid needs 408px before the description gets a
+              single pixel - 332px of fixed columns, five gaps and the card's
+              padding - so at 390px the page was 31px wider than the screen
+              and the description field had collapsed to nothing. Somebody
+              could not write a line item, never mind price one.
+
+              Stacked, each part gets the width it needs: what it is, then
+              what it costs, then what that comes to.
+            */
             style={{
               display: 'grid',
-              gridTemplateColumns: 'minmax(0,2fr) 70px 60px 90px 80px 32px',
-              gap: 8,
-              alignItems: 'end',
-              marginBottom: 10,
-              paddingBottom: 10,
+              gridTemplateColumns: phone
+                ? '1fr'
+                : 'minmax(0,2fr) 70px 60px 90px 88px 92px',
+              gap: phone ? 10 : 8,
+              alignItems: phone ? 'stretch' : 'end',
+              marginBottom: phone ? 16 : 10,
+              paddingBottom: phone ? 16 : 10,
               borderBottom: i < lines.length - 1 ? `1px solid ${C.border}` : 'none',
             }}
           >
@@ -268,6 +284,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
                     fontFamily: 'inherit',
                     padding: 0,
                     cursor: 'pointer',
+                    minHeight: phone ? 44 : undefined,
                   }}
                 >
                   <option value="labor">LABOR</option>
@@ -279,12 +296,20 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
                     property of the line, and a whole column for a checkbox
                     would push the grid past a phone's width. */}
                 {canOptional && (
-                <label style={{ marginLeft: 12, cursor: 'pointer', color: line.optional ? C.blue : C.faint }}>
+                /* The label is the tap target, so it carries the height. A
+                   12px tick with 4px of margin was a quarter of the floor. */
+                <label
+                  style={{
+                    marginLeft: 12, cursor: 'pointer', color: line.optional ? C.blue : C.faint,
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    minHeight: phone ? 44 : undefined,
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={line.optional}
                     onChange={(e) => update(i, { optional: e.target.checked })}
-                    style={{ width: 12, height: 12, marginRight: 4, accentColor: C.accent, cursor: 'pointer' }}
+                    style={{ width: phone ? 18 : 12, height: phone ? 18 : 12, accentColor: C.accent, cursor: 'pointer' }}
                   />
                   OPTIONAL
                 </label>
@@ -298,6 +323,9 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
               />
             </div>
 
+            {/* One row of three on a phone, so the numbers sit beside each
+                other the way they read on the finished document. */}
+            <div style={phone ? { display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr', gap: 8 } : undefined}>
             <div>
               <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 4 }}>QTY</div>
               <input
@@ -330,26 +358,35 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
               />
             </div>
 
-            <div style={{ fontSize: 14, paddingBottom: 9, textAlign: 'right' }}>
+            </div>
+
+            {/* The line's own total and the way to drop it, side by side at
+                the foot of the stack. On a desk they are the last two
+                columns and this reads as one row either way. */}
+            <div
+              style={
+                phone
+                  ? { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }
+                  : { display: 'contents' }
+              }
+            >
+            <div style={{ fontSize: phone ? 16 : 14, fontWeight: phone ? 600 : 400, paddingBottom: phone ? 0 : 9, textAlign: phone ? 'left' : 'right' }}>
               {money(lineTotal(line))}
             </div>
 
-            <button
-              onClick={() => setLines((p) => p.filter((_, idx) => idx !== i))}
-              disabled={lines.length === 1}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: C.faint,
-                cursor: lines.length === 1 ? 'default' : 'pointer',
-                fontSize: 17,
-                paddingBottom: 6,
-                opacity: lines.length === 1 ? 0.3 : 1,
-              }}
-              title="Remove line"
-            >
-              ×
-            </button>
+            {/* The word, not a glyph, at both widths. The rulebook's rule
+                about destructive controls does not stop being true because
+                the row is not saved yet. */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingBottom: phone ? 0 : 4 }}>
+              <Button
+                variant="danger"
+                disabled={lines.length === 1}
+                onClick={() => setLines((p) => p.filter((_, idx) => idx !== i))}
+              >
+                Remove
+              </Button>
+            </div>
+            </div>
           </div>
         ))}
 

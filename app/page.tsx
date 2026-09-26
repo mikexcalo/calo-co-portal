@@ -60,6 +60,7 @@ import {
 } from '@/components/spine/ui';
 import { human, READ_FAILED } from '@/lib/spine/errors';
 import { LaterThisWeek, NextJob, useToday } from '@/components/spine/Today';
+import { AcceptedToReview } from '@/components/spine/Accepted';
 
 interface Attention {
   key: string;
@@ -755,6 +756,16 @@ export default function Dashboard() {
       )}
 
       {phone && !emptyApp && <NextJob data={today} />}
+
+      {/*
+        Somebody said yes, above everything that still needs doing.
+
+        Not inside the deskOnly block and not inside the phone branch: this is
+        the one thing on Home that is equally urgent standing in a driveway
+        and sitting at a desk, and a deposit invoice nobody has sent is worth
+        the top of the screen at either width.
+      */}
+      <AcceptedToReview orgId={org?.id ?? null} word={vocab.estimate} />
 
       {emptyApp ? (
         /**

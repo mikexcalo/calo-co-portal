@@ -4934,3 +4934,22 @@ input[type="date"] { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .skel { animation: none; }
 }
+
+/*
+  Fields you can actually hit.
+
+  inputStyle is 9px of padding on 14px text, which lands at about 36px tall.
+  Fine under a mouse, under the 48px floor under a thumb, and the estimate
+  builder is a screen somebody genuinely fills in standing on a roof.
+
+  Checkboxes and radios are excluded: they set their own width and height,
+  and stretching one to 48px gives you a 48px tick in an 18px box. Their tap
+  target is the label around them, which is sized where it is written.
+*/
+@media (max-width: 720px) {
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    min-height: 48px;
+  }
+}

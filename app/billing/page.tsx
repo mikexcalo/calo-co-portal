@@ -44,6 +44,7 @@ import {
   inputStyle, INVOICE_TABS } from '@/components/spine/ui';
 import { METHODS } from '@/lib/spine/payments';
 import { human, READ_FAILED } from '@/lib/spine/errors';
+import { useSearchParams } from 'next/navigation';
 
 export default function BillingPage() {
   const router = useRouter();
@@ -54,6 +55,17 @@ export default function BillingPage() {
   const [invoices, setInvoices] = useState<JobInvoice[]>([]);
   const [jobs, setJobs] = useState<Record<string, JobWithCustomer>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
+
+  /*
+    Arriving with an invoice already named.
+
+    Home's acceptance card hands over a specific draft, and "Open the draft"
+    that drops somebody on a list of six is not opening the draft. The id is
+    on the URL, so the row expands and its lines load exactly as if it had
+    been tapped.
+  */
+  const params = useSearchParams();
+  const asked = params.get('invoice');
   const [lines, setLines] = useState<Record<string, JobInvoiceLine[]>>({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -69,6 +81,17 @@ export default function BillingPage() {
     setInvoices(inv);
     setJobs(Object.fromEntries(j.map((job) => [job.id, job])));
   }, []);
+
+  useEffect(() => {
+    if (!asked || loading) return;
+    setExpanded(asked);
+    if (!lines[asked]) {
+      void getInvoiceLines(asked).then(
+        (l) => setLines((prev) => ({ ...prev, [asked]: l })),
+        () => {}
+      );
+    }
+  }, [asked, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     (async () => {

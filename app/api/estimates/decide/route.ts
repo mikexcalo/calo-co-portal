@@ -133,6 +133,8 @@ export async function POST(req: NextRequest) {
       never un-accepts a proposal: the acceptance is already written, and an
       undrafted deposit is a thing somebody can fix in ten seconds.
     */
+    let depositDraft: { number: string; amount: number } | null = null;
+
     if (decision === 'accepted' && !estimate.deposit_invoice_id) {
       const kind = estimate.deposit_kind;
       const value = Number(estimate.deposit_value) || 0;
@@ -178,6 +180,17 @@ export async function POST(req: NextRequest) {
               position: 0,
             });
             await db.from('estimates').update({ deposit_invoice_id: invoiceId }).eq('id', estimate.id);
+            /* Named in the alert below, so the mail says what is waiting
+               rather than only that somebody said yes. */
+            const numbered = await db
+              .from('job_invoices')
+              .select('number')
+              .eq('id', invoiceId)
+              .maybeSingle();
+            depositDraft = {
+              number: (numbered.data as { number?: string } | null)?.number ?? '',
+              amount: due,
+            };
           }
         } catch {
           /* Deliberately silent to the customer. They accepted; that is
@@ -338,6 +351,7 @@ export async function POST(req: NextRequest) {
             html: `<div style="font-family:-apple-system,sans-serif;font-size:15px;line-height:1.6;">
 <p><strong>${job?.name ?? 'Job'}</strong> — ${decision}${body.name?.trim() ? ` by ${body.name.trim()}` : ''}.</p>
 ${decision === 'accepted' ? `<p>$${acceptedTotal.toFixed(2)}</p>` : ''}
+${depositDraft ? `<p><strong>Deposit invoice ${depositDraft.number} for $${depositDraft.amount.toFixed(2)} is drafted and waiting.</strong> It has not been sent. Review it in Invoices and send it when you are ready.</p>` : ''}
 ${body.reason?.trim() ? `<p style="color:#555;">${body.reason.trim().replace(/</g, '&lt;')}</p>` : ''}
 </div>`,
           }),
