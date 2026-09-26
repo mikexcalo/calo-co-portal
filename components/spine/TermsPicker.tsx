@@ -33,11 +33,48 @@ export interface TermsSet {
   sections: TermsSection[];
 }
 
-/** Blank headings and blank bodies are dropped, not stored. */
+/** Anything still carrying [bracketed] text a business was meant to replace. */
+export const hasPlaceholder = (s: TermsSection): boolean => /\[[^\]]+\]/.test(s.body);
+
+/**
+ * What actually goes on the proposal.
+ *
+ * Blank headings and blank bodies are dropped, and so is anything still
+ * carrying a [bracketed] placeholder. The rulebook says a customer must never
+ * see one, and a starter section exists precisely so somebody can fill it in
+ * - the failure mode is forgetting, at which point the brackets would be
+ * printed on a document somebody is asked to sign. The picker says so before
+ * it happens, loudly, next to the section it means.
+ */
 export const cleanTerms = (sections: TermsSection[]): TermsSection[] =>
   sections
     .map((s) => ({ heading: s.heading.trim(), body: s.body.trim() }))
-    .filter((s) => s.heading.length > 0 && s.body.length > 0);
+    .filter((s) => s.heading.length > 0 && s.body.length > 0 && !hasPlaceholder(s));
+
+/**
+ * Starters, which are not saved sets.
+ *
+ * A saved set is something a business wrote. A starter is a shape to write
+ * into, and it says so with brackets: nothing here is claimed to be true of
+ * anybody. Warranty is the first because the approved mock had a
+ * [WORKMANSHIP WARRANTY TERMS] placeholder in it, and the honest version of
+ * that is a prompt in the builder rather than a bracket on the document.
+ */
+export const STARTERS: Array<{ id: string; name: string; sections: TermsSection[] }> = [
+  {
+    id: 'starter:warranty',
+    name: 'Warranty',
+    sections: [
+      {
+        heading: 'What is guaranteed',
+        body:
+          '[How many years you stand behind your own work, and what you do if it fails.]\n\n' +
+          '[What the manufacturer covers separately, and who registers it.]\n\n' +
+          '[Anything the guarantee does not cover.]',
+      },
+    ],
+  },
+];
 
 export function TermsPicker({
   orgId,
@@ -78,6 +115,13 @@ export function TermsPicker({
   useEffect(() => { load(); }, [load]);
 
   const startFrom = (id: string) => {
+    const starter = STARTERS.find((x) => x.id === id);
+    if (starter) {
+      onChange(starter.sections.map((x) => ({ ...x })));
+      onSetId(null);
+      setNotice(`Started from the ${starter.name} shape. Replace everything in [brackets] before you send it.`);
+      return;
+    }
     const set = sets.find((s) => s.id === id);
     if (!set) return;
     /*
@@ -130,9 +174,11 @@ export function TermsPicker({
           <Select
             value=""
             onChange={startFrom}
-            placeholder={sets.length ? 'Start from…' : 'Nothing saved yet'}
-            disabled={!sets.length}
-            options={sets.map((s) => ({ value: s.id, label: s.name }))}
+            placeholder="Start from…"
+            options={[
+              ...sets.map((s) => ({ value: s.id, label: s.name })),
+              ...STARTERS.map((x) => ({ value: x.id, label: `${x.name} (starter)` })),
+            ]}
           />
         </div>
         <Button variant="ghost" onClick={() => onChange([...sections, { heading: '', body: '' }])}>
@@ -201,6 +247,21 @@ export function TermsPicker({
               />
             </div>
           ))}
+        </div>
+      )}
+
+      {sections.some(hasPlaceholder) && (
+        <div
+          style={{
+            display: 'flex', gap: 10, marginTop: 12,
+            background: C.amberSoft, borderRadius: radius.md, padding: '11px 13px',
+            fontSize: 13.5, color: C.amber, lineHeight: 1.55,
+          }}
+        >
+          <span>
+            Some of this still has [brackets] in it. Those sections will not go on the
+            proposal until you replace them. A customer must never be shown a placeholder.
+          </span>
         </div>
       )}
 

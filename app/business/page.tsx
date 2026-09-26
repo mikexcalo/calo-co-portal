@@ -16,6 +16,7 @@
 import { Workspaces } from '@/components/spine/Workspaces';
 import { useCallback, useEffect, useState } from 'react';
 import { updateOrg } from '@/lib/spine/db';
+import { depositOf, type DepositKind } from '@/lib/spine/deposit';
 import {
   METHODS,
   looksLikeAccountNumber,
@@ -31,6 +32,7 @@ import {
   Page,
   Pill,
   SectionLabel,
+  Select,
   inputStyle,
   SETUP_TABS,
 } from '@/components/spine/ui';
@@ -130,6 +132,23 @@ export default function BusinessPage() {
   const [savedTab, setSavedTab] = useState<Tab | null>(null);
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
 
+  /*
+    The business's own facts, which every document its customers open reads.
+
+    Phone and address were being captured at onboarding and then had no screen
+    to change them on, so a business that moved had no way to say so. The
+    licence number is new and optional: a roofer has one and a design studio
+    does not, and a blank one means the line is simply not drawn.
+  */
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [licenseNo, setLicenseNo] = useState('');
+
+  /* What this business usually asks for up front. The proposal gets a copy
+     and can differ; this is only the starting point. */
+  const [depositKind, setDepositKind] = useState<DepositKind>('none');
+  const [depositValue, setDepositValue] = useState('');
+
   /**
    * Saved methods show as a summary until you ask to change them. Leaving the
    * form permanently open made settled work look unsaved — every visit
@@ -163,6 +182,14 @@ export default function BusinessPage() {
     setSetAside(org.tax_set_aside_pct == null ? '' : String(org.tax_set_aside_pct));
     setReviewLink(org.review_link ?? '');
     setReviewDelay(String(org.review_delay_days ?? 1));
+    const st = (org.settings ?? {}) as Record<string, unknown>;
+    setPhone(typeof st.phone === 'string' ? st.phone : '');
+    setAddress(typeof st.address === 'string' ? st.address : '');
+    setLicenseNo(typeof st.license_no === 'string' ? st.license_no : '');
+    const dep = depositOf(st);
+    setDepositKind(dep.kind);
+    setDepositValue(dep.kind === 'none' ? '' : String(dep.value));
+
     const existing = (org.payment_methods ?? []) as PaymentMethod[];
     setMethods(
       METHODS.map((spec) => {
@@ -198,6 +225,25 @@ export default function BusinessPage() {
         review_link: reviewLink.trim() || null,
         review_delay_days: Math.max(0, Math.min(30, parseInt(reviewDelay, 10) || 1)),
         payment_methods: methods.filter((m) => m.enabled) as unknown as Record<string, unknown>[],
+        /*
+          Merged into whatever settings already holds rather than replacing
+          it: brand, workspace colour and the estimate word all live in the
+          same object, and writing a fresh one here would quietly delete a
+          client's brand kit.
+
+          An empty field clears the key rather than storing "", so "nobody has
+          said" and "somebody said nothing" stay the same thing.
+        */
+        settings: {
+          ...((org.settings ?? {}) as Record<string, unknown>),
+          ...(phone.trim() ? { phone: phone.trim() } : { phone: undefined }),
+          ...(address.trim() ? { address: address.trim() } : { address: undefined }),
+          ...(licenseNo.trim() ? { license_no: licenseNo.trim() } : { license_no: undefined }),
+          deposit:
+            depositKind === 'none' || !(parseFloat(depositValue) > 0)
+              ? undefined
+              : { kind: depositKind, value: parseFloat(depositValue) },
+        } as unknown as Record<string, unknown>,
       });
       await refresh();
       setSavedTab(which);
@@ -284,6 +330,83 @@ export default function BusinessPage() {
           <Card style={{ maxWidth: 560 }}>
             <Field label="Business name">
               <input value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} />
+            </Field>
+
+            {/*
+              Where they are, how to reach them and what licenses them.
+
+              These three are the only facts on this screen that a customer
+              ever reads: they sit in the header of every proposal and invoice
+              this business sends. Each one is optional and each one is left
+              off the document entirely when it is blank.
+            */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+              <Field label="Phone">
+                <input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  style={inputStyle}
+                  placeholder="(512) 555-0147"
+                />
+              </Field>
+              <Field label="Where you are">
+                <input
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  style={inputStyle}
+                  placeholder="Austin, TX"
+                />
+              </Field>
+            </div>
+
+            <Field label="Licence number (optional)">
+              <input
+                value={licenseNo}
+                onChange={(e) => setLicenseNo(e.target.value)}
+                style={inputStyle}
+                placeholder="Leave blank if your trade does not have one"
+              />
+            </Field>
+
+            {/*
+              What you usually ask for up front.
+
+              A default, not a rule: every proposal takes a copy of this and
+              can be changed before it goes out. None is the default because
+              most work does not take a deposit, and a number here that nobody
+              chose would end up on somebody's quote.
+            */}
+            <Field label="Deposit you usually ask for">
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ minWidth: 150 }}>
+                  <Select
+                    value={depositKind}
+                    onChange={(v) => {
+                      setDepositKind(v as DepositKind);
+                      if (v === 'none') setDepositValue('');
+                    }}
+                    options={[
+                      { value: 'none', label: 'None' },
+                      { value: 'percent', label: 'A percentage' },
+                      { value: 'fixed', label: 'A fixed amount' },
+                    ]}
+                  />
+                </div>
+                {depositKind !== 'none' && (
+                  <input
+                    value={depositValue}
+                    onChange={(e) => setDepositValue(e.target.value)}
+                    inputMode="decimal"
+                    style={{ ...inputStyle, width: 120 }}
+                    placeholder={depositKind === 'percent' ? '30' : '2500'}
+                  />
+                )}
+                {depositKind !== 'none' && (
+                  <span style={{ fontSize: 14, color: C.faint }}>
+                    {depositKind === 'percent' ? '% of the total' : 'dollars'}
+                  </span>
+                )}
+              </div>
             </Field>
 
             <Field label="How you charge">

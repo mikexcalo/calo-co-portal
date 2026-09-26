@@ -372,6 +372,10 @@ export async function createEstimate(
     sections?: Array<{ heading: string; body: string }>;
     /** Which set it started from. Provenance; never read to render. */
     setId?: string | null;
+    /* What this proposal asks for up front. Copied from the workspace
+       default when the builder opened, and the proposal's own from then on. */
+    depositKind?: 'none' | 'percent' | 'fixed';
+    depositValue?: number;
   }
 ): Promise<Estimate> {
   const existing = await listEstimates(jobId);
@@ -391,6 +395,11 @@ export async function createEstimate(
         scope_out: terms?.scopeOut ?? [],
         terms: terms?.sections ?? [],
         terms_set_id: terms?.setId ?? null,
+        deposit_kind: terms?.depositKind ?? 'none',
+        /* Zero whenever there is no deposit, so the check constraint that
+           says "none means nothing owed" cannot be violated by a stale
+           number left in a field somebody then switched off. */
+        deposit_value: terms?.depositKind && terms.depositKind !== 'none' ? terms.depositValue ?? 0 : 0,
       })
       .select()
       .single()

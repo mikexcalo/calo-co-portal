@@ -119,8 +119,18 @@ export function DocShell({
             >
               {face.name}
             </div>
-            {face.address && (
-              <div style={{ fontSize: 13, color: C.faint, marginTop: 1 }}>{face.address}</div>
+            {/*
+              Where they are and what licenses them, on one line under the
+              name, in the order the mock puts them. Either can be missing and
+              the separator goes with it - a header reading "Austin, TX ·"
+              with nothing after the dot is worse than a header with no dot.
+            */}
+            {(face.address || face.license) && (
+              <div style={{ fontSize: 13, color: C.faint, marginTop: 1 }}>
+                {[face.address, face.license && `Licensed · ${face.license}`]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </div>
             )}
           </div>
 

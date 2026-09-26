@@ -36,6 +36,7 @@ export function AddOns({
   accentInk,
   business,
   owner,
+  depositDue = 0,
   options,
   baseTotal,
   decided,
@@ -45,6 +46,8 @@ export function AddOns({
   accentInk?: string;
   business?: string | null;
   owner?: DocOwnerTile | null;
+  /** What is due on acceptance. 0 when this proposal asks for none. */
+  depositDue?: number;
   options: Line[];
   baseTotal: number;
   decided: boolean;
@@ -123,6 +126,7 @@ export function AddOns({
             accentInk={accentInk}
             business={business}
             owner={owner}
+            depositDue={depositDue}
             selected={Array.from(picked)}
           />
         </div>

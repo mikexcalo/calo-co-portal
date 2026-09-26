@@ -20,6 +20,7 @@ import { AskAbout } from './AskAbout';
 import { clientFace, initialsOf } from '@/lib/spine/client-face';
 import { ownerOf } from '@/lib/spine/doc-owner';
 import { C, radius } from '@/lib/spine/tokens';
+import { depositAmount, type Deposit } from '@/lib/spine/deposit';
 import { DocShell, Sent } from '@/components/public/DocShell';
 
 export const dynamic = 'force-dynamic';
@@ -263,6 +264,22 @@ export default async function PublicEstimate({
   const vocabWord = (org as { kind?: string } | null)?.kind === 'agency' ? 'Proposal' : 'Estimate';
 
   const decided = ['accepted', 'declined'].includes(estimate.status);
+
+  /*
+    What is due on yes, from this proposal rather than from the workspace.
+
+    The estimate carries its own kind and value, copied from the business
+    default when it was built. Zero means none, and none means this page is
+    exactly what it was before deposits existed - no line, no changed button,
+    nothing.
+  */
+  const deposit: Deposit = {
+    kind: estimate.deposit_kind === 'percent' || estimate.deposit_kind === 'fixed'
+      ? estimate.deposit_kind
+      : 'none',
+    value: Number(estimate.deposit_value) || 0,
+  };
+  const depositDue = depositAmount(deposit, Number(estimate.total) || subtotal);
 
   return (
     /*
@@ -575,6 +592,18 @@ export default async function PublicEstimate({
                     <div style={{ fontSize: 26, fontWeight: 600, color: '#111', marginTop: 3 }}>
                       {money(isRate ? monthly : Number(estimate.total) || subtotal)}
                     </div>
+                    {/*
+                      What is due on yes, under the total it comes out of.
+
+                      Only when this proposal asks for one. A page with no
+                      deposit is the page it was before the feature existed,
+                      which is most of them.
+                    */}
+                    {!decided && depositDue > 0 && (
+                      <div style={{ fontSize: 13.5, color: C.faint, marginTop: 5 }}>
+                        {money(depositDue)} deposit when you accept
+                      </div>
+                    )}
                   </div>
                   {rated.map((l) => (
                     <div key={l.id} style={{ textAlign: 'right' }}>
@@ -695,6 +724,7 @@ export default async function PublicEstimate({
           accentInk={face.accentInk}
           business={face.name || null}
           owner={owner ? { ...owner, initials: initialsOf(owner.fullName) } : null}
+          depositDue={depositDue}
           decided={decided}
           baseTotal={Number(estimate.base_total ?? subtotal)}
           options={options.map((l) => ({ id: l.id, description: l.description, total: Number(l.total) }))}

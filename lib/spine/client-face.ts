@@ -29,6 +29,14 @@ export interface ClientFace {
   phone: string | null;
   address: string | null;
   email: string | null;
+  /**
+   * A contractor's licence number, where they have one.
+   *
+   * Optional and frequently absent, and the approved mock carries
+   * "[LICENSE NO.]" in the header - which is exactly what must never reach a
+   * customer. Empty means the line is not drawn at all.
+   */
+  license: string | null;
 }
 
 /** The shape the two pages select out of `orgs`. */
@@ -123,6 +131,7 @@ export function clientFace(org: OrgRow | null): ClientFace {
     phone: trimmed(settings.phone),
     address: trimmed(settings.address),
     email: trimmed(settings.email),
+    license: trimmed(settings.license_no),
   };
 }
 

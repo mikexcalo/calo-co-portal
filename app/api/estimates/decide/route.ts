@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
   try {
     const { data: estimate, error } = await db
       .from('estimates')
-      .select('id, status, org_id, job_id, total, base_total, public_token, job:jobs(name, customer_id)')
+      .select('id, status, org_id, job_id, total, base_total, public_token, deposit_kind, deposit_value, deposit_invoice_id, job:jobs(name, customer_id)')
       .eq('public_token', token)
       .maybeSingle();
 
@@ -119,6 +119,72 @@ export async function POST(req: NextRequest) {
       .eq('id', estimate.job_id);
 
     const job = one<{ name: string; customer_id: string | null }>(estimate.job);
+
+    /*
+      A deposit becomes a DRAFT invoice, never a sent one.
+
+      Accepting is the customer's act. Asking them for money is the business's,
+      and it happens on a document somebody has read first - so this drafts it
+      and stops. The business finds it in Invoices with everything else waiting
+      to go out.
+
+      Guarded by deposit_invoice_id, so a second accept, or a retry after a
+      timeout, cannot draft the same money twice. Wrapped so a failure here
+      never un-accepts a proposal: the acceptance is already written, and an
+      undrafted deposit is a thing somebody can fix in ten seconds.
+    */
+    if (decision === 'accepted' && !estimate.deposit_invoice_id) {
+      const kind = estimate.deposit_kind;
+      const value = Number(estimate.deposit_value) || 0;
+      const contract = acceptedTotal || Number(estimate.total) || 0;
+      const raw = kind === 'percent' ? contract * (value / 100) : kind === 'fixed' ? value : 0;
+      const due = Math.min(Math.round(raw * 100) / 100, Math.round(contract * 100) / 100);
+
+      if (due > 0) {
+        try {
+          const dueOn = new Date();
+          dueOn.setDate(dueOn.getDate() + 7);
+
+          const draft = await db
+            .from('job_invoices')
+            .insert({
+              org_id: estimate.org_id,
+              job_id: estimate.job_id,
+              status: 'draft',
+              issued_on: now.slice(0, 10),
+              due_on: dueOn.toISOString().slice(0, 10),
+              subtotal: due,
+              tax_rate: 0,
+              tax_amount: 0,
+              total: due,
+              notes: `Deposit on acceptance. A draft, not sent. The balance is invoiced from the work as it happens.`,
+            })
+            .select('id')
+            .maybeSingle();
+
+          const invoiceId = (draft.data as { id?: string } | null)?.id;
+          if (invoiceId) {
+            await db.from('job_invoice_lines').insert({
+              invoice_id: invoiceId,
+              kind: 'other',
+              description:
+                kind === 'percent'
+                  ? `Deposit, ${value}% of ${job?.name ?? 'the work'}`
+                  : `Deposit on ${job?.name ?? 'the work'}`,
+              qty: 1,
+              unit: null,
+              unit_price: due,
+              total: due,
+              position: 0,
+            });
+            await db.from('estimates').update({ deposit_invoice_id: invoiceId }).eq('id', estimate.id);
+          }
+        } catch {
+          /* Deliberately silent to the customer. They accepted; that is
+             recorded. The business is told below either way. */
+        }
+      }
+    }
 
     /* The name they typed, first name only, because that is how people talk. */
     const whoSaid = body.name?.trim() || '';

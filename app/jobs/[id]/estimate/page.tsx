@@ -12,11 +12,13 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createEstimate, getCurrentOrg, getJob, orgNow} from '@/lib/spine/db';
 import { cleanTerms, TermsPicker, type TermsSection } from '@/components/spine/TermsPicker';
+import { depositAmount, depositOf, type DepositKind } from '@/lib/spine/deposit';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { planAllows } from '@/lib/spine/modules';
 import type { JobWithCustomer, LineKind } from '@/lib/spine/types';
 import {
+  Select,
   Sheet,
   Button,
   C,
@@ -63,6 +65,22 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
   /* Empty, and it stays empty unless somebody chooses. See TermsPicker. */
   const [termsSections, setTermsSections] = useState<TermsSection[]>([]);
   const [termsSetId, setTermsSetId] = useState<string | null>(null);
+
+  /*
+    Starts from what this business usually asks for, and is this proposal's
+    from then on. Hydrated once the org loads rather than defaulted here, so
+    a workspace that asks for 30% does not have to be told again every time.
+  */
+  const [depositKind, setDepositKind] = useState<DepositKind>('none');
+  const [depositValue, setDepositValue] = useState('');
+  const [depositTouched, setDepositTouched] = useState(false);
+
+  useEffect(() => {
+    if (depositTouched || !org) return;
+    const d = depositOf(org.settings);
+    setDepositKind(d.kind);
+    setDepositValue(d.kind === 'none' ? '' : String(d.value));
+  }, [org, depositTouched]);
   const [scopeOut, setScopeOut] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -173,6 +191,8 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
           scopeOut: scopeOut.split('\n').map((x) => x.trim()).filter(Boolean),
           sections: cleanTerms(termsSections),
           setId: termsSetId,
+          depositKind,
+          depositValue: parseFloat(depositValue) || 0,
         }
       );
 
@@ -421,6 +441,54 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
             style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }}
             placeholder="Excludes permit fees. Tile allowance $8/sq ft."
           />
+        </Field>
+      </div>
+
+      {/*
+        What is due on yes, for this proposal.
+
+        Pre-filled from the workspace default and freely changed here. The
+        preview underneath is the number the customer will actually see, which
+        is the only way to tell that 30% of this particular job is $7,404
+        before somebody sends it.
+      */}
+      <div style={{ marginTop: 26, maxWidth: 620 }}>
+        <Field label="Deposit on acceptance">
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ minWidth: 150 }}>
+              <Select
+                value={depositKind}
+                onChange={(v) => {
+                  setDepositTouched(true);
+                  setDepositKind(v as DepositKind);
+                  if (v === 'none') setDepositValue('');
+                }}
+                options={[
+                  { value: 'none', label: 'None' },
+                  { value: 'percent', label: 'A percentage' },
+                  { value: 'fixed', label: 'A fixed amount' },
+                ]}
+              />
+            </div>
+            {depositKind !== 'none' && (
+              <input
+                value={depositValue}
+                onChange={(e) => { setDepositTouched(true); setDepositValue(e.target.value); }}
+                inputMode="decimal"
+                style={{ ...inputStyle, width: 120 }}
+                placeholder={depositKind === 'percent' ? '30' : '2500'}
+              />
+            )}
+            {depositKind !== 'none' && parseFloat(depositValue) > 0 && (
+              <span style={{ fontSize: 14, color: C.faint }}>
+                {depositKind === 'percent' ? '% of the total, ' : 'dollars, '}
+                {money(depositAmount(
+                  { kind: depositKind, value: parseFloat(depositValue) || 0 },
+                  total
+                ))} on this one
+              </span>
+            )}
+          </div>
         </Field>
       </div>
 

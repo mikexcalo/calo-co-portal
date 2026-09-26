@@ -12,6 +12,9 @@
 import { useState } from 'react';
 import { human } from '@/lib/spine/errors';
 
+const money = (n: number) =>
+  `$${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 /**
  * Who is accountable for this.
  *
@@ -63,6 +66,7 @@ export function DecisionButtons({
   accentInk = '#FFFFFF',
   business,
   owner,
+  depositDue = 0,
   selected = [],
 }: {
   token: string;
@@ -73,6 +77,8 @@ export function DecisionButtons({
   business?: string | null;
   /** Who is accountable for this, shown by name under the action. */
   owner?: { fullName: string; firstName: string; initials: string } | null;
+  /** What is due on acceptance. 0 when none, and then the button is unchanged. */
+  depositDue?: number;
   /**
    * Optional lines the customer ticked. Sent with the acceptance rather than
    * saved as they click, so a half-considered selection on a page somebody
@@ -175,7 +181,19 @@ export function DecisionButtons({
               opacity: busy || !ready ? 0.5 : 1, fontFamily: 'inherit',
             }}
           >
-            {busy ? 'One moment…' : 'Accept'}
+            {/*
+              The button says what pressing it commits to.
+
+              "Accept" next to a $7,404 deposit somewhere else on the page is
+              how somebody agrees to a payment they did not register. Where
+              there is no deposit the word is unchanged, which is most
+              proposals.
+            */}
+            {busy
+              ? 'One moment…'
+              : depositDue > 0
+                ? `Accept, deposit due ${money(depositDue)}`
+                : 'Accept'}
           </button>
           <button
             onClick={() => setMode('declining')}
