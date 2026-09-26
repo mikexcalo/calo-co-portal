@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
   try {
     const { data: est, error } = await db
       .from('estimates')
-      .select('id, public_token, total, org_id, job:jobs(name, customer_id, customer:customers(name, contact_name, email, linked_org_id))')
+      .select('id, public_token, total, org_id, terms, terms_set_id, job:jobs(name, customer_id, customer:customers(name, contact_name, email, linked_org_id))')
       .eq('id', estimateId)
       .maybeSingle();
 
@@ -121,9 +121,38 @@ export async function POST(req: NextRequest) {
 
     const { data: org } = await db.from('orgs').select('name').eq('id', est.org_id).maybeSingle();
 
+    /*
+      Freeze the terms at the moment of sending.
+
+      estimates.terms is a copy, not a reference. The set it came from can be
+      edited or archived tomorrow, and what this customer is being asked to
+      agree to has to stay readable exactly as they read it.
+
+      Resending reuses the token on purpose, so it must not re-freeze: the
+      link may already be open in somebody's browser, and quietly changing the
+      terms under a proposal somebody is reading is the whole failure this
+      column exists to prevent. Only a proposal with no frozen terms yet takes
+      a copy.
+    */
+    let frozen: unknown = null;
+    if (est.terms_set_id && (!Array.isArray(est.terms) || est.terms.length === 0)) {
+      const { data: set } = await db
+        .from('proposal_terms')
+        .select('sections')
+        .eq('id', est.terms_set_id)
+        .maybeSingle();
+      if (set?.sections) frozen = set.sections;
+    }
+
     const upd = await db
       .from('estimates')
-      .update({ public_token: token, status: 'sent', sent_at: new Date().toISOString(), sent_to: to })
+      .update({
+        public_token: token,
+        status: 'sent',
+        sent_at: new Date().toISOString(),
+        sent_to: to,
+        ...(frozen ? { terms: frozen } : {}),
+      })
       .eq('id', est.id);
     if (upd.error) throw new Error(upd.error.message);
 

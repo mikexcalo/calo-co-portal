@@ -359,7 +359,20 @@ export async function createEstimate(
    * should read. Optional so existing callers are unaffected, but this is the
    * part that settles the week six argument, not the number.
    */
-  terms?: { notes?: string; scopeIn?: string[]; scopeOut?: string[] }
+  terms?: {
+    notes?: string;
+    scopeIn?: string[];
+    scopeOut?: string[];
+    /*
+      The terms for THIS proposal, already copied out of whatever set they
+      came from. Written straight onto the estimate rather than referenced,
+      because the set can be edited tomorrow and this is what the customer
+      will be asked to agree to.
+    */
+    sections?: Array<{ heading: string; body: string }>;
+    /** Which set it started from. Provenance; never read to render. */
+    setId?: string | null;
+  }
 ): Promise<Estimate> {
   const existing = await listEstimates(jobId);
   const version = existing.length ? Math.max(...existing.map((e) => e.version)) + 1 : 1;
@@ -376,6 +389,8 @@ export async function createEstimate(
         notes: terms?.notes?.trim() || null,
         scope_in: terms?.scopeIn ?? [],
         scope_out: terms?.scopeOut ?? [],
+        terms: terms?.sections ?? [],
+        terms_set_id: terms?.setId ?? null,
       })
       .select()
       .single()

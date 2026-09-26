@@ -11,6 +11,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createEstimate, getCurrentOrg, getJob, orgNow} from '@/lib/spine/db';
+import { cleanTerms, TermsPicker, type TermsSection } from '@/components/spine/TermsPicker';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { planAllows } from '@/lib/spine/modules';
@@ -59,6 +60,9 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
   const [picking, setPicking] = useState(false);
   const [notes, setNotes] = useState('');
   const [scopeIn, setScopeIn] = useState('');
+  /* Empty, and it stays empty unless somebody chooses. See TermsPicker. */
+  const [termsSections, setTermsSections] = useState<TermsSection[]>([]);
+  const [termsSetId, setTermsSetId] = useState<string | null>(null);
   const [scopeOut, setScopeOut] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -167,6 +171,8 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
           // document a client is about to accept reads as carelessness.
           scopeIn: scopeIn.split('\n').map((x) => x.trim()).filter(Boolean),
           scopeOut: scopeOut.split('\n').map((x) => x.trim()).filter(Boolean),
+          sections: cleanTerms(termsSections),
+          setId: termsSetId,
         }
       );
 
@@ -418,7 +424,15 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
         </Field>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+      <TermsPicker
+        orgId={orgId}
+        sections={termsSections}
+        onChange={setTermsSections}
+        setId={termsSetId}
+        onSetId={setTermsSetId}
+      />
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 22 }}>
         <Button onClick={save} disabled={busy || !valid}>
           {busy ? 'Saving…' : `Save ${vocab.estimate.toLowerCase()}`}
         </Button>

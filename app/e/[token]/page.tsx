@@ -231,6 +231,24 @@ export default async function PublicEstimate({
     Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && x.trim().length > 0) : [];
   const scopeIn = asList(estimate.scope_in);
   const scopeOut = asList(estimate.scope_out);
+
+  /*
+    The terms as they stood when this was sent, not as they stand now.
+
+    A frozen copy on the estimate rather than a lookup into proposal_terms:
+    the set it came from may have been edited or archived since, and this is
+    what somebody agreed to. Defensive about the shape for the same reason
+    scope_in is - it is jsonb on a public page, and a bad value must render as
+    nothing rather than throw a 500 at a client trying to accept.
+  */
+  const frozenTerms: Array<{ q: string; a: string }> = Array.isArray(estimate.terms)
+    ? (estimate.terms as Array<Record<string, unknown>>)
+        .map((t) => ({
+          q: typeof t?.heading === 'string' ? t.heading.trim() : '',
+          a: typeof t?.body === 'string' ? t.body.trim() : '',
+        }))
+        .filter((t) => t.q.length > 0 && t.a.length > 0)
+    : [];
   /*
     What this business calls the document, used everywhere on it.
 
@@ -632,6 +650,11 @@ export default async function PublicEstimate({
                     a: scopeOut.join('\n\n') + "\n\nWant any of it? We'll quote it separately.",
                   }]
                 : []),
+              /* Last, and only when this proposal actually carries some.
+                 Nothing renders otherwise - no fallback, because a fallback
+                 is how three sentences about one arrangement came to be
+                 printed under everybody's. */
+              ...frozenTerms,
             ]}
           />
 

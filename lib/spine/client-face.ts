@@ -52,7 +52,20 @@ const trimmed = (v: unknown): string | null => {
  * as a broken image.
  */
 export function initialsOf(name: string): string {
-  const words = name.trim().split(/\s+/).filter(Boolean);
+  /*
+    Letters and digits only.
+
+    Splitting on whitespace alone turned "Demo (UX audit)" into "D(" on the
+    foot of a proposal: the second word started with a bracket, and a bracket
+    is not an initial. Punctuation is stripped before anything is counted, and
+    a name that is entirely punctuation falls through to the question mark
+    rather than rendering an empty square.
+  */
+  const words = name
+    .trim()
+    .split(/\s+/)
+    .map((w) => w.replace(/[^\p{L}\p{N}]/gu, ''))
+    .filter(Boolean);
   if (!words.length) return '?';
   if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
   return (words[0][0] + words[1][0]).toUpperCase();
