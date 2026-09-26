@@ -26,7 +26,7 @@ export function SaveFailed() {
              place to be vague. */
           setMsg(
             d?.message
-              ? d.what ? `${d.what} — ${d.message}` : d.message
+              ? d.what ? `${d.what}: ${d.message}` : d.message
               : 'Nothing was saved, and we could not tell why. Try again, and use Tell Us if it keeps happening.'
           );
       clearTimeout(timer);

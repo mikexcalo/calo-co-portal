@@ -201,6 +201,13 @@ told by a card on Home and by nothing else.
   `guard_session_writes()` on 37 tables plus `guard_sending()` on `estimates`
   and `job_invoices` refuse the write in the database rather than in the
   browser. Verified by writing directly to PostgREST in all four states.
+- **A studio is a guest until it is asked** (26 Sept 2026). `memberships.origin`
+  records whether somebody is the business's own team or the studio that set
+  the workspace up, so the guards no longer depend on anybody declaring a
+  mode. `work_grants.standing` is a grant with no end, shown to the client on
+  the Security page with a Revoke beside it - the first thing ever to call
+  `revokeGrant`, which had shipped with no caller. Demo only so far; real
+  workspaces are gated on `studio_rule_applies()`.
 
 ---
 
@@ -212,5 +219,3 @@ nothing is broken — the features are absent on purpose:
 - Hold to talk on the capture sheet.
 - Saving on the phone and sending when signal returns.
 - A general logo uploader.
-- A column saying which studio set a workspace up (`studio_for` reads it from
-  `customers.linked_org_id` today, which works but is a join, not a fact).

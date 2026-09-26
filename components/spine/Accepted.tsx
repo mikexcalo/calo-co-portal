@@ -107,13 +107,22 @@ export function AcceptedToReview({ orgId, word }: { orgId: string | null; word: 
 
   const dismiss = async (id: string) => {
     setBusy(id);
-    /* Off the screen straight away. The write is watched, so a refusal says
-       so, and the row comes back on the next load if it did not land. */
+    /*
+      Off the screen straight away, and back on if the write was refused.
+
+      The comment here used to say the row "comes back on the next load",
+      which was true and useless: there is no next load until somebody
+      reloads the page. So a refused dismiss left the card gone and the banner
+      saying nothing was saved - the screen and the message disagreeing about
+      what had just happened, which is the one thing an optimistic update must
+      never do.
+    */
     setRows((p) => p.filter((r) => r.id !== id));
-    await saveOrFail(
+    const res = await saveOrFail(
       supabase.from('estimates').update({ acceptance_dismissed_at: new Date().toISOString() }).eq('id', id),
       'Clearing that'
     );
+    if (res?.error) await load();
     setBusy(null);
   };
 

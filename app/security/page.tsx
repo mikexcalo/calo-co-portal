@@ -33,6 +33,8 @@ import {
   inputStyle,
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
+import { WhoCanWorkInThis } from '@/components/spine/WhoCanWorkInThis';
+import { useOrg } from '@/lib/spine/org';
 import { PRODUCT } from '@/lib/brand';
 import {
   confirmEnrolment,
@@ -128,6 +130,7 @@ const DATA_FACTS = [
 ];
 
 export default function SecurityPage() {
+  const { org } = useOrg();
   const [enabled, setEnabled] = useState(false);
   const [remaining, setRemaining] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -542,6 +545,8 @@ export default function SecurityPage() {
               </Card>
             </div>
           )}
+
+          <WhoCanWorkInThis orgId={org?.id ?? null} />
 
           <div style={{ marginTop: 26 }}>
             <SectionLabel>How your data is held</SectionLabel>

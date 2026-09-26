@@ -102,7 +102,8 @@ org-scoped tables and `guard_sending()` is on `estimates` and `job_invoices`:
 | Work in it, no grant | Refuses every write |
 | Work in it, grant revoked or expired | Refuses every write, immediately |
 | Work in it, `can_send = false` | Takes the edit, refuses the send |
-| No session | Normal. RLS is the only rule |
+| No session, and you are the client's own team | Normal. RLS is the only rule |
+| No session, and you are their studio | Refuses every write unless a grant is live |
 
 Two consequences for anything you write:
 
@@ -112,6 +113,25 @@ Two consequences for anything you write:
 - **A mode that cannot be recorded is not entered.** `openSession` returns
   false and `viewas.tsx` drops straight back out with a message, rather than
   showing a padlock the database will ignore.
+
+**A membership says which side of the table you are on.** `memberships.origin`
+is `own` or `studio`, stamped on insert by `membership_origin()`, which reads
+the same `customers.linked_org_id` link `studio_for()` uses. Without it the
+guards only bound people who declared a mode, and declaring nothing was the
+one route past every check. The studio's own workspace is unaffected: nothing
+links to it, so everybody in it is `own`.
+
+Not yet on for real workspaces. `studio_rule_applies()` gates it on the demo
+flag, because switching it on for a workspace with no standing grant locks the
+studio out of work it does every day. Replacing that function's body with
+`true` is the whole switch.
+
+**A standing grant has no end.** `work_grants.standing` survives handing back
+— `handBack` skips it and `keep_standing_grants_open()` holds the line if
+anything else tries. Only the client revoking it closes it, from
+`WhoCanWorkInThis` on the Security page. That is not a lock-out: a revoked
+studio can still start its own session, which is the loud kind the client is
+told about every time.
 
 The service role has no session and is exempt by design — `auth.uid()` is null
 and the trigger returns early. Anything running with the service key is

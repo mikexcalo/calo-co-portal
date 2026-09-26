@@ -151,14 +151,19 @@ export function human(raw: unknown, fallback = WRITE_FAILED): string {
     Messages that are already a person's sentence, passed through word for
     word.
 
-    Everything else in this function translates a database message. These two
-    were written for a reader and already answer the three questions, and
-    running them through the fallback turned "nothing was saved, and here is
-    how to save it" into "we could not tell why" - which is wrong, because we
-    could.
+    Everything else in this function translates a database message. These were
+    written for a reader and already answer the three questions, and running
+    them through the fallback turned "nothing was saved, and here is how to
+    save it" into "we could not tell why" - which is wrong, because we could.
+
+    Matched on the opening rather than listed one by one. The list version was
+    written when View mode raised the only such sentence, and the next guard
+    to raise one - a studio with no grant - fell straight through it to "we
+    could not tell why", which is the exact failure the rule exists to stop.
+    Every sentence the guards raise opens this way on purpose, and Postgres
+    never writes either phrase itself.
   */
-  if (/^Nothing was saved\. View mode/.test(msg)) return msg;
-  if (/^Nothing was sent\./.test(msg)) return msg;
+  if (/^Nothing was (saved|sent)\./.test(msg)) return msg;
 
   /* A named constraint beats every guess below it. */
   for (const [name, sentence] of BY_CONSTRAINT) {

@@ -35,6 +35,8 @@ export interface Grant {
   canEdit: boolean;
   canSend: boolean;
   grantedAt: string;
+  /** No end to it. Handing back leaves it open; only the client closes it. */
+  standing: boolean;
 }
 
 export interface HelpRequest {
@@ -54,6 +56,7 @@ const row = (r: Record<string, unknown>): Grant => ({
   canEdit: Boolean(r.can_edit),
   canSend: Boolean(r.can_send),
   grantedAt: String(r.granted_at),
+  standing: Boolean(r.standing),
 });
 
 /**
@@ -335,7 +338,18 @@ export async function handBack(
     if (told.error) return { told: false, summary, error: human(told.error) };
   }
 
-  await supabase.from('work_grants').update({ ended_at: new Date().toISOString() }).eq('id', grant.id);
+  /*
+    A standing grant is not ended by handing back.
+
+    Handing back is "I have finished for now", and on a workspace the studio
+    runs every day that is a sentence about the afternoon, not about the
+    arrangement. The client still gets the notice above either way; the only
+    thing that does not happen is the lock-out. The trigger in
+    20261029000002 holds the same line if anything else tries.
+  */
+  if (!grant.standing) {
+    await supabase.from('work_grants').update({ ended_at: new Date().toISOString() }).eq('id', grant.id);
+  }
 
   if (grant.feedbackId) {
     await supabase
@@ -349,8 +363,59 @@ export async function handBack(
 
 /** The client stopping it, which is not the same as the studio finishing. */
 export async function revokeGrant(grantId: string): Promise<void> {
-  await supabase
+  await save(
+    supabase
+      .from('work_grants')
+      .update({ revoked_at: new Date().toISOString() })
+      .eq('id', grantId),
+    'Taking back access'
+  );
+}
+
+/**
+ * Everyone who can currently work in this workspace, for the client to read.
+ *
+ * `revokeGrant` has existed since the feature shipped and nothing ever called
+ * it: the client was told they could take access back and given nowhere to do
+ * it. Standing grants make that gap serious rather than untidy, because a
+ * permission with no end and no visible off switch is not a permission, it is
+ * a key somebody kept.
+ */
+export interface LiveGrant extends Grant {
+  /** Who holds it, by name, rather than a row of identifiers. */
+  who: string;
+}
+
+export async function liveGrants(orgId: string): Promise<LiveGrant[]> {
+  const res = await supabase
     .from('work_grants')
-    .update({ revoked_at: new Date().toISOString() })
-    .eq('id', grantId);
+    .select('*')
+    .eq('org_id', orgId)
+    .is('revoked_at', null)
+    .is('ended_at', null)
+    .order('granted_at', { ascending: false });
+
+  const rows = (res.data ?? []) as Record<string, unknown>[];
+  if (rows.length === 0) return [];
+
+  /*
+    The studio's name, not the person's.
+
+    `profiles_self_select` means a client cannot read the studio owner's
+    profile row, so asking for a name directly returns nothing and the list
+    would say "Somebody". studio_for() is the function that exists for exactly
+    this - it is how the Get help button already names them.
+  */
+  const house = await studioFor(orgId);
+  const name = house.studio?.name ?? '';
+
+  return rows.map((r) => {
+    const g = row(r);
+    return {
+      ...g,
+      who: house.studio && g.grantedTo === house.studio.ownerId && name
+        ? name
+        : name || 'Your studio',
+    };
+  });
 }
