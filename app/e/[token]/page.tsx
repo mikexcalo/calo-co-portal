@@ -17,6 +17,10 @@ import { Faq } from '@/components/spine/Faq';
 import { asQuestions } from '@/lib/spine/questions-from-notes';
 import { AddOns } from './AddOns';
 import { AskAbout } from './AskAbout';
+import { clientFace, initialsOf } from '@/lib/spine/client-face';
+import { ownerOf } from '@/lib/spine/doc-owner';
+import { C, radius } from '@/lib/spine/tokens';
+import { DocShell, Sent } from '@/components/public/DocShell';
 
 export const dynamic = 'force-dynamic';
 /*
@@ -178,11 +182,18 @@ export default async function PublicEstimate({
     logoLight?: string;
     logos?: string[];
   };
-  const logo = brand.logoLight ?? brand.logos?.[0] ?? null;
-  const accent =
-    brand.colors?.find((c) => /primary/i.test(c.role ?? ''))?.hex ??
-    brand.colors?.[0]?.hex ??
-    '#1a1a1a';
+  /*
+    One resolver for both documents.
+
+    This page read `brand.logos` and the invoice read only `brand.logoLight`,
+    and both fell back to near-black while a real colour sat in
+    `settings.workspace_color` - so Harbor Light's teal was on every screen of
+    the app and on neither of the two documents its customers receive.
+  */
+  const face = clientFace(org);
+  const owner = await ownerOf(db, job?.org_id ?? estimate.org_id);
+  const logo = face.logo;
+  const accent = face.accent;
 
   const rows = (lines ?? []) as Line[];
   // Required work only. Optional lines are priced separately below so the
@@ -236,28 +247,20 @@ export default async function PublicEstimate({
   const decided = ['accepted', 'declined'].includes(estimate.status);
 
   return (
-    <div style={{ background: '#f5f5f3', minHeight: '100vh', padding: '24px 16px 60px' }}>
-      {/*
-        The one control that is not part of the document, above the document.
+    /*
+      The business at the top, as itself.
 
-        Sat outside the white page on purpose: everything inside the card is
-        the proposal and prints; this is the thing you press to print it, and
-        it takes itself out of the printed copy.
-      */}
-      <div
-        data-print-hide
-        style={{
-          maxWidth: 720,
-          margin: '0 auto 12px',
-          display: 'flex',
-          justifyContent: 'flex-end',
-        }}
-      >
-        {/*
-          The document as data, so the PDF can be typeset rather than
-          photographed. Everything a reader needs and nothing that only works
-          on a screen: no accept button, no accordion, no links.
-        */}
+      This page began with a grey field and a floating Download button, and
+      the sender's name appeared in small caps a third of the way down, inside
+      the paper. A proposal is from somebody: their mark, their colour and
+      their phone belong above the document, not in it.
+    */
+    <DocShell
+      face={face}
+      phone={face.phone}
+      width={760}
+      action={
+        <div data-print-hide>
         <SaveAsPdf
           accent={accent}
           name={`${org?.name ?? ''} ${vocabWord} ${String(estimate.version).padStart(3, '0')} ${job?.customer?.name ?? ''}`}
@@ -302,23 +305,19 @@ export default async function PublicEstimate({
             ].map((x) => ({ heading: x.q, body: x.a })),
           }}
         />
-      </div>
+        </div>
+      }
+    >
       <div
         data-document
         style={{
-          maxWidth: 720,
-          margin: '0 auto',
-          background: '#fff',
-          border: '1px solid #e4e4e0',
-          borderRadius: 12,
+          background: C.panel,
+          border: `1px solid ${C.border}`,
+          borderRadius: radius.lg,
           overflow: 'hidden',
         }}
       >
-        <div style={{ borderTop: `4px solid ${accent}`, padding: '28px 30px 0' }}>
-          {logo && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={logo} alt={org?.name ?? ''} style={{ height: 40, objectFit: 'contain', marginBottom: 18 }} />
-          )}
+        <div style={{ padding: '26px 30px 0' }}>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <div>
@@ -636,32 +635,22 @@ export default async function PublicEstimate({
             same every time and is not something anybody should have to
             remember to type.
           */}
+          {/*
+            The retainer script is gone.
+
+            Three fixed sentences sat here on every proposal this product has
+            ever sent: "Nothing changes today", a first invoice "on the first
+            of the month", and no notice period. They describe one arrangement
+            - a monthly platform retainer - and they were printed under a
+            roofer's $24,680 re-roof and a studio's eight-week pilot alike. A
+            customer signing that agreed to terms nobody had written for them.
+
+            What replaces it is what the record actually holds: the terms the
+            sender typed, the scope they listed, and the date it is good
+            until. Where they have typed nothing, nothing is claimed.
+          */}
           {!decided && (
-            <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid #e4e4e0' }}>
-              <div style={{ fontSize: 17, fontWeight: 600, color: '#111', letterSpacing: '-0.01em', marginBottom: 12 }}>
-                What happens when you approve
-              </div>
-              <div style={{ display: 'grid', gap: 10, fontSize: 14.5, color: '#333', lineHeight: 1.6, maxWidth: '62ch' }}>
-                <div style={{ display: 'flex', gap: 13 }}>
-                  <span style={{ ...numeralStyle, color: '#bbb', flexShrink: 0 }}>01</span>
-                  <span>Nothing changes today. You keep using it exactly as you are.</span>
-                </div>
-                <div style={{ display: 'flex', gap: 13 }}>
-                  <span style={{ ...numeralStyle, color: '#bbb', flexShrink: 0 }}>02</span>
-                  <span>
-                    Your first invoice arrives on the first of the month, covering the month
-                    just gone. Every line is built from hours logged and receipts filed, so you
-                    can check it against something that actually happened.
-                  </span>
-                </div>
-                <div style={{ display: 'flex', gap: 13 }}>
-                  <span style={{ ...numeralStyle, color: '#bbb', flexShrink: 0 }}>03</span>
-                  <span>
-                    Want to stop? Tell me and I'll switch it off that day. No notice
-                    period, nothing to cancel, no last invoice for a month you did not use.
-                  </span>
-                </div>
-              </div>
+            <div style={{ marginTop: 28, paddingTop: 20, borderTop: `1px solid ${C.border}` }}>
               <AskAbout token={params.token} accent={accent} />
             </div>
           )}
@@ -670,15 +659,16 @@ export default async function PublicEstimate({
         <AddOns
           token={params.token}
           accent={accent}
+          accentInk={face.accentInk}
+          business={face.name || null}
+          owner={owner ? { ...owner, initials: initialsOf(owner.fullName) } : null}
           decided={decided}
           baseTotal={Number(estimate.base_total ?? subtotal)}
           options={options.map((l) => ({ id: l.id, description: l.description, total: Number(l.total) }))}
         />
       </div>
 
-      <div style={{ maxWidth: 720, margin: '18px auto 0', textAlign: 'center', fontSize: 12.5, color: '#888' }}>
-        Questions? Just reply to the email this came from.
-      </div>
-    </div>
+      <Sent />
+    </DocShell>
   );
 }

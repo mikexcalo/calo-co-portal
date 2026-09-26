@@ -221,6 +221,46 @@ yet, show nothing in its place, not a nought.
 
 ---
 
+## 4b. Public pages
+
+A proposal, an invoice, a pitch, an enquiry form and the sign-in page are not
+screens in our product. They are documents from the client's business, opened
+by somebody who has never heard of us and is not going to. So the rule is
+narrower than "use the design system".
+
+**They may take the parts that are craft, not identity.**
+
+- The type faces and the size scale. Figtree titles, Inter body, Geist Mono
+  figures, at the sizes in section 2. Legibility is not branding.
+- The spacing and `radius` scale.
+- The neutral greys — `C.text`, `C.dim`, `C.faint`, `C.border`, `C.panel`.
+  These are contrast decisions, not a palette.
+- The three state colours, which mean the same thing to a customer as to an
+  owner: green settled, amber needs you, red overdue.
+- The *shape* of `Card`, `Button`, `Field`, `Pill` and a table — the metrics,
+  the radius, the 48px touch floor.
+
+**They may not take anything that says "you are inside an application".**
+
+- `Page`, the sidebar, the top bar, the identity strip, the workspace plate,
+  the product row and `[Product name]`, the phone tabs, the capture sheet, the
+  View mode and Work in it bars. None of it belongs on a document; a customer
+  who sees "Add a note" and "Log time" above a quote has been shown the inside
+  of somebody else's software.
+- **`C.accent`.** This is the one that matters. Our near-black is the app's
+  interactive colour, and on a customer document the one filled thing on the
+  page — Accept, Pay — must be the client's colour, not ours. Resolve it from
+  the brand kit, fall back to the workspace colour, and only then to near-black.
+- Our name, anywhere except one line of small print at the foot: "Sent
+  securely through CALO&CO". That line is the whole of our presence.
+
+**The client's brand is the hero and it comes from the data.** Their logo or
+their initials, their colour, their phone, their address. Every one of those
+is often empty, and an empty one is left out rather than filled with a
+placeholder — a customer must never see `[LICENSE NO.]`.
+
+---
+
 ## 5. Phone
 
 Under 720px — the same line `useIsPhone` draws. Change it in one place or the

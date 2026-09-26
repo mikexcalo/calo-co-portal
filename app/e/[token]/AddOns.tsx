@@ -28,15 +28,23 @@ interface Line {
 const money = (n: number) =>
   `$${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+export interface DocOwnerTile { fullName: string; firstName: string; initials: string }
+
 export function AddOns({
   token,
   accent,
+  accentInk,
+  business,
+  owner,
   options,
   baseTotal,
   decided,
 }: {
   token: string;
   accent: string;
+  accentInk?: string;
+  business?: string | null;
+  owner?: DocOwnerTile | null;
   options: Line[];
   baseTotal: number;
   decided: boolean;
@@ -109,7 +117,14 @@ export function AddOns({
 
       {!decided && (
         <div style={{ borderTop: '1px solid #e4e4e0', padding: '22px 30px 26px', background: '#fafaf8' }}>
-          <DecisionButtons token={token} accent={accent} selected={Array.from(picked)} />
+          <DecisionButtons
+            token={token}
+            accent={accent}
+            accentInk={accentInk}
+            business={business}
+            owner={owner}
+            selected={Array.from(picked)}
+          />
         </div>
       )}
     </>

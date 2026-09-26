@@ -12,13 +12,67 @@
 import { useState } from 'react';
 import { human } from '@/lib/spine/errors';
 
+/**
+ * Who is accountable for this.
+ *
+ * An elite proposal says who you will actually be dealing with: the company
+ * is who invoices you, a name is who answers the phone when something goes
+ * wrong. Renders nothing when nobody is on the record, rather than an empty
+ * circle over a blank line.
+ */
+function Who({
+  owner,
+  business,
+}: {
+  owner?: { fullName: string; firstName: string; initials: string } | null;
+  business?: string | null;
+}) {
+  if (!owner) return null;
+  return (
+    <div
+      style={{
+        display: 'flex', alignItems: 'center', gap: 11,
+        marginTop: 18, paddingTop: 16, borderTop: '1px solid #e4e4e0',
+      }}
+    >
+      <span
+        style={{
+          width: 34, height: 34, borderRadius: 999, flexShrink: 0,
+          background: '#f0f0ed', color: '#555',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 12.5, fontWeight: 700,
+        }}
+      >
+        {owner.initials}
+      </span>
+      <span style={{ minWidth: 0 }}>
+        <span style={{ display: 'block', fontSize: 14.5, fontWeight: 600, color: '#111' }}>
+          {owner.fullName}
+        </span>
+        {business && (
+          <span style={{ display: 'block', fontSize: 13.5, color: '#666' }}>Owner, {business}</span>
+        )}
+      </span>
+    </div>
+  );
+}
+
 export function DecisionButtons({
   token,
   accent,
+  accentInk = '#FFFFFF',
+  business,
+  owner,
   selected = [],
 }: {
   token: string;
   accent: string;
+  /** Readable ink on the client's colour. A pale brand takes black. */
+  accentInk?: string;
+  /** Whose terms are being agreed to, named in the sentence. */
+  business?: string | null;
+  /** Who is accountable for this, shown by name under the action. */
+  owner?: { fullName: string; firstName: string; initials: string } | null;
   /**
    * Optional lines the customer ticked. Sent with the acceptance rather than
    * saved as they click, so a half-considered selection on a page somebody
@@ -28,6 +82,15 @@ export function DecisionButtons({
 }) {
   const [mode, setMode] = useState<'idle' | 'accepting' | 'declining'>('idle');
   const [name, setName] = useState('');
+  /*
+    A tick, not just a typed name.
+
+    The name alone records who pressed the button. The checkbox records that
+    they were told what they were agreeing to, in a sentence naming the
+    business whose terms they are - which is the part somebody would want to
+    point at later.
+  */
+  const [agreed, setAgreed] = useState(false);
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,6 +123,10 @@ export function DecisionButtons({
     fontFamily: 'inherit',
   };
 
+  /* Both, or neither. A name with no tick is a signature nobody read; a tick
+     with no name is a record of nobody. */
+  const ready = name.trim().length >= 2 && agreed;
+
   if (mode === 'accepting') {
     return (
       <div>
@@ -73,19 +140,34 @@ export function DecisionButtons({
           placeholder="Your full name"
           autoFocus
         />
+        <label
+          style={{
+            display: 'flex', alignItems: 'flex-start', gap: 11, marginTop: 14,
+            fontSize: 14.5, color: '#333', lineHeight: 1.5, cursor: 'pointer',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            style={{ width: 19, height: 19, marginTop: 1, flexShrink: 0, accentColor: accent, cursor: 'pointer' }}
+          />
+          <span>I agree to this {business ? `and to ${business}'s terms` : 'and to the terms above'}.</span>
+        </label>
+
         {error && <div style={{ color: '#b91c1c', fontSize: 13.5, marginTop: 8 }}>{error}</div>}
-        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+        <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
           <button
             onClick={() => send('accepted')}
-            disabled={busy || name.trim().length < 2}
+            disabled={busy || !ready}
             style={{
-              background: accent, color: '#fff', border: 'none', borderRadius: 999,
-              padding: '12px 20px', fontSize: 15, fontWeight: 600,
-              cursor: busy || name.trim().length < 2 ? 'not-allowed' : 'pointer',
-              opacity: busy || name.trim().length < 2 ? 0.5 : 1, fontFamily: 'inherit',
+              background: accent, color: accentInk, border: 'none', borderRadius: 999,
+              minHeight: 48, padding: '0 22px', fontSize: 16, fontWeight: 600,
+              cursor: busy || !ready ? 'not-allowed' : 'pointer',
+              opacity: busy || !ready ? 0.5 : 1, fontFamily: 'inherit',
             }}
           >
-            {busy ? 'One moment…' : 'Accept estimate'}
+            {busy ? 'One moment…' : 'Accept'}
           </button>
           <button
             onClick={() => setMode('idle')}
@@ -98,6 +180,8 @@ export function DecisionButtons({
             Back
           </button>
         </div>
+
+        <Who owner={owner} business={business} />
       </div>
     );
   }
