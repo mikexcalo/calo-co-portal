@@ -87,21 +87,20 @@ before the sweep, so check the awkward ones (`pricing`, `estimate`) first.
 
 ---
 
-## 5. Forty-seven bare "Loading…" screens — M
+## 5. Bare "Loading…" screens — money screens DONE 26 Sept 2026
 
-Two spellings, `Loading…` and `Loading...`, across 47 files including
-`app/page.tsx`, `customers`, `customers/[id]`, `pl`, `records`, `billing`,
-`brands`, `business`, `team`, `targets` and the shell itself.
+The money half is done. Home, Invoices, Profit & Loss, Receipts, Overheads,
+Price List, a single invoice, plus Jobs, Proposals, Account and Customers — all
+of which carry figures — now show a placeholder the shape of the content, and
+none of them renders a number or a reassurance before the data is there. A
+failed load says so and shows no strip at all. `Skeleton`, `TilesLoading` and
+`RowsLoading` live in `ui.tsx`.
 
-The rulebook asks for the shape of what is coming and no placeholder zeros. The
-zeros matter more than the word: the phone Invoices tiles read "$0 · Nothing
-overdue" while loading, which is a false reassurance about money.
-
-One brief: a shared skeleton, then a sweep. Do the money screens first —
-`billing`, `pl`, `page.tsx` — because those are the ones where a wrong number
-shown for two seconds is believed.
-
----
+**Still open: the non-money screens.** Around thirty files still show a bare
+"Loading…" — brands, team, business, records, security, traffic, targets,
+site-requests and the rest. Same sweep, same three primitives, no new
+decisions needed. Nothing on them is a number somebody acts on, which is why
+they were not done first.
 
 ## 6. Job screens on a phone — M
 

@@ -17,6 +17,8 @@ import { listJobs, listJobLedger } from '@/lib/spine/db';
 import { JOB_PIPELINE, JOB_STATUS_LABEL } from '@/lib/spine/types';
 import type { JobLedger, JobStatus, JobWithCustomer } from '@/lib/spine/types';
 import {
+  TilesLoading,
+  RowsLoading,
   Tiles,
   Select,
   Sheet,
@@ -31,7 +33,7 @@ import {
   hours,
   money0,
 } from '@/components/spine/ui';
-import { human } from '@/lib/spine/errors';
+import { human, READ_FAILED } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { Confirm } from '@/components/spine/Confirm';
 import supabase from '@/lib/supabase';
@@ -70,7 +72,7 @@ export default function JobsPage() {
         setAllJobs(j);
         setLedger(Object.fromEntries(l.map((row) => [row.job_id, row])));
       } catch (e) {
-        if (!canceled) setError(human((e as Error).message));
+        if (!canceled) setError(human((e as Error).message, READ_FAILED));
       } finally {
         if (!canceled) setLoading(false);
       }
@@ -150,6 +152,7 @@ export default function JobsPage() {
       {/* The eighth screen, and the one the sweep missed. It was still a line
           of figures with hideAtZero on all three, so on a quiet week the board
           opened with nothing above it at all. */}
+      {loading ? <TilesLoading count={3} /> : error ? null : (
       <Tiles
         items={[
           {
@@ -170,10 +173,11 @@ export default function JobsPage() {
           },
         ]}
       />
+      )}
 
       {loading ? (
-        <Empty>Loading…</Empty>
-      ) : jobs.length === 0 ? (
+        <RowsLoading rows={5} />
+      ) : error ? null : jobs.length === 0 ? (
         <FirstSteps
           copy={{
             title: `No ${vocab.jobPlural.toLowerCase()} yet`,

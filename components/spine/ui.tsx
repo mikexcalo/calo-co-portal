@@ -1047,6 +1047,105 @@ export interface TileItem {
   href?: string;
 }
 
+/**
+ * What a screen shows before it knows anything.
+ *
+ * "Loading…" is a word where the answer will be. It tells you the screen is
+ * working and nothing about what is coming, so the layout jumps when the data
+ * lands and you read the page twice.
+ *
+ * Worse on a money screen, which is the reason this exists. Invoices rendered
+ * its figures before the query returned, so it opened on "$0 · Nothing
+ * overdue" and then, a second later, on $3,896 past due. For that second the
+ * product told somebody they were owed nothing. A number nobody has fetched
+ * is not zero, and a reassurance nobody has checked is worse than silence.
+ *
+ * So: a quiet block the same shape and size as the thing it stands in for.
+ * No number, no word, nothing to misread.
+ */
+export function Skeleton({
+  w = '100%',
+  h = 14,
+  r = radius.sm,
+  style,
+}: {
+  w?: number | string;
+  h?: number;
+  r?: number;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <span
+      className="skel"
+      aria-hidden
+      style={{ display: 'block', width: w, height: h, borderRadius: r, ...style }}
+    />
+  );
+}
+
+/**
+ * The figures strip, before the figures.
+ *
+ * Same grid and same tile as the real one, so nothing moves when the numbers
+ * arrive. `count` matches however many that screen shows.
+ */
+export function TilesLoading({ count = 4 }: { count?: number }) {
+  return (
+    <div className="tiles" role="status" aria-label="Loading the figures">
+      {Array.from({ length: count }, (_, i) => (
+        <div key={i} className="tile" style={{ cursor: 'default' }}>
+          <span className="tileTop">
+            <Skeleton w={13} h={13} r={3} />
+            <Skeleton w={62} h={9} />
+          </span>
+          {/* The height of a real tile value, so the strip does not grow. */}
+          <Skeleton w={96} h={24} style={{ margin: '6px 0 2px' }} />
+          <Skeleton w={78} h={9} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * A list, before the list.
+ *
+ * Inside the same bordered box a Table draws, so a screen that is about to
+ * show rows does not first show a sentence where its table goes.
+ */
+export function RowsLoading({ rows = 4 }: { rows?: number }) {
+  return (
+    <div
+      role="status"
+      aria-label="Loading"
+      style={{
+        border: `1px solid ${C.border}`,
+        borderRadius: radius.lg,
+        background: C.panel,
+        overflow: 'hidden',
+      }}
+    >
+      {Array.from({ length: rows }, (_, i) => (
+        <div
+          key={i}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            padding: '15px 14px',
+            borderBottom: i < rows - 1 ? `1px solid ${C.border}` : 'none',
+          }}
+        >
+          <Skeleton w={84} h={11} />
+          <Skeleton w="38%" h={11} />
+          <span style={{ flex: 1 }} />
+          <Skeleton w={70} h={11} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function Tiles({ items }: { items: readonly TileItem[] }) {
   const router = useRouter();
   if (!items.length) return null;

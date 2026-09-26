@@ -19,6 +19,7 @@ import { Processing } from '@/components/spine/Processing';
 import { getCurrentOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import {
+  RowsLoading,
   Button,
   C,
   Card,
@@ -34,7 +35,7 @@ import {
   useIsPhone,
 } from '@/components/spine/ui';
 import { DropZone } from '@/components/spine/DropZone';
-import { human } from '@/lib/spine/errors';
+import { human, READ_FAILED } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 
 interface PriceItem {
@@ -126,7 +127,7 @@ export default function PricingPage() {
       try {
         await load();
       } catch (e) {
-        setError(human((e as Error).message));
+        setError(human((e as Error).message, READ_FAILED));
       } finally {
         setLoading(false);
       }
@@ -416,7 +417,9 @@ export default function PricingPage() {
       )}
 
       {loading ? (
-        <Empty>Loading…</Empty>
+        /* Prices, so the placeholder is rows rather than a sentence: this
+           screen is a list of numbers somebody is about to quote from. */
+        <RowsLoading rows={6} />
       ) : items.length === 0 ? (
         /*
           Nothing here. The drop zone directly above already says there are no

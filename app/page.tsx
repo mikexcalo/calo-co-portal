@@ -53,10 +53,12 @@ import {
   money0,
   radius,
   shortDate,
+  RowsLoading,
+  TilesLoading,
   useIsPhone,
   useModKey,
 } from '@/components/spine/ui';
-import { human } from '@/lib/spine/errors';
+import { human, READ_FAILED } from '@/lib/spine/errors';
 import { LaterThisWeek, NextJob, useToday } from '@/components/spine/Today';
 
 interface Attention {
@@ -221,7 +223,7 @@ export default function Dashboard() {
           );
         }
       } catch (e) {
-        if (!canceled) setError(human((e as Error).message));
+        if (!canceled) setError(human((e as Error).message, READ_FAILED));
       } finally {
         if (!canceled) setLoading(false);
       }
@@ -823,7 +825,17 @@ export default function Dashboard() {
           </div>
         </div>
       ) : busy ? (
-        <Empty>Loading…</Empty>
+        /*
+          Home's own wait, in the shape Home takes: the money strip and the
+          list under it. On a phone the strip is folded away, so the rows are
+          what somebody sees either way.
+        */
+        <>
+          <RowsLoading rows={3} />
+          <div className="deskOnly" style={{ marginTop: 26 }}>
+            <TilesLoading count={4} />
+          </div>
+        </>
       ) : /*
         A client's first day is one question, not a dashboard.
 
@@ -1195,7 +1207,15 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* The money, under the work rather than over it. */}
+          {/*
+            The money, under the work rather than over it.
+
+            And not until it is known. Every figure here is reduced from an
+            array that starts empty, so before the queries return this strip
+            reads $0 unbilled, nothing in draft, nothing owed, nothing logged
+            — four reassurances, none of them checked.
+          */}
+          {busy ? <TilesLoading count={4} /> : (
           <Tiles
             items={[
               {
@@ -1222,6 +1242,7 @@ export default function Dashboard() {
               },
             ]}
           />
+          )}
 
           {/*
             In progress lived here as a table of every active project with its

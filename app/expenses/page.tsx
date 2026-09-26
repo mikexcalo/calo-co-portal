@@ -18,6 +18,8 @@ import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import {
+  TilesLoading,
+  RowsLoading,
   Tiles,
   Button,
   C,
@@ -376,8 +378,11 @@ export default function ExpensesPage() {
       )}
 
       {loading ? (
-        <Card><Empty>Loading…</Empty></Card>
-      ) : rows.length === 0 ? (
+        <>
+          <TilesLoading count={3} />
+          <RowsLoading rows={4} />
+        </>
+      ) : error ? null : rows.length === 0 ? (
         <Card>
           <Empty>Nothing recorded yet. Software, insurance, fuel, anything no single job caused.</Empty>
         </Card>

@@ -28,6 +28,8 @@ import {
   C,
   Card,
   Empty,
+  RowsLoading,
+  TilesLoading,
   Metric,
   Page,
   Pill,
@@ -41,7 +43,7 @@ import {
   SectionLabel,
   inputStyle, INVOICE_TABS } from '@/components/spine/ui';
 import { METHODS } from '@/lib/spine/payments';
-import { human } from '@/lib/spine/errors';
+import { human, READ_FAILED } from '@/lib/spine/errors';
 
 export default function BillingPage() {
   const router = useRouter();
@@ -73,7 +75,7 @@ export default function BillingPage() {
       try {
         await load();
       } catch (e) {
-        setError(human((e as Error).message));
+        setError(human((e as Error).message, READ_FAILED));
       } finally {
         setLoading(false);
       }
@@ -409,9 +411,23 @@ export default function BillingPage() {
         </Card>
       )}
 
-      {/* The same strip as Home and Clients. It was three Metrics with
-          hideAtZero, so on a month where everything is paid the row vanished
-          and Invoices opened on a bare table. */}
+      {/*
+        The same strip as Home and Clients. It was three Metrics with
+        hideAtZero, so on a month where everything is paid the row vanished
+        and Invoices opened on a bare table.
+
+        Behind the load now, which it was not. The figures are derived from
+        `invoices`, and `invoices` starts as an empty array, so this screen
+        opened on "$0 · Nothing overdue" and then changed its mind. On the
+        demo that second of reassurance was about $3,896 that was already
+        past due.
+
+        A failed load shows the reason and no strip at all. Falling back to a
+        zero is how a wrong number outlives the error that caused it.
+      */}
+      {loading ? (
+        <TilesLoading count={3} />
+      ) : error ? null : (
       <Tiles
         items={[
           {
@@ -431,10 +447,11 @@ export default function BillingPage() {
           },
         ]}
       />
+      )}
 
       {loading ? (
-        <Empty>Loading…</Empty>
-      ) : invoices.length === 0 ? (
+        <RowsLoading rows={5} />
+      ) : error ? null : invoices.length === 0 ? (
         <Card>
           <Empty hero>
             No invoices yet. Open {vocab.jobPlural.toLowerCase()} with unbilled work and draft one from what is on it.
@@ -534,6 +551,15 @@ export default function BillingPage() {
                       know the shape. Nobody checking an invoice for the first
                       time knows which of the last two is the rate.
                     */}
+                    {/*
+                      The lines arrive after the row is opened, so until they
+                      do there is a gap where somebody is looking for what
+                      they are being charged for. An empty gap reads as "this
+                      invoice has no detail", which is a different and worse
+                      claim than "not fetched yet".
+                    */}
+                    {!lines[inv.id] && <RowsLoading rows={2} />}
+
                     {!!lines[inv.id]?.length && (
                       <div
                         style={{
@@ -580,7 +606,17 @@ export default function BillingPage() {
                       </div>
                     ))}
 
-                    {!lines[inv.id]?.length && <Empty>No lines on this invoice.</Empty>}
+                    {/*
+                      Only once we have looked.
+
+                      `!lines[id]?.length` is true both when the invoice has
+                      no lines and when nobody has fetched them yet, so this
+                      sentence printed under the loading placeholder - the
+                      screen saying "no lines" and "still fetching the lines"
+                      at the same time, about a document somebody is checking
+                      before they pay it.
+                    */}
+                    {lines[inv.id]?.length === 0 && <Empty>No lines on this invoice.</Empty>}
 
                     {/*
                       Where a line comes from.

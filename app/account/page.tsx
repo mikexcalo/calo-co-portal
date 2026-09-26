@@ -21,6 +21,8 @@ import { useOrg } from '@/lib/spine/org';
 import type { JobInvoice, TimeEntry } from '@/lib/spine/types';
 import { INVOICE_STATUS_LABEL } from '@/lib/spine/types';
 import {
+  TilesLoading,
+  RowsLoading,
   Tiles,
   Button,
   C,
@@ -36,7 +38,7 @@ import {
   money,
   money0,
   shortDate, INVOICE_TABS } from '@/components/spine/ui';
-import { human } from '@/lib/spine/errors';
+import { human, READ_FAILED } from '@/lib/spine/errors';
 import { orgNow } from '@/lib/spine/db';
 
 interface AccountRow {
@@ -149,7 +151,7 @@ export default function AccountPage() {
           }
         }
       } catch (e) {
-        setError(human((e as Error).message));
+        setError(human((e as Error).message, READ_FAILED));
       } finally {
         setLoading(false);
       }
@@ -204,7 +206,10 @@ export default function AccountPage() {
       )}
 
       {loading ? (
-        <Empty>Loading…</Empty>
+        <>
+          <TilesLoading count={3} />
+          <RowsLoading rows={4} />
+        </>
       ) : rows.length === 0 ? (
         <Card>
           <Empty>Nothing billed to you yet.</Empty>

@@ -18,6 +18,8 @@ import { listAllEstimates, orgNow } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import type { Estimate } from '@/lib/spine/types';
 import {
+  TilesLoading,
+  RowsLoading,
   Tiles,
   Button,
   C,
@@ -35,7 +37,7 @@ import {
   radius,
   shortDate,
 } from '@/components/spine/ui';
-import { human } from '@/lib/spine/errors';
+import { human, READ_FAILED } from '@/lib/spine/errors';
 import { SendLock, useSendLocked } from '@/components/spine/SendLock';
 import { SaidYesElsewhere } from '@/components/spine/SaidYesElsewhere';
 
@@ -126,7 +128,7 @@ export default function ProposalsPage() {
       try {
         await load();
       } catch (e) {
-        setError(human((e as Error).message));
+        setError(human((e as Error).message, READ_FAILED));
       } finally {
         setLoading(false);
       }
@@ -276,6 +278,7 @@ export default function ProposalsPage() {
       {/* The same strip as Home, Clients and Invoices. It was four Metrics
           with hideAtZero, so the row emptied out exactly when you had nothing
           outstanding and most wanted to see that. */}
+      {loading ? <TilesLoading count={4} /> : error ? null : (
       <Tiles
         items={[
           {
@@ -311,10 +314,11 @@ export default function ProposalsPage() {
           },
         ]}
       />
+      )}
 
       {loading ? (
-        <Empty>Loading…</Empty>
-      ) : live.length === 0 ? (
+        <RowsLoading rows={5} />
+      ) : error ? null : live.length === 0 ? (
         <Card>
           <Empty>
             Nothing quoted yet. Build an estimate on a {vocab.job.toLowerCase()} and it shows

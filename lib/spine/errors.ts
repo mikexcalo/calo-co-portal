@@ -217,7 +217,13 @@ export function human(raw: unknown, fallback = WRITE_FAILED): string {
     retry - a blind retry is how one invoice becomes two.
   */
   if (/network|failed to fetch|timeout|econn/i.test(msg)) {
-    return 'The server did not answer, so we cannot tell whether this saved. Check your connection, then reload the screen and look before trying again.';
+    /* A load and a save have different questions. "We cannot tell whether
+       this saved" on a screen that was only reading is an invitation to
+       worry about something that never happened; the caller says which by
+       which fallback it asked for. */
+    return fallback === READ_FAILED
+      ? 'The server did not answer, so this screen has nothing to show. Check your connection and reload.'
+      : 'The server did not answer, so we cannot tell whether this saved. Check your connection, then reload the screen and look before trying again.';
   }
   if (/payload too large|size/i.test(msg) && /large|exceed/i.test(msg)) {
     return 'That file is too big, so nothing was saved. Try a smaller one.';

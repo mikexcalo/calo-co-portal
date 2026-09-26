@@ -20,6 +20,8 @@ import type { JobInvoice, JobLedger } from '@/lib/spine/types';
 import { CONSIDERATION_LABEL, JOB_STATUS_LABEL } from '@/lib/spine/types';
 import { PRODUCT } from '@/lib/brand';
 import {
+  TilesLoading,
+  RowsLoading,
   Tiles,
   Button,
   C,
@@ -38,7 +40,7 @@ import {
   Select,
   MONEY_TABS,
 } from '@/components/spine/ui';
-import { human } from '@/lib/spine/errors';
+import { human, READ_FAILED } from '@/lib/spine/errors';
 
 type Period = 'all' | 'ytd' | 'quarter' | 'month';
 
@@ -150,7 +152,7 @@ export default function ProfitLossPage() {
         setLedger(l);
         setInvoices(inv);
       } catch (e) {
-        setError(human((e as Error).message));
+        setError(human((e as Error).message, READ_FAILED));
       } finally {
         setLoading(false);
       }
@@ -313,9 +315,21 @@ export default function ProfitLossPage() {
         </Card>
       )}
 
+      {/*
+        The shape of the figures, not the word "Loading".
+
+        Profit and Loss is the screen somebody opens to find out whether the
+        month worked. A sentence where six numbers go, then a jump as they
+        land, means reading the page twice; and any placeholder that is itself
+        a number would be answering the question before anybody has asked the
+        database.
+      */}
       {loading ? (
-        <Empty>Loading…</Empty>
-      ) : (
+        <>
+          <TilesLoading count={4} />
+          <RowsLoading rows={5} />
+        </>
+      ) : error ? null : (
         <>
           {/*
             The same strip as Home, Clients, Invoices, Proposals and Pitches.

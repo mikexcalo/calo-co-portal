@@ -26,6 +26,7 @@ import type { ClientHours } from '@/lib/spine/types';
 import { SavedViews, type View } from '@/components/spine/SavedViews';
 import { ClientIntake } from '@/components/spine/ClientIntake';
 import {
+  RowsLoading,
   Tiles,
   hours,
   Select,
@@ -47,7 +48,7 @@ import {
   clientTabs,
   SearchField,
 } from '@/components/spine/ui';
-import { human } from '@/lib/spine/errors';
+import { human, READ_FAILED } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { ChangedBy, useChangedHere } from '@/components/spine/SendLock';
 
@@ -230,7 +231,7 @@ export default function CustomersPage() {
       setAdding(false);
       await load();
     } catch (e) {
-      setError(human((e as Error).message));
+      setError(human((e as Error).message, READ_FAILED));
     } finally {
       setBusy(false);
     }
@@ -712,7 +713,9 @@ export default function CustomersPage() {
       </div>
 
       {loading ? (
-        <Empty>Loading…</Empty>
+        /* Every row carries what that customer owes, so this list is a money
+           screen too and gets the same treatment. */
+        <RowsLoading rows={5} />
       ) : rows.length === 0 ? (
         <FirstSteps
           copy={{

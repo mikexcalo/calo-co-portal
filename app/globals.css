@@ -4909,3 +4909,28 @@ input[type="date"] { cursor: pointer; }
 @media (max-width: 720px) {
   .btn { min-height: 48px; }
 }
+
+/*
+  The quiet block a figure stands behind while it loads.
+
+  A slow pulse rather than a sweeping shimmer: this sits where money is about
+  to appear, and something travelling across the screen reads as activity -
+  as though a number were being counted up - which is the opposite of what it
+  means. It means "not known yet".
+
+  Held well below the border colour so a page of these reads as empty
+  furniture rather than as content somebody needs to squint at.
+*/
+.skel {
+  background: #EDEEF0;
+  animation: skelPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes skelPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skel { animation: none; }
+}

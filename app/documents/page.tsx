@@ -43,6 +43,7 @@ import { ExtractionReview, type ReviewResult } from '@/components/spine/Extracti
 import { Confirm } from '@/components/spine/Confirm';
 import { DropZone } from '@/components/spine/DropZone';
 import {
+  RowsLoading,
   Select,
   Button,
   C,
@@ -57,7 +58,7 @@ import {
   shortDate,
   useIsPhone,
 } from '@/components/spine/ui';
-import { human } from '@/lib/spine/errors';
+import { human, READ_FAILED } from '@/lib/spine/errors';
 import { useSearchParams } from 'next/navigation';
 
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -125,7 +126,7 @@ export default function DocumentsPage() {
       try {
         await load();
       } catch (e) {
-        setError(human((e as Error).message));
+        setError(human((e as Error).message, READ_FAILED));
       } finally {
         setLoading(false);
       }
@@ -405,7 +406,7 @@ export default function DocumentsPage() {
 
       <SectionLabel>Inbox ({inbox.length})</SectionLabel>
       {loading ? (
-        <Empty>Loading…</Empty>
+        <RowsLoading rows={3} />
       ) : inbox.length === 0 ? (
         <Card><Empty hero>Inbox is clear. Everything has been filed to a job.</Empty></Card>
       ) : (
