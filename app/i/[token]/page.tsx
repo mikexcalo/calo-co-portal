@@ -142,7 +142,16 @@ export default async function PublicInvoice({ params }: { params: { token: strin
     if (!spec) return false;
     return spec.handleLabel === null ? true : Boolean(m.handle?.trim());
   });
-  const online = payable.find((m) => m.id === 'stripe');
+  /*
+    Online only counts if a link actually comes back.
+
+    payLink has no stripe branch, so a business that switches card payment on
+    without connecting an account yields nothing - and treating that as
+    "online" produced a sticky bar reading How to pay that pointed at a
+    section this page had decided not to render. Resolve the link first and
+    let it decide.
+  */
+  const stripeMethod = payable.find((m) => m.id === 'stripe');
 
   const total = Number(invoice.total);
   const received = Number(invoice.amount_paid);
@@ -197,7 +206,7 @@ export default async function PublicInvoice({ params }: { params: { token: strin
     />
   );
 
-  const payHref = online ? payLink('stripe', online.handle, owed, `Invoice ${invoice.number}`) : null;
+  const payHref = stripeMethod ? payLink('stripe', stripeMethod.handle, owed, `Invoice ${invoice.number}`) : null;
 
   return (
     <DocShell face={face} phone={face.phone} action={pdf}>
@@ -326,7 +335,7 @@ export default async function PublicInvoice({ params }: { params: { token: strin
         points at it. Neither appears when nothing is connected, because a
         button that cannot take a payment is worse than a sentence saying so.
       */}
-      {!paid && payable.length > 0 && !online && (
+      {!paid && payable.length > 0 && !payHref && (
         <section
           id="how-to-pay"
           style={{
