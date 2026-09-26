@@ -396,7 +396,17 @@ export default async function PublicEstimate({
 
         <div style={{ padding: '26px 30px' }}>
           {required.length === 0 ? (
-            <div style={{ color: '#888', fontSize: 14 }}>No line items.</div>
+            /*
+              A total with no breakdown is a real thing, not a missing one.
+
+              Every sent proposal in the demo is priced as a whole, and "No
+              line items." reads like a fault in the document somebody is
+              being asked to sign. This says what is actually true: the number
+              below covers the work described above.
+            */
+            <div style={{ fontSize: 14.5, color: C.faint, lineHeight: 1.6 }}>
+              Priced as a whole rather than itemised. The total below covers everything described above.
+            </div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14.5 }}>
               <thead>

@@ -80,7 +80,15 @@ export function DecisionButtons({
    */
   selected?: string[];
 }) {
-  const [mode, setMode] = useState<'idle' | 'accepting' | 'declining'>('idle');
+  /*
+    The form, not a button that reveals the form.
+
+    Accepting was two steps: press "Accept this estimate", then type a name.
+    The second step is where the actual decision is recorded, so the first was
+    a door in front of a door - and it meant the thing a customer came to do
+    was never visible on arrival. Name, tick, Accept, all on the panel.
+  */
+  const [mode, setMode] = useState<'idle' | 'accepting' | 'declining'>('accepting');
   const [name, setName] = useState('');
   /*
     A tick, not just a typed name.
@@ -131,7 +139,7 @@ export function DecisionButtons({
     return (
       <div>
         <label style={{ display: 'block', fontSize: 14, color: '#444', marginBottom: 7 }}>
-          Type your name to accept this estimate
+          Your full name
         </label>
         <input
           value={name}
@@ -170,14 +178,14 @@ export function DecisionButtons({
             {busy ? 'One moment…' : 'Accept'}
           </button>
           <button
-            onClick={() => setMode('idle')}
+            onClick={() => setMode('declining')}
             style={{
-              background: 'transparent', border: '1px solid #d8d8d2', borderRadius: 999,
-              padding: '12px 18px', fontSize: 15, color: '#555', cursor: 'pointer',
-              fontFamily: 'inherit',
+              background: 'transparent', border: 'none', borderRadius: 999,
+              minHeight: 48, padding: '0 14px', fontSize: 15, color: '#666',
+              cursor: 'pointer', fontFamily: 'inherit',
             }}
           >
-            Back
+            No thanks
           </button>
         </div>
 
