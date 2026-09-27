@@ -24,7 +24,7 @@ import { SEO_TASKS } from '@/lib/spine/seo';
 import { DIGITAL_PLAN } from '@/lib/spine/digital-plan';
 import { isPlatformOrg } from '@/lib/spine/platform';
 import { useOrg } from '@/lib/spine/org';
-import { Button, C, Card, DIGITAL_TABS, Empty, Page, SectionLabel } from '@/components/spine/ui';
+import { Button, C, Card, DIGITAL_TABS, Empty, Page, RowsLoading, SectionLabel } from '@/components/spine/ui';
 import { Glyph, type IconName } from '@/components/spine/icons';
 import { orgNow } from '@/lib/spine/db';
 import { save } from '@/lib/spine/save';
@@ -261,7 +261,7 @@ export default function DigitalPage() {
         plan is the platform owner's own to-do list and stays with them.
       */}
       {!loaded ? (
-        <Empty>Loading…</Empty>
+        <RowsLoading rows={5} />
       ) : !mine ? null : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 820 }}>
           {DIGITAL_PLAN.map((track, ti) => {

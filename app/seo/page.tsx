@@ -28,6 +28,7 @@ import {
   Metric,
   Page,
   Pill,
+  RowsLoading,
   SectionLabel,
   Select,
   inputStyle,
@@ -153,7 +154,7 @@ export default function SeoPage() {
   const done = visible.filter((t) => tasks[t.key] === 'done').length;
   const claimed = citations.filter((c) => c.status === 'claimed' || c.status === 'verified').length;
 
-  if (loading) return <Page title="Search"><Card><Empty>Loading…</Empty></Card></Page>;
+  if (loading) return <Page title="Search"><RowsLoading rows={5} /></Page>;
 
   const hasProfile = Boolean(profile.legal_name);
 

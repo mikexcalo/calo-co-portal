@@ -14,17 +14,18 @@ import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { modulesFor } from '@/lib/spine/modules';
 import {
-  Tiles,
   Button,
   C,
   Card,
   Empty,
   Metric,
+  PITCH_TABS,
   Page,
   Pill,
+  RowsLoading,
   SectionLabel,
+  Tiles,
   shortDate,
-  PITCH_TABS,
 } from '@/components/spine/ui';
 import { READ_FAILED, human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -121,7 +122,7 @@ export default function PitchesPage() {
       )}
 
       {loading ? (
-        <Card><Empty>Loading…</Empty></Card>
+        <RowsLoading rows={4} />
       ) : rows.length === 0 ? (
         <Card style={{ maxWidth: 620 }}>
           <div style={{ fontSize: 17, fontWeight: 600, color: C.text, marginBottom: 8 }}>

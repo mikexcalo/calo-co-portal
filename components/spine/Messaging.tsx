@@ -22,7 +22,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { save as saveOrFail } from '@/lib/spine/save';
-import { Button, C, Card, SectionLabel, inputStyle } from './ui';
+import { Button, C, Card, SectionLabel, Skeleton, inputStyle } from './ui';
 
 export interface Pillar {
   name: string;
@@ -173,7 +173,18 @@ export function Messaging({
   const written =
     FIELDS.filter((f) => (m[f.key] ?? '').trim()).length + (m.pillars.length ? 1 : 0);
 
-  if (!loaded) return <Card><div style={{ color: C.faint, fontSize: 14 }}>Loading…</div></Card>;
+  if (!loaded) {
+    return (
+      <Card>
+        {[0, 1, 2].map((i) => (
+          <div key={i} style={{ marginBottom: 16 }}>
+            <Skeleton w={104} h={10} style={{ marginBottom: 7 }} />
+            <Skeleton w="100%" h={30} r={8} />
+          </div>
+        ))}
+      </Card>
+    );
+  }
 
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: 780 }}>

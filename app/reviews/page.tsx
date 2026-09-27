@@ -19,7 +19,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
-import { Button, C, Card, Empty, Metric, Page, Pill, DIGITAL_TABS, SectionLabel, shortDate } from '@/components/spine/ui';
+import { Button, C, Card, DIGITAL_TABS, Empty, Metric, Page, Pill, RowsLoading, SectionLabel, shortDate } from '@/components/spine/ui';
 
 interface Due {
   job_id: string;
@@ -82,7 +82,7 @@ export default function ReviewsPage() {
     load();
   };
 
-  if (loading) return <Page title="Reviews"><Card><Empty>Loading…</Empty></Card></Page>;
+  if (loading) return <Page title="Reviews"><RowsLoading rows={5} /></Page>;
 
   const clicked = sent.filter((s) => s.clicked_at).length;
 

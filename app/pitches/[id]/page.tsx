@@ -25,6 +25,7 @@ import {
   Page,
   Pill,
   SectionLabel,
+  Skeleton,
   inputStyle,
   shortDate,
 } from '@/components/spine/ui';
@@ -143,7 +144,18 @@ export default function PitchEditorPage({ params }: { params: { id: string } }) 
     setPitch({ ...pitch, sections: next });
   };
 
-  if (loading) return <Page title="Pitch"><Card>Loading…</Card></Page>;
+  if (loading) {
+    return (
+      <Page title="Pitch">
+        <Card>
+          <Skeleton w={260} h={18} style={{ marginBottom: 12, maxWidth: '100%' }} />
+          <Skeleton w="100%" h={11} style={{ marginBottom: 7 }} />
+          <Skeleton w="92%" h={11} style={{ marginBottom: 7 }} />
+          <Skeleton w="64%" h={11} />
+        </Card>
+      </Page>
+    );
+  }
   if (!pitch) return <Page title="Pitch"><Card>That pitch could not be found.</Card></Page>;
 
   const url = pitch.public_token ? `${origin}/p/${pitch.public_token}` : null;

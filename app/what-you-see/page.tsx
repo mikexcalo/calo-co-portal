@@ -19,7 +19,7 @@ import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { modulesFor, type ModuleId, type ModuleState } from '@/lib/spine/modules';
 import { ModuleSwitchboard } from '@/components/spine/ModuleSwitchboard';
-import { C, Card, Empty, Page, SETUP_TABS } from '@/components/spine/ui';
+import { C, Card, Empty, Page, RowsLoading, SETUP_TABS } from '@/components/spine/ui';
 import { READ_FAILED, human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { workspaceColor } from '@/lib/spine/workspace-color';
@@ -165,7 +165,7 @@ export default function WhatYouSeePage() {
       )}
 
       {!loaded || !org ? (
-        <Empty>Loading…</Empty>
+        <RowsLoading rows={6} />
       ) : org.self_serve_modules === false ? (
         /* Said plainly rather than letting somebody flip a switch that silently
            refuses. A control that does nothing is worse than one that is absent. */

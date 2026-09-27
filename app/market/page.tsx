@@ -32,7 +32,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
-import { Button, C, Card, Empty, Page, SectionLabel, inputStyle , SearchField} from '@/components/spine/ui';
+import { Button, C, Card, Empty, Page, RowsLoading, SearchField, SectionLabel, inputStyle } from '@/components/spine/ui';
 import { Glyph } from '@/components/spine/icons';
 import { Doc, CopyDoc } from '@/components/spine/Doc';
 import { READ_FAILED, human } from '@/lib/spine/errors';
@@ -175,7 +175,7 @@ export default function MarketPage() {
       )}
 
       {!loaded ? (
-        <Empty>Loading…</Empty>
+        <RowsLoading rows={5} />
       ) : error ? (
         <Card>
           <div style={{ fontSize: 13.5, color: C.red, lineHeight: 1.6 }}>

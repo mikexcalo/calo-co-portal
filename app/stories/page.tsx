@@ -25,14 +25,15 @@ import { OutboundCheck } from '@/components/spine/OutboundCheck';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
 import {
-  PITCH_TABS,
   Button,
   C,
   Card,
   Empty,
   Field,
+  PITCH_TABS,
   Page,
   Pill,
+  RowsLoading,
   SectionLabel,
   inputStyle,
 } from '@/components/spine/ui';
@@ -341,7 +342,7 @@ export default function StoriesPage() {
     [claims]
   );
 
-  if (loading) return <Page title="Case Studies"><Card><Empty>Loading…</Empty></Card></Page>;
+  if (loading) return <Page title="Case Studies"><RowsLoading rows={4} /></Page>;
 
   return (
     <Page

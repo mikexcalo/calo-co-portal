@@ -19,6 +19,7 @@ import supabase from '@/lib/supabase';
 import { getCurrentOrg, updateOrg } from '@/lib/spine/db';
 import { METHODS, looksLikeAccountNumber, type PaymentMethod } from '@/lib/spine/payments';
 import type { Org } from '@/lib/spine/types';
+import { Skeleton } from '@/components/spine/ui';
 import { PRODUCT } from '@/lib/brand';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -309,9 +310,24 @@ export default function WelcomePage() {
   );
 
   if (loading) {
+    /*
+      Setting up is the first screen anybody sees, so it is the worst place
+      for the product to say "Loading…" and nothing else. The card that is
+      coming has a heading and a run of fields; this is that, at the size it
+      will be.
+    */
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f7f7f5', color: FAINT, fontSize: 14 }}>
-        Loading…
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f7f7f5' }}>
+        <div style={{ width: 'min(520px, calc(100vw - 32px))' }} role="status" aria-label="Loading">
+          <Skeleton w={210} h={24} style={{ marginBottom: 10, maxWidth: '100%' }} />
+          <Skeleton w={280} h={12} style={{ marginBottom: 26, maxWidth: '100%' }} />
+          {[0, 1, 2].map((i) => (
+            <div key={i} style={{ marginBottom: 16 }}>
+              <Skeleton w={92} h={10} style={{ marginBottom: 7 }} />
+              <Skeleton w="100%" h={38} r={8} />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

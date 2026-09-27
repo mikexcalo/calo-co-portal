@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { QrStudio, type BrandColor } from '@/components/spine/QrStudio';
-import { Empty, Page, PITCH_TABS } from '@/components/spine/ui';
+import { Empty, PITCH_TABS, Page, RowsLoading } from '@/components/spine/ui';
 import { orgNow } from '@/lib/spine/db';
 
 export default function QrPage() {
@@ -49,7 +49,7 @@ export default function QrPage() {
       subtitle="Something to point a phone at, in your colors."
     >
       {!org ? (
-        <Empty>Loading…</Empty>
+        <RowsLoading rows={4} />
       ) : (
         <QrStudio
           orgId={org.id}

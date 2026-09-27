@@ -21,7 +21,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useOrg } from '@/lib/spine/org';
 import supabase from '@/lib/supabase';
 import { entityWords, type Change } from '@/lib/spine/workin';
-import { C, Card, Empty, Page, SectionLabel } from '@/components/spine/ui';
+import { C, Card, Empty, Page, RowsLoading, SectionLabel } from '@/components/spine/ui';
 
 interface Session {
   id: string;
@@ -74,7 +74,7 @@ export default function ChangedPage({ params }: { params: { id: string } }) {
 
   useEffect(() => { load(); }, [load]);
 
-  if (loading) return <Page title="What changed"><Card><Empty>Loading…</Empty></Card></Page>;
+  if (loading) return <Page title="What changed"><RowsLoading rows={4} /></Page>;
 
   if (!session) {
     return (

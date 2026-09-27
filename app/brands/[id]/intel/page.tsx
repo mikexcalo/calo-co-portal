@@ -32,6 +32,7 @@ import {
   Field,
   Page,
   Pill,
+  RowsLoading,
   SectionLabel,
   Select,
   brandTabs,
@@ -266,7 +267,7 @@ export default function IntelPage({ params }: { params: { id: string } }) {
 
   const tabs = brandTabs(params.id);
 
-  if (loading) return <Page title="Source material" tabs={tabs}><Card><Empty>Loading…</Empty></Card></Page>;
+  if (loading) return <Page title="Source material" tabs={tabs}><RowsLoading rows={4} /></Page>;
   if (!brand) return <Page title="Source material" tabs={tabs}><Card><Empty>Not found.</Empty></Card></Page>;
 
   const nameOf = (id: string) => brand.messaging.find((m) => m.id === id)?.name ?? id;

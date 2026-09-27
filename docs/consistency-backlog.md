@@ -292,7 +292,7 @@ lands there is about a job.
 
 ---
 
-## 17. Loading states, part 2 — the remaining screens — M
+## 17. Loading states, part 2 — the remaining screens — DONE 27 Sept 2026
 
 Part 1 did the fifteen busiest. Still bare: `traffic`, `seo`, `reviews`,
 `digital`, `qr`, `market`, `stories`, `pitches`, `pitches/[id]`,
@@ -304,6 +304,46 @@ not touch, because the shell is chrome rather than a screen and wants its own
 decision.
 
 No new decisions needed for the rest: same three primitives, same rule.
+
+---
+
+## 18. The Notes screen cannot save without a customer — S
+
+`app/notes/page.tsx` labels its picker "Who is this about? · **optional**"
+and then writes `customer_id: customerId || null` into a NOT NULL column, so
+leaving it blank fails with "Nothing was saved. Fill it in and save again" -
+which does not name the field, because the database did not either.
+
+It is #16 in a second place, and it has a cost: `extraction_cost_cents` is
+recorded only on this path, and no note in the database has ever carried one.
+The recording has most likely never succeeded in ordinary use.
+
+Send customer-less notes to Drops, exactly as DropIt does. Same inbox, same
+one-tap filing.
+
+Also in this group: the note route's 400 reads "That's too short to be worth
+reading — just type it in as a note." That em dash is user-facing.
+
+---
+
+## 19. Migration files are duplicating themselves again — S
+
+332 files in `supabase/migrations`, 202 tracked by git. The other 130 are
+macOS duplicate copies named `… 2.sql` and `… 3.sql` - the exact problem
+CLAUDE.md records as fixed, returned.
+
+They are iCloud placeholders: `ls` reports 2241 bytes, reading one returns
+nothing at all. The project lives in `~/Desktop`, which iCloud Drive is
+syncing, and that same sync is the likeliest explanation for the `.git/index`
+that vanished mid-session.
+
+They break `supabase db push`, which counts 332 local migrations against 202
+remote rows and refuses. `scripts/ask-db.sh` pushes a probe migration, so
+every read through it fails too.
+
+Deleting the 130 untracked copies fixes it and touches nothing in the
+database. The deeper question is whether this repository should live inside
+an iCloud-synced folder at all.
 
 ---
 

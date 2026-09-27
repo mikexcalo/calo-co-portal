@@ -20,6 +20,7 @@ import {
   Field,
   Page,
   Pill,
+  RowsLoading,
   SectionLabel,
   inputStyle,
   shortDate,
@@ -174,7 +175,7 @@ export default function RequestsPage() {
       )}
 
       {loading ? (
-        <Empty>Loading…</Empty>
+        <RowsLoading rows={5} />
       ) : requests.length === 0 ? (
         <Card>
           <Empty>

@@ -32,9 +32,10 @@ import {
   Empty,
   Page,
   Pill,
+  RowsLoading,
   SectionLabel,
-  inputStyle,
   brandTabs,
+  inputStyle,
 } from '@/components/spine/ui';
 import { save as saveOrFail } from '@/lib/spine/save';
 
@@ -128,7 +129,7 @@ export default function MessagingPage({ params }: { params: { id: string } }) {
 
   const tabs = brandTabs(params.id);
 
-  if (loading) return <Page title="Framework" tabs={tabs}><Card><Empty>Loading…</Empty></Card></Page>;
+  if (loading) return <Page title="Framework" tabs={tabs}><RowsLoading rows={4} /></Page>;
   if (!brand) return <Page title="Framework" tabs={tabs}><Card><Empty>Not found.</Empty></Card></Page>;
 
   const modules = brand.messaging ?? [];

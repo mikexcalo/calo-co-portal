@@ -25,6 +25,7 @@ import {
   DIGITAL_TABS,
   Empty,
   Page,
+  RowsLoading,
   SectionLabel,
   Select,
 } from '@/components/spine/ui';
@@ -189,7 +190,7 @@ export default function TrafficPage() {
           </div>
         </Card>
       ) : !loaded ? (
-        <Empty>Loading…</Empty>
+        <RowsLoading rows={5} />
       ) : (
         <>
           <div

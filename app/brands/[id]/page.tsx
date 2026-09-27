@@ -26,6 +26,7 @@ import {
   Empty,
   Page,
   Pill,
+  RowsLoading,
   SectionLabel,
 } from '@/components/spine/ui';
 
@@ -229,7 +230,7 @@ export default function BrandDetail({ params }: { params: { id: string } }) {
     return () => { cancelled = true; };
   }, [brand]);
 
-  if (loading) return <Page title="Brand"><Card><Empty>Loading…</Empty></Card></Page>;
+  if (loading) return <Page title="Brand"><RowsLoading rows={4} /></Page>;
   if (!brand) return <Page title="Brand"><Card><Empty>Not found.</Empty></Card></Page>;
 
   const { colors = [], fonts = [], assets = [] } = brand.kit ?? {};

@@ -17,20 +17,21 @@ import { getCurrentOrg, orgNow} from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import { modulesFor } from '@/lib/spine/modules';
 import {
-  Select,
+  BRAND_TABS,
   Button,
   C,
   Card,
+  DIGITAL_TABS,
   Empty,
   Field,
   Page,
   Pill,
+  RowsLoading,
   SectionLabel,
+  Select,
   inputStyle,
   shortDate,
   useIsPhone,
-  BRAND_TABS,
-  DIGITAL_TABS,
 } from '@/components/spine/ui';
 import { READ_FAILED, human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -276,7 +277,7 @@ export default function WebsitePage() {
 
       <SectionLabel>Your requests</SectionLabel>
       {loading ? (
-        <Empty>Loading…</Empty>
+        <RowsLoading rows={5} />
       ) : requests.length === 0 ? (
         <Card>
           <Empty>

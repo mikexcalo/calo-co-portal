@@ -30,12 +30,13 @@ import {
   Card,
   Empty,
   Field,
+  PITCH_TABS,
   Page,
   Pill,
   SectionLabel,
+  Skeleton,
   inputStyle,
   useIsPhone,
-  PITCH_TABS,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 
@@ -134,7 +135,14 @@ export default function SignaturePage() {
         </Card>
       )}
       {!org ? (
-        <Empty>Loading…</Empty>
+        <Card>
+          {[0, 1, 2].map((i) => (
+            <div key={i} style={{ marginBottom: 16 }}>
+              <Skeleton w={88} h={10} style={{ marginBottom: 7 }} />
+              <Skeleton w="100%" h={36} r={8} />
+            </div>
+          ))}
+        </Card>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: phone ? '1fr' : 'minmax(0,1fr) minmax(0,1fr)', gap: 18 }}>
           <div>

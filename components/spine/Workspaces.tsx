@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { MODULE_LABEL, type ModuleId } from '@/lib/spine/modules';
-import { C, Card, Empty, Pill, SectionLabel } from '@/components/spine/ui';
+import { C, Card, Empty, Pill, RowsLoading, SectionLabel } from '@/components/spine/ui';
 import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Workspace {
@@ -86,7 +86,7 @@ export function Workspaces() {
     return v === true ? 'on' : v === false ? 'off' : 'plan';
   };
 
-  if (loading) return <Card><Empty>Loading…</Empty></Card>;
+  if (loading) return <RowsLoading rows={4} />;
 
   return (
     <>
