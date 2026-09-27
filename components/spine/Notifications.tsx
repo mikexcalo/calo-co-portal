@@ -16,7 +16,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
-import { C, radius } from './ui';
+import { C, radius, useEscape } from './ui';
 import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Notification {
@@ -86,6 +86,7 @@ export function Notifications() {
     });
   };
   const [open, setOpen] = useState(false);
+  useEscape(() => setOpen(false), open);
   /** Set after mount — a clock read during render disagrees with the server. */
   const [now, setNow] = useState<number | null>(null);
 

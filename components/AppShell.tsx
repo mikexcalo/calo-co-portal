@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import TopBar from '@/components/TopBar';
-import { useIsPhone, C, radius } from '@/components/spine/ui';
+import { C, radius, useEscape, useIsPhone } from '@/components/spine/ui';
 import { TutorialPanel } from '@/components/spine/TutorialPanel';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
@@ -82,6 +82,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     })();
   }, []);
   const [navOpen, setNavOpen] = useState(false);
+  useEscape(() => setNavOpen(false), navOpen);
   const [addOpen, setAddOpen] = useState(false);
 
   /*

@@ -15,7 +15,7 @@
 
 import { useState } from 'react';
 import supabase from '@/lib/supabase';
-import { Button, C, Card, SectionLabel, inputStyle } from './ui';
+import { Button, C, Card, SectionLabel, Select, inputStyle } from './ui';
 import { OutboundCheck } from './OutboundCheck';
 import { human } from '@/lib/spine/errors';
 
@@ -141,18 +141,13 @@ export function ClientUpdate({ customerId, clientName }: { customerId: string; c
             </span>
           ) : (
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap', flex: 1 }}>
-              <select
+              <Select
+                inline
                 value={to}
-                onChange={(e) => setTo(e.target.value)}
-                style={{
-                  background: 'transparent', color: C.text, border: 'none', padding: 0,
-                  fontSize: 14.5, fontWeight: 500, fontFamily: 'inherit', cursor: 'pointer',
-                }}
-              >
-                {draft.people.map((p) => (
-                  <option key={p.email} value={p.email}>{p.name}</option>
-                ))}
-              </select>
+                onChange={setTo}
+                textStyle={{ fontSize: 14.5, fontWeight: 500 }}
+                options={draft.people.map((p) => ({ value: p.email, label: p.name }))}
+              />
               <span style={{ fontSize: 13, color: C.dim }}>{person?.email}</span>
               {person?.title && <span style={{ fontSize: 12.5, color: C.faint }}>{person.title}</span>}
             </div>

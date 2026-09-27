@@ -31,6 +31,7 @@ import {
   Empty,
   Page,
   Pill,
+  Sheet,
   Avatar,
   inputStyle,
 
@@ -537,16 +538,10 @@ export default function PeoplePage() {
           {openPerson && (() => {
             const p = openPerson;
             return (
-              <div
-                onMouseDown={(e) => { if (e.target === e.currentTarget) setOpenId(null); }}
-                style={{
-                  position: 'fixed', inset: 0, zIndex: 300,
-                  background: 'rgba(16,17,20,.34)',
-                  display: 'grid', placeItems: 'start center',
-                  padding: '6vh 20px 20px', overflowY: 'auto',
-                }}
-              >
-              <Card style={{ width: '100%', maxWidth: 720, boxShadow: '0 24px 60px rgba(0,0,0,.18)' }}>
+              <Sheet width={720} label={p.name} onClose={() => setOpenId(null)}>
+              <div>
+                {/* The person's own row rather than Sheet's plain title: the
+                    avatar is how you recognise which of four Daves this is. */}
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12 }}>
                   <Avatar src={p.avatar_url} name={p.name} size={26} />
                   <span style={{ fontSize: 15, fontWeight: 500, color: C.text, flex: 1 }}>{p.name}</span>
@@ -669,8 +664,8 @@ export default function PeoplePage() {
               )}
             </div>
           </div>
-              </Card>
               </div>
+              </Sheet>
             );
           })()}
         </>

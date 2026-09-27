@@ -16,7 +16,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import supabase from '@/lib/supabase';
-import { Button, C, Card, Empty, SectionLabel } from './ui';
+import { Button, C, Card, Empty, SectionLabel, useEscape } from './ui';
 import { Confirm } from './Confirm';
 import { Processing } from './Processing';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -47,6 +47,10 @@ export function Photos({
   const [dragging, setDragging] = useState(false);
   const [lightbox, setLightbox] = useState<Photo | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Photo | null>(null);
+
+  /* A photo filling the screen is the most obvious thing in the product to
+     press Escape at. It did nothing. */
+  useEscape(() => setLightbox(null), lightbox !== null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {

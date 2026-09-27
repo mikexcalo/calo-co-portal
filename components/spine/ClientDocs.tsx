@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
-import { Button, C, Card, Pill, SectionLabel, shortDate } from './ui';
+import { Button, C, Card, Pill, SectionLabel, Select, shortDate } from './ui';
 import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Doc {
@@ -89,18 +89,16 @@ export function ClientDocs({ customerId }: { customerId: string }) {
                 >
                   {d.title ?? 'Untitled'}
                 </span>
-                <select
+                <Select
                   value={d.visibility}
-                  onChange={(e) => setVisibility(d, e.target.value as Doc['visibility'])}
-                  style={{
-                    border: `1px solid ${C.border}`, borderRadius: 6, background: 'transparent',
-                    fontSize: 11.5, color: C.dim, padding: '3px 6px', fontFamily: 'inherit', cursor: 'pointer',
-                  }}
-                >
-                  <option value="ours">Ours only</option>
-                  <option value="shared">Shared with them</option>
-                  <option value="theirs">Theirs</option>
-                </select>
+                  onChange={(v) => setVisibility(d, v as Doc['visibility'])}
+                  style={{ width: 'auto', minWidth: 170 }}
+                  options={[
+                    { value: 'ours', label: 'Ours only' },
+                    { value: 'shared', label: 'Shared with them' },
+                    { value: 'theirs', label: 'Theirs' },
+                  ]}
+                />
                 <Pill tone={SEEN[d.visibility].tone}>{SEEN[d.visibility].label}</Pill>
               </div>
 

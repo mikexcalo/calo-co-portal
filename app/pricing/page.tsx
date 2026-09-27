@@ -19,7 +19,6 @@ import { Processing } from '@/components/spine/Processing';
 import { getCurrentOrg } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import {
-  RowsLoading,
   Button,
   C,
   Card,
@@ -28,7 +27,9 @@ import {
   Page,
   Pill,
   Row,
+  RowsLoading,
   SectionLabel,
+  Select,
   Table,
   inputStyle,
   money,
@@ -318,20 +319,20 @@ export default function PricingPage() {
                 }
                 style={inputStyle}
               />
-              <select
+              <Select
                 value={r.kind}
-                onChange={(e) =>
+                onChange={(v) =>
                   setImported((p) =>
-                    p!.map((x, j) => (j === i ? { ...x, kind: e.target.value as Draft['kind'] } : x))
+                    p!.map((x, j) => (j === i ? { ...x, kind: v as Draft['kind'] } : x))
                   )
                 }
-                style={{ ...inputStyle, padding: '8px 6px', fontSize: 12.5 }}
-              >
-                <option value="labor">Labor</option>
-                <option value="material">Material</option>
-                <option value="subcontractor">Sub</option>
-                <option value="other">Other</option>
-              </select>
+                options={[
+                  { value: 'labor', label: 'Labor' },
+                  { value: 'material', label: 'Material' },
+                  { value: 'subcontractor', label: 'Sub' },
+                  { value: 'other', label: 'Other' },
+                ]}
+              />
               <input
                 type="number"
                 step="0.01"
@@ -399,16 +400,16 @@ export default function PricingPage() {
             </Field>
           </div>
           <Field label="Type">
-            <select
+            <Select
               value={draft.kind}
-              onChange={(e) => setDraft({ ...draft, kind: e.target.value as Draft['kind'] })}
-              style={inputStyle}
-            >
-              <option value="labor">Labor</option>
-              <option value="material">Material</option>
-              <option value="subcontractor">Subcontractor</option>
-              <option value="other">Other</option>
-            </select>
+              onChange={(v) => setDraft({ ...draft, kind: v as Draft['kind'] })}
+              options={[
+                { value: 'labor', label: 'Labor' },
+                { value: 'material', label: 'Material' },
+                { value: 'subcontractor', label: 'Subcontractor' },
+                { value: 'other', label: 'Other' },
+              ]}
+            />
           </Field>
           <Button onClick={() => save([draft])} disabled={busy || !draft.name.trim()}>
             Save

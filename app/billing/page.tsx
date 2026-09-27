@@ -379,22 +379,7 @@ export default function BillingPage() {
       )}
 
       {previewing && (
-        <div
-          onClick={() => setPreviewing(null)}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,.45)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: C.panel, borderRadius: 12, overflow: 'hidden',
-              width: 'min(880px, 100%)', height: 'min(90vh, 1000px)',
-              display: 'flex', flexDirection: 'column',
-              boxShadow: '0 24px 60px rgba(0,0,0,.3)',
-            }}
-          >
+        <Sheet bare width={880} label="Preview" onClose={() => setPreviewing(null)}>
             <div
               style={{
                 display: 'flex', alignItems: 'center', gap: 12,
@@ -419,8 +404,7 @@ export default function BillingPage() {
               title="Invoice preview"
               style={{ flex: 1, border: 'none', width: '100%', background: '#f5f5f3' }}
             />
-          </div>
-        </div>
+        </Sheet>
       )}
 
       {error && (

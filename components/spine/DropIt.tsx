@@ -21,7 +21,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
-import { Button, C, Card, inputStyle } from './ui';
+import { Button, C, Card, Select, inputStyle } from './ui';
 import { TalkToIt } from './TalkToIt';
 import { save as saveOrFail } from '@/lib/spine/save';
 
@@ -168,18 +168,13 @@ export function DropIt({ onClose }: { onClose: () => void }) {
           />
 
           <div style={{ display: 'flex', gap: 9, alignItems: 'center', flexWrap: 'wrap' }}>
-            <select
+            <Select
               value={clientId}
-              onChange={(e) => setClientId(e.target.value)}
-              style={{
-                background: C.panelAlt, color: clientId ? C.text : C.faint,
-                border: `1px solid ${C.border}`, borderRadius: 7,
-                padding: '7px 10px', fontSize: 13.5, fontFamily: 'inherit',
-              }}
-            >
-              <option value="">Not about a client</option>
-              {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+              onChange={setClientId}
+              placeholder="Not about a client"
+              style={{ width: 'auto', minWidth: 200 }}
+              options={clients.map((c) => ({ value: c.id, label: c.name }))}
+            />
 
             {guess && guess.id === clientId && (
               <span style={{ fontSize: 12.5, color: C.faint }}>picked up from what you said</span>

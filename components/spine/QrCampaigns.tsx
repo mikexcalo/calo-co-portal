@@ -22,6 +22,7 @@ import {
   Field,
   Pill,
   SectionLabel,
+  Select,
   inputStyle,
   shortDate,
 } from './ui';
@@ -168,9 +169,11 @@ export function QrCampaigns({
             </div>
             <div style={{ flex: '1 1 150px' }}>
               <Field label="Where it's printed">
-                <select value={medium} onChange={(e) => setMedium(e.target.value)} style={inputStyle}>
-                  {MEDIUMS.map((m) => <option key={m} value={m}>{m}</option>)}
-                </select>
+                <Select
+                  value={medium}
+                  onChange={setMedium}
+                  options={MEDIUMS.map((m) => ({ value: m, label: m }))}
+                />
               </Field>
             </div>
           </div>

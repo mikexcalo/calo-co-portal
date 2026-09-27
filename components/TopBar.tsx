@@ -8,7 +8,7 @@ import supabase from '@/lib/supabase';
 import { useTutorial } from '@/lib/spine/tutorial';
 import { useOrg } from '@/lib/spine/org';
 import { OrgSwitcher } from '@/components/spine/OrgSwitcher';
-import { useIsPhone, radius, SectionLabel, useModKey } from '@/components/spine/ui';
+import { SectionLabel, Sheet, radius, useEscape, useIsPhone, useModKey } from '@/components/spine/ui';
 import { C } from '@/components/spine/ui';
 import { Notifications } from '@/components/spine/Notifications';
 import { DropIt } from '@/components/spine/DropIt';
@@ -337,36 +337,9 @@ export default function TopBar() {
         {logging && <LogTime onClose={() => setLogging(false)} />}
 
         {dropping && (
-          <div
-            onClick={() => setDropping(false)}
-            style={{
-              position: 'fixed', inset: 0, zIndex: 60,
-              background: 'rgba(0,0,0,.35)',
-              display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-              paddingTop: '9vh',
-            }}
-          >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: 'min(680px, 92vw)', maxHeight: '80vh', overflowY: 'auto',
-                background: C.panel, border: `1px solid ${C.border}`,
-                borderRadius: 12, padding: 18,
-                boxShadow: '0 20px 60px rgba(0,0,0,.35)',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <span style={{ fontSize: 15, fontWeight: 500, color: C.text }}>Add a note</span>
-                <button
-                  onClick={() => setDropping(false)}
-                  style={{ background: 'transparent', border: 'none', color: C.faint, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
-                >
-                  Close
-                </button>
-              </div>
-              <DropIt onClose={() => setDropping(false)} />
-            </div>
-          </div>
+          <Sheet title="Add a note" width={680} onClose={() => setDropping(false)}>
+            <DropIt onClose={() => setDropping(false)} />
+          </Sheet>
         )}
         {/* Was a dark/light toggle. A theme switch doubled every color
             decision and taught nobody anything; guided paths do. */}
@@ -405,6 +378,7 @@ export default function TopBar() {
 function AccountMenu() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  useEscape(() => setOpen(false), open);
   const { viewAs, setViewAs } = useViewAs();
   const [email, setEmail] = useState<string | null>(null);
   const [avatar, setAvatar] = useState<string | null>(null);

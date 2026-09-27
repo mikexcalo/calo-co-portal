@@ -54,6 +54,7 @@ import {
   Row,
   SectionHead,
   SectionLabel,
+  Select,
   Table,
   hours as fmtHours,
   inputStyle,
@@ -335,20 +336,17 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
       {/* Status + billing type */}
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 22, flexWrap: 'wrap' }}>
-        <select
+        <Select
           value={job.status}
           disabled={busy}
-          onChange={(e) =>
+          onChange={(v) =>
             run(async () => {
-              await updateJob(jobId, { status: e.target.value as JobStatus });
+              await updateJob(jobId, { status: v as JobStatus });
             })
           }
-          style={{ ...inputStyle, width: 'auto', padding: '7px 10px' }}
-        >
-          {STATUSES.map((s) => (
-            <option key={s} value={s}>{JOB_STATUS_LABEL[s]}</option>
-          ))}
-        </select>
+          style={{ width: 'auto', minWidth: 160 }}
+          options={STATUSES.map((s) => ({ value: s, label: JOB_STATUS_LABEL[s] }))}
+        />
         <Pill tone={isTM ? 'blue' : 'neutral'}>
           {isTM ? 'Time & materials' : 'Fixed price'}
         </Pill>

@@ -33,9 +33,10 @@ import {
   Page,
   Pill,
   SectionLabel,
+  Select,
+  brandTabs,
   inputStyle,
   shortDate,
-  brandTabs,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -288,9 +289,11 @@ export default function IntelPage({ params }: { params: { id: string } }) {
         />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 }}>
           <Field label="What is it">
-            <select value={kind} onChange={(e) => setKind(e.target.value)} style={inputStyle}>
-              {KINDS.map((k) => <option key={k.id} value={k.id}>{k.label}</option>)}
-            </select>
+            <Select
+              value={kind}
+              onChange={setKind}
+              options={KINDS.map((k) => ({ value: k.id, label: k.label }))}
+            />
           </Field>
           <Field label="Where it came from">
             <input

@@ -15,7 +15,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
-import { Button, C, Card, Field, SectionLabel, inputStyle, radius } from './ui';
+import { Button, C, Card, Field, SectionLabel, Select, inputStyle, radius } from './ui';
 import { QrCampaigns, type Campaign } from './QrCampaigns';
 import { human } from '@/lib/spine/errors';
 
@@ -180,15 +180,11 @@ export function QrStudio({
 
         <Card>
           <SectionLabel>Size</SectionLabel>
-          <select
-            value={size}
-            onChange={(e) => setSize(Number(e.target.value))}
-            style={inputStyle}
-          >
-            {SIZES.map((s) => (
-              <option key={s.px} value={s.px}>{s.label}</option>
-            ))}
-          </select>
+          <Select
+            value={String(size)}
+            onChange={(v) => setSize(Number(v))}
+            options={SIZES.map((s) => ({ value: String(s.px), label: s.label }))}
+          />
           <div style={{ fontSize: 12.5, color: C.faint, marginTop: 10, lineHeight: 1.55 }}>
             For a yard sign or truck door, use the largest. A QR code has to be about
             1cm wide for every 10cm of scanning distance.

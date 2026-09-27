@@ -937,6 +937,29 @@ export function Tabs({
 }
 
 /**
+ * Escape closes it, for the things that are not Sheets.
+ *
+ * Six overlays in this product are deliberately not dialogs - a photo
+ * lightbox, the command palette, a right-hand drawer, the phone nav, and two
+ * anchored menus - and forcing them into Sheet would have cost each of them
+ * the thing that makes it what it is. What they were also missing was the
+ * only behaviour every one of them should share: the key people press when
+ * they want out.
+ *
+ * So the shape is theirs and the contract is shared. Cheaper than a component
+ * they do not fit, and it is the actual promise - anything that covers the
+ * screen can be dismissed from the keyboard.
+ */
+export function useEscape(onClose: () => void, active = true) {
+  React.useEffect(() => {
+    if (!active) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose, active]);
+}
+
+/**
  * Everything overlay-shaped.
  *
  * Escape closes it, clicking the backdrop closes it, focus moves into it when
@@ -949,19 +972,107 @@ export function Sheet({
   onClose,
   children,
   width = 460,
+  label,
+  bare,
+  unsaved,
+  unsavedPrompt,
 }: {
   title?: string;
+  /**
+   * What to call this to a screen reader, when the panel draws its own
+   * heading.
+   *
+   * Some dialogs have a heading the shared one cannot be - Get help sizes
+   * its title against the studio's name, and flattening it to the standard
+   * 16px would undo work that exists for a reason. Those pass `label`
+   * instead, so dropping the rendered title does not silently drop the
+   * accessible name with it.
+   */
+  label?: string;
+  /**
+   * A viewport rather than a form.
+   *
+   * The two document previews put an iframe edge to edge and want most of
+   * the screen: padding around a rendered page is a frame around a frame,
+   * and 80vh cuts the bottom off an invoice. They still want everything else
+   * Sheet does - Escape, the backdrop, focus handling, coming up from the
+   * bottom on a phone - which is the whole reason this is a flag on the
+   * shared component and not a fifteenth hand-written overlay.
+   */
+  bare?: boolean;
   onClose: () => void;
   children: React.ReactNode;
   width?: number;
+  /**
+   * There is typing in here that would be lost.
+   *
+   * Escape and a tap on the backdrop are both easy to do by accident - a
+   * thumb landing an inch wide of a bottom sheet, a reflex after a browser
+   * dialog - and the cost is asymmetric. Losing a stray tap costs a tap.
+   * Losing a paragraph somebody wrote costs the paragraph.
+   *
+   * So the two easy ways out ask first, and the explicit ones do not: the
+   * Cancel button and the Save button are somebody saying what they meant,
+   * and second-guessing those is the nagging kind of dialog that teaches
+   * people to click through without reading.
+   */
+  unsaved?: boolean;
+  /** What to ask. Worth overriding where "changes" has a better word. */
+  unsavedPrompt?: string;
 }) {
   const phone = useIsPhone();
   const card = React.useRef<HTMLDivElement>(null);
+  const [asking, setAsking] = React.useState(false);
+
+  /*
+    Whether anything in here has been typed into.
+
+    The explicit `unsaved` prop wins where a caller knows. Where it does not -
+    and most do not, because the panel's state usually lives one component
+    further down than the thing rendering the Sheet - the panel works it out
+    by watching its own fields.
+
+    It compares against what the fields held when it opened, rather than
+    against empty. That distinction is the whole reason this is not a
+    one-liner: the person panel on People opens with six fields already full,
+    and "has a value" would call it unsaved before anybody touched it, which
+    trains people to click through the question without reading it.
+
+    Read through a ref so the Escape handler is not re-bound on every
+    keystroke.
+  */
+  const opening = React.useRef<Array<[HTMLElement, string]>>([]);
+  const explicit = React.useRef<boolean | undefined>(undefined);
+  explicit.current = unsaved;
+
+  React.useEffect(() => {
+    const fields = card.current?.querySelectorAll<HTMLInputElement>('input, textarea, select');
+    opening.current = Array.from(fields ?? []).map((f) => [
+      f,
+      f.type === 'checkbox' || f.type === 'radio' ? String(f.checked) : f.value,
+    ]);
+  }, []);
+
+  const tryClose = React.useCallback(() => {
+    if (explicit.current !== undefined) {
+      if (explicit.current) setAsking(true);
+      else onClose();
+      return;
+    }
+    const changed = opening.current.some(([f, was]) => {
+      if (!f.isConnected) return false;
+      const el = f as HTMLInputElement;
+      const now = el.type === 'checkbox' || el.type === 'radio' ? String(el.checked) : el.value;
+      return now !== was;
+    });
+    if (changed) setAsking(true);
+    else onClose();
+  }, [onClose]);
 
   React.useEffect(() => {
     const returnTo = document.activeElement as HTMLElement | null;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') tryClose();
     };
     window.addEventListener('keydown', onKey);
     // The first thing you can type in, or the panel itself.
@@ -973,20 +1084,29 @@ export function Sheet({
       window.removeEventListener('keydown', onKey);
       returnTo?.focus?.();
     };
-  }, [onClose]);
+  }, [tryClose]);
 
   return (
     <div
-      onClick={onClose}
+      /*
+        mousedown on the backdrop ITSELF, not a click anywhere that bubbles.
+
+        With onClick the overlay closed when a drag that started inside the
+        panel happened to finish on the backdrop - selecting a line of text
+        and releasing past the edge threw the dialog away. Comparing target to
+        currentTarget means only a press that both starts and lands on the
+        backdrop counts.
+      */
+      onMouseDown={(e) => { if (e.target === e.currentTarget) tryClose(); }}
       style={{
         position: 'fixed',
         inset: 0,
         zIndex: 300,
         background: 'rgba(0,0,0,.45)',
         display: 'flex',
-        alignItems: phone ? 'flex-end' : 'flex-start',
+        alignItems: phone ? 'flex-end' : bare ? 'center' : 'flex-start',
         justifyContent: 'center',
-        padding: phone ? 0 : '10vh 20px 20px',
+        padding: phone ? 0 : bare ? 20 : '10vh 20px 20px',
       }}
     >
       <div
@@ -994,15 +1114,18 @@ export function Sheet({
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        aria-label={title}
-        onClick={(e) => e.stopPropagation()}
+        aria-label={label ?? title}
         style={{
           background: C.panel,
           borderRadius: phone ? `${radius.lg}px ${radius.lg}px 0 0` : radius.lg,
-          padding: 22,
+          padding: bare ? 0 : 22,
+          overflow: bare ? 'hidden' : undefined,
+          display: bare ? 'flex' : undefined,
+          flexDirection: bare ? 'column' : undefined,
           width: phone ? '100%' : `min(${width}px, 100%)`,
+          height: bare ? (phone ? '92vh' : 'min(90vh, 1040px)') : undefined,
           maxHeight: phone ? '92vh' : '80vh',
-          overflowY: 'auto',
+          overflowY: bare ? undefined : 'auto',
           outline: 'none',
         }}
       >
@@ -1013,6 +1136,39 @@ export function Sheet({
         )}
         {children}
       </div>
+
+      {asking && (
+        <div
+          onMouseDown={(e) => { e.stopPropagation(); }}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 320,
+            background: 'rgba(16,17,20,.42)',
+            display: 'grid', placeItems: 'center', padding: 20,
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            style={{
+              background: C.panel, borderRadius: radius.lg, padding: 20,
+              width: 'min(380px, 100%)', boxShadow: '0 24px 60px rgba(0,0,0,.24)',
+            }}
+          >
+            <div style={{ fontSize: 15.5, fontWeight: 600, color: C.text, marginBottom: 8 }}>
+              Close without saving?
+            </div>
+            <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.65, margin: '0 0 16px' }}>
+              {unsavedPrompt ?? 'What you have typed here will be lost.'}
+            </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <Button variant="ghost" onClick={() => setAsking(false)}>Keep editing</Button>
+              <Button variant="danger" onClick={() => { setAsking(false); onClose(); }}>
+                Close without saving
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1192,6 +1348,8 @@ export function Select({
   placeholder,
   disabled,
   style,
+  inline,
+  textStyle,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -1199,18 +1357,56 @@ export function Select({
   placeholder?: string;
   disabled?: boolean;
   style?: React.CSSProperties;
+  /**
+   * A dropdown that reads as text, not as a field.
+   *
+   * Two of these are not form controls in any useful sense. The line kind in
+   * the estimate builder is an 11.5px caption above the description, inside a
+   * six-column grid that only just fits a 390px screen - a bordered box in
+   * every row puts the sideways scroll straight back. The recipient on a
+   * client update is the subject of a sentence: "To Frank Mercer,
+   * frank@..., Director", where the name being bold text is the point.
+   *
+   * They are still this component rather than two more hand-rolled selects,
+   * so the caret, the keyboard behaviour and the phone tap target come from
+   * the same place as everywhere else. What changes is the box around it,
+   * which is the only part that was ever wrong for them.
+   */
+  inline?: boolean;
+  /** Type for an inline one, which is borrowing the surrounding text's. */
+  textStyle?: React.CSSProperties;
 }) {
+  const phone = useIsPhone();
   return (
-    <div style={{ position: 'relative', display: 'inline-block', width: '100%', ...style }}>
+    <div
+      style={{
+        position: 'relative',
+        display: 'inline-block',
+        width: inline ? 'auto' : '100%',
+        ...style,
+      }}
+    >
       <select
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
         style={{
-          ...inputStyle,
+          ...(inline
+            ? {
+                background: 'transparent',
+                border: 'none',
+                padding: 0,
+                fontFamily: 'inherit',
+                color: C.text,
+                /* The floor still applies. An inline control is smaller to
+                   look at, not smaller to hit. */
+                minHeight: phone ? 44 : undefined,
+                ...textStyle,
+              }
+            : inputStyle),
           appearance: 'none',
           WebkitAppearance: 'none',
-          paddingRight: 30,
+          paddingRight: inline ? 15 : 30,
           cursor: disabled ? 'default' : 'pointer',
           opacity: disabled ? 0.6 : 1,
         }}
@@ -1223,8 +1419,11 @@ export function Select({
       <span
         aria-hidden
         style={{
-          position: 'absolute', right: 11, top: '50%', transform: 'translateY(-50%)',
-          pointerEvents: 'none', color: C.faint, fontSize: 10, lineHeight: 1,
+          position: 'absolute',
+          right: inline ? 1 : 11,
+          top: '50%', transform: 'translateY(-50%)',
+          pointerEvents: 'none', color: C.faint,
+          fontSize: inline ? 8 : 10, lineHeight: 1,
         }}
       >
         ▼

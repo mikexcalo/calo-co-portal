@@ -22,10 +22,11 @@ import {
   Button,
   C,
   Card,
+  DIGITAL_TABS,
   Empty,
   Page,
-  DIGITAL_TABS,
   SectionLabel,
+  Select,
 } from '@/components/spine/ui';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { orgNow } from '@/lib/spine/db';
@@ -133,16 +134,12 @@ export default function TrafficPage() {
       subtitle="Who visited your site, and where from."
       action={
         sites.length > 1 ? (
-          <select
+          <Select
             value={siteId ?? ''}
-            onChange={(e) => { setLoaded(false); setSiteId(e.target.value); }}
-            style={{
-              background: C.panelAlt, color: C.text, border: `1px solid ${C.border}`,
-              borderRadius: 7, padding: '7px 10px', fontSize: 13.5, fontFamily: 'inherit',
-            }}
-          >
-            {sites.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
+            onChange={(v) => { setLoaded(false); setSiteId(v); }}
+            style={{ width: 'auto', minWidth: 190 }}
+            options={sites.map((s) => ({ value: s.id, label: s.name }))}
+          />
         ) : undefined
       }
     >

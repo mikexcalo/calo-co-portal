@@ -19,8 +19,18 @@ import {
   type Profile,
 } from '@/lib/spine/seo';
 import {
-  Button, C, Card, Empty, Field, Metric, Page, Pill, SectionLabel, inputStyle,
+  Button,
+  C,
+  Card,
   DIGITAL_TABS,
+  Empty,
+  Field,
+  Metric,
+  Page,
+  Pill,
+  SectionLabel,
+  Select,
+  inputStyle,
 } from '@/components/spine/ui';
 import { save as saveOrFail } from '@/lib/spine/save';
 
@@ -314,16 +324,17 @@ export default function SeoPage() {
                     </a>
                     {c.note && <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2 }}>{c.note}</div>}
                   </div>
-                  <select
+                  <Select
                     value={c.status}
-                    onChange={(e) => setCitation(c, e.target.value)}
-                    style={{ ...inputStyle, width: 130, fontSize: 13, padding: '5px 8px' }}
-                  >
-                    <option value="todo">Not yet</option>
-                    <option value="claimed">Claimed</option>
-                    <option value="verified">Verified</option>
-                    <option value="skipped">Skipping</option>
-                  </select>
+                    onChange={(v) => setCitation(c, v)}
+                    style={{ width: 150 }}
+                    options={[
+                      { value: 'todo', label: 'Not yet' },
+                      { value: 'claimed', label: 'Claimed' },
+                      { value: 'verified', label: 'Verified' },
+                      { value: 'skipped', label: 'Skipping' },
+                    ]}
+                  />
                 </div>
               </Card>
             ))}

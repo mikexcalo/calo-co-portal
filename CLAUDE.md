@@ -41,7 +41,19 @@ the product was built from scratch with its own backdrop and its own idea of
 whether escape should close it.
 
 `Tabs`, `Sheet` and `Select` exist now. A new tab strip, dialog or dropdown
-written by hand is a bug, not a style choice.
+written by hand is a bug, not a style choice. There are zero raw `<select>`
+elements outside `ui.tsx`; keep it that way.
+
+`Sheet` closes on Escape and on a click outside, and asks first when
+something in it has been typed into - worked out by comparing the fields
+against what they held when it opened, so a panel that opens full of existing
+values does not claim to be unsaved. Pass `unsaved` to override that where a
+caller knows better.
+
+Six overlays are deliberately **not** Sheets: the photo lightbox, the command
+palette, the tutorial drawer, the phone nav drawer, and the two anchored menus
+(profile, notifications). A menu that grows a backdrop and a title stops being
+a menu. They share the behaviour instead, through `useEscape`.
 
 ## Navigation is generated, not hand-written
 

@@ -52,7 +52,7 @@ write-specific fallback and reads get one that claims nothing about saving.
 The five save paths get named causes wherever Postgres names a constraint or
 a column. Verified against a real refusal on the demo.
 
-## 3. Fifteen hand-written overlays instead of `Sheet` — M
+## 3. Fifteen hand-written overlays instead of `Sheet` — DONE 26 Sept 2026
 
 `Sheet` exists, handles escape, the backdrop, focus return and the phone
 bottom-sheet shape. Fifteen files still build their own from
@@ -74,7 +74,7 @@ note dialog looks like on the same account.
 
 ---
 
-## 4. Fifteen raw `<select>` instead of `Select` — M
+## 4. Fifteen raw `<select>` instead of `Select` — DONE 26 Sept 2026
 
 `app/traffic`, `app/brand-kit` (2), `app/brands/[id]/intel`, `app/jobs/[id]`,
 `app/jobs/[id]/estimate`, `app/seo`, `app/pricing` (2), `spine/QrStudio`,

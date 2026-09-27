@@ -664,12 +664,12 @@ export function ClientIntake({
                     { value: 'other', label: 'Something else' },
                   ]}
                 />
-                <select value={costJob} onChange={(e) => setCostJob(e.target.value)} style={inputStyle}>
-                  <option value="">Overhead, no job</option>
-                  {jobs.map((j) => (
-                    <option key={j.id} value={j.id}>{j.name}</option>
-                  ))}
-                </select>
+                <Select
+                  value={costJob}
+                  onChange={setCostJob}
+                  placeholder="Overhead, no job"
+                  options={jobs.map((j) => ({ value: j.id, label: j.name }))}
+                />
               </div>
               <div style={{ marginTop: 8 }}>
                 <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="What it was for" style={inputStyle} />

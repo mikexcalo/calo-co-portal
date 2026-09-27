@@ -29,7 +29,7 @@ import { usePathname } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { studioFor, type Studio } from '@/lib/spine/workin';
-import { Button, C, radius, inputStyle } from './ui';
+import { Button, C, Sheet, radius, inputStyle } from './ui';
 import { save as saveOrFail } from '@/lib/spine/save';
 
 export function GetHelp() {
@@ -209,28 +209,19 @@ export function GetHelp() {
   }
 
   return (
-    <>
-      <div
-        onClick={() => setOpen(false)}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(20,18,16,.45)', zIndex: 120 }}
-      />
-      <div
-        role="dialog"
-        aria-label={`Get help from ${studio.name}`}
-        style={{
-          position: 'fixed', zIndex: 121,
-          left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
-          /*
-            Narrower margins and tighter padding on a phone, so the one line
-            below the title has somewhere to be. At 390px this is the
-            difference between the sentence fitting and the studio's name
-            wrapping onto a second line.
-          */
-          width: 'min(560px, calc(100vw - 20px))', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto',
-          background: C.panel, borderRadius: 18, padding: 'clamp(17px, 4.6vw, 26px)',
-          boxShadow: '0 24px 70px rgba(0,0,0,.28)',
-        }}
-      >
+    <Sheet
+      width={560}
+      label={`Get help from ${studio.name}`}
+      onClose={() => setOpen(false)}
+      /* A half-written request for help is exactly the thing not to lose to a
+         stray tap: somebody stopped what they were doing to write it. */
+      unsaved={!sent && Boolean(body.trim())}
+      unsavedPrompt="Your message has not been sent."
+    >
+      {/* The heading stays here rather than becoming Sheet's, because it is
+          measured against the studio's name - see the note on the line below
+          it. Sheet's `label` carries the accessible name instead. */}
+      <div>
         {sent ? (
           <div style={{ fontSize: 15, color: C.text, lineHeight: 1.6 }}>
             Sent. {person} sees it right away, and you will be told about every change.
@@ -296,7 +287,7 @@ export function GetHelp() {
           </>
         )}
       </div>
-    </>
+    </Sheet>
   );
 }
 

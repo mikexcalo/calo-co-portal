@@ -18,7 +18,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { human } from '@/lib/spine/errors';
-import { Button, C, inputStyle } from './ui';
+import { Button, C, Select, Sheet, inputStyle } from './ui';
 import { orgNow } from '@/lib/spine/db';
 
 const ROLES = [
@@ -147,32 +147,21 @@ export function InvitePerson({ orgId, orgName, choices, prefillEmail, prefillNam
         {trigger ?? 'Invite someone'}
       </Button>
       {open && (
-    <div
-      onMouseDown={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 400,
-        background: 'rgba(16,17,20,.34)',
-        display: 'grid', placeItems: 'start center',
-        padding: '10vh 20px 20px',
-      }}
-    >
-      <div
-        ref={box}
-        role="dialog"
-        aria-label="Invite someone"
-        style={{
-          width: '100%', maxWidth: 480, background: C.panel,
-          border: `1px solid ${C.border}`, borderRadius: 12,
-          padding: '20px 22px 22px', boxShadow: '0 24px 60px rgba(0,0,0,.18)',
-          textAlign: 'left',
-        }}
-      >
-        <div style={{ fontSize: 17, fontWeight: 600, color: C.text }}>
-          {choices && choices.length > 1
-            ? 'Give them a login'
-            : `Invite someone to ${orgName && !/^untitled/i.test(orgName) ? orgName : 'this business'}`}
-        </div>
-        <p style={{ fontSize: 13, color: C.faint, margin: '4px 0 16px' }}>
+        <Sheet
+          width={480}
+          onClose={() => setOpen(false)}
+          title={
+            choices && choices.length > 1
+              ? 'Give them a login'
+              : `Invite someone to ${orgName && !/^untitled/i.test(orgName) ? orgName : 'this business'}`
+          }
+          /* Half-typed email addresses and a picked person are worth a
+             question. Once the invite is away there is nothing to lose. */
+          unsaved={!sent && Boolean((email || q).trim())}
+          unsavedPrompt="This invite has not been sent."
+        >
+      <div ref={box}>
+        <p style={{ fontSize: 13, color: C.faint, margin: '-6px 0 16px' }}>
           They get an email with a link to set their own password. If they already have a
           login, this adds this business to it.
         </p>
@@ -180,18 +169,14 @@ export function InvitePerson({ orgId, orgName, choices, prefillEmail, prefillNam
         {choices && choices.length > 1 && (
           <label style={{ display: 'block', marginBottom: 10 }}>
             <div style={{ fontSize: 12, color: C.faint, marginBottom: 4 }}>Which business</div>
-            <select
+            {/* No silent default. Picking the workspace you are standing in
+                is how somebody's client ends up inside your own business. */}
+            <Select
               value={target}
-              onChange={(e) => setTarget(e.target.value)}
-              style={{ ...inputStyle, fontSize: 13.5 }}
-            >
-              {/* No silent default. Picking the workspace you are standing in
-                  is how somebody's client ends up inside your own business. */}
-              <option value="">Choose one…</option>
-              {choices.map((o) => (
-                <option key={o.id} value={o.id}>{o.name}</option>
-              ))}
-            </select>
+              onChange={setTarget}
+              placeholder="Choose one…"
+              options={choices.map((o) => ({ value: o.id, label: o.name }))}
+            />
           </label>
         )}
 
@@ -305,7 +290,7 @@ export function InvitePerson({ orgId, orgName, choices, prefillEmail, prefillNam
           </button>
         </div>
       </div>
-    </div>
+        </Sheet>
       )}
     </>
   );

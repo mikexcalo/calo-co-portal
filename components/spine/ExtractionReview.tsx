@@ -18,7 +18,7 @@
 
 import { useEffect, useState } from 'react';
 import type { CostKind, DocumentKind, ExtractedReceipt } from '@/lib/spine/types';
-import { Button, C, Field, Pill, inputStyle, money, radius } from './ui';
+import { Button, C, Field, Pill, Select, Sheet, inputStyle, money, radius } from './ui';
 
 export interface ReviewResult {
   kind: DocumentKind;
@@ -80,30 +80,12 @@ export function ExtractionReview({
   if (!amountOk) missing.push('amount');
 
   return (
-    <>
-      <div
-        onClick={onReject}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(20,18,16,.45)', zIndex: 70 }}
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 'min(680px, calc(100vw - 32px))',
-          maxHeight: 'calc(100vh - 48px)',
-          overflowY: 'auto',
-          background: C.panel,
-          border: `1px solid ${C.border}`,
-          borderRadius: 12,
-          zIndex: 71,
-          boxShadow: '0 24px 60px rgba(0,0,0,.18)',
-        }}
-      >
-        <div style={{ padding: '18px 22px', borderBottom: `1px solid ${C.border}` }}>
+    <Sheet width={680} label="Check what was read" onClose={onReject}>
+      <div>
+        {/* Its own header block: the file name sits under the title and a
+            rule separates both from the fields, which Sheet's plain title
+            does not do. */}
+        <div style={{ paddingBottom: 14, marginBottom: 4, borderBottom: `1px solid ${C.border}` }}>
           <div style={{ fontSize: 17, fontWeight: 500 }}>Check what was read</div>
           <div style={{ fontSize: 13, color: C.faint, marginTop: 3 }}>
             {fileName}
@@ -160,26 +142,18 @@ export function ExtractionReview({
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Field label="What is it?">
-                <select
+                <Select
                   value={kind}
-                  onChange={(e) => setKind(e.target.value as DocumentKind)}
-                  style={inputStyle}
-                >
-                  {KINDS.map((k) => (
-                    <option key={k} value={k}>{k}</option>
-                  ))}
-                </select>
+                  onChange={(v) => setKind(v as DocumentKind)}
+                  options={KINDS.map((k) => ({ value: k, label: k }))}
+                />
               </Field>
               <Field label="Category">
-                <select
+                <Select
                   value={category}
-                  onChange={(e) => setCategory(e.target.value as CostKind)}
-                  style={inputStyle}
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+                  onChange={(v) => setCategory(v as CostKind)}
+                  options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+                />
               </Field>
             </div>
 
@@ -292,7 +266,7 @@ export function ExtractionReview({
           </div>
         </div>
       </div>
-    </>
+    </Sheet>
   );
 }
 

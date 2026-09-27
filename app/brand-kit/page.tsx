@@ -44,11 +44,12 @@ import {
   Page,
   Pill,
   SectionLabel,
+  Select,
+  Tabs,
+  brandTabsFor,
   inputStyle,
   numeric,
   useIsPhone,
-  Tabs,
-  brandTabsFor,
 } from '@/components/spine/ui';
 import { FontSpecimen } from '@/components/spine/FontSpecimen';
 import { Pairings } from '@/components/spine/BrandSpecimen';
@@ -914,24 +915,20 @@ function LogoCard({
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, marginBottom: 9 }}>
-          <select
+          <Select
             value={format}
-            onChange={(e) => setFormat(e.target.value as LogoFormat)}
-            style={{ ...inputStyle, padding: '6px 8px', fontSize: 13 }}
-          >
-            <option value="png">PNG</option>
-            <option value="jpg">JPG</option>
-            <option value="webp">WebP</option>
-          </select>
-          <select
-            value={size}
-            onChange={(e) => setSize(Number(e.target.value))}
-            style={{ ...inputStyle, padding: '6px 8px', fontSize: 13 }}
-          >
-            {LOGO_SIZES.map((s) => (
-              <option key={s.label} value={s.px}>{s.label}</option>
-            ))}
-          </select>
+            onChange={(v) => setFormat(v as LogoFormat)}
+            options={[
+              { value: 'png', label: 'PNG' },
+              { value: 'jpg', label: 'JPG' },
+              { value: 'webp', label: 'WebP' },
+            ]}
+          />
+          <Select
+            value={String(size)}
+            onChange={(v) => setSize(Number(v))}
+            options={LOGO_SIZES.map((s) => ({ value: String(s.px), label: s.label }))}
+          />
         </div>
 
         <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 10, lineHeight: 1.5 }}>

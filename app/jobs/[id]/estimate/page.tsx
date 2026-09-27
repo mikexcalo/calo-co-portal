@@ -273,25 +273,18 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
           >
             <div>
               <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 4 }}>
-                <select
+                <Select
+                  inline
                   value={line.kind}
-                  onChange={(e) => update(i, { kind: e.target.value as LineKind })}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: C.faint,
-                    fontSize: 11.5,
-                    fontFamily: 'inherit',
-                    padding: 0,
-                    cursor: 'pointer',
-                    minHeight: phone ? 44 : undefined,
-                  }}
-                >
-                  <option value="labor">LABOR</option>
-                  <option value="material">MATERIAL</option>
-                  <option value="subcontractor">SUB</option>
-                  <option value="other">OTHER</option>
-                </select>
+                  onChange={(v) => update(i, { kind: v as LineKind })}
+                  textStyle={{ color: C.faint, fontSize: 11.5 }}
+                  options={[
+                    { value: 'labor', label: 'LABOR' },
+                    { value: 'material', label: 'MATERIAL' },
+                    { value: 'subcontractor', label: 'SUB' },
+                    { value: 'other', label: 'OTHER' },
+                  ]}
+                />
                 {/* Beside the kind rather than in its own column: it is a
                     property of the line, and a whole column for a checkbox
                     would push the grid past a phone's width. */}
