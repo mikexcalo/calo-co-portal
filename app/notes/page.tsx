@@ -33,7 +33,7 @@ import {
   inputStyle,
   shortDate,
 } from '@/components/spine/ui';
-import { human } from '@/lib/spine/errors';
+import { human, READ_FAILED } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Person { name: string; role?: string | null; email?: string | null; phone?: string | null }
@@ -59,6 +59,8 @@ interface NoteRow {
   happened_on: string | null;
   created_at: string;
   customer_id: string | null;
+  /** Null means it was kept as typed and nothing has read it. */
+  sorted_at: string | null;
 }
 
 export default function NotesPage() {
@@ -91,7 +93,18 @@ export default function NotesPage() {
    * does not show, so clearing the box and saying nothing would look exactly
    * like a save that failed.
    */
-  const [filed, setFiled] = useState<{ where: 'record' | 'drops'; name?: string } | null>(null);
+  const [filed, setFiled] = useState<{ where: 'record' | 'drops'; name?: string; unread?: boolean } | null>(null);
+  /**
+   * The reader answered, and the answer was that it cannot help.
+   *
+   * Set on any failure of the extract route - unconfigured, unreachable or
+   * erroring - and it stays set for the life of the screen. Having been told
+   * the reader is down, nobody should have to press Read this again to be
+   * told a second time. The same rule DropIt already follows.
+   */
+  const [readerDown, setReaderDown] = useState(false);
+  /** Which saved note the reader is going back over, by id. */
+  const [sorting, setSorting] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!org) return;
@@ -99,7 +112,7 @@ export default function NotesPage() {
       supabase.from('customers').select('id, name').eq('org_id', org.id).order('name'),
       supabase
         .from('customer_notes')
-        .select('id, title, body, kind, source, happened_on, created_at, customer_id')
+        .select('id, title, body, kind, source, happened_on, created_at, customer_id, sorted_at')
         .eq('org_id', org.id)
         .order('created_at', { ascending: false })
         .limit(40),
@@ -127,9 +140,115 @@ export default function NotesPage() {
       setResult(payload.extracted as Extracted);
       setCost(payload.costCents ?? null);
     } catch (e) {
-      setError(human((e as Error).message));
+      /*
+        A reader that will not answer is not a write that failed.
+
+        This took `human()`'s default, which is about saving, so an
+        unconfigured reader printed "Nothing was saved. We could not tell
+        why." Nothing was being saved - the text is still in the box - and
+        that sentence is the one guard_session_writes() opens with, so a
+        missing API key was impersonating a permission refusal.
+      */
+      setReaderDown(true);
+      setError(human((e as Error).message, READ_FAILED));
     } finally {
       setBusy(false);
+    }
+  };
+
+  /**
+   * Keep the words, unread.
+   *
+   * No title and no summary, because nothing has read it: inventing either
+   * here would be the product guessing and presenting the guess as a record.
+   * `sorted_at` null is the state, and it is what the list below reads to
+   * offer Sort it once the reader is back.
+   */
+  const saveRaw = async () => {
+    if (!org || !raw.trim()) return;
+    setBusy(true);
+    setError(null);
+    setFiled(null);
+    try {
+      /* Nobody picked, so it goes to the pile, exactly as the read path
+         does. Unsorted there as well: the shelf offers Scan and sort on it
+         because this one genuinely has never been read. */
+      if (!customerId) {
+        await addDrop(org.id, {
+          kind: 'note',
+          body: raw.trim(),
+          meta: { unsorted: true },
+        });
+        setFiled({ where: 'drops', unread: true });
+      } else {
+        const res = await saveOrFail(supabase.from('customer_notes').insert({
+          org_id: org.id,
+          customer_id: customerId,
+          kind: 'note',
+          body: raw.trim(),
+          source: 'typed',
+          sorted_at: null,
+          happened_on: new Date().toISOString().slice(0, 10),
+        }), 'Saving the note');
+        if (res.error) return;
+        setFiled({
+          where: 'record',
+          name: customers.find((c) => c.id === customerId)?.name,
+          unread: true,
+        });
+      }
+      setRaw('');
+      await load();
+    } catch (e) {
+      setError(human(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /**
+   * Going back over one that was kept unread.
+   *
+   * The same route the first pass uses, so there is one reader and one idea
+   * of what reading means. The cost is recorded here too - this is a paid
+   * read like any other, and the whole point of #18 was that a paid read
+   * that goes unrecorded makes the total in Overheads a lie.
+   */
+  const sortIt = async (n: NoteRow) => {
+    setSorting(n.id);
+    setError(null);
+    try {
+      const res = await fetch('/api/notes/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: n.body }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setReaderDown(true);
+        setError(human(json.error ?? 'Could not read that.', READ_FAILED));
+        return;
+      }
+      const got = (json.extracted ?? json) as { title?: string; summary?: string };
+      if (!got.title && !got.summary) {
+        setError('The reader came back with nothing usable. The note is unchanged.');
+        return;
+      }
+      const up = await saveOrFail(
+        supabase.from('customer_notes').update({
+          title: got.title ?? null,
+          body: `${got.title ?? ''}\n\n${got.summary ?? ''}\n\n---\nOriginal:\n${n.body}`.trim(),
+          sorted_at: new Date().toISOString(),
+          extraction_cost_cents: typeof json.costCents === 'number' ? json.costCents : null,
+        }).eq('id', n.id),
+        'Sorting the note'
+      );
+      if (!up.error) await load();
+    } catch (e) {
+      setReaderDown(true);
+      setError(human(e, READ_FAILED));
+    } finally {
+      setSorting(null);
     }
   };
 
@@ -198,6 +317,10 @@ export default function NotesPage() {
           kind: 'note',
           source: 'transcript',
           happened_on: result.happened_on || new Date().toISOString().slice(0, 10),
+          /* It has been read. Without this it lands null, which is the state
+             that means "never read", and the list below would offer a paid
+             Sort it on a note that already has its summary. */
+          sorted_at: new Date().toISOString(),
           // Recorded, never displayed. See the AI usage tile in Overheads.
           extraction_cost_cents: cost,
         }));
@@ -252,13 +375,15 @@ export default function NotesPage() {
             <div style={{ flex: 1, minWidth: 240, fontSize: 13.5, color: C.text, lineHeight: 1.6 }}>
               {filed.where === 'drops' ? (
                 <>
-                  Saved to Drops. Nobody is picked yet, so it waits there until you
-                  say who it is about.
+                  Saved to Drops{filed.unread ? ', word for word' : ''}. Nobody is picked
+                  yet, so it waits there until you say who it is about.
+                  {filed.unread && ' Nothing has read it, so it has no summary.'}
                 </>
               ) : (
                 <>
-                  Saved on {filed.name ?? `the ${vocab.customer.toLowerCase()}`}. It is
-                  in the list below.
+                  Saved on {filed.name ?? `the ${vocab.customer.toLowerCase()}`}
+                  {filed.unread ? ', word for word' : ''}. It is in the list below
+                  {filed.unread ? ', marked not sorted yet' : ''}.
                 </>
               )}
             </div>
@@ -327,13 +452,37 @@ export default function NotesPage() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
-            <Button onClick={read} disabled={busy || raw.trim().length < 40}>
-              {busy ? 'Reading…' : 'Read this'}
-            </Button>
+            {/*
+              One button until the reader lets us down, then the honest one.
+
+              Reading is better when it works, so it stays the offer. What
+              changes is that "it did not work" stops being the end of the
+              road: the words are kept either way, and the reading can happen
+              later from the list below.
+            */}
+            {readerDown ? (
+              <Button onClick={saveRaw} disabled={busy || !raw.trim()}>
+                {busy ? 'Saving…' : 'Save note'}
+              </Button>
+            ) : (
+              <Button onClick={read} disabled={busy || raw.trim().length < 40}>
+                {busy ? 'Reading…' : 'Read this'}
+              </Button>
+            )}
             <span style={{ fontSize: 13, color: C.faint }}>
-              Takes a few seconds. You&apos;ll check everything before it saves.
+              {readerDown
+                ? 'Reading is unavailable, so this will be kept exactly as you typed it.'
+                : 'Takes a few seconds. You’ll check everything before it saves.'}
             </span>
           </div>
+
+          {readerDown && (
+            <div style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.6, marginTop: 8 }}>
+              {customerId
+                ? `It is filed on ${customers.find((c) => c.id === customerId)?.name ?? 'the record'} and marked not sorted yet. Sort it from the list below once the reader is back.`
+                : 'With nobody picked it goes to Drops, where one tap files it and Scan and sort reads it later.'}
+            </div>
+          )}
         </Card>
       )}
 
@@ -461,9 +610,28 @@ export default function NotesPage() {
                       </div>
                       <div style={{ fontSize: 13, color: C.faint, marginTop: 3 }}>
                         {who ? `${who} · ` : ''}{shortDate(n.happened_on || n.created_at)}
+                        {!n.sorted_at && ' · Not sorted yet'}
                       </div>
                     </div>
-                    {n.source === 'transcript' && <Pill tone="blue">From a transcript</Pill>}
+                    {/*
+                      The way back for a note kept while the reader was down.
+
+                      Without this the words are safe and permanently raw:
+                      every other route into reading starts from the box at
+                      the top, which is empty by the time you are looking at
+                      the list.
+                    */}
+                    {!n.sorted_at ? (
+                      <Button
+                        variant="ghost"
+                        disabled={sorting === n.id}
+                        onClick={() => sortIt(n)}
+                      >
+                        {sorting === n.id ? 'Sorting…' : 'Sort it'}
+                      </Button>
+                    ) : n.source === 'transcript' ? (
+                      <Pill tone="blue">From a transcript</Pill>
+                    ) : null}
                   </div>
                   <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.65, margin: '10px 0 0', whiteSpace: 'pre-wrap' }}>
                     {n.body.split('\n---\n')[0].trim().slice(0, 400)}

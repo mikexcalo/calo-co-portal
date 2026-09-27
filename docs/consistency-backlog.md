@@ -358,47 +358,74 @@ an iCloud-synced folder at all.
 
 ---
 
-## 20. The Notes screen has no way to keep a note the reader cannot read — S
+## 20. The Notes screen has no way to keep a note the reader cannot read — DONE 27 Sept 2026
 
-#14 fixed this in `DropIt`, which grows a second button when the reader is
-down and keeps the words either way. `app/notes/page.tsx` never got it: its
-only button is "Read this", and if the extraction service answers with
-anything the text cannot be saved at all.
+The screen now follows DropIt. When the reader fails the one button becomes
+Save note, the words are kept exactly as typed - no title, no summary, nothing
+invented - and the note is marked not sorted yet. With a client picked it goes
+on their record; with nobody picked it goes to Drops. Sort it in the list below
+reads it later and records what that read cost.
 
-Found while verifying #18. `ANTHROPIC_API_KEY` is **empty in `.env.local`**,
-so note reading has never worked on a local dev server, and the screen's
-answer to that was a red card and no way forward. The same is true in
-production the moment the key is rotated or the service is down.
+The read failure uses `READ_FAILED`. It printed "Nothing was saved. We could
+not tell why", which is the sentence `guard_session_writes()` opens with, so a
+missing API key was impersonating a permission refusal.
 
-Same fix as #14: a plain save that files the words, with the reader as the
-thing that happens on top when it is available.
+`ANTHROPIC_API_KEY` was **empty in `.env.local`**, so note reading had never
+worked on a local dev server. Filled from `.env.production.local`. `.env.local`
+is gitignored, so nothing left the machine.
 
-Also in this group: that failure prints **"Nothing was saved. We could not
-tell why."** The `read()` catch takes `human()`'s write-specific default, so
-a reader that is merely unconfigured borrows the sentence
-`guard_session_writes()` opens with. It is #13 surviving in one more place.
+**A bigger thing turned up underneath.** `sorted_at` was added with no default,
+and null is the state meaning "saved as typed, never read". The backfill in
+`20261029000009` stamped every row that existed, so the table looked healthy
+and every row written *after* it landed null - including notes that had just
+been through the reader with a title, a summary and a recorded cost. `JobNotes`
+reads null as "offer Sort it", so the product was offering a paid re-read on
+notes it had already paid to read, and on system notes that were never raw text
+at all. `20261029000013` sets the default to `now()` and backfills; the two
+deliberately-unread paths pass an explicit null, which beats a default.
 
-## 21. Em dashes have no check on our own copy — S
+Verified on the demo at 390px, twice: once with reading working, once with the
+key blanked and the server restarted so the route really returned its 500. Both
+saves landed correctly, Sort it closed the loop at 0.24 cents, no horizontal
+scroll. The three test notes were deleted in `20261029000014`.
 
-`lib/spine/guardrails.ts` already carries an `em_dash` construction and it is
-on by default in `checkCopy`. It only ever runs against **a brand's** copy,
-from the Messaging screen and `OutboundCheck`. Nothing checks the product's
-own strings, which is why 22 reached user-facing text in the five days after
-the sweep of 22 September.
+## 21. Em dashes have no check on our own copy — DONE 27 Sept 2026
 
-The rule exists and the matcher exists. What is missing is a script over
-`app`, `components` and `lib` that classifies each em dash as comment, string
-or JSX text and fails on the last two. Comments are deliberately exempt: the
-house rule is about what a reader sees.
+`scripts/em-dash-check.ts`, wired to a pre-push hook. `npm run hooks` turns it
+on; `npm run words` runs it by hand.
 
-Pre-sweep survivors the 22 September pass did not take, left alone because
-they are a separate decision rather than a regression: `logos.ts` uses the
-dash as a label separator ("Icon — light", "Large — 1024px"), and
-`signature.ts`, `answers.ts`, `tutorial.tsx`, `mfa.ts`, `payments.ts` and
-eight API routes carry about forty more. Model prompts and schema
-descriptions are not counted; nobody reads those. Neither is
-`ui.tsx:733`, where the dash is the empty-cell glyph in a regex, nor
-`guardrails.ts:41`, which is the detector.
+Not in `prebuild`. That is where the site map check lived when a missing
+devDependency on the builder killed every deployment for hours with no signal
+but a stale site, and the rule written down after it was that a check which can
+block a deploy has to be one you can watch fail. This one fails on the machine
+doing the pushing, and `git push --no-verify` is the escape hatch.
+
+It scans `app`, `components`, `lib` and `scripts` with a character scanner
+rather than a regex, because "is this dash inside a string" cannot be answered
+by looking at a line: block comments span lines, the apostrophe in "don't"
+looks like a quote, and `${...}` inside a template literal is code again. Only
+strings and JSX text count. Comments keep theirs. The four `app/api/*/extract`
+routes are exempt because their strings are instructions to a model, and
+bending a system prompt around a punctuation rule risks changing what the model
+does.
+
+**Em dash only, not the en dash.** `guardrails.ts` matches both, which is right
+for a brand's prose and wrong here: this codebase uses the en dash for the
+empty-cell glyph and for ranges, and rewriting those is what broke 24
+placeholders on 22 September.
+
+The forty that predate the check are recorded in
+`scripts/em-dash-baseline.json`, keyed on file plus line text rather than line
+number, so moving code neither re-arms nor excuses anything. New ones fail the
+push; the known ones do not. `npm run words:accept` shrinks the list as they
+are fixed, and the check says so when a baseline entry is no longer there.
+
+Still to decide, one file at a time: see #22.
+
+## 22. The forty em dashes that predate the check — S
+
+Recorded in the baseline, not fixed. Grouped by file with a recommendation
+each, in `docs/em-dash-survivors.md`.
 
 ---
 

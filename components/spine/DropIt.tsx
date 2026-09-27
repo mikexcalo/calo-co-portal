@@ -272,6 +272,8 @@ export function DropIt({
       kind: 'note',
       body,
       happened_on: new Date().toISOString().slice(0, 10),
+      /* Read on the way in, so it is not waiting for the reader. */
+      sorted_at: new Date().toISOString(),
       // Recorded, never displayed. See the AI usage tile in Overheads.
       extraction_cost_cents: cost,
     }), 'Saving the note');

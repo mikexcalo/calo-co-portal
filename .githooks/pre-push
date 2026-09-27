@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# No em dashes in text a person reads.
+#
+# Here rather than in `prebuild`. The site map check was in prebuild once, tsx
+# was missing on the builder because NODE_ENV=production skips devDependencies,
+# and every deployment died there for hours with no signal but a stale site. A
+# check that can block a deploy has to be one you can watch fail, so this one
+# fails on the machine doing the pushing.
+#
+# Turn it on with `npm run hooks`. Skip it once with `git push --no-verify`.
+
+npm run --silent words || {
+  echo ""
+  echo "Push stopped. Fix the lines above, or run: git push --no-verify"
+  exit 1
+}
