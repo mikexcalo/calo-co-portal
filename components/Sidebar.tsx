@@ -25,7 +25,7 @@ import {
 } from '@/lib/spine/workspace-color';
 import { modulesFor, navFor } from '@/lib/spine/modules';
 import { studioFor, type Studio } from '@/lib/spine/workin';
-import { C, radius } from '@/components/spine/ui';
+import { C, radius, Skeleton } from '@/components/spine/ui';
 import { PRODUCT_MARK, PROVIDER } from '@/lib/brand';
 
 /**
@@ -1054,7 +1054,26 @@ function NamePlate() {
   const [open, setOpen] = useState(false);
 
   if (!org) {
-    return <span style={{ fontSize: 13, color: C.faint }}>Loading…</span>;
+    /*
+      The plate's own shape, before it knows whose it is.
+
+      This is the most-seen loading state in the product - it is on every
+      screen, above everything, on every cold load - and it was the word
+      "Loading…" in 13px grey where a 34px mark and two lines of type were
+      about to appear. The whole sidebar shifted down when the name arrived.
+
+      Same mark, same two lines, same heights. Nothing moves; the colour and
+      the letters simply arrive.
+    */
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%' }} aria-label="Loading the workspace" role="status">
+        <Skeleton w={34} h={34} r={9} style={{ flexShrink: 0 }} />
+        <span style={{ minWidth: 0, flex: 1 }}>
+          <Skeleton w="72%" h={13} style={{ marginBottom: 5 }} />
+          <Skeleton w="44%" h={9} />
+        </span>
+      </div>
+    );
   }
 
   return (
