@@ -128,7 +128,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
         const text = await sheetToText(blob, d.title ?? 'that sheet');
         setReadingDrop({ id: d.id, seed: { text, label: d.title ?? 'that sheet' } });
       } catch (e) {
-        setError(human(e));
+        setError(human(e, READ_FAILED));
       }
       return;
     }

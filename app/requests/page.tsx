@@ -24,7 +24,7 @@ import {
   inputStyle,
   shortDate,
 } from '@/components/spine/ui';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 
 type Status = 'submitted' | 'needs_info' | 'approved' | 'building' | 'shipped' | 'declined';
@@ -91,7 +91,7 @@ export default function RequestsPage() {
         await getCurrentOrg();
         await load();
       } catch (e) {
-        setError(human((e as Error).message));
+        setError(human((e as Error).message, READ_FAILED));
       } finally {
         setLoading(false);
       }

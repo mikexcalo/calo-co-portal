@@ -183,13 +183,33 @@ export function human(raw: unknown, fallback = WRITE_FAILED): string {
     return `${word(missing[1])} is needed. Nothing was saved. Fill it in and save again.`;
   }
 
+  /*
+    Three causes below can happen on the way in as well as on the way out.
+
+    A missing migration, a policy that says no, and an expired sign-in all
+    stop a read exactly as readily as a write - and all three used to answer
+    "nothing was saved" whichever it was. That was merely clumsy while the
+    phrase was only this file's; it is misleading now that
+    guard_session_writes() opens with the same words, because a screen that
+    failed to load would claim a permission refused a write nobody made.
+
+    So they say which way it went. The cause is the same sentence either way;
+    only the half about what it cost changes.
+  */
+  const reading = fallback === READ_FAILED;
+
   // A missing table or column means a database change has not been applied.
   // Nothing the person did, and nothing trying again will fix.
   if (/schema cache|does not exist|relation .* does not exist|column .* does not exist/i.test(msg)) {
-    return `This part is not switched on yet — a database change behind it has not been applied. Nothing you did, and nothing was saved. ${TELL_US}`;
+    return (
+      'This part is not switched on yet: a database change behind it has not been applied. ' +
+      `Nothing you did, and ${reading ? 'nothing is missing from your records' : 'nothing was saved'}. ${TELL_US}`
+    );
   }
   if (/row-level security|permission denied|not authorized|403/i.test(msg)) {
-    return 'Nothing was saved. You do not have access to do that here. Ask whoever set this workspace up to give you it.';
+    return reading
+      ? 'You do not have access to this here, so it did not load. Ask whoever set this workspace up to give you it.'
+      : 'Nothing was saved. You do not have access to do that here. Ask whoever set this workspace up to give you it.';
   }
   if (/duplicate key|already exists|unique constraint/i.test(msg)) {
     return 'That already exists. Nothing was saved. Look for the existing one rather than adding it again.';
@@ -211,7 +231,9 @@ export function human(raw: unknown, fallback = WRITE_FAILED): string {
     return 'That is still attached to something else, so it cannot be changed on its own. Nothing was saved. Detach it first, then try again.';
   }
   if (/jwt|token|session|401/i.test(msg)) {
-    return 'Nothing was saved. Your sign-in has expired. Reload the page, sign in again, and redo this.';
+    return reading
+      ? 'Your sign-in has expired, so this did not load. Reload the page and sign in again.'
+      : 'Nothing was saved. Your sign-in has expired. Reload the page, sign in again, and redo this.';
   }
   /*
     The one case where we genuinely do not know.

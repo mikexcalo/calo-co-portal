@@ -218,7 +218,7 @@ Worth doing on one real workspace first, with the owner watching.
 
 ---
 
-## 13. A failed read says "Nothing was saved" — S
+## 13. A failed read says "Nothing was saved" — DONE 27 Sept 2026
 
 `human()` defaults its fallback to `WRITE_FAILED`, and about twenty-eight
 catch blocks around **reads** take that default. So a read that fails prints:
@@ -244,7 +244,7 @@ for a function whose default is about saving.
 
 ---
 
-## 14. A note cannot be saved without the note reader — S
+## 14. A note cannot be saved without the note reader — DONE 27 Sept 2026
 
 `DropIt` is the only way to add a note, and its one button is "Scan and sort",
 which calls the extraction service. Where that service is unconfigured or
@@ -257,6 +257,25 @@ unreachable should not be "type it again later".
 
 It needs a plain save that files the words against the chosen customer, with
 the reader as the thing that happens on top when it is available.
+
+---
+
+## 15. The owner cannot preview a decided proposal — S
+
+`/proposals` opens the preview with `?preview=1`, and for an accepted or
+declined proposal the public page still answers "This link isn't working. It
+may have been replaced by a newer version, or the estimate may have already
+been decided."
+
+That sentence is right for a customer following an old link and wrong for the
+business looking at its own record. Three of the four demo proposals are
+decided, so in practice the preview only works on the one nobody has answered
+yet - which is the one the owner least needs to check.
+
+`?preview=1` already exists as the flag for "this is the owner looking". The
+public page should honour it for a decided proposal too, showing the document
+as the customer saw it, ideally with a line saying it has since been accepted
+or declined. The expired-link wording stays for everybody without the flag.
 
 ---
 

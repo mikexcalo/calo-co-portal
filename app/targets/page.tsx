@@ -28,7 +28,7 @@ import { Avatar, Button, C, Card, Empty, Page, inputStyle , SearchField} from '@
 import { BulkAction, BulkBar, RecordTable, type Column } from '@/components/spine/RecordTable';
 import { SavedViews, type View } from '@/components/spine/SavedViews';
 import { brandAssetUrl } from '@/lib/spine/db';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Row {
@@ -111,7 +111,7 @@ export default function PipelinePage() {
       .select('id, name, stage, tags, next_action, last_contacted_on, logo_url')
       .in('stage', OPEN_STAGES)
       .order('name');
-    if (res.error) setError(human(res.error.message));
+    if (res.error) setError(human(res.error.message, READ_FAILED));
     else setRows((res.data ?? []) as Row[]);
     setLoaded(true);
   }, []);

@@ -26,7 +26,7 @@ import {
   shortDate,
   PITCH_TABS,
 } from '@/components/spine/ui';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Pitch {
@@ -61,7 +61,7 @@ export default function PitchesPage() {
       .eq('org_id', org.id)
       .eq('archived', false)
       .order('updated_at', { ascending: false });
-    if (res.error) setError(human(res.error.message));
+    if (res.error) setError(human(res.error.message, READ_FAILED));
     else setRows((res.data ?? []) as Pitch[]);
     setLoading(false);
   }, [org]);

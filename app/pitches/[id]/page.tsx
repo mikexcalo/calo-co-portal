@@ -29,7 +29,7 @@ import {
   shortDate,
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Section { heading: string; body: string }
@@ -69,7 +69,7 @@ export default function PitchEditorPage({ params }: { params: { id: string } }) 
 
   const load = useCallback(async () => {
     const res = await supabase.from('pitches').select('*').eq('id', params.id).maybeSingle();
-    if (res.error) setError(human(res.error.message));
+    if (res.error) setError(human(res.error.message, READ_FAILED));
     else if (res.data) {
       setPitch({
         ...(res.data as unknown as Pitch),

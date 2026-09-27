@@ -149,7 +149,7 @@ export function JobActions({
 
       {open === 'note' && (
         <Sheet title="Add a note" width={680} onClose={() => setOpen(null)}>
-          <DropIt customerId={job.customer_id} onClose={() => { setOpen(null); onChanged(); }} />
+          <DropIt customerId={job.customer_id} jobId={job.id} onClose={() => { setOpen(null); onChanged(); }} />
         </Sheet>
       )}
 

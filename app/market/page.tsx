@@ -35,7 +35,7 @@ import { useOrg } from '@/lib/spine/org';
 import { Button, C, Card, Empty, Page, SectionLabel, inputStyle , SearchField} from '@/components/spine/ui';
 import { Glyph } from '@/components/spine/icons';
 import { Doc, CopyDoc } from '@/components/spine/Doc';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { orgNow } from '@/lib/spine/db';
 
@@ -66,7 +66,7 @@ export default function MarketPage() {
       .select('id, title, subject, source, as_of, body').eq('org_id', await orgNow())
       .order('subject')
       .order('title');
-    if (res.error) setError(human(res.error.message));
+    if (res.error) setError(human(res.error.message, READ_FAILED));
     else setDocs((res.data ?? []) as RefDoc[]);
     setLoaded(true);
   }, []);

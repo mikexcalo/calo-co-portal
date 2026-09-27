@@ -17,7 +17,7 @@ import QRCode from 'qrcode';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { brandTabsFor, Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/components/spine/ui';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { orgNow } from '@/lib/spine/db';
 
@@ -57,7 +57,7 @@ export default function CardPage() {
       .select('id, slug, name, title, company, email, phone, website, photo_url, tagline, cta_label, cta_url, links, live, scans, last_scan').eq('org_id', await orgNow())
       .limit(1)
       .maybeSingle();
-    if (res.error) setError(human(res.error.message));
+    if (res.error) setError(human(res.error.message, READ_FAILED));
     else setRow(res.data as CardRow | null);
     setLoaded(true);
   }, []);

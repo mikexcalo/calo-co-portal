@@ -29,7 +29,7 @@ import {
   inputStyle,
   money,
 } from '@/components/spine/ui';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 
 interface DraftLine {
   kind: LineKind;
@@ -134,7 +134,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
           );
         }
       } catch (e) {
-        setError(human((e as Error).message));
+        setError(human((e as Error).message, READ_FAILED));
       }
     })();
   }, [params.id]);

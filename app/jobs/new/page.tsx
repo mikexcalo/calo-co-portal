@@ -7,7 +7,7 @@ import type { BillingType, Consideration, Customer, JobStatus } from '@/lib/spin
 import { CONSIDERATION_LABEL, JOB_STATUS_LABEL } from '@/lib/spine/types';
 import {
   Select, Button, C, Card, Field, Page, inputStyle, useIsPhone } from '@/components/spine/ui';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 
 export default function NewJobPage() {
   const phone = useIsPhone();
@@ -36,7 +36,7 @@ export default function NewJobPage() {
         setOrgId(org?.id ?? null);
         setCustomers(c);
       } catch (e) {
-        setError(human((e as Error).message));
+        setError(human((e as Error).message, READ_FAILED));
       }
     })();
   }, []);

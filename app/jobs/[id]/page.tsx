@@ -66,11 +66,12 @@ import {
 } from '@/components/spine/ui';
 import { JobFacts } from '@/components/spine/JobFacts';
 import { JobActions, JOB_BAR } from '@/components/spine/JobActions';
+import { JobNotes } from '@/components/spine/JobNotes';
 import { Confirm } from '@/components/spine/Confirm';
 import { UndoBar, type UndoState } from '@/components/spine/Undo';
 import { useOrg } from '@/lib/spine/org';
 import { Reminders } from '@/components/spine/Reminders';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 import { tidyAddress } from '@/lib/spine/tidy';
 
 const STATUSES: JobStatus[] = [
@@ -88,6 +89,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const jobId = params.id;
   const phone = useIsPhone();
+  /* Bumped when the action bar writes something, so the notes list re-reads. */
+  const [notesTick, setNotesTick] = useState(0);
 
   const [orgId, setOrgId] = useState<string | null>(null);
   const [defaultRate, setDefaultRate] = useState(0);
@@ -138,7 +141,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
       try {
         await load();
       } catch (e) {
-        if (!canceled) setError(human((e as Error).message));
+        if (!canceled) setError(human((e as Error).message, READ_FAILED));
       } finally {
         if (!canceled) setLoading(false);
       }
@@ -749,6 +752,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         )}
       </div>
       {/* Room under the last card for the bar that floats over it. */}
+      <JobNotes jobId={jobId} customerId={job.customer_id ?? null} refresh={notesTick} />
+
       {phone && <div style={{ height: JOB_BAR + 8 }} />}
 
       {phone && (
@@ -756,7 +761,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
           job={job}
           orgId={job.org_id}
           onStatus={(next) => run(async () => { await updateJob(jobId, { status: next }); })}
-          onChanged={() => { void load(); }}
+          onChanged={() => { void load(); setNotesTick((n) => n + 1); }}
         />
       )}
     </Page>

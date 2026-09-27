@@ -85,6 +85,12 @@ failing.
 - **Empty states name the next step**, or they are just a statement of fact.
 - **Never a real person's name** as placeholder or example text.
 - **Errors say what happened, whose fault it is, and whether retrying helps.**
+- **"Nothing was saved" belongs to writes only.** `human()` defaults to
+  `WRITE_FAILED`; a read must pass `READ_FAILED`. The phrase is what
+  `guard_session_writes()` and `guard_sending()` open with, so a read that
+  borrows it impersonates a permission refusal. Three named causes - missing
+  migration, permission denied, expired sign-in - can happen either way and
+  branch on the fallback.
 
 ## Rules that are already load-bearing
 

@@ -25,7 +25,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Button, C, money, inputStyle, Select, Sheet } from '@/components/spine/ui';
 import { createTimeEntry, listBillableJobs, orgNow } from '@/lib/spine/db';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 import type { BillableJob } from '@/lib/spine/types';
 
 /**
@@ -111,7 +111,7 @@ export default function LogTime({ onClose }: { onClose: () => void }) {
         const pick = fromJob ?? fromClient ?? rows[0];
         if (pick) setJobId(pick.id);
       } catch (e) {
-        setErr(human(e));
+        setErr(human(e, READ_FAILED));
       }
     })();
   }, [pathname]);

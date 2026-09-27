@@ -28,7 +28,7 @@ import {
   shortDate,
   SETUP_TABS,
 } from '@/components/spine/ui';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 
 interface Member {
   user_id: string;
@@ -73,7 +73,7 @@ export default function TeamPage() {
       try {
         await load();
       } catch (e) {
-        setError(human((e as Error).message));
+        setError(human((e as Error).message, READ_FAILED));
       } finally {
         setLoading(false);
       }

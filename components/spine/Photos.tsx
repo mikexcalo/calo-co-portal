@@ -20,7 +20,7 @@ import { Button, C, Card, Empty, SectionLabel, useEscape } from './ui';
 import { Confirm } from './Confirm';
 import { Processing } from './Processing';
 import { save as saveOrFail } from '@/lib/spine/save';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 import { uploadPhotos } from '@/lib/spine/photos';
 
 interface Photo {
@@ -64,7 +64,7 @@ export function Photos({
     if (jobId) q = q.eq('job_id', jobId);
 
     const res = await q;
-    if (res.error) { setError(human(res.error.message)); return; }
+    if (res.error) { setError(human(res.error.message, READ_FAILED)); return; }
 
     /**
      * Signed URLs rather than a public bucket. A photo of somebody's house

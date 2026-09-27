@@ -20,7 +20,7 @@ import { useOrg } from '@/lib/spine/org';
 import { modulesFor, type ModuleId, type ModuleState } from '@/lib/spine/modules';
 import { ModuleSwitchboard } from '@/components/spine/ModuleSwitchboard';
 import { C, Card, Empty, Page, SETUP_TABS } from '@/components/spine/ui';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { workspaceColor } from '@/lib/spine/workspace-color';
 
@@ -61,7 +61,7 @@ export default function WhatYouSeePage() {
   const load = useCallback(async () => {
     if (!org) return;
     const res = await supabase.from('orgs').select('modules').eq('id', org.id).maybeSingle();
-    if (res.error) setError(human(res.error.message));
+    if (res.error) setError(human(res.error.message, READ_FAILED));
     else setState(((res.data?.modules ?? {}) as Record<string, unknown>));
     setLoaded(true);
   }, [org]);

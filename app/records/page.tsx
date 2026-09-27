@@ -37,7 +37,7 @@ import {
   shortDate,
 } from '@/components/spine/ui';
 import { DropZone } from '@/components/spine/DropZone';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 
 interface BusinessFile {
@@ -123,7 +123,7 @@ export default function FilesPage() {
       try {
         await load();
       } catch (e) {
-        setError(human((e as Error).message));
+        setError(human((e as Error).message, READ_FAILED));
       } finally {
         setLoading(false);
       }

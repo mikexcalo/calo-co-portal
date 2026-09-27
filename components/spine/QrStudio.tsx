@@ -17,7 +17,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import { Button, C, Card, Field, SectionLabel, Select, inputStyle, radius } from './ui';
 import { QrCampaigns, type Campaign } from './QrCampaigns';
-import { human } from '@/lib/spine/errors';
 
 export interface BrandColor {
   name: string;
@@ -101,7 +100,18 @@ export function QrStudio({
       el.style.width = '100%';
       el.style.height = '100%';
     } catch (e) {
-      setError(human((e as Error).message));
+      /*
+        Neither sentence in errors.ts is true here.
+        
+        Nothing was being saved and nothing was being read: this is a QR code
+        being drawn onto a canvas in this browser, and the only thing that
+        failed is the drawing. "Nothing was saved" would blame the database
+        for a picture, which is exactly the confusion this sweep exists to
+        stop, so it says what actually happened instead.
+      */
+      setError(
+        `The code could not be drawn. ${(e as Error).message}. Reload the screen and try again.`
+      );
     }
   }, [url, dark, light, transparent, defaultUrl]);
 
@@ -125,7 +135,10 @@ export function QrStudio({
       a.click();
       a.remove();
     } catch (e) {
-      setError(human((e as Error).message));
+      /* Same again: a file being made in the browser, not a row anywhere. */
+      setError(
+        `That download could not be made. ${(e as Error).message}. Try a different size or format.`
+      );
     }
   };
 

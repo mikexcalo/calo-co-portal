@@ -44,7 +44,7 @@ import {
   startEnrolment,
   type EnrolStart,
 } from '@/lib/spine/mfa';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 
 type Stage = 'idle' | 'explain' | 'scan' | 'codes' | 'done';
 
@@ -154,7 +154,7 @@ export default function SecurityPage() {
 
   useEffect(() => {
     refresh().catch((e) => {
-      setError(human((e as Error).message));
+      setError(human((e as Error).message, READ_FAILED));
       setLoading(false);
     });
   }, [refresh]);

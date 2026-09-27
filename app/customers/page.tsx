@@ -207,7 +207,7 @@ export default function CustomersPage() {
           setClientHours(await hoursByClient(orgId, since));
         }
       } catch (e) {
-        setError(human((e as Error).message));
+        setError(human((e as Error).message, READ_FAILED));
       } finally {
         setLoading(false);
       }

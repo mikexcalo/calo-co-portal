@@ -14,7 +14,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 import { TellUs } from '@/components/spine/TellUs';
 import { C, Card, Empty, Page, Pill, SectionLabel, shortDate } from '@/components/spine/ui';
 
@@ -55,7 +55,7 @@ export default function FeedbackPage() {
       .eq('author_id', me)
       .order('created_at', { ascending: false })
       .limit(50);
-    if (res.error) setError(human(res.error));
+    if (res.error) setError(human(res.error, READ_FAILED));
     setRows((res.data ?? []) as Note[]);
     setLoading(false);
   }, [org?.id]);

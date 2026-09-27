@@ -26,7 +26,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, Empty, SectionLabel, inputStyle, money0, today } from './ui';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Product {
@@ -117,7 +117,7 @@ export function ClientCatalog({
       .select('id, item, form, size, pack, price, unit, fob, origin, species, sells_to, note, sort, commission_per_unit, cases_available, lbs_available, quoted_on')
       .eq('customer_id', customerId)
       .order('sort');
-    if (res.error) setError(human(res.error.message));
+    if (res.error) setError(human(res.error.message, READ_FAILED));
     else setRows((res.data ?? []) as Product[]);
 
     /* The standing deal, so a line with no rate of its own still shows what

@@ -50,6 +50,7 @@ interface Read {
 export function DropIt({
   onClose,
   customerId,
+  jobId,
 }: {
   onClose: () => void;
   /**
@@ -61,6 +62,8 @@ export function DropIt({
    * re-select the one whose roof you are standing on.
    */
   customerId?: string | null;
+  /** The job it was opened from, so the note files against that job too. */
+  jobId?: string | null;
 }) {
   const [clients, setClients] = useState<Client[]>([]);
   const [orgId, setOrgId] = useState<string | null>(null);
@@ -70,6 +73,15 @@ export function DropIt({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [taken, setTaken] = useState<Set<string>>(new Set());
+  /*
+    The reader answered, and the answer was that it cannot help.
+    
+    Set on any failure of the extract route - unconfigured, unreachable, or
+    erroring. It is what turns the one button into two, and it stays set for
+    the life of the sheet: having been told the reader is down, somebody
+    should not have to press a scanning button again to be told a second time.
+  */
+  const [readerDown, setReaderDown] = useState(false);
   const [current, setCurrent] = useState<Record<string, string>>({});
   const [saved, setSaved] = useState(false);
 
@@ -124,7 +136,11 @@ export function DropIt({
         body: JSON.stringify({ text, context: chosen?.name, brief }),
       });
       const json = await res.json();
-      if (!res.ok) { setError(json.error ?? 'Could not read that.'); return; }
+      if (!res.ok) {
+        setReaderDown(true);
+        setError(json.error ?? 'Could not read that.');
+        return;
+      }
       /**
        * The reading is nested, and both panels read the top level.
        *
@@ -141,11 +157,40 @@ export function DropIt({
       }
       setRead(read);
     } catch {
+      setReaderDown(true);
       setError('Could not reach the reader.');
     } finally {
       setBusy(false);
     }
   }, [text, clientId, chosen]);
+
+  /*
+    Keep the words, unread.
+
+    No title and no summary, because nothing has read it - inventing either
+    here would be the product guessing and then presenting the guess as a
+    record. `sorted_at` stays null, which is what the note screen reads to
+    offer sorting later.
+  */
+  const saveRaw = async () => {
+    if (!orgId || !clientId || !text.trim()) return;
+    setBusy(true);
+    const res = await saveOrFail(
+      supabase.from('customer_notes').insert({
+        org_id: orgId,
+        customer_id: clientId,
+        job_id: jobId ?? null,
+        kind: 'note',
+        body: text.trim(),
+        source: 'typed',
+        sorted_at: null,
+        happened_on: new Date().toISOString().slice(0, 10),
+      }),
+      'Saving the note'
+    );
+    setBusy(false);
+    if (!res.error) setSaved(true);
+  };
 
   const fileIt = async () => {
     if (!read || !orgId) return;
@@ -171,7 +216,29 @@ export function DropIt({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {!read ? (
+      {!read && saved ? (
+        /*
+          Saved without being read, so this says so.
+
+          The confirmation further down belongs to the sorted path and never
+          renders here - `read` is null, because nothing read it. Somebody who
+          pressed Save note and saw nothing change would reasonably press it
+          again.
+        */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <span style={{ fontSize: 13.5, color: C.green, lineHeight: 1.6 }}>
+            Saved on {chosen?.name ?? 'the record'}, word for word.
+            {' '}Nothing has read it yet, so it has no summary.
+          </span>
+          <span style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.6 }}>
+            It is waiting to be sorted wherever it is filed, and sorting it is
+            a button there once the reader is back.
+          </span>
+          <div>
+            <Button onClick={onClose}>Done</Button>
+          </div>
+        </div>
+      ) : !read ? (
         <>
           <TalkToIt onText={(t) => setText((prev) => (prev ? `${prev}\n\n${t}` : t))} label="Talk" />
 
@@ -196,14 +263,44 @@ export function DropIt({
               <span style={{ fontSize: 12.5, color: C.faint }}>picked up from what you said</span>
             )}
 
-            <Button onClick={distill} disabled={busy || text.trim().length < 40} >
-              {busy ? 'Scanning…' : 'Scan and sort'}
-            </Button>
+            {/*
+              One button until the reader lets us down, then the honest one.
+
+              Sorting is better when it works, so it stays the offer. What
+              changed is that "it did not work" is no longer the end of the
+              road: the words are kept either way, and the sorting can happen
+              later from the note itself.
+            */}
+            {readerDown ? (
+              <Button onClick={saveRaw} disabled={busy || !clientId || !text.trim()}>
+                {busy ? 'Saving…' : 'Save note'}
+              </Button>
+            ) : (
+              <Button onClick={distill} disabled={busy || text.trim().length < 40}>
+                {busy ? 'Scanning…' : 'Scan and sort'}
+              </Button>
+            )}
           </div>
 
-          {text.trim().length > 0 && text.trim().length < 40 && (
+          {readerDown && !clientId && (
+            /* customer_notes.customer_id is NOT NULL, so this is not a
+               preference. Said plainly rather than greying a button and
+               leaving somebody to work out why. */
+            <div style={{ fontSize: 12.5, color: C.amber, lineHeight: 1.55 }}>
+              Pick who this is about and it can be saved as it is.
+            </div>
+          )}
+
+          {!readerDown && text.trim().length > 0 && text.trim().length < 40 && (
             <div style={{ fontSize: 12.5, color: C.faint }}>
               A bit more and it can do something with it.
+            </div>
+          )}
+
+          {readerDown && (
+            <div style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.6 }}>
+              Sorting is unavailable, so this will be kept exactly as you typed
+              it. You can sort it later from the {jobId ? 'job' : 'record'} it is filed against.
             </div>
           )}
           {error && <div style={{ fontSize: 13, color: C.red }}>{error}</div>}

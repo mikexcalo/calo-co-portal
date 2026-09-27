@@ -116,7 +116,7 @@ export default function BillingPage() {
         const l = await getInvoiceLines(id);
         setLines((prev) => ({ ...prev, [id]: l }));
       } catch (e) {
-        setError(human((e as Error).message));
+        setError(human((e as Error).message, READ_FAILED));
       }
     }
   };

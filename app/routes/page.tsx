@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 import {
   geocode, order, summarise, metres, driveMinutes, mapsLink, type Stop,
 } from '@/lib/spine/route';
@@ -57,7 +57,7 @@ export default function RoutesPage() {
       .not('address', 'is', null)
       .order('scheduled_start', { ascending: true })
       .limit(200);
-    if (res.error) setError(human(res.error));
+    if (res.error) setError(human(res.error, READ_FAILED));
     setJobs((res.data ?? []) as unknown as JobRow[]);
     setLoading(false);
   }, [org?.id]);

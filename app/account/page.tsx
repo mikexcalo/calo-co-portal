@@ -84,7 +84,7 @@ export default function AccountPage() {
 
           It is named that because the row is about the client being billed,
           not the agency doing the billing, and both ids are in scope. Querying
-          org_id came back as "column does not exist", which human() correctly
+          org_id came back as "column does not exist", which human(, READ_FAILED) correctly
           reads as an unapplied migration — so the screen accused the database
           of being out of date when the view had been right all along.
         */

@@ -64,7 +64,7 @@ import {
   today as todayStr,
   useIsPhone,
 } from '@/components/spine/ui';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 import { tidyAddress } from '@/lib/spine/tidy';
 import { save as saveOrFail } from '@/lib/spine/save';
 
@@ -311,7 +311,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
       try {
         await load();
       } catch (e) {
-        setError(human((e as Error).message));
+        setError(human((e as Error).message, READ_FAILED));
       } finally {
         setLoading(false);
       }

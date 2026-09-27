@@ -42,7 +42,7 @@ import {
 import { Confirm } from '@/components/spine/Confirm';
 import { DropShelf } from '@/components/spine/DropShelf';
 import { PRODUCT } from '@/lib/brand';
-import { human } from '@/lib/spine/errors';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Overhead {
@@ -126,7 +126,7 @@ export default function ExpensesPage() {
       .is('job_id', null)
       .order('purchased_on', { ascending: false });
 
-    if (res.error) setError(human(res.error.message));
+    if (res.error) setError(human(res.error.message, READ_FAILED));
     else
       setRows(
         (res.data ?? []).map((r: Record<string, unknown>) => ({
