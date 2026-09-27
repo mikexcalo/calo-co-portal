@@ -1111,6 +1111,17 @@ export default function Dashboard() {
           */}
           <div className="homeSplit">
             <div>
+              {/*
+                The heading belongs to its group, not to the column.
+
+                Every child below returns null when it has nothing, so on a
+                quiet morning this was a rule and a word over white space. The
+                heading is inside `homeGroup` now and `.homeGroup` hides it
+                when nothing else in the group rendered - see globals.css. A
+                wrapper rather than a flag on each child, because the next
+                thing added to this column would have had to remember.
+              */}
+              <div className="homeGroup">
               <div className="colHead">Your move</div>
               <AskedOfYou />
               <FeedbackInbox currentOrgId={org?.id ?? null} />
@@ -1123,13 +1134,16 @@ export default function Dashboard() {
                 Lakemere, whose owner cannot do any of them and did not ask.
               */}
               {org?.kind === 'agency' && canSetUp && <YourSetup />}
+              </div>
             </div>
 
             <div>
+              <div className="homeGroup">
               <div className="colHead">Waiting on others</div>
               <FollowUps />
               <SoldNotLive />
               <WeekAhead />
+              </div>
 
               {/*
                 WHERE THE TIME WENT.
@@ -1145,7 +1159,7 @@ export default function Dashboard() {
                 the quietest way an agency loses money.
               */}
               {clientHours.length > 0 && (
-                <div style={{ marginBottom: 26 }}>
+                <div className="homeGroup" style={{ marginBottom: 26 }}>
                   {/* Its own head. It was under "Waiting on others", which it
                       is not — nor are the quick links below it. One column
                       heading had quietly become a lid on everything that

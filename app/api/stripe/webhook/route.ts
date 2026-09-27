@@ -152,7 +152,7 @@ export async function POST(req: NextRequest) {
           await db.from('notifications').insert({
             org_id: failed.org_id,
             kind: 'invoice_overdue',
-            title: `Payment failed — ${failed.number}`,
+            title: `Payment failed on ${failed.number}`,
             body: 'The card or bank transfer was declined.',
             href: '/billing',
           });

@@ -1135,7 +1135,7 @@ export async function draftInvoiceFromActuals(
       lines.push({
         kind: 'labor',
         description:
-          e.description || `Labor${e.worker_name ? ` — ${e.worker_name}` : ''} (${e.worked_on})`,
+          e.description || `Labor${e.worker_name ? ` by ${e.worker_name}` : ''} (${e.worked_on})`,
         qty: hours,
         unit: 'hr',
         unit_price: rate,
@@ -1266,7 +1266,7 @@ export async function invoiceFromEstimate(
     ? [
         {
           kind: 'other',
-          description: opts?.description ?? `${pct}% progress draw — ${job?.name ?? 'contract'}`,
+          description: opts?.description ?? `${pct}% progress draw on ${job?.name ?? 'the contract'}`,
           qty: 1,
           unit: null,
           unit_price: amount,

@@ -74,6 +74,21 @@ const ALLOWED: Array<{ file: string; contains: string; why: string }> = [
     contains: 'title.split',
     why: 'Splits a fetched page title on whatever separator the site used. Matching a dash is the point; it is never shown.',
   },
+  {
+    file: 'app/api/stories/draft/route.ts',
+    contains: 'p.attribution',
+    why: 'Builds the block of context handed to the model when drafting a case study. Nobody reads it. The file also holds user-facing strings, so it cannot be exempted wholesale the way the extract routes are.',
+  },
+  {
+    file: 'app/api/site-requests/approve/route.ts',
+    contains: '| Site | ${opts.siteName}',
+    why: 'A cell in the markdown table of a GitHub issue body. An engineering ticket, not product copy.',
+  },
+  {
+    file: 'app/api/site-requests/approve/route.ts',
+    contains: 'never push red',
+    why: 'A build rule inside the same GitHub issue body. Written for whoever picks the ticket up; the house voice governs what clients and owners read, not what we put in a work ticket.',
+  },
 ];
 
 /**

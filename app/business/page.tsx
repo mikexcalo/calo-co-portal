@@ -35,6 +35,7 @@ import {
   SectionLabel,
   Select,
   Skeleton,
+  Tabs,
   inputStyle,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
@@ -288,45 +289,21 @@ export default function BusinessPage() {
         </Pill>
       }
     >
-      <div
-        style={{
-          display: 'flex',
-          gap: 4,
-          borderBottom: `1px solid ${C.border}`,
-          marginBottom: 20,
-          overflowX: 'auto',
-        }}
-      >
-        {TABS.map((t) => {
-          const on = tab === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                borderBottom: `2px solid ${on ? C.blue : 'transparent'}`,
-                color: on ? C.text : C.faint,
-                fontWeight: on ? 600 : 500,
-                fontSize: 14.5,
-                padding: '8px 12px',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
+      {/*
+        The third tab style, gone.
 
-      {error && (
-        <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
-          <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
-        </Card>
-      )}
+        This strip was drawn by hand: an underline in C.blue at 14.5px, beside
+        a product whose every other strip is the pill at 13.5px. Nothing chose
+        that, it was written before `Tabs` existed. State tabs and navigating
+        tabs look the same now, which is the point - a person should not have
+        to learn that this screen's tabs are a different shape.
+      */}
+      <Tabs
+        items={TABS}
+        active={tab}
+        onChange={(id) => setTab(id as Tab)}
+        style={{ marginBottom: 20 }}
+      />
 
       {tab === 'rates' && (
         <>

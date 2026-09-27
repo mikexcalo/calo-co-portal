@@ -90,6 +90,11 @@ export function JobNotes({
             title: read.title ?? null,
             body: `${read.title ?? ''}\n\n${read.summary ?? ''}\n\n---\n${n.body}`.trim(),
             sorted_at: new Date().toISOString(),
+            /* A paid read like any other. This was the last one in the
+               product still throwing the number away, which made the total
+               in Overheads quietly short every time somebody sorted a note
+               from a job rather than from the note screen. */
+            extraction_cost_cents: typeof json.costCents === 'number' ? json.costCents : null,
           })
           .eq('id', n.id),
         'Sorting the note'

@@ -880,11 +880,81 @@ export function Tabs({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const strip = React.useRef<HTMLDivElement>(null);
+  /* Which side still has tabs on it, so the strip can say so. */
+  const [more, setMore] = React.useState({ left: false, right: false });
+
+  /*
+    Every hook above the early return.
+
+    A component with a conditional return needs all of them declared before
+    it, or the first client-side navigation across the branch renders a
+    different number than the render before and React throws #310. That is
+    the bug that took sign-in down for 2h 47m.
+  */
+  const measure = React.useCallback(() => {
+    const el = strip.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    setMore({ left: el.scrollLeft > 1, right: max > 1 && el.scrollLeft < max - 1 });
+  }, []);
+
+  /*
+    The tab you are on, in view.
+
+    At 390px four tabs are about 540px of strip in a 324px box, so landing on
+    the fourth showed the first three and no highlight anywhere - the strip
+    said you were on a tab it was not showing. Centred on the selection
+    instead, and keyed on the selection so it does not fight a thumb: a
+    re-render while somebody is mid-swipe must not snap the strip back.
+  */
+  const selected = active ?? pathname;
+  React.useEffect(() => {
+    const el = strip.current;
+    if (!el) return;
+    const on = el.querySelector('[aria-selected="true"]') as HTMLElement | null;
+    if (on) {
+      const want = on.offsetLeft - (el.clientWidth - on.offsetWidth) / 2;
+      /* scrollLeft directly, never scrollIntoView: that one also scrolls the
+         page vertically to bring the strip into view, which on a phone throws
+         away wherever you were reading. */
+      el.scrollLeft = Math.max(0, Math.min(want, el.scrollWidth - el.clientWidth));
+    }
+    measure();
+  }, [selected, measure]);
+
+  React.useEffect(() => {
+    const el = strip.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [measure]);
+
   if (!items.length) return null;
+
+  /*
+    A cut-off word is not an affordance.
+
+    The strip scrolls inside itself, which is the rulebook's rule, but a pill
+    sliced by the container edge reads as a rendering fault rather than an
+    invitation to swipe. Fading the edge that still has tabs behind it says
+    there is more without adding a control nobody can reach with a thumb.
+  */
+  const fade = '#000 0, #000 calc(100% - 22px), transparent 100%';
+  const maskImage = more.left && more.right
+    ? 'linear-gradient(to right, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%)'
+    : more.right
+      ? `linear-gradient(to right, ${fade})`
+      : more.left
+        ? 'linear-gradient(to left, #000 0, #000 calc(100% - 22px), transparent 100%)'
+        : undefined;
 
   return (
     <div
+      ref={strip}
       role="tablist"
+      onScroll={measure}
       style={{
         display: 'inline-flex',
         gap: 3,
@@ -894,6 +964,8 @@ export function Tabs({
         border: `1px solid ${C.border}`,
         maxWidth: '100%',
         overflowX: 'auto',
+        maskImage,
+        WebkitMaskImage: maskImage,
         ...style,
       }}
     >

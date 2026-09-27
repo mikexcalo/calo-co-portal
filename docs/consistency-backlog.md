@@ -118,25 +118,59 @@ rule — scroll in its own container, or stack.
 
 ---
 
-## 7. Tab strips drawn by hand — S
+## 7. Tab strips drawn by hand — DONE 27 Sept 2026
 
-`app/pl` and `app/site-requests` still map over tab data and draw the pill
-strip themselves, against `Tabs` used in three files. Two files, mechanical.
+`app/pl` and `app/site-requests` had already been moved onto `Page tabs=`
+before this. The one left was **`app/business`**, which this entry never
+named: an underline strip in `C.blue` at 14.5px beside a product whose every
+other strip is the pill at 13.5px. That was the third style the audit found,
+and it is gone.
 
-Worth doing early because it is small and it removes the last of the three tab
-styles the audit found.
+Every strip in the app now renders through `Tabs`. Navigating strips reach it
+via `Page tabs=` → `PageTabs` (which also filters on `pathAllowed`, so a
+module a business has not bought is not offered); state strips call `Tabs`
+directly, in `app/business`, `app/customers/[id]` and `app/brand-kit`. Same
+44px strip, same 36px pill, same active treatment, both kinds.
+
+Two phone behaviours came with it, in the one shared place:
+
+- **The active tab is scrolled into view.** At 390px four tabs are ~540px of
+  strip in a 324px box, so landing on the fourth showed the first three and no
+  highlight anywhere. Set through `scrollLeft` rather than `scrollIntoView`,
+  which also scrolls the page vertically and throws away wherever you were.
+- **The edge that still has tabs behind it fades.** The strip already scrolled
+  inside itself, which is the rulebook's rule, but a pill sliced by the
+  container edge reads as a rendering fault rather than an invitation to
+  swipe.
+
+Verified at desktop and 390px: both strips on `/business` measure identically,
+selecting the last tab brings it into view and flips the fade to the left, and
+no page scrolls sideways.
 
 ---
 
-## 8. Home: a heading with nothing under it — S
+## 8. Home: a heading with nothing under it — DONE 27 Sept 2026
 
-`app/page.tsx`. "Waiting on others" renders `FollowUps`, `SoldNotLive` and
-`WeekAhead`, each of which returns null when empty, so on a quiet morning the
-heading stands alone over white space. The rulebook says render the empty state
-or drop the heading.
+It was two headings, not one. "Your move" has the same shape - `AskedOfYou`,
+`FeedbackInbox`, `Unresolved` and `YourSetup` all return null when empty - and
+on the demo both stood alone over white space at once.
 
-Same screen, same brief: check that every `colHead` has either content or a
-line under it.
+Each heading is wrapped with its own content in a `.homeGroup`, and the group
+hides its heading when nothing else in it rendered:
+
+```css
+.homeGroup:not(:has(> :not(.colHead))) > .colHead { display: none; }
+```
+
+CSS rather than a flag threaded out of each child, because the failure mode
+was that a child could be added without anybody remembering, and CSS cannot
+forget. Written as `:not(:has(...))` on purpose: a browser without `:has()`
+drops the rule and the heading shows, which is the old behaviour. The other
+way round would hide every heading everywhere.
+
+Verified both directions at desktop and 390px: with the demo quiet both
+headings are `display: none` while "Where the time went" still shows, and
+appending any child to the group brings its heading straight back.
 
 ---
 

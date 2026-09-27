@@ -4764,6 +4764,25 @@ input:focus, textarea:focus, select:focus {
 }
 
 /*
+  A heading with nothing under it is a bug.
+
+  Home's columns are built from components that each return null when they
+  have nothing to say, which is right - a section that exists to announce it
+  is empty is furniture. What was left behind was the heading: on a quiet
+  morning "Waiting on others" was a rule and a word over white space.
+
+  The group hides its own heading when it is the only thing in it. Done here
+  rather than by threading a flag out of each child, because the failure was
+  that a child could be added without anyone remembering, and CSS cannot
+  forget.
+
+  Written as :not(:has(...)) on purpose. A browser without :has() drops the
+  whole rule and the heading simply shows, which is today's behaviour; the
+  other way round it would hide every heading everywhere.
+*/
+.homeGroup:not(:has(> :not(.colHead))) > .colHead { display: none; }
+
+/*
   The tiles are back, and they go somewhere.
 
   They were a line of figures on the argument that numbers are context and

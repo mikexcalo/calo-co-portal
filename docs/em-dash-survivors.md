@@ -1,8 +1,13 @@
-# The forty em dashes that predate the check
+# The em dashes that predate the check
 
-40 occurrences across 38 lines in 13 files, all of them in text a person
-reads. They are recorded in `scripts/em-dash-baseline.json`, so the pre-push
-check passes today and fails on anything new. Nothing here has been changed.
+**Updated 27 Sept 2026.** The ten that reach a customer are fixed and the
+three "keep" lines are now line-level `ALLOWED` entries in
+`scripts/em-dash-check.ts` rather than baseline. **27 occurrences across 25
+lines remain**, all owner-facing, recorded in `scripts/em-dash-baseline.json`.
+
+The original count was 40 across 38 lines in 13 files. This file said "the
+nine that reach a customer" and there were ten; the list under that heading
+was right and the number above it was not.
 
 Not counted, and correctly so: comments, the four `app/api/*/extract` model
 prompts, the en dash used as the empty-cell glyph and in ranges, and the two
@@ -15,53 +20,67 @@ than a sentence's, `·` is the swap that needs no rewriting and matches what is
 already on screen. Where it is punctuating a sentence, the rulebook's answer is
 a comma or a full stop.
 
-**Recommendation in one line:** fix 35, keep 3.
+**Recommendation in one line:** fix 35, keep 3. Of those, the 10 customer-
+facing fixes and all 3 keeps are done; **25 owner-facing fixes remain**.
 
 ---
 
-## Fix — prose a customer reads
+## DONE 27 Sept 2026 — the ten that reach a customer
 
-### `app/api/estimates/send/route.ts` (2)
+Reworded rather than repunctuated, because each of these goes out under a
+client's name.
 
-| Line | Now | Why |
-|---|---|---|
-| 202 | ``subject: `Your estimate from ${org} — ${job}` `` | Email subject to a customer. Colon: `from ${org}: ${job}`. |
-| 208 | "accept or decline from that page — no account needed." | Sentence in a customer email. Full stop. |
+### `app/api/estimates/send/route.ts`
 
-The highest-stakes two on the list: they leave our infrastructure and land in
-a stranger's inbox under the client's name.
+**202** — email subject
+- before: `` `Your estimate from ${org} — ${job}` ``
+- after: `` job?.name ? `Your estimate for ${job.name}` : `Your estimate from ${org}` ``
+- Also fixes a real defect: with no job name the old line sent a subject
+  ending in a bare dash.
 
-### `app/api/leads/ingest/route.ts` (4)
+**208** — customer email body
+- before: "accept or decline from that page — no account needed."
+- after: "accept or decline from that page without making an account."
 
-| Line | Now | Why |
-|---|---|---|
-| 236 | `` `New lead — ${name}` `` | Notification title. Colon. |
-| 239 | "No email yet — get one when you call back." | Sentence. Full stop. |
-| 271 | `` subject: `New ${label} lead — ${name}` `` | Email subject. Colon. |
-| 276 | "No email — capture one on the callback" | Sentence fragment in an HTML email. Comma. |
+### `app/api/leads/ingest/route.ts`
 
-### `app/api/invoices/send/route.ts` (1)
+**236** — notification title
+- before: `` `New lead — ${name}` `` → after: `` `New lead from ${name}` ``
 
-| Line | Now | Why |
-|---|---|---|
-| 228 | `` `${job.name} — ${invoice.number}` `` | Stripe line-item description. It shows on a card statement and a Stripe receipt, so it is customer-facing. Colon. |
+**239** — notification body
+- before: "No email yet — get one when you call back."
+- after: "They left no email. Get one when you call back."
 
-### `app/api/stripe/webhook/route.ts` (1)
+**271** — email subject
+- before: `` `New ${label} lead — ${name}` `` → after: `` `New ${label} lead from ${name}` ``
 
-| Line | Now | Why |
-|---|---|---|
-| 155 | `` `Payment failed — ${number}` `` | Notification title. Colon. |
+**276** — HTML email
+- before: "No email — capture one on the callback"
+- after: "No email on file. Capture one on the callback."
 
-### `lib/spine/db.ts` (2)
+### `app/api/invoices/send/route.ts`
 
-| Line | Now | Why |
-|---|---|---|
-| 1138 | `` `Labor — ${worker_name}` `` | Invoice line description, printed on the invoice a customer pays. Comma. |
-| 1269 | `` `${pct}% progress draw — ${job}` `` | Same, on a progress draw. Comma. |
+**228** — Stripe invoice description, seen on a card statement and receipt
+- before: `` `${job.name} — ${invoice.number}` ``
+- after: `` `${job.name} (${invoice.number})` ``
 
-Worth care rather than a sweep: both are defaults that only apply when nobody
-typed a description, so changing them changes what new invoices say and
-nothing already sent.
+### `app/api/stripe/webhook/route.ts`
+
+**155** — notification title
+- before: `` `Payment failed — ${number}` `` → after: `` `Payment failed on ${number}` ``
+
+### `lib/spine/db.ts`
+
+**1138** — labor line on an invoice the customer pays
+- before: `` `Labor — ${worker_name} (${worked_on})` ``
+- after: `` `Labor by ${worker_name} (${worked_on})` ``
+
+**1269** — progress draw line
+- before: `` `${pct}% progress draw — ${job}` ``
+- after: `` `${pct}% progress draw on ${job ?? 'the contract'}` ``
+
+Both are defaults that apply only when nobody typed a description, so this
+changes what new invoices say and nothing already sent.
 
 ---
 
@@ -126,7 +145,7 @@ Line 89: `costLabel: 'Free — bank to bank'` → `'Free · bank to bank'`.
 
 ---
 
-## Keep
+## DONE 27 Sept 2026 — Keep, as ALLOWED entries
 
 ### `app/api/stories/draft/route.ts` line 180
 
@@ -167,10 +186,7 @@ Not one sweep. The last two produced their own casualties: 24 empty-cell
 placeholders in `e60d8c4`, a sixth in `af47304`. Three sittings, each one
 verifiable on its own:
 
-1. **The nine that reach a customer** — `estimates/send`, `leads/ingest`,
-   `invoices/send`, `stripe/webhook`, and the two invoice descriptions in
-   `db.ts`. Highest stakes, smallest count, and each needs the surrounding
-   sentence read rather than the dash swapped.
+1. ~~The ten that reach a customer.~~ **Done 27 Sept 2026.**
 2. **The sixteen in owner-facing prose** — `answers.ts`, `signature.ts`,
    `tutorial.tsx`, `mfa.ts`, `site-requests/approve:165`. Mechanical once
    you accept the comma-or-full-stop rule, but it is the voice, so read them.

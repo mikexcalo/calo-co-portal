@@ -199,13 +199,15 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         from: process.env.MAIL_FROM || 'CALO&CO <onboarding@resend.dev>',
         to,
-        subject: `Your estimate from ${org?.name ?? 'us'} — ${job?.name ?? ''}`,
+        subject: job?.name
+          ? `Your estimate for ${job.name}`
+          : `Your estimate from ${org?.name ?? 'us'}`,
         html: `<div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.65;color:#111;max-width:520px;">
 <p>${greeting},</p>
 <p>Here's the estimate for <strong>${job?.name ?? 'your project'}</strong>.</p>
 <p style="font-size:22px;font-weight:600;margin:18px 0;">$${Number(est.total).toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
 <p><a href="${link}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:13px 24px;border-radius:8px;font-weight:600;">View and respond</a></p>
-<p style="color:#666;font-size:13px;margin-top:22px;">You can accept or decline from that page — no account needed. Reply to this email with any questions.</p>
+<p style="color:#666;font-size:13px;margin-top:22px;">You can accept or decline from that page without making an account. Reply to this email with any questions.</p>
 <p style="color:#666;font-size:13px;">${org?.name ?? ''}</p>
 </div>`,
       }),

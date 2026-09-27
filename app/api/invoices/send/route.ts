@@ -225,7 +225,7 @@ export async function POST(req: NextRequest) {
       customer: stripeCustomerId,
       collection_method: 'send_invoice',
       days_until_due: daysUntil(invoice.due_on),
-      description: job?.name ? `${job.name} — ${invoice.number}` : invoice.number,
+      description: job?.name ? `${job.name} (${invoice.number})` : invoice.number,
       'metadata[nautilus_invoice_id]': invoiceId,
       auto_advance: 'false',
     });

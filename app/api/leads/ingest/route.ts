@@ -233,10 +233,10 @@ export async function POST(req: NextRequest) {
     await sb.from('notifications').insert({
       org_id: org.id,
       kind: 'lead',
-      title: `New lead — ${name.trim()}`,
+      title: `New lead from ${name.trim()}`,
       body: cleanEmail
         ? message.trim().slice(0, 120)
-        : `No email yet — get one when you call back. ${message.trim().slice(0, 90)}`,
+        : `They left no email. Get one when you call back. ${message.trim().slice(0, 90)}`,
       href: `/jobs/${job.id}`,
     }).then(undefined, (e) => console.error('[leads/ingest] notification row:', e));
 
@@ -268,12 +268,12 @@ export async function POST(req: NextRequest) {
           from: process.env.MAIL_FROM || 'CALO&CO <onboarding@resend.dev>',
           to: route.notify,
           ...(cleanEmail ? { replyTo: cleanEmail } : {}),
-          subject: `New ${route.label} lead — ${name.trim()}`,
+          subject: `New ${route.label} lead from ${name.trim()}`,
           html: `
 <div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.6;color:#111;">
   <p style="color:#666;font-size:13px;margin:0 0 16px;">${route.label} · ${src}</p>
   <p><strong>${name.trim()}</strong><br/>
-  ${cleanEmail ? `<a href="mailto:${cleanEmail}">${cleanEmail}</a>` : '<em style="color:#b45309;">No email — capture one on the callback</em>'}${cleanPhone ? `<br/>${cleanPhone}` : ''}
+  ${cleanEmail ? `<a href="mailto:${cleanEmail}">${cleanEmail}</a>` : '<em style="color:#b45309;">No email on file. Capture one on the callback.</em>'}${cleanPhone ? `<br/>${cleanPhone}` : ''}
   ${company?.trim() ? `<br/>${company.trim()}` : ''}</p>
   <p style="background:#f6f6f4;padding:14px;border-radius:6px;white-space:pre-wrap;">${message
     .trim()
