@@ -19,20 +19,37 @@ import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { DropShelf, type FilingOption } from '@/components/spine/DropShelf';
 import { listDrops, type Drop } from '@/lib/spine/drops';
-import { C, Card, Empty, Page, SectionLabel } from '@/components/spine/ui';
+import { C, Card, Empty, Page, RowsLoading, SectionLabel } from '@/components/spine/ui';
 
 export default function InboxPage() {
   const { org, vocab } = useOrg();
   const [options, setOptions] = useState<FilingOption[]>([]);
   const [filed, setFiled] = useState<Drop[]>([]);
   const [tick, setTick] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     if (!org?.id) return;
 
-    const [people, customers] = await Promise.all([
+    const [people, customers, jobs] = await Promise.all([
       supabase.from('customer_contacts').select('id, name').eq('org_id', org.id).order('name').limit(300),
       supabase.from('customers').select('id, name').eq('org_id', org.id).order('name').limit(300),
+      /*
+        Jobs too, because half of what lands here is about one.
+
+        The shelf has always been able to file against a job - `fileDrop`
+        takes a job_id and always has - and the inbox simply never offered
+        one, so "a photo of the wrong flashing on Burnet Rd" could only be
+        filed to the customer and lost which roof it was.
+
+        Live ones only. Filing something to a job finished last spring is
+        almost always a mis-tap, and a list of every job there has ever been
+        is a list nobody can find anything in.
+      */
+      supabase.from('jobs').select('id, name')
+        .eq('org_id', org.id)
+        .in('status', ['lead', 'estimating', 'won', 'active'])
+        .order('updated_at', { ascending: false }).limit(200),
     ]);
 
     setOptions([
@@ -40,6 +57,8 @@ export default function InboxPage() {
         .map((p) => ({ id: p.id, name: p.name, kind: 'person' as const })),
       ...((customers.data ?? []) as { id: string; name: string }[])
         .map((c) => ({ id: c.id, name: `${c.name} (${vocab.customer.toLowerCase()})`, kind: 'customer' as const })),
+      ...((jobs.data ?? []) as { id: string; name: string }[])
+        .map((j) => ({ id: j.id, name: `${j.name} (${vocab.job.toLowerCase()})`, kind: 'job' as const })),
     ]);
 
     try {
@@ -47,8 +66,10 @@ export default function InboxPage() {
       setFiled(all.filter((d) => d.filed_at));
     } catch {
       setFiled([]);
+    } finally {
+      setLoading(false);
     }
-  }, [org?.id, vocab.customer]);
+  }, [org?.id, vocab.customer, vocab.job]);
 
   useEffect(() => { load(); }, [load, tick]);
 
@@ -59,6 +80,14 @@ export default function InboxPage() {
     >
       {!org?.id ? (
         <Empty>Pick a business first.</Empty>
+      ) : loading ? (
+        /* This screen had no loading state at all, which was survivable while
+           it only held files somebody had just dragged in. It holds notes
+           people typed now, and an empty pile and an unread pile look the
+           same for the second it takes to find out which. */
+        <div style={{ display: 'grid', gap: 18, maxWidth: 860 }}>
+          <RowsLoading rows={3} />
+        </div>
       ) : (
         <div style={{ display: 'grid', gap: 18, maxWidth: 860 }}>
           <Card>

@@ -21,6 +21,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
+import { addDrop } from '@/lib/spine/drops';
+import { human } from '@/lib/spine/errors';
 import { Button, C, Card, Select, inputStyle } from './ui';
 import { TalkToIt } from './TalkToIt';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -82,6 +84,8 @@ export function DropIt({
     should not have to press a scanning button again to be told a second time.
   */
   const [readerDown, setReaderDown] = useState(false);
+  /* It went to the pile rather than onto somebody's record. */
+  const [toFile, setToFile] = useState(false);
   const [current, setCurrent] = useState<Record<string, string>>({});
   const [saved, setSaved] = useState(false);
 
@@ -173,8 +177,37 @@ export function DropIt({
     offer sorting later.
   */
   const saveRaw = async () => {
-    if (!orgId || !clientId || !text.trim()) return;
+    if (!orgId || !text.trim()) return;
     setBusy(true);
+
+    /*
+      With nobody picked, it goes to the pile that exists for exactly this.
+
+      customer_notes.customer_id is NOT NULL, and the first version of this
+      treated that as the rule - "pick who this is about and it can be saved".
+      Which is the same failure one step along: somebody standing on a roof
+      types what happened, and the product asks them to answer a question
+      they may not be able to answer before it will keep the words.
+
+      `drops` is already the answer. It is the inbox for anything that
+      arrived before its subject did, every column that would name a subject
+      is nullable, and `filed_at` null is precisely "nobody has said who this
+      is about yet". So an unattributed note is a drop, and the Drops screen
+      is the To file list without a second one being built.
+    */
+    if (!clientId) {
+      try {
+        await addDrop(orgId, { kind: 'note', body: text.trim(), meta: { unsorted: true } });
+        setToFile(true);
+        setSaved(true);
+      } catch (e) {
+        setError(human(e));
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+
     const res = await saveOrFail(
       supabase.from('customer_notes').insert({
         org_id: orgId,
@@ -227,12 +260,15 @@ export function DropIt({
         */
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <span style={{ fontSize: 13.5, color: C.green, lineHeight: 1.6 }}>
-            Saved on {chosen?.name ?? 'the record'}, word for word.
+            {toFile
+              ? 'Saved to Drops, word for word.'
+              : `Saved on ${chosen?.name ?? 'the record'}, word for word.`}
             {' '}Nothing has read it yet, so it has no summary.
           </span>
           <span style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.6 }}>
-            It is waiting to be sorted wherever it is filed, and sorting it is
-            a button there once the reader is back.
+            {toFile
+              ? 'Drops is the pile of things nobody has said a subject for yet. One tap there files it to a customer or a job.'
+              : 'It is waiting to be sorted wherever it is filed, and sorting it is a button there once the reader is back.'}
           </span>
           <div>
             <Button onClick={onClose}>Done</Button>
@@ -272,7 +308,7 @@ export function DropIt({
               later from the note itself.
             */}
             {readerDown ? (
-              <Button onClick={saveRaw} disabled={busy || !clientId || !text.trim()}>
+              <Button onClick={saveRaw} disabled={busy || !text.trim()}>
                 {busy ? 'Saving…' : 'Save note'}
               </Button>
             ) : (
@@ -282,14 +318,7 @@ export function DropIt({
             )}
           </div>
 
-          {readerDown && !clientId && (
-            /* customer_notes.customer_id is NOT NULL, so this is not a
-               preference. Said plainly rather than greying a button and
-               leaving somebody to work out why. */
-            <div style={{ fontSize: 12.5, color: C.amber, lineHeight: 1.55 }}>
-              Pick who this is about and it can be saved as it is.
-            </div>
-          )}
+
 
           {!readerDown && text.trim().length > 0 && text.trim().length < 40 && (
             <div style={{ fontSize: 12.5, color: C.faint }}>
@@ -300,7 +329,10 @@ export function DropIt({
           {readerDown && (
             <div style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.6 }}>
               Sorting is unavailable, so this will be kept exactly as you typed
-              it. You can sort it later from the {jobId ? 'job' : 'record'} it is filed against.
+              it.{' '}
+              {clientId
+                ? `You can sort it later from the ${jobId ? 'job' : 'record'} it is filed against.`
+                : 'With nobody picked it goes to Drops, where one tap files it.'}
             </div>
           )}
           {error && <div style={{ fontSize: 13, color: C.red }}>{error}</div>}

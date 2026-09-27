@@ -26,6 +26,7 @@ import {
   Metric,
   Page,
   Pill,
+  RowsLoading,
   SectionLabel,
   brandTabsFor,
 } from '@/components/spine/ui';
@@ -105,7 +106,7 @@ export default function BrandsPage() {
       )}
 
       {loading ? (
-        <Card><Empty>Loading…</Empty></Card>
+        <RowsLoading rows={4} />
       ) : rows.length === 0 ? (
         <Card>
           <Empty hero>No client brands yet. Build one and its colors, type and voice live here.</Empty>

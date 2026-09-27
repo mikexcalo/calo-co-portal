@@ -61,6 +61,7 @@ import {
 import { human, READ_FAILED } from '@/lib/spine/errors';
 import { LaterThisWeek, NextJob, useToday } from '@/components/spine/Today';
 import { AcceptedToReview } from '@/components/spine/Accepted';
+import { ToFile } from '@/components/spine/ToFile';
 
 interface Attention {
   key: string;
@@ -766,6 +767,8 @@ export default function Dashboard() {
         the top of the screen at either width.
       */}
       <AcceptedToReview orgId={org?.id ?? null} word={vocab.estimate} />
+
+      <ToFile orgId={org?.id ?? null} />
 
       {emptyApp ? (
         /**

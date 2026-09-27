@@ -52,17 +52,20 @@ import {
   Page,
   Pill,
   Row,
+  RowsLoading,
   SectionHead,
   SectionLabel,
-  useIsPhone,
   Select,
+  Skeleton,
   Table,
+  TilesLoading,
   hours as fmtHours,
   inputStyle,
   money,
   money0,
   shortDate,
   today,
+  useIsPhone,
 } from '@/components/spine/ui';
 import { JobFacts } from '@/components/spine/JobFacts';
 import { JobActions, JOB_BAR } from '@/components/spine/JobActions';
@@ -166,7 +169,15 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     }
   };
 
-  if (loading) return <Page title="Loading…"><Empty>Loading job…</Empty></Page>;
+  if (loading) {
+    return (
+      <Page title={<Skeleton w={340} h={27} style={{ maxWidth: '100%' }} />} back={{ label: vocab.jobPlural, href: '/jobs' }}>
+        <Skeleton w={210} h={12} style={{ marginBottom: 22, maxWidth: '100%' }} />
+        <TilesLoading count={6} />
+        <div style={{ marginTop: 26 }}><RowsLoading rows={3} /></div>
+      </Page>
+    );
+  }
   if (!job) {
     return (
       <Page title="Job not found">

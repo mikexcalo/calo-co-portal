@@ -30,6 +30,7 @@ import {
   Page,
   Pill,
   SectionLabel,
+  Skeleton,
   inputStyle,
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
@@ -255,7 +256,11 @@ export default function SecurityPage() {
       )}
 
       {loading ? (
-        <Card><div style={{ fontSize: 14, color: C.faint }}>Loading…</div></Card>
+        <Card>
+            <Skeleton w="42%" h={15} style={{ marginBottom: 10 }} />
+            <Skeleton w="88%" h={11} style={{ marginBottom: 6 }} />
+            <Skeleton w="64%" h={11} />
+          </Card>
       ) : stage === 'codes' ? (
         <Card>
           <SectionLabel>Step 3 of 3, save your backup codes</SectionLabel>

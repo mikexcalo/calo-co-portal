@@ -16,7 +16,7 @@ import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { READ_FAILED, human } from '@/lib/spine/errors';
 import { TellUs } from '@/components/spine/TellUs';
-import { C, Card, Empty, Page, Pill, SectionLabel, shortDate } from '@/components/spine/ui';
+import { C, Card, Empty, Page, Pill, RowsLoading, SectionLabel, shortDate } from '@/components/spine/ui';
 
 interface Note {
   id: string;
@@ -75,7 +75,7 @@ export default function FeedbackPage() {
           {error && <p style={{ fontSize: 12.5, color: C.red, margin: '8px 0 0' }}>{error}</p>}
 
           {loading ? (
-            <Empty>Loading…</Empty>
+            <RowsLoading rows={4} />
           ) : rows.length === 0 ? (
             <Card>
               <Empty>

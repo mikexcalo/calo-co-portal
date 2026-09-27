@@ -20,7 +20,7 @@ import { READ_FAILED, human } from '@/lib/spine/errors';
 import {
   geocode, order, summarise, metres, driveMinutes, mapsLink, type Stop,
 } from '@/lib/spine/route';
-import { Button, C, Card, Empty, Page, SectionLabel } from '@/components/spine/ui';
+import { Button, C, Card, Empty, Page, RowsLoading, SectionLabel } from '@/components/spine/ui';
 
 interface JobRow {
   id: string;
@@ -138,7 +138,7 @@ export default function RoutesPage() {
         </Card>
 
         {loading ? (
-          <Empty>Loading…</Empty>
+          <RowsLoading rows={5} />
         ) : !forDay.length ? (
           <Card>
             <Empty hero>

@@ -279,6 +279,34 @@ or declined. The expired-link wording stays for everybody without the flag.
 
 ---
 
+## 16. A note never needs a customer — DONE 27 Sept 2026
+
+No migration. `drops` was already the To file inbox: nullable customer, job
+and person, `filed_at` null meaning nobody has said what it is about, and a
+nav row that has read "Drops" all along. An unattributed note is a drop.
+
+Home says how many and offers the one tap; the shelf grew the filing control
+its `filingOptions` prop had been waiting for since it was written; and the
+inbox offers live jobs as well as people and clients, because half of what
+lands there is about a job.
+
+---
+
+## 17. Loading states, part 2 — the remaining screens — M
+
+Part 1 did the fifteen busiest. Still bare: `traffic`, `seo`, `reviews`,
+`digital`, `qr`, `market`, `stories`, `pitches`, `pitches/[id]`,
+`site-requests`, `requests`, `signature`, `what-you-see`, `welcome`,
+`changed/[id]`, `brands/[id]`, `brands/[id]/messaging`,
+`brands/[id]/intel`, plus `Workspaces`, `Messaging` and the shell's own
+sidebar "Loading…" - which is the one people see most and the one part 1 did
+not touch, because the shell is chrome rather than a screen and wants its own
+decision.
+
+No new decisions needed for the rest: same three primitives, same rule.
+
+---
+
 ## Smaller, not yet grouped
 
 - **Price list tiers** (Friends / Standard / Enterprise) are identical for every

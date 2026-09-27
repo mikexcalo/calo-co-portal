@@ -31,10 +31,11 @@ import {
   Field,
   Page,
   Pill,
+  SETUP_TABS,
   SectionLabel,
   Select,
+  Skeleton,
   inputStyle,
-  SETUP_TABS,
 } from '@/components/spine/ui';
 import { human } from '@/lib/spine/errors';
 
@@ -256,7 +257,21 @@ export default function BusinessPage() {
     }
   };
 
-  if (loading) return <Page title="Business"><Card>Loading…</Card></Page>;
+  if (loading) {
+    return (
+      <Page title="Business">
+        <Card>
+          {/* Four labelled fields, at the height they occupy filled in. */}
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} style={{ marginBottom: 18 }}>
+              <Skeleton w={96} h={10} style={{ marginBottom: 7 }} />
+              <Skeleton w="100%" h={38} r={8} />
+            </div>
+          ))}
+        </Card>
+      </Page>
+    );
+  }
   if (!org) return <Page title="Business"><Card>No business selected.</Card></Page>;
 
   const unset = (parseFloat(rate) || 0) === 0;

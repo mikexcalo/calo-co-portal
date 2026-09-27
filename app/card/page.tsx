@@ -16,7 +16,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
-import { brandTabsFor, Button, C, Card, Empty, Page, SectionLabel, inputStyle } from '@/components/spine/ui';
+import { Button, C, Card, Empty, Page, RowsLoading, SectionLabel, brandTabsFor, inputStyle } from '@/components/spine/ui';
 import { READ_FAILED, human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { orgNow } from '@/lib/spine/db';
@@ -144,7 +144,7 @@ export default function CardPage() {
       {saved && <div style={{ fontSize: 13, color: C.green, marginBottom: 12 }}>Saved</div>}
 
       {!loaded ? (
-        <Empty>Loading…</Empty>
+        <RowsLoading rows={3} />
       ) : !row ? (
         <Card>
           <Empty>No card yet. Build one and share it instead of a paper card.</Empty>

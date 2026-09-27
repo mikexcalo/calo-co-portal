@@ -13,7 +13,6 @@ import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { InvitePerson } from '@/components/spine/InvitePerson';
 import {
-  Select,
   Button,
   C,
   Card,
@@ -21,12 +20,14 @@ import {
   Field,
   Page,
   Pill,
-  SectionLabel,
   Row,
+  RowsLoading,
+  SETUP_TABS,
+  SectionLabel,
+  Select,
   Table,
   inputStyle,
   shortDate,
-  SETUP_TABS,
 } from '@/components/spine/ui';
 import { READ_FAILED, human } from '@/lib/spine/errors';
 
@@ -254,7 +255,7 @@ export default function TeamPage() {
 
       <SectionLabel>Who has access ({members.length})</SectionLabel>
       {loading ? (
-        <Empty>Loading…</Empty>
+        <RowsLoading rows={4} />
       ) : members.length === 0 ? (
         <Card><Empty>Nobody yet. Invite whoever needs a login.</Empty></Card>
       ) : (

@@ -19,7 +19,6 @@ import supabase from '@/lib/supabase';
 import { Processing } from '@/components/spine/Processing';
 import { useOrg } from '@/lib/spine/org';
 import {
-  Select,
   Button,
   C,
   Card,
@@ -27,7 +26,9 @@ import {
   Field,
   Page,
   Pill,
+  RowsLoading,
   SectionLabel,
+  Select,
   inputStyle,
   shortDate,
 } from '@/components/spine/ui';
@@ -364,7 +365,7 @@ export default function NotesPage() {
       <div style={{ marginTop: 30 }}>
         <SectionLabel>Saved notes</SectionLabel>
         {loading ? (
-          <Card><Empty>Loading…</Empty></Card>
+          <RowsLoading rows={5} />
         ) : notes.length === 0 ? (
           <Card>
             <Empty>

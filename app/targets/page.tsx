@@ -24,7 +24,7 @@ import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useOrg } from '@/lib/spine/org';
 import { LANE, OPEN_STAGES, STAGE, daysSince, stale, type Stage } from '@/lib/spine/stage';
-import { Avatar, Button, C, Card, Empty, Page, inputStyle , SearchField} from '@/components/spine/ui';
+import { Avatar, Button, C, Card, Empty, Page, RowsLoading, SearchField, inputStyle } from '@/components/spine/ui';
 import { BulkAction, BulkBar, RecordTable, type Column } from '@/components/spine/RecordTable';
 import { SavedViews, type View } from '@/components/spine/SavedViews';
 import { brandAssetUrl } from '@/lib/spine/db';
@@ -413,7 +413,7 @@ export default function PipelinePage() {
       )}
 
       {!loaded ? (
-        <Empty>Loading…</Empty>
+        <RowsLoading rows={6} />
       ) : rows.length === 0 ? (
         <Card>
           <Empty>Nobody in the pipeline yet. Add a company you want to work with.</Empty>

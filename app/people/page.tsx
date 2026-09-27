@@ -25,17 +25,18 @@ import { useOrg } from '@/lib/spine/org';
 import { DropShelf } from '@/components/spine/DropShelf';
 import { InvitePerson } from '@/components/spine/InvitePerson';
 import {
+  Avatar,
   Button,
   C,
   Card,
   Empty,
   Page,
   Pill,
+  RowsLoading,
+  SearchField,
   Sheet,
-  Avatar,
   inputStyle,
-
-  SearchField,} from '@/components/spine/ui';
+} from '@/components/spine/ui';
 import { RecordTable, type Column } from '@/components/spine/RecordTable';
 import { daysSince } from '@/lib/spine/stage';
 import { human } from '@/lib/spine/errors';
@@ -500,7 +501,7 @@ export default function PeoplePage() {
       </div>
 
       {!loaded ? (
-        <Empty>Loading…</Empty>
+        <RowsLoading rows={6} />
       ) : (
         <>
           {/*

@@ -23,7 +23,6 @@ import { getCurrentOrg, getDocumentUrl } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import { Confirm } from '@/components/spine/Confirm';
 import {
-  Select,
   Button,
   C,
   Card,
@@ -31,7 +30,9 @@ import {
   Field,
   Page,
   Pill,
+  RowsLoading,
   SectionLabel,
+  Select,
   inputStyle,
   radius,
   shortDate,
@@ -387,7 +388,7 @@ export default function FilesPage() {
       )}
 
       {loading ? (
-        <Empty>Loading…</Empty>
+        <RowsLoading rows={5} />
       ) : files.length === 0 ? (
         <Card><Empty>Nothing filed yet. Drop in insurance, a license, a contract.</Empty></Card>
       ) : (

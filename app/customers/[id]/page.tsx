@@ -53,10 +53,13 @@ import {
   Page,
   Pill,
   Row,
+  RowsLoading,
   SectionLabel,
   Select,
+  Skeleton,
   Table,
   Tabs,
+  TilesLoading,
   inputStyle,
   money,
   radius,
@@ -408,7 +411,15 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
   };
 
 
-  if (loading) return <Page title="Loading…"><Empty>Loading…</Empty></Page>;
+  if (loading) {
+    return (
+      <Page title={<Skeleton w={300} h={27} style={{ maxWidth: '100%' }} />}>
+        <Skeleton w={190} h={12} style={{ marginBottom: 22, maxWidth: '100%' }} />
+        <TilesLoading count={4} />
+        <div style={{ marginTop: 26 }}><RowsLoading rows={4} /></div>
+      </Page>
+    );
+  }
   if (!customer) {
     return (
       <Page title="Not found">

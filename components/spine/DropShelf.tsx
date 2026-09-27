@@ -21,6 +21,7 @@ import { human, READ_FAILED } from '@/lib/spine/errors';
 import { Confirm } from './Confirm';
 import { sheetToText, isSpreadsheet } from '@/lib/spine/spreadsheet';
 import { DropZone } from './DropZone';
+import { Select } from './ui';
 import { extractPalette, SAMPLE_EDGE } from '@/lib/spine/palette';
 import {
   addDrop, listDrops, removeDrop, dropUrl, fileDrop,
@@ -28,7 +29,7 @@ import {
 } from '@/lib/spine/drops';
 
 /** Somewhere a loose item can be filed to. */
-export interface FilingOption { id: string; name: string; kind: 'person' | 'customer' }
+export interface FilingOption { id: string; name: string; kind: 'person' | 'customer' | 'job' }
 
 interface Props {
   orgId: string;
@@ -571,17 +572,72 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                   point and it was the least visible thing on the card.
                 */}
                 {!d.filed_at && (
-                  <button
-                    onClick={() => readIt(d)}
+                  <div
                     style={{
-                      border: 'none', borderRadius: 7, flexShrink: 0,
-                      background: C.ink, color: '#fff', cursor: 'pointer',
-                      padding: '9px 16px', fontSize: 13, fontWeight: 500,
-                      fontFamily: 'inherit',
+                      display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap',
+                      /*
+                        Takes a whole row of its own when there is not room
+                        beside the item.
+
+                        `flexShrink: 0` with a `width: auto` dropdown meant
+                        the widest option name set the width: "Ember & Ash Hot
+                        Sauce - platform and ongoing work (project)" made the
+                        control 461px inside a 386px screen and pushed 264px
+                        of the card off the side. The names are the client's
+                        and the job's, so their length was never ours to
+                        assume.
+                      */
+                      flex: '1 1 220px', minWidth: 0,
                     }}
                   >
-                    Scan and sort &rarr;
-                  </button>
+                    {/*
+                      Saying who it is about, without the reader.
+
+                      `filingOptions` has been a prop since the shelf was
+                      written and nothing ever rendered it: the only way out
+                      of the pile was Scan and sort, which needs a working
+                      reader and a model spend. That was fine when everything
+                      in here was a dropped file somebody could look at. It is
+                      not fine now that a note typed with nobody picked lands
+                      here - the answer is usually already in somebody's head,
+                      and the pile should take it.
+                    */}
+                    {filingOptions && filingOptions.length > 0 && (
+                      <Select
+                        value=""
+                        placeholder="File it to…"
+                        style={{ flex: '1 1 170px', minWidth: 0, maxWidth: '100%' }}
+                        options={filingOptions.map((o) => ({ value: `${o.kind}:${o.id}`, label: o.name }))}
+                        onChange={(v) => {
+                          const [kind, id] = v.split(':');
+                          void (async () => {
+                            try {
+                              await fileDrop(d.id, {
+                                person_id: kind === 'person' ? id : null,
+                                customer_id: kind === 'customer' ? id : null,
+                                job_id: kind === 'job' ? id : null,
+                              });
+                              await load();
+                              onChange?.();
+                            } catch (e) {
+                              setError(human(e));
+                            }
+                          })();
+                        }}
+                      />
+                    )}
+                    <button
+                      onClick={() => readIt(d)}
+                      style={{
+                        border: 'none', borderRadius: 7, flexShrink: 0,
+                        background: C.ink, color: '#fff', cursor: 'pointer',
+                        padding: '9px 16px', fontSize: 13, fontWeight: 500,
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      Scan and sort &rarr;
+                    </button>
+                  </div>
                 )}
               </div>
             );

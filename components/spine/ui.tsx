@@ -74,7 +74,16 @@ export function Page({
   back,
   children,
 }: {
-  title: string;
+  /**
+   * A node as well as a string, so a screen that does not know its title yet
+   * can hold the space instead of typing "Loading…" into it.
+   *
+   * A detail page that says "Loading…" in 27px display type and then swaps in
+   * "Burnet Rd unit 4 and 5 re-roof" moves everything under it, which is the
+   * jump this whole pass exists to remove - and it puts a word nobody needs
+   * in the largest type on the screen.
+   */
+  title: React.ReactNode;
   subtitle?: string;
   action?: React.ReactNode;
   /**
