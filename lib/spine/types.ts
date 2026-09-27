@@ -180,7 +180,10 @@ export interface Job {
 
 /** A job with its customer joined in — what the list views actually render. */
 export interface JobWithCustomer extends Job {
-  customer: Pick<Customer, 'id' | 'name'> | null;
+  /* The phone number rides along because of where a job gets opened: on a
+     roof, one-handed, when the answer to "which unit" is a phone call. A
+     second query to find it is a second query nobody makes. */
+  customer: Pick<Customer, 'id' | 'name' | 'phone'> | null;
 }
 
 export interface Estimate {

@@ -102,7 +102,7 @@ site-requests and the rest. Same sweep, same three primitives, no new
 decisions needed. Nothing on them is a number somebody acts on, which is why
 they were not done first.
 
-## 6. Job screens on a phone — M
+## 6. Job screens on a phone — DONE 27 Sept 2026
 
 `app/jobs/[id]` and `app/jobs/[id]/estimate`.
 
@@ -215,6 +215,48 @@ quietly load-bearing for - which is step 1's whole point. **What the client
 gains**: the ability to remove the studio entirely, which today they cannot.
 
 Worth doing on one real workspace first, with the owner watching.
+
+---
+
+## 13. A failed read says "Nothing was saved" — S
+
+`human()` defaults its fallback to `WRITE_FAILED`, and about twenty-eight
+catch blocks around **reads** take that default. So a read that fails prints:
+
+> Nothing was saved. We could not tell why. Check your connection and try
+> again. If it keeps happening, use Tell Us and we will look.
+
+Nothing was being saved. Nothing was refused. The commonest trigger is
+`"The user aborted a request."` - tapping a row and navigating before the
+request finishes, which is ordinary use on a phone.
+
+It mattered less when that sentence was only a fallback. It matters now:
+`guard_session_writes()` and `guard_sending()` open with the same words, so
+"Nothing was saved" is the product's way of saying *the database refused you*.
+A cancelled read now impersonates a permission failure.
+
+The fix is one argument per site - `human(msg, READ_FAILED)` - plus a sweep
+for reads that went through `save()`. The wording already exists and reads
+correctly: "The server did not answer, so this screen has nothing to show."
+
+Worth doing with a rule that makes it hard to regress: reads should not reach
+for a function whose default is about saving.
+
+---
+
+## 14. A note cannot be saved without the note reader — S
+
+`DropIt` is the only way to add a note, and its one button is "Scan and sort",
+which calls the extraction service. Where that service is unconfigured or
+down, the sheet says "Note reading is not configured yet" and there is no
+second path: the text somebody typed cannot be kept at all.
+
+Found while walking a job on a phone, which is exactly where it bites - the
+note is being written standing on a roof, and the answer to a service being
+unreachable should not be "type it again later".
+
+It needs a plain save that files the words against the chosen customer, with
+the reader as the thing that happens on top when it is available.
 
 ---
 

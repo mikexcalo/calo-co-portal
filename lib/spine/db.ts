@@ -245,7 +245,7 @@ export async function createCustomer(
 export async function listJobs(statuses?: JobStatus[]): Promise<JobWithCustomer[]> {
   let q = supabase
     .from('jobs')
-    .select('*, customer:customers(id, name)')
+    .select('*, customer:customers(id, name, phone)')
     .eq('org_id', await orgNow())
     .order('updated_at', { ascending: false });
 
@@ -257,7 +257,7 @@ export async function listJobs(statuses?: JobStatus[]): Promise<JobWithCustomer[
 export async function getJob(id: string): Promise<JobWithCustomer | null> {
   const res = await supabase
     .from('jobs')
-    .select('*, customer:customers(id, name)')
+    .select('*, customer:customers(id, name, phone)')
     .eq('id', id)
     .maybeSingle();
   if (res.error) throw new Error(res.error.message);

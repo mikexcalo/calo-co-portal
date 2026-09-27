@@ -29,10 +29,13 @@ import {
   Empty,
   Figures,
   Page,
+  useIsPhone,
+  radius,
   Pill,
   hours,
   money0,
 } from '@/components/spine/ui';
+import { JobFacts } from '@/components/spine/JobFacts';
 import { human, READ_FAILED } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { Confirm } from '@/components/spine/Confirm';
@@ -49,6 +52,7 @@ const TONE: Record<JobStatus, 'neutral' | 'blue' | 'green' | 'amber' | 'red'> = 
 };
 
 export default function JobsPage() {
+  const phone = useIsPhone();
   const router = useRouter();
   const clientScope = useClientScope();
   const { vocab } = useOrg();
@@ -190,6 +194,77 @@ export default function JobsPage() {
             action: { label: `New ${vocab.job.toLowerCase()}`, href: '/jobs/new' },
           }}
         />
+      ) : phone ? (
+        /*
+          One column on a phone, because the board is the thing that does not
+          survive the trip.
+
+          The board is four to six columns at `minmax(190px, 1fr)` inside an
+          `overflowX: auto`, which on a 390px screen is a horizontally
+          scrolling strip about two columns wide: finding a job means swiping
+          sideways through statuses, and a card you have scrolled to is a card
+          you cannot compare with the one now off screen. Sideways scrolling
+          is this screen's failure state on a phone, not a feature of it.
+
+          So the same cards, stacked, with the status written on each one
+          instead of implied by the column above it. Grouped by status in the
+          board's own order, so the two screens still agree about what comes
+          first.
+        */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {columns
+            .flatMap((status) => shown.filter((j) => j.status === status))
+            .map((job) => {
+              const l = ledger[job.id];
+              const pending = l ? l.unbilled_labor + l.unbilled_cost : 0;
+              const owed = l ? l.invoiced_total - l.collected : 0;
+              const hrs = l?.hours_logged ?? 0;
+              const next =
+                owed > 0
+                  ? `${money0(owed)} owed`
+                  : pending > 0
+                    ? `${money0(pending)} unbilled`
+                    : hrs > 0
+                      ? `${hours(hrs)} logged`
+                      : null;
+              return (
+                <div
+                  key={job.id}
+                  onClick={() => router.push(`/jobs/${job.id}`)}
+                  style={{
+                    background: C.panel,
+                    border: `1px solid ${C.border}`,
+                    borderRadius: radius.lg,
+                    padding: 14,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                    <div style={{ flex: 1, minWidth: 0, fontSize: 15.5, fontWeight: 600, lineHeight: 1.3 }}>
+                      {job.name}
+                    </div>
+                    {/* Rename and remove stay behind the same control as on
+                        the board, at a size a thumb can actually hit. */}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setEditing(job); }}
+                      aria-label={`Manage ${job.name}`}
+                      style={{
+                        background: 'transparent', border: 'none',
+                        minWidth: 48, minHeight: 48, margin: '-12px -12px -12px 0',
+                        color: C.faint, cursor: 'pointer', fontSize: 17,
+                        fontFamily: 'inherit', flexShrink: 0,
+                      }}
+                    >
+                      &#8943;
+                    </button>
+                  </div>
+                  {/* Status, customer, address and next step, without
+                      leaving the card. */}
+                  <JobFacts job={job} next={next} />
+                </div>
+              );
+            })}
+        </div>
       ) : (
         <div
           style={{

@@ -47,11 +47,25 @@ interface Read {
   uncertain: string[];
 }
 
-export function DropIt({ onClose }: { onClose: () => void }) {
+export function DropIt({
+  onClose,
+  customerId,
+}: {
+  onClose: () => void;
+  /**
+   * Who this is about, when the caller already knows.
+   *
+   * Opened from the top bar, nobody knows yet and the guesser works it out of
+   * the words. Opened from a job, the answer is on the screen behind the
+   * sheet - and asking anyway meant scrolling a dropdown of every customer to
+   * re-select the one whose roof you are standing on.
+   */
+  customerId?: string | null;
+}) {
   const [clients, setClients] = useState<Client[]>([]);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [text, setText] = useState('');
-  const [clientId, setClientId] = useState<string>('');
+  const [clientId, setClientId] = useState<string>(customerId ?? '');
   const [read, setRead] = useState<Read | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,6 +101,8 @@ export function DropIt({ onClose }: { onClose: () => void }) {
     );
   }, [text, clients]);
 
+  /* The guesser only fills a blank. A caller that said who this is about
+     outranks a guess made from the words. */
   useEffect(() => { if (guess && !clientId) setClientId(guess.id); }, [guess, clientId]);
 
   const chosen = clients.find((c) => c.id === clientId) ?? null;

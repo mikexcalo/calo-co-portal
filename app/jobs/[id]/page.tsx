@@ -54,6 +54,7 @@ import {
   Row,
   SectionHead,
   SectionLabel,
+  useIsPhone,
   Select,
   Table,
   hours as fmtHours,
@@ -63,6 +64,8 @@ import {
   shortDate,
   today,
 } from '@/components/spine/ui';
+import { JobFacts } from '@/components/spine/JobFacts';
+import { JobActions, JOB_BAR } from '@/components/spine/JobActions';
 import { Confirm } from '@/components/spine/Confirm';
 import { UndoBar, type UndoState } from '@/components/spine/Undo';
 import { useOrg } from '@/lib/spine/org';
@@ -84,6 +87,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
   const { vocab } = useOrg();
   const router = useRouter();
   const jobId = params.id;
+  const phone = useIsPhone();
 
   const [orgId, setOrgId] = useState<string | null>(null);
   const [defaultRate, setDefaultRate] = useState(0);
@@ -229,7 +233,13 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     <Page
       back={{ label: vocab.jobPlural, href: '/jobs' }}
       title={job.name}
-      subtitle={[job.customer?.name, tidyAddress(job.address)].filter(Boolean).join(' · ') || undefined}
+      /* On a phone the facts card below says all of this, bigger and
+         tappable. Two copies of an address is one of them being ignored. */
+      subtitle={
+        phone
+          ? undefined
+          : [job.customer?.name, tidyAddress(job.address)].filter(Boolean).join(' · ') || undefined
+      }
       action={
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {/* The back link at the top of this page already goes to /jobs.
@@ -266,6 +276,25 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
       )}
 
       <UndoBar undo={undo} onDone={() => setUndo(null)} />
+
+      {/*
+        What you need before you touch anything else, on a phone.
+
+        The desktop header puts the customer and address in a grey subtitle
+        line, which is right at a desk and wrong on a roof: it is unreadable
+        at arm's length, and the address is the one thing somebody wants to
+        act on rather than read. On a phone the same four facts come first,
+        at size, with the address and the number as taps.
+      */}
+      {phone && (
+        <Card style={{ marginBottom: 14 }}>
+          <JobFacts
+            job={job}
+            next={unbilled > 0 ? `${money0(unbilled)} not yet invoiced` : null}
+          />
+        </Card>
+      )}
+
 
       {confirming && (
         <Confirm
@@ -334,8 +363,16 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         />
       )}
 
-      {/* Status + billing type */}
-      <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 22, flexWrap: 'wrap' }}>
+      {/*
+        Status, billing type and the two date pickers.
+
+        Hidden on a phone, not rearranged: the row is a 160px dropdown, two
+        pills, a sentence and two date inputs pushed to the right with
+        `marginLeft: auto`, which at 390px stacks into six rows of chrome
+        above the actual job. Status moves to the bar at the bottom where the
+        thumb is; scheduling a job is desk work and stays there.
+      */}
+      <div style={{ display: phone ? 'none' : 'flex', gap: 10, alignItems: 'center', marginBottom: 22, flexWrap: 'wrap' }}>
         <Select
           value={job.status}
           disabled={busy}
@@ -711,6 +748,17 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
           </div>
         )}
       </div>
+      {/* Room under the last card for the bar that floats over it. */}
+      {phone && <div style={{ height: JOB_BAR + 8 }} />}
+
+      {phone && (
+        <JobActions
+          job={job}
+          orgId={job.org_id}
+          onStatus={(next) => run(async () => { await updateJob(jobId, { status: next }); })}
+          onChanged={() => { void load(); }}
+        />
+      )}
     </Page>
   );
 }
