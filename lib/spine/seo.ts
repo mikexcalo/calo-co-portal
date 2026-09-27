@@ -224,7 +224,7 @@ export const SETUP_ORDER: Array<{ step: string; note: string }> = [
     note: 'Type what you do and take the most specific match. "Marketing agency" competes with everybody; "Brand consultant" competes with people who do your job. You can add more categories later, but this first one decides which searches you appear in at all.',
   },
   {
-    step: 'Request verification and leave it — the postcard takes about a week',
+    step: 'Request verification and leave it. The postcard takes about a week',
     note: 'Nothing else on this page finishes until the code arrives, so start it now and do the rest while you wait. The card goes to the address you gave even when it is hidden.',
   },
   {

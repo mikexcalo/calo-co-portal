@@ -14,8 +14,9 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import supabase from '@/lib/supabase';
+import { addDrop } from '@/lib/spine/drops';
 import { Processing } from '@/components/spine/Processing';
 import { useOrg } from '@/lib/spine/org';
 import {
@@ -62,6 +63,7 @@ interface NoteRow {
 
 export default function NotesPage() {
   const { org, vocab } = useOrg();
+  const router = useRouter();
 
   const [raw, setRaw] = useState('');
   /**
@@ -81,6 +83,15 @@ export default function NotesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  /**
+   * Where the last one went, so the screen says so.
+   *
+   * A note filed on a client appears in the list below and the list is the
+   * confirmation. A note with nobody picked goes to Drops, which this screen
+   * does not show, so clearing the box and saying nothing would look exactly
+   * like a save that failed.
+   */
+  const [filed, setFiled] = useState<{ where: 'record' | 'drops'; name?: string } | null>(null);
 
   const load = useCallback(async () => {
     if (!org) return;
@@ -132,6 +143,7 @@ export default function NotesPage() {
     if (!org || !result) return;
     setBusy(true);
     setError(null);
+    setFiled(null);
     try {
       const parts = [
         result.summary,
@@ -152,18 +164,49 @@ export default function NotesPage() {
         '\n\n---\nOriginal:\n' + raw,
       ];
 
-      const res = await saveOrFail(supabase.from('customer_notes').insert({
-        org_id: org.id,
-        customer_id: customerId || null,
-        title: result.title,
-        body: parts.filter(Boolean).join('\n'),
-        kind: 'note',
-        source: 'transcript',
-        happened_on: result.happened_on || new Date().toISOString().slice(0, 10),
-        // Recorded, never displayed. See the AI usage tile in Overheads.
-        extraction_cost_cents: cost,
-      }));
-      if (res.error) throw new Error(res.error.message);
+      const body = parts.filter(Boolean).join('\n');
+
+      /*
+        Nobody picked, so it goes to the pile that exists for exactly this.
+
+        The picker says "optional" and then this wrote customer_id into a NOT
+        NULL column, so the honest answer to leaving it blank was "Nothing was
+        saved. Fill it in and save again" - which does not say which field,
+        because the database did not either.
+
+        `drops` is the To file inbox and DropIt already sends unattributed
+        notes there. Same row shape, same one-tap filing, no second inbox. The
+        cost goes with it: this is the only path in the product that pays for a
+        note to be read, and it is the path that has been failing, which is why
+        no note in the database has ever carried one.
+      */
+      if (!customerId) {
+        await addDrop(org.id, {
+          kind: 'note',
+          title: result.title,
+          body,
+          meta: { source: 'transcript', read: true },
+          extractionCostCents: cost,
+        });
+        setFiled({ where: 'drops' });
+      } else {
+        const res = await saveOrFail(supabase.from('customer_notes').insert({
+          org_id: org.id,
+          customer_id: customerId,
+          title: result.title,
+          body,
+          kind: 'note',
+          source: 'transcript',
+          happened_on: result.happened_on || new Date().toISOString().slice(0, 10),
+          // Recorded, never displayed. See the AI usage tile in Overheads.
+          extraction_cost_cents: cost,
+        }));
+        if (res.error) throw new Error(res.error.message);
+        setFiled({
+          where: 'record',
+          name: customers.find((c) => c.id === customerId)?.name,
+        });
+      }
 
       setResult(null);
       setRaw('');
@@ -193,6 +236,38 @@ export default function NotesPage() {
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16, maxWidth: 720 }}>
           <div style={{ color: C.red, fontSize: 14, lineHeight: 1.6 }}>{error}</div>
+        </Card>
+      )}
+
+      {/*
+        Say what was written and where it went.
+
+        The list below is the confirmation for a note filed on a client. It is
+        not one for a note with nobody picked, because that note is in Drops
+        and this screen does not show Drops.
+      */}
+      {filed && !result && (
+        <Card style={{ maxWidth: 720, marginBottom: 16 }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 240, fontSize: 13.5, color: C.text, lineHeight: 1.6 }}>
+              {filed.where === 'drops' ? (
+                <>
+                  Saved to Drops. Nobody is picked yet, so it waits there until you
+                  say who it is about.
+                </>
+              ) : (
+                <>
+                  Saved on {filed.name ?? `the ${vocab.customer.toLowerCase()}`}. It is
+                  in the list below.
+                </>
+              )}
+            </div>
+            {filed.where === 'drops' && (
+              <Button variant="ghost" onClick={() => router.push('/inbox')}>
+                Open Drops
+              </Button>
+            )}
+          </div>
         </Card>
       )}
 
@@ -234,7 +309,7 @@ export default function NotesPage() {
           >
             <textarea
               value={raw}
-              onChange={(e) => setRaw(e.target.value)}
+              onChange={(e) => { setRaw(e.target.value); setFiled(null); }}
               rows={12}
               placeholder={
                 'Paste a transcript or type your notes here.\n\nOr drop a .txt file onto this box.\n\nExample: "Spoke to Dana about the deck. She wants it stained before the 14th, and asked about replacing two boards at the north end. Quoted roughly $800 for the extra boards, she\'ll confirm Friday."'

@@ -88,7 +88,7 @@ export function SaidYesElsewhere({
         source: 'imported',
         direction: 'in',
         happened_on: when,
-        title: `Accepted the proposal — ${label.toLowerCase()}`,
+        title: `Accepted the proposal, ${label.toLowerCase()}`,
         body:
           `${name.trim()}${email.trim() ? ` <${email.trim()}>` : ''}, ${when}.` +
           (words.trim() ? `\n\n"${words.trim()}"` : '\n\nNo wording recorded.'),

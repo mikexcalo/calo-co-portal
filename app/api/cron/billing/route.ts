@@ -182,7 +182,7 @@ export async function GET(req: NextRequest) {
         kind: 'system',
         title: `${e.n} invoice${e.n === 1 ? '' : 's'} ready for the 1st`,
         body:
-          `${e.numbers.join(', ')} — $${e.total.toFixed(2)} in total. ` +
+          `${e.numbers.join(', ')}, $${e.total.toFixed(2)} in total. ` +
           'Last day of the month, so this is the moment to check the hours are ' +
           'all on and approve. Anything not approved simply waits.',
         href: '/billing',

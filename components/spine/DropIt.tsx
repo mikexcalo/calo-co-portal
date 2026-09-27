@@ -86,6 +86,13 @@ export function DropIt({
   const [readerDown, setReaderDown] = useState(false);
   /* It went to the pile rather than onto somebody's record. */
   const [toFile, setToFile] = useState(false);
+  /**
+   * What the reading cost, in cents, measured by the route.
+   *
+   * Read and then thrown away until now, on both the filed and the unfiled
+   * path, so the sheet has been the second place a real cost went unrecorded.
+   */
+  const [cost, setCost] = useState<number | null>(null);
   const [current, setCurrent] = useState<Record<string, string>>({});
   const [saved, setSaved] = useState(false);
 
@@ -159,6 +166,7 @@ export function DropIt({
         setError('The reader came back with nothing usable. The note is still yours to paste in.');
         return;
       }
+      setCost(typeof json.costCents === 'number' ? json.costCents : null);
       setRead(read);
     } catch {
       setReaderDown(true);
@@ -228,13 +236,45 @@ export function DropIt({
   const fileIt = async () => {
     if (!read || !orgId) return;
     setBusy(true);
+    const body = `${read.title}\n\n${read.summary}\n\n---\n${text}`;
+
+    /*
+      The same NOT NULL column the raw path already works around.
+
+      saveRaw learned this and fileIt did not, so a note that had been read
+      with nobody picked failed on insert - and the confirmation underneath
+      still claimed it had been filed somewhere. Both paths go to Drops now,
+      for the same reason and to the same place.
+    */
+    if (!clientId) {
+      try {
+        await addDrop(orgId, {
+          kind: 'note',
+          title: read.title,
+          body,
+          meta: { read: true },
+          extractionCostCents: cost,
+        });
+        setToFile(true);
+        setSaved(true);
+      } catch (e) {
+        setError(human(e));
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+
     await saveOrFail(supabase.from('customer_notes').insert({
       org_id: orgId,
-      customer_id: clientId || null,
+      customer_id: clientId,
+      job_id: jobId ?? null,
       kind: 'note',
-      body: `${read.title}\n\n${read.summary}\n\n---\n${text}`,
+      body,
       happened_on: new Date().toISOString().slice(0, 10),
-    }));
+      // Recorded, never displayed. See the AI usage tile in Overheads.
+      extraction_cost_cents: cost,
+    }), 'Saving the note');
     setBusy(false);
     setSaved(true);
   };
@@ -398,7 +438,7 @@ export function DropIt({
                 <span style={{ fontSize: 13, color: C.green }}>
                   {chosen
                     ? `Filed on ${chosen.name}, under Now.`
-                    : 'Filed. Not attached to a client, so it lives in your notes.'}
+                    : 'Saved to Drops. Nobody is picked yet, so it waits there until you say who it is about.'}
                 </span>
                 {chosen && (
                   <Button

@@ -60,6 +60,16 @@ interface Props {
 
 const isImage = (f: File) => f.type.startsWith('image/');
 
+/**
+ * Something already paid to read this one.
+ *
+ * The cost is the honest signal rather than a flag in `meta`: a row carrying
+ * a measured number is a row a model has been through. A note saved from the
+ * note screen with nobody picked arrives that way, and the shelf must not
+ * offer to do it again.
+ */
+const alreadyRead = (d: Drop) => d.extraction_cost_cents != null;
+
 const looksLikeUrl = (s: string) => /^https?:\/\/\S+$/i.test(s.trim());
 
 /** Palette on arrival, in the browser, for nothing. */
@@ -323,7 +333,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
         <p style={{ fontSize: 13, color: C.green, margin: '8px 0 0', fontWeight: 500 }}>{done}</p>
       )}
 
-      {showWaiting && items.some((d) => !d.filed_at) && (
+      {showWaiting && items.some((d) => !d.filed_at && !alreadyRead(d)) && (
         <div
           style={{
             border: `1px solid ${C.border}`, borderRadius: 9,
@@ -340,7 +350,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
             the outcome, not the mechanism.
           */}
           <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>
-            {items.filter((d) => !d.filed_at).length} waiting to be scanned
+            {items.filter((d) => !d.filed_at && !alreadyRead(d)).length} waiting to be scanned
           </div>
           <div style={{ fontSize: 12.5, color: C.faint, marginTop: 2, lineHeight: 1.5 }}>
             Press Scan and sort. It reads the file, pulls out the names, prices and line
@@ -412,8 +422,17 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
               a duplicate without saying which one to get rid of. The first one
               in is the one that stays.
             */
-            const first = items.find((o) => bare(o.title) === bare(d.title));
-            const twin = d.title && first && first.id !== d.id ? first : null;
+            const first = items.find((o) => o.kind !== 'note' && bare(o.title) === bare(d.title));
+            /*
+              Files and links, never notes.
+
+              This asks "is this the same filename twice", and a note that has
+              been read now carries a six-word heading in the same column. Two
+              calls about the same roof genuinely produce the same heading, and
+              neither is a copy of the other - saying "already here" about them
+              would push somebody to delete a real note.
+            */
+            const twin = d.kind !== 'note' && d.title && first && first.id !== d.id ? first : null;
             const palette = Array.isArray(d.meta?.palette) ? (d.meta.palette as string[]) : [];
             const label =
               d.kind === 'note' ? (d.body ?? 'Note')
@@ -504,7 +523,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                       {label}
                     </div>
                   )}
-                  {label.length > 150 && openId !== d.id && (
+                  {label.length > 150 && openId !== d.id && !alreadyRead(d) && (
                     <div style={{ fontSize: 11.5, color: C.faint, marginTop: 3 }}>
                       {label.length.toLocaleString()} characters, press Scan and sort to pull out what is in here
                     </div>
@@ -571,7 +590,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                   what happens next. Nothing happens next: reading is the whole
                   point and it was the least visible thing on the card.
                 */}
-                {!d.filed_at && (
+                {!d.filed_at && (filingOptions?.length || !alreadyRead(d)) && (
                   <div
                     style={{
                       display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap',
@@ -626,17 +645,29 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
                         }}
                       />
                     )}
-                    <button
-                      onClick={() => readIt(d)}
-                      style={{
-                        border: 'none', borderRadius: 7, flexShrink: 0,
-                        background: C.ink, color: '#fff', cursor: 'pointer',
-                        padding: '9px 16px', fontSize: 13, fontWeight: 500,
-                        fontFamily: 'inherit',
-                      }}
-                    >
-                      Scan and sort &rarr;
-                    </button>
+                    {/*
+                      Never offer to read something that has been read.
+
+                      A note that arrives here from the note screen was read on
+                      the way in and carries what that cost. Offering Scan and
+                      sort on it spends the money a second time for an answer
+                      already in the row, and the running total in Overheads
+                      would climb for nothing. Filing is the only thing left to
+                      do with it.
+                    */}
+                    {!alreadyRead(d) && (
+                      <button
+                        onClick={() => readIt(d)}
+                        style={{
+                          border: 'none', borderRadius: 7, flexShrink: 0,
+                          background: C.ink, color: '#fff', cursor: 'pointer',
+                          padding: '9px 16px', fontSize: 13, fontWeight: 500,
+                          fontFamily: 'inherit',
+                        }}
+                      >
+                        Scan and sort &rarr;
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

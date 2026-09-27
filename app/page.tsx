@@ -363,7 +363,7 @@ export default function Dashboard() {
       key: `awaiting-${a.id}`,
       weight: 1e12,
       title: `${a.agency_name} sent you a proposal`,
-      detail: `${a.engagement} — ${money0(a.total)}. Read it and accept or decline; nothing happens until you do.`,
+      detail: `${a.engagement}, ${money0(a.total)}. Read it and accept or decline; nothing happens until you do.`,
       cta: 'Open it',
       href: `/e/${a.public_token}`,
       tone: 'blue',

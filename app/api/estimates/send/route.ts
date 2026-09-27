@@ -177,7 +177,7 @@ export async function POST(req: NextRequest) {
         org_id: clientOrgId,
         kind: 'system',
         title: `${org?.name ?? 'Your agency'} sent you a proposal`,
-        body: `${job?.name ?? 'A proposal'} — nothing happens until you read it and accept or decline.`,
+        body: `${job?.name ?? 'A proposal'}. Nothing happens until you read it and accept or decline.`,
         href: `/e/${token}`,
       }).then(undefined, (e) => console.error('[estimates/send] client notice:', e));
     }

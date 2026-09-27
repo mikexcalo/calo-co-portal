@@ -25,6 +25,15 @@ export interface Drop {
   customer_id: string | null;
   job_id: string | null;
   meta: Record<string, unknown>;
+  /**
+   * What reading this cost, in cents, when something read it on the way in.
+   *
+   * Null on everything dropped in raw, which is most of them. It is here
+   * rather than in `meta` because `meta` says of itself that it never holds
+   * anything that costs per read, and because `ai_usage` has to sum it
+   * alongside the same column on documents and notes.
+   */
+  extraction_cost_cents: number | null;
   filed_at: string | null;
   created_at: string;
 }
@@ -47,6 +56,14 @@ export async function addDrop(
     body?: string | null;
     file?: File | null;
     meta?: Record<string, unknown>;
+    /**
+     * Cents, measured, when a reader ran before this was saved.
+     *
+     * Passed by the note screens, which pay for a reading and then may have
+     * nobody to file the result against. Dropping the number on the way past
+     * would make the inbox the one place a real cost goes unrecorded.
+     */
+    extractionCostCents?: number | null;
   },
   target?: DropTarget
 ): Promise<Drop> {
@@ -100,6 +117,7 @@ export async function addDrop(
     customer_id: target?.customer_id ?? null,
     job_id: target?.job_id ?? null,
     meta: input.meta ?? {},
+    extraction_cost_cents: input.extractionCostCents ?? null,
     // Filed on arrival when it was dropped onto something.
     filed_at: targeted(target) ? new Date().toISOString() : null,
   };

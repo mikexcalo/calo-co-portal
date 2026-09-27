@@ -193,7 +193,7 @@ export async function POST(req: NextRequest) {
   const text = (body.text ?? '').trim();
   if (text.length < 40) {
     return NextResponse.json(
-      { error: "That's too short to be worth reading — just type it in as a note." },
+      { error: "That's too short to be worth reading. Save it as it stands instead." },
       { status: 400 }
     );
   }

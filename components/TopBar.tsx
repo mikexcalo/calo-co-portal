@@ -195,7 +195,7 @@ export default function TopBar() {
         */}
         <button
           onClick={() => setDropping(true)}
-          title={`Add a note — type, talk or paste  (${mod}J)`}
+          title={`Add a note. Type, talk or paste  (${mod}J)`}
           style={{
             display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
             background: 'transparent', border: `1px solid ${C.border}`,

@@ -208,7 +208,7 @@ export const SETUP_ITEMS: SetupItem[] = [
       payments at all.
     */
     steps: [
-      'Open [Stripe API keys](https://dashboard.stripe.com/apikeys) and copy the secret key. Only the secret key — nothing here uses a publishable one.',
+      'Open [Stripe API keys](https://dashboard.stripe.com/apikeys) and copy the secret key. Only the secret key, because nothing here uses a publishable one.',
       'Add it in [Vercel, project nautilus](https://vercel.com/mikexcalo-7384s-projects/nautilus/settings/environment-variables) as STRIPE_SECRET_KEY, Production.',
       'In [Stripe webhooks](https://dashboard.stripe.com/webhooks), add an endpoint at https://nautilusapp.vercel.app/api/stripe/webhook and subscribe it to invoice.paid, invoice.payment_failed, invoice.updated and invoice.voided.',
       'Copy that endpoint\u2019s signing secret and add it as STRIPE_WEBHOOK_SECRET, also Production. Without it every webhook is rejected and a card payment never marks the invoice paid.',

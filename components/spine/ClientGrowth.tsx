@@ -62,7 +62,7 @@ function stepsFor(name: string, site: string | null): Step[] {
       how:
         '1. Open Search Console and press "Add property", top left.\n' +
         '2. Pick the LEFT box, "Domain". Not "URL prefix".\n' +
-        `3. Type: ${domain} — no https://, no www.\n` +
+        `3. Type: ${domain}, with no https:// and no www.\n` +
         '4. Google gives you one long line starting google-site-verification=. Copy it.\n' +
         '5. Paste it here in chat and I will put it into DNS for you.\n' +
         '6. Come back to Google and press Verify.',
@@ -431,7 +431,7 @@ export function ClientGrowth({
       {telling && (
         <Card style={{ marginTop: 10 }}>
           <div style={{ fontSize: 12.5, color: C.faint, marginBottom: 9, lineHeight: 1.55, maxWidth: '54ch' }}>
-            Drafted from what is ticked. Edit it — nobody should send a summary of their
+            Drafted from what is ticked. Edit it, because nobody should send a summary of their
             own work that they did not write.
           </div>
           <textarea

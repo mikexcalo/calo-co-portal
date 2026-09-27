@@ -307,22 +307,33 @@ No new decisions needed for the rest: same three primitives, same rule.
 
 ---
 
-## 18. The Notes screen cannot save without a customer — S
+## 18. The Notes screen cannot save without a customer — DONE 27 Sept 2026
 
-`app/notes/page.tsx` labels its picker "Who is this about? · **optional**"
-and then writes `customer_id: customerId || null` into a NOT NULL column, so
-leaving it blank fails with "Nothing was saved. Fill it in and save again" -
-which does not name the field, because the database did not either.
+A note with nobody picked goes to Drops, and the reading it was charged for
+goes with it. Verified on the demo at 390px: saved with no customer, landed
+unfiled in Drops with `extraction_cost_cents` 0.24, and Overheads showed
+0.2¢ against one read. The test note was deleted afterwards.
 
-It is #16 in a second place, and it has a cost: `extraction_cost_cents` is
-recorded only on this path, and no note in the database has ever carried one.
-The recording has most likely never succeeded in ordinary use.
+`drops.extraction_cost_cents` is a real column rather than a key in `meta`,
+because `meta` says of itself that it never holds anything that costs per
+read. `ai_usage` gained a third branch and counts it as a `note`, so the
+Overheads tile does not under-report. That view had **never returned a row**
+before this: the count across `documents`, `customer_notes` and `drops` was
+zero, which confirms the recording had never once succeeded.
 
-Send customer-less notes to Drops, exactly as DropIt does. Same inbox, same
-one-tap filing.
+Three things came out of doing it that were not in the entry:
 
-Also in this group: the note route's 400 reads "That's too short to be worth
-reading — just type it in as a note." That em dash is user-facing.
+- **`DropIt.fileIt` had the identical NOT NULL insert** and failed the same
+  way with nobody picked, while the confirmation underneath still said it had
+  been filed. Fixed with it, since it is the same defect one file over.
+- **Neither DropIt path recorded the cost at all**, filed or unfiled. Both do
+  now.
+- **The shelf offered "Scan and sort" on a note that had already been read**,
+  which is the same model spend a second time for an answer already in the
+  row. A drop carrying a cost is no longer offered a re-read.
+
+The note route's 400 now reads "That's too short to be worth reading. Save it
+as it stands instead."
 
 ---
 
@@ -344,6 +355,50 @@ every read through it fails too.
 Deleting the 130 untracked copies fixes it and touches nothing in the
 database. The deeper question is whether this repository should live inside
 an iCloud-synced folder at all.
+
+---
+
+## 20. The Notes screen has no way to keep a note the reader cannot read — S
+
+#14 fixed this in `DropIt`, which grows a second button when the reader is
+down and keeps the words either way. `app/notes/page.tsx` never got it: its
+only button is "Read this", and if the extraction service answers with
+anything the text cannot be saved at all.
+
+Found while verifying #18. `ANTHROPIC_API_KEY` is **empty in `.env.local`**,
+so note reading has never worked on a local dev server, and the screen's
+answer to that was a red card and no way forward. The same is true in
+production the moment the key is rotated or the service is down.
+
+Same fix as #14: a plain save that files the words, with the reader as the
+thing that happens on top when it is available.
+
+Also in this group: that failure prints **"Nothing was saved. We could not
+tell why."** The `read()` catch takes `human()`'s write-specific default, so
+a reader that is merely unconfigured borrows the sentence
+`guard_session_writes()` opens with. It is #13 surviving in one more place.
+
+## 21. Em dashes have no check on our own copy — S
+
+`lib/spine/guardrails.ts` already carries an `em_dash` construction and it is
+on by default in `checkCopy`. It only ever runs against **a brand's** copy,
+from the Messaging screen and `OutboundCheck`. Nothing checks the product's
+own strings, which is why 22 reached user-facing text in the five days after
+the sweep of 22 September.
+
+The rule exists and the matcher exists. What is missing is a script over
+`app`, `components` and `lib` that classifies each em dash as comment, string
+or JSX text and fails on the last two. Comments are deliberately exempt: the
+house rule is about what a reader sees.
+
+Pre-sweep survivors the 22 September pass did not take, left alone because
+they are a separate decision rather than a regression: `logos.ts` uses the
+dash as a label separator ("Icon — light", "Large — 1024px"), and
+`signature.ts`, `answers.ts`, `tutorial.tsx`, `mfa.ts`, `payments.ts` and
+eight API routes carry about forty more. Model prompts and schema
+descriptions are not counted; nobody reads those. Neither is
+`ui.tsx:733`, where the dash is the empty-cell glyph in a regex, nor
+`guardrails.ts:41`, which is the detector.
 
 ---
 

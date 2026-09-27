@@ -186,7 +186,7 @@ export default function TrafficPage() {
           <div style={{ fontSize: 12.5, color: C.faint, marginTop: 12, lineHeight: 1.6 }}>
             It goes in the head of every page. On a site built here it is already in,
             so you only need this for one somebody else runs. Pressing Start before the
-            tag is live is harmless — it just records nothing until it is.
+            tag is live is harmless; it just records nothing until it is.
           </div>
         </Card>
       ) : !loaded ? (

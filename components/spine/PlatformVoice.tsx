@@ -44,7 +44,7 @@ const RULES: Rule[] = [
     title: 'Name what the button does',
     rule: 'A control says what will happen, and the result says it happened. Never leave the verb without its object.',
     wrong: 'Start collecting',
-    right: 'Start collecting visitor counts — they show up under Traffic',
+    right: 'Start collecting visitor counts. They show up under Traffic',
     note: 'Collecting what, and where does it go.',
   },
   {
@@ -64,7 +64,7 @@ const RULES: Rule[] = [
     title: 'An error says what happened and whose fault it is',
     rule: 'What went wrong, whether it was them, and whether trying again helps. Never apologise, never blame vaguely.',
     wrong: 'You do not have access to do that here. Ask whoever set this workspace up.',
-    right: 'Could not save that site. Nothing to do with your account — it is on us.',
+    right: 'Could not save that site. Nothing to do with your account, it is on us.',
     note: 'That message appeared because a column was missing, not because of permissions.',
   },
   {
@@ -117,7 +117,7 @@ export function PlatformVoice() {
           choose it and is halfway through something else.
         </div>
         <div style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.65, marginTop: 10, maxWidth: '62ch' }}>
-          The reference is Square, Stripe, Atlassian and Cash App — four companies
+          The reference is Square, Stripe, Atlassian and Cash App: four companies
           carrying real complexity whose screens still read like a person explaining
           something. What they share is not a word list. It is that the interface
           says what happened, what it costs and what to do, and then stops.

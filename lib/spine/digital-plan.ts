@@ -64,7 +64,7 @@ export const DIGITAL_PLAN: PlanTrack[] = [
         do: 'Add calo.company to your LinkedIn profile',
         why: 'The schema above is half a handshake until this is done.',
         note:
-          'This is the half only you can do, and the schema above does very little without it. Edit your profile, Contact info, Website, and put in https://calo.company/mike-calo. Schema on one end and a link on the other is what lets Google treat the profile and the page as one person — and lend a four-month-old domain the standing an eleven-year-old profile already has.',
+          'This is the half only you can do, and the schema above does very little without it. Edit your profile, Contact info, Website, and put in https://calo.company/mike-calo. Schema on one end and a link on the other is what lets Google treat the profile and the page as one person, and lend a four-month-old domain the standing an eleven-year-old profile already has.',
         where: { label: 'Your profile', href: 'https://www.linkedin.com/in/mikecalo/' },
       },
       {
@@ -79,7 +79,7 @@ export const DIGITAL_PLAN: PlanTrack[] = [
         do: 'Let mikecalo.co expire on 28 September. No redirect.',
         why: 'Saves you paying for a year of a domain you do not want.',
         note:
-          'It is four pages, two of which are Wix template leftovers — /book-online and /hotschedules. A 301 only transfers anything while somebody can still follow it, and Google asks for a year, which means paying for a domain you do not want to keep so it can pass across the authority of an abandoned site. Change the one link above and there is nothing left to catch. If the name ever matters again there is roughly a month of grace after the 28th to change your mind.',
+          'It is four pages, two of which are Wix template leftovers: /book-online and /hotschedules. A 301 only transfers anything while somebody can still follow it, and Google asks for a year, which means paying for a domain you do not want to keep so it can pass across the authority of an abandoned site. Change the one link above and there is nothing left to catch. If the name ever matters again there is roughly a month of grace after the 28th to change your mind.',
       },
       {
         key: 'name_console',
@@ -87,10 +87,10 @@ export const DIGITAL_PLAN: PlanTrack[] = [
         why: 'Until you do this you are guessing at what people search.',
         note:
           '1. Open Search Console and press "Add property" (top left, the dropdown).\n'
-          + '2. Pick the LEFT box, "Domain". Not "URL prefix" — Domain covers www and everything under it.\n'
-          + '3. Type: calo.company — no https://, no www.\n'
+          + '2. Pick the LEFT box, "Domain". Not "URL prefix". Domain covers www and everything under it.\n'
+          + '3. Type: calo.company, with no https:// and no www.\n'
           + '4. Google shows you one long line starting google-site-verification=. Copy the whole thing.\n'
-          + '5. Paste it here in chat and I will put it into Vercel DNS for you — I have access, and it is the step people get stuck on.\n'
+          + '5. Paste it here in chat and I will put it into Vercel DNS for you. I have access, and it is the step people get stuck on.\n'
           + '6. Come back to Google and press Verify.\n\n'
           + 'It keeps no history from before the day you do this, which is the whole argument for doing it today rather than next month.',
         where: { label: 'Search Console', href: 'https://search.google.com/search-console' },
@@ -101,7 +101,7 @@ export const DIGITAL_PLAN: PlanTrack[] = [
         why: 'Google will find the page eventually; this is weeks instead of months.',
         note:
           '1. In Search Console, left menu, press "Sitemaps".\n'
-          + '2. In the box, type: sitemap.xml — then Submit. It already exists and lists both pages.\n'
+          + '2. In the box, type: sitemap.xml, then Submit. It already exists and lists both pages.\n'
           + '3. Paste https://calo.company/mike-calo into the search bar at the very top (it says "Inspect any URL").\n'
           + '4. Press "Request Indexing" and wait for the tick.\n\n'
           + 'This is the payoff. It tells you whether Google knows that page exists at all, which right now nobody does.',
@@ -112,7 +112,7 @@ export const DIGITAL_PLAN: PlanTrack[] = [
   {
     key: 'traffic',
     title: 'See who is visiting',
-    promise: 'Who arrives, what they landed on, and where they came from — in here, not in Google Analytics.',
+    promise: 'Who arrives, what they landed on, and where they came from, in here rather than in Google Analytics.',
     steps: [
       {
         key: 'traffic_tag',
@@ -142,7 +142,7 @@ export const DIGITAL_PLAN: PlanTrack[] = [
         do: 'Do the same for globalseafood.partners',
         why: 'John is paying for hosting and cannot see a single visitor.',
         note:
-          'John’s site carries no tag either. Switch to his workspace, copy the tag from his Traffic tab — the token is per site, so his is not yours — and send it over. It goes into his site in one line.',
+          'John’s site carries no tag either. Switch to his workspace, copy the tag from his Traffic tab, and send it over. The token is per site, so his is not yours. It goes into his site in one line.',
       },
     ],
   },
@@ -183,7 +183,7 @@ export const DIGITAL_PLAN: PlanTrack[] = [
       },
       {
         key: 'map_verify',
-        do: 'Request verification and leave it — the postcard takes about a week',
+        do: 'Request verification and leave it. The postcard takes about a week',
         why: 'Nothing else here counts until the code arrives, and it takes a week.',
         note:
           'It goes to the address you gave even though it is hidden. Nothing else here finishes until the code arrives, so start it and carry on.',
