@@ -75,6 +75,9 @@ export async function middleware(request: NextRequest) {
     path.startsWith('/login') ||
     path.startsWith('/welcome') ||
     path.startsWith('/trust') ||
+    // A workspace's own sign-in link. Nobody following one has a session yet;
+    // that is what it is for.
+    path.startsWith('/in/') ||
     // A site preview is a link you send to somebody who has no account. That
     // is the entire point of it, so it cannot sit behind a session.
     path.startsWith('/preview/');
@@ -86,6 +89,7 @@ export async function middleware(request: NextRequest) {
     !user &&
     !path.startsWith('/login') &&
     !path.startsWith('/trust') &&
+    !path.startsWith('/in/') &&
     !path.startsWith('/preview/')
   ) {
     const url = request.nextUrl.clone();

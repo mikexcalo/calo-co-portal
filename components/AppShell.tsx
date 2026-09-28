@@ -201,6 +201,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pathname === '/login' ||
     pathname === '/welcome' ||
     pathname === '/trust' ||
+    /*
+      Setting a new password, and a workspace's own front door.
+
+      `/reset` was missing, and it is the worst one to miss: somebody follows
+      a link from an email, having signed in to nothing, and was shown the
+      sidebar, Search, Add a note, Log time, and on a phone a workspace plate
+      naming a business that is not theirs. `/in/` is new and public by
+      design, so it goes in at the same time rather than being the next one
+      somebody finds.
+    */
+    pathname === '/reset' ||
+    pathname.startsWith('/in/') ||
     PUBLIC.some((p) => pathname.startsWith(p));
 
   /**

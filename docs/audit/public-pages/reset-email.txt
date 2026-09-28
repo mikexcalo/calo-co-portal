@@ -1,0 +1,26 @@
+The password reset email, as received 28 Sept 2026 14:38 UTC.
+Sent to the demo client account (mikexcalo+harbor@gmail.com), which is a test
+account and delivers to Mike's own inbox. The token in the real message is
+removed here; it is single use and expires in an hour.
+
+From:     hello@calo.company
+Subject:  Reset your CALO&CO password
+
+  CALO&CO                      [13px, 700, letter-spacing .13em, #006AFF]
+
+  Reset your password
+
+  Somebody asked to reset the password on your CALO&CO account. If that was
+  you, use the button below. The link works once and expires in an hour.
+
+  [ Set a new password ]       [button, #006AFF background]
+
+  Or paste this into your browser:
+  https://nautilusapp.vercel.app/auth/confirm?token_hash=<removed>&type=recovery
+
+  ------------------------------------------------------------------------
+
+  If you didn't ask for this, you can ignore it. Your password stays as it is
+  and nobody has access to your account.
+
+  Sent by CALO&CO. Reply to this email and a person will read it.
