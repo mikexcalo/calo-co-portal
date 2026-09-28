@@ -8,7 +8,8 @@
 # check that can block a deploy has to be one you can watch fail, so this one
 # fails on the machine doing the pushing.
 #
-# Turn it on with `npm run hooks`. Skip it once with `git push --no-verify`.
+# Installed by the `prepare` script on npm install, so a fresh clone gets it
+# without anyone remembering. Skip it once with `git push --no-verify`.
 
 npm run --silent words || {
   echo ""

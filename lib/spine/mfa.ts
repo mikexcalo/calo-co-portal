@@ -125,7 +125,7 @@ export async function recoveryCodesRemaining(): Promise<number> {
  */
 function friendly(message: string): string {
   if (/invalid.*(code|totp)|verification failed/i.test(message)) {
-    return 'That code was not right. Codes change every 30 seconds — check your app and try the current one.';
+    return 'That code was not right. Codes change every 30 seconds, so check your app and try the current one.';
   }
   if (/expired/i.test(message)) {
     return 'That code expired before it arrived. Try the one showing now.';

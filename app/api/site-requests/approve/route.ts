@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
       }
     } else if (site?.repo && !ghToken) {
       handoffNote =
-        'Approved. GITHUB_TOKEN is not set, so nothing was filed — the brief is saved on the request.';
+        'Approved. GITHUB_TOKEN is not set, so nothing was filed. The brief is saved on the request.';
     }
 
     const { error: updErr } = await db

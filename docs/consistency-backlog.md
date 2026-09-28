@@ -294,24 +294,43 @@ the reader as the thing that happens on top when it is available.
 
 ---
 
-## 15. The owner cannot preview a decided proposal — S
+## 15. The owner cannot preview a decided proposal — DONE 27 Sept 2026
 
-`/proposals` opens the preview with `?preview=1`, and for an accepted or
-declined proposal the public page still answers "This link isn't working. It
-may have been replaced by a newer version, or the estimate may have already
-been decided."
+**The symptom this entry described was already fixed.** An accepted or
+declined proposal opened with `?preview=1` renders the document with its
+decision banner and no not-found; verified against all three demo states
+before any code changed. `notFound()` fires only when the token does not
+resolve, and the decided banner predates 22 September. The "This link isn't
+working" string does appear in the HTML of a working page, which is probably
+how the entry came to be written: it is the not-found boundary inside the RSC
+flight payload, not anything rendered.
 
-That sentence is right for a customer following an old link and wrong for the
-business looking at its own record. Three of the four demo proposals are
-decided, so in practice the preview only works on the one nobody has answered
-yet - which is the one the owner least needs to check.
+**What was actually broken was one step further out.** A public token is
+minted when a proposal is sent, so a draft and every superseded version have
+none, and `/proposals` had nothing to open: it fell through to the job
+screen. On the demo that is three of eleven proposals the owner could not
+preview at all.
 
-`?preview=1` already exists as the flag for "this is the owner looking". The
-public page should honour it for a decided proposal too, showing the document
-as the customer saw it, ideally with a line saying it has since been accepted
-or declined. The expired-link wording stays for everybody without the flag.
+Two changes:
 
----
+- **An owner route into the same document.** `/e/[token]` now also accepts an
+  estimate **id**, but only with `?preview=1` and only for a signed-in member
+  of the org that owns it. The alternative was minting a token on preview,
+  which would create a permanent public URL for a document nobody has decided
+  to send. An id with no session is the same not-found a wrong token has
+  always been, and a token without `?preview=1` behaves exactly as before.
+- **Actions are inert in a preview.** A sent proposal previewed by its owner
+  showed a live Accept button, so the business could record a decision its
+  customer never made, under whatever name it typed. The panel still renders,
+  because the point of a preview is seeing what they see, but it is wrapped
+  in `inert` and carries a line saying so. `inert` rather than `disabled`:
+  it takes the whole subtree out of reach of mouse, keyboard and screen
+  reader, where greying a button leaves the name field focusable.
+
+Verified on the demo at desktop and 390px across five states - accepted,
+declined, sent, draft and superseded - plus the customer's own view, which is
+unchanged and still live. The decline was made through the real customer
+route because the demo had none, and `20261029000016` puts it back.
 
 ## 16. A note never needs a customer — DONE 27 Sept 2026
 
@@ -425,8 +444,14 @@ scroll. The three test notes were deleted in `20261029000014`.
 
 ## 21. Em dashes have no check on our own copy — DONE 27 Sept 2026
 
-`scripts/em-dash-check.ts`, wired to a pre-push hook. `npm run hooks` turns it
-on; `npm run words` runs it by hand.
+`scripts/em-dash-check.ts`, wired to a pre-push hook. `npm run words` runs it
+by hand.
+
+It installs itself: `prepare` points `core.hooksPath` at `.githooks` on every
+npm install, because a hook you have to turn on by hand is one a fresh clone
+skips, which is exactly what happened to this one. `|| true` keeps it from
+failing an install with no `.git` directory, which is what the Vercel builder
+does. `npm run hooks` still turns it on without reinstalling.
 
 Not in `prebuild`. That is where the site map check lived when a missing
 devDependency on the builder killed every deployment for hours with no signal
@@ -448,18 +473,31 @@ for a brand's prose and wrong here: this codebase uses the en dash for the
 empty-cell glyph and for ranges, and rewriting those is what broke 24
 placeholders on 22 September.
 
-The forty that predate the check are recorded in
-`scripts/em-dash-baseline.json`, keyed on file plus line text rather than line
-number, so moving code neither re-arms nor excuses anything. New ones fail the
-push; the known ones do not. `npm run words:accept` shrinks the list as they
-are fixed, and the check says so when a baseline entry is no longer there.
+The forty that predated the check were held in a baseline while they were
+worked through. All forty are gone now (see #22), so the baseline and its
+`words:accept` companion went with them: an empty baseline is a mechanism
+earning nothing. If a batch ever lands at once it is a reasonable thing to
+reintroduce.
 
-Still to decide, one file at a time: see #22.
+The rule itself now lives in `docs/ux-rulebook.md` section 6, which is where
+"how we do this here" belongs.
 
-## 22. The forty em dashes that predate the check — S
+## 22. The forty em dashes that predate the check — DONE 27 Sept 2026
 
-Recorded in the baseline, not fixed. Grouped by file with a recommendation
-each, in `docs/em-dash-survivors.md`.
+All forty: 10 customer-facing reworded, 3 exempted by name in `ALLOWED`, and
+the last 25 reworded in one pass. `npm run words` passes at zero.
+
+The owner-facing prose in `answers.ts`, `signature.ts`, `tutorial.tsx`,
+`mfa.ts` and `site-requests/approve` was reworded rather than repunctuated:
+most of those dashes were introducing a list or a reason, so they became a
+colon or a second sentence. The label separators in `logos.ts` and
+`payments.ts` became the middle dot, which is what the rest of the product
+already uses.
+
+`docs/em-dash-survivors.md` is deleted. It was a list of what was left and
+nothing is left; the conventions worth keeping moved into the rulebook.
+CLAUDE.md opens by describing what happens when a doc outlives the thing it
+describes.
 
 ---
 

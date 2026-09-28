@@ -12,6 +12,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type React from 'react';
 import { notFound } from 'next/navigation';
+import { createSupabaseServer } from '@/lib/supabase-server';
 import { SaveAsPdf } from './SaveAsPdf';
 import { Faq } from '@/components/spine/Faq';
 import { asQuestions } from '@/lib/spine/questions-from-notes';
@@ -94,6 +95,9 @@ function fmtDate(d: string | null): string {
   });
 }
 
+/** An estimate id, not a public token: the two shapes cannot be confused. */
+const IS_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export default async function PublicEstimate({
   params,
   searchParams,
@@ -107,11 +111,65 @@ export default async function PublicEstimate({
 
   const db = createClient(url, key, { auth: { persistSession: false } });
 
-  const { data: estimate } = await db
+  /*
+    "This is us looking, not them."
+
+    It has always kept the preview panel from stamping viewed_at and
+    announcing that a customer opened a proposal nobody has sent. It is read
+    here, above the lookup, because it now also decides which lookup runs and
+    whether the accept and decline controls are live.
+  */
+  const isPreview = searchParams?.preview === '1';
+
+  const SELECT =
+    '*, job:jobs(id, name, address, billing_type, org_id, customer:customers(name, contact_name))';
+
+  let { data: estimate } = await db
     .from('estimates')
-    .select('*, job:jobs(id, name, address, billing_type, org_id, customer:customers(name, contact_name))')
+    .select(SELECT)
     .eq('public_token', params.token)
     .maybeSingle();
+
+  /*
+    The owner looking at one of their own that has no public token.
+
+    A token is minted when a proposal is sent, so a draft and every superseded
+    version have none, and the preview panel on /proposals had nothing to open
+    - it fell back to the job screen. "Preview any of mine" is a reasonable
+    thing to want, and it must not be bought by minting a public URL for a
+    document nobody has decided to send: a token is readable by anybody
+    holding it, forever.
+
+    So the owner gets a different route into the same document. The segment is
+    the estimate's id rather than its token, it works only with `?preview=1`,
+    and only for somebody signed in who holds a membership in the org that
+    owns it. Nothing about the customer's path changes, and an id with no
+    session is the same not-found a wrong token has always been.
+  */
+  let ownerPreview = false;
+  if (!estimate && isPreview && IS_UUID.test(params.token)) {
+    const me = (await createSupabaseServer().auth.getUser()).data.user;
+    if (me) {
+      const { data: mine } = await db
+        .from('estimates')
+        .select(SELECT)
+        .eq('id', params.token)
+        .maybeSingle();
+      if (mine) {
+        const orgId = (mine.job as { org_id?: string } | null)?.org_id ?? mine.org_id;
+        const { data: member } = await db
+          .from('memberships')
+          .select('user_id')
+          .eq('user_id', me.id)
+          .eq('org_id', orgId)
+          .maybeSingle();
+        if (member) {
+          estimate = mine;
+          ownerPreview = true;
+        }
+      }
+    }
+  }
 
   if (!estimate) notFound();
 
@@ -140,7 +198,6 @@ export default async function PublicEstimate({
     clicking a link in an email has no such thing on the URL, so the only way
     to be recorded as having opened it is to have actually opened it.
   */
-  const isPreview = searchParams?.preview === '1';
 
   /*
     The first time they open it, say so.
@@ -726,6 +783,7 @@ export default async function PublicEstimate({
           owner={owner ? { ...owner, initials: initialsOf(owner.fullName) } : null}
           depositDue={depositDue}
           decided={decided}
+          preview={isPreview}
           baseTotal={Number(estimate.base_total ?? subtotal)}
           options={options.map((l) => ({ id: l.id, description: l.description, total: Number(l.total) }))}
         />

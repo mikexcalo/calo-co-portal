@@ -141,7 +141,7 @@ export const INSTALL_GUIDES: InstallGuide[] = [
     name: 'Gmail',
     method: 'rendered',
     steps: [
-      'Click "Copy signature" above — that copies the rendered version, not the code.',
+      'Click "Copy signature" above. That copies the rendered version, not the code.',
       'In Gmail, open Settings (the gear icon) → See all settings.',
       'Scroll down the General tab to "Signature" and click Create new.',
       'Give it a name, then click into the big editing box.',
@@ -150,7 +150,7 @@ export const INSTALL_GUIDES: InstallGuide[] = [
       'Scroll to the bottom and click Save Changes. Gmail does not autosave.',
     ],
     gotcha:
-      'If the logo does not appear, the image URL must be publicly reachable — Gmail will not load a file from your computer.',
+      'If the logo does not appear, the image URL must be publicly reachable. Gmail will not load a file from your computer.',
   },
   {
     id: 'outlook-web',
@@ -165,7 +165,7 @@ export const INSTALL_GUIDES: InstallGuide[] = [
       'Click Save.',
     ],
     gotcha:
-      'Outlook strips some spacing. If it looks cramped, use the Minimal style — it survives Outlook better than anything with a logo.',
+      'Outlook strips some spacing. If it looks cramped, use the Minimal style, which survives Outlook better than anything with a logo.',
   },
   {
     id: 'outlook-desktop',
@@ -190,7 +190,7 @@ export const INSTALL_GUIDES: InstallGuide[] = [
       'Click "Copy signature" above.',
       'Open Mail → Settings (or Preferences) → Signatures.',
       'Pick the account on the left, then click + to add one.',
-      'Untick "Always match my default message font" — this matters, it strips your formatting otherwise.',
+      'Untick "Always match my default message font". This one matters: leave it ticked and your formatting is stripped.',
       'Select any placeholder text in the box and paste over it.',
       'Choose the signature from the "Choose Signature" dropdown for that account.',
     ],
@@ -206,7 +206,7 @@ export const INSTALL_GUIDES: InstallGuide[] = [
       'Open that email on the phone and select the whole signature by touch and hold → Select All.',
       'Copy it.',
       'Go to Settings → Apps → Mail → Signature.',
-      'Clear what is there, paste, then shake the phone and choose Undo — this converts it back to rich text.',
+      'Clear what is there, paste, then shake the phone and choose Undo. That converts it back to rich text.',
     ],
     gotcha:
       'iOS strips formatting on paste unless you use the shake-to-undo trick. It looks absurd; it works.',
@@ -217,7 +217,7 @@ export const INSTALL_GUIDES: InstallGuide[] = [
     method: 'source',
     steps: [
       'Click "Copy HTML" above to get the source.',
-      'Paste into whatever accepts raw HTML — a CRM, a helpdesk, a mail client with an HTML source view.',
+      'Paste into whatever accepts raw HTML: a CRM, a helpdesk, a mail client with an HTML source view.',
       'Everything is inline-styled with table layout, so it survives clients that strip stylesheets.',
     ],
   },

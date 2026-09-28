@@ -302,6 +302,28 @@ start.
 
 **No aphorisms in the interface.** A subtitle is a label.
 
+**No em dashes in text a person reads, and it is checked.** `npm run words`
+scans every string and JSX text node in `app`, `components`, `lib` and
+`scripts`, and the pre-push hook runs it. Use a comma, a colon or a full
+stop, and where the dash was separating rather than punctuating, use the
+middle dot: `Large · 1024px`, `Free · bank to bank`, the separator the
+product already uses in `Harbor Light Roofing · Sep 27, 2026`.
+
+Three things are deliberately out of scope, and the check knows about each:
+
+- **Comments.** The rule is about what a reader sees, and the comments here
+  are long-form prose for whoever picks the code up next.
+- **Model prompts.** The four `app/api/*/extract` routes talk to Haiku.
+  Nobody reads a system prompt, and bending one around a punctuation rule
+  risks changing what the model does.
+- **The en dash.** It is the empty-cell glyph (`–` where a table has no
+  value) and it joins ranges (`$800–1,200`, `Jun 1 – Jun 30`). Rewriting
+  those is what broke 24 placeholders on 22 September.
+
+Anything else that genuinely needs one goes in `ALLOWED` in
+`scripts/em-dash-check.ts` with a written reason, not into a list of things
+to fix later.
+
 **Never a real person's name** as placeholder or example text.
 
 **They/them.** Nothing in this product records anybody's pronouns and a name

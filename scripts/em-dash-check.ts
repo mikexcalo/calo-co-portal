@@ -26,10 +26,25 @@
  * and a missing devDependency on the builder killed every deployment for
  * hours with no signal but a stale site. A check that can block a deploy has
  * to be one you can watch fail, so this one fails on your own machine before
- * the push leaves it. Install it with `npm run hooks`.
+ * the push leaves it.
+ *
+ * It installs itself. `prepare` points core.hooksPath at `.githooks` on every
+ * npm install, because a hook that has to be turned on by hand is one a fresh
+ * clone skips - which is exactly what happened to this one. The git config it
+ * writes is per-clone and not in the repo, so there is nothing to commit and
+ * nothing to drift; `|| true` keeps it from failing an install that has no
+ * .git directory, which is what the Vercel builder does. `npm run hooks` is
+ * still there to turn it on without reinstalling.
+ *
+ * There is no baseline any more. There were 40 em dashes predating the check
+ * and they were recorded so new ones could fail while the old ones waited;
+ * all 40 are now fixed or exempted by name, so the check simply passes at
+ * zero. If a batch of them ever comes back at once, a baseline is a
+ * reasonable thing to reintroduce, but an empty one is a mechanism earning
+ * nothing.
  */
 
-import { readdirSync, statSync, readFileSync, writeFileSync, existsSync } from 'fs';
+import { readdirSync, statSync, readFileSync } from 'fs';
 import { join } from 'path';
 
 /*
@@ -108,21 +123,6 @@ const MODEL_FACING = [
 interface Hit { file: string; line: number; kind: 'string' | 'jsx'; text: string }
 
 /**
- * The ones that were already here.
- *
- * Roughly forty predate the check and each is a judgement call - a label
- * separator in `logos.ts` reads differently from a sentence in `signature.ts`
- * - so they are recorded rather than rewritten in a hurry. New ones fail;
- * these do not, until somebody decides about them one file at a time.
- *
- * Keyed on the file and the line's text, never the line number, so shifting
- * code up or down neither re-arms a known one nor quietly excuses a new one.
- * Run `npm run words:accept` after fixing a batch to shrink the list.
- */
-const BASELINE_FILE = 'scripts/em-dash-baseline.json';
-const key = (h: Hit) => `${h.file}\u0000${h.text}`;
-
-/**
  * Where each character sits: code, a comment, or inside a quoted string.
  *
  * Written as a scanner rather than a regex because the question "is this dash
@@ -188,10 +188,6 @@ function walk(dir: string, out: string[] = []): string[] {
 const allowed = (h: Hit) =>
   ALLOWED.some((a) => a.file === h.file && (a.contains === '' || h.text.includes(a.contains)));
 
-const baseline: string[] = existsSync(BASELINE_FILE)
-  ? (JSON.parse(readFileSync(BASELINE_FILE, 'utf8')) as { known: string[] }).known
-  : [];
-
 const hits: Hit[] = [];
 for (const root of ROOTS) {
   for (const file of walk(root)) {
@@ -202,35 +198,13 @@ for (const root of ROOTS) {
   }
 }
 
-if (process.argv.includes('--accept')) {
-  const known = [...new Set(hits.map(key))].sort();
-  writeFileSync(BASELINE_FILE, `${JSON.stringify({ known }, null, 2)}\n`);
-  console.log(`Recorded ${known.length} known em dashes in ${BASELINE_FILE}.`);
+if (hits.length === 0) {
+  console.log('Em dashes: none in text a person reads.');
   process.exit(0);
 }
 
-const seen = new Set(baseline);
-const fresh = hits.filter((h) => !seen.has(key(h)));
-
-/* A baseline entry whose line no longer exists has been fixed. Say so, so
-   the list shrinks instead of quietly protecting text that is already gone. */
-const live = new Set(hits.map(key));
-const stale = baseline.filter((k) => !live.has(k)).length;
-if (stale > 0) {
-  console.log(`${stale} known em dash${stale === 1 ? '' : 'es'} no longer there. Run: npm run words:accept`);
-}
-
-if (fresh.length === 0) {
-  console.log(
-    baseline.length > 0
-      ? `Em dashes: no new ones. ${hits.length} known, listed in ${BASELINE_FILE}.`
-      : 'Em dashes: none in text a person reads.'
-  );
-  process.exit(0);
-}
-
-console.log(`\nNew em dashes in text a person reads: ${fresh.length}\n`);
-for (const h of fresh) {
+console.log(`\nEm dashes in text a person reads: ${hits.length}\n`);
+for (const h of hits) {
   /* file:line first and unpadded, so an editor and a terminal can both jump
      to it by click. */
   console.log(`  ${h.file}:${h.line}  (${h.kind})`);

@@ -13,7 +13,6 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { listAllEstimates, orgNow } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import type { Estimate } from '@/lib/spine/types';
@@ -69,10 +68,22 @@ const STATUS_TONE = {
 
 export default function ProposalsPage() {
   const sendLocked = useSendLocked();
-  const router = useRouter();
   const { vocab } = useOrg();
   const [rows, setRows] = useState<Row_[]>([]);
   const [previewing, setPreviewing] = useState<string | null>(null);
+
+  /*
+    Every proposal can be previewed, whatever state it is in.
+
+    A public token exists only once a proposal has been sent, so a draft and
+    every superseded version had none and this fell through to opening the
+    job - which is a different screen answering a different question. The
+    owner's route addresses the estimate by id instead; `/e/[token]` accepts
+    that only with `?preview=1` and only for a signed-in member of the org,
+    so nothing here creates a public URL for an unsent document.
+  */
+  const previewHref = (r: { id: string; public_token?: string | null }) =>
+    r.public_token ? `/e/${r.public_token}?preview=1` : `/e/${r.id}?preview=1`;
   const [recording, setRecording] = useState<Row_ | null>(null);
   const [proof, setProof] = useState<WithProof | null>(null);
   const [orgId, setOrgId] = useState<string | null>(null);
@@ -360,9 +371,7 @@ export default function ProposalsPage() {
                     key={r.id}
                     cols="104px minmax(0, 1fr) minmax(0, 1.6fr) 96px 110px"
                     onClick={() =>
-                      r.public_token
-                        ? setPreviewing(`/e/${r.public_token}?preview=1`)
-                        : r.job && router.push(`/jobs/${r.job.id}`)
+                      setPreviewing(previewHref(r))
                     }
                   >
                     <div style={{ fontWeight: 500 }}>Proposal #{r.version}</div>
@@ -420,9 +429,7 @@ export default function ProposalsPage() {
                     <div
                       key={r.id}
                       onClick={() =>
-                      r.public_token
-                        ? setPreviewing(`/e/${r.public_token}?preview=1`)
-                        : r.job && router.push(`/jobs/${r.job.id}`)
+                      setPreviewing(previewHref(r))
                       }
                       style={{
                         background: C.panel,
@@ -491,9 +498,7 @@ export default function ProposalsPage() {
                   <Row
                     key={r.id} cols="1fr 150px 110px 110px 110px 72px" labels={['', '', 'Status', 'Decided', 'Value', '']}
                     onClick={() =>
-                      r.public_token
-                        ? setPreviewing(`/e/${r.public_token}?preview=1`)
-                        : r.job && router.push(`/jobs/${r.job.id}`)
+                      setPreviewing(previewHref(r))
                     }
                   >
                     <div>{r.job?.name ?? '–'}</div>

@@ -40,6 +40,7 @@ export function AddOns({
   options,
   baseTotal,
   decided,
+  preview = false,
 }: {
   token: string;
   accent: string;
@@ -51,6 +52,16 @@ export function AddOns({
   options: Line[];
   baseTotal: number;
   decided: boolean;
+  /**
+   * The business looking at its own document, rather than the customer.
+   *
+   * Set by `?preview=1`, which is only ever on the URL the preview panel
+   * opens. The controls render so the owner can see what the customer will
+   * be shown, and they do nothing: an owner who accepts their own proposal
+   * from a preview has written a decision nobody made, stamped with whatever
+   * name they typed.
+   */
+  preview?: boolean;
 }) {
   const [picked, setPicked] = useState<Set<string>>(new Set());
 
@@ -120,15 +131,48 @@ export function AddOns({
 
       {!decided && (
         <div style={{ borderTop: '1px solid #e4e4e0', padding: '22px 30px 26px', background: '#fafaf8' }}>
-          <DecisionButtons
-            token={token}
-            accent={accent}
-            accentInk={accentInk}
-            business={business}
-            owner={owner}
-            depositDue={depositDue}
-            selected={Array.from(picked)}
-          />
+          {preview ? (
+            /*
+              What they will see, with nothing wired to it.
+
+              `inert` takes the whole subtree out of reach of the mouse, the
+              keyboard and the screen reader in one attribute, which is the
+              honest version of "disabled": greying the button and leaving the
+              form focusable is how somebody tabs into a field that cannot do
+              anything.
+            */
+            <>
+              <div
+                // @ts-expect-error inert is valid HTML; React's types have not caught up.
+                inert=""
+                style={{ opacity: 0.55, userSelect: 'none' }}
+              >
+                <DecisionButtons
+                  token={token}
+                  accent={accent}
+                  accentInk={accentInk}
+                  business={business}
+                  owner={owner}
+                  depositDue={depositDue}
+                  selected={Array.from(picked)}
+                />
+              </div>
+              <p style={{ margin: '14px 0 0', fontSize: 13, color: '#666', lineHeight: 1.6 }}>
+                This is your preview, so accepting and declining are switched
+                off here. Your customer sees this panel working.
+              </p>
+            </>
+          ) : (
+            <DecisionButtons
+              token={token}
+              accent={accent}
+              accentInk={accentInk}
+              business={business}
+              owner={owner}
+              depositDue={depositDue}
+              selected={Array.from(picked)}
+            />
+          )}
         </div>
       )}
     </>

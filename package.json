@@ -10,8 +10,8 @@
     "sitemap": "tsx scripts/sitemap-check.ts",
     "tidy": "find . -path ./node_modules -prune -o \\( -name '* 2.*' -o -name '* 3.*' \\) -print -delete",
     "words": "tsx scripts/em-dash-check.ts",
-    "words:accept": "tsx scripts/em-dash-check.ts --accept",
-    "hooks": "git config core.hooksPath .githooks && echo \"Hooks on. pre-push runs npm run words.\""
+    "hooks": "git config core.hooksPath .githooks && echo \"Hooks on. pre-push runs npm run words.\"",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",

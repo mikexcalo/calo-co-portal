@@ -133,7 +133,7 @@ It only matters once a job is complete. On the P&L page, anything still negative
     keywords: ['switch', 'business', 'org', 'company', 'change', 'account', 'toggle'],
     body: `Use the switcher at the top of the sidebar, under the ${PRODUCT} name. The colored dot tells you which one you're in.
 
-Each business has completely separate data. The words change too — a "Job" in one is an "Engagement" in the other.`,
+Each business has completely separate data. The words change too: a "Job" in one is an "Engagement" in the other.`,
   },
   {
     id: 'get-paid',
@@ -141,7 +141,7 @@ Each business has completely separate data. The words change too — a "Job" in 
     keywords: ['paid', 'payment', 'stripe', 'card', 'pay', 'collect', 'money in'],
     body: `Once Stripe is connected, "Send for payment" emails the customer a payment page. They pay by card or bank transfer, and the invoice marks itself paid.
 
-Until then, "Mark sent by hand" and "Mark paid" work fine — you just have to remember to press them.`,
+Until then, "Mark sent by hand" and "Mark paid" work fine. You just have to remember to press them.`,
     href: '/billing',
     hrefLabel: 'Open Billing',
   },
@@ -149,7 +149,7 @@ Until then, "Mark sent by hand" and "Mark paid" work fine — you just have to r
     id: 'needs-review',
     question: 'What does "Needs review" mean on a document?',
     keywords: ['needs review', 'review', 'flag', 'amber', 'warning', 'smudged', 'unclear'],
-    body: `Something on it couldn't be read confidently — a smudged total, a cut-off date, an ambiguous vendor.
+    body: `Something on it couldn't be read confidently: a smudged total, a cut-off date, an ambiguous vendor.
 
 When that happens the value is left blank rather than guessed. A blank prompts you to look; a wrong number quietly becomes a wrong invoice.`,
     href: '/documents',
@@ -159,7 +159,7 @@ When that happens the value is left blank rather than guessed. A blank prompts y
     id: 'website-change',
     question: 'How do I get my website changed?',
     keywords: ['website', 'site', 'change', 'update', 'edit', 'request', 'web'],
-    body: `Open "Your website". Some things — phone number, hours, headline text — you can edit yourself and they go live immediately.
+    body: `Open "Your website". You can edit the phone number, the hours and the headline text yourself, and they go live immediately.
 
 Anything bigger, hit "Request a change" and describe what you want. You'll see its status the whole way through, so you never have to chase it.`,
     href: '/site-requests',
@@ -171,7 +171,7 @@ Anything bigger, hit "Request a change" and describe what you want. You'll see i
     keywords: ['signature', 'email', 'gmail', 'outlook', 'apple mail', 'sig', 'footer'],
     body: `Brand Kit → Email signature. Fill in your details, pick a layout, then hit "Copy signature".
 
-Then pick your email app from the row of buttons for step-by-step instructions — they're different for each one, and each has a specific trap. Apple Mail needs a checkbox unticked; iPhone needs a shake-to-undo trick.`,
+Then pick your email app from the row of buttons for step-by-step instructions. They are different for each one, and each has a specific trap: Apple Mail needs a checkbox unticked, iPhone needs a shake-to-undo trick.`,
     href: '/brand-kit',
     hrefLabel: 'Open Brand Kit',
   },

@@ -28,15 +28,15 @@ export interface LogoVariant {
 
 export const LOGO_SIZES = [
   { label: 'Original', px: 0 },
-  { label: 'Large — 1024px', px: 1024 },
-  { label: 'Medium — 512px', px: 512 },
-  { label: 'Small — 256px', px: 256 },
-  { label: 'Email — 240px', px: 240 },
+  { label: 'Large · 1024px', px: 1024 },
+  { label: 'Medium · 512px', px: 512 },
+  { label: 'Small · 256px', px: 256 },
+  { label: 'Email · 240px', px: 240 },
 ] as const;
 
 export const FORMAT_NOTES: Record<LogoFormat, string> = {
   png: 'Transparent background. Use this unless you have a reason not to.',
-  jpg: 'No transparency — the background is filled in. Smaller file; good for email and documents that reject PNG.',
+  jpg: 'No transparency, so the background is filled in. Smaller file; good for email and documents that reject PNG.',
   webp: 'Smallest file, transparent. Great on the web, still refused by some older software.',
 };
 
@@ -136,7 +136,7 @@ export function describeFromFilename(url: string): Pick<LogoVariant, 'name' | 'u
 
   if (isIcon) {
     return {
-      name: onWhite ? 'Icon — light' : onNavy ? 'Icon — dark' : 'Icon',
+      name: onWhite ? 'Icon · light' : onNavy ? 'Icon · dark' : 'Icon',
       use: 'Social avatars, favicons, anywhere too small for the full name.',
       preview: onWhite ? 'dark' : 'light',
       shape: 'icon',
@@ -145,7 +145,7 @@ export function describeFromFilename(url: string): Pick<LogoVariant, 'name' | 'u
 
   if (onWhite) {
     return {
-      name: 'Full logo — reversed',
+      name: 'Full logo · reversed',
       use: 'On photographs and dark backgrounds.',
       preview: 'dark',
       shape: 'lockup',
@@ -153,7 +153,7 @@ export function describeFromFilename(url: string): Pick<LogoVariant, 'name' | 'u
   }
 
   return {
-    name: onNavy ? 'Full logo — primary' : 'Full logo',
+    name: onNavy ? 'Full logo · primary' : 'Full logo',
     use: 'The default. Use this on light backgrounds.',
     preview: 'light',
     shape: 'lockup',

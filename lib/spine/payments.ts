@@ -86,7 +86,7 @@ export const METHODS: MethodSpec[] = [
     handleLabel: 'The email or phone your Zelle is registered to',
     placeholder: 'you@yourbusiness.com',
     cost: () => 0,
-    costLabel: 'Free — bank to bank',
+    costLabel: 'Free · bank to bank',
     customerHint: 'Send through your bank’s Zelle to this address.',
   },
   {

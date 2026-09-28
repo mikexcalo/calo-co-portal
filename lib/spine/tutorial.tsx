@@ -70,7 +70,7 @@ export const PATHS: LearningPath[] = [
         id: 'customer',
         title: 'Add a customer',
         body:
-          'One real homeowner or GC you are working with. Their email matters — you cannot send them an invoice without it.',
+          'One real homeowner or GC you are working with. Their email matters, because you cannot send them an invoice without it.',
         href: '/customers',
         done: 'They show in your customer list.',
       },
@@ -86,7 +86,7 @@ export const PATHS: LearningPath[] = [
         id: 'log-day',
         title: 'Log a day of work',
         body:
-          'Open the job and put in a day you worked — hours, who did it, what got done. This shows up on the invoice.',
+          'Open the job and put in a day you worked: hours, who did it, what got done. This shows up on the invoice.',
         href: '/jobs',
         done: 'Unbilled goes up on the job.',
       },
@@ -305,7 +305,7 @@ export const PATHS: LearningPath[] = [
         id: 'engagement',
         title: 'Open an engagement',
         body:
-          'An engagement is a unit of work with money in and money out — same machinery as a contractor job, different vocabulary.',
+          'An engagement is a unit of work with money in and money out. Same machinery as a contractor job, different vocabulary.',
         href: '/jobs/new',
         done: 'It shows on the pipeline.',
       },
