@@ -381,6 +381,51 @@ export async function revokeGrant(grantId: string): Promise<void> {
  * permission with no end and no visible off switch is not a permission, it is
  * a key somebody kept.
  */
+/**
+ * Whether this person can show the studio out, and whether there is one.
+ *
+ * Two separate facts and both are needed before the control is drawn: only a
+ * workspace's own owner may do it, and offering it where no studio holds a
+ * membership is a button that ends nothing.
+ */
+export async function studioRemovable(
+  orgId: string
+): Promise<{ allowed: boolean; studioMembers: number }> {
+  const { data: auth } = await supabase.auth.getUser();
+  const me = auth?.user?.id;
+  if (!me) return { allowed: false, studioMembers: 0 };
+
+  const [mine, theirs] = await Promise.all([
+    supabase
+      .from('memberships')
+      .select('role, origin')
+      .eq('user_id', me)
+      .eq('org_id', orgId)
+      .maybeSingle(),
+    supabase.from('memberships').select('user_id').eq('org_id', orgId).eq('origin', 'studio'),
+  ]);
+
+  return {
+    allowed: mine.data?.role === 'owner' && mine.data?.origin === 'own',
+    studioMembers: (theirs.data ?? []).length,
+  };
+}
+
+/**
+ * End the arrangement.
+ *
+ * One database function rather than a delete from here, because
+ * `memberships` has row-level security with a single read policy and no
+ * write path at all - which is the right shape. Everything about who may do
+ * this, and what exactly it removes, is decided in `remove_studio` where it
+ * cannot be talked out of by a client.
+ */
+export async function removeStudio(orgId: string): Promise<number> {
+  const res = await supabase.rpc('remove_studio', { workspace: orgId });
+  if (res.error) throw new Error(res.error.message);
+  return (res.data as number) ?? 0;
+}
+
 export interface LiveGrant extends Grant {
   /** Who holds it, by name, rather than a row of identifiers. */
   who: string;

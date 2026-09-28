@@ -253,45 +253,68 @@ which workspace could not be written to, rather than passing in silence.
 
 ---
 
-## 12. The client does not own their own workspace — M
+## 12. The client does not own their own workspace — DEMO DONE 27 Sept 2026, real workspaces awaiting a decision
 
-In every client workspace the studio is `owner` and the client is `admin`:
+**Step 1, what `owner` is load-bearing for.** Almost nowhere. Every check in
+the product asks `role in ('owner','admin')`: the orgs update policy, the
+commercial-columns guard, the invite route, Overheads' usage tile,
+`client_usage`, and every setup item. A client moving from admin to owner
+gains nothing in any of them.
 
-| Lakemere Services | Mike `owner` · Marcie `admin` |
-| Mammoth Construction | Mike `owner` · Mark `admin` |
-| Global Seafood Partners | Mike `owner` · John `admin` |
+Exactly four things ask for `owner` alone, and all four mean "who is the
+senior person here" rather than "what may they do": `studio_for()`,
+`doc-owner.ts` (whose name signs a customer document), `who-to-tell.ts`, and
+two `setup.ts` items that are also `platformOnly` and gated on the slug.
 
-That is backwards, and now that `memberships.origin` exists it is also
-unnecessary. The studio needed `owner` when `owner` was the only role that
-could do anything; a standing grant is what actually carries the studio's
-access today, and it is the thing the client can take back.
+**What must stay studio-only, and does.** Modules and plan are
+`orgs_guard_commercial_columns`, which allows the workspace's own owner or
+admin only when `self_serve_modules` is true, and otherwise only an
+owner/admin of the agency found through `customers.workspace_id`. Ownership
+alone changes nothing. Studio-level screens are unreachable because
+`modulesFor` keys them on the org's kind, and other workspaces are
+unreachable because reach is `memberships` plus `current_org_id()`. Neither
+reads the role.
 
-**How to do it safely.** The order matters, because every step in the wrong
-direction locks somebody out of their own business.
+**One flag to watch: `self_serve_modules` is true on Lakemere.** On that one
+workspace, and only that one, promoting the client to owner would hand them
+the module switchboard, because the guard's first branch allows it. It has to
+go false before Lakemere is promoted.
 
-1. **Check what `owner` is load-bearing for first.** Grep every policy and
-   guard for `role = 'owner'`. Some of them almost certainly mean "the one
-   person who set this up" and some mean "anybody senior". Until that is
-   separated, promoting the client changes more than it looks.
-2. **Promote the client before demoting the studio.** Two owners for a moment
-   is safe. Zero owners is a workspace nobody can administer, and it is one
-   failed statement away if the order is reversed.
-3. **Demote the studio to a plain member**, not remove it. The membership is
-   how the studio can open the workspace at all; the standing grant is what
-   lets it change anything. Removing the row would break View mode, the change
-   log and Get help all at once.
-4. **Check `new_auth_user` and the setup flow** stamp the new shape, or the
-   next workspace created undoes this by hand.
+**What was built.** `remove_studio(workspace)`, SECURITY DEFINER and narrow:
+it revokes every live grant and deletes every membership stamped `studio`,
+and only for a caller who is that workspace's own owner. A function rather
+than a policy because `memberships` has RLS with a single SELECT policy and
+no write path at all, which is the right shape. `RemoveStudio` renders it on
+the Security page under Who can work in this, for an owner whose origin is
+`own`, where a studio membership exists.
 
-**What the studio keeps**: its membership (so it can open the workspace), its
-standing grant (edit yes, send no), View mode, the change log, and Get help.
-**What it gives up**: the `owner` role, and with it whatever that role is
-quietly load-bearing for - which is step 1's whole point. **What the client
-gains**: the ability to remove the studio entirely, which today they cannot.
+**Demo.** Harbor Light has its own person now (the demo had one account
+holding owner of everything, so "the client" and "the studio" were the same
+person and none of this could be tested). Promoted first, then the studio
+demoted to member, keeping its membership, its standing grant, View mode, the
+change log and Get help.
 
-Worth doing on one real workspace first, with the owner watching.
+Verified against the database as each person, with `scripts/try-as.sh`:
 
----
+| | |
+|---|---|
+| Client toggles a module | refused, "Modules and plan are set by the agency" |
+| Studio toggles a module | allowed |
+| Client removes the studio | allowed |
+| Studio calls remove_studio | refused |
+| Client removes a studio elsewhere | refused |
+| Both do ordinary work | allowed |
+
+On screen: the studio does not see the removal card inside Harbor Light, the
+module switchboard is absent and says the agency sets it, Get help still
+renders. The client's own view was not seen in a browser - the demo client
+has no password, by the same design that protects the demo account - so the
+positive render is verified by its gate values and the function, not by a
+session.
+
+**Real workspaces are untouched and need a decision.** The card cannot appear
+on any of them as they stand: it needs owner plus origin `own`, and every
+real client is admin. See `docs/handoff.md`.
 
 ## 13. A failed read says "Nothing was saved" — DONE 27 Sept 2026
 

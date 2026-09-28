@@ -35,6 +35,7 @@ import {
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
 import { WhoCanWorkInThis } from '@/components/spine/WhoCanWorkInThis';
+import { RemoveStudio } from '@/components/spine/RemoveStudio';
 import { useOrg, type Vocab } from '@/lib/spine/org';
 import { PRODUCT } from '@/lib/brand';
 import {
@@ -559,6 +560,7 @@ export default function SecurityPage() {
           )}
 
           <WhoCanWorkInThis orgId={org?.id ?? null} />
+          <RemoveStudio orgId={org?.id ?? null} />
 
           <div style={{ marginTop: 26 }}>
             <SectionLabel>How your data is held</SectionLabel>
