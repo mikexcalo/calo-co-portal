@@ -45,6 +45,49 @@ export const READ_FAILED =
   `That did not load, and we could not tell why. Reload the screen and try again. ${TELL_US}`;
 
 /**
+ * What the sign-in service says, and what it means.
+ *
+ * GoTrue is not Postgres and none of the branches below match a word of what
+ * it writes, so every one of its refusals came out as the write fallback:
+ * "Nothing was saved. We could not tell why. Check your connection and try
+ * again." On the first-run setup screen that was a lie three ways over. The
+ * password was rejected for a reason we were told, nothing was being saved in
+ * the sense the sentence means, and the connection was fine.
+ *
+ * The one that mattered: somebody following an invitation link typed the
+ * password they already use, and was told to check their internet.
+ *
+ * Matched on text because GoTrue's error codes are newer than some of the
+ * messages still in circulation, and the text has been stable for years.
+ */
+const BY_AUTH: Array<[RegExp, string]> = [
+  [
+    /new password should be different|same_password/i,
+    'That is the password you already have, so nothing changed. Pick a different one, or skip this question and keep the one you have.',
+  ],
+  [
+    /password is known to be weak|pwned/i,
+    'That password shows up in lists of leaked passwords, so it was not accepted. Nothing changed. Pick another one.',
+  ],
+  [
+    /password should be at least|weak_password/i,
+    'That password is too short, so nothing changed. Eight characters or more.',
+  ],
+  [
+    /for security purposes|too many requests|rate limit|over_(email|request)_rate_limit/i,
+    'That was tried too many times in a row, so nothing changed. Wait a minute, then try again.',
+  ],
+  [
+    /email address is invalid|invalid_email/i,
+    'That email address is not one this will accept, so nothing changed. Check it for a typo.',
+  ],
+  [
+    /email (address )?(is )?already (registered|in use)|user already registered/i,
+    'There is already an account on that email address. Nothing was saved. Sign in with it instead, or ask for a password link.',
+  ],
+];
+
+/**
  * Constraints worth naming.
  *
  * Postgres puts the constraint's name in the message, so a failure that has a
@@ -164,6 +207,11 @@ export function human(raw: unknown, fallback = WRITE_FAILED): string {
     never writes either phrase itself.
   */
   if (/^Nothing was (saved|sent)\./.test(msg)) return msg;
+
+  /* What the sign-in service said, before anything tries to read it as SQL. */
+  for (const [re, sentence] of BY_AUTH) {
+    if (re.test(msg)) return sentence;
+  }
 
   /* A named constraint beats every guess below it. */
   for (const [name, sentence] of BY_CONSTRAINT) {

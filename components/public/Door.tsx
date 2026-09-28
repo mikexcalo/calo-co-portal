@@ -74,6 +74,9 @@ export function Door({
   subline,
   children,
   footer,
+  beforeCard,
+  maxWidth = 400,
+  top = false,
 }: {
   /** Whose door this is. Null is ours. */
   workspace?: DoorWorkspace | null;
@@ -82,21 +85,36 @@ export function Door({
   children: React.ReactNode;
   /** Anything below the card. */
   footer?: React.ReactNode;
+  /**
+   * Anything between the header and the card. First-run setup puts its
+   * progress bar here, which belongs to the run of questions rather than to
+   * any one of them.
+   */
+  beforeCard?: React.ReactNode;
+  /** Wider than a sign-in box, for a form with more than two fields in it. */
+  maxWidth?: number;
+  /**
+   * Sit at the top rather than centred. A sign-in box is short enough to
+   * centre; a setup question with a list of payment methods in it is taller
+   * than a phone, and centring taller-than-viewport content puts its heading
+   * above the top of the page where nothing can scroll to it.
+   */
+  top?: boolean;
 }) {
   return (
     <main
       style={{
         minHeight: '100vh',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: top ? 'flex-start' : 'center',
         justifyContent: 'center',
         background: '#f7f7f5',
-        padding: '32px 20px',
+        padding: top ? '40px 20px 64px' : '32px 20px',
         color: TEXT,
         fontFamily: 'inherit',
       }}
     >
-      <div style={{ width: '100%', maxWidth: 400 }}>
+      <div style={{ width: '100%', maxWidth }}>
         <div style={{ textAlign: 'center', marginBottom: 22 }}>
           {workspace ? (
             <>
@@ -145,6 +163,8 @@ export function Door({
             {subline}
           </p>
         </div>
+
+        {beforeCard}
 
         <div
           style={{

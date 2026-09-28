@@ -578,53 +578,86 @@ describes.
 
 ---
 
-## 23. The first-run flow, now that it can be seen — M
+## 23. The first-run flow — DONE 28 Sept 2026
 
 `/welcome` was uninspectable: signed out it redirects to `/login`, signed in
-it bails the moment it sees `onboarded_at`, and every account was onboarded.
-`20261029000025` adds a demo account and workspace that genuinely have not
-finished setup, so the first screen a new client ever sees can be opened.
-Screenshots at both widths in `docs/audit/public-pages/welcome-*`.
+it bailed the moment it saw `onboarded_at`, and every account was onboarded.
+`20261029000025` and `20261029000026` add two accounts that genuinely have not
+finished setup - a brand-new owner of an empty workspace, and somebody invited
+into one that has run for years - so both halves of the flow can be opened.
+Before in `docs/audit/public-pages/welcome-*`, after in
+`docs/audit/public-pages/welcome-fixed/`, both widths, both people.
 
-What it found, none of it fixed - the brief was to look:
+What the look found, and what it is now:
 
-- **The promise changes under you.** It opens "3 quick questions" with a
-  three-segment progress bar and "STEP 1 OF 3". Answer "I own or run it" on
-  step three and it becomes "6 quick questions", "STEP 3 OF 6", and the bar
-  that was full is half. Nothing warned that the first answer doubles the
-  work, and the one that doubles it is the honest answer for the person the
-  product is for.
+- ~~**The promise changes under you.**~~ It opened "3 quick questions" and
+  became "6 quick questions" the moment you answered the third. The question
+  that decides the length is asked first now, no count is claimed until it is
+  answered, and after that the number can only move if the person changes that
+  answer themselves. Verified: nothing until a role is picked, then
+  "6 questions in all" and "QUESTION 1 OF 6" together, holding to 6 through
+  the run.
 
-- **"Nothing was saved. We could not tell why. Check your connection."** On
-  step two, on a brand-new client's first session, if the password they pick
-  matches the one already on the account. Supabase said "New password should
-  be different from the old password"; `human()` has no branch for it, so it
-  falls to the write fallback and tells somebody to check their connection
-  when the real answer is "pick a different one". The same class of bug as
-  #13, in the worst possible place.
+- ~~**"Nothing was saved. We could not tell why. Check your connection."**~~
+  GoTrue is not Postgres and none of `human()`'s branches matched a word of
+  what it says, so every refusal it gave came out as the write fallback.
+  `BY_AUTH` in `errors.ts` covers the six it actually raises. The one that
+  mattered now reads "That is the password you already have, so nothing
+  changed. Pick a different one, or skip this question and keep the one you
+  have."
 
-- **Step two asks for a password that already exists.** The flow never checks
-  whether the account has one, so somebody who set theirs from an invite is
-  asked again, and hits the error above if they type the same thing.
+- ~~**Step two asks for a password that already exists.**~~ Skipped outright
+  for anybody who signed in with one. The obvious test is useless -
+  `encrypted_password` is non-null on all eight accounts, because
+  `new_auth_user()` and the invite route both write a bcrypt of something
+  nobody will ever see - so it reads the session's `amr` claim instead, which
+  records the method the session was opened with. `password` is proof;
+  `recovery`, `magiclink` and `otp` prove nothing and get asked. Unreadable
+  gets asked too: one question too many is a cost, being locked out is not.
 
-- **Their sign-in address is pre-filled as the business email**, under "Where
-  customers reply when they get an estimate or invoice." A personal login
-  address becomes the reply-to on every customer document unless they notice
-  and change it.
+- ~~**Their sign-in address is pre-filled as the business email.**~~ Asked, as
+  "Where should customer replies go?", with the field empty and the sign-in
+  address offered as a one-tap chip underneath.
 
-- **13x13px checkboxes** on the money step at 390px - "I mark up materials",
-  "I charge sales tax" - about a quarter of the rulebook's 48px floor, and
-  the same defect #6 fixed on the job screens.
+- ~~**13x13px checkboxes.**~~ A native checkbox will not take a size, so the
+  hit area is a box around it: 48x48 on a phone, measured, with the row at
+  least as tall. Option buttons and the buttons at the foot get the same floor.
 
-- **Two ways out that read the same.** "I'll do this later" beside the button
-  and "Skip for now" under the card. One skips a step, the other ends setup;
-  nothing on screen says which is which.
+- ~~**Two ways out that read the same.**~~ "Skip this question" moves on;
+  "Finish setup later" ends setup and says where the rest is waiting. The
+  second only appears once there is a name and a role, because the shell sends
+  people back here until it has both, so offering it sooner would be a door
+  onto a wall.
 
-- **Saturated colour, from the payment marks.** Venmo blue, PayPal navy,
-  Zelle purple, Cash green on step six. Arguably legitimate the way Google's
-  mark is on the sign-in button, but it is the only colour in the product
-  outside the two mode colours and it wants a decision rather than an
-  accident.
+- ~~**Saturated colour, from the payment marks.**~~ All seven badges are black.
+  The glyph is what made the list scannable; the colour was somebody else's.
+
+Three things the fix uncovered that were worse than anything on the list:
+
+- **It never saved a word of what it asked.** `profiles` had a SELECT policy
+  and an UPDATE policy and no INSERT policy, and PostgREST's upsert is
+  `INSERT ... ON CONFLICT`, so every write this screen made to the person's own
+  row was refused. Nothing said so: `save()` announces a refusal through an
+  event AppShell turns into a message, and this is a bare page with no AppShell
+  on it. The business half saved fine, the person half was refused, and the
+  shell then sent them back to question one for want of a name. Fixed in
+  `20261029000027`, and the page now raises a refused profile write into its
+  own banner instead of trusting the announcement.
+
+- **Signing in with a password never reached setup at all.** The shell and the
+  workspace provider both read the session once, when they mount, and they
+  mount on `/login` where there is nobody to read. `router.push('/')` left them
+  holding that: an invited client landed on a Home headed "Home" over "this
+  business", with an error on it, and never saw setup. Sign-in does a whole
+  page load now.
+
+- **The joining half of the file was unreachable.** `alreadySetUp`, the plan
+  filter and the copy that goes with them were written for somebody invited
+  into an existing business, and the page left on `onboarded_at` before any of
+  it could run - so that person ping-ponged between Home and setup. Being
+  finished is a fact about the person; being set up is a fact about the
+  business, and it only decides which questions are worth asking. They get two:
+  who they are, and what they are called.
 
 ---
 

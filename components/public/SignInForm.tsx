@@ -143,8 +143,20 @@ export function SignInForm({ workspace }: { workspace?: DoorWorkspace | null }) 
       return;
     }
 
-    router.push('/');
-    router.refresh();
+    /**
+     * A whole page load, not a client-side push.
+     *
+     * Everything the shell needs about you is read by its providers when they
+     * mount, and they mounted here, on the sign-in page, where there was
+     * nobody to read. router.push leaves them holding that: no workspace
+     * resolved, no answer to "has this person introduced themselves". An
+     * invited client signing in with their password landed on a Home screen
+     * headed "Home" over "this business", and never saw first-run setup at
+     * all, because the check that sends people there cannot run without a
+     * workspace. One reload, once, and every provider starts from the session
+     * that now exists.
+     */
+    window.location.assign('/');
   };
 
   const submitCode = async (e: React.FormEvent) => {
@@ -153,8 +165,8 @@ export function SignInForm({ workspace }: { workspace?: DoorWorkspace | null }) 
     setLoading(true);
     try {
       await verifySignIn(code);
-      router.push('/');
-      router.refresh();
+      /* Same reason as above: the providers have to meet the session fresh. */
+      window.location.assign('/');
     } catch (err) {
       setError(human((err as Error).message));
       setLoading(false);
