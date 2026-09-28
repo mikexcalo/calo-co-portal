@@ -71,11 +71,11 @@ interface Person {
  */
 const KINDS: { key: Relationship; label: string; tone: 'blue' | 'green' | 'amber' | 'neutral' }[] = [
   { key: 'contact', label: 'Just a contact', tone: 'neutral' },
-  { key: 'client', label: 'Works at a client', tone: 'green' },
+  { key: 'client', label: 'Works at one', tone: 'green' },
   // Acts for a client, is not employed by one. A founder's wife testing the
   // product, a bookkeeper, a consultant. Listen to them like the client; do
   // not write to them like staff.
-  { key: 'proxy', label: 'Speaks for a client', tone: 'green' },
+  { key: 'proxy', label: 'Speaks for one', tone: 'green' },
   { key: 'prospect', label: 'Might buy', tone: 'amber' },
   { key: 'referrer', label: 'Sends us work', tone: 'blue' },
   { key: 'freelancer', label: 'Could work for us', tone: 'neutral' },
@@ -136,7 +136,7 @@ const blank = {
 
 export default function PeoplePage() {
   const router = useRouter();
-  const { org, orgs } = useOrg();
+  const { org, orgs, vocab } = useOrg();
   const shotRef = useRef<HTMLInputElement>(null);
   const [reading, setReading] = useState(false);
   const [readMsg, setReadMsg] = useState('');
@@ -660,7 +660,7 @@ export default function PeoplePage() {
                   onClick={() => router.push(`/customers/${p.customer_id}`)}
                   style={{ background: 'transparent', border: 'none', padding: 0, color: C.accent, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', marginLeft: 'auto' }}
                 >
-                  Open {p.customers?.name ?? 'the client'} →
+                  Open {p.customers?.name ?? `the ${vocab.customer.toLowerCase()}`} →
                 </button>
               )}
             </div>

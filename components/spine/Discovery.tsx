@@ -14,6 +14,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useOrg, aWord } from '@/lib/spine/org';
 import supabase from '@/lib/supabase';
 import { FRAMEWORK } from '@/lib/spine/framework';
 import { useRouter } from 'next/navigation';
@@ -43,6 +44,7 @@ interface Row {
 }
 
 export function Discovery({ customerId }: { customerId: string }) {
+  const { vocab } = useOrg();
   const router = useRouter();
   const [rows, setRows] = useState<Row[]>([]);
   /** Answers picked for a proposal. Nothing is selected until you pick it. */
@@ -279,7 +281,7 @@ export function Discovery({ customerId }: { customerId: string }) {
             ))}
             {picked.size > 0 && (
               <Button onClick={draftProposal} disabled={busy === 'draft'}>
-                {busy === 'draft' ? 'Drafting…' : `Draft a proposal from ${picked.size}`}
+                {busy === 'draft' ? 'Drafting…' : `Draft ${aWord(vocab.estimate)} from ${picked.size}`}
               </Button>
             )}
             <button
@@ -344,7 +346,7 @@ export function Discovery({ customerId }: { customerId: string }) {
 
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                 <Button onClick={acceptDraft} disabled={busy === 'save'}>
-                  {busy === 'save' ? 'Creating…' : 'Make it a proposal'}
+                  {busy === 'save' ? 'Creating…' : `Make it ${aWord(vocab.estimate)}`}
                 </Button>
                 <Button variant="ghost" onClick={() => setDraft(null)}>Discard</Button>
                 <span style={{ fontSize: 12.5, color: C.faint }}>

@@ -49,7 +49,7 @@ interface SiteRequest {
 
 const STATUS_LABEL: Record<Status, string> = {
   submitted: 'Needs your call',
-  needs_info: 'Waiting on client',
+  needs_info: 'Waiting on them',
   approved: 'Approved',
   building: 'Being built',
   shipped: 'Live',
@@ -66,7 +66,7 @@ const STATUS_TONE: Record<Status, 'neutral' | 'amber' | 'blue' | 'green' | 'red'
 };
 
 export default function RequestsPage() {
-  const { org } = useOrg();
+  const { org, vocab } = useOrg();
   const mods = modulesFor(org);
   const [requests, setRequests] = useState<SiteRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -161,7 +161,7 @@ export default function RequestsPage() {
   return (
     <Page
       title="Requests"
-      subtitle="Changes your clients have asked for."
+      subtitle={`Changes your ${vocab.customerPlural.toLowerCase()} have asked for.`}
     >
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
@@ -249,7 +249,7 @@ export default function RequestsPage() {
                       because ambiguity gets resolved by guessing on a live client site.
                     </div>
 
-                    <Field label="Note back to the client (optional)">
+                    <Field label={`Note back to the ${vocab.customer.toLowerCase()} (optional)`}>
                       <input
                         value={clientNote}
                         onChange={(e) => setClientNote(e.target.value)}

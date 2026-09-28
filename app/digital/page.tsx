@@ -44,7 +44,7 @@ interface Panel {
 
 export default function DigitalPage() {
   const router = useRouter();
-  const { org } = useOrg();
+  const { org, vocab } = useOrg();
   const mine = isPlatformOrg(org?.slug);
   const [panels, setPanels] = useState<Panel[] | null>(null);
   const [gbp, setGbp] = useState<string | null>(null);
@@ -162,7 +162,7 @@ export default function DigitalPage() {
         title: 'Ratings and reviews',
         headline: sent === 0 ? 'None asked' : `${clicked} of ${sent} clicked`,
         detail: sent === 0
-          ? 'Finished, paid-up jobs can ask automatically. The difference between forty reviews and four is almost always that one of them asks.'
+          ? `Finished, paid-up ${vocab.jobPlural.toLowerCase()} can ask automatically. The difference between forty reviews and four is almost always that one of them asks.`
           : 'Clicks are the honest measure. Google will not say who left a review, so attributing one would be inventing a number.',
         cta: sent === 0 ? 'Set the review link' : 'Open reviews',
         href: '/reviews',

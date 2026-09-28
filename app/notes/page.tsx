@@ -354,7 +354,7 @@ export default function NotesPage() {
   return (
     <Page
       title="Capture"
-      subtitle="Paste notes and file them against a client."
+      subtitle={`Paste notes and file them against a ${vocab.customer.toLowerCase()}.`}
     >
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16, maxWidth: 720 }}>

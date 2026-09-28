@@ -27,6 +27,7 @@
  */
 
 import { useState } from 'react';
+import { useOrg, aWord, capWord } from '@/lib/spine/org';
 import { CLOSED, LANE, STAGE, isClient, type Stage } from '@/lib/spine/stage';
 import { C } from './ui';
 
@@ -41,6 +42,7 @@ export function StageBar({
   onChange: (next: Stage) => void;
   busy?: boolean;
 }) {
+  const { vocab } = useOrg();
   const [confirming, setConfirming] = useState<Stage | null>(null);
   const [changing, setChanging] = useState(false);
   const here = LANE.findIndex((s) => s.id === stage);
@@ -75,7 +77,7 @@ export function StageBar({
                 background: stage === 'won' ? C.green : C.faint,
               }}
             />
-            {stage === 'won' ? 'A client' : 'A past client'}
+            {stage === 'won' ? capWord(aWord(vocab.customer)) : `A past ${vocab.customer.toLowerCase()}`}
           </span>
 
           <span style={{ flex: 1 }} />
@@ -85,7 +87,7 @@ export function StageBar({
               <span style={{ fontSize: 12.5, color: C.amber }}>
                 {confirming === 'past'
                   ? 'Mark them past? They stay in your list, greyed.'
-                  : 'Put them back in the pipeline? They leave your client list.'}
+                  : `Put them back in the pipeline? They leave your ${vocab.customer.toLowerCase()} list.`}
               </span>
               <button
                 onClick={() => { onChange(confirming); setConfirming(null); setChanging(false); }}
@@ -138,7 +140,22 @@ export function StageBar({
 
   return (
     <div style={{ marginBottom: 16 }}>
-      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+      {/*
+        A grid, so a chip that wraps keeps its column.
+
+        These were flex items at `1 1 92px`. Flex grows the last line to fill
+        it, so on a narrow customer record the lane broke four-and-one and
+        "Won" became a full-width bar - which reads as the selected stage, or
+        as a button, and it is neither. Grid tracks are set by the container,
+        so the one that wraps sits under the first chip at the same width.
+      */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(84px, 1fr))',
+          gap: 4,
+        }}
+      >
         {LANE.map((s, i) => {
           const behind = here >= 0 && i < here;
           const on = s.id === stage;
@@ -154,8 +171,7 @@ export function StageBar({
               disabled={busy}
               title={s.means}
               style={{
-                flex: '1 1 92px',
-                minWidth: 84,
+                minWidth: 0,
                 padding: '7px 12px',
                 border: `1px solid ${on ? tint : C.border}`,
                 borderRadius: 999,

@@ -33,7 +33,7 @@ import { Button, C, Sheet, radius, inputStyle } from './ui';
 import { save as saveOrFail } from '@/lib/spine/save';
 
 export function GetHelp() {
-  const { org } = useOrg();
+  const { org, vocab } = useOrg();
   const pathname = usePathname();
 
   const [open, setOpen] = useState(false);
@@ -273,7 +273,7 @@ export function GetHelp() {
               <Permission
                 checked={canSend}
                 onChange={setCanSend}
-                label={`${person} can also send to my customers`}
+                label={`${person} can also send to my ${vocab.customerPlural.toLowerCase()}`}
                 hint="Leave this off and you send everything yourself."
               />
             </div>

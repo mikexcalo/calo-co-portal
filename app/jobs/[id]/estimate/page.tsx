@@ -446,7 +446,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
             value={scopeIn}
             onChange={(e) => setScopeIn(e.target.value)}
             style={{ ...inputStyle, minHeight: 96, resize: 'vertical', lineHeight: 1.6 }}
-            placeholder={'One per line.\nBrand and messaging framework\nFour page website\nTwo rounds of revisions'}
+            placeholder={'One per line.\nWhat is included, in the words you would say it\nEach deliverable on its own line\nHow many rounds of changes'}
           />
         </Field>
         <Field label="What it does not">
@@ -464,7 +464,7 @@ export default function EstimatePage({ params }: { params: { id: string } }) {
       </p>
 
       <div style={{ marginTop: 16, maxWidth: 620 }}>
-        <Field label="Notes for the customer">
+        <Field label={`Notes for the ${vocab.customer.toLowerCase()}`}>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}

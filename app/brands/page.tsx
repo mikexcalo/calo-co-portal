@@ -94,7 +94,7 @@ export default function BrandsPage() {
       as the way back.
     */
     <Page
-      title="Client Brands"
+      title={`${vocab.customer} Brands`}
       subtitle={`Every ${vocab.customer.toLowerCase()} identity you hold. Your own is in Brand.`}
       tabs={brandTabsFor(org?.kind)}
       action={<Button onClick={() => router.push('/brand-kit')}>&larr; Back to your brand</Button>}

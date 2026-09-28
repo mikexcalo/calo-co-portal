@@ -8,8 +8,10 @@ import { CONSIDERATION_LABEL, JOB_STATUS_LABEL } from '@/lib/spine/types';
 import {
   Select, Button, C, Card, Field, Page, inputStyle, useIsPhone } from '@/components/spine/ui';
 import { READ_FAILED, human } from '@/lib/spine/errors';
+import { useOrg } from '@/lib/spine/org';
 
 export default function NewJobPage() {
+  const { vocab } = useOrg();
   const phone = useIsPhone();
   const router = useRouter();
   const [orgId, setOrgId] = useState<string | null>(null);
@@ -74,7 +76,7 @@ export default function NewJobPage() {
   };
 
   return (
-    <Page title="New job" subtitle="A new job, or a lead.">
+    <Page title={`New ${vocab.job.toLowerCase()}`} subtitle={`A new ${vocab.job.toLowerCase()}, or a ${vocab.lead.toLowerCase()}.`}>
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
@@ -82,7 +84,7 @@ export default function NewJobPage() {
       )}
 
       <Card style={{ maxWidth: 620 }}>
-        <Field label="Job name">
+        <Field label={`${vocab.job} name`}>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -92,20 +94,20 @@ export default function NewJobPage() {
           />
         </Field>
 
-        <Field label="Customer">
+        <Field label={vocab.customer}>
           {/* The blank option read ",  New customer , " — another survivor of
               the em dash sweep, where the dashes either side of the label
               became commas. */}
           <Select
             value={customerId}
             onChange={setCustomerId}
-            placeholder="New customer"
+            placeholder={`New ${vocab.customer.toLowerCase()}`}
             options={customers.map((c) => ({ value: c.id, label: c.name }))}
           />
         </Field>
 
         {!customerId && (
-          <Field label="New customer name">
+          <Field label={`New ${vocab.customer.toLowerCase()} name`}>
             <input
               value={newCustomer}
               onChange={(e) => setNewCustomer(e.target.value)}
@@ -206,7 +208,7 @@ export default function NewJobPage() {
 
         <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
           <Button onClick={submit} disabled={busy || !name.trim()}>
-            {busy ? 'Creating…' : 'Create job'}
+            {busy ? 'Creating…' : `Create ${vocab.job.toLowerCase()}`}
           </Button>
           <Button variant="ghost" onClick={() => router.push('/jobs')}>Cancel</Button>
         </div>

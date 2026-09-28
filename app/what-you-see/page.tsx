@@ -16,7 +16,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
-import { useOrg } from '@/lib/spine/org';
+import { useOrg, type Vocab } from '@/lib/spine/org';
 import { modulesFor, type ModuleId, type ModuleState } from '@/lib/spine/modules';
 import { ModuleSwitchboard } from '@/components/spine/ModuleSwitchboard';
 import { C, Card, Empty, Page, RowsLoading, SETUP_TABS } from '@/components/spine/ui';
@@ -24,36 +24,43 @@ import { READ_FAILED, human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { workspaceColor } from '@/lib/spine/workspace-color';
 
-/** What each one is, to you rather than to a client. */
-const WHAT: Partial<Record<ModuleId, string>> = {
+/*
+  What each one is, in this workspace's own words.
+
+  A module list is exactly where the product's generic nouns hide: it is
+  written once, read by every kind of business, and describes the things the
+  business renamed. "Projects, from first call to final payment" is right for
+  a studio and wrong for a roofer looking at their Jobs switch.
+*/
+const whatEach = (vocab: Vocab): Partial<Record<ModuleId, string>> => ({
   customers: 'Everyone you work with',
-  people: 'The address book, clients or not',
-  jobs: 'Projects, from first call to final payment',
+  people: `The address book, ${vocab.customerPlural.toLowerCase()} or not`,
+  jobs: `${vocab.jobPlural}, from first call to final payment`,
   targets: 'Everyone you want, before they are anybody you have',
-  market: 'Reference that stays true across every client',
+  market: `Reference that stays true across every ${vocab.customer.toLowerCase()}`,
   billing: 'Send and chase invoices',
   proposals: 'Quote work before you do it',
   pitches: 'Send a link instead of a deck',
   pl: 'What the month made, with overheads and receipts inside it',
   expenses: 'Standing costs',
   receipts: 'Costs you bill back',
-  pricing: 'What you charge, so estimates start somewhere',
+  pricing: `What you charge, so ${vocab.estimate.toLowerCase()}s start somewhere`,
   seo: 'How you are found online',
   traffic: 'Who arrived at your site',
   reviews: 'Ask finished work for a review, automatically',
   brand_kit: 'Your logos, colors, type and voice',
-  brands: 'The ten module framework you run clients through',
+  brands: `The ten module framework you run ${vocab.customerPlural.toLowerCase()} through`,
   stories: 'Case studies, written once and reused',
   website: 'Your own site',
-  client_requests: 'What clients have asked you for',
-  catalog: 'A product list on a client record, priced',
+  client_requests: `What ${vocab.customerPlural.toLowerCase()} have asked you for`,
+  catalog: `A product list on a ${vocab.customer.toLowerCase()} record, priced`,
   notes: 'The capture button in the top bar',
   ask: 'Ask a question of your own numbers',
   account: 'What you owe somebody else',
-};
+});
 
 export default function WhatYouSeePage() {
-  const { org, refresh } = useOrg();
+  const { org, vocab, refresh } = useOrg();
   const [state, setState] = useState<Record<string, unknown>>({});
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -185,7 +192,7 @@ export default function WhatYouSeePage() {
           <ModuleSwitchboard
             modules={modules}
             state={state}
-            what={WHAT}
+            what={whatEach(vocab)}
             onChange={write}
           />
         </>

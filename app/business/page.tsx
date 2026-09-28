@@ -405,7 +405,7 @@ export default function BusinessPage() {
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {([
                   ['hourly', 'By the hour'],
-                  ['fixed', 'By the project'],
+                  ['fixed', `By the ${vocab.job.toLowerCase()}`],
                   ['both', 'Both'],
                   ['retainer', 'On retainer'],
                   ['commission', 'On commission'],
@@ -462,7 +462,7 @@ export default function BusinessPage() {
                       ? 'The rates, and what changes them. 5% on accounts you originate, 2 to 3% on house accounts handed to you.'
                       : style === 'retainer'
                         ? 'What the monthly covers, and what sits outside it.'
-                        : 'How you price a project, and what moves the number.'
+                        : `How you price a ${vocab.job.toLowerCase()}, and what moves the number.`
                   }
                   style={{ ...inputStyle, lineHeight: 1.6, resize: 'vertical' }}
                 />
@@ -557,7 +557,7 @@ export default function BusinessPage() {
                 finished job gets one request, and nobody who still owes you money is asked.
                 Leave it blank and nothing is sent.
               </p>
-              <Field label="Days to wait after a job finishes">
+              <Field label={`Days to wait after a ${vocab.job.toLowerCase()} finishes`}>
                 <input
                   type="number"
                   min="0"
@@ -715,8 +715,8 @@ export default function BusinessPage() {
                     {blocked && (
                       <div style={{ fontSize: 12.5, color: C.amber, marginTop: 6, marginLeft: 26, lineHeight: 1.55 }}>
                         {stripeReason === 'not_your_account'
-                          ? `Card payments aren't connected to ${org.name} yet. Turning this on would send your customers' card payments to somebody else's account, so it stays off until you have your own Stripe connected.`
-                          : 'Needs a Stripe account connected first. Until then it would show customers a payment option that goes nowhere, so it stays off.'}
+                          ? `Card payments aren't connected to ${org.name} yet. Turning this on would send your ${vocab.customerPlural.toLowerCase()}' card payments to somebody else's account, so it stays off until you have your own Stripe connected.`
+                          : `Needs a Stripe account connected first. Until then it would show ${vocab.customerPlural.toLowerCase()} a payment option that goes nowhere, so it stays off.`}
                       </div>
                     )}
 

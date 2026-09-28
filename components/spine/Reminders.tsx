@@ -14,6 +14,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { useOrg } from '@/lib/spine/org';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, Check, Empty, SectionLabel, inputStyle, shortDate } from './ui';
 import { human } from '@/lib/spine/errors';
@@ -50,6 +51,7 @@ export function Reminders({
   customerId?: string;
   jobId?: string;
 }) {
+  const { vocab } = useOrg();
   const [rows, setRows] = useState<Reminder[]>([]);
   const [body, setBody] = useState('');
   const [due, setDue] = useState(plus(1));
@@ -126,7 +128,7 @@ export function Reminders({
           ? <SectionLabel>Reminders ({open.length})</SectionLabel>
           : <span />}
         <Button variant="ghost" onClick={() => setAdding((v) => !v)}>
-          {adding ? 'Cancel' : open.length ? 'Add a reminder' : 'Remind me about this client'}
+          {adding ? 'Cancel' : open.length ? 'Add a reminder' : `Remind me about this ${vocab.customer.toLowerCase()}`}
         </Button>
       </div>
 

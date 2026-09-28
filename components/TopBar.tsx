@@ -2,7 +2,7 @@
 
 import { useViewAs } from '@/lib/spine/viewas';
 import { CommandBar } from '@/components/spine/CommandBar';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { useTutorial } from '@/lib/spine/tutorial';
@@ -246,7 +246,7 @@ export default function TopBar() {
         */}
         <button
           onClick={() => setLogging(true)}
-          title={`Log time against a client  (${mod}L)`}
+          title={`Log time against a ${vocab.customer.toLowerCase()}  (${mod}L)`}
           style={{
             display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
             background: 'transparent', border: `1px solid ${C.border}`,
@@ -463,8 +463,31 @@ function AccountMenu() {
           >
             <div style={{ padding: '9px 12px', borderBottom: `1px solid ${C.border}`, marginBottom: 4 }}>
               <SectionLabel>Signed in as</SectionLabel>
-              <div style={{ fontSize: 13.5, color: C.text, marginTop: 3, wordBreak: 'break-all' }}>
-                {email ?? '–'}
+              {/*
+                Break at the @, not in the middle of a name.
+
+                `break-all` splits wherever the line runs out, so
+                "someone@example.com" wrapped as "someone@exampl / e.com" and
+                the address stopped looking like an address. A break
+                opportunity after the @ gives the wrap somewhere sensible to
+                land, and `anywhere` is kept only as the fallback for a local
+                part too long to fit on its own.
+              */}
+              <div
+                style={{
+                  fontSize: 13.5, color: C.text, marginTop: 3,
+                  overflowWrap: 'anywhere',
+                }}
+              >
+                {email
+                  ? email.split('@').map((part, i, all) => (
+                      <React.Fragment key={i}>
+                        {i > 0 && '@'}
+                        {part}
+                        {i < all.length - 1 && <wbr />}
+                      </React.Fragment>
+                    ))
+                  : '–'}
               </div>
             </div>
             {/*

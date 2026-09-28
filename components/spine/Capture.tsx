@@ -29,6 +29,7 @@
  */
 
 import { useRef, useState } from 'react';
+import { useOrg } from '@/lib/spine/org';
 import { useRouter } from 'next/navigation';
 import { uploadPhotos } from '@/lib/spine/photos';
 import { DropIt } from './DropIt';
@@ -58,6 +59,7 @@ export function Capture({
   job: CaptureJob | null;
   onClose: () => void;
 }) {
+  const { vocab } = useOrg();
   const router = useRouter();
   const camera = useRef<HTMLInputElement>(null);
   const [hours, setHours] = useState(false);
@@ -125,7 +127,7 @@ export function Capture({
         <Tile
           icon={g(<><circle cx="8" cy="8" r="6.2" /><path d="M8 4.6V8l2.2 1.3" /></>)}
           label="Log hours"
-          detail={job ? `${job.name}, picked for you` : 'Pick the job'}
+          detail={job ? `${job.name}, picked for you` : `Pick the ${vocab.job.toLowerCase()}`}
           onClick={() => setHours(true)}
         />
         <Tile
@@ -136,8 +138,8 @@ export function Capture({
         />
         <Tile
           icon={g(<><rect x="2" y="3" width="12" height="10" rx="1.4" /><circle cx="5.6" cy="6.4" r="1.1" /><path d="M2.6 11.4 6 8.4l2.4 2 2-1.6 3 2.6" /></>)}
-          label="Photo to the job"
-          detail={busy ? 'Filing…' : job ? 'Before, during, after' : 'Pick a job first'}
+          label={`Photo to the ${vocab.job.toLowerCase()}`}
+          detail={busy ? 'Filing…' : job ? 'Before, during, after' : `Pick a ${vocab.job.toLowerCase()} first`}
           onClick={() => camera.current?.click()}
           disabled={busy || !orgId}
         />

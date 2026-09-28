@@ -24,7 +24,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
-import { useOrg } from '@/lib/spine/org';
+import { useOrg, type Vocab } from '@/lib/spine/org';
 import {
   moduleState,
   modulesFor,
@@ -47,10 +47,15 @@ interface Row {
 }
 
 
-/** What each module is, in one line, so the switch is not a guess. */
-const WHAT: Partial<Record<ModuleId, string>> = {
-  jobs: 'Their own projects and stages',
-  customers: 'Their client list',
+/*
+  What each module is, in one line, in this workspace's own words.
+
+  A studio calls them Clients and a rep calls them Principals, and this list
+  is read by both.
+*/
+const whatEach = (vocab: Vocab): Partial<Record<ModuleId, string>> => ({
+  jobs: `Their own ${vocab.jobPlural.toLowerCase()} and stages`,
+  customers: `Their ${vocab.customer.toLowerCase()} list`,
   people: 'Their contacts',
   billing: 'Send and track invoices',
   proposals: 'Quote work',
@@ -63,8 +68,8 @@ const WHAT: Partial<Record<ModuleId, string>> = {
   seo: 'The search checklist',
   traffic: 'Who arrived at their site',
   targets: 'Companies they want',
-  catalog: 'A product list on each of their clients, priced',
-  market: 'Their reference library, shared across every client',
+  catalog: `A product list on each of their ${vocab.customerPlural.toLowerCase()}, priced`,
+  market: `Their reference library, shared across every ${vocab.customer.toLowerCase()}`,
   website: 'Ask us for a site change',
   client_requests: 'Their requests, for you to triage',
   brand_kit: 'Their logos, colors and type',
@@ -73,11 +78,11 @@ const WHAT: Partial<Record<ModuleId, string>> = {
   ask: 'Ask a question of their own numbers',
   pricing: 'Their price list',
   account: 'What they owe you',
-};
+});
 
 export default function AccessPage() {
   const router = useRouter();
-  const { org } = useOrg();
+  const { org, vocab } = useOrg();
   const [rows, setRows] = useState<Row[]>([]);
   const [pick, setPick] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -97,7 +102,7 @@ export default function AccessPage() {
       supabase.from('customers').select('id, plan, modules, workspace_id'),
     ]);
     if (sum.error || full.error) {
-      setError(human((sum.error ?? full.error)?.message ?? 'Could not read your clients.', READ_FAILED));
+      setError(human((sum.error ?? full.error)?.message ?? `Could not read your ${vocab.customerPlural.toLowerCase()}.`, READ_FAILED));
       setLoaded(true);
       return;
     }
@@ -146,7 +151,7 @@ export default function AccessPage() {
   );
 
   return (
-    <Page title="Access" subtitle="What each client can open." tabs={clientTabs(org?.kind)}>
+    <Page title="Access" subtitle={`What each ${vocab.customer.toLowerCase()} can open.`} tabs={clientTabs(org?.kind)}>
       {!loaded ? (
         <RowsLoading rows={5} />
       ) : error ? (
@@ -215,7 +220,7 @@ export default function AccessPage() {
               <ModuleSwitchboard
                 modules={modules}
                 state={(client.modules ?? {}) as Record<string, unknown>}
-                what={WHAT}
+                what={whatEach(vocab)}
                 showSold
                 onChange={(m, next) => write(client, m, next)}
                 onSell={(m, selling) => write(client, m, selling ? null : 'sold')}

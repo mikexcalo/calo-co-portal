@@ -174,18 +174,59 @@ appending any child to the group brings its heading straight back.
 
 ---
 
-## 9. Words that aren't the workspace's own — M
+## 9. Words that aren't the workspace's own — DONE 27 Sept 2026
 
-Screens that type a noun instead of reading `vocab`. The audit found a SaaS
-customer record with a Photos card about "a problem you found behind a wall", a
-roofer's pipeline with a "Free trial" stage, and estimate placeholders written
-for an agency ("Brand and messaging framework") shown to a roofer.
+A scan of every string literal and JSX text node in `app` and `components`,
+with table names, column lists, URLs and log tags filtered out, found 127
+candidates across 52 files. About a hundred of those were fixed; 27 remain and
+are deliberate, listed below.
 
-This is a sweep with judgement in it: every hardcoded "job", "client",
-"estimate" and every placeholder string, checked against `vocabFor`. Needs one
-pass per business kind on the demo, which is why it is M rather than S.
+All three examples this entry named are gone:
 
----
+- **"Free trial" on a roofer's pipeline.** It was the label on the `trying`
+  stage, which is software's word and nobody else's. The stage means the same
+  thing in every trade - they have it, nothing is agreed - so it reads
+  "Trying it" now.
+- **A Photos card about "a problem you found behind a wall"** on a SaaS
+  customer. Now "anything you found on the way that somebody will ask about
+  later".
+- **Estimate placeholders written for an agency** ("Brand and messaging
+  framework") shown to a roofer. Replaced with placeholders that describe the
+  shape of an answer rather than supplying somebody else's.
+
+Two helpers came out of it, next to `vocabFor` in `lib/spine/org.tsx`:
+`aWord()` picks "a" or "an" by the word, because a sentence that hardcodes the
+article is wrong for somebody ("an estimate" and "an engagement" are right,
+"an quote" is not), and `capWord()` capitalises one that has to open a
+sentence.
+
+**The pattern worth knowing.** Three of the worst cases were module-level
+arrays - `DATA_FACTS` on Security, `WHAT` on What You See and on Access,
+`ROLES` on InvitePerson. Nothing in the component reads them, so a hardcoded
+noun sits there invisibly. Each is a function of `vocab` now. Any new
+module-level copy in this codebase should be too.
+
+Verified on two demo workspaces, desktop and 390px: the same screens read
+"New job / Job name / Customer / Create job" in Harbor Light Roofing and
+"New project / Project name / Client / Create project" in Northwind Studio.
+
+**Left alone, on purpose:**
+
+- `PlatformVoice` - the voice guide, whose examples are quotations of real
+  copy and have to stay as they were written.
+- `Workspaces`, `ClientScope`, `BrandSpecimen`, `app/access` module notes
+  about what a *client's* workspace holds: the word that belongs there is the
+  client's own, which is not the vocabulary of the org you are signed into.
+  Getting that right means resolving a second workspace's vocab, which is its
+  own brief.
+- `ClientGrowth`, `Messaging`, `SiteSection`, `app/seo` - these say "customer"
+  about *the client's* customers, which is correct and is not our noun.
+- `app/welcome` - the signup flow, before a business kind exists to have a
+  vocabulary.
+- `app/brands/[id]` "Customer logos" - a brand-kit asset category, not the
+  business's word for who it sells to.
+- Model prompts in `app/api/*/extract` and column lists, for the reasons the
+  em dash check already skips them.
 
 ## 10. Destructive actions — DONE 26 Sept 2026
 
@@ -503,11 +544,31 @@ describes.
 
 ## Smaller, not yet grouped
 
-- **Price list tiers** (Friends / Standard / Enterprise) are identical for every
-  business and unused by the estimate picker. Probably deletion, not a fix. S
-- **Stage chips wrap badly** on a customer record: "Won" takes a full row. S
-- **The profile menu email breaks mid-word.** S
-- **Browser tab titles are generic** ("CALO&CO" on every page). S
+- ~~**Price list tiers**~~ **DONE 27 Sept 2026.** Three columns, Friends /
+  Standard / Enterprise, were hardcoded in `app/pricing` and printed for every
+  business, while `rate_tiers` holds rows for exactly one org - so everybody
+  else saw the same figure three times under three names they never chose.
+  Not deleted, because that would take a real feature off the one business
+  using it: the columns follow the data now, one per tier the business has
+  defined, and a single Price column when it has none.
+- ~~**Stage chips wrap badly**~~ **DONE 27 Sept 2026.** They were flex items
+  at `1 1 92px`, and flex grows the last line to fill it, so at 390px the lane
+  broke four-and-two and "Won" became a full-width bar that reads as the
+  selected stage. A grid with `repeat(auto-fit, minmax(84px, 1fr))` gives the
+  wrapped chip a column instead: measured at 390px, all six are 91px.
+- ~~**The profile menu email breaks mid-word.**~~ **DONE 27 Sept 2026.**
+  `word-break: break-all` split wherever the line ran out, so an address
+  wrapped as "someone@exampl / e.com". A `<wbr>` after the @ gives the wrap
+  somewhere sensible to land, with `overflow-wrap: anywhere` kept only as the
+  fallback for a local part too long to fit alone.
+- ~~**Browser tab titles are generic**~~ **DONE 27 Sept 2026.** Every tab said
+  CALO&CO, because the app's only title is the root layout's and every screen
+  under it is a client component, which cannot export metadata. `Page` sets it
+  now - it is the one thing every in-app screen goes through and it already
+  knows the heading - as "[Screen] · [Workspace]". A screen whose heading is
+  still a skeleton passes `tabTitle` once the record loads, and until then the
+  tab keeps what it said rather than flashing the product name and back.
+  Public documents set their own metadata and never render `Page`.
 - **`/whats-new`** is an internal feature catalogue with sales notes in it,
   reachable by anybody who types the address. Decide whether it should exist. S
 - **Wide screens**: `Page` caps at 1100px, leaving a third of a 1512px screen

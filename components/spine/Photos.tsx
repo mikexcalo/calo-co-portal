@@ -160,8 +160,9 @@ export function Photos({
         {photos.length === 0 ? (
           <Card>
             <Empty>
-              Before and after shots, the finished work, a problem you found behind a wall. Drop
-              them here or use Add photos.
+              Before and after shots, the finished work, anything you found on the
+              way that somebody will ask about later. Drop them here or use Add
+              photos.
             </Empty>
           </Card>
         ) : (

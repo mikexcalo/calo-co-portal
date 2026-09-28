@@ -18,7 +18,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
-import { useOrg } from '@/lib/spine/org';
+import { useOrg, aWord, capWord } from '@/lib/spine/org';
 import { Button, C, Card, DIGITAL_TABS, Empty, Metric, Page, Pill, RowsLoading, SectionLabel, shortDate } from '@/components/spine/ui';
 
 interface Due {
@@ -164,7 +164,7 @@ export default function ReviewsPage() {
               <Card key={s.id}>
                 <div style={{ display: 'flex', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 14, color: C.text, flex: 1, minWidth: 160 }}>
-                    {s.job?.name ?? 'A job'}
+                    {s.job?.name ?? capWord(aWord(vocab.job))}
                   </span>
                   <span style={{ fontSize: 12.5, color: C.faint }}>{s.sent_to}</span>
                   {s.clicked_at ? <Pill tone="green">followed</Pill> : <Pill>no click yet</Pill>}

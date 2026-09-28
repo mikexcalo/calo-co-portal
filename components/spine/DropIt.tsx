@@ -20,6 +20,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useOrg } from '@/lib/spine/org';
 import supabase from '@/lib/supabase';
 import { addDrop } from '@/lib/spine/drops';
 import { human } from '@/lib/spine/errors';
@@ -67,6 +68,7 @@ export function DropIt({
   /** The job it was opened from, so the note files against that job too. */
   jobId?: string | null;
 }) {
+  const { vocab } = useOrg();
   const [clients, setClients] = useState<Client[]>([]);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [text, setText] = useState('');
@@ -309,7 +311,7 @@ export function DropIt({
           </span>
           <span style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.6 }}>
             {toFile
-              ? 'Drops is the pile of things nobody has said a subject for yet. One tap there files it to a customer or a job.'
+              ? `Drops is the pile of things nobody has said a subject for yet. One tap there files it to a ${vocab.customer.toLowerCase()} or a ${vocab.job.toLowerCase()}.`
               : 'It is waiting to be sorted wherever it is filed, and sorting it is a button there once the reader is back.'}
           </span>
           <div>
@@ -332,7 +334,7 @@ export function DropIt({
             <Select
               value={clientId}
               onChange={setClientId}
-              placeholder="Not about a client"
+              placeholder={`Not about a ${vocab.customer.toLowerCase()}`}
               style={{ width: 'auto', minWidth: 200 }}
               options={clients.map((c) => ({ value: c.id, label: c.name }))}
             />

@@ -497,8 +497,29 @@ default**, and GoTrue reads them into plain Go strings, so a single NULL makes
 password reset return 500. **Never hand-write an INSERT into `auth.users`;**
 use `public.new_auth_user(email, name)`. Also documented in `CLAUDE.md`.
 
-**There is no service-role key available.** It is a Vercel secret Vercel will
-not return. Everything is done through migrations or the public anon key.
+**The service-role key is on this machine, in `.env.production.local`.** This
+entry used to say there was none and that Vercel would not return it; the file
+is a `vercel env pull`, so it holds the real key along with the rest of
+production's environment.
+
+It is needed to run anything server-rendered locally: `/e/[token]` and
+`/i/[token]` both create a service-role client and fall straight to not-found
+without it, which looks exactly like a broken document and has been
+misdiagnosed as one.
+
+**Local verification only, and never written anywhere else.** Load it into the
+dev server's environment for the run that needs it rather than copying it into
+`.env.local`, so there is one file holding it and it is the one Vercel wrote:
+
+```
+export SUPABASE_SERVICE_ROLE_KEY="$(grep -m1 '^SUPABASE_SERVICE_ROLE_KEY=' .env.production.local | cut -d= -f2-)"
+npm run dev
+```
+
+`.env*` is gitignored, so it cannot be committed. It bypasses every row-level
+security policy in the project, so it does not belong in a terminal that
+prints, a screenshot, or a message. Everything that changes data still goes
+through a migration or the anon key.
 
 **Supabase round trips are ~350ms from a browser** while the database work is
 under 20ms. Latency, not work. When something feels slow, count serial hops

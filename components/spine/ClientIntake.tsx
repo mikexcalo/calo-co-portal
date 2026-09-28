@@ -14,6 +14,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useOrg, aWord, capWord } from '@/lib/spine/org';
 import supabase from '@/lib/supabase';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -46,6 +47,7 @@ export function ClientIntake({
   onSaved: (made?: { customerId?: string; jobId?: string }) => void;
   onClose: () => void;
 }) {
+  const { vocab } = useOrg();
   const [reading, setReading] = useState(false);
   /* The form is the fallback, not the front door. */
   const [showForm, setShowForm] = useState(false);
@@ -119,7 +121,7 @@ export function ClientIntake({
   */
   const kindWord =
     doc === 'receipt' ? 'a receipt'
-    : doc === 'estimate' ? 'an estimate'
+    : doc === 'estimate' ? aWord(vocab.estimate)
     : doc === 'pricelist' || /price list/i.test(notes) ? 'a price list'
     : prices.length > 0 ? 'a price list'
     : 'a company';
@@ -166,7 +168,7 @@ export function ClientIntake({
   const landsWhere =
     doc === 'receipt' ? 'Filing it records the money as spent, and it comes off Profit and Loss.'
     : relationship === 'supplier' ? 'They land under Suppliers, and anything priced becomes searchable.'
-    : isCustomer ? 'They land in Customers, and anything priced becomes searchable and goes onto quotes.'
+    : isCustomer ? `They land in ${vocab.customerPlural}, and anything priced becomes searchable and goes onto quotes.`
     : 'They land in Pipeline until you win them.';
 
   const send = useCallback(async (payload: { data?: string; mediaType?: string; text?: string }) => {
@@ -321,13 +323,13 @@ export function ClientIntake({
           address: address.trim() || null,
           notes: notes.trim() || null,
         }).select('id').single(),
-        'The client'
+        vocab.customer
       );
       const customerId = (made.data as { id: string } | null)?.id;
       if (made.error || !customerId) {
         /* The toast at the bottom of the screen is easy to miss while reading
            a form. Say it here too, beside the button that did nothing. */
-        setError(made.error ? human(made.error) : 'That client could not be created.');
+        setError(made.error ? human(made.error) : `That ${vocab.customer.toLowerCase()} could not be created.`);
         setBusy(false);
         return;
       }
@@ -423,7 +425,7 @@ export function ClientIntake({
             address: jobAddress.trim() || null,
             status: 'lead',
           }).select('id').single(),
-          'The job'
+          vocab.job
         );
         const jobId = (job.data as { id: string } | null)?.id;
         madeJobId = jobId ?? undefined;
@@ -667,7 +669,7 @@ export function ClientIntake({
                 <Select
                   value={costJob}
                   onChange={setCostJob}
-                  placeholder="Overhead, no job"
+                  placeholder={`Overhead, no ${vocab.job.toLowerCase()}`}
                   options={jobs.map((j) => ({ value: j.id, label: j.name }))}
                 />
               </div>
@@ -770,7 +772,7 @@ export function ClientIntake({
           {relationship === 'customer' && (
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 10 }}>
             {([
-              { id: true, label: 'A customer' },
+              { id: true, label: capWord(aWord(vocab.customer)) },
               { id: false, label: 'Still chasing them' },
             ]).map((o) => (
               <button
@@ -788,7 +790,7 @@ export function ClientIntake({
               </button>
             ))}
             <span style={{ fontSize: 12, color: C.faint }}>
-              {isCustomer ? 'Lands in Customers.' : 'Lands in Pipeline until you win them.'}
+              {isCustomer ? `Lands in ${vocab.customerPlural}.` : 'Lands in Pipeline until you win them.'}
             </span>
           </div>
           )}
@@ -864,8 +866,8 @@ export function ClientIntake({
               </div>
               <p style={{ fontSize: 12, color: C.faint, margin: '0 0 6px' }}>
                 {belongsTo === 'ours'
-                  ? 'Estimates pick from these.'
-                  : 'Kept for reference. Estimates never quote from a supplier sheet.'}
+                  ? `${vocab.estimate}s pick from these.`
+                  : `Kept for reference. ${vocab.estimate}s never quote from a supplier sheet.`}
               </p>
 
               {existingPrices > 0 && (
@@ -895,7 +897,7 @@ export function ClientIntake({
                   </div>
                   <div style={{ fontSize: 12, color: C.faint, marginTop: 8 }}>
                     {priceMode === 'replace'
-                      ? 'The old ones are retired rather than deleted, so an estimate you already sent still shows what was quoted.'
+                      ? `The old ones are retired rather than deleted, so ${aWord(vocab.estimate)} you already sent still shows what was quoted.`
                       : 'Nothing is retired. Watch for the same item appearing twice.'}
                   </div>
                 </div>

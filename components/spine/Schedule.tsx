@@ -13,6 +13,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { useOrg } from '@/lib/spine/org';
 import supabase from '@/lib/supabase';
 import { Select, Button, C, Card, Empty, Pill, SectionLabel, inputStyle, shortDate } from './ui';
 import { Confirm } from './Confirm';
@@ -42,6 +43,7 @@ const STATUS: Record<Task['status'], { label: string; tone: 'neutral' | 'blue' |
 const blank = { name: '', starts_on: '', ends_on: '', assignee: '', depends_on: '', owner: 'us' };
 
 export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
+  const { vocab } = useOrg();
   const [rows, setRows] = useState<Task[]>([]);
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState(blank);
@@ -174,7 +176,7 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
               onChange={(v) => setDraft({ ...draft, owner: v })}
               options={[
                 { value: 'us', label: 'On us' },
-                { value: 'client', label: 'On the client' },
+                { value: 'client', label: `On the ${vocab.customer.toLowerCase()}` },
                 { value: 'third_party', label: 'Someone else' },
               ]}
             />

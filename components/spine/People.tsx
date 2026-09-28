@@ -14,6 +14,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { useOrg } from '@/lib/spine/org';
 import supabase from '@/lib/supabase';
 import { Avatar, Button, C, Card, Empty, Pill, SectionLabel, inputStyle } from './ui';
 import { Confirm } from './Confirm';
@@ -35,6 +36,7 @@ interface Person {
 const blank = { name: '', title: '', email: '', email_alt: '', phone: '', note: '' };
 
 export function People({ orgId, customerId }: { orgId: string; customerId: string }) {
+  const { vocab } = useOrg();
   const [rows, setRows] = useState<Person[]>([]);
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState(blank);
@@ -351,7 +353,7 @@ export function People({ orgId, customerId }: { orgId: string; customerId: strin
       {confirmDelete && (
         <Confirm
           title={`Remove ${confirmDelete.name}?`}
-          body="This only removes them from this client. Nothing else is affected."
+          body={`This only removes them from this ${vocab.customer.toLowerCase()}. Nothing else is affected.`}
           confirmLabel="Remove"
           busy={busy}
           onConfirm={remove}

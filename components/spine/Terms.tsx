@@ -1,6 +1,7 @@
 'use client';
 
 import type { CSSProperties } from 'react';
+import { useOrg } from '@/lib/spine/org';
 
 /**
  * What was agreed with this client.
@@ -55,6 +56,7 @@ const termRow: CSSProperties = {
 };
 
 export function Terms({ orgId, customerId }: { orgId: string; customerId: string }) {
+  const { vocab } = useOrg();
   const [row, setRow] = useState<Row | null>(null);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Row>(EMPTY);
@@ -266,7 +268,7 @@ export function Terms({ orgId, customerId }: { orgId: string; customerId: string
       <SectionLabel>What you agreed</SectionLabel>
       <Card>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 }}>
-          {field('Their hourly rate', draft.hourly_rate?.toString() ?? '', (v) => setDraft({ ...draft, hourly_rate: num(v) }), 'What this client pays.', '60')}
+          {field('Their hourly rate', draft.hourly_rate?.toString() ?? '', (v) => setDraft({ ...draft, hourly_rate: num(v) }), `What this ${vocab.customer.toLowerCase()} pays.`, '60')}
           {field('Your usual rate', draft.standard_rate?.toString() ?? '', (v) => setDraft({ ...draft, standard_rate: num(v) }), 'So the discount is visible later.', '120')}
           {field('Why the discount', draft.why_discounted ?? '', (v) => setDraft({ ...draft, why_discounted: str(v) }), undefined, 'Friends and family')}
           {field('Flat monthly', draft.monthly_fee?.toString() ?? '', (v) => setDraft({ ...draft, monthly_fee: num(v) }), undefined, '20')}

@@ -26,7 +26,7 @@ import { CLIENT_STAGES } from '@/lib/spine/stage';
 import { hoursByClient, listDocuments, listInvoices, listJobLedger, listJobs, orgNow } from '@/lib/spine/db';
 import { modulesFor } from '@/lib/spine/modules';
 import supabase from '@/lib/supabase';
-import { useOrg } from '@/lib/spine/org';
+import { useOrg, aWord, capWord } from '@/lib/spine/org';
 import { useViewAs } from '@/lib/spine/viewas';
 import { clientOwner } from '@/lib/spine/client-view';
 import { Glyph } from '@/components/spine/icons';
@@ -392,7 +392,7 @@ export default function Dashboard() {
       weight: amt * 1.5,
       title: `${money(amt)} due to be billed`,
       detail: `${dueNow.length} ${dueNow.length === 1 ? 'retainer has' : 'retainers have'} reached the end of a billing period with work on them.`,
-      cta: 'Open jobs',
+      cta: `Open ${vocab.jobPlural.toLowerCase()}`,
       href: '/jobs',
       tone: 'amber',
     });
@@ -408,7 +408,7 @@ export default function Dashboard() {
       setup: true,
       weight: 5e8,
       title: `${signals.customersNoEmail} ${signals.customersNoEmail === 1 ? vocab.customer.toLowerCase() : vocab.customerPlural.toLowerCase()} with no email`,
-      detail: "You can't send an invoice or an estimate to someone with no email address.",
+      detail: `You can't send an invoice or ${aWord(vocab.estimate)} to someone with no email address.`,
       cta: `Open ${vocab.customerPlural.toLowerCase()}`,
       href: '/customers',
       tone: 'red',
@@ -420,7 +420,7 @@ export default function Dashboard() {
       key: 'review',
       weight: signals.docsNeedingReview * 400,
       title: `${signals.docsNeedingReview} receipt${signals.docsNeedingReview === 1 ? '' : 's'} waiting on you`,
-      detail: 'Read but not approved, so not counted against any job yet.',
+      detail: `Read but not approved, so not counted against any ${vocab.job.toLowerCase()} yet.`,
       cta: 'Review them',
       href: '/documents',
       tone: 'amber',
@@ -432,8 +432,8 @@ export default function Dashboard() {
       key: 'draftest',
       weight: signals.draftEstimates * 300,
       title: `${signals.draftEstimates} proposal${signals.draftEstimates === 1 ? '' : 's'} never sent`,
-      detail: 'Nobody can accept a proposal they never received.',
-      cta: 'Open proposals',
+      detail: `Nobody can accept ${aWord(vocab.estimate)} they never received.`,
+      cta: `Open ${vocab.estimate.toLowerCase()}s`,
       href: '/proposals',
       tone: 'amber',
     });
@@ -467,8 +467,8 @@ export default function Dashboard() {
     attention.push({
       key: 'requests',
       weight: signals.openRequests * 250,
-      title: `${signals.openRequests} client request${signals.openRequests === 1 ? '' : 's'} waiting`,
-      detail: 'A client asked for something and hasn\u2019t heard back.',
+      title: `${signals.openRequests} ${vocab.customer.toLowerCase()} request${signals.openRequests === 1 ? '' : 's'} waiting`,
+      detail: `${capWord(aWord(vocab.customer))} asked for something and hasn\u2019t heard back.`,
       cta: 'Open requests',
       href: '/requests',
       tone: 'amber',
@@ -480,7 +480,7 @@ export default function Dashboard() {
       key: 'nocustomer',
       weight: signals.jobsNoCustomer * 100,
       title: `${signals.jobsNoCustomer} ${signals.jobsNoCustomer === 1 ? vocab.job.toLowerCase() : vocab.jobPlural.toLowerCase()} with nobody attached`,
-      detail: 'No customer means no invoice and no way to follow up.',
+      detail: `No ${vocab.customer.toLowerCase()} means no invoice and no way to follow up.`,
       cta: `Open ${vocab.jobPlural.toLowerCase()}`,
       href: '/jobs',
       tone: 'amber',
@@ -492,7 +492,7 @@ export default function Dashboard() {
       key: 'prices',
       weight: 60,
       title: `${signals.unconfirmedPrices} price${signals.unconfirmedPrices === 1 ? '' : 's'} not confirmed`,
-      detail: 'Unconfirmed prices stay out of estimates until someone stands behind them.',
+      detail: `Unconfirmed prices stay out of ${vocab.estimate.toLowerCase()}s until someone stands behind them.`,
       cta: 'Open price list',
       href: '/pricing',
       tone: 'neutral',
@@ -652,7 +652,7 @@ export default function Dashboard() {
     {
       module: 'billing',
       label: 'Send an invoice',
-      why: 'Once a job has hours or receipts on it.',
+      why: `Once a ${vocab.job.toLowerCase()} has hours or receipts on it.`,
       done: invoices.length > 0,
       href: '/billing',
     },

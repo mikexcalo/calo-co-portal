@@ -33,7 +33,7 @@ interface Session {
 }
 
 export default function ChangedPage({ params }: { params: { id: string } }) {
-  const { org } = useOrg();
+  const { org, vocab } = useOrg();
   const [session, setSession] = useState<Session | null>(null);
   const [changes, setChanges] = useState<Change[]>([]);
   const [actor, setActor] = useState<string>('');
@@ -112,7 +112,7 @@ export default function ChangedPage({ params }: { params: { id: string } }) {
         <div style={{ display: 'grid', gap: 6, fontSize: 13.5 }}>
           <Row k="Started" v={when.toLocaleString()} />
           <Row k="Finished" v={ended ? ended.toLocaleString() : 'Still open'} />
-          <Row k="Could send to your customers" v={session.can_send ? 'Yes, you allowed it' : 'No'} />
+          <Row k={`Could send to your ${vocab.customerPlural.toLowerCase()}`} v={session.can_send ? 'Yes, you allowed it' : 'No'} />
           {session.revoked_at && <Row k="You stopped it" v={new Date(session.revoked_at).toLocaleString()} />}
         </div>
       </Card>

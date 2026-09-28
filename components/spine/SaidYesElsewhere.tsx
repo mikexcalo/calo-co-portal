@@ -18,6 +18,7 @@
  */
 
 import { useState } from 'react';
+import { useOrg } from '@/lib/spine/org';
 import supabase from '@/lib/supabase';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { Button, C, Field, Select, Sheet, inputStyle } from './ui';
@@ -50,6 +51,7 @@ export function SaidYesElsewhere({
   onDone: () => void;
   onClose: () => void;
 }) {
+  const { vocab } = useOrg();
   const [name, setName] = useState(defaultName ?? '');
   const [email, setEmail] = useState(defaultEmail ?? '');
   const [via, setVia] = useState('email');
@@ -88,7 +90,7 @@ export function SaidYesElsewhere({
         source: 'imported',
         direction: 'in',
         happened_on: when,
-        title: `Accepted the proposal, ${label.toLowerCase()}`,
+        title: `Accepted the ${vocab.estimate.toLowerCase()}, ${label.toLowerCase()}`,
         body:
           `${name.trim()}${email.trim() ? ` <${email.trim()}>` : ''}, ${when}.` +
           (words.trim() ? `\n\n"${words.trim()}"` : '\n\nNo wording recorded.'),

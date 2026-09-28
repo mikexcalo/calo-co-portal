@@ -180,8 +180,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
   }
   if (!job) {
     return (
-      <Page title="Job not found">
-        <Card><Empty>That job doesn&apos;t exist, or you don&apos;t have access to it.</Empty></Card>
+      <Page title={`${vocab.job} not found`}>
+        <Card><Empty>That {vocab.job.toLowerCase()} doesn&apos;t exist, or you don&apos;t have access to it.</Empty></Card>
       </Page>
     );
   }
@@ -203,7 +203,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     setError(null);
     try {
       const orgId = job?.org_id;
-      if (!orgId) throw new Error('No business on this job.');
+      if (!orgId) throw new Error(`No business on this ${vocab.job.toLowerCase()}.`);
       const inv = await invoiceFromEstimate(orgId, jobId);
       router.push(`/billing?invoice=${inv.id}`);
     } catch (e) {
@@ -240,7 +240,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     run(async () => {
       if (!orgId) throw new Error('No organization on your profile.');
       const inv = await draftInvoiceFromActuals(orgId, jobId);
-      if (!inv) throw new Error('Nothing unbilled on this job yet.');
+      if (!inv) throw new Error(`Nothing unbilled on this ${vocab.job.toLowerCase()} yet.`);
     }, 'Draft invoice created from unbilled work.');
 
   return (
@@ -324,7 +324,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
             true is how people learn to stop reading them.
           */
           title={`Delete ${confirming.label}?`}
-          body="It comes off the job and off anything not yet invoiced. You can undo it straight after."
+          body={`It comes off the ${vocab.job.toLowerCase()} and off anything not yet invoiced. You can undo it straight after.`}
           confirmLabel="Delete"
           busy={busy}
           onConfirm={() =>
@@ -446,7 +446,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
           hint={isTM ? 'Forecast, not a cap' : undefined}
         />
         <Metric label="Hours logged" value={fmtHours(ledger?.hours_logged ?? 0)} />
-        <Metric label="Costs" value={money0(ledger?.cost_total ?? 0)} hint="What the job cost you" />
+        <Metric label="Costs" value={money0(ledger?.cost_total ?? 0)} hint={`What the ${vocab.job.toLowerCase()} cost you`} />
         <Metric
           label="Unbilled"
           value={money0(unbilled)}
@@ -686,7 +686,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                 <div style={{ display: 'flex', gap: 6 }}>
                   {['draft', 'sent'].includes(e.status) && (
                     <Button onClick={() => sendEstimate(e)} disabled={busy}>
-                      {e.status === 'sent' ? 'Resend' : 'Send to customer'}
+                      {e.status === 'sent' ? 'Resend' : `Send to ${vocab.customer.toLowerCase()}`}
                     </Button>
                   )}
                   {/*

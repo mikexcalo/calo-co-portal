@@ -35,7 +35,7 @@ import {
 } from '@/components/spine/ui';
 import { Confirm } from '@/components/spine/Confirm';
 import { WhoCanWorkInThis } from '@/components/spine/WhoCanWorkInThis';
-import { useOrg } from '@/lib/spine/org';
+import { useOrg, type Vocab } from '@/lib/spine/org';
 import { PRODUCT } from '@/lib/brand';
 import {
   confirmEnrolment,
@@ -70,7 +70,14 @@ const icon = (d: React.ReactNode) => (
  * mechanism, because "a bug on a page cannot show you someone else's books"
  * is the part a contractor actually cares about.
  */
-const DATA_FACTS = [
+/*
+  A function, because one of these names the thing the business sells to.
+
+  It was a module-level array, which is where a hardcoded "customer" hides
+  from a vocabulary sweep: nothing in the component reads it, so nothing
+  flagged that an agency was being told about "a customer" paying by card.
+*/
+const dataFacts = (vocab: Vocab) => [
   {
     title: 'Everything is encrypted, both moving and sitting still',
     body:
@@ -96,7 +103,7 @@ const DATA_FACTS = [
   {
     title: 'We never store card numbers',
     body:
-      `When a customer pays you by card, the number goes straight to Stripe and never passes through ${PRODUCT} at all. Stripe holds card data for millions of businesses and is certified at the highest level the payments industry has, so it is safer in their hands than in ours.`,
+      `When a ${vocab.customer.toLowerCase()} pays you by card, the number goes straight to Stripe and never passes through ${PRODUCT} at all. Stripe holds card data for millions of businesses and is certified at the highest level the payments industry has, so it is safer in their hands than in ours.`,
     icon: icon(
       <>
         <rect x="1.8" y="3.6" width="12.4" height="8.8" rx="1.5" />
@@ -131,7 +138,7 @@ const DATA_FACTS = [
 ];
 
 export default function SecurityPage() {
-  const { org } = useOrg();
+  const { org, vocab } = useOrg();
   const [enabled, setEnabled] = useState(false);
   const [remaining, setRemaining] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -561,7 +568,7 @@ export default function SecurityPage() {
                   one you cared about. An icon and a heading per idea means you
                   can find the one you came for without reading the rest. */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                {DATA_FACTS.map((f) => (
+                {dataFacts(vocab).map((f) => (
                   <div key={f.title} style={{ display: 'flex', gap: 13, alignItems: 'flex-start' }}>
                     <span
                       aria-hidden

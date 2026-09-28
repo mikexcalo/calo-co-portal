@@ -16,13 +16,14 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useOrg, type Vocab } from '@/lib/spine/org';
 import supabase from '@/lib/supabase';
 import { human } from '@/lib/spine/errors';
 import { Button, C, Select, Sheet, inputStyle } from './ui';
 import { orgNow } from '@/lib/spine/db';
 
-const ROLES = [
-  { id: 'member', label: 'Can do the work', note: 'Add jobs, log hours, file receipts. Cannot change settings or rates.' },
+const roles = (vocab: Vocab) => [
+  { id: 'member', label: 'Can do the work', note: `Add ${vocab.jobPlural.toLowerCase()}, log hours, file receipts. Cannot change settings or rates.` },
   { id: 'admin',  label: 'Can run the business', note: 'Everything above, plus settings, rates and inviting other people.' },
 ] as const;
 
@@ -44,6 +45,7 @@ interface Props {
 }
 
 export function InvitePerson({ orgId, orgName, choices, prefillEmail, prefillName, trigger, primary, onDone }: Props) {
+  const { vocab } = useOrg();
   const [target, setTarget] = useState(orgId);
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState(prefillName || prefillEmail || '');
@@ -224,7 +226,7 @@ export function InvitePerson({ orgId, orgName, choices, prefillEmail, prefillNam
         )}
 
         <div style={{ display: 'grid', gap: 6, marginTop: 14 }}>
-          {ROLES.map((r) => (
+          {roles(vocab).map((r) => (
             <button
               key={r.id}
               onClick={() => setRole(r.id)}

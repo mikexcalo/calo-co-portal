@@ -124,7 +124,7 @@ export default function ProposalsPage() {
       if (!res.ok) throw new Error(payload.error || 'Could not send it');
       setNotice(
         payload.message
-          ?? `Sent to ${r.job?.customer?.name ?? 'the customer'}. They can accept it from the link.`
+          ?? `Sent to ${r.job?.customer?.name ?? `the ${vocab.customer.toLowerCase()}`}. They can accept it from the link.`
       );
       await load();
     } catch (e) {
@@ -198,7 +198,7 @@ export default function ProposalsPage() {
             {proof.decided_by_name}
             {proof.decided_by_email ? ` <${proof.decided_by_email}>` : ''}
             {' · '}
-            {VIA_SAID[proof.decided_via as keyof typeof VIA_SAID] ?? 'accepted on the proposal'}
+            {VIA_SAID[proof.decided_via as keyof typeof VIA_SAID] ?? `accepted on the ${vocab.estimate.toLowerCase()}`}
             {' · '}{shortDate(proof.decided_at)}
           </div>
           {proof.decided_words && (
@@ -214,7 +214,7 @@ export default function ProposalsPage() {
           )}
           <div style={{ fontSize: 12.5, color: C.faint, marginTop: 18, lineHeight: 1.55, maxWidth: '52ch' }}>
             {proof.decided_via === 'platform'
-              ? 'Accepted on the proposal itself, which this platform recorded as it happened.'
+              ? `Accepted on the ${vocab.estimate.toLowerCase()} itself, which this platform recorded as it happened.`
               : 'Recorded by hand. The wording is kept exactly as they sent it.'}
           </div>
         </Sheet>
@@ -226,7 +226,7 @@ export default function ProposalsPage() {
           jobId={recording.job?.id ?? null}
           customerId={recording.job?.customer?.id ?? null}
           orgId={orgId}
-          clientName={recording.job?.customer?.name ?? 'this client'}
+          clientName={recording.job?.customer?.name ?? `this ${vocab.customer.toLowerCase()}`}
           defaultName={recording.job?.customer?.contact_name}
           defaultEmail={recording.sent_to ?? recording.job?.customer?.email}
           onDone={load}
@@ -252,7 +252,7 @@ export default function ProposalsPage() {
             </div>
             <iframe
               src={previewing}
-              title="Proposal preview"
+              title={`${vocab.estimate} preview`}
               style={{ flex: 1, border: 'none', width: '100%', background: '#f5f5f3' }}
             />
         </Sheet>

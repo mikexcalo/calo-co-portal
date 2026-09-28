@@ -17,6 +17,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { useOrg } from '@/lib/spine/org';
 import supabase from '@/lib/supabase';
 import { Button, C, Field, inputStyle, radius, SectionLabel, Select } from './ui';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -90,6 +91,7 @@ export function TermsPicker({
   setId: string | null;
   onSetId: (id: string | null) => void;
 }) {
+  const { vocab } = useOrg();
   const [sets, setSets] = useState<TermsSet[]>([]);
   const [naming, setNaming] = useState(false);
   const [newName, setNewName] = useState('');
@@ -243,7 +245,7 @@ export function TermsPicker({
                 value={s.body}
                 onChange={(e) => edit(i, { body: e.target.value })}
                 style={{ ...inputStyle, minHeight: 92, resize: 'vertical', lineHeight: 1.6 }}
-                placeholder="One paragraph per idea. Blank lines separate them on the proposal."
+                placeholder={`One paragraph per idea. Blank lines separate them on the ${vocab.estimate.toLowerCase()}.`}
               />
             </div>
           ))}

@@ -348,7 +348,7 @@ export default function ProfitLossPage() {
               {
                 label: 'Costs', value: money0(scoped.costs), icon: 'receipt',
                 hint: scoped.overhead > 0
-                  ? `${money0(scoped.jobCosts)} jobs + ${money0(scoped.overhead)} overheads`
+                  ? `${money0(scoped.jobCosts)} ${vocab.jobPlural.toLowerCase()} + ${money0(scoped.overhead)} overheads`
                   : 'Materials, subs, permits',
               },
               {

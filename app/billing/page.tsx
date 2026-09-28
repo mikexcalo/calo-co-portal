@@ -271,7 +271,7 @@ export default function BillingPage() {
       if (!res.ok) throw new Error(payload.error || 'Could not send');
 
       setNotice(
-        `${inv.number} sent. The customer can pay online, and it will mark itself paid.`
+        `${inv.number} sent. The ${vocab.customer.toLowerCase()} can pay online, and it will mark itself paid.`
       );
       /*
         Sending should not throw a tab either.

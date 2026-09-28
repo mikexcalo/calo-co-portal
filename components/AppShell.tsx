@@ -106,7 +106,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       if (onJob) {
         const res = await supabase.from('jobs').select('id, name').eq('id', onJob[1]).maybeSingle();
         const j = res.data as { id: string; name: string } | null;
-        if (!off && j) setCaptureJob({ id: j.id, name: j.name, reason: "You're on this job" });
+        if (!off && j) setCaptureJob({ id: j.id, name: j.name, reason: `You're on this ${vocab.job.toLowerCase()}` });
         return;
       }
       const { loadToday } = await import('@/lib/spine/today');

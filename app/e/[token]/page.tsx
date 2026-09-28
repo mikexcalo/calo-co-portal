@@ -13,6 +13,8 @@ import { createClient } from '@supabase/supabase-js';
 import type React from 'react';
 import { notFound } from 'next/navigation';
 import { createSupabaseServer } from '@/lib/supabase-server';
+import { vocabFor, aWord, capWord } from '@/lib/spine/org';
+import type { Org } from '@/lib/spine/types';
 import { SaveAsPdf } from './SaveAsPdf';
 import { Faq } from '@/components/spine/Faq';
 import { asQuestions } from '@/lib/spine/questions-from-notes';
@@ -53,13 +55,19 @@ export async function generateMetadata({ params }: { params: { token: string } }
   const db = createClient(url, key, { auth: { persistSession: false } });
   const { data } = await db
     .from('estimates')
-    .select('job:jobs(name, org:orgs(name))')
+    .select('job:jobs(name, org:orgs(name, kind, settings))')
     .eq('public_token', params.token)
     .maybeSingle();
-  const job = data?.job as { name?: string; org?: { name?: string } } | null;
+  const job = data?.job as {
+    name?: string;
+    org?: { name?: string; kind?: Org['kind']; settings?: Record<string, unknown> | null };
+  } | null;
+  /* A rep sends a quote and a studio sends a proposal. The tab and the saved
+     PDF carry the sender's word for it, not ours. */
+  const word = vocabFor(job?.org?.kind, job?.org?.settings ?? null).estimate;
   return {
-    title: job?.name ? `Proposal, ${job.name}` : 'Proposal',
-    description: job?.org?.name ? `A proposal from ${job.org.name}.` : undefined,
+    title: job?.name ? `${word}, ${job.name}` : word,
+    description: job?.org?.name ? `${capWord(aWord(word))} from ${job.org.name}.` : undefined,
   };
 }
 
@@ -183,6 +191,12 @@ export default async function PublicEstimate({
     db.from('orgs').select('name, settings, kind').eq('id', job?.org_id ?? '').maybeSingle(),
   ]);
 
+  /* The sender's word for the document, used everywhere the page names it. */
+  const estimateWord = vocabFor(
+    (org as { kind?: Org['kind'] } | null)?.kind,
+    (org as { settings?: Record<string, unknown> | null } | null)?.settings ?? null
+  ).estimate;
+
   // Record the first open. "Sent but never opened" is a different problem
   // from "opened and ignored", and only one of them needs a nudge.
   /*
@@ -216,8 +230,8 @@ export default async function PublicEstimate({
     await db.from('notifications').insert({
       org_id: job?.org_id ?? estimate.org_id,
       kind: 'system',
-      title: `${first} just opened your proposal`,
-      body: `${job?.name ?? 'The proposal'}. No decision yet.`,
+      title: `${first} just opened your ${estimateWord.toLowerCase()}`,
+      body: `${job?.name ?? `The ${estimateWord.toLowerCase()}`}. No decision yet.`,
     }).then(undefined, () => {
       // A missed notice is not a reason to fail the page somebody is reading.
     });

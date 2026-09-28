@@ -185,10 +185,10 @@ export default function JobsPage() {
         <FirstSteps
           copy={{
             title: `No ${vocab.jobPlural.toLowerCase()} yet`,
-            blurb: `A ${vocab.job.toLowerCase()} is the unit everything else hangs off, hours, receipts, and the invoice at the end all point back at one. A lead is simply one that has not been won yet.`,
+            blurb: `A ${vocab.job.toLowerCase()} is the unit everything else hangs off, hours, receipts, and the invoice at the end all point back at one. A ${vocab.lead.toLowerCase()} is simply one that has not been won yet.`,
             steps: [
               `Create one and give it a name you would recognise on a phone call. The address and the ${vocab.customer.toLowerCase()} can wait.`,
-              'Move it along the board as it goes, lead, quoted, won, done. Nothing else has to be kept in step.',
+              `Move it along the board as it goes, ${vocab.lead.toLowerCase()}, quoted, won, done. Nothing else has to be kept in step.`,
               'Log hours and file receipts against it, and the invoice builds itself out of what actually happened.',
             ],
             action: { label: `New ${vocab.job.toLowerCase()}`, href: '/jobs/new' },

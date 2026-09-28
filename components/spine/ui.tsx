@@ -72,6 +72,7 @@ export function Page({
   action,
   tabs,
   back,
+  tabTitle,
   children,
 }: {
   /**
@@ -98,12 +99,41 @@ export function Page({
    * rather than as another action competing with the buttons.
    */
   back?: { label: string; href: string };
+  /**
+   * The browser tab's words, when the heading is not a plain string.
+   *
+   * A detail screen holds its title as a skeleton until the record loads, so
+   * there is nothing to put in the tab yet. Pass the name here once it is
+   * known; leave it out and the tab keeps what it said rather than flashing
+   * the product name and back.
+   */
+  tabTitle?: string;
   /** Sibling screens within one section. Rendered under the header, never
       beside it — the previous attempt let them collide with the buttons. */
   tabs?: readonly PageTab[];
   children: React.ReactNode;
 }) {
   const phone = useIsPhone();
+  const { org } = useOrg();
+
+  /*
+    "[Screen] · [Workspace]", on every screen in the product.
+
+    Every tab said CALO&CO, because the only title in the app is the one in
+    the root layout and every screen under it is a client component, which
+    cannot export metadata. So it is set here: Page is the one thing every
+    in-app screen goes through, and it already knows the heading. The
+    workspace is the half that matters with six tabs open on four businesses.
+
+    Public documents set their own metadata and never render Page, so none of
+    this reaches a customer.
+  */
+  const docTitle = typeof title === 'string' ? title : tabTitle;
+  React.useEffect(() => {
+    if (!docTitle) return;
+    document.title = org?.name ? `${docTitle} · ${org.name}` : docTitle;
+  }, [docTitle, org?.name]);
+
   return (
     <div
       style={{

@@ -81,7 +81,7 @@ const looksLikeQuestion = (q: string) =>
 
 export function CommandBar({ trigger = true }: { trigger?: boolean } = {}) {
   const router = useRouter();
-  const { org, orgs, switchOrg } = useOrg();
+  const { org, orgs, switchOrg, vocab } = useOrg();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
   const [items, setItems] = useState<Item[]>([]);
@@ -423,7 +423,7 @@ export function CommandBar({ trigger = true }: { trigger?: boolean } = {}) {
               value={q}
               onChange={(e) => { setQ(e.target.value); setCursor(0); setAnswer(null); setAnswerError(null); }}
               onKeyDown={onKeyDown}
-              placeholder="Search clients, jobs, colors. Or ask a question."
+              placeholder={`Search ${vocab.customerPlural.toLowerCase()}, ${vocab.jobPlural.toLowerCase()}, colors. Or ask a question.`}
               style={{
                 width: '100%', border: 'none', outline: 'none',
                 padding: '16px 18px', fontSize: 16, color: C.text,

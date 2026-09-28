@@ -76,11 +76,19 @@ const KIND_LABEL: Record<string, string> = {
   other: 'Service',
 };
 
-const TIERS = [
-  { key: 'friends', label: 'Friends' },
-  { key: 'standard', label: 'Standard' },
-  { key: 'enterprise', label: 'Enterprise' },
-] as const;
+/*
+  Tiers come from the business, not from here.
+
+  This was three hardcoded columns - Friends, Standard, Enterprise - printed
+  for every business in the product. `rate_tiers` has rows for exactly one
+  org, so everybody else got the same figure three times under three names
+  they never chose, and the estimate picker reads none of it.
+
+  Deleting it outright would have taken a real feature off the one business
+  using it. So the columns follow the data: a business with tiers gets a
+  column each, and a business without gets one Price column.
+*/
+interface Tier { key: string; label: string }
 
 const num = (v: unknown) => {
   const n = typeof v === 'number' ? v : parseFloat(String(v ?? 0));
@@ -88,6 +96,7 @@ const num = (v: unknown) => {
 };
 
 export default function PricingPage() {
+  const [tiers, setTiers] = useState<Tier[]>([]);
   const phone = useIsPhone();
   const { org, vocab } = useOrg();
   const [items, setItems] = useState<PriceItem[]>([]);
@@ -114,6 +123,13 @@ export default function PricingPage() {
       ? await supabase.from('price_items').select('*').eq('org_id', o.id).order('position').order('name')
       : { data: [], error: null };
     setOrgId(o?.id ?? null);
+
+    const t = o
+      ? await supabase.from('rate_tiers').select('key, name, sort').eq('org_id', o.id).order('sort')
+      : { data: [], error: null };
+    setTiers(
+      ((t.data ?? []) as Array<{ key: string; name: string }>).map((x) => ({ key: x.key, label: x.name }))
+    );
     if (res.error) throw new Error(res.error.message);
     setItems(
       (res.data ?? []).map((r: Record<string, unknown>) => ({
@@ -447,13 +463,13 @@ export default function PricingPage() {
                 is information rather than repetition: it says the discount is
                 on your time, not on your costs.
               */}
-              <Row cols="1fr 84px 96px 96px 96px 96px 74px" header>
+              <Row cols={`1fr 84px ${tiers.length ? tiers.map(() => '96px').join(' ') : '96px'} 96px 74px`} header>
                 <div>Item</div><div>Unit</div>
-                {TIERS.map((t) => <div key={t.key}>{t.label}</div>)}
+                {tiers.length ? tiers.map((t) => <div key={t.key}>{t.label}</div>) : <div>Price</div>}
                 <div>Status</div><div>On site</div>
               </Row>
               {rows.map((i) => (
-                <Row key={i.id} cols="1fr 84px 96px 96px 96px 96px 74px">
+                <Row key={i.id} cols={`1fr 84px ${tiers.length ? tiers.map(() => '96px').join(' ') : '96px'} 96px 74px`}>
                   <div style={{ opacity: i.active ? 1 : 0.5 }}>
                     <div>
                       {i.name}
@@ -482,7 +498,7 @@ export default function PricingPage() {
                     than repetition: it says the discount is on your time, not
                     on your costs.
                   */}
-                  {TIERS.map((t) => {
+                  {(tiers.length ? tiers : [{ key: '', label: 'Price' }]).map((t) => {
                     const p = i.tier_prices?.[t.key];
                     return (
                       <div
@@ -495,7 +511,7 @@ export default function PricingPage() {
                         }}
                       >
                         {i.varies && !i.price_high ? (
-                          <span title="Quote this per job" style={{ fontSize: 12.5, color: C.faint }}>by job</span>
+                          <span title={`Quote this per ${vocab.job.toLowerCase()}`} style={{ fontSize: 12.5, color: C.faint }}>by {vocab.job.toLowerCase()}</span>
                         ) : i.price_high ? (
                           `${money(p ?? i.unit_price)}–${money(i.price_high)}`
                         ) : (

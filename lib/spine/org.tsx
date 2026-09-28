@@ -89,6 +89,19 @@ const REP: Vocab = {
   lead: 'Buyer',
 };
 
+/**
+ * "a" or "an", decided by the word rather than by the sentence.
+ *
+ * The words this is used on are the ones a business can change, so a
+ * sentence that hardcodes the article is wrong for somebody: "an estimate"
+ * and "an engagement" are right, "an quote" and "an proposal" are not.
+ */
+export const aWord = (word: string) =>
+  `${/^[aeiou]/i.test(word.trim()) ? 'an' : 'a'} ${word.toLowerCase()}`;
+
+/** First letter up, for a vocabulary word that has to open a sentence. */
+export const capWord = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 export const vocabFor = (kind: Org['kind'] | undefined, settings?: Record<string, unknown> | null): Vocab => {
   const base = kind === 'agency' ? AGENCY : kind === 'rep' ? REP : CONTRACTOR;
   const word = typeof settings?.estimate_word === 'string' ? settings.estimate_word.trim() : '';
