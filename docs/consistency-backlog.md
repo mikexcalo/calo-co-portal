@@ -578,6 +578,56 @@ describes.
 
 ---
 
+## 23. The first-run flow, now that it can be seen — M
+
+`/welcome` was uninspectable: signed out it redirects to `/login`, signed in
+it bails the moment it sees `onboarded_at`, and every account was onboarded.
+`20261029000025` adds a demo account and workspace that genuinely have not
+finished setup, so the first screen a new client ever sees can be opened.
+Screenshots at both widths in `docs/audit/public-pages/welcome-*`.
+
+What it found, none of it fixed - the brief was to look:
+
+- **The promise changes under you.** It opens "3 quick questions" with a
+  three-segment progress bar and "STEP 1 OF 3". Answer "I own or run it" on
+  step three and it becomes "6 quick questions", "STEP 3 OF 6", and the bar
+  that was full is half. Nothing warned that the first answer doubles the
+  work, and the one that doubles it is the honest answer for the person the
+  product is for.
+
+- **"Nothing was saved. We could not tell why. Check your connection."** On
+  step two, on a brand-new client's first session, if the password they pick
+  matches the one already on the account. Supabase said "New password should
+  be different from the old password"; `human()` has no branch for it, so it
+  falls to the write fallback and tells somebody to check their connection
+  when the real answer is "pick a different one". The same class of bug as
+  #13, in the worst possible place.
+
+- **Step two asks for a password that already exists.** The flow never checks
+  whether the account has one, so somebody who set theirs from an invite is
+  asked again, and hits the error above if they type the same thing.
+
+- **Their sign-in address is pre-filled as the business email**, under "Where
+  customers reply when they get an estimate or invoice." A personal login
+  address becomes the reply-to on every customer document unless they notice
+  and change it.
+
+- **13x13px checkboxes** on the money step at 390px - "I mark up materials",
+  "I charge sales tax" - about a quarter of the rulebook's 48px floor, and
+  the same defect #6 fixed on the job screens.
+
+- **Two ways out that read the same.** "I'll do this later" beside the button
+  and "Skip for now" under the card. One skips a step, the other ends setup;
+  nothing on screen says which is which.
+
+- **Saturated colour, from the payment marks.** Venmo blue, PayPal navy,
+  Zelle purple, Cash green on step six. Arguably legitimate the way Google's
+  mark is on the sign-in button, but it is the only colour in the product
+  outside the two mode colours and it wants a decision rather than an
+  accident.
+
+---
+
 ## Smaller, not yet grouped
 
 - ~~**Price list tiers**~~ **DONE 27 Sept 2026.** Three columns, Friends /
