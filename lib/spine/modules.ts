@@ -567,7 +567,7 @@ export const ROUTE_MODULE: Array<[string, ModuleId]> = [
  * place you reach it from is somewhere that already knows what you are doing.
  */
 const ALWAYS = [
-  '/', '/login', '/welcome', '/security', '/trust', '/brands', '/ask', '/whats-new',
+  '/', '/login', '/welcome', '/security', '/trust', '/brands', '/ask',
   '/seo', '/pricing', '/records', '/requests',
   '/notes', '/pitches', '/stories', '/brand-kit', '/website', '/expenses', '/documents',
 ];

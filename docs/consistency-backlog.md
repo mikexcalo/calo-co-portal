@@ -569,11 +569,19 @@ describes.
   still a skeleton passes `tabTitle` once the record loads, and until then the
   tab keeps what it said rather than flashing the product name and back.
   Public documents set their own metadata and never render `Page`.
-- **`/whats-new`** is an internal feature catalogue with sales notes in it,
-  reachable by anybody who types the address. Decide whether it should exist. S
-- **Wide screens**: `Page` caps at 1100px, leaving a third of a 1512px screen
-  empty. A decision, not a bug — but it is the rulebook's silence, not its
-  rule, so it belongs in a brief.
+- ~~**`/whats-new`**~~ **DONE 27 Sept 2026.** An internal feature catalogue
+  with sales notes in it ("the sentence that makes it worth paying for"),
+  reachable by any client who typed the address. Deleted, with
+  `lib/spine/shipped.ts` which nothing else read, and its entries in `ALWAYS`
+  and the site-map check.
+- ~~**Wide screens**~~ **DONE 27 Sept 2026.** Measured first: `Page` caps at
+  1100px at every width, so lines have never stretched. What 1512 and 1920
+  actually showed was that cap pinned hard left against the sidebar with a
+  third to a half of the window empty on the right. The cap is unchanged and
+  the leftover space is shared instead, above 1512 only - on a 1280 or 1440
+  laptop there is little enough spare that centring just pushes the work away
+  from the sidebar. At 1920 the column measures 1100 wide at x=516, centred
+  in the 1708px main area.
 
 ---
 

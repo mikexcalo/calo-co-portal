@@ -431,7 +431,7 @@ export default function Dashboard() {
     attention.push({
       key: 'draftest',
       weight: signals.draftEstimates * 300,
-      title: `${signals.draftEstimates} proposal${signals.draftEstimates === 1 ? '' : 's'} never sent`,
+      title: `${signals.draftEstimates} ${vocab.estimate.toLowerCase()}${signals.draftEstimates === 1 ? '' : 's'} never sent`,
       detail: `Nobody can accept ${aWord(vocab.estimate)} they never received.`,
       cta: `Open ${vocab.estimate.toLowerCase()}s`,
       href: '/proposals',

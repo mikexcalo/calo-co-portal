@@ -4755,6 +4755,23 @@ input:focus, textarea:focus, select:focus {
 @media (min-width: 62rem) {
   .homeSplit { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 40px; }
 }
+/*
+  Wide screens: the column keeps its measure and stops hugging the sidebar.
+
+  `Page` has capped content at 1100px for a long time, so lines have never
+  stretched. What a 1512 or 1920 screen actually showed was that cap pinned
+  hard left against the sidebar, with a third to a half of the window empty
+  on the right, which reads as a page that failed to load rather than as a
+  deliberate measure.
+
+  So the cap is unchanged and the leftover space is shared. Only above 1512,
+  because on a 1280 or 1440 laptop there is little enough spare that centring
+  it only pushes the work away from the sidebar you navigate with.
+*/
+@media (min-width: 1512px) {
+  .pageBox { margin-left: auto; margin-right: auto; }
+}
+
 .colHead {
   font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
   font-size: 11px; font-weight: 600; letter-spacing: .09em;

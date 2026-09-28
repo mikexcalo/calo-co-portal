@@ -136,6 +136,7 @@ export function Page({
 
   return (
     <div
+      className="pageBox"
       style={{
         padding: phone ? '18px 16px 90px' : '28px 32px',
         maxWidth: 1100,
