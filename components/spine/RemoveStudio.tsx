@@ -21,7 +21,7 @@ import { human } from '@/lib/spine/errors';
 import { removeStudio, studioRemovable, studioFor, type Studio } from '@/lib/spine/workin';
 
 export function RemoveStudio({ orgId, onDone }: { orgId: string | null; onDone?: () => void }) {
-  const [state, setState] = useState<{ allowed: boolean; studioMembers: number } | null>(null);
+  const [allowed, setAllowed] = useState<boolean | null>(null);
   const [studio, setStudio] = useState<Studio | null>(null);
   const [asking, setAsking] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -31,13 +31,13 @@ export function RemoveStudio({ orgId, onDone }: { orgId: string | null; onDone?:
   const load = useCallback(async () => {
     if (!orgId) return;
     try {
-      const [s, who] = await Promise.all([studioRemovable(orgId), studioFor(orgId)]);
-      setState(s);
+      const [ok, who] = await Promise.all([studioRemovable(orgId), studioFor(orgId)]);
+      setAllowed(ok);
       setStudio(who.studio);
     } catch {
       /* A card about ending an arrangement must not appear because a read
          failed. Silence is the safe direction here. */
-      setState({ allowed: false, studioMembers: 0 });
+      setAllowed(false);
     }
   }, [orgId]);
 
@@ -49,6 +49,16 @@ export function RemoveStudio({ orgId, onDone }: { orgId: string | null; onDone?:
     setError(null);
     try {
       await removeStudio(orgId);
+      /*
+        Tell them, after. A notice that cannot go out must never be the reason
+        somebody cannot get their own workspace back, so this is fired and not
+        waited on for success.
+      */
+      void fetch('/api/studio/removed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orgId }),
+      }).catch(() => {});
       setGone(true);
       setAsking(false);
       await load();
@@ -60,7 +70,7 @@ export function RemoveStudio({ orgId, onDone }: { orgId: string | null; onDone?:
     }
   };
 
-  if (!orgId || !state) return null;
+  if (!orgId || allowed === null) return null;
   if (gone) {
     return (
       <Card style={{ marginTop: 14 }}>
@@ -71,7 +81,7 @@ export function RemoveStudio({ orgId, onDone }: { orgId: string | null; onDone?:
       </Card>
     );
   }
-  if (!state.allowed || state.studioMembers === 0) return null;
+  if (!allowed) return null;
 
   const name = studio?.name ?? 'the studio that set this up';
 
@@ -102,10 +112,13 @@ export function RemoveStudio({ orgId, onDone }: { orgId: string | null; onDone?:
       {asking && (
         <Confirm
           title={`Remove ${name}?`}
+          /* Said in one plain sentence, because this is the moment somebody
+             decides. The detail is on the card behind it; what has to be
+             unmissable here is who loses what, and what stays theirs. */
           body={
-            `They lose access to this workspace immediately, along with any standing ` +
-            `permission and any session open now. Everything they have written stays. ` +
-            `You can ask them back, and they would need your permission again.`
+            `${name} will no longer be able to see or work in your workspace. ` +
+            `Your data stays yours. They are told you removed them, and you can ask ` +
+            `them back, which would need your permission again.`
           }
           confirmLabel="Remove them"
           busy={busy}

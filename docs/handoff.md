@@ -521,6 +521,35 @@ security policy in the project, so it does not belong in a terminal that
 prints, a screenshot, or a message. Everything that changes data still goes
 through a migration or the anon key.
 
+**Two dev servers can be running at once, and the older one answers.**
+`pkill -f "next dev"` then starting a new one looked fine - the log said
+`Local: http://localhost:3000` every time - while an earlier server was still
+holding the port. It had been started without `SUPABASE_SERVICE_ROLE_KEY` in
+its environment, so every server-rendered route behaved as if there were no
+key: a route handler's service-role client silently fell back to anonymous
+and its reads came back empty, which reads exactly like a permission bug.
+Check `ps aux | grep "[n]ext dev"` before believing an env-dependent result.
+
+**`npm run build` while `npm run dev` is running breaks the dev server.**
+They share `.next`. Every page starts answering 500 until dev is restarted.
+
+**There is a demo client to sign in as.** `mikexcalo+harbor@gmail.com` is
+Dana Okonkwo, the owner of Harbor Light Roofing in the demo, and the only way
+to see a client's own side of a workspace. Its password is in `.env.local` as
+`DEMO_CLIENT_PASSWORD`, which is gitignored.
+
+Sign in at **`http://127.0.0.1:3000`**, not localhost. They are different
+origins, so the two sessions do not collide and the demo studio stays signed
+in on localhost. That matters more than it sounds: `signOut()` defaults to
+global scope, so signing one out of the same origin would have taken the
+other with it.
+
+**`scripts/try-as.sh <user-uuid> "sql"`** runs a statement as a real person -
+it sets `request.jwt.claims` so `auth.uid()` resolves - and rolls it back,
+reporting ALLOWED or REFUSED. It is how the ownership rules were checked
+without anybody's password. `ask-db.sh` answers questions; this one answers
+"what happens if they try it".
+
 **Supabase round trips are ~350ms from a browser** while the database work is
 under 20ms. Latency, not work. When something feels slow, count serial hops
 first.

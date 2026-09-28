@@ -388,27 +388,19 @@ export async function revokeGrant(grantId: string): Promise<void> {
  * workspace's own owner may do it, and offering it where no studio holds a
  * membership is a button that ends nothing.
  */
-export async function studioRemovable(
-  orgId: string
-): Promise<{ allowed: boolean; studioMembers: number }> {
-  const { data: auth } = await supabase.auth.getUser();
-  const me = auth?.user?.id;
-  if (!me) return { allowed: false, studioMembers: 0 };
-
-  const [mine, theirs] = await Promise.all([
-    supabase
-      .from('memberships')
-      .select('role, origin')
-      .eq('user_id', me)
-      .eq('org_id', orgId)
-      .maybeSingle(),
-    supabase.from('memberships').select('user_id').eq('org_id', orgId).eq('origin', 'studio'),
-  ]);
-
-  return {
-    allowed: mine.data?.role === 'owner' && mine.data?.origin === 'own',
-    studioMembers: (theirs.data ?? []).length,
-  };
+/**
+ * Whether this person may show the studio out, and whether there is one.
+ *
+ * Asked of the database, not assembled here. `memberships` has a single
+ * policy - your own row, read only - so a browser counting studio members
+ * always counts zero, and the control hid itself from the one person it is
+ * for. `may_remove_studio` applies the same test `remove_studio` applies, so
+ * the button and the refusal cannot drift apart.
+ */
+export async function studioRemovable(orgId: string): Promise<boolean> {
+  const res = await supabase.rpc('may_remove_studio', { workspace: orgId });
+  if (res.error) throw new Error(res.error.message);
+  return res.data === true;
 }
 
 /**
