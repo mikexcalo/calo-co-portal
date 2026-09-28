@@ -253,7 +253,7 @@ which workspace could not be written to, rather than passing in silence.
 
 ---
 
-## 12. The client does not own their own workspace — DEMO DONE 27 Sept 2026, real workspaces awaiting a decision
+## 12. The client does not own their own workspace — DONE 28 Sept 2026
 
 **Step 1, what `owner` is load-bearing for.** Almost nowhere. Every check in
 the product asks `role in ('owner','admin')`: the orgs update policy, the
@@ -312,9 +312,22 @@ has no password, by the same design that protects the demo account - so the
 positive render is verified by its gate values and the function, not by a
 session.
 
-**Real workspaces are untouched and need a decision.** The card cannot appear
-on any of them as they stand: it needs owner plus origin `own`, and every
-real client is admin. See `docs/handoff.md`.
+**Real workspaces, applied 28 Sept 2026.** Marcie owns Lakemere, Mark owns
+Mammoth, John owns Global Seafood; the studio is a `member` in all three and
+keeps its standing grant, which was already can_edit true and can_send false
+on each. Promoted everywhere first, then demoted, with the migration refusing
+to demote into a workspace that had no own-side owner.
+
+Verified read-only afterwards, every client and the studio, with
+`scripts/try-as.sh` so nothing was left behind: all three clients refused on
+modules and on plan; the studio still opens View mode and Work in it on all
+three and still switches their modules; the clients still run their own
+businesses; and each can now remove the studio. Plans, module maps and grants
+are unchanged. No probe rows: the harness rolls back.
+
+The visible change for their customers is the name on a document. `doc-owner`
+reads the org's `owner`, so proposals and invoices now say Marcie Tomlinson,
+Mark Mesedahl and John Litton rather than the studio's owner. See `docs/handoff.md`.
 
 ## 13. A failed read says "Nothing was saved" — DONE 27 Sept 2026
 
