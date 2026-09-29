@@ -320,6 +320,8 @@ export interface JobInvoice {
   viewed_at: string | null;
   /** Approved now, posted on this date. Null sends immediately. */
   send_on: string | null;
+  /** When the customer was last chased about this one. Null is never. */
+  nudged_at: string | null;
   paid_via: string | null;
   payment_note: string | null;
   created_at: string;

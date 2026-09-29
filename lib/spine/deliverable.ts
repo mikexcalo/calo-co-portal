@@ -81,6 +81,28 @@ export async function postEmail(
   return fetch('https://api.resend.com/emails', init);
 }
 
+/**
+ * The name on the envelope is the business's, not ours.
+ *
+ * Resend will only send from a verified domain, so the address in MAIL_FROM
+ * has to stay. The display name in front of it does not, and it is the half a
+ * customer actually reads: a roofer's client being chased for money by
+ * "CALO&CO" is being chased by a company they have never heard of, about an
+ * invoice with somebody else's name at the top of it.
+ *
+ * Takes the address out of whatever shape MAIL_FROM is in and puts the
+ * business in front of it. A name with a comma or a quote in it is quoted,
+ * because an unquoted one truncates the header at the comma and the send
+ * fails with nothing useful said about why.
+ */
+export function fromAs(business: string | null | undefined, fallbackName: string): string {
+  const raw = process.env.MAIL_FROM || `${fallbackName} <onboarding@resend.dev>`;
+  const address = raw.match(/<([^>]+)>/)?.[1] ?? raw.trim();
+  const name = (business ?? '').trim() || fallbackName;
+  const safe = /[",<>@]/.test(name) ? `"${name.replace(/"/g, "'")}"` : name;
+  return `${safe} <${address}>`;
+}
+
 /** What to say when a send was refused because the client did not allow it. */
 export const SEND_NOT_GRANTED =
   'Nothing was sent. Sending to customers is theirs, and they have not allowed it.';

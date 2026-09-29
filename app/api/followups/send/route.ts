@@ -18,7 +18,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/spine/errors';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { postEmail } from '@/lib/spine/deliverable';
+import { postEmail, sendingAllowed, fromAs, SEND_NOT_GRANTED } from '@/lib/spine/deliverable';
+import { PRODUCT } from '@/lib/brand';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -61,11 +62,36 @@ export async function POST(req: NextRequest) {
   const rows = (data ?? []) as Row[];
   if (!rows.length) return NextResponse.json({ sent: 0, message: 'Nothing to chase.' });
 
-  const { data: org } = await supabase.from('orgs').select('name').eq('id', rows[0].org_id).maybeSingle();
+  /*
+    Asked before anything is written, not after.
+
+    The stamp below deliberately goes in before the send, so a crash cannot
+    chase the same person twice. A refusal is not a crash: nothing left the
+    building, and an invoice marked as chased when no reminder went is worse
+    than no reminder at all, because the screen then says it was handled.
+    postEmail() refuses the same call a second time; this one exists so the
+    refusal happens before the record says otherwise.
+  */
+  if (!(await sendingAllowed())) {
+    return NextResponse.json({ error: SEND_NOT_GRANTED, refused: true }, { status: 403 });
+  }
+
+  const { data: org } = await supabase
+    .from('orgs')
+    .select('name, settings')
+    .eq('id', rows[0].org_id)
+    .maybeSingle();
+  const business = (org as { name?: string } | null)?.name ?? null;
+  /* Where a customer's reply should land: theirs, not ours. */
+  const replyTo =
+    (((org as { settings?: Record<string, unknown> } | null)?.settings?.email as string) ?? '').trim() ||
+    undefined;
   const resendKey = process.env.RESEND_API_KEY;
   const site = process.env.NEXT_PUBLIC_SITE_URL || `https://${req.headers.get('host')}`;
 
   let sent = 0;
+  let skipped = 0;
+  let failure: string | null = null;
 
   for (const r of rows) {
     const first = (r.customer_name ?? '').split(' ')[0] || 'Hello';
@@ -82,7 +108,9 @@ export async function POST(req: NextRequest) {
     const stamp = await supabase.from(table).update({ nudged_at: new Date().toISOString() }).eq('id', r.id);
     if (stamp.error) continue;
 
-    if (!resendKey) { sent += 1; continue; }
+    /* No mail credentials is not a send. It used to count as one, so a
+       machine with email switched off reported reminders that never left. */
+    if (!resendKey) continue;
 
     const isQuote = r.kind === 'estimate';
     const subject = isQuote
@@ -100,23 +128,58 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: process.env.MAIL_FROM || 'CALO&CO <onboarding@resend.dev>',
+        from: fromAs(business, PRODUCT),
+        ...(replyTo ? { reply_to: replyTo } : {}),
         to: r.customer_email,
         subject,
         html: `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.65;color:#111;max-width:520px;">
 ${message}
 ${link ? `<p><a href="${link}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:13px 24px;border-radius:8px;font-weight:600;">${isQuote ? 'Open the quote' : 'Open the invoice'}</a></p>` : ''}
-<p style="color:#666;font-size:13px;">${org?.name ?? ''}</p>
+<p style="color:#666;font-size:13px;">${business ?? ''}</p>
 </div>`,
       }),
     });
-    if (res.ok) sent += 1;
+    /*
+      A skipped send is not a sent one, and the message has to say which.
+
+      postEmail() answers ok for a reserved test address, on purpose, so the
+      code around it does not have to branch. The sentence a person reads
+      does: "Sent 1 reminder" about a demo customer at example.com is the
+      product telling somebody an email arrived that never left.
+    */
+    const body = (await res.json().catch(() => null)) as
+      | { skipped?: boolean; message?: string; error?: string; name?: string }
+      | null;
+
+    if (!res.ok) {
+      /*
+        Say what the mail service said.
+
+        This used to `continue` and count nothing, so a rejected send came back
+        as "Nothing was sent." with no reason anywhere, on a screen and in a
+        log. Whatever Resend refuses it refuses for a knowable reason, and the
+        person pressing the button is the one who can act on it.
+      */
+      const why = body?.message || body?.error || `the mail service answered ${res.status}`;
+      console.error('[followups/send]', res.status, why);
+      if (!failure) failure = why;
+      continue;
+    }
+
+    if (body?.skipped) skipped += 1;
+    else sent += 1;
   }
 
-  return NextResponse.json({
-    sent,
-    message: resendKey
-      ? `Sent ${sent} ${sent === 1 ? 'reminder' : 'reminders'}.`
-      : 'Email is not switched on, so these were marked as chased but nothing was sent.',
-  });
+  const said =
+    !resendKey
+      ? 'Email is not switched on, so these were marked as chased but nothing was sent.'
+      : sent
+        ? `Reminder sent${sent > 1 ? ` to ${sent}` : ''}.`
+        : skipped
+          ? `Marked as chased. ${skipped === 1 ? 'That address is' : 'Those addresses are'} a reserved test address, so nothing was sent.`
+          : failure
+            ? `Nothing was sent: ${failure}`
+            : 'Nothing was sent.';
+
+  return NextResponse.json({ sent, skipped, message: said });
 }

@@ -163,24 +163,44 @@ export async function clientUsage(org: Org): Promise<Usage | null> {
 /* ------------------------------------------------------------- worth a word */
 
 /**
+ * One thing worth saying, and the one thing that can be done about it.
+ *
+ * It was a bare string. That was honest while every note was a statement of
+ * fact with nowhere to go, and it stopped being honest the moment one of them
+ * was "nobody has chased this" on a screen with no way to chase it. A note
+ * that names an act carries the act.
+ */
+export interface Note {
+  text: string;
+  /** Present when this note is about an invoice that may be chased now. */
+  chase?: { invoiceId: string; label: string };
+}
+
+/**
  * Things in their data that a person would want mentioning.
  *
  * Each one is a fact with a row behind it, phrased as what is true rather than
  * as advice. An empty list means there is nothing to say, which is a real
  * answer and better than a manufactured one.
  */
-export async function worthAWord(org: Org): Promise<string[]> {
+export async function worthAWord(org: Org): Promise<Note[]> {
   const today = new Date().toISOString().slice(0, 10);
-  const out: string[] = [];
+  const out: Note[] = [];
 
   const [invoices, hours, jobs] = await Promise.all([
-    /* Sent or already marked overdue, past its date, and nobody has nudged. */
+    /*
+      Sent or already marked overdue, and past its date.
+
+      It used to ask only for the ones nobody had chased, which made the note
+      disappear the moment a reminder went out. That reads as the problem
+      having gone away, and it has not: the money is still owed, and the one
+      new fact worth having is when they were last chased.
+    */
     supabase
       .from('job_invoices')
-      .select('number, due_on, status, nudged_at, total')
+      .select('id, number, due_on, status, nudged_at, total')
       .eq('org_id', org.id)
-      .in('status', ['sent', 'overdue'])
-      .is('nudged_at', null),
+      .in('status', ['sent', 'overdue']),
     /* Billable time that never made it onto an invoice. */
     supabase
       .from('time_entries')
@@ -198,8 +218,10 @@ export async function worthAWord(org: Org): Promise<string[]> {
   ]);
 
   const late = ((invoices.data ?? []) as Array<{
+    id: string;
     number: string | null;
     due_on: string | null;
+    nudged_at: string | null;
     total: number | null;
   }>).filter((r) => r.due_on && r.due_on < today);
 
@@ -207,10 +229,18 @@ export async function worthAWord(org: Org): Promise<string[]> {
     const worst = late.reduce((a, b) => ((a.due_on ?? '') <= (b.due_on ?? '') ? a : b));
     const days = Math.floor((Date.parse(today) - Date.parse(worst.due_on as string)) / 86400000);
     const named = worst.number ? `${worst.number} is` : 'An invoice is';
-    out.push(
-      `${named} ${days} day${days === 1 ? '' : 's'} late. No reminder sent.` +
-        (late.length > 1 ? ` ${late.length - 1} more like it.` : '')
-    );
+    /* Either the date of the last one, or the fact that there has not been one. */
+    const chased = worst.nudged_at
+      ? `Last reminder ${new Date(worst.nudged_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}.`
+      : 'No reminder sent.';
+    const week = worst.nudged_at ? Date.now() - Date.parse(worst.nudged_at) : Infinity;
+    out.push({
+      text:
+        `${named} ${days} day${days === 1 ? '' : 's'} late. ${chased}` +
+        (late.length > 1 ? ` ${late.length - 1} more like it.` : ''),
+      /* One a week, the same rule the follow_ups view enforces. */
+      chase: week > 7 * 86400000 ? { invoiceId: worst.id, label: worst.nudged_at ? 'Send another' : 'Send a reminder' } : undefined,
+    });
   }
 
   const entries = (hours.data ?? []) as Array<{ hours: number | null; job_id: string | null }>;
@@ -218,17 +248,18 @@ export async function worthAWord(org: Org): Promise<string[]> {
   if (unbilled > 0) {
     const jobCount = new Set(entries.map((r) => r.job_id).filter(Boolean)).size;
     const tidy = Number.isInteger(unbilled) ? String(unbilled) : unbilled.toFixed(1);
-    out.push(
-      `${tidy} logged hour${unbilled === 1 ? '' : 's'} aren't on any invoice` +
-        (jobCount > 1 ? `, across ${jobCount} jobs.` : '.')
-    );
+    out.push({
+      text:
+        `${tidy} logged hour${unbilled === 1 ? '' : 's'} aren't on any invoice` +
+        (jobCount > 1 ? `, across ${jobCount} jobs.` : '.'),
+    });
   }
 
   const loose = (jobs.data ?? []) as Array<{ name: string | null }>;
   if (loose.length === 1 && loose[0].name) {
-    out.push(`${loose[0].name} is running with no date on the schedule.`);
+    out.push({ text: `${loose[0].name} is running with no date on the schedule.` });
   } else if (loose.length > 1) {
-    out.push(`${loose.length} running jobs have no date on the schedule.`);
+    out.push({ text: `${loose.length} running jobs have no date on the schedule.` });
   }
 
   return out;

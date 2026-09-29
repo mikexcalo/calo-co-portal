@@ -70,6 +70,15 @@ interface Attention {
   detail: string;
   cta: string;
   href: string;
+  /**
+   * A second thing this card can do, done here rather than somewhere else.
+   *
+   * Only one card has one. "Your money is late" with a button that takes you
+   * to a list where the money is still late is a signpost, and the audit
+   * called it: the product could tell you an invoice was overdue and offered
+   * nowhere to do anything about it.
+   */
+  also?: { label: string; run: () => void };
   tone: 'amber' | 'red' | 'blue' | 'neutral';
   /**
    * Setup, not work.
@@ -116,6 +125,17 @@ export default function Dashboard() {
     id: string; public_token: string; total: number; engagement: string; agency_name: string; sent_at: string;
   }>>([]);
   const [invoices, setInvoices] = useState<JobInvoice[]>([]);
+  /*
+    Chasing the oldest overdue invoice, from the card that says it is overdue.
+
+    The route, the view and `nudged_at` all existed; what did not exist was a
+    way in from a screen anybody opens. `FollowUps` is the digest version of
+    this and it is gated on `planAllows(org, 'follow_ups')`, which every
+    client workspace fails, so it has never rendered for one. Chasing money
+    you are owed is not a feature to withhold from somebody who is owed it.
+  */
+  const [chasing, setChasing] = useState(false);
+  const [chaseSaid, setChaseSaid] = useState<string | null>(null);
   const [docs, setDocs] = useState<DocumentRecord[]>([]);
   /** Retainers whose billing period has come round with work sitting on them. */
   const [dueToBill, setDueToBill] = useState<Array<{ job_id: string; name: string; unbilled_total: number; due_on: string | null }>>([]);
@@ -157,6 +177,32 @@ export default function Dashboard() {
   useEffect(() => {
     setTodayIso(new Date().toISOString().slice(0, 10));
   }, []);
+
+  /**
+   * Chase one invoice, and say what came back.
+   *
+   * The send lock decides, not this screen: a studio in a client's workspace
+   * without permission gets the client's own sentence, which is a fact about
+   * them rather than a fault, and it belongs where the button was.
+   */
+  const chaseOldest = async (invoiceId: string) => {
+    setChasing(true);
+    setChaseSaid(null);
+    try {
+      const res = await fetch('/api/followups/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: invoiceId }),
+      });
+      const payload = (await res.json().catch(() => ({}))) as { error?: string; message?: string };
+      setChaseSaid(res.ok ? payload.message ?? 'Reminder sent.' : human(payload.error ?? ''));
+      if (res.ok) setInvoices(await listInvoices());
+    } catch (e) {
+      setChaseSaid(human((e as Error).message));
+    } finally {
+      setChasing(false);
+    }
+  };
 
   useEffect(() => {
     let canceled = false;
@@ -306,13 +352,27 @@ export default function Dashboard() {
 
   if (overdue.length) {
     const amt = overdue.reduce((s, i) => s + (i.total - i.amount_paid), 0);
+    /* The oldest is the one worth chasing, and the one the sentence is about. */
+    const oldest = overdue.reduce((a, b) => ((a.due_on ?? '') <= (b.due_on ?? '') ? a : b));
+    const lastChase = oldest.nudged_at;
+    const chaseable = !lastChase || Date.now() - Date.parse(lastChase) > 7 * 86400000;
     attention.push({
       key: 'overdue',
       weight: amt * 2, // owed money past its date outranks everything
       title: `${money(amt)} is past due`,
-      detail: `${overdue.length} invoice${overdue.length === 1 ? '' : 's'} past the due date. The oldest wants a phone call, not another email.`,
+      detail:
+        `${overdue.length} invoice${overdue.length === 1 ? '' : 's'} past the due date. ` +
+        (lastChase
+          ? `Last reminder ${shortDate(lastChase)}.`
+          : 'No reminder sent. The oldest wants a phone call, not another email.'),
       cta: 'Open billing',
       href: '/billing',
+      /* Not while looking. View mode refuses the write anyway, and a button
+         that cannot work where it is shown is the thing the read-only pass
+         existed to remove. */
+      also: chaseable && !viewAs
+        ? { label: lastChase ? 'Send another' : 'Send a reminder', run: () => void chaseOldest(oldest.id) }
+        : undefined,
       tone: 'red',
     });
   }
@@ -939,12 +999,22 @@ export default function Dashboard() {
                         {a.detail}
                       </div>
                     </div>
-                    <Button variant="ghost" onClick={() => router.push(a.href)}>
-                      {a.cta}
-                    </Button>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {a.also && (
+                        <Button variant="ghost" disabled={chasing} onClick={a.also.run}>
+                          {chasing ? 'Sending…' : a.also.label}
+                        </Button>
+                      )}
+                      <Button variant="ghost" onClick={() => router.push(a.href)}>
+                        {a.cta}
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
+              {chaseSaid && (
+                <div style={{ fontSize: 13, color: C.dim, marginTop: 10 }}>{chaseSaid}</div>
+              )}
             </div>
           ); })()}
 

@@ -30,6 +30,7 @@ import {
   clientUsage,
   sinceWords,
   worthAWord,
+  type Note,
   type Setup,
   type Usage,
 } from '@/lib/spine/client-view';
@@ -45,7 +46,7 @@ export function ClientPanel() {
   const phone = useIsPhone();
 
   const [usage, setUsage] = useState<Usage | null>(null);
-  const [notes, setNotes] = useState<string[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [setup, setSetup] = useState<Setup | null>(null);
   const [firstName, setFirstName] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -74,6 +75,7 @@ export function ClientPanel() {
 
     function setOwnerName(n: string | null) { setFirstName(n); }
   }, [org?.id]);
+
 
   if (!org) return null;
 
@@ -139,12 +141,21 @@ export function ClientPanel() {
       {notes.length > 0 && (
         <Card title={firstName ? `Worth a word with ${firstName}` : 'Worth a word'}>
           {notes.map((n) => (
-            <p
-              key={n}
-              style={{ fontSize: 13.5, color: C.text, margin: '0 0 8px', lineHeight: 1.45 }}
-            >
-              {n}
-            </p>
+            <div key={n.text} style={{ margin: '0 0 8px' }}>
+              <p style={{ fontSize: 13.5, color: C.text, margin: 0, lineHeight: 1.45 }}>
+                {n.text}
+              </p>
+              {/*
+                No button here, and that is the point.
+
+                This panel only renders in View mode, where nothing may be
+                written - so a Send a reminder on it would be a control that
+                can never work where it lives. The note says what is true and
+                when they were last chased; the send is on the invoice and on
+                Home's own past-due card, both of which are reachable the
+                moment you leave View mode or start a session.
+              */}
+            </div>
           ))}
         </Card>
       )}

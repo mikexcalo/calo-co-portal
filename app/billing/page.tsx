@@ -202,6 +202,54 @@ export default function BillingPage() {
     }
   };
 
+  /**
+   * Chase one overdue invoice.
+   *
+   * The audit's finding was blunt: an invoice could go overdue, Home could say
+   * so, and there was nowhere in the product to do anything about it. The
+   * machinery already existed - the `follow_ups` view, `nudged_at`, and a
+   * route that sends - with no way in from a screen.
+   *
+   * Refusals come back as themselves. A studio inside a client's workspace
+   * without permission to send gets the client's own sentence, not a generic
+   * failure, because the answer is a fact about the client rather than a
+   * fault.
+   */
+  /*
+    When this one was last chased, and whether it may be chased again.
+
+    The week is `follow_ups`'s, not this screen's, and it is repeated here
+    rather than asked for because the alternative is a button that queries
+    before it can decide whether to draw itself. If the two ever disagree the
+    view wins: pressing anyway answers "Nothing to chase" and nothing is sent.
+  */
+  const chasing = (inv: JobInvoice): { last: string | null; canChase: boolean } => {
+    if (!inv.nudged_at) return { last: null, canChase: true };
+    const since = Date.now() - Date.parse(inv.nudged_at);
+    return { last: shortDate(inv.nudged_at), canChase: since > 7 * 86400000 };
+  };
+
+  const sendReminder = async (inv: JobInvoice) => {
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetch('/api/followups/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: inv.id }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload.error || 'Could not send the reminder.');
+      setNotice(payload.message);
+      await load();
+    } catch (e) {
+      setError(human((e as Error).message));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   /** Copy a link to the invoice page, where the customer picks how to pay. */
   const sendAsLink = async (inv: JobInvoice) => {
     setBusy(true);
@@ -729,6 +777,34 @@ export default function BillingPage() {
                             Record a payment
                           </Button>
                         )}
+                        {/*
+                          Chasing, and the record of having chased.
+
+                          One a week, which is the `follow_ups` view's rule
+                          rather than this screen's: an invoice is owed and
+                          the tone can be matter of fact, but twice in three
+                          days is how a polite nudge becomes a bad
+                          conversation. Inside that week the button is not
+                          offered at all, because pressing it would come back
+                          "Nothing to chase" and that reads as a failure.
+                        */}
+                        {inv.status === 'overdue' && (() => {
+                          const chase = chasing(inv);
+                          return (
+                            <>
+                              {chase.last && (
+                                <span style={{ fontSize: 13, color: C.faint, alignSelf: 'center' }}>
+                                  {chase.canChase ? 'Last reminder' : 'Reminder sent'} {chase.last}
+                                </span>
+                              )}
+                              {chase.canChase && (
+                                <Button variant="ghost" disabled={busy} onClick={() => sendReminder(inv)}>
+                                  {chase.last ? 'Send another' : 'Send a reminder'}
+                                </Button>
+                              )}
+                            </>
+                          );
+                        })()}
                         <Button variant="ghost" disabled={busy} onClick={() => preview(inv)}>
                           Preview
                         </Button>
