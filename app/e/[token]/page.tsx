@@ -13,7 +13,15 @@ import { createClient } from '@supabase/supabase-js';
 import type React from 'react';
 import { notFound } from 'next/navigation';
 import { createSupabaseServer } from '@/lib/supabase-server';
-import { vocabFor, aWord, capWord } from '@/lib/spine/org';
+/*
+  From `vocab`, not from `org`.
+
+  `org.tsx` is a client module - it holds the workspace context - and this page
+  is server-rendered on purpose. Importing these from there gave this file a
+  client reference rather than the function, and every proposal link in the
+  product rendered a blank page for two days.
+*/
+import { vocabFor, aWord, capWord } from '@/lib/spine/vocab';
 import type { Org } from '@/lib/spine/types';
 import { SaveAsPdf } from './SaveAsPdf';
 import { Faq } from '@/components/spine/Faq';
@@ -784,7 +792,7 @@ export default async function PublicEstimate({
           */}
           {!decided && (
             <div style={{ marginTop: 28, paddingTop: 20, borderTop: `1px solid ${C.border}` }}>
-              <AskAbout token={params.token} accent={accent} />
+              <AskAbout token={params.token} accent={accent} preview={isPreview} />
             </div>
           )}
         </div>

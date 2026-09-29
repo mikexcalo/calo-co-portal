@@ -11,7 +11,23 @@
 
 import { useState } from 'react';
 
-export function AskAbout({ token, accent }: { token: string; accent: string }) {
+export function AskAbout({
+  token,
+  accent,
+  preview = false,
+}: {
+  token: string;
+  accent: string;
+  /**
+   * The owner looking at their own document.
+   *
+   * Accept and decline were already switched off here and this was not, so
+   * the one live control left on a read-only preview was the one that posts a
+   * message. It reads the same as the panel above it: shown, so the owner
+   * sees what the customer sees, and out of reach.
+   */
+  preview?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -42,6 +58,21 @@ export function AskAbout({ token, accent }: { token: string; accent: string }) {
     return (
       <div style={{ fontSize: 13.5, color: '#15803d', marginTop: 16 }}>
         Got it. I&apos;ll come back to you on that.
+      </div>
+    );
+  }
+
+  if (preview) {
+    return (
+      <div style={{ marginTop: 16 }} data-print-hide>
+        <div
+          // @ts-expect-error inert is valid HTML; React's types have not caught up.
+          inert=""
+          style={{ opacity: 0.55, userSelect: 'none', fontSize: 13.5, color: '#666' }}
+        >
+          Something not looking right?{' '}
+          <span style={{ color: accent, textDecoration: 'underline' }}>Send me a note</span>
+        </div>
       </div>
     );
   }
