@@ -9,9 +9,11 @@ import {
   Select, Button, C, Card, Field, Page, inputStyle, useIsPhone } from '@/components/spine/ui';
 import { READ_FAILED, human } from '@/lib/spine/errors';
 import { useOrg } from '@/lib/spine/org';
+import { useReadOnly } from '@/lib/spine/viewas';
 
 export default function NewJobPage() {
   const { vocab } = useOrg();
+  const readOnly = useReadOnly();
   const phone = useIsPhone();
   const router = useRouter();
   const [orgId, setOrgId] = useState<string | null>(null);
@@ -74,6 +76,30 @@ export default function NewJobPage() {
       setBusy(false);
     }
   };
+
+  /*
+    The one create screen with an address of its own.
+
+    Every other form in the product is a panel, and hiding the button that
+    opens it is enough. This one is a route, so it opens for anybody who
+    bookmarked it, typed it, or pressed Back into it - and it opened a full
+    form with a Create button on it in a workspace somebody was only looking
+    at. The guard refused the write; nothing on the screen said so until you
+    had filled it in and pressed the button.
+  */
+  if (readOnly) {
+    return (
+      <Page title={`New ${vocab.job.toLowerCase()}`} subtitle={`A new ${vocab.job.toLowerCase()}, or a ${vocab.lead.toLowerCase()}.`}>
+        <Card style={{ maxWidth: 620 }}>
+          <div style={{ fontSize: 14.5, color: C.dim, lineHeight: 1.7 }}>
+            Read-only. You are looking at this workspace rather than working in
+            it, so nothing can be added. Leave View mode from the bar at the top
+            of the screen, and this form comes back.
+          </div>
+        </Card>
+      </Page>
+    );
+  }
 
   return (
     <Page title={`New ${vocab.job.toLowerCase()}`} subtitle={`A new ${vocab.job.toLowerCase()}, or a ${vocab.lead.toLowerCase()}.`}>

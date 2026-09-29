@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useOrg } from '@/lib/spine/org';
 import supabase from '@/lib/supabase';
-import { Select, Button, C, Card, Empty, Pill, SectionLabel, inputStyle, shortDate } from './ui';
+import { Select, Button, C, Card, Empty, Pill, SectionHead, inputStyle, shortDate } from './ui';
 import { Confirm } from './Confirm';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -133,12 +133,18 @@ export function Schedule({ orgId, jobId }: { orgId: string; jobId: string }) {
           onCancel={() => setConfirming(null)}
         />
       )}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-        <SectionLabel>Schedule ({rows.length})</SectionLabel>
-        <Button variant="ghost" onClick={() => setAdding((v) => !v)}>
-          {adding ? 'Cancel' : 'Add a step'}
-        </Button>
-      </div>
+      {/* SectionHead rather than a hand-built flex row: it is the same header
+          as every other section, and it is where View mode swaps an action
+          for the reason it is not there. */}
+      <SectionHead
+        action={
+          <Button variant="ghost" onClick={() => setAdding((v) => !v)}>
+            {adding ? 'Cancel' : 'Add a step'}
+          </Button>
+        }
+      >
+        Schedule ({rows.length})
+      </SectionHead>
 
       {adding && (
         <Card style={{ marginBottom: 10 }}>

@@ -130,11 +130,21 @@ export function BottomBar({
   vocab,
   onMore,
   onAdd,
+  readOnly = false,
 }: {
   org: Org | null;
   vocab: { jobPlural: string; customerPlural: string };
   onMore: () => void;
   onAdd: () => void;
+  /**
+   * Looking, not working.
+   *
+   * The raised button in the middle of the bar is the loudest thing on a
+   * phone and the fastest way to write something into a business you are only
+   * supposed to be reading. It says why it is gone rather than sitting there
+   * doing nothing.
+   */
+  readOnly?: boolean;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -206,6 +216,17 @@ export function BottomBar({
         shape on the screen.
       */}
       <div style={{ width: 84, position: 'relative', flexShrink: 0 }}>
+        {readOnly ? (
+          <div
+            style={{
+              position: 'absolute', left: '50%', top: -4, transform: 'translateX(-50%)',
+              fontSize: 11, color: C.faint, fontWeight: 600, whiteSpace: 'nowrap',
+              letterSpacing: '.02em',
+            }}
+          >
+            Read-only
+          </div>
+        ) : (
         <button
           onClick={onAdd}
           aria-label="Capture"
@@ -233,6 +254,7 @@ export function BottomBar({
         >
           +
         </button>
+        )}
       </div>
 
       {tabs.slice(half).map(tab)}

@@ -73,6 +73,7 @@ import { JobNotes } from '@/components/spine/JobNotes';
 import { Confirm } from '@/components/spine/Confirm';
 import { UndoBar, type UndoState } from '@/components/spine/Undo';
 import { useOrg } from '@/lib/spine/org';
+import { useReadOnly } from '@/lib/spine/viewas';
 import { Reminders } from '@/components/spine/Reminders';
 import { READ_FAILED, human } from '@/lib/spine/errors';
 import { tidyAddress } from '@/lib/spine/tidy';
@@ -89,6 +90,7 @@ const STATUSES: JobStatus[] = [
 
 export default function JobDetailPage({ params }: { params: { id: string } }) {
   const { vocab } = useOrg();
+  const readOnly = useReadOnly();
   const router = useRouter();
   const jobId = params.id;
   const phone = useIsPhone();
@@ -411,8 +413,12 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
             doesn't appear there. */}
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginLeft: 'auto' }}>
           <span style={{ fontSize: 12.5, color: C.faint }}>Scheduled</span>
+          {/* Two date boxes that write straight through on change. Nothing
+              about them says "field" loudly enough to have been caught by the
+              primitives, and a stray click sets a client's dates. */}
           <input
             type="date"
+            disabled={readOnly}
             value={job.scheduled_start ?? ''}
             onChange={(e) =>
               run(async () => { await updateJob(jobId, { scheduled_start: e.target.value || null }); })
@@ -422,6 +428,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
           <span style={{ fontSize: 12.5, color: C.faint }}>to</span>
           <input
             type="date"
+            disabled={readOnly}
             value={job.scheduled_end ?? ''}
             onChange={(e) =>
               run(async () => { await updateJob(jobId, { scheduled_end: e.target.value || null }); })

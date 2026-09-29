@@ -16,6 +16,7 @@ import { C, DISPLAY, SERIF, radius } from '@/lib/spine/tokens';
 import { Glyph, type IconName } from './icons';
 import { useOrg } from '@/lib/spine/org';
 import { pathAllowed } from '@/lib/spine/modules';
+import { useReadOnly } from '@/lib/spine/viewas';
 
 export { C, DISPLAY, SERIF, radius };
 
@@ -115,6 +116,7 @@ export function Page({
 }) {
   const phone = useIsPhone();
   const { org } = useOrg();
+  const readOnly = useReadOnly();
 
   /*
     "[Screen] · [Workspace]", on every screen in the product.
@@ -167,8 +169,11 @@ export function Page({
             </p>
           )}
         </div>
+        {/* The screen's own create button, or the reason it is not there. */}
         {action && (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{action}</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {readOnly ? <ReadOnlyHint /> : action}
+          </div>
         )}
       </div>
 
@@ -457,6 +462,35 @@ export function Card({
 }
 
 /**
+ * Where an action would have been.
+ *
+ * View mode refuses every write at the door, which was the right half of the
+ * job and on its own reads as a product that is broken: New job opened a form
+ * with a Create job button on it, the button did nothing anybody could see,
+ * and the only way to find out why was to press it.
+ *
+ * So the entry point says so instead. Quiet on purpose - grey, small, no
+ * border, no icon. It is a statement about the mode somebody chose, not a
+ * warning, and the bar at the top of the screen already carries the way out.
+ */
+export function ReadOnlyHint({ what }: { what?: string }) {
+  return (
+    <span
+      style={{
+        fontSize: 12.5,
+        color: C.faint,
+        fontWeight: 500,
+        letterSpacing: '.01em',
+        whiteSpace: 'nowrap',
+        alignSelf: 'center',
+      }}
+    >
+      {what ? `Read-only. ${what}` : 'Read-only'}
+    </span>
+  );
+}
+
+/**
  * A section heading with its action beside it.
  *
  * Every one of these was hand-built as a flex row holding a SectionLabel and a
@@ -477,6 +511,7 @@ export function SectionHead({
   children: React.ReactNode;
   action?: React.ReactNode;
 }) {
+  const readOnly = useReadOnly();
   return (
     <div
       style={{
@@ -492,7 +527,7 @@ export function SectionHead({
       <div style={{ marginBottom: -10 }}>
         <SectionLabel>{children}</SectionLabel>
       </div>
-      {action}
+      {action && (readOnly ? <ReadOnlyHint /> : action)}
     </div>
   );
 }
@@ -1088,6 +1123,7 @@ export function Sheet({
   bare,
   unsaved,
   unsavedPrompt,
+  readOnlySafe,
 }: {
   title?: string;
   /**
@@ -1131,10 +1167,25 @@ export function Sheet({
   unsaved?: boolean;
   /** What to ask. Worth overriding where "changes" has a better word. */
   unsavedPrompt?: string;
+  /**
+   * This panel changes nothing, so View mode may leave it alone.
+   *
+   * The default is the other way round, and deliberately: a dialog written
+   * next month is fenced without anybody remembering to fence it, and the
+   * cost of being wrong is one panel that has to be opted out rather than one
+   * live form in a workspace somebody is only supposed to be looking at.
+   *
+   * `bare` is exempt already: those are the two document previews, which are
+   * an iframe and nothing else.
+   */
+  readOnlySafe?: boolean;
 }) {
   const phone = useIsPhone();
   const card = React.useRef<HTMLDivElement>(null);
   const [asking, setAsking] = React.useState(false);
+  const readOnly = useReadOnly();
+  /* Fenced unless it is a viewer or has said it changes nothing. */
+  const fenced = readOnly && !bare && !readOnlySafe;
 
   /*
     Whether anything in here has been typed into.
@@ -1242,11 +1293,46 @@ export function Sheet({
         }}
       >
         {title && (
-          <div style={{ fontSize: 16, fontWeight: 600, color: C.text, marginBottom: 16 }}>
+          <div style={{ fontSize: 16, fontWeight: 600, color: C.text, marginBottom: fenced ? 6 : 16 }}>
             {title}
           </div>
         )}
-        {children}
+        {/*
+          A form that cannot be submitted should not accept typing.
+
+          `inert` takes the whole subtree out of reach of the mouse, the
+          keyboard and the screen reader in one attribute. Greying the save
+          button and leaving the fields focusable is how somebody fills in a
+          panel, presses save, and is told the thing they just spent a minute
+          on was never going anywhere.
+        */}
+        {fenced ? (
+          <>
+            <div style={{ fontSize: 12.5, color: C.faint, marginBottom: 14 }}>
+              Read-only. Leave View mode to change anything here.
+            </div>
+            <div
+              // @ts-expect-error inert is valid HTML; React's types have not caught up.
+              inert=""
+              style={{ opacity: 0.5, userSelect: 'none' }}
+            >
+              {children}
+            </div>
+            {/*
+              A way out that is not Escape.
+
+              Inert takes the panel's own Cancel with it, which is right - it
+              is part of a form - and leaves somebody looking at a dialog whose
+              only exits are a key and a click on the backdrop. Neither is
+              visible. This one is.
+            */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+              <Button variant="ghost" onClick={() => onClose()}>Close</Button>
+            </div>
+          </>
+        ) : (
+          children
+        )}
       </div>
 
       {asking && (
@@ -1489,6 +1575,16 @@ export function Select({
   textStyle?: React.CSSProperties;
 }) {
   const phone = useIsPhone();
+  /*
+    A dropdown is an edit control wherever it appears.
+
+    There is no read-only reason to change one: every Select in the product
+    either sets a value on a record or filters a list, and the filters are
+    cheap to lose next to a job's status being changeable in a workspace
+    somebody is only looking at.
+  */
+  const readOnly = useReadOnly();
+  const locked = disabled || readOnly;
   return (
     <div
       style={{
@@ -1500,7 +1596,7 @@ export function Select({
     >
       <select
         value={value}
-        disabled={disabled}
+        disabled={locked}
         onChange={(e) => onChange(e.target.value)}
         style={{
           ...(inline
@@ -1519,8 +1615,8 @@ export function Select({
           appearance: 'none',
           WebkitAppearance: 'none',
           paddingRight: inline ? 15 : 30,
-          cursor: disabled ? 'default' : 'pointer',
-          opacity: disabled ? 0.6 : 1,
+          cursor: locked ? 'default' : 'pointer',
+          opacity: locked ? 0.6 : 1,
         }}
       >
         {placeholder && <option value="">{placeholder}</option>}

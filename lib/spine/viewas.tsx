@@ -274,3 +274,20 @@ export function ViewAsProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useViewAs = () => useContext(ViewAsContext);
+
+/**
+ * Is this workspace read-only right now?
+ *
+ * The same question `readonly.ts` answers for a write, asked by the interface
+ * before it offers one. That module holds its mode in a module variable so it
+ * can answer during a fetch no component is waiting on, which is right for the
+ * guard and useless for rendering: nothing re-renders when it changes.
+ *
+ * This reads the context, so a screen redraws the moment View mode goes on or
+ * off. The two cannot disagree: `setMode('view')` is called from the same
+ * provider, off the same `viewAs`.
+ *
+ * Work mode is deliberately NOT read-only. Somebody who asked to work in a
+ * client's workspace, and was given a grant, is there to change things.
+ */
+export const useReadOnly = (): boolean => useContext(ViewAsContext).viewAs !== null;

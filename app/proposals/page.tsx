@@ -190,7 +190,8 @@ export default function ProposalsPage() {
         makes the list unreadable for the sake of one row.
       */}
       {proof && (
-        <Sheet title="How this was agreed" onClose={() => setProof(null)}>
+        /* Nothing here changes anything: it is the record of a decision already made. */
+        <Sheet readOnlySafe title="How this was agreed" onClose={() => setProof(null)}>
           <div style={{ fontSize: 15, color: C.text, marginBottom: 4 }}>
             {proof.job?.customer?.name} &mdash; {money(proof.total)}
           </div>

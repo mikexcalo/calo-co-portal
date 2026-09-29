@@ -495,9 +495,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           vocab={vocab}
           onMore={() => setNavOpen(true)}
           onAdd={() => setAddOpen(true)}
+          readOnly={Boolean(viewAs)}
         />
 
-        {addOpen && (
+        {addOpen && !viewAs && (
           <Capture orgId={org?.id ?? null} job={captureJob} onClose={() => setAddOpen(false)} />
         )}
 

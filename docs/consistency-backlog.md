@@ -661,6 +661,50 @@ Three things the fix uncovered that were worse than anything on the list:
 
 ---
 
+## View mode had no interface, only a guard — DONE 29 Sept 2026
+
+`readonly.ts` refused every write at the two doors and nothing on screen said
+so, which is the half that makes a product look broken rather than careful:
+New job opened a full form with a Create job button on it, the button did
+nothing anybody could see, and the only way to find out why was to press it.
+
+Fenced at the shared pieces rather than at call sites, so a screen written next
+month is covered without anybody remembering:
+
+- `Page`'s action slot, which is where all 34 screen-level create buttons live,
+  and `SectionHead`'s, which is where the per-section ones live. Both swap the
+  button for a quiet "Read-only".
+- `Sheet`. Every create and edit dialog in the product is one. In View mode it
+  says "Read-only. Leave View mode to change anything here", takes its whole
+  body out of reach with `inert`, and grows a Close, because inert takes the
+  panel's own Cancel with it. Opt out with `readOnlySafe` for a panel that
+  changes nothing; `bare` viewers are exempt already.
+- `Select`. There is no read-only reason to change one.
+- The top bar's Add a note and Log time, and the raised `+` in the phone bottom
+  bar, and the two keyboard shortcuts behind them, which are the entry points
+  that survive a hidden button.
+- `/jobs/new`, the one create screen with an address of its own, so a bookmark
+  or a Back button lands on the reason rather than on a live form.
+- `Schedule`'s Add a step, which was a hand-built header row rather than a
+  `SectionHead` and so had been missed by the sweep that component exists for.
+
+`useReadOnly()` in `viewas.tsx` is what they all read: the same fact as
+`readonly.ts` holds, from the context, so a screen redraws when the mode
+changes. Work mode is deliberately not read-only.
+
+WHAT IS STILL LIVE, and was left deliberately rather than missed: individual
+`<Button>`s inside cards and table rows that write - Dismiss on a Home signal,
+a row's own Remove. There are 281 Button call sites and most of them navigate,
+so a default-deny there would grey out half the product's way of getting
+around. The guard still refuses each one, so the failure is a message rather
+than a change. Worth a pass of its own with the list in front of you.
+
+Verified on Harbor Light in View mode at desktop and 390px: Home, Jobs, a job
+detail, the job edit panel, and /jobs/new by address. Leaving View mode brings
+all of it back.
+
+---
+
 ## Smaller, not yet grouped
 
 - ~~**Price list tiers**~~ **DONE 27 Sept 2026.** Three columns, Friends /

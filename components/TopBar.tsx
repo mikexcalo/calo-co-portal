@@ -1,6 +1,6 @@
 'use client';
 
-import { useViewAs } from '@/lib/spine/viewas';
+import { useViewAs, useReadOnly } from '@/lib/spine/viewas';
 import { CommandBar } from '@/components/spine/CommandBar';
 import React, { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -68,6 +68,15 @@ export default function TopBar() {
    */
   const [siteUrl, setSiteUrl] = useState<string | null>(null);
   const [dropping, setDropping] = useState(false);
+  /*
+    Nothing that records something is offered while looking.
+
+    Add a note writes a drop and Log time writes an hour, both against a
+    business somebody is only supposed to be reading. The guard already
+    refused both; what it could not do was stop the chrome inviting you to
+    try, on every screen, above everything.
+  */
+  const readOnly = useReadOnly();
   const [logging, setLogging] = useState(false);
 
   /**
@@ -79,6 +88,9 @@ export default function TopBar() {
    */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      /* The shortcut is an entry point too, and it is the one that survives a
+         hidden button. Nothing that records something opens while looking. */
+      if (readOnly) return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'j') {
         e.preventDefault();
         setDropping(true);
@@ -89,8 +101,9 @@ export default function TopBar() {
         setLogging(true);
       }
     };
-    const onAsk = () => setDropping(true);
-    const onLog = () => setLogging(true);
+    const onAsk = () => { if (!readOnly) setDropping(true); };
+    const onLog = () => { if (!readOnly) setLogging(true); };
+    /* Learn reads. It stays whichever mode you are in. */
     const onLearn = () => openPanel();
     window.addEventListener('keydown', onKey);
     window.addEventListener('calo:drop-note', onAsk);
@@ -102,7 +115,7 @@ export default function TopBar() {
       window.removeEventListener('calo:log-time', onLog);
       window.removeEventListener('calo:learn', onLearn);
     };
-  }, []);
+  }, [readOnly]);
 
   useEffect(() => {
     if (!org) { setSiteUrl(null); return; }
@@ -193,6 +206,11 @@ export default function TopBar() {
           a thing used a few times a day; and before that it was six clicks
           deep on one tab of one client, which meant it did not happen at all.
         */}
+        {readOnly ? (
+          <span style={{ fontSize: 12.5, color: C.faint, fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0 }}>
+            Read-only
+          </span>
+        ) : (
         <button
           onClick={() => setDropping(true)}
           title={`Add a note. Type, talk or paste  (${mod}J)`}
@@ -231,6 +249,7 @@ export default function TopBar() {
           */}
           Add a note
         </button>
+        )}
 
         {/*
           Logging an hour is not a trip to a client record.
@@ -244,6 +263,7 @@ export default function TopBar() {
           Beside Drop a note, because they are the same kind of act: something
           you record in ten seconds without leaving what you were doing.
         */}
+        {!readOnly && (
         <button
           onClick={() => setLogging(true)}
           title={`Log time against a ${vocab.customer.toLowerCase()}  (${mod}L)`}
@@ -261,6 +281,7 @@ export default function TopBar() {
           </svg>
           Log time
         </button>
+        )}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
