@@ -259,6 +259,35 @@ their initials, their colour, their phone, their address. Every one of those
 is often empty, and an empty one is left out rather than filled with a
 placeholder — a customer must never see `[LICENSE NO.]`.
 
+**A helper these pages call lives in a file with no `'use client'` at the top.**
+
+These documents are server components, on purpose: they have to load on a bad
+phone connection in a driveway and they have to print. A server component that
+imports a *value* from a client module does not get the value. It gets a
+reference to something that will exist in the browser, and calling it throws
+`x is not a function` before a single word renders.
+
+Nothing catches it. TypeScript is happy, the linter is happy, `next build`
+compiles it, and the page still answers 200 — because `app/error.tsx` is
+itself a client component, so the server sends an empty shell and the words
+"That screen did not load" are painted afterwards by the browser. Every
+proposal link in the product was a blank page for forty-one hours on exactly
+this, because `vocabFor` was declared in `lib/spine/org.tsx` next to the React
+context that needs `'use client'`.
+
+So: if a customer page calls it, it lives somewhere with no `'use client'`, no
+React and no browser client. `lib/spine/vocab.ts` and
+`lib/spine/client-face.ts` are the shape to copy. Where the same helper is
+wanted by the fifty screens inside the app, the client module re-exports it
+rather than owning it.
+
+*Importing a client COMPONENT and rendering it is fine — that is the boundary
+working as designed. It is calling a function across it that breaks.*
+
+`npm run customer-pages` renders one demo proposal and one demo invoice and
+fails if either comes back without its footer. It runs before every push,
+beside the em dash check.
+
 ---
 
 ## 5. Phone
