@@ -16,6 +16,17 @@ import { createClient } from '@supabase/supabase-js';
 import { postEmail } from '@/lib/spine/deliverable';
 import { whoToTell } from '@/lib/spine/who-to-tell';
 
+/**
+ * Money, written the way the rest of the product writes it.
+ *
+ * `toFixed(2)` was used in four places here, which is how Home came to show
+ * "$24680.00" in one card and "$24,680.00" in the next. The browser has
+ * `money()` in the design system; a route cannot import it, so this is the
+ * same rule stated once rather than four times.
+ */
+const usd = (n: number): string =>
+  `$${(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 export const runtime = 'nodejs';
 
 /**
@@ -288,7 +299,7 @@ export async function POST(req: NextRequest) {
           decision === 'accepted'
             ? [
                 `${body.name?.trim() || 'Somebody'} accepted this on ${now.slice(0, 10)}.`,
-                `Agreed at ${acceptedTotal.toFixed(2)}.`,
+                `Agreed at ${usd(acceptedTotal)}.`,
                 `Document: /e/${(body.token ?? '').trim()}`,
               ].join('\n')
             : [
@@ -301,7 +312,16 @@ export async function POST(req: NextRequest) {
 
     await db.from('notifications').insert({
       org_id: estimate.org_id,
-      kind: 'system',
+      /*
+        An acceptance is not a chore, and Home already has a card for it.
+
+        `AskedOfYou` lists unread `system` notifications under "Waiting on
+        you", so an acceptance appeared there as well as in "Just accepted" -
+        the same event twice on one screen, and the two disagreed about how to
+        write the number. Its own kind keeps it in the bell, where a record of
+        what happened belongs, and out of a list of things still to do.
+      */
+      kind: decision === 'accepted' ? 'accepted' : 'system',
       /*
         Written the way somebody would say it.
 
@@ -316,7 +336,7 @@ export async function POST(req: NextRequest) {
           : `${firstName} passed on your ${word}`,
       body:
         decision === 'accepted'
-          ? `${body.name?.trim()} accepted $${acceptedTotal.toFixed(2)}.`
+          ? `${body.name?.trim()} accepted ${usd(acceptedTotal)}.`
           : body.reason?.trim() || 'No reason given.',
       href: `/jobs/${estimate.job_id}`,
     });
@@ -329,9 +349,21 @@ export async function POST(req: NextRequest) {
         kind: 'system',
         body:
           decision === 'accepted'
-            ? `Accepted the estimate ($${acceptedTotal.toFixed(2)})${body.name?.trim() ? `, signed ${body.name.trim()}` : ''}.`
+            ? `Accepted the estimate (${usd(acceptedTotal)})${body.name?.trim() ? `, signed ${body.name.trim()}` : ''}.`
             : `Declined the estimate.${body.reason?.trim() ? ` Reason: ${body.reason.trim()}` : ''}`,
       });
+
+      /*
+        They answered, so nobody is waiting on them any more.
+
+        `awaiting_reply_since` is set when the proposal goes out and nothing
+        ever cleared it, so Home counted Dunmore under "people haven't
+        replied" eight days after Dunmore replied, beside the card announcing
+        that they had. A decision either way ends the wait.
+      */
+      await db.from('customers')
+        .update({ awaiting_reply_since: null })
+        .eq('id', job.customer_id);
     }
 
     /*
@@ -375,8 +407,8 @@ export async function POST(req: NextRequest) {
                 : `Estimate declined: ${job?.name ?? ''}`,
             html: `<div style="font-family:-apple-system,sans-serif;font-size:15px;line-height:1.6;">
 <p><strong>${job?.name ?? 'Job'}</strong>, ${decision}${body.name?.trim() ? ` by ${body.name.trim()}` : ''}.</p>
-${decision === 'accepted' ? `<p>$${acceptedTotal.toFixed(2)}</p>` : ''}
-${depositDraft ? `<p><strong>Deposit invoice ${depositDraft.number} for $${depositDraft.amount.toFixed(2)} is drafted and waiting.</strong> It has not been sent. Review it in Invoices and send it when you are ready.</p>` : ''}
+${decision === 'accepted' ? `<p>${usd(acceptedTotal)}</p>` : ''}
+${depositDraft ? `<p><strong>Deposit invoice ${depositDraft.number} for ${usd(depositDraft.amount)} is drafted and waiting.</strong> It has not been sent. Review it in Invoices and send it when you are ready.</p>` : ''}
 ${body.reason?.trim() ? `<p style="color:#555;">${body.reason.trim().replace(/</g, '&lt;')}</p>` : ''}
 </div>`,
           }),

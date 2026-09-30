@@ -1269,10 +1269,25 @@ export default function Dashboard() {
                   </div>
                   {/* A key for a color that is not on screen teaches you to
                       distrust the key. */}
+                  {/*
+                    This list is the month. The Unbilled tile is everything.
+
+                    "All of it is on an invoice." sat a few inches from
+                    "$10,490.00 of work you haven't billed" and both were
+                    true: nothing logged THIS MONTH was waiting, and $10,490
+                    from earlier was. Read together on one screen they are a
+                    flat contradiction, and the screen is what somebody reads.
+
+                    So the sentence says which "all" it means, and when there
+                    is older work waiting it says so rather than leaving the
+                    tile to argue with it.
+                  */}
                   <div style={{ fontSize: 12, color: C.faint, marginTop: 8 }}>
                     {clientHours.some((r) => r.unbilled_value > 0)
                       ? 'Amber is not on an invoice yet. '
-                      : 'All of it is on an invoice. '}
+                      : unbilled > 0
+                        ? `This month is all on an invoice. ${money0(unbilled)} from earlier is not. `
+                        : 'All of it is on an invoice. '}
                     Press <kbd style={{ fontFamily: 'inherit' }}>{mod}L</kbd> to log more.
                   </div>
                 </div>
