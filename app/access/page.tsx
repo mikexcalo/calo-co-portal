@@ -27,7 +27,7 @@ import supabase from '@/lib/supabase';
 import { useOrg, type Vocab } from '@/lib/spine/org';
 import {
   moduleState,
-  modulesFor,
+  modulesOffered,
   type ModuleId,
   type ModuleState,
 } from '@/lib/spine/modules';
@@ -44,6 +44,14 @@ interface Row {
   modules: Record<string, unknown> | null;
   workspace_id: string | null;
   logo?: string | null;
+  /*
+    The client's OWN kind, which decides what they should be offered.
+
+    This screen filtered by the studio's kind and plan, because `org` here is
+    the studio. An agency offering a roofer its own module list is how
+    Harbor Light came to have Pitch Deck and Brand Framework on the shelf.
+  */
+  kind: string | null;
 }
 
 
@@ -110,15 +118,43 @@ export default function AccessPage() {
       ((full.data ?? []) as Array<{ id: string; plan: string | null; modules: Record<string, unknown> | null; workspace_id: string | null }>)
         .map((c) => [c.id, c])
     );
+
+    /*
+      The workspace is the source of truth, not the customer row.
+
+      `customers.modules` is the studio's note about what was sold.
+      `orgs.modules` is what `modulesFor` reads to decide what actually
+      renders, so it is what the client can open. The two had drifted apart
+      on six of seven clients here - Global Seafood Partners had four modules
+      stated in exact opposition - and this screen was reading the one that
+      changes nothing. A client with no workspace yet has only the customer
+      row, and that is still the right answer for them.
+    */
+    const wsIds = Array.from(new Set(
+      Array.from(mods.values()).map((c) => c.workspace_id).filter(Boolean) as string[]
+    ));
+    const ws = wsIds.length
+      ? await supabase.from('orgs').select('id, kind, plan, modules').in('id', wsIds)
+      : { data: [], error: null };
+    const byWs = new Map(
+      ((ws.data ?? []) as Array<{ id: string; kind: string | null; plan: string | null; modules: Record<string, unknown> | null }>)
+        .map((o) => [o.id, o])
+    );
+
     const merged: Row[] = ((sum.data ?? []) as Array<{ customer_id: string; name: string; logo_path: string | null }>)
-      .map((b) => ({
-        id: b.customer_id,
-        name: b.name,
-        plan: mods.get(b.customer_id)?.plan ?? null,
-        logo: b.logo_path,
-        modules: mods.get(b.customer_id)?.modules ?? {},
-        workspace_id: mods.get(b.customer_id)?.workspace_id ?? null,
-      }));
+      .map((b) => {
+        const c = mods.get(b.customer_id);
+        const w = c?.workspace_id ? byWs.get(c.workspace_id) : null;
+        return {
+          id: b.customer_id,
+          name: b.name,
+          plan: w?.plan ?? c?.plan ?? null,
+          logo: b.logo_path,
+          modules: (w ? w.modules : c?.modules) ?? {},
+          workspace_id: c?.workspace_id ?? null,
+          kind: w?.kind ?? null,
+        };
+      });
     setRows(merged);
     setPick((p) => p ?? merged[0]?.id ?? null);
     setLoaded(true);
@@ -128,20 +164,32 @@ export default function AccessPage() {
 
   const client = rows.find((r) => r.id === pick) ?? null;
 
+  /*
+    What to offer THIS client, from their own kind and plan.
+
+    Was `modulesFor(org)` - the studio's own live set - which answered a
+    different question twice over: whose modules, and which of them. Same
+    `modulesOffered` the Plans and access screen and the view-mode panel now
+    take. Falls back to the studio's kind for a client with no workspace, who
+    has no kind of their own to read.
+  */
   const modules = useMemo(() => {
     if (!org) return [] as ModuleId[];
     const hide: ModuleId[] = ['business', 'security', 'team', 'records'] as ModuleId[];
-    return Array.from(modulesFor(org)).filter((m) => !hide.includes(m));
-  }, [org]);
+    const kind = (client?.kind ?? org.kind) as Parameters<typeof modulesOffered>[0];
+    return modulesOffered(kind, client?.plan ?? org.plan).filter((m) => !hide.includes(m));
+  }, [org, client?.kind, client?.plan]);
 
   const write = async (row: Row, key: ModuleId, next: ModuleState | null) => {
     const mods = { ...(row.modules ?? {}) };
     if (next === null) delete mods[key];
     else mods[key] = next;
     setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, modules: mods } : r)));
-    await saveOrFail(supabase.from('customers').update({ modules: mods }).eq('id', row.id));
-    // A client with a login keeps its own copy, or the switch is decorative.
+    /* The workspace is what gates the client, so it is written first and its
+       failure is the one that matters. The customer row is the studio's copy
+       of the same fact and is kept in step. */
     if (row.workspace_id) await saveOrFail(supabase.from('orgs').update({ modules: mods }).eq('id', row.workspace_id));
+    await saveOrFail(supabase.from('customers').update({ modules: mods }).eq('id', row.id));
   };
 
   const owed = useMemo(

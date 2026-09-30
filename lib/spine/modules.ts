@@ -455,6 +455,36 @@ export function modulesFor(org: Org | null): Set<ModuleId> {
 }
 
 /**
+ * Every module worth OFFERING a business, before any decision about it.
+ *
+ * WHY THIS IS SEPARATE FROM `modulesFor`
+ *
+ * `modulesFor` answers "what can they open right now", which is the base list
+ * narrowed by every per-module override. A switchboard needs the question
+ * before that one: which switches should even be on this screen. A contractor
+ * should never be offered Brand Framework, and a module already switched off
+ * must still appear - with its switch off - or there is no way to turn it
+ * back on.
+ *
+ * WHY IT EXISTS AT ALL
+ *
+ * Three screens asked this three ways and got three answers. Plans and access
+ * listed every module that exists in the product, so a roofer was offered a
+ * Pitch Deck. Clients > Access filtered by the STUDIO's own kind and plan, so
+ * an agency looking at a contractor client offered them agency modules. Only
+ * the view-mode panel used the client's own kind, because it went through
+ * `modulesFor`. This is the one list, and all three take it.
+ */
+export function modulesOffered(
+  kind: Org['kind'] | null | undefined,
+  plan: string | null | undefined
+): ModuleId[] {
+  const kindBase = kind === 'agency' ? AGENCY : kind === 'rep' ? REP : CONTRACTOR;
+  const allowed = PLAN_MODULES[plan ?? 'core'];
+  return allowed?.length ? kindBase.filter((m) => allowed.includes(m)) : kindBase;
+}
+
+/**
  * What a module is to a particular client.
  *
  * Five states, because two of them are commercial rather than technical:

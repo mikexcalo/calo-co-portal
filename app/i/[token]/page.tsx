@@ -11,6 +11,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { studioNameFor } from '@/lib/spine/studio-name';
 import { notFound } from 'next/navigation';
 import { SaveAsPdf } from '../../e/[token]/SaveAsPdf';
 import { METHODS, payLink, type PaymentMethod } from '@/lib/spine/payments';
@@ -80,9 +81,11 @@ export default async function PublicInvoice({ params }: { params: { token: strin
     customer: { name: string; contact_name: string | null } | null;
   } | null;
 
-  const [{ data: lines }, { data: org }, { data: terms }] = await Promise.all([
+  const [{ data: lines }, { data: org }, studio, { data: terms }] = await Promise.all([
     db.from('job_invoice_lines').select('*').eq('invoice_id', invoice.id).order('position'),
     db.from('orgs').select('name, settings, payment_methods').eq('id', job?.org_id ?? '').maybeSingle(),
+    /* Whose name goes at the foot: the studio that set this workspace up. */
+    studioNameFor(db, job?.org_id ?? invoice.org_id),
     /*
       What they would have paid.
 
@@ -428,7 +431,7 @@ export default async function PublicInvoice({ params }: { params: { token: strin
         </div>
       )}
 
-      <Sent />
+      <Sent studio={studio} />
 
       {/*
         The one filled thing on the page, stuck to the bottom of a phone.

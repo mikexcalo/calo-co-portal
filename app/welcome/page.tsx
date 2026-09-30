@@ -49,6 +49,7 @@ import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { clientFace } from '@/lib/spine/client-face';
 import { Door, type DoorWorkspace, PROSE_WRAP, noWidow } from '@/components/public/Door';
+import { studioFor } from '@/lib/spine/workin';
 
 const INK = '#141414';
 const BORDER = '#e4e4e0';
@@ -606,10 +607,24 @@ export default function WelcomePage() {
    * "Welcome to Untitled business" reads as a bug in the first screen somebody
    * sees, so that one falls back to ours.
    */
+  /*
+    Who set this workspace up, for the line under the card.
+
+    Somebody on this screen is signed in - that is how they got here - so the
+    same RPC the rest of the product uses works.
+  */
+  const [studioHouse, setStudioHouse] = useState<string | null>(null);
+  useEffect(() => {
+    if (!org?.id) return;
+    let off = false;
+    void studioFor(org.id).then((h) => { if (!off) setStudioHouse(h.studio?.name ?? null); });
+    return () => { off = true; };
+  }, [org?.id]);
+
   const named = org && !UNNAMED(org.name);
   const face = named ? clientFace(org as Parameters<typeof clientFace>[0]) : null;
   const workspace: DoorWorkspace | null = named && face
-    ? { name: org!.name, logo: face.logo, initials: face.initials }
+    ? { name: org!.name, logo: face.logo, initials: face.initials, studio: studioHouse }
     : null;
 
   const heading = named ? `Welcome to ${org!.name}` : `Welcome to ${PRODUCT}`;

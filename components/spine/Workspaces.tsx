@@ -16,7 +16,14 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
-import { MODULE_LABEL, type ModuleId } from '@/lib/spine/modules';
+import {
+  MODULE_LABEL,
+  MODULE_STATES,
+  moduleState,
+  modulesOffered,
+  type ModuleId,
+  type ModuleState,
+} from '@/lib/spine/modules';
 import { C, Card, Empty, Pill, RowsLoading, SectionLabel } from '@/components/spine/ui';
 import { save as saveOrFail } from '@/lib/spine/save';
 
@@ -25,7 +32,16 @@ interface Workspace {
   name: string;
   kind: string;
   plan: 'core' | 'grow' | 'agency';
-  modules: Record<string, boolean> | null;
+  /*
+    Five states, written as strings, the same as everywhere else.
+
+    This was typed `Record<string, boolean>` and cycled true / false /
+    absent, which is three of the five. A module the Access screen had marked
+    `sold` or `building` fell through both tests and drew here as "Follows
+    plan" - so the screen that exists to show what a client has bought was
+    the one screen that could not show a module as bought.
+  */
+  modules: Record<string, unknown> | null;
 }
 
 const PLANS: Array<{ id: Workspace['plan']; label: string; note: string }> = [
@@ -63,17 +79,20 @@ export function Workspaces() {
   };
 
   /**
-   * Three states, not two.
+   * Five states, in the order somebody sells one.
    *
-   * Following the plan is different from being switched on, and the difference
-   * matters the moment somebody upgrades: a module left explicitly off stays
-   * off through the upgrade, which is almost never what anybody meant.
+   * plan -> sold -> building -> live -> off -> plan. The same ladder the
+   * Access screen walks, so the two screens cannot describe one module
+   * differently. `plan` is written as an absent key rather than a value,
+   * because following the plan is the absence of a decision.
    */
   const cycle = async (w: Workspace, key: string) => {
+    const order = MODULE_STATES.map((x) => x.id);
+    const now = moduleState((w.modules ?? {})[key]);
+    const next = order[(order.indexOf(now) + 1) % order.length];
     const mods = { ...(w.modules ?? {}) };
-    if (!(key in mods)) mods[key] = true;
-    else if (mods[key] === true) mods[key] = false;
-    else delete mods[key];
+    if (next === 'plan') delete mods[key];
+    else mods[key] = next;
 
     setBusy(w.id);
     const res = await saveOrFail(supabase.from('orgs').update({ modules: mods }).eq('id', w.id));
@@ -81,10 +100,8 @@ export function Workspaces() {
     if (!res.error) setRows((r) => r.map((x) => (x.id === w.id ? { ...x, modules: mods } : x)));
   };
 
-  const state = (w: Workspace, key: string) => {
-    const v = (w.modules ?? {})[key];
-    return v === true ? 'on' : v === false ? 'off' : 'plan';
-  };
+  const state = (w: Workspace, key: string): ModuleState =>
+    moduleState((w.modules ?? {})[key]);
 
   if (loading) return <RowsLoading rows={4} />;
 
@@ -126,9 +143,13 @@ export function Workspaces() {
             </div>
 
             <SectionLabel>Modules</SectionLabel>
+            {/*
+              What this business's kind and plan allow, not every module that
+              exists. Listing all of them offered a roofer a Pitch Deck.
+            */}
             <Grid
-              items={(Object.keys(MODULE_LABEL) as ModuleId[]).map((m) => ({
-                id: m, label: MODULE_LABEL[m], note: '',
+              items={modulesOffered(w.kind as Parameters<typeof modulesOffered>[0], w.plan).map((m) => ({
+                id: m, label: MODULE_LABEL[m as ModuleId], note: '',
               }))}
               state={(k) => state(w, k)}
               onClick={(k) => cycle(w, k)}
@@ -161,15 +182,17 @@ function Grid({
   onClick,
 }: {
   items: Array<{ id: string; label: string; note: string }>;
-  state: (key: string) => 'on' | 'off' | 'plan';
+  state: (key: string) => ModuleState;
   onClick: (key: string) => void;
 }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(178px, 1fr))', gap: 5 }}>
       {items.map((i) => {
         const s = state(i.id);
-        const color = s === 'on' ? C.green : s === 'off' ? C.red : C.faint;
-        const bg = s === 'on' ? C.greenSoft : s === 'off' ? C.redSoft : 'transparent';
+        /* Live is on, off is denied, and the two commercial states in
+           between are neither: amber for work that is paid for or underway. */
+        const color = s === 'live' ? C.green : s === 'off' ? C.red : s === 'plan' ? C.faint : C.amber;
+        const bg = s === 'live' ? C.greenSoft : s === 'off' ? C.redSoft : 'transparent';
         return (
           <button
             key={i.id}
@@ -185,9 +208,7 @@ function Grid({
             <span style={{ fontSize: 13, color: C.text, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {i.label}
             </span>
-            <span style={{ fontSize: 10.5, color: C.faint }}>
-              {s === 'plan' ? 'plan' : s}
-            </span>
+            <span style={{ fontSize: 10.5, color: C.faint }}>{s}</span>
           </button>
         );
       })}

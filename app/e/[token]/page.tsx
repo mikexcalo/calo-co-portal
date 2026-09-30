@@ -10,6 +10,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { studioNameFor } from '@/lib/spine/studio-name';
 import type React from 'react';
 import { notFound } from 'next/navigation';
 import { createSupabaseServer } from '@/lib/supabase-server';
@@ -194,9 +195,11 @@ export default async function PublicEstimate({
     customer: { name: string; contact_name: string | null } | null;
   } | null;
 
-  const [{ data: lines }, { data: org }] = await Promise.all([
+  const [{ data: lines }, { data: org }, studio] = await Promise.all([
     db.from('estimate_lines').select('*').eq('estimate_id', estimate.id).order('position'),
     db.from('orgs').select('name, settings, kind').eq('id', job?.org_id ?? '').maybeSingle(),
+    /* Whose name goes at the foot: the studio that set this workspace up. */
+    studioNameFor(db, job?.org_id ?? estimate.org_id),
   ]);
 
   /* The sender's word for the document, used everywhere the page names it. */
@@ -811,7 +814,7 @@ export default async function PublicEstimate({
         />
       </div>
 
-      <Sent />
+      <Sent studio={studio} />
     </DocShell>
   );
 }

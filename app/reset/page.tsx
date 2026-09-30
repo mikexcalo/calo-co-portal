@@ -27,6 +27,7 @@ import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { human } from '@/lib/spine/errors';
 import { Door, type DoorWorkspace, PROSE_WRAP, LINK_LASTS, noWidow } from '@/components/public/Door';
+import { studioFor } from '@/lib/spine/workin';
 
 const INK = '#141414';
 const DIM = '#5a5a5a';
@@ -59,9 +60,14 @@ export default function ResetPage() {
       const p = await supabase.from('profiles').select('active_org_id').eq('id', user.id).maybeSingle();
       const orgId = (p.data as { active_org_id?: string } | null)?.active_org_id;
       if (!orgId) return;
-      const o = await supabase.from('orgs').select('name').eq('id', orgId).maybeSingle();
+      const [o, house] = await Promise.all([
+        supabase.from('orgs').select('name').eq('id', orgId).maybeSingle(),
+        /* The reset link signed them in, so the RPC the rest of the product
+           uses to name a studio works here too. */
+        studioFor(orgId),
+      ]);
       const name = (o.data as { name?: string } | null)?.name;
-      if (name) setWorkspace({ name, logo: null, initials: initialsOf(name) });
+      if (name) setWorkspace({ name, logo: null, initials: initialsOf(name), studio: house.studio?.name ?? null });
     } catch {
       /* The door falls back to ours, which is still a door. */
     }

@@ -782,6 +782,37 @@ one value and nothing else.
 
 ---
 
+## 25. A client's Messaging tab has no owner — M
+
+Found while making every Brand tab read the brand through `brandForOrg`, so a
+client whose kit belongs to their studio sees their own colors, type and
+logos. Colors, Logos and Voice now do. Messaging does not, because it is not
+in the kit at all.
+
+Messaging reads `brand_message`, keyed on `org_id` with `brand_id is null`.
+There are two rows in the whole database and neither belongs to a client
+workspace: Colette Intelligence's messaging is stored under **CALO&CO's**
+`org_id` with a `brand_id`, which is the studio's copy, and Tideline's under
+its own. So the query has the same cross-org gap the brand kit had, and the
+first client whose studio writes their messaging will open the tab and find
+it empty.
+
+It is not a read-path bug to fix in isolation, because the read path is a
+consequence of a decision nobody has made: who owns a client's messaging.
+
+The answer this should take: **the studio owns messaging it wrote, and the
+client can read it and not change it, the same as the brand kit.** That
+means Messaging joins `/api/brand/kit` - same `customers.linked_org_id` walk,
+same `editable: false`, same line at the top saying where it is kept - and
+the tab stops writing to a table the client's own session can reach.
+
+The open question is what happens to messaging a client wrote for itself
+before a studio existed, since `brand_message` has one row per org and no
+notion of two authors. Tideline has exactly that row. Decide that before
+writing any of it.
+
+---
+
 ---
 
 ## Done since this list was written

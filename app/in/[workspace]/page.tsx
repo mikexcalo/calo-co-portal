@@ -19,6 +19,7 @@ import { Suspense } from 'react';
 import { SignInForm } from '@/components/public/SignInForm';
 import { clientFace } from '@/lib/spine/client-face';
 import type { DoorWorkspace } from '@/components/public/Door';
+import { studioNameFor } from '@/lib/spine/studio-name';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -34,7 +35,7 @@ async function workspaceFor(slug: string): Promise<DoorWorkspace | null> {
   const db = createClient(url, key, { auth: { persistSession: false } });
   const { data } = await db
     .from('orgs')
-    .select('name, slug, kind, settings')
+    .select('id, name, slug, kind, settings')
     .eq('slug', slug)
     .maybeSingle();
 
@@ -44,6 +45,7 @@ async function workspaceFor(slug: string): Promise<DoorWorkspace | null> {
     name: (data as { name?: string }).name ?? 'Your workspace',
     logo: face.logo ?? null,
     initials: initialsOf((data as { name?: string }).name ?? ''),
+    studio: await studioNameFor(db, (data as { id: string }).id),
   };
 }
 

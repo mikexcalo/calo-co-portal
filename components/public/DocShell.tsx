@@ -47,10 +47,25 @@ export function Ink({ href, children }: { href: string; children: React.ReactNod
  * were sent is a real one and not a forwarded attachment - and nothing about
  * what we sell.
  */
-export function Sent() {
+export function Sent({ studio }: { studio?: string | null }) {
+  /*
+    The studio that set this workspace up, never a constant.
+
+    This said "CALO&CO" on every document this product has ever sent, so a
+    Harbor Light invoice - Harbor Light being a Northwind Studio client -
+    carried another agency's name at its foot, to Harbor Light's customer.
+    `studioNameFor` follows the same link everything else does, and returns
+    nothing rather than guessing.
+
+    No studio, no line. A business that set itself up has nobody to credit,
+    and a sentence about who carried the message is not worth inventing one
+    for.
+  */
+  const house = (studio ?? '').trim();
+  if (!house) return null;
   return (
     <div style={{ textAlign: 'center', fontSize: 12, color: C.faint, margin: '22px 0 8px' }}>
-      Sent securely through CALO&amp;CO
+      Sent securely through {house}
     </div>
   );
 }

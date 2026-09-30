@@ -28,6 +28,15 @@ export interface DoorWorkspace {
   /** Their mark, where the brand kit holds one. */
   logo?: string | null;
   initials: string;
+  /*
+    Who set this workspace up, resolved rather than assumed.
+
+    The line under the card said "Workspace by CALO&CO" on every door, so a
+    Harbor Light employee signing in to a workspace Northwind Studio built
+    was told another agency's name. Null where nothing links, and then the
+    line does not appear at all.
+  */
+  studio?: string | null;
 }
 
 const INK = '#141414';
@@ -184,8 +193,8 @@ export function Door({
           }}
         >
           {footer}
-          {workspace && (
-            <div style={{ marginTop: footer ? 12 : 0 }}>Workspace by {PRODUCT}</div>
+          {workspace?.studio && (
+            <div style={{ marginTop: footer ? 12 : 0 }}>Workspace by {workspace.studio}</div>
           )}
         </div>
       </div>
