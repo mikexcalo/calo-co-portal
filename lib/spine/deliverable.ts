@@ -196,7 +196,28 @@ export async function postEmail(
 export function fromAs(business: string | null | undefined, fallbackName: string): string {
   const raw = process.env.MAIL_FROM || `${fallbackName} <onboarding@resend.dev>`;
   const address = raw.match(/<([^>]+)>/)?.[1] ?? raw.trim();
-  const name = (business ?? '').trim() || fallbackName;
+  const business_ = (business ?? '').trim();
+
+  /*
+    "Harbor Light Roofing via CALO&CO", not "Harbor Light Roofing".
+
+    A reminder sent as plain "Harbor Light Roofing" from hello@calo.company
+    was accepted by Gmail and then never appeared - not the inbox, not spam,
+    not trash. Resend reported it delivered, because Gmail had answered 250 at
+    SMTP and dropped it afterwards. Two sends went that way, to a plus alias
+    and to a plain address, while "CALO&CO" mail from the same address on the
+    same day arrived normally. The recipient was ruled out by experiment and
+    reply_to was never set, which leaves the display name.
+
+    A name that claims to be a company with no relationship to the sending
+    domain is what a spoof looks like, and a young domain gets no benefit of
+    the doubt. "via" is the form every white-label sender uses for exactly
+    this reason: the customer still sees whose invoice it is, and the half
+    Gmail checks against the domain is ours and is true.
+  */
+  const name = business_ && business_ !== fallbackName
+    ? `${business_} via ${fallbackName}`
+    : business_ || fallbackName;
   const safe = /[",<>@]/.test(name) ? `"${name.replace(/"/g, "'")}"` : name;
   return `${safe} <${address}>`;
 }
