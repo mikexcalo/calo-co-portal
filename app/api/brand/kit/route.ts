@@ -32,6 +32,7 @@
 import { NextResponse } from 'next/server';
 import { whoIsCalling, serviceClient } from '@/lib/spine/api-caller';
 import { brandForOrg } from '@/lib/spine/brand-for-org';
+import { setFromKit, gapsIn, approvedColors } from '@/lib/spine/logo-set';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -158,5 +159,19 @@ export async function GET() {
     fontBody: body,
     logos,
     voice: str((kit as { voice?: string }).voice),
+    /*
+      The set as a matrix, so the screen can show what is there AND what is
+      not. A flat list of files cannot say "there is no horizontal lockup".
+    */
+    set: setFromKit(kit).map((e) => ({
+      version: e.version,
+      versionLabel: e.versionLabel,
+      color: e.color,
+      ground: e.ground,
+      stem: e.fileStem,
+      hasSvg: Boolean(e.svgPath),
+    })),
+    gaps: gapsIn(kit),
+    approved: approvedColors(kit),
   });
 }

@@ -53,6 +53,15 @@ import { PlatformVoice } from '@/components/spine/PlatformVoice';
 
 type Tab = 'brand' | 'logos' | 'messaging' | 'platform' | 'signature';
 
+interface SetRow {
+  version: string;
+  versionLabel: string;
+  color: string;
+  ground: 'light' | 'dark';
+  stem: string;
+  hasSvg: boolean;
+}
+
 interface BrandColor {
   name: string;
   hex: string;
@@ -138,6 +147,9 @@ export default function BrandKitPage() {
   const canEdit = source !== null && editable;
   const [kitFonts, setKitFonts] = useState<Array<{ role: string; family: string; weight: string }>>([]);
   const [kitLogos, setKitLogos] = useState<Array<{ name: string; group: string; for: string; url: string }>>([]);
+  /* The set as version x color, and the holes in it. */
+  const [kitSet, setKitSet] = useState<SetRow[]>([]);
+  const [kitGaps, setKitGaps] = useState<Array<{ versionLabel: string; color: string }>>([]);
   /*
     The ground a reversed logo is previewed on.
 
@@ -232,6 +244,8 @@ export default function BrandKitPage() {
         setDark(k.dark || '#000000');
         setKitFonts(k.fonts ?? []);
         setKitLogos(k.logos ?? []);
+        setKitSet(k.set ?? []);
+        setKitGaps(k.gaps ?? []);
         setBrand({
           ...EMPTY_BRAND,
           colors: k.colors ?? [],
@@ -595,6 +609,8 @@ export default function BrandKitPage() {
             editable={canEdit}
             named={kitLogos}
             dark={dark}
+            set={kitSet}
+            gaps={kitGaps}
             onChange={(patch) => setBrand((b) => ({ ...b, ...patch }))}
           />
         )
@@ -826,6 +842,8 @@ function LogosTab({
   editable,
   named,
   dark,
+  set,
+  gaps,
   onChange,
 }: {
   brand: BrandSettings;
@@ -836,6 +854,10 @@ function LogosTab({
   named: Array<{ name: string; group: string; for: string; url: string }>;
   /** This workspace's own darkest colour, for previewing reversed artwork. */
   dark: string;
+  /** The set as version x color, where the studio holds a kit. */
+  set: SetRow[];
+  /** What the standard asks for and this kit has not got. */
+  gaps: Array<{ versionLabel: string; color: string }>;
   onChange: (patch: Partial<BrandSettings>) => void;
 }) {
   const [adding, setAdding] = useState('');
@@ -884,6 +906,35 @@ function LogosTab({
       {error && (
         <Card style={{ borderColor: C.red, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
+        </Card>
+      )}
+
+      {/*
+        The set, and what is not in it.
+
+        A grid of files cannot say "there is no horizontal lockup", because
+        an absent thing draws nothing. The line below counts what is here
+        against the four versions the standard asks for, and names the holes.
+      */}
+      {set.length > 0 && (
+        <Card style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <SectionLabel>The set</SectionLabel>
+              <p style={{ fontSize: 13.5, color: C.dim, margin: '4px 0 0', lineHeight: 1.6 }}>
+                {set.length} of these, in {new Set(set.map((e) => e.color)).size} approved colors.
+                Every one downloads as SVG, PNG at three sizes, and a print PDF.
+              </p>
+              {gaps.length > 0 && (
+                <p style={{ fontSize: 13, color: '#8B6F1F', margin: '10px 0 0', lineHeight: 1.6 }}>
+                  Not in the kit yet: {gaps.map((g) => `${g.versionLabel.toLowerCase()} in ${g.color}`).join(', ')}.
+                </p>
+              )}
+            </div>
+            <Button onClick={() => { window.location.href = '/api/brand/logos/zip'; }}>
+              Download all
+            </Button>
+          </div>
         </Card>
       )}
 
@@ -1044,28 +1095,47 @@ function LogoCard({
           </button>
         </div>
       )}
-      <div
-        style={{
-          background: previewBg,
-          padding: variant.shape === 'icon' ? '26px 20px' : '30px 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: 130,
-          borderBottom: `1px solid ${C.border}`,
-        }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={variant.url}
-          alt={variant.name}
-          style={{
-            maxWidth: variant.shape === 'icon' ? 68 : '85%',
-            maxHeight: variant.shape === 'icon' ? 68 : 78,
-            objectFit: 'contain',
-            display: 'block',
-          }}
-        />
+      {/*
+        Both grounds, always.
+
+        One preview, on the ground the file is drawn for, answers "what does
+        this look like" and hides the answer to the question people actually
+        get wrong - which of these two do I use on a dark header. Showing
+        white and the brand's own dark side by side makes the wrong one
+        disappear, which is exactly the information.
+      */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: `1px solid ${C.border}` }}>
+        {([['#FFFFFF', 'on white'], [dark, 'on dark']] as const).map(([bg, label]) => (
+          <div
+            key={label}
+            style={{
+              background: bg,
+              padding: variant.shape === 'icon' ? '22px 12px' : '26px 12px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              minHeight: 118, position: 'relative',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={variant.url}
+              alt={`${variant.name}, ${label}`}
+              style={{
+                maxWidth: variant.shape === 'icon' ? 56 : '86%',
+                maxHeight: variant.shape === 'icon' ? 56 : 64,
+                objectFit: 'contain',
+                display: 'block',
+              }}
+            />
+            <span
+              style={{
+                position: 'absolute', left: 8, bottom: 6, fontSize: 10,
+                color: bg === '#FFFFFF' ? C.faint : 'rgba(255,255,255,.55)',
+              }}
+            >
+              {label}
+            </span>
+          </div>
+        ))}
       </div>
 
       <div style={{ padding: 14 }}>

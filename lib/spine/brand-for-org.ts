@@ -106,9 +106,16 @@ function pngIn(
   );
   if (!png.length) return null;
 
+  /*
+    `ground` is the surface the file will sit on, and the kit's sentence names
+    that same surface - "on white or Sea Salt", "on Wet Slate, High Tide, or
+    photography". Matching a light ground against the words for light
+    surfaces. This was inverted, which handed the signature and the badge the
+    logo drawn for the opposite surface.
+  */
   const wants = ground === 'light'
-    ? ['white', 'sea salt', 'light']
-    : ['dark', 'navy', 'slate', 'black', 'photography'];
+    ? ['on white', 'sea salt', 'light ground']
+    : ['wet slate', 'high tide', 'navy', 'dark', 'photograph'];
   const match = png.find((a) => {
     const f = String(a.for ?? '').toLowerCase();
     return wants.some((w) => f.includes(w));
@@ -149,10 +156,10 @@ export async function brandForOrg(db: SupabaseClient, orgId: string): Promise<Br
         name,
         dark: darkest ?? FALLBACK_DARK,
         lockupPath: darkLockup((kit.assets as Array<Record<string, unknown>>) ?? []),
-        /* "on dark" wants the mark drawn to sit on a dark ground, which is
-           the one the kit describes as for white or light surfaces. */
-        markOnDark: pngIn((kit.assets as Array<Record<string, unknown>>) ?? [], 'mark', 'light'),
-        markOnLight: pngIn((kit.assets as Array<Record<string, unknown>>) ?? [], 'mark', 'dark'),
+        /* `pngIn` reads the kit's own sentence, which names the surface the
+           file goes on. So the mark for a dark ground is asked for as 'dark'. */
+        markOnDark: pngIn((kit.assets as Array<Record<string, unknown>>) ?? [], 'mark', 'dark'),
+        markOnLight: pngIn((kit.assets as Array<Record<string, unknown>>) ?? [], 'mark', 'light'),
         assetPrefix: (brand as { asset_prefix?: string } | null)?.asset_prefix ?? null,
         source: 'brands',
         settings,
