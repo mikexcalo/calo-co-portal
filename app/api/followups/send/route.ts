@@ -151,12 +151,28 @@ export async function POST(req: NextRequest) {
       company they have never heard of.
     */
     const who = business ?? PRODUCT;
+    /*
+      Written like the invoice mail, because that one arrives.
+
+      With the From line ruled out - an invoice and an estimate sent in the
+      same minute from the same address both landed in the inbox while the
+      reminder did not - what is left is these words. The old ones read like
+      collections: "came due 5 days ago", "outstanding", "if something is
+      holding it up". Same register as the invoice fraud Gmail is built to
+      stop, and nothing else in the product talks that way.
+
+      So it says the same facts in the same voice `invoices/email` uses: who
+      it is from, which document, how much, when it was due, and a way to open
+      it. A reminder is a second copy of something the customer already has,
+      not a demand.
+    */
     const message = isQuote
       ? `<p>${first},</p>
 <p>This is ${who}, just checking you saw the quote for ${r.job_name ?? 'the work'}. No rush, and no obligation. If the number is not right or something has changed, tell me and we can look at it again.</p>`
       : `<p>${first},</p>
-<p>This is ${who}. The invoice${number ? ` ${number}` : ''} for ${r.job_name ?? 'your job'} came due ${r.days} ${r.days === 1 ? 'day' : 'days'} ago. ${money(Number(r.amount))} outstanding.</p>
-<p>If it is already on its way, ignore this. If something is holding it up, let me know.</p>`;
+<p>This is ${who}. Here is invoice <strong>${number ?? ''}</strong>${r.job_name ? ` for ${r.job_name}` : ''} again, in case it went astray.</p>
+<p style="font-size:26px;font-weight:600;margin:18px 0 6px;">${money(Number(r.amount))}</p>
+<p style="color:#666;font-size:13px;margin:0 0 18px;">Due ${r.days} ${r.days === 1 ? 'day' : 'days'} ago</p>`;
 
     const res = await postEmail(r.customer_email, {
       method: 'POST',
