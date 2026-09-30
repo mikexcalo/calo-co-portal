@@ -118,6 +118,27 @@ export default function BrandKitPage() {
   */
   const [brand, setBrand] = useState<BrandSettings>(EMPTY_BRAND);
 
+  /*
+    Whose brand this is, and whether this screen is allowed to change it.
+
+    A business that set itself up keeps its brand in `orgs.settings.brand`,
+    which is what this screen has always edited. A business an agency built
+    for keeps a whole kit on a `brands` row the AGENCY owns, reached through
+    `customers.linked_org_id` - so reading settings showed those clients "No
+    colors yet" about their own identity while a finished kit sat one join
+    away. /api/brand/kit does the same walk the Signature tab already did.
+
+    `editable` is false for a studio-owned kit, and the screen says so. A Save
+    from here would write to `orgs.settings.brand`, which nothing reads once a
+    kit exists: the edit would look accepted and be gone on the next load.
+  */
+  const [source, setSource] = useState<'brands' | 'settings' | 'none' | null>(null);
+  const [editable, setEditable] = useState(true);
+  /* Null source means the question is still open. Offer nothing to press. */
+  const canEdit = source !== null && editable;
+  const [kitFonts, setKitFonts] = useState<Array<{ role: string; family: string; weight: string }>>([]);
+  const [kitLogos, setKitLogos] = useState<Array<{ name: string; group: string; for: string; url: string }>>([]);
+
   /* This screen is your own brand. Somebody else's is on Client Brands. */
   const shown: Kit = useMemo(
     () => kitFromOrg(org?.name ?? 'Your brand', { brand }),
@@ -169,12 +190,52 @@ export default function BrandKitPage() {
     })();
   }, [org?.id]);
 
-  // Brand lives in orgs.settings — one row per business, so switching
-  // businesses switches brands without any extra plumbing.
+  /*
+    The brand, from wherever this workspace's actually is.
+
+    Nothing is drawn until the server says which place that is. Painting the
+    settings copy first was faster and wrong: Mammoth keeps five colors in its
+    own settings and its studio keeps twelve in the kit, so the screen showed
+    five colors under a Save button and then swapped to twelve without one.
+    A second of waiting beats a second of somebody else's palette and a button
+    that disappears while you are reaching for it.
+  */
   useEffect(() => {
     if (!org) return;
-    const s = (org.settings ?? {}) as Record<string, unknown>;
-    setBrand({ ...EMPTY_BRAND, ...((s.brand as Partial<BrandSettings>) ?? {}) });
+    const own = { ...EMPTY_BRAND, ...(((org.settings ?? {}) as Record<string, unknown>).brand as Partial<BrandSettings> ?? {}) };
+
+    let live = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/brand/kit');
+        const k = await res.json();
+        if (!live) return;
+        if (!res.ok || k.source !== 'brands') {
+          setSource(res.ok ? k.source : 'settings');
+          setEditable(true);
+          setBrand(own);
+          return;
+        }
+        setSource('brands');
+        setEditable(false);
+        setKitFonts(k.fonts ?? []);
+        setKitLogos(k.logos ?? []);
+        setBrand({
+          ...EMPTY_BRAND,
+          colors: k.colors ?? [],
+          fontHeading: k.fontHeading ?? '',
+          fontBody: k.fontBody ?? '',
+          voice: k.voice ?? '',
+          logos: (k.logos ?? []).map((l: { url: string }) => l.url),
+          logoLight: (k.logos ?? [])[0]?.url ?? '',
+        });
+      } catch {
+        /* A brand that will not load from the server still has whatever this
+           workspace kept for itself. Better that than an empty screen. */
+        if (live) { setSource('settings'); setEditable(true); setBrand(own); }
+      }
+    })();
+    return () => { live = false; };
   }, [org]);
 
   const save = useCallback(
@@ -218,21 +279,40 @@ export default function BrandKitPage() {
       action={
         <>
           {saved && <Pill tone="green">Saved</Pill>}
-          <Button
-            /* Only the brand fields are edited on this page now. The
-               signature tab keeps nothing: it is generated from the kit and
-               the workspace settings every time it is opened. */
-            onClick={() => save({ brand })}
-            disabled={busy || !org}
-          >
-            {busy ? 'Saving…' : 'Save'}
-          </Button>
+          {/* No Save on a kit this workspace does not own. See `editable`. */}
+          {canEdit && (
+            <Button
+              /* Only the brand fields are edited on this page now. The
+                 signature tab keeps nothing: it is generated from the kit and
+                 the workspace settings every time it is opened. */
+              onClick={() => save({ brand })}
+              disabled={busy || !org}
+            >
+              {busy ? 'Saving…' : 'Save'}
+            </Button>
+          )}
         </>
       }
     >
       {error && (
         <Card style={{ borderColor: `${C.red}55`, marginBottom: 16 }}>
           <div style={{ color: C.red, fontSize: 14 }}>{error}</div>
+        </Card>
+      )}
+
+      {/*
+        Where the brand is kept, said once, at the top.
+
+        Without it a client sees a screen with no Save button and no
+        explanation, which reads as broken rather than as somebody else's to
+        change.
+      */}
+      {source === 'brands' && (
+        <Card style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.6 }}>
+            This is the kit your studio keeps for you. You can read it, copy any
+            hex and download the files. Changes to it are made by them.
+          </div>
         </Card>
       )}
 
@@ -265,7 +345,15 @@ export default function BrandKitPage() {
           <Card>
             <SectionLabel>Colors</SectionLabel>
             {brand.colors.length === 0 ? (
-              <Empty>No colors yet. Add them, or drop a logo below and read them off it.</Empty>
+              /* "No colors yet" while the server is still being asked is a
+                 wrong answer, not a slow one. */
+              <Empty>
+                {source === null
+                  ? 'Reading your brand.'
+                  : canEdit
+                    ? 'No colors yet. Add them, or drop a logo below and read them off it.'
+                    : 'Your studio has not put any colors in this kit yet.'}
+              </Empty>
             ) : (
               <div
                 style={{
@@ -300,7 +388,12 @@ export default function BrandKitPage() {
               kit. Editing is behind a toggle so the normal state stays a clean
               wall of swatches you click to copy.
             */}
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 16 }}>
+            <div
+              style={{
+                display: canEdit ? 'flex' : 'none',
+                gap: 12, alignItems: 'center', marginTop: 16,
+              }}
+            >
               <span style={{ fontSize: 12.5, color: C.faint, flex: 1 }}>
                 {editingColors ? 'Nothing saves until you save.' : ''}
               </span>
@@ -337,6 +430,7 @@ export default function BrandKitPage() {
           */}
           <Pairings kit={shown} />
 
+          {canEdit && (
           <Card>
             <SectionLabel>Colors from a logo</SectionLabel>
             <p style={{ fontSize: 12.5, color: C.faint, margin: '6px 0 12px' }}>
@@ -350,6 +444,7 @@ export default function BrandKitPage() {
               }
             />
           </Card>
+          )}
 
           <Card>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
@@ -378,24 +473,42 @@ export default function BrandKitPage() {
               CALO&CO's tooling. That is reference material about Nautilus and
               has no place on somebody's identity.
             */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
-              <Field label="Headings">
-                <input
-                  value={brand.fontHeading}
-                  onChange={(e) => setBrand((b) => ({ ...b, fontHeading: e.target.value }))}
-                  style={inputStyle}
-                  placeholder="Name a face"
-                />
-              </Field>
-              <Field label="Body">
-                <input
-                  value={brand.fontBody}
-                  onChange={(e) => setBrand((b) => ({ ...b, fontBody: e.target.value }))}
-                  style={inputStyle}
-                  placeholder="Name a face"
-                />
-              </Field>
-            </div>
+            {canEdit ? (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                <Field label="Headings">
+                  <input
+                    value={brand.fontHeading}
+                    onChange={(e) => setBrand((b) => ({ ...b, fontHeading: e.target.value }))}
+                    style={inputStyle}
+                    placeholder="Name a face"
+                  />
+                </Field>
+                <Field label="Body">
+                  <input
+                    value={brand.fontBody}
+                    onChange={(e) => setBrand((b) => ({ ...b, fontBody: e.target.value }))}
+                    style={inputStyle}
+                    placeholder="Name a face"
+                  />
+                </Field>
+              </div>
+            ) : kitFonts.length > 0 ? (
+              /*
+                A kit names more faces than this screen has slots - GSP's lists
+                the wordmark face separately, because it is drawn into the
+                artwork and must never be retyped. Two boxes cannot say that,
+                so a read-only kit lists what it actually holds.
+              */
+              <div style={{ display: 'grid', gap: 8, marginBottom: 14 }}>
+                {kitFonts.map((f, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'baseline', fontSize: 13.5 }}>
+                    <span style={{ color: C.text, fontWeight: 500 }}>{f.family}</span>
+                    <span style={{ color: C.faint, flex: 1 }}>{f.role}</span>
+                    {f.weight && <span style={{ color: C.faint, fontSize: 12.5 }}>{f.weight}</span>}
+                  </div>
+                ))}
+              </div>
+            ) : null}
 
             <div style={{ display: 'grid', gap: 12 }}>
               <FontSpecimen
@@ -414,15 +527,21 @@ export default function BrandKitPage() {
             </div>
           </Card>
 
-          <Card>
-            <SectionLabel>Voice</SectionLabel>
-            <textarea
-              value={brand.voice}
-              onChange={(e) => setBrand((b) => ({ ...b, voice: e.target.value }))}
-              style={{ ...inputStyle, minHeight: 90, resize: 'vertical' }}
-              placeholder="How this brand sounds. Plain, direct, no jargon…"
-            />
-          </Card>
+          {(canEdit || brand.voice) && (
+            <Card>
+              <SectionLabel>Voice</SectionLabel>
+              {canEdit ? (
+                <textarea
+                  value={brand.voice}
+                  onChange={(e) => setBrand((b) => ({ ...b, voice: e.target.value }))}
+                  style={{ ...inputStyle, minHeight: 90, resize: 'vertical' }}
+                  placeholder="How this brand sounds. Plain, direct, no jargon…"
+                />
+              ) : (
+                <p style={{ fontSize: 14, color: C.dim, margin: 0, lineHeight: 1.65 }}>{brand.voice}</p>
+              )}
+            </Card>
+          )}
 
           {/*
             Save is at the bottom as well as the top.
@@ -431,15 +550,17 @@ export default function BrandKitPage() {
             so editing the voice box meant scrolling back past everything to
             keep it. A save you have to go looking for is a save people forget.
           */}
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <Button onClick={() => save({ brand })} disabled={busy || !org}>
-              {busy ? 'Saving…' : 'Save'}
-            </Button>
-            {saved && <Pill tone="green">Saved</Pill>}
-            <span style={{ fontSize: 12.5, color: C.faint }}>
-              Colors, type and voice are all saved together.
-            </span>
-          </div>
+          {canEdit && (
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <Button onClick={() => save({ brand })} disabled={busy || !org}>
+                {busy ? 'Saving…' : 'Save'}
+              </Button>
+              {saved && <Pill tone="green">Saved</Pill>}
+              <span style={{ fontSize: 12.5, color: C.faint }}>
+                Colors, type and voice are all saved together.
+              </span>
+            </div>
+          )}
 
         </div>
       /*
@@ -451,11 +572,19 @@ export default function BrandKitPage() {
         a reason to read the palette, not a reason to live there.
       */
       ) : tab === 'logos' ? (
-        <LogosTab
-          brand={brand}
-          company={org?.name ?? 'brand'}
-          onChange={(patch) => setBrand((b) => ({ ...b, ...patch }))}
-        />
+        source === null ? (
+          /* Same reason as the Colors card: an empty grid is an answer, and
+             we do not have one yet. */
+          <Card><Empty>Reading your brand.</Empty></Card>
+        ) : (
+          <LogosTab
+            brand={brand}
+            company={org?.name ?? 'brand'}
+            editable={canEdit}
+            named={kitLogos}
+            onChange={(patch) => setBrand((b) => ({ ...b, ...patch }))}
+          />
+        )
       ) : tab === 'signature' ? (
         <SignatureTab />
       ) : tab === 'platform' ? (
@@ -681,10 +810,16 @@ function ColorTile({
 function LogosTab({
   brand,
   company,
+  editable,
+  named,
   onChange,
 }: {
   brand: BrandSettings;
   company: string;
+  /** False for a kit the studio owns: read, copy and download, nothing else. */
+  editable: boolean;
+  /** What the kit calls each file, where a kit is what we are showing. */
+  named: Array<{ name: string; group: string; for: string; url: string }>;
   onChange: (patch: Partial<BrandSettings>) => void;
 }) {
   const [adding, setAdding] = useState('');
@@ -698,11 +833,28 @@ function LogosTab({
     return Array.from(new Set(all));
   }, [brand.logoLight, brand.logoDark, brand.logos]);
 
-  const variants: LogoVariant[] = urls.map((url, i) => ({
-    id: `${i}-${url}`,
-    url,
-    ...describeFromFilename(url),
-  }));
+  /*
+    A kit's files come with names. A signed URL does not.
+
+    describeFromFilename reads a name out of a path, which works for the
+    public URLs a business types in here and produces nonsense for a signed
+    URL ending in ?token=… . Where the kit told us what a file is, use that.
+  */
+  const byUrl = useMemo(() => new Map(named.map((l) => [l.url, l])), [named]);
+  const variants: LogoVariant[] = urls.map((url, i) => {
+    const known = byUrl.get(url);
+    /* Which ground it reads on, and lockup-or-mark, still come from the file
+       name - but the kit's name, not the signed URL it is served from. */
+    const shape = describeFromFilename(known?.name ?? url);
+    return {
+      id: `${i}-${url}`,
+      url,
+      ...shape,
+      ...(known
+        ? { name: known.name, use: known.for || known.group || shape.use }
+        : {}),
+    };
+  });
 
   const addLogo = () => {
     const url = adding.trim();
@@ -720,7 +872,13 @@ function LogosTab({
       )}
 
       {variants.length === 0 ? (
-        <Card><Empty>No logos yet. Add a public image URL below.</Empty></Card>
+        <Card>
+          <Empty>
+            {editable
+              ? 'No logos yet. Add a public image URL below.'
+              : 'Your studio has not put any logo files in this kit yet.'}
+          </Empty>
+        </Card>
       ) : (
         <div
           style={{
@@ -748,6 +906,7 @@ function LogosTab({
               variant={v}
               company={company}
               onError={setError}
+              editable={editable}
               isDefault={(brand.logoLight ?? (brand.logos ?? [])[0]) === v.url}
               onUseOnDocuments={() => onChange({ logoLight: v.url })}
               onRemove={() =>
@@ -762,6 +921,7 @@ function LogosTab({
         </div>
       )}
 
+      {editable && (
       <Card style={{ marginTop: 18 }}>
         <SectionLabel>Add a logo</SectionLabel>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -779,6 +939,7 @@ function LogosTab({
           can&apos;t redraw it into other formats. Files served from your own sites work.
         </div>
       </Card>
+      )}
     </div>
   );
 }
@@ -787,6 +948,7 @@ function LogoCard({
   variant,
   company,
   onError,
+  editable,
   isDefault,
   onUseOnDocuments,
   onRemove,
@@ -794,6 +956,8 @@ function LogoCard({
   variant: LogoVariant;
   company: string;
   onError: (msg: string | null) => void;
+  /** False for a studio-owned kit: download still works, rearranging does not. */
+  editable: boolean;
   isDefault: boolean;
   onUseOnDocuments: () => void;
   onRemove: () => void;
@@ -830,32 +994,36 @@ function LogoCard({
         proposal was to get the order right by luck. This says which one is
         being used and lets you say otherwise.
       */}
-      <div
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          gap: 8, padding: '8px 10px', borderBottom: `1px solid ${C.border}`,
-        }}
-      >
-        {isDefault ? (
-          <span style={{ fontSize: 11.5, fontWeight: 600, color: C.green }}>
-            On your documents
-          </span>
-        ) : (
-          <button
-            onClick={onUseOnDocuments}
-            style={{ background: 'transparent', border: 'none', padding: 0, color: C.dim, fontSize: 11.5, cursor: 'pointer', fontFamily: 'inherit' }}
-          >
-            Use this on documents
-          </button>
-        )}
-        <button
-          onClick={onRemove}
-          title="Take this out of the kit"
-          style={{ background: 'transparent', border: 'none', padding: 0, color: C.red, fontSize: 11.5, cursor: 'pointer', fontFamily: 'inherit' }}
+      {/* Which file documents use, and taking one out, are both edits to the
+          kit. On a kit the studio owns, the card is a file you can download. */}
+      {editable && (
+        <div
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: 8, padding: '8px 10px', borderBottom: `1px solid ${C.border}`,
+          }}
         >
-          Remove
-        </button>
-      </div>
+          {isDefault ? (
+            <span style={{ fontSize: 11.5, fontWeight: 600, color: C.green }}>
+              On your documents
+            </span>
+          ) : (
+            <button
+              onClick={onUseOnDocuments}
+              style={{ background: 'transparent', border: 'none', padding: 0, color: C.dim, fontSize: 11.5, cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              Use this on documents
+            </button>
+          )}
+          <button
+            onClick={onRemove}
+            title="Take this out of the kit"
+            style={{ background: 'transparent', border: 'none', padding: 0, color: C.red, fontSize: 11.5, cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            Remove
+          </button>
+        </div>
+      )}
       <div
         style={{
           background: previewBg,

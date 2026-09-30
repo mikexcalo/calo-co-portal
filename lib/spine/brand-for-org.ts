@@ -45,6 +45,15 @@ export interface BrandFacts {
   settings: Record<string, unknown>;
   /** The kit's own `site_url`, where there is a kit. */
   siteUrl: string | null;
+  /*
+    The whole kit, for callers that want more than a logo and a dark color.
+
+    The Brand screen needs the colors, the type and every asset, and this
+    function has already read the row they are on. Handing the object back
+    costs nothing and saves the screen a second walk down the same link.
+  */
+  /** The agency's `brands.kit`, verbatim. Null where there is no kit. */
+  kit: Record<string, unknown> | null;
 }
 
 const FALLBACK_DARK = '#1D1F24';
@@ -114,6 +123,7 @@ export async function brandForOrg(db: SupabaseClient, orgId: string): Promise<Br
         source: 'brands',
         settings,
         siteUrl: (brand as { site_url?: string } | null)?.site_url?.trim() || null,
+        kit,
       };
     }
   }
@@ -127,6 +137,7 @@ export async function brandForOrg(db: SupabaseClient, orgId: string): Promise<Br
     source: Object.keys(own).length ? 'settings' : 'none',
     settings,
     siteUrl: null,
+    kit: null,
   };
 }
 

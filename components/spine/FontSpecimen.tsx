@@ -56,14 +56,28 @@ export function FontSpecimen({
     }
 
     let dead = false;
-    const check = () => {
+
+    /*
+      Ask for the face, then ask whether it arrived.
+
+      `document.fonts.check` answers "is this loaded", not "does this exist",
+      and `display=swap` means nothing is fetched until something is drawn in
+      it. So a real family that simply had not been downloaded yet came back
+      false, and the specimen said Archivo Narrow does not exist - on the
+      screen of the brand that uses it. `fonts.load` requests it first, which
+      is the difference between a missing font and a slow one.
+    */
+    (async () => {
+      if (local) { if (!dead) setState('ok'); return; }
+      try {
+        await document.fonts.load(`16px "${name}"`);
+      } catch {
+        /* An unpublished name rejects. That is the answer, not an error. */
+      }
       if (dead) return;
-      // Asking the browser rather than assuming. A name nobody publishes never
-      // resolves, and that is exactly what somebody needs to be told.
-      const ok = local || document.fonts.check(`16px "${name}"`);
-      setState(ok ? 'ok' : 'missing');
-    };
-    document.fonts.ready.then(() => setTimeout(check, 400));
+      setState(document.fonts.check(`16px "${name}"`) ? 'ok' : 'missing');
+    })();
+
     return () => {
       dead = true;
     };

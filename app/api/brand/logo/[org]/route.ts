@@ -20,16 +20,31 @@
  * WHY A PNG AND NOT THE SVG
  *
  * Outlook on Windows renders mail through Word, which does not draw SVG at
- * all. The kit holds both; this hands over the PNG, and the signature asks
- * for it at twice its display size so it stays sharp on a retina screen.
+ * all. The kit holds both; this hands over the PNG.
+ *
+ * WHY IT IS RESIZED HERE
+ *
+ * The kit's lockup is 2400px wide and 118 KB, and the signature draws it at
+ * 120. Every recipient's mail client was fetching twenty times the pixels it
+ * could use, on every first open of every message. This serves 240 - two
+ * times the display size, which is what a retina screen actually asks for -
+ * and the original stays untouched in the bucket for everything else.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import sharp from 'sharp';
 import { brandForOrg } from '@/lib/spine/brand-for-org';
+import { SIGNATURE_DEFAULTS } from '@/lib/spine/signature-block';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+/*
+  Twice what the signature draws, derived rather than typed, so changing the
+  display size in one place cannot leave the served file at the old scale.
+*/
+const SERVE_AT = SIGNATURE_DEFAULTS.logoWidth * 2;
 
 export async function GET(_req: NextRequest, { params }: { params: { org: string } }) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -48,7 +63,23 @@ export async function GET(_req: NextRequest, { params }: { params: { org: string
     .download(`${facts.assetPrefix}/${facts.lockupPath}`);
   if (error || !data) return new NextResponse('No logo for this workspace', { status: 404 });
 
-  return new NextResponse(await data.arrayBuffer(), {
+  /*
+    Never upscale. A kit whose lockup is already smaller than 240 is served as
+    it is; blowing it up would cost bytes to add nothing.
+  */
+  const original = Buffer.from(await data.arrayBuffer());
+  let body: Buffer;
+  try {
+    body = await sharp(original)
+      .resize({ width: SERVE_AT, withoutEnlargement: true })
+      .png({ compressionLevel: 9 })
+      .toBuffer();
+  } catch {
+    /* A file sharp cannot read is still a logo somebody is waiting for. */
+    body = original;
+  }
+
+  return new NextResponse(new Uint8Array(body), {
     headers: {
       'content-type': 'image/png',
       /*
