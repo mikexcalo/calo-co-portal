@@ -25,6 +25,17 @@ export interface BrandFacts {
   dark: string;
   /** Storage key of the dark stacked lockup, relative to the asset prefix. */
   lockupPath: string | null;
+  /*
+    The mark on its own, for the places a lockup cannot go.
+
+    A 34px square in the sidebar is one of them: a stacked lockup at that
+    size is a grey smudge. Two of them, because which one reads depends on
+    what it is sitting on, and the badge's ground is the workspace colour.
+  */
+  /** Mark drawn for dark grounds - usually the white one. */
+  markOnDark: string | null;
+  /** Mark drawn for light grounds - usually the colour one. */
+  markOnLight: string | null;
   /** The prefix every storage key in this kit sits under. */
   assetPrefix: string | null;
   /** Where the kit was found, which the caller may want to say out loud. */
@@ -73,17 +84,36 @@ function hex(v: unknown): string | null {
  * that is the wrong color still beats a broken image.
  */
 function darkLockup(assets: Array<Record<string, unknown>>): string | null {
+  return pngIn(assets, 'lockup', 'light');
+}
+
+/**
+ * One PNG out of a kit, by what it is and what it will sit on.
+ *
+ * Still asking what each file is FOR rather than matching file names, which
+ * is the only thing that works across kits that name nothing alike. PNG
+ * because the two callers are a mail client and an <img> in a 34px square,
+ * and Word draws neither SVG nor anything clever.
+ */
+function pngIn(
+  assets: Array<Record<string, unknown>>,
+  group: string,
+  ground: 'light' | 'dark'
+): string | null {
   const png = assets.filter(
     (a) => String(a.name ?? '').toLowerCase().endsWith('.png') &&
-           String(a.group ?? '').toLowerCase().includes('lockup')
+           String(a.group ?? '').toLowerCase().includes(group)
   );
   if (!png.length) return null;
 
-  const onLight = png.find((a) => {
+  const wants = ground === 'light'
+    ? ['white', 'sea salt', 'light']
+    : ['dark', 'navy', 'slate', 'black', 'photography'];
+  const match = png.find((a) => {
     const f = String(a.for ?? '').toLowerCase();
-    return f.includes('white') || f.includes('sea salt') || f.includes('light');
+    return wants.some((w) => f.includes(w));
   });
-  const chosen = onLight ?? png[0];
+  const chosen = match ?? png[0];
   const path = chosen.storage_path ?? chosen.path;
   return typeof path === 'string' && path ? path : null;
 }
@@ -119,6 +149,10 @@ export async function brandForOrg(db: SupabaseClient, orgId: string): Promise<Br
         name,
         dark: darkest ?? FALLBACK_DARK,
         lockupPath: darkLockup((kit.assets as Array<Record<string, unknown>>) ?? []),
+        /* "on dark" wants the mark drawn to sit on a dark ground, which is
+           the one the kit describes as for white or light surfaces. */
+        markOnDark: pngIn((kit.assets as Array<Record<string, unknown>>) ?? [], 'mark', 'light'),
+        markOnLight: pngIn((kit.assets as Array<Record<string, unknown>>) ?? [], 'mark', 'dark'),
         assetPrefix: (brand as { asset_prefix?: string } | null)?.asset_prefix ?? null,
         source: 'brands',
         settings,
@@ -133,6 +167,8 @@ export async function brandForOrg(db: SupabaseClient, orgId: string): Promise<Br
     name,
     dark: hex(own.ink) ?? hex(own.dark) ?? FALLBACK_DARK,
     lockupPath: null,
+    markOnDark: null,
+    markOnLight: null,
     assetPrefix: null,
     source: Object.keys(own).length ? 'settings' : 'none',
     settings,

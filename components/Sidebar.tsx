@@ -21,6 +21,7 @@ import {
   workspaceKindLabel,
   workspaceInitials,
   workspaceLogo,
+  workspaceMarkUrl,
   readableOn,
 } from '@/lib/spine/workspace-color';
 import { modulesFor, navFor } from '@/lib/spine/modules';
@@ -1050,7 +1051,26 @@ function ClientIdentity() {
 function NamePlate() {
   const { org } = useOrg();
   const color = workspaceColor(org);
-  const logo = workspaceLogo(org);
+  const own = workspaceLogo(org);
+
+  /*
+    The mark, for a workspace whose brand the studio holds.
+
+    `workspaceLogo` reads `orgs.settings.brand`, which is empty for every
+    client an agency built for - their kit is a `brands` row the agency owns.
+    So John's plate drew "GS" in grey while his own mark sat in the kit one
+    join away. /api/brand/logo serves it: a permanent address, cached, and
+    already the door the signature uses.
+
+    `on` is which ground it has to read against, and the ground is the plate's
+    own colour. No kit, or a kit with no mark, and the request 404s - which is
+    what `failed` catches, falling back to the initials that were always the
+    right answer for a business with no mark at all.
+  */
+  const [failed, setFailed] = useState(false);
+  useEffect(() => { setFailed(false); }, [org?.id]);
+  const fromKit = own ? null : workspaceMarkUrl(org?.id, readableOn(color) === '#FFFFFF' ? 'dark' : 'light');
+  const logo = own ?? (failed ? null : fromKit);
   const [open, setOpen] = useState(false);
 
   if (!org) {
@@ -1105,7 +1125,10 @@ function NamePlate() {
             <img
               src={logo}
               alt=""
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={() => setFailed(true)}
+              /* `contain` for a mark, which has its own breathing room built
+                 in; `cover` would crop a circular mark to a square. */
+              style={{ width: '100%', height: '100%', objectFit: own ? 'cover' : 'contain', padding: own ? 0 : 5 }}
             />
           ) : (
             <span

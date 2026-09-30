@@ -138,6 +138,16 @@ export default function BrandKitPage() {
   const canEdit = source !== null && editable;
   const [kitFonts, setKitFonts] = useState<Array<{ role: string; family: string; weight: string }>>([]);
   const [kitLogos, setKitLogos] = useState<Array<{ name: string; group: string; for: string; url: string }>>([]);
+  /*
+    The ground a reversed logo is previewed on.
+
+    It was #1F2D48, which is the platform's navy and nobody's brand. On a
+    screen whose entire job is to show a business its own identity, a white
+    lockup sat on a colour from our stylesheet - a fourth brand on their own
+    brand page. Their darkest colour instead, measured rather than named, and
+    black where there is no brand to ask.
+  */
+  const [dark, setDark] = useState<string>('#000000');
 
   /* This screen is your own brand. Somebody else's is on Client Brands. */
   const shown: Kit = useMemo(
@@ -214,10 +224,12 @@ export default function BrandKitPage() {
           setSource(res.ok ? k.source : 'settings');
           setEditable(true);
           setBrand(own);
+          setDark(darkestOf(own.colors) ?? '#000000');
           return;
         }
         setSource('brands');
         setEditable(false);
+        setDark(k.dark || '#000000');
         setKitFonts(k.fonts ?? []);
         setKitLogos(k.logos ?? []);
         setBrand({
@@ -582,6 +594,7 @@ export default function BrandKitPage() {
             company={org?.name ?? 'brand'}
             editable={canEdit}
             named={kitLogos}
+            dark={dark}
             onChange={(patch) => setBrand((b) => ({ ...b, ...patch }))}
           />
         )
@@ -812,6 +825,7 @@ function LogosTab({
   company,
   editable,
   named,
+  dark,
   onChange,
 }: {
   brand: BrandSettings;
@@ -820,6 +834,8 @@ function LogosTab({
   editable: boolean;
   /** What the kit calls each file, where a kit is what we are showing. */
   named: Array<{ name: string; group: string; for: string; url: string }>;
+  /** This workspace's own darkest colour, for previewing reversed artwork. */
+  dark: string;
   onChange: (patch: Partial<BrandSettings>) => void;
 }) {
   const [adding, setAdding] = useState('');
@@ -907,6 +923,7 @@ function LogosTab({
               company={company}
               onError={setError}
               editable={editable}
+              dark={dark}
               isDefault={(brand.logoLight ?? (brand.logos ?? [])[0]) === v.url}
               onUseOnDocuments={() => onChange({ logoLight: v.url })}
               onRemove={() =>
@@ -949,6 +966,7 @@ function LogoCard({
   company,
   onError,
   editable,
+  dark,
   isDefault,
   onUseOnDocuments,
   onRemove,
@@ -958,6 +976,8 @@ function LogoCard({
   onError: (msg: string | null) => void;
   /** False for a studio-owned kit: download still works, rearranging does not. */
   editable: boolean;
+  /** The workspace's own dark, for reversed artwork. Never the platform's. */
+  dark: string;
   isDefault: boolean;
   onUseOnDocuments: () => void;
   onRemove: () => void;
@@ -969,7 +989,7 @@ function LogoCard({
   // Preview on the background the file is actually built for, so a reversed
   // logo doesn't disappear into a white card.
   const previewBg =
-    variant.preview === 'dark' ? '#1F2D48' : variant.preview === 'brand' ? '#F4EFE3' : '#FFFFFF';
+    variant.preview === 'dark' ? dark : variant.preview === 'brand' ? '#F4EFE3' : '#FFFFFF';
 
   const download = async () => {
     setBusy(true);
@@ -1084,4 +1104,23 @@ function LogoCard({
       </div>
     </Card>
   );
+}
+
+/**
+ * The darkest of a set of colors, measured.
+ *
+ * The same arithmetic `brandForOrg` runs on a kit, for the workspaces that
+ * keep their brand in their own settings instead. A brand may call its dark
+ * anything; it cannot hide how dark it is.
+ */
+function darkestOf(colors: BrandColor[]): string | null {
+  const hexes = (colors ?? [])
+    .map((c) => (c.hex ?? '').trim())
+    .filter((h) => /^#[0-9a-fA-F]{6}$/.test(h));
+  if (!hexes.length) return null;
+  const luma = (h: string) => {
+    const n = parseInt(h.slice(1), 16);
+    return 0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255);
+  };
+  return hexes.sort((a, b) => luma(a) - luma(b))[0].toUpperCase();
 }

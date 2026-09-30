@@ -993,7 +993,20 @@ export function Tabs({
     if (!el || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(measure);
     ro.observe(el);
-    return () => ro.disconnect();
+    /*
+      The tabs get wider after the face arrives.
+
+      ResizeObserver watches the strip's own box, and the strip is
+      `maxWidth: 100%` - so when a web font loads and every label grows, the
+      content overflows while the box does not change at all and nothing
+      re-measures. The strip then draws no fade over tabs that are now
+      genuinely hidden. Asking again once the fonts are in costs one call.
+    */
+    let off = false;
+    if (typeof document !== 'undefined' && document.fonts) {
+      void document.fonts.ready.then(() => { if (!off) measure(); });
+    }
+    return () => { off = true; ro.disconnect(); };
   }, [measure]);
 
   if (!items.length) return null;
@@ -1006,13 +1019,22 @@ export function Tabs({
     invitation to swipe. Fading the edge that still has tabs behind it says
     there is more without adding a control nobody can reach with a thumb.
   */
-  const fade = '#000 0, #000 calc(100% - 22px), transparent 100%';
+  /*
+    Wide enough that the tab under it dissolves rather than being clipped.
+
+    At 22px the fade only caught the last few pixels of a word, so "Messaging"
+    stayed fully legible with a soft edge behind it - which reads as a
+    rendering fault, the exact thing the fade exists to avoid. At 44 the
+    partially-hidden tab visibly goes, and going is what says there is more.
+  */
+  const EDGE = 44;
+  const fade = `#000 0, #000 calc(100% - ${EDGE}px), transparent 100%`;
   const maskImage = more.left && more.right
-    ? 'linear-gradient(to right, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%)'
+    ? `linear-gradient(to right, transparent 0, #000 ${EDGE}px, #000 calc(100% - ${EDGE}px), transparent 100%)`
     : more.right
       ? `linear-gradient(to right, ${fade})`
       : more.left
-        ? 'linear-gradient(to left, #000 0, #000 calc(100% - 22px), transparent 100%)'
+        ? `linear-gradient(to left, #000 0, #000 calc(100% - ${EDGE}px), transparent 100%)`
         : undefined;
 
   return (

@@ -46,7 +46,18 @@ export const dynamic = 'force-dynamic';
 */
 const SERVE_AT = SIGNATURE_DEFAULTS.logoWidth * 2;
 
-export async function GET(_req: NextRequest, { params }: { params: { org: string } }) {
+export async function GET(req: NextRequest, { params }: { params: { org: string } }) {
+  /*
+    Which piece, and what it will sit on.
+
+    Default is the stacked lockup for an email signature, which is what this
+    route was built for. `part=mark` is the mark alone, for the 34px badge at
+    the top of the sidebar - a lockup at that size is a smudge. `on` says
+    which ground it has to read against, because the badge sits on the
+    workspace's own colour and a white mark on a pale one is invisible.
+  */
+  const part = req.nextUrl.searchParams.get('part') === 'mark' ? 'mark' : 'lockup';
+  const on = req.nextUrl.searchParams.get('on') === 'light' ? 'light' : 'dark';
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return new NextResponse('Not configured', { status: 500 });
@@ -54,13 +65,16 @@ export async function GET(_req: NextRequest, { params }: { params: { org: string
   const db = createClient(url, key, { auth: { persistSession: false } });
 
   const facts = await brandForOrg(db, params.org);
-  if (!facts.lockupPath || !facts.assetPrefix) {
+  const wanted = part === 'mark'
+    ? (on === 'dark' ? facts.markOnDark : facts.markOnLight)
+    : facts.lockupPath;
+  if (!wanted || !facts.assetPrefix) {
     return new NextResponse('No logo for this workspace', { status: 404 });
   }
 
   const { data, error } = await db.storage
     .from('client-assets')
-    .download(`${facts.assetPrefix}/${facts.lockupPath}`);
+    .download(`${facts.assetPrefix}/${wanted}`);
   if (error || !data) return new NextResponse('No logo for this workspace', { status: 404 });
 
   /*
@@ -68,10 +82,12 @@ export async function GET(_req: NextRequest, { params }: { params: { org: string
     it is; blowing it up would cost bytes to add nothing.
   */
   const original = Buffer.from(await data.arrayBuffer());
+  /* A badge is 34px drawn; 96 covers it at 2x with room for a bigger one. */
+  const width = part === 'mark' ? 96 : SERVE_AT;
   let body: Buffer;
   try {
     body = await sharp(original)
-      .resize({ width: SERVE_AT, withoutEnlargement: true })
+      .resize({ width, withoutEnlargement: true })
       .png({ compressionLevel: 9 })
       .toBuffer();
   } catch {

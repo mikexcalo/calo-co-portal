@@ -17,7 +17,7 @@ import { useOrg } from '@/lib/spine/org';
 import { BottomBar } from '@/components/spine/BottomBar';
 import { Capture, type CaptureJob } from '@/components/spine/Capture';
 import { pathAllowed } from '@/lib/spine/modules';
-import { workspaceColor } from '@/lib/spine/workspace-color';
+import { workspaceColor, workspaceLogo, workspaceMarkUrl, readableOn } from '@/lib/spine/workspace-color';
 import { OrgSwitcher } from '@/components/spine/OrgSwitcher';
 import { PRODUCT } from '@/lib/brand';
 
@@ -273,6 +273,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   /* One resolver, shared with the name plate, so the two can never disagree
      about which business you are standing in. */
   const stripColor = workspaceColor(org);
+  /* Their mark for the phone chip, falling back to the plain square. */
+  const [chipFailed, setChipFailed] = useState(false);
+  useEffect(() => { setChipFailed(false); }, [org?.id]);
+  const chipMark = chipFailed
+    ? null
+    : workspaceLogo(org) ?? workspaceMarkUrl(org?.id, readableOn(stripColor) === '#FFFFFF' ? 'dark' : 'light');
 
   /*
     View mode only means anything inside somebody else's workspace.
@@ -387,13 +393,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
             }}
           >
+            {/*
+              The mark, on a phone too.
+
+              This was a bare coloured square - no logo and not even initials -
+              so a client whose kit the studio holds got an anonymous grey
+              rounded rectangle above their own workspace name. Same rule as
+              the sidebar plate: their mark where there is one, the square
+              where there is not.
+            */}
             <span
               aria-hidden
               style={{
                 width: 24, height: 24, borderRadius: 7, flexShrink: 0,
-                background: stripColor,
+                background: stripColor, overflow: 'hidden',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
-            />
+            >
+              {chipMark && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={chipMark}
+                  alt=""
+                  onError={() => setChipFailed(true)}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 3 }}
+                />
+              )}
+            </span>
             <span
               style={{
                 fontSize: 17, fontWeight: 600, letterSpacing: '-0.3px',

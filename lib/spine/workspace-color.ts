@@ -111,3 +111,25 @@ export function workspaceLogo(org: Colourish | null | undefined): string | null 
     | undefined;
   return (b?.logoLight || b?.logos?.[0] || '').trim() || null;
 }
+
+/**
+ * The mark to draw in a workspace badge, where the kit holds one.
+ *
+ * `workspaceLogo` above reads `orgs.settings.brand`, which is the right place
+ * for a business that set itself up and empty for every business an agency
+ * built for - their kit is a `brands` row the agency owns. So a client's own
+ * badge drew grey initials, or on a phone a plain grey square, while their
+ * mark sat one join away.
+ *
+ * This is the address of that mark: a permanent, cached route that already
+ * exists for the email signature. `ground` is what the badge sits on, because
+ * a white mark on a pale plate is not there at all. It returns a URL without
+ * knowing whether there is a file behind it - a workspace with no kit gets a
+ * 404, which the caller catches and falls back from.
+ */
+export function workspaceMarkUrl(
+  orgId: string | null | undefined,
+  ground: 'light' | 'dark'
+): string | null {
+  return orgId ? `/api/brand/logo/${orgId}?part=mark&on=${ground}` : null;
+}

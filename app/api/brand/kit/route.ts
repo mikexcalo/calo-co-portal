@@ -92,6 +92,9 @@ export async function GET() {
       source: facts.source,
       business: facts.name,
       editable: true,
+      /* Their own dark, for previews that need a dark ground. brandForOrg
+         measures it rather than trusting a name. */
+      dark: facts.dark,
       colors: [], fonts: [], fontHeading: '', fontBody: '', logos: [], voice: '',
     });
   }
@@ -137,6 +140,11 @@ export async function GET() {
   return NextResponse.json({
     source: 'brands',
     business: facts.name,
+    /* The darkest colour in the kit, measured. A reversed logo previewed on
+       the platform's navy was a fourth brand on somebody's own brand page. */
+    dark: facts.dark,
+    /* The mark on its own, for a badge too small to take a lockup. */
+    hasMark: Boolean(facts.markOnDark || facts.markOnLight),
     /*
       Read-only, and said out loud rather than left for a failed save to
       explain. The row belongs to the agency; a Save here would write to
