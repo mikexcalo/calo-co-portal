@@ -100,8 +100,19 @@ async function record(entry: {
     }
 
     let subject: string | null = null;
+    let from: string | null = null;
     try {
-      subject = (JSON.parse(String(entry.init.body ?? '{}')) as { subject?: string }).subject ?? null;
+      const sent = JSON.parse(String(entry.init.body ?? '{}')) as { subject?: string; from?: string };
+      subject = sent.subject ?? null;
+      /*
+        The envelope, not just the contents.
+
+        Three reminders vanished between Resend and an inbox and the first
+        question was "what did it actually say it was from" - which nothing
+        had written down, so it could not be answered without sending a
+        fourth. A record of a send that omits the sender is half a record.
+      */
+      from = sent.from ?? null;
     } catch {
       /* Not our JSON. The rest of the row still stands. */
     }
@@ -109,6 +120,7 @@ async function record(entry: {
     await db.from('mail_sends').insert({
       org_id: orgId,
       to_email: entry.to,
+      from_email: from,
       subject,
       about_table: entry.about?.table ?? null,
       about_id: entry.about?.id ?? null,

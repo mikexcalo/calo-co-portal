@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
     headers: { Authorization: `Bearer ${key}` },
   });
   const body = (await res.json().catch(() => null)) as
-    | { last_event?: string; to?: string[]; message?: string; error?: string }
+    | { last_event?: string; from?: string; to?: string[]; subject?: string; message?: string; error?: string }
     | null;
 
   if (!res.ok) {
@@ -108,5 +108,15 @@ export async function POST(req: NextRequest) {
     .update({ status, status_at: new Date().toISOString() })
     .eq('id', row.id);
 
-  return NextResponse.json({ outcome: row.outcome, status, detail: plainStatus(status) });
+  /* The envelope as the provider holds it, so a vanished message can be
+     argued about with facts rather than with what the code ought to have
+     sent. */
+  return NextResponse.json({
+    outcome: row.outcome,
+    status,
+    detail: plainStatus(status),
+    from: body?.from ?? null,
+    to: body?.to ?? null,
+    subject: body?.subject ?? null,
+  });
 }
