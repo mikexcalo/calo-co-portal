@@ -26,12 +26,12 @@ import { apiError } from '@/lib/spine/errors';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { postEmail } from '@/lib/spine/deliverable';
+import { moneyText } from '@/lib/spine/money-text';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
-const money = (n: number) =>
-  `$${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const money = moneyText;
 
 export async function POST(req: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

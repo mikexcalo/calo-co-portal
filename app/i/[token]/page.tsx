@@ -413,13 +413,18 @@ export default async function PublicInvoice({ params }: { params: { token: strin
         </section>
       )}
 
-      {/* A number to ring, where the business has given one. Named, because
-          "call the contractor" is a chore and "Call Dana" is a person. */}
+      {/*
+        A number to ring, where the BUSINESS has given one.
+
+        This said `Call ${owner.firstName}` when a name was on the account,
+        and that name is a login, not a person the customer has ever met. A
+        client of Harbor Light was being asked to "Call Demo". The business's
+        own name is the only name a customer should be shown here, and with no
+        business phone there is nothing to ring, so the button does not draw.
+      */}
       {face.phone && (
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
-          <Ink href={telHref(face.phone)}>
-            {owner?.firstName ? `Call ${owner.firstName}` : `Call ${face.name}`}
-          </Ink>
+          <Ink href={telHref(face.phone)}>Call {face.name}</Ink>
         </div>
       )}
 

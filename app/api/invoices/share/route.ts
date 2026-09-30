@@ -15,6 +15,7 @@ import { whoIsCalling, belongsToCaller } from '@/lib/spine/api-caller';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { postEmail } from '@/lib/spine/deliverable';
+import { moneyText } from '@/lib/spine/money-text';
 
 export const runtime = 'nodejs';
 
@@ -138,7 +139,7 @@ export async function POST(req: NextRequest) {
         html: `<div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.65;color:#111;max-width:520px;">
 <p>${greeting},</p>
 <p>Invoice <strong>${inv.number}</strong>${job?.name ? ` for ${job.name}` : ''}.</p>
-<p style="font-size:24px;font-weight:600;margin:18px 0;">$${owed.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+<p style="font-size:24px;font-weight:600;margin:18px 0;">${moneyText(owed)}</p>
 ${inv.due_on ? `<p style="color:#666;">Due ${inv.due_on}</p>` : ''}
 <p><a href="${link}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:13px 24px;border-radius:8px;font-weight:600;">View invoice</a></p>
 <p style="color:#666;font-size:13px;margin-top:22px;">${

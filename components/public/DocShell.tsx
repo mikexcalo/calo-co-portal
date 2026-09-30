@@ -110,11 +110,22 @@ export function DocShell({
             )}
           </div>
 
-          <div style={{ minWidth: 0, flex: 1 }}>
+          {/*
+            A floor under the name, not a ceiling.
+
+            This was `minWidth: 0`, which lets flexbox squeeze this column to
+            nothing before it wraps anything. On a 390px screen the phone
+            number and the action on the right took what they needed and
+            "Harbor Light Roofing" came out one word per line. 200px is wide
+            enough for two or three words of a business name, and once it
+            cannot have that the row wraps and the name gets the full width.
+          */}
+          <div style={{ minWidth: 200, flex: 1 }}>
             <div
               style={{
                 fontFamily: 'var(--font-display), var(--font-sans), system-ui, sans-serif',
                 fontSize: 19, fontWeight: 700, letterSpacing: '-0.02em', color: C.text,
+                textWrap: 'balance',
               }}
             >
               {face.name}
@@ -126,10 +137,23 @@ export function DocShell({
               with nothing after the dot is worse than a header with no dot.
             */}
             {(face.address || face.license) && (
-              <div style={{ fontSize: 13, color: C.faint, marginTop: 1 }}>
+              /*
+                Each part whole, breaking only between them.
+
+                Joined into one string it wrapped wherever the line ran out,
+                so on a phone "Licensed · 0-72119" came apart across two lines
+                and the address split mid-town. Each piece is its own
+                nowrap span now, and the separator sits between them where a
+                break is harmless.
+              */
+              <div style={{ fontSize: 13, color: C.faint, marginTop: 1, display: 'flex', flexWrap: 'wrap', gap: '0 6px' }}>
                 {[face.address, face.license && `Licensed · ${face.license}`]
                   .filter(Boolean)
-                  .join(' · ')}
+                  .map((part, i, all) => (
+                    <span key={i} style={{ whiteSpace: 'nowrap' }}>
+                      {part}{i < all.length - 1 ? ' ·' : ''}
+                    </span>
+                  ))}
               </div>
             )}
           </div>
@@ -148,7 +172,19 @@ export function DocShell({
         </div>
       </header>
 
-      <main style={{ maxWidth: width, margin: '0 auto', padding: '18px 16px 40px' }}>
+      {/*
+        The sticky pay bar is 56px of button plus its padding, and on a phone
+        it sits over whatever the page ends with. The total was the thing it
+        covered, which is the one number the page exists to show. The bottom
+        padding is the bar's own height plus the safe area, so the last line
+        always clears it.
+      */}
+      <main
+        style={{
+          maxWidth: width, margin: '0 auto',
+          padding: '18px 16px calc(120px + env(safe-area-inset-bottom, 0px))',
+        }}
+      >
         {children}
       </main>
     </div>

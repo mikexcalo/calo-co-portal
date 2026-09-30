@@ -15,17 +15,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { postEmail } from '@/lib/spine/deliverable';
 import { whoToTell } from '@/lib/spine/who-to-tell';
+import { moneyText } from '@/lib/spine/money-text';
 
 /**
  * Money, written the way the rest of the product writes it.
  *
- * `toFixed(2)` was used in four places here, which is how Home came to show
- * "$24680.00" in one card and "$24,680.00" in the next. The browser has
- * `money()` in the design system; a route cannot import it, so this is the
- * same rule stated once rather than four times.
+ * Was a local `toLocaleString` helper, which is right in a browser and wrong
+ * on a server: a small-icu Node build ignores the locale and drops the
+ * thousands separator, so these emails all read "$24680.00" in production.
  */
-const usd = (n: number): string =>
-  `$${(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const usd = moneyText;
 
 export const runtime = 'nodejs';
 

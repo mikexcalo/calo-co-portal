@@ -20,6 +20,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { postEmail, sendingAllowed, SEND_NOT_GRANTED } from '@/lib/spine/deliverable';
 import { PRODUCT } from '@/lib/brand';
+import { moneyText } from '@/lib/spine/money-text';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -36,8 +37,7 @@ interface Row {
   days: number;
 }
 
-const money = (n: number) =>
-  `$${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const money = moneyText;
 
 export async function POST(req: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
