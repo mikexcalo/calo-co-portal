@@ -56,12 +56,82 @@ export const NOT_DELIVERABLE =
  * around it, which is correct: nothing failed, there was simply nobody real
  * to send to. The skip is logged so it is never silent.
  */
+/**
+ * What a send was about, where the caller knows.
+ *
+ * Optional everywhere. A route that does not pass it still gets a recorded
+ * row; it simply cannot be found from the screen showing the invoice.
+ */
+export interface MailAbout {
+  table: 'job_invoices' | 'estimates';
+  id: string;
+}
+
+/**
+ * One row per attempt, whatever the attempt did.
+ *
+ * Deliberately swallows its own failures. This is bookkeeping about a send,
+ * not part of it, and a mail that goes out but cannot be written down is much
+ * better than a mail that does not go out because the writing down failed.
+ */
+async function record(entry: {
+  to: string;
+  init: RequestInit;
+  outcome: 'handed_over' | 'skipped' | 'refused' | 'failed';
+  providerId?: string | null;
+  detail?: string | null;
+  about?: MailAbout;
+}): Promise<void> {
+  try {
+    const { serviceClient, whoIsCalling } = await import('./api-caller');
+    const db = serviceClient();
+    if (!db) return;
+
+    let orgId: string | null = null;
+    try {
+      const who = await whoIsCalling();
+      if (who?.userId) {
+        const { data } = await db
+          .from('profiles').select('active_org_id').eq('id', who.userId).maybeSingle();
+        orgId = (data as { active_org_id?: string } | null)?.active_org_id ?? null;
+      }
+    } catch {
+      /* A cron job or a webhook. The row is still worth having. */
+    }
+
+    let subject: string | null = null;
+    try {
+      subject = (JSON.parse(String(entry.init.body ?? '{}')) as { subject?: string }).subject ?? null;
+    } catch {
+      /* Not our JSON. The rest of the row still stands. */
+    }
+
+    await db.from('mail_sends').insert({
+      org_id: orgId,
+      to_email: entry.to,
+      subject,
+      about_table: entry.about?.table ?? null,
+      about_id: entry.about?.id ?? null,
+      provider_id: entry.providerId ?? null,
+      outcome: entry.outcome,
+      detail: entry.detail ?? null,
+    });
+  } catch (e) {
+    console.error('[mail] could not record the send:', e);
+  }
+}
+
 export async function postEmail(
   to: string | null | undefined,
-  init: RequestInit
+  init: RequestInit,
+  about?: MailAbout
 ): Promise<Response> {
   if (!deliverable(to)) {
     console.log('[mail] skipped, reserved test address:', to);
+    await record({
+      to: (to ?? '').trim(), init, about,
+      outcome: 'skipped', detail: NOT_DELIVERABLE,
+    });
     return Response.json({ id: 'skipped-reserved-address', skipped: true });
   }
 
@@ -75,10 +145,38 @@ export async function postEmail(
     sends.
   */
   if (!(await sendingAllowed())) {
+    await record({
+      to: (to ?? '').trim(), init, about,
+      outcome: 'refused', detail: SEND_NOT_GRANTED,
+    });
     return Response.json({ error: SEND_NOT_GRANTED, refused: true }, { status: 403 });
   }
 
-  return fetch('https://api.resend.com/emails', init);
+  /*
+    Read the body once, here, and keep the id.
+
+    Every caller does its own `res.json()` afterwards, and a Response body can
+    only be read once, so this hands back a fresh Response carrying the same
+    bytes. Without that, recording the id would break every route that reads
+    the reply - which is all of them.
+  */
+  const res = await fetch('https://api.resend.com/emails', init);
+  const text = await res.text();
+  let parsed: { id?: string; message?: string; error?: string; name?: string } | null = null;
+  try { parsed = JSON.parse(text); } catch { /* not JSON; `text` is the detail */ }
+
+  await record({
+    to: (to ?? '').trim(), init, about,
+    outcome: res.ok ? 'handed_over' : 'failed',
+    providerId: res.ok ? parsed?.id ?? null : null,
+    detail: res.ok ? null : parsed?.message || parsed?.error || text.slice(0, 500) || `the mail service answered ${res.status}`,
+  });
+
+  return new Response(text, {
+    status: res.status,
+    statusText: res.statusText,
+    headers: { 'content-type': res.headers.get('content-type') ?? 'application/json' },
+  });
 }
 
 /**

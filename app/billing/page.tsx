@@ -14,6 +14,7 @@ import {
   brandAccent,
   brandOf,
   getInvoiceLines,
+  lastSendsAbout,
   listInvoices,
   listJobs,
   updateInvoice,
@@ -21,6 +22,7 @@ import {
 } from '@/lib/spine/db';
 import { useOrg } from '@/lib/spine/org';
 import { INVOICE_STATUS_LABEL } from '@/lib/spine/types';
+import type { MailSend } from '@/lib/spine/db';
 import type { JobInvoice, JobInvoiceLine, JobWithCustomer } from '@/lib/spine/types';
 import {
   Tiles,
@@ -69,6 +71,10 @@ export default function BillingPage() {
   const [lines, setLines] = useState<Record<string, JobInvoiceLine[]>>({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  /** What became of the last reminder on each invoice, keyed by invoice id. */
+  const [sends, setSends] = useState<Record<string, MailSend>>({});
+  /** Which invoice's delivery status is being re-read from the mail service. */
+  const [checking, setChecking] = useState<string | null>(null);
   /** Which invoice has its secondary actions showing. One at a time. */
   const [moreFor, setMoreFor] = useState<string | null>(null);
   const [previewing, setPreviewing] = useState<string | null>(null);
@@ -80,6 +86,18 @@ export default function BillingPage() {
     const [inv, j] = await Promise.all([listInvoices(), listJobs()]);
     setInvoices(inv);
     setJobs(Object.fromEntries(j.map((job) => [job.id, job])));
+    /*
+      What became of the last reminder on each of these.
+
+      Best effort on purpose: a billing screen that will not draw because a
+      delivery record could not be read is worse than one that cannot say
+      whether an email arrived.
+    */
+    try {
+      setSends(await lastSendsAbout('job_invoices', inv.map((i) => i.id)));
+    } catch {
+      /* Leave the line off rather than the screen. */
+    }
   }, []);
 
   useEffect(() => {
@@ -227,6 +245,61 @@ export default function BillingPage() {
     if (!inv.nudged_at) return { last: null, canChase: true };
     const since = Date.now() - Date.parse(inv.nudged_at);
     return { last: shortDate(inv.nudged_at), canChase: since > 7 * 86400000 };
+  };
+
+  /**
+   * What the record says, in a sentence rather than a state name.
+   *
+   * `handed_over` with no status back yet is deliberately not called sent. It
+   * is the exact case that produced this whole feature: the product said
+   * "Sent 1 reminder" about a message that never arrived, and the honest
+   * version of that claim is that somebody else has it now.
+   */
+  const deliveryLine = (m: MailSend | undefined): string | null => {
+    if (!m) return null;
+    if (m.outcome === 'skipped') return 'Not sent: a reserved test address.';
+    if (m.outcome === 'refused') return 'Not sent: sending was not allowed.';
+    if (m.outcome === 'failed') return `Not sent: ${m.detail ?? 'the mail service refused it.'}`;
+    switch (m.status) {
+      case 'delivered':
+      case 'opened':
+      case 'clicked':
+        return 'Delivered.';
+      case 'bounced':
+        return 'Bounced. It did not reach them.';
+      case 'complained':
+        return 'Delivered, then marked as spam.';
+      case 'delivery_delayed':
+        return 'Delayed. Not taken yet.';
+      case 'failed':
+        return 'The mail service could not send it.';
+      default:
+        return 'Handed to the mail service. Not confirmed.';
+    }
+  };
+
+  /** Ask the mail service what became of it, and write the answer down. */
+  const checkDelivery = async (inv: JobInvoice) => {
+    const m = sends[inv.id];
+    if (!m) return;
+    setChecking(inv.id);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetch('/api/mail/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: m.id }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload.error || 'Could not read the delivery status.');
+      setSends((prev) => ({ ...prev, [inv.id]: { ...prev[inv.id], status: payload.status ?? null } }));
+      setNotice(payload.detail || deliveryLine({ ...m, status: payload.status ?? null }) || 'Checked.');
+    } catch (e) {
+      setError(human((e as Error).message, READ_FAILED));
+    } finally {
+      setChecking(null);
+    }
   };
 
   const sendReminder = async (inv: JobInvoice) => {
@@ -795,7 +868,28 @@ export default function BillingPage() {
                               {chase.last && (
                                 <span style={{ fontSize: 13, color: C.faint, alignSelf: 'center' }}>
                                   {chase.canChase ? 'Last reminder' : 'Reminder sent'} {chase.last}
+                                  {/*
+                                    And whether it arrived.
+
+                                    The date alone was the whole claim before
+                                    this, and a date is not delivery. A
+                                    reminder that bounced reads the same as one
+                                    sitting in somebody's inbox unless the
+                                    screen says which.
+                                  */}
+                                  {deliveryLine(sends[inv.id]) && (
+                                    <> · {deliveryLine(sends[inv.id])}</>
+                                  )}
                                 </span>
+                              )}
+                              {sends[inv.id] && (
+                                <Button
+                                  variant="ghost"
+                                  disabled={busy || checking === inv.id}
+                                  onClick={() => checkDelivery(inv)}
+                                >
+                                  {checking === inv.id ? 'Checking…' : 'Check delivery'}
+                                </Button>
                               )}
                               {chase.canChase && (
                                 <Button variant="ghost" disabled={busy} onClick={() => sendReminder(inv)}>

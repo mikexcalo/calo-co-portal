@@ -746,6 +746,42 @@ all of it back.
   from the sidebar. At 1920 the column measures 1100 wide at x=516, centred
   in the 1708px main area.
 
+## 24. Costa's demo invoice ignores the actuals it is supposed to be built from — M
+
+Found while reconciling a $6 gap between Costa Residence's accepted estimate
+($3,890, now $3,896) and invoice CR-001 ($3,896). The gap was a fixture typo
+and is fixed. What it uncovered is not.
+
+`Ramsey Ave storm repair` is `billing_type = 'tm'`, and CLAUDE.md is explicit
+that invoices are built from actuals. CR-001 is not. Its three lines are
+typed fixed-price entries with `source_time_entry_id` and `source_cost_id`
+both null:
+
+    Emergency call-out                       1 call  x $275   $275.00
+    Storm repair, north slope, 9 square      9 sq    x $385  $3,465.00
+    Deck repair, 2 sheets                    2 sheet x $78     $156.00
+
+Meanwhile the job's real logged work sits on no invoice at all: 10.5 hours at
+$85 ($892.50) across two entries, and one $980 material cost from Finn
+Roofing Supply. All three rows are `billable = true` with `invoiced_on` null.
+$1,872.50 of actuals, unbilled, on a completed time-and-materials job.
+
+So the demo teaches the opposite of the rule. Somebody reading Costa's job to
+learn how T&M billing works sees an invoice that owes nothing to the hours or
+the receipt beside it, and a Home that counts $1,872.50 as unbilled against an
+invoice already marked overdue.
+
+Rebuild the fixture so CR-001 comes from the actuals: bill the two time
+entries and the cost, stamp their `invoiced_on`, and let the total be whatever
+they add up to rather than a number chosen first. If Costa is meant to
+demonstrate a fixed-price job instead, change `billing_type` and say so on the
+job, but it cannot stay as both.
+
+Deliberately out of scope of the brief that found it, which was told to change
+one value and nothing else.
+
+---
+
 ---
 
 ## Done since this list was written

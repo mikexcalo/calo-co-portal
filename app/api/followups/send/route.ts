@@ -138,7 +138,7 @@ ${link ? `<p><a href="${link}" style="display:inline-block;background:#111;color
 <p style="color:#666;font-size:13px;">${business ?? ''}</p>
 </div>`,
       }),
-    });
+    }, { table: r.kind === 'estimate' ? 'estimates' : 'job_invoices', id: r.id });
     /*
       A skipped send is not a sent one, and the message has to say which.
 

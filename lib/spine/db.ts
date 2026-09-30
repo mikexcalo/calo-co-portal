@@ -957,6 +957,44 @@ export async function getExtractionSpend(): Promise<{ cents: number; documents: 
 // Invoices — assembled from actuals
 // ---------------------------------------------------------------------------
 
+/**
+ * What happened to the last message sent about each of these things.
+ *
+ * Keyed by the id it was about, so a screen showing an invoice can say whether
+ * the reminder it sent arrived without asking a question per row. Only the
+ * most recent send per subject is kept: the one before it is history, and the
+ * question on the screen is always "and did that one land".
+ */
+export interface MailSend {
+  id: string;
+  about_id: string;
+  outcome: 'handed_over' | 'skipped' | 'refused' | 'failed';
+  detail: string | null;
+  status: string | null;
+  status_at: string | null;
+  created_at: string;
+}
+
+export async function lastSendsAbout(
+  table: 'job_invoices' | 'estimates',
+  ids: string[]
+): Promise<Record<string, MailSend>> {
+  if (!ids.length) return {};
+  const rows = unwrap(
+    await supabase
+      .from('mail_sends')
+      .select('id, about_id, outcome, detail, status, status_at, created_at')
+      .eq('org_id', await orgNow())
+      .eq('about_table', table)
+      .in('about_id', ids)
+      .order('created_at', { ascending: false })
+  ) as MailSend[];
+
+  const latest: Record<string, MailSend> = {};
+  for (const r of rows) if (!latest[r.about_id]) latest[r.about_id] = r;
+  return latest;
+}
+
 export async function listInvoices(jobId?: string): Promise<JobInvoice[]> {
   let q = supabase
     .from('job_invoices')
