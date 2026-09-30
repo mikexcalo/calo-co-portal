@@ -86,6 +86,20 @@ export async function POST(req: NextRequest) {
   const replyTo =
     (((org as { settings?: Record<string, unknown> } | null)?.settings?.email as string) ?? '').trim() ||
     undefined;
+  /*
+    The invoice's own number, which the subject line needs and the view does
+    not carry. One query for all of them rather than one per reminder.
+  */
+  const invoiceIds = rows.filter((r) => r.kind !== 'estimate').map((r) => r.id);
+  const numbers = new Map<string, string>();
+  if (invoiceIds.length) {
+    const { data: nums } = await supabase
+      .from('job_invoices').select('id, number').in('id', invoiceIds);
+    for (const n of (nums ?? []) as Array<{ id: string; number: string }>) {
+      if (n.number) numbers.set(n.id, n.number);
+    }
+  }
+
   const resendKey = process.env.RESEND_API_KEY;
   const site = process.env.NEXT_PUBLIC_SITE_URL || `https://${req.headers.get('host')}`;
 
@@ -113,9 +127,21 @@ export async function POST(req: NextRequest) {
     if (!resendKey) continue;
 
     const isQuote = r.kind === 'estimate';
+    /*
+      Say that it is a reminder, and whose.
+
+      "Invoice for Ramsey Ave storm repair" is the subject line of an invoice
+      arriving for the first time, not of a nudge about one already sent, and
+      an unheralded invoice with a payment button in it is the exact shape
+      Gmail treats as invoice fraud. Naming the number says the recipient
+      already has this document, and naming the business says who is asking.
+    */
+    const number = numbers.get(r.id);
     const subject = isQuote
       ? `Still thinking about ${r.job_name ?? 'the quote'}?`
-      : `Invoice for ${r.job_name ?? 'your job'}`;
+      : number
+        ? `Reminder: invoice ${number} from ${business ?? PRODUCT} is overdue`
+        : `Reminder: your invoice from ${business ?? PRODUCT} is overdue`;
 
     const message = isQuote
       ? `<p>${first},</p>
