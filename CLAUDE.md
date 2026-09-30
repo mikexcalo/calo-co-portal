@@ -203,6 +203,30 @@ select public.new_auth_user('someone@example.com', 'Their Name');
 know so the account is only reachable by reset, and creates the email identity
 without which sign-in fails outright. Use it, or use the Supabase dashboard.
 
+## Client folders in Google Drive
+
+Every client gets the same six, in this order, and the numbers are part of the
+names so they sort:
+
+    1 Brand · 2 Website · 3 Photos · 4 Documents · 5 Working · 6 Archive
+
+`4 Documents` is paperwork we keep and refer to. `5 Working` is drafts still
+in motion. `6 Archive` is superseded, and nothing is ever deleted from a
+client folder - anything doubtful goes there instead of into a decision.
+
+**A client site's code lives in `2 Website/source/`, and GitHub stays the
+master.** The Drive copy is a reference for somebody who does not have the
+repo, so it is refreshed in the same step as any change to a client site:
+deploy the site, refresh the Drive copy, in one go. A Drive copy that silently
+drifts from the deployed site is worse than no copy, because somebody will
+read it and believe it.
+
+Uploads go through the Drive API one file at a time and every byte passes
+through the tool call, so binaries and anything large are impractical that
+way. Never hand-transcribe a file into an upload: XML and JSON get escaped on
+the way through and land corrupted at the right-looking size. Check the byte
+count the API reports against the file on disk, every time.
+
 ## Deploys
 
 Vercel builds on push to `main`. Every route redirects to `/login` when signed
