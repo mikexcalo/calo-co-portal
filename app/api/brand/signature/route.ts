@@ -31,10 +31,13 @@ export async function GET() {
   const orgId = (profile as { active_org_id?: string } | null)?.active_org_id;
   if (!orgId) return NextResponse.json({ error: 'No workspace open.' }, { status: 400 });
 
-  const { data: org } = await db
-    .from('orgs').select('name, settings').eq('id', orgId).maybeSingle();
-  const settings = ((org as { settings?: Record<string, unknown> } | null)?.settings ?? {});
+  /*
+    One walk, not three. `brandForOrg` already reads the org row and the kit
+    to answer the brand question, so it hands back the settings and the kit's
+    site_url rather than this asking for either of them again.
+  */
   const facts = await brandForOrg(db, orgId);
+  const settings = facts.settings;
 
   /*
     The website, which a workspace may never have been asked for.
@@ -44,16 +47,7 @@ export async function GET() {
     that there is simply nothing to show - better an absent line than a guess
     at somebody's domain.
   */
-  let website = String(settings.website ?? '').trim() || null;
-  if (!website) {
-    const { data: linked } = await db
-      .from('customers').select('id').eq('linked_org_id', orgId).limit(1).maybeSingle();
-    if (linked?.id) {
-      const { data: brand } = await db
-        .from('brands').select('site_url').eq('customer_id', linked.id).maybeSingle();
-      website = (brand as { site_url?: string } | null)?.site_url?.trim() || null;
-    }
-  }
+  const website = String(settings.website ?? '').trim() || facts.siteUrl;
 
   return NextResponse.json({
     business: facts.name,

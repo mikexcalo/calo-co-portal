@@ -29,6 +29,22 @@ export interface BrandFacts {
   assetPrefix: string | null;
   /** Where the kit was found, which the caller may want to say out loud. */
   source: 'brands' | 'settings' | 'none';
+  /*
+    The two things every caller went back to the database for.
+
+    This used to answer the brand question and nothing else, so the signature
+    endpoint asked for the org row a second time to read its settings and
+    walked customers -> brands a second time to read the kit's site_url. Eight
+    round trips to answer one question, five of them repeats of a query that
+    had already run, all in a row: about three seconds of a screen saying
+    "Reading your brand." with nothing behind it.
+
+    Carrying them costs nothing. Everything here was already in hand.
+  */
+  /** `orgs.settings`, as it was read. */
+  settings: Record<string, unknown>;
+  /** The kit's own `site_url`, where there is a kit. */
+  siteUrl: string | null;
 }
 
 const FALLBACK_DARK = '#1D1F24';
@@ -64,22 +80,25 @@ function darkLockup(assets: Array<Record<string, unknown>>): string | null {
 }
 
 export async function brandForOrg(db: SupabaseClient, orgId: string): Promise<BrandFacts> {
-  const { data: org } = await db
-    .from('orgs').select('name, settings').eq('id', orgId).maybeSingle();
+  /*
+    The org row and the agency's customer row are both keyed on the org id and
+    neither needs the other, so they are asked for at the same time. Only the
+    kit has to wait, because it is keyed on the customer.
+
+    The kit is found by the link the database already keeps. A workspace
+    nobody built for simply has no row here, which is not an error - it falls
+    through to whatever it set for itself.
+  */
+  const [{ data: org }, { data: linked }] = await Promise.all([
+    db.from('orgs').select('name, settings').eq('id', orgId).maybeSingle(),
+    db.from('customers').select('id').eq('linked_org_id', orgId).limit(1).maybeSingle(),
+  ]);
   const name = (org as { name?: string } | null)?.name ?? 'Your business';
   const settings = ((org as { settings?: Record<string, unknown> } | null)?.settings ?? {});
 
-  /*
-    The agency's kit for this client, found by the link the database already
-    keeps. A workspace nobody built for simply has no row here, which is not
-    an error - it falls through to whatever it set for itself.
-  */
-  const { data: linked } = await db
-    .from('customers').select('id').eq('linked_org_id', orgId).limit(1).maybeSingle();
-
   if (linked?.id) {
     const { data: brand } = await db
-      .from('brands').select('kit, asset_prefix').eq('customer_id', linked.id).maybeSingle();
+      .from('brands').select('kit, asset_prefix, site_url').eq('customer_id', linked.id).maybeSingle();
     const kit = (brand as { kit?: Record<string, unknown> } | null)?.kit;
     if (kit) {
       const colors = (kit.colors as Array<Record<string, unknown>>) ?? [];
@@ -93,6 +112,8 @@ export async function brandForOrg(db: SupabaseClient, orgId: string): Promise<Br
         lockupPath: darkLockup((kit.assets as Array<Record<string, unknown>>) ?? []),
         assetPrefix: (brand as { asset_prefix?: string } | null)?.asset_prefix ?? null,
         source: 'brands',
+        settings,
+        siteUrl: (brand as { site_url?: string } | null)?.site_url?.trim() || null,
       };
     }
   }
@@ -104,6 +125,8 @@ export async function brandForOrg(db: SupabaseClient, orgId: string): Promise<Br
     lockupPath: null,
     assetPrefix: null,
     source: Object.keys(own).length ? 'settings' : 'none',
+    settings,
+    siteUrl: null,
   };
 }
 

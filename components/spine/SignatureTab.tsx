@@ -23,6 +23,7 @@ import {
   Empty,
   Field,
   SectionLabel,
+  Skeleton,
   radius,
 } from './ui';
 import {
@@ -113,7 +114,7 @@ export function SignatureTab() {
     }
   };
 
-  if (loading) return <Card><Empty>Reading your brand.</Empty></Card>;
+  if (loading) return <SignatureWaiting />;
   if (error && !d) return <Card><Empty>{error}</Empty></Card>;
   if (!d) return null;
 
@@ -188,9 +189,76 @@ export function SignatureTab() {
 
       <Card>
         <SectionLabel>Putting it in Gmail</SectionLabel>
-        <ol style={{ margin: 0, paddingLeft: 20, fontSize: 14, color: C.dim, lineHeight: 1.75 }}>
+        {/* The reset in globals.css sets list-style: none on everything, so an
+            ordered list of five steps that must be done in order was drawing
+            as five unnumbered lines. Asked for back explicitly. */}
+        <ol style={{ margin: 0, paddingLeft: 20, fontSize: 14, color: C.dim, lineHeight: 1.75, listStyleType: 'decimal' }}>
           {GMAIL_STEPS.map((s) => <li key={s}>{s}</li>)}
         </ol>
+      </Card>
+    </div>
+  );
+}
+
+/**
+ * The tab, before the brand arrives.
+ *
+ * This was one line of text in an otherwise empty card - "Reading your
+ * brand." - sitting alone above a blank screen for as long as the round trip
+ * took. A sentence that does not move is indistinguishable from a sentence
+ * that is stuck, and it was read as stuck more than once.
+ *
+ * So it draws the shape it is about to fill: the same three cards, the same
+ * widths, the same order. Nothing jumps when the answer lands, and a wait
+ * that is merely slow no longer looks like a wait that is over.
+ */
+function SignatureWaiting() {
+  return (
+    <div style={{ display: 'grid', gap: 18, maxWidth: 760 }} role="status" aria-label="Reading your brand">
+      <Card>
+        <SectionLabel>What it says</SectionLabel>
+        <Skeleton w="72%" h={11} style={{ margin: '4px 0 18px' }} />
+        <div style={{ display: 'grid', gap: 16 }}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+              <Skeleton w={14} h={14} r={3} style={{ marginTop: 2, flex: '0 0 14px' }} />
+              <span style={{ display: 'grid', gap: 6, flex: 1 }}>
+                <Skeleton w={104} h={11} />
+                <Skeleton w="44%" h={9} />
+              </span>
+            </div>
+          ))}
+        </div>
+        <Skeleton w={320} h={40} r={radius.md} style={{ marginTop: 18, maxWidth: '100%' }} />
+      </Card>
+
+      <Card>
+        <SectionLabel>How it looks</SectionLabel>
+        {/* The preview box at the height a three-line signature draws. */}
+        <div
+          style={{
+            border: `1px solid ${C.border}`, borderRadius: radius.lg,
+            padding: 20, background: '#FFFFFF', display: 'flex',
+            gap: 14, alignItems: 'center',
+          }}
+        >
+          <Skeleton w={120} h={56} r={radius.sm} />
+          <span style={{ display: 'grid', gap: 7, flex: 1, maxWidth: 220 }}>
+            <Skeleton w="62%" h={12} />
+            <Skeleton w="50%" h={10} />
+            <Skeleton w="76%" h={10} />
+          </span>
+        </div>
+        <Skeleton w={148} h={38} r={radius.md} style={{ marginTop: 14 }} />
+      </Card>
+
+      <Card>
+        <SectionLabel>Putting it in Gmail</SectionLabel>
+        <div style={{ display: 'grid', gap: 10 }}>
+          {['78%', '86%', '92%', '80%', '58%'].map((w, i) => (
+            <Skeleton key={i} w={w} h={11} />
+          ))}
+        </div>
       </Card>
     </div>
   );
