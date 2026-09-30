@@ -18,7 +18,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/spine/errors';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { postEmail, sendingAllowed, fromAs, SEND_NOT_GRANTED } from '@/lib/spine/deliverable';
+import { postEmail, sendingAllowed, SEND_NOT_GRANTED } from '@/lib/spine/deliverable';
 import { PRODUCT } from '@/lib/brand';
 
 export const runtime = 'nodejs';
@@ -143,25 +143,49 @@ export async function POST(req: NextRequest) {
         ? `Reminder: invoice ${number} from ${business ?? PRODUCT} is overdue`
         : `Reminder: your invoice from ${business ?? PRODUCT} is overdue`;
 
+    /*
+      Whose message this is, said in the message.
+
+      With the envelope carrying our name, the first line has to carry
+      theirs, or a customer of Harbor Light gets chased about money by a
+      company they have never heard of.
+    */
+    const who = business ?? PRODUCT;
     const message = isQuote
       ? `<p>${first},</p>
-<p>Just checking you saw the quote for ${r.job_name ?? 'the work'}. No rush, and no obligation. If the number is not right or something has changed, tell me and we can look at it again.</p>`
+<p>This is ${who}, just checking you saw the quote for ${r.job_name ?? 'the work'}. No rush, and no obligation. If the number is not right or something has changed, tell me and we can look at it again.</p>`
       : `<p>${first},</p>
-<p>The invoice for ${r.job_name ?? 'your job'} came due ${r.days} ${r.days === 1 ? 'day' : 'days'} ago. ${money(Number(r.amount))} outstanding.</p>
+<p>This is ${who}. The invoice${number ? ` ${number}` : ''} for ${r.job_name ?? 'your job'} came due ${r.days} ${r.days === 1 ? 'day' : 'days'} ago. ${money(Number(r.amount))} outstanding.</p>
 <p>If it is already on its way, ignore this. If something is holding it up, let me know.</p>`;
 
     const res = await postEmail(r.customer_email, {
       method: 'POST',
       headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: fromAs(business, PRODUCT),
+        /*
+          Ours, like every other route in the product.
+
+          This was the one send that put the client's business in the From
+          display name, and it was the one send that never arrived. Four
+          reminders were accepted by Gmail and kept nowhere - not inbox, not
+          spam, not trash - while everything else from this same address on
+          the same days landed normally. "via CALO&CO" did not help either.
+
+          A company name in the From line that has no relationship to the
+          sending domain is what a spoof looks like, and an invoice with a
+          payment button behind it is what invoice fraud looks like. The
+          business's name belongs in the subject and in the first line of the
+          message, where a person reads it, rather than on the envelope, where
+          a filter weighs it.
+        */
+        from: process.env.MAIL_FROM || `${PRODUCT} <onboarding@resend.dev>`,
         ...(replyTo ? { reply_to: replyTo } : {}),
         to: r.customer_email,
         subject,
         html: `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.65;color:#111;max-width:520px;">
 ${message}
 ${link ? `<p><a href="${link}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:13px 24px;border-radius:8px;font-weight:600;">${isQuote ? 'Open the quote' : 'Open the invoice'}</a></p>` : ''}
-<p style="color:#666;font-size:13px;">${business ?? ''}</p>
+<p style="color:#666;font-size:13px;">${who}${business ? `, sent through ${PRODUCT}` : ''}</p>
 </div>`,
       }),
     }, { table: r.kind === 'estimate' ? 'estimates' : 'job_invoices', id: r.id });

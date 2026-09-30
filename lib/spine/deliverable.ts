@@ -191,48 +191,23 @@ export async function postEmail(
   });
 }
 
-/**
- * The name on the envelope is the business's, not ours.
- *
- * Resend will only send from a verified domain, so the address in MAIL_FROM
- * has to stay. The display name in front of it does not, and it is the half a
- * customer actually reads: a roofer's client being chased for money by
- * "CALO&CO" is being chased by a company they have never heard of, about an
- * invoice with somebody else's name at the top of it.
- *
- * Takes the address out of whatever shape MAIL_FROM is in and puts the
- * business in front of it. A name with a comma or a quote in it is quoted,
- * because an unquoted one truncates the header at the comma and the send
- * fails with nothing useful said about why.
- */
-export function fromAs(business: string | null | undefined, fallbackName: string): string {
-  const raw = process.env.MAIL_FROM || `${fallbackName} <onboarding@resend.dev>`;
-  const address = raw.match(/<([^>]+)>/)?.[1] ?? raw.trim();
-  const business_ = (business ?? '').trim();
+/*
+  THE NAME ON THE ENVELOPE IS OURS.
 
-  /*
-    "Harbor Light Roofing via CALO&CO", not "Harbor Light Roofing".
+  `fromAs()` lived here and put the client's business in the From display
+  name, on the reasoning that a roofer's customer should not be chased for
+  money by a company they have never heard of. The reasoning was right and the
+  place was wrong. Four reminders sent that way were accepted by Gmail and
+  then kept nowhere at all, while every other email from this same address
+  arrived; "Harbor Light Roofing via CALO&CO" fared no better than the plain
+  form. A display name that claims a company unrelated to the sending domain
+  is indistinguishable from a spoof, and the message behind it carries an
+  invoice and a payment button.
 
-    A reminder sent as plain "Harbor Light Roofing" from hello@calo.company
-    was accepted by Gmail and then never appeared - not the inbox, not spam,
-    not trash. Resend reported it delivered, because Gmail had answered 250 at
-    SMTP and dropped it afterwards. Two sends went that way, to a plus alias
-    and to a plain address, while "CALO&CO" mail from the same address on the
-    same day arrived normally. The recipient was ruled out by experiment and
-    reply_to was never set, which leaves the display name.
-
-    A name that claims to be a company with no relationship to the sending
-    domain is what a spoof looks like, and a young domain gets no benefit of
-    the doubt. "via" is the form every white-label sender uses for exactly
-    this reason: the customer still sees whose invoice it is, and the half
-    Gmail checks against the domain is ours and is true.
-  */
-  const name = business_ && business_ !== fallbackName
-    ? `${business_} via ${fallbackName}`
-    : business_ || fallbackName;
-  const safe = /[",<>@]/.test(name) ? `"${name.replace(/"/g, "'")}"` : name;
-  return `${safe} <${address}>`;
-}
+  So the envelope says CALO&CO, which is true and which the domain can prove,
+  and the business's name moved into the subject line and the first sentence,
+  where the customer reads it and no filter is weighing it.
+*/
 
 /** What to say when a send was refused because the client did not allow it. */
 export const SEND_NOT_GRANTED =
