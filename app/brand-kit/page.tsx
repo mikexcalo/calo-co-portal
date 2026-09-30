@@ -17,14 +17,7 @@ import { useOrg } from '@/lib/spine/org';
 import { modulesFor } from '@/lib/spine/modules';
 import { QrStudio } from '@/components/spine/QrStudio';
 import { PaletteFromImage } from '@/components/spine/PaletteFromImage';
-import {
-  EMPTY_SIGNATURE,
-  INSTALL_GUIDES,
-  SIGNATURE_STYLES,
-  renderSignature,
-  type SignatureFields,
-  type SignatureStyle,
-} from '@/lib/spine/signature';
+import { SignatureTab } from '@/components/spine/SignatureTab';
 import {
   FORMAT_NOTES,
   LOGO_SIZES,
@@ -58,7 +51,7 @@ import { human } from '@/lib/spine/errors';
 import { Messaging } from '@/components/spine/Messaging';
 import { PlatformVoice } from '@/components/spine/PlatformVoice';
 
-type Tab = 'brand' | 'logos' | 'messaging' | 'platform';
+type Tab = 'brand' | 'logos' | 'messaging' | 'platform' | 'signature';
 
 interface BrandColor {
   name: string;
@@ -130,9 +123,6 @@ export default function BrandKitPage() {
     () => kitFromOrg(org?.name ?? 'Your brand', { brand }),
     [org?.name, brand]
   );
-  const [sig, setSig] = useState<SignatureFields>(EMPTY_SIGNATURE);
-  const [style, setStyle] = useState<SignatureStyle>('stacked');
-  const [guideId, setGuideId] = useState('gmail');
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -185,15 +175,10 @@ export default function BrandKitPage() {
     if (!org) return;
     const s = (org.settings ?? {}) as Record<string, unknown>;
     setBrand({ ...EMPTY_BRAND, ...((s.brand as Partial<BrandSettings>) ?? {}) });
-    setSig({
-      ...EMPTY_SIGNATURE,
-      company: org.name,
-      ...((s.signature as Partial<SignatureFields>) ?? {}),
-    });
   }, [org]);
 
   const save = useCallback(
-    async (next: { brand?: BrandSettings; signature?: SignatureFields }) => {
+    async (next: { brand?: BrandSettings }) => {
       if (!org) return;
       setBusy(true);
       setError(null);
@@ -214,8 +199,6 @@ export default function BrandKitPage() {
     [org, refresh]
   );
 
-  const html = useMemo(() => renderSignature(sig, style), [sig, style]);
-  const guide = INSTALL_GUIDES.find((g) => g.id === guideId) ?? INSTALL_GUIDES[0];
 
   const copyText = async (text: string, label: string) => {
     try {
@@ -224,28 +207,6 @@ export default function BrandKitPage() {
       setTimeout(() => setCopied(null), 2000);
     } catch {
       setError('Could not copy, your browser blocked clipboard access.');
-    }
-  };
-
-  /**
-   * Copies the RENDERED signature, not the source. Mail clients want rich
-   * content on the clipboard; pasting source into Gmail shows the code.
-   */
-  const copyRendered = async () => {
-    try {
-      const blob = new Blob([html], { type: 'text/html' });
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          'text/html': blob,
-          'text/plain': new Blob([sig.name], { type: 'text/plain' }),
-        }),
-      ]);
-      setCopied('signature');
-      setTimeout(() => setCopied(null), 2000);
-    } catch {
-      setError(
-        'Your browser blocked the rich copy. Use "Copy HTML" and paste into an HTML source view instead.'
-      );
     }
   };
 
@@ -258,7 +219,10 @@ export default function BrandKitPage() {
         <>
           {saved && <Pill tone="green">Saved</Pill>}
           <Button
-            onClick={() => save(tab === 'brand' ? { brand } : { signature: sig })}
+            /* Only the brand fields are edited on this page now. The
+               signature tab keeps nothing: it is generated from the kit and
+               the workspace settings every time it is opened. */
+            onClick={() => save({ brand })}
             disabled={busy || !org}
           >
             {busy ? 'Saving…' : 'Save'}
@@ -282,6 +246,15 @@ export default function BrandKitPage() {
           { id: 'brand', label: 'Colors & Type', icon: 'star' },
           { id: 'logos', label: 'Logos', icon: 'swatches' },
           { id: 'messaging', label: 'Messaging', icon: 'brief' },
+          /*
+            The brand, applied.
+
+            This lived at /signature behind the `pitches` module, so a
+            workspace with pitches off had a signature builder it could not
+            reach and a Brand screen that never mentioned one. The logo, the
+            dark color and the business name are all here already.
+          */
+          { id: 'signature', label: 'Signature', icon: 'brief' },
           /* The product's own voice and type, which are not the brand's. */
           { id: 'platform', label: 'Platform', icon: 'layers' },
         ]}
@@ -483,6 +456,8 @@ export default function BrandKitPage() {
           company={org?.name ?? 'brand'}
           onChange={(patch) => setBrand((b) => ({ ...b, ...patch }))}
         />
+      ) : tab === 'signature' ? (
+        <SignatureTab />
       ) : tab === 'platform' ? (
         <PlatformVoice />
       ) : (

@@ -385,7 +385,6 @@ export const PITCH_TABS: readonly PageTab[] = [
   { label: 'Pitches', href: '/pitches', icon: 'send' },
   { label: 'Case Studies', href: '/stories', icon: 'book' },
   { label: 'Card', href: '/card', icon: 'card' },
-  { label: 'Email Signature', href: '/signature', icon: 'mail' },
   { label: 'QR Codes', href: '/qr', icon: 'card' },
 ];
 

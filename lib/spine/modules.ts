@@ -520,7 +520,6 @@ export const ROUTE_MODULE: Array<[string, ModuleId]> = [
   ['/requests', 'client_requests'],
   ['/brand-kit', 'brand_kit'],
   ['/card', 'pitches'],
-  ['/signature', 'pitches'],
   ['/qr', 'pitches'],
   ['/ask', 'ask'],
   ['/reviews', 'reviews'],

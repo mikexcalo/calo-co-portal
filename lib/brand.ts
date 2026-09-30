@@ -34,7 +34,19 @@ export const PRODUCT = 'CALO&CO';
  * outline. An empty `name` removes the row entirely.
  */
 export const PRODUCT_MARK: { name: string; logo: string | null } = {
-  name: '[Product name]',
+  /*
+    Empty, which removes the row.
+
+    The placeholder was honest about being a blank, and that was the right
+    call while only we were looking at it. It is the wrong thing to put at the
+    top of the first screen a client opens: John signs in to run his business
+    and the first words above his own name are a note to ourselves that the
+    software has not been named yet.
+
+    `ProductName()` returns null on an empty name, so nothing else has to
+    change. Put a name here and the row comes back in the same place.
+  */
+  name: '',
   logo: null,
 };
 
