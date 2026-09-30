@@ -223,7 +223,7 @@ export async function GET() {
   root.file(
     'README.txt',
     [
-      `${facts.name} — logo files`,
+      `${facts.name} logo files`,
       '',
       'Folders are version, then color. Inside each:',
       '  .svg                 the master. Scales to anything.',
