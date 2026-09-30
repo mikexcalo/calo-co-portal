@@ -80,7 +80,17 @@ export async function middleware(request: NextRequest) {
     path.startsWith('/in/') ||
     // A site preview is a link you send to somebody who has no account. That
     // is the entire point of it, so it cannot sit behind a session.
-    path.startsWith('/preview/');
+    path.startsWith('/preview/') ||
+    /*
+      A workspace's logo, for an email signature.
+  
+      The signature is read months later by somebody who has never signed in
+      to anything, in a mail client that will not follow a redirect to a login
+      screen - it will draw a broken image and that is the end of it. The
+      route serves one looked-up file per workspace and nothing a caller can
+      name, which is why it is safe to leave open.
+    */
+    path.startsWith('/api/brand/logo/');
 
   // Not logged in → redirect to /login (unless already there)
   // Deliberately not `!isPublic`: /welcome is in that list for a different
@@ -240,6 +250,8 @@ export const config = {
      *                           account, which is the entire point of it
      * - /c/                     a digital business card, scanned by a stranger
      * - /api/card/              that card as a vCard file
+     * - /api/brand/logo/        a workspace's logo, drawn inside an email
+     *                           signature by a mail client with no session
      * - /api/version            which commit is live, so a stale deploy can be
      *                           told apart from a bug
      * - /api/cron/              Vercel's scheduler, which carries no session
@@ -271,6 +283,6 @@ export const config = {
      * on a public page cannot carry a session, so auth would 307 both the
      * script and every event it tries to send to /login.
      */
-    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/estimates/note|api/mail/inbound|api/public/|api/calendar/|api/stripe/webhook|q/|p/|e/|i/|s/|r/|new/|api/enquiry|t\\.js|api/track|api/preview/|api/card/|api/version|api/cron/|reset|auth/|c/).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|images/|videos/|api/leads/ingest|api/estimates/decide|api/estimates/note|api/mail/inbound|api/public/|api/calendar/|api/stripe/webhook|q/|p/|e/|i/|s/|r/|new/|api/enquiry|t\\.js|api/track|api/preview/|api/card/|api/brand/logo/|api/version|api/cron/|reset|auth/|c/).*)',
   ],
 };

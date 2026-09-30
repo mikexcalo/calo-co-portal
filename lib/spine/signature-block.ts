@@ -39,8 +39,22 @@ export interface SignatureInput {
   showEmail: boolean;
 }
 
+/*
+  120px, which is a compromise and worth naming as one.
+
+  Two rules in the brief pull against each other at 360px: the detail block
+  should sit about as tall as the logo, and nothing may wrap. The widest line
+  the block can carry is an email address, about 208px at 13px Arial. With
+  14px of gap either side of the 1px rule that leaves 149px for the logo, so
+  120 fits with room to spare and 180 - the width that would match a
+  five-line block's height - does not.
+
+  So the logo is a little shorter than the tallest version of the text. The
+  base version, which is what most people send, is three lines and sits
+  almost exactly level with it.
+*/
 export const SIGNATURE_DEFAULTS = {
-  logoWidth: 96,
+  logoWidth: 120,
   title: 'Founder',
 } as const;
 
