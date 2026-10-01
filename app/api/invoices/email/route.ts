@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     const { data: inv, error } = await db
       .from('job_invoices')
       .select(
-        'id, number, total, amount_paid, due_on, public_token, org_id, job:jobs(name, customer:customers(name, contact_name, email, linked_org_id))'
+        'id, number, total, amount_paid, due_on, public_token, org_id, job:jobs(name, customer:customers(id, name, contact_name, email, linked_org_id))'
       )
       .eq('id', body.invoiceId)
       .maybeSingle();
@@ -71,7 +71,33 @@ export async function POST(req: NextRequest) {
         : job.customer
       : null;
 
-    const to = body.to?.trim() || customer?.email;
+    /*
+      Everybody who should get the bill, not just the first address on file.
+
+      A business is a person with two inboxes more often than it is one
+      address: John reads globalseafood.partners@gmail.com for the business
+      and john.littonny@gmail.com for himself, and an invoice that lands in
+      only one of them waits until he happens to look there. `email_alt` on a
+      contact exists for exactly this and nothing read it.
+
+      An explicit `to` from the dialog still wins outright - if somebody typed
+      an address, that is the address they meant.
+    */
+    const { data: contacts } = await db
+      .from('customer_contacts')
+      .select('email, email_alt, is_primary')
+      .eq('customer_id', (customer as { id?: string } | null)?.id ?? '')
+      .order('is_primary', { ascending: false });
+
+    const everyone = body.to?.trim()
+      ? [body.to.trim()]
+      : Array.from(new Set([
+          customer?.email,
+          ...((contacts ?? []) as Array<{ email?: string; email_alt?: string }>)
+            .flatMap((c) => [c.email, c.email_alt]),
+        ].map((e) => (e ?? '').trim()).filter(Boolean)));
+
+    const to = everyone[0];
     if (!to) {
       return NextResponse.json(
         {
@@ -89,9 +115,30 @@ export async function POST(req: NextRequest) {
 
     const { data: org } = await db
       .from('orgs')
-      .select('name, review_link')
+      .select('name, review_link, settings')
       .eq('id', inv.org_id)
       .maybeSingle();
+
+    /*
+      Where a reply goes, and whether to invite one at all.
+
+      The mail is sent from MAIL_FROM, which is the product's address and not
+      the business's, so a reply went to a mailbox nobody reads - and
+      calo.company has no MX record, so it did not even bounce somewhere
+      useful. Reply-To points at the business's own email.
+
+      Where a business has not set one, the invitation to reply is removed
+      rather than left pointing nowhere. Their phone takes its place if they
+      have one, and if they have neither, the line simply goes.
+    */
+    const orgSettings = ((org as { settings?: Record<string, unknown> } | null)?.settings ?? {});
+    const replyTo = String(orgSettings.email ?? '').trim();
+    const orgPhone = String(orgSettings.phone ?? '').trim();
+    const askLine = replyTo
+      ? 'Reply to this email with any questions.'
+      : orgPhone
+        ? `Any questions, call ${orgPhone}.`
+        : '';
 
     const upd = await db
       .from('job_invoices')
@@ -143,7 +190,8 @@ export async function POST(req: NextRequest) {
       headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         from: process.env.MAIL_FROM || 'CALO&CO <onboarding@resend.dev>',
-        to,
+        to: everyone,
+        ...(replyTo ? { reply_to: replyTo } : {}),
         subject: `Invoice ${inv.number} from ${org?.name ?? 'us'}`,
         html: `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.65;color:#111;max-width:520px;">
 <p>${greeting},</p>
@@ -151,7 +199,7 @@ export async function POST(req: NextRequest) {
 <p style="font-size:26px;font-weight:600;margin:18px 0 6px;">${money(owed)}</p>
 ${inv.due_on ? `<p style="color:#666;font-size:13px;margin:0 0 18px;">Due ${inv.due_on}</p>` : ''}
 <p><a href="${link}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:13px 24px;border-radius:8px;font-weight:600;">View invoice</a></p>
-<p style="color:#666;font-size:13px;margin-top:22px;">That page shows every way you can pay, and you don't need an account to open it. Reply to this email with any questions.</p>
+<p style="color:#666;font-size:13px;margin-top:22px;">That page shows every way you can pay, and you don't need an account to open it.${askLine ? ` ${askLine}` : ''}</p>
 ${org?.review_link ? `<p style="color:#666;font-size:13px;margin-top:18px;">Once this one is wrapped up, a <a href="${org.review_link}" style="color:#666;">review</a> would genuinely help us.</p>` : ''}
 <p style="color:#666;font-size:13px;">${org?.name ?? ''}</p>
 </div>`,
@@ -167,7 +215,7 @@ ${org?.review_link ? `<p style="color:#666;font-size:13px;margin-top:18px;">Once
       });
     }
 
-    return NextResponse.json({ ok: true, link, message: `Sent to ${to}.` });
+    return NextResponse.json({ ok: true, link, message: `Sent to ${everyone.join(' and ')}.` });
   } catch (e) {
     console.error('[invoices/email]', (e as Error).message);
     return NextResponse.json(apiError('invoices/email', e), { status: 500 });
