@@ -13,6 +13,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
+import { myId } from '@/lib/spine/me';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { Button, C, Card, SectionLabel } from './ui';
 
@@ -48,8 +49,7 @@ export function AskedOfYou() {
    * screen. Whether you have dealt with something is a row about you.
    */
   const load = useCallback(async () => {
-    const { data: auth } = await supabase.auth.getUser();
-    const me = auth?.user?.id;
+    const me = await myId();
     if (!me) { setLoaded(true); return; }
 
     const [all, mine] = await Promise.all([
@@ -72,8 +72,7 @@ export function AskedOfYou() {
 
   async function done(id: string) {
     setRows((p) => p.filter((r) => r.id !== id));
-    const { data: auth } = await supabase.auth.getUser();
-    const me = auth?.user?.id;
+    const me = await myId();
     if (!me) return;
     await saveOrFail(
       supabase.from('notification_reads').upsert({ notification_id: id, user_id: me }),

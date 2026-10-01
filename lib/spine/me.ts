@@ -95,3 +95,17 @@ export async function myId(): Promise<string | null> {
   const { data } = await supabase.auth.getSession();
   return data.session?.user?.id ?? null;
 }
+
+/**
+ * Id and email together, for the few callers that want both.
+ *
+ * Same bargain as `myId`: the token in the browser already carries them, and
+ * nothing decided from them is a permission - the database decides that again
+ * against the real token. The top bar wanted an email and was paying a network
+ * round trip to the auth server for it, on every screen.
+ */
+export async function meNow(): Promise<{ id: string | null; email: string | null }> {
+  const { data } = await supabase.auth.getSession();
+  const u = data.session?.user;
+  return { id: u?.id ?? null, email: u?.email ?? null };
+}

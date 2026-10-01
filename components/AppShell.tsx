@@ -13,6 +13,7 @@ import TopBar from '@/components/TopBar';
 import { C, radius, useEscape, useIsPhone } from '@/components/spine/ui';
 import { TutorialPanel } from '@/components/spine/TutorialPanel';
 import supabase from '@/lib/supabase';
+import { myId } from '@/lib/spine/me';
 import { useOrg } from '@/lib/spine/org';
 import { BottomBar } from '@/components/spine/BottomBar';
 import { Capture, type CaptureJob } from '@/components/spine/Capture';
@@ -69,12 +70,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth?.user) { setMeLoaded(false); return; }
+      /* `getSession` reads the token the browser already holds. `getUser` is a
+         network hop to the auth server that holds gotrue's lock while it runs, so
+         every query on the screen queued behind it. Nothing here is a permission
+         decision; the database decides that again. See lib/spine/me.ts. */
+      const uid = await myId();
+      if (!uid) { setMeLoaded(false); return; }
       const { data } = await supabase
         .from('profiles')
         .select('full_name, role')
-        .eq('id', auth.user.id)
+        .eq('id', uid)
         .maybeSingle();
       setMeOnboarded(Boolean(data?.full_name?.trim() && data?.role));
       setMyRole(data?.role ?? null);

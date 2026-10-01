@@ -16,6 +16,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
+import { myId } from '@/lib/spine/me';
 import { forgetOrg, setKnownOrg } from '@/lib/spine/db';
 import type { Org } from './types';
 
@@ -66,8 +67,12 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
 
   const load = useCallback(async () => {
     try {
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth?.user) {
+      /* `getSession` reads the token the browser already holds. `getUser` is a
+         network hop to the auth server that holds gotrue's lock while it runs, so
+         every query on the screen queued behind it. Nothing here is a permission
+         decision; the database decides that again. See lib/spine/me.ts. */
+      const uid = await myId();
+      if (!uid) {
         setOrg(null);
         setOrgs([]);
         return;
@@ -78,7 +83,7 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
       const [{ data: orgRows, error: orgErr }, { data: profile, error: pErr }] =
         await Promise.all([
           supabase.from('orgs').select('*').order('name'),
-          supabase.from('profiles').select('active_org_id').eq('id', auth.user.id).maybeSingle(),
+          supabase.from('profiles').select('active_org_id').eq('id', uid).maybeSingle(),
         ]);
 
       if (orgErr) throw new Error(orgErr.message);
@@ -101,7 +106,7 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
         const fix = await supabase
           .from('profiles')
           .update({ active_org_id: fallback.id })
-          .eq('id', auth.user.id);
+          .eq('id', uid);
 
         if (fix.error) {
           setOrg(null);

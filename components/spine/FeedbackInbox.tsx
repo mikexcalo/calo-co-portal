@@ -24,6 +24,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
+import { myId } from '@/lib/spine/me';
 import { useOrg } from '@/lib/spine/org';
 import { useViewAs } from '@/lib/spine/viewas';
 import { openGrant } from '@/lib/spine/workin';
@@ -74,7 +75,11 @@ export function FeedbackInbox({ currentOrgId }: { currentOrgId: string | null })
   const [me, setMe] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setMe(data?.user?.id ?? null));
+    /* `getSession` reads the token the browser already holds. `getUser` is a
+       network hop to the auth server that holds gotrue's lock while it runs, so
+       every query on the screen queued behind it. Nothing here is a permission
+       decision; the database decides that again. See lib/spine/me.ts. */
+    myId().then(setMe);
   }, []);
 
   const load = useCallback(async () => {

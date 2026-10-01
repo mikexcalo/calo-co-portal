@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PATHS, useTutorial } from '@/lib/spine/tutorial';
 import supabase from '@/lib/supabase';
+import { myId } from '@/lib/spine/me';
 import { useOrg } from '@/lib/spine/org';
 import { ANSWERS, search } from '@/lib/spine/answers';
 import { C, SERIF, radius, useIsPhone } from './ui';
@@ -29,12 +30,16 @@ export function TutorialPanel() {
     let off = false;
     (async () => {
       if (!org?.id) return;
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth?.user) return;
+      /* `getSession` reads the token the browser already holds. `getUser` is a
+         network hop to the auth server that holds gotrue's lock while it runs, so
+         every query on the screen queued behind it. Nothing here is a permission
+         decision; the database decides that again. See lib/spine/me.ts. */
+      const uid = await myId();
+      if (!uid) return;
       const m = await supabase
         .from('memberships')
         .select('role')
-        .eq('user_id', auth.user.id)
+        .eq('user_id', uid)
         .eq('org_id', org.id)
         .maybeSingle();
       if (!off) setCanSetUp(['owner', 'admin'].includes(m.data?.role ?? ''));

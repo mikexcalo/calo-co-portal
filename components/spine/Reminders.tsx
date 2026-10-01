@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useOrg } from '@/lib/spine/org';
 import supabase from '@/lib/supabase';
+import { myId } from '@/lib/spine/me';
 import { Button, C, Card, Check, Empty, SectionLabel, inputStyle, shortDate } from './ui';
 import { human } from '@/lib/spine/errors';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -78,14 +79,14 @@ export function Reminders({
     if (!body.trim()) return;
     setBusy(true);
     setError(null);
-    const { data: auth } = await supabase.auth.getUser();
+    const uid = await myId();
     const res = await saveOrFail(supabase.from('reminders').insert({
       org_id: orgId,
       customer_id: customerId ?? null,
       job_id: jobId ?? null,
       body: body.trim(),
       due_on: due,
-      created_by: auth?.user?.id ?? null,
+      created_by: uid,
     }));
     setBusy(false);
     if (res.error) { setError(human(res.error.message)); return; }

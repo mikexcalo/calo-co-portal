@@ -5,6 +5,7 @@ import { CommandBar } from '@/components/spine/CommandBar';
 import React, { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
+import { meNow } from '@/lib/spine/me';
 import { useTutorial } from '@/lib/spine/tutorial';
 import { useOrg } from '@/lib/spine/org';
 import { OrgSwitcher } from '@/components/spine/OrgSwitcher';
@@ -418,13 +419,16 @@ function AccountMenu() {
   const [avatar, setAvatar] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
-      setEmail(data?.user?.email ?? null);
-      if (!data?.user) return;
+    /* From the token the browser already holds, not a round trip to the auth
+       server. `getUser` holds gotrue's lock while it runs, and this one sat in
+       the chrome of every screen. See lib/spine/me.ts. */
+    meNow().then(async ({ id, email: mail }) => {
+      setEmail(mail);
+      if (!id) return;
       const p = await supabase
         .from('profiles')
         .select('avatar_url')
-        .eq('id', data.user.id)
+        .eq('id', id)
         .maybeSingle();
       setAvatar(p.data?.avatar_url ?? null);
     });

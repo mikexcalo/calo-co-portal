@@ -26,6 +26,7 @@ import { CLIENT_STAGES } from '@/lib/spine/stage';
 import { hoursByClient, listDocuments, listInvoices, listJobLedger, listJobs, orgNow } from '@/lib/spine/db';
 import { modulesFor } from '@/lib/spine/modules';
 import supabase from '@/lib/supabase';
+import { myId } from '@/lib/spine/me';
 import { useOrg, aWord, capWord } from '@/lib/spine/org';
 import { useViewAs } from '@/lib/spine/viewas';
 import { clientOwner } from '@/lib/spine/client-view';
@@ -749,8 +750,8 @@ export default function Dashboard() {
     let canceled = false;
     (async () => {
       if (!org?.id) { setCanSetUp(null); return; }
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth?.user) return;
+      const uid = await myId();
+      if (!uid) return;
 
       /*
         In View mode the greeting is theirs, not yours.
@@ -762,13 +763,13 @@ export default function Dashboard() {
         to "Home", which is what somebody with no name set sees anyway.
       */
       if (viewAs) {
-        const them = await clientOwner(org.id, auth.user.id);
+        const them = await clientOwner(org.id, uid);
         if (!canceled) setFirstName(them?.firstName ?? '');
       } else {
         const profile = await supabase
           .from('profiles')
           .select('full_name')
-          .eq('id', auth.user.id)
+          .eq('id', uid)
           .maybeSingle();
         if (!canceled) {
           const whole = (profile.data?.full_name ?? '').trim();
@@ -779,7 +780,7 @@ export default function Dashboard() {
       const membership = await supabase
         .from('memberships')
         .select('role')
-        .eq('user_id', auth.user.id)
+        .eq('user_id', uid)
         .eq('org_id', org.id)
         .maybeSingle();
       if (canceled) return;

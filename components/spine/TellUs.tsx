@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import supabase from '@/lib/supabase';
+import { myId } from '@/lib/spine/me';
 import { useOrg } from '@/lib/spine/org';
 import { Button, C, Card, SectionLabel, inputStyle } from './ui';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -37,8 +38,7 @@ export function TellUs() {
 
   const load = useCallback(async () => {
     if (!org) return;
-    const { data: auth } = await supabase.auth.getUser();
-    const meId = auth?.user?.id;
+    const meId = await myId();
     if (!meId) { setMine([]); return; }
     const res = await supabase
       .from('feedback')
@@ -57,10 +57,10 @@ export function TellUs() {
   const send = async () => {
     if (!org || !body.trim()) return;
     setBusy(true);
-    const { data: auth } = await supabase.auth.getUser();
+    const meId2 = await myId();
     const res = await saveOrFail(supabase.from('feedback').insert({
       org_id: org.id,
-      author_id: auth?.user?.id ?? null,
+      author_id: meId2,
       kind,
       body: body.trim(),
       // Recorded rather than asked. "Which screen" is the question nobody can

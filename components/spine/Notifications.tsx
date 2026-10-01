@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
+import { myId } from '@/lib/spine/me';
 import { useOrg } from '@/lib/spine/org';
 import { C, radius, useEscape } from './ui';
 import { save as saveOrFail } from '@/lib/spine/save';
@@ -252,9 +253,9 @@ export function Notifications() {
      */
     if (n.kind === 'system') {
       setItems((prev) => prev.map((i) => (i.id === n.id ? { ...i, read_at: new Date().toISOString() } : i)));
-      const { data: auth } = await supabase.auth.getUser();
-      if (auth?.user) {
-        await supabase.from('notification_reads').upsert({ notification_id: n.id, user_id: auth.user.id });
+      const uid = await myId();
+      if (uid) {
+        await supabase.from('notification_reads').upsert({ notification_id: n.id, user_id: uid });
       }
       if (n.href) router.push(n.href);
       return;
