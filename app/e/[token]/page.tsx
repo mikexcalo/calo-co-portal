@@ -202,11 +202,27 @@ export default async function PublicEstimate({
     studioNameFor(db, job?.org_id ?? estimate.org_id),
   ]);
 
-  /* The sender's word for the document, used everywhere the page names it. */
-  const estimateWord = vocabFor(
-    (org as { kind?: Org['kind'] } | null)?.kind,
-    (org as { settings?: Record<string, unknown> | null } | null)?.settings ?? null
-  ).estimate;
+  /*
+    The word this document went out with, used everywhere the page names it.
+
+    Stamped on the row at send, like the terms beside it, and preferred over
+    resolving the sender's vocabulary now. Resolved live, the heading, the
+    reference and the PDF filename on a document already in somebody's inbox
+    changed whenever the business changed its word or the product changed a
+    default - so a customer who agreed to "Estimate 003" came back to a page
+    calling it something else.
+
+    A draft has no stamp because it has not gone anywhere, and falls through to
+    the live word. So does a sent row that somehow missed one: a page that
+    renders the current word is wrong in a small way, and a page with a gap
+    where the document's name should be is wrong in a large one.
+  */
+  const estimateWord =
+    (estimate as { doc_word?: string | null }).doc_word?.trim() ||
+    vocabFor(
+      (org as { kind?: Org['kind'] } | null)?.kind,
+      (org as { settings?: Record<string, unknown> | null } | null)?.settings ?? null
+    ).estimate;
 
   // Record the first open. "Sent but never opened" is a different problem
   // from "opened and ignored", and only one of them needs a nudge.

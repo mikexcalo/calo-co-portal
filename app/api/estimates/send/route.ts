@@ -14,6 +14,8 @@ import { cookies } from 'next/headers';
 import crypto from 'crypto';
 import { postEmail } from '@/lib/spine/deliverable';
 import { moneyText } from '@/lib/spine/money-text';
+import { vocabFor } from '@/lib/spine/vocab';
+import type { Org } from '@/lib/spine/types';
 
 export const runtime = 'nodejs';
 
@@ -120,7 +122,7 @@ export async function POST(req: NextRequest) {
     const origin = req.nextUrl.origin;
     const link = `${origin}/e/${token}`;
 
-    const { data: org } = await db.from('orgs').select('name').eq('id', est.org_id).maybeSingle();
+    const { data: org } = await db.from('orgs').select('name, kind, settings').eq('id', est.org_id).maybeSingle();
 
     /*
       Freeze the terms at the moment of sending.
@@ -153,6 +155,19 @@ export async function POST(req: NextRequest) {
         sent_at: new Date().toISOString(),
         sent_to: to,
         ...(frozen ? { terms: frozen } : {}),
+        /*
+          The word it went out with, frozen like the terms beside it.
+
+          Resolved live, the heading, the reference and the PDF filename on a
+          document already in somebody's inbox change whenever the business
+          changes its word or the product changes a default. A customer who
+          agreed to Estimate 003 should not come back to a page calling it
+          something else.
+        */
+        doc_word: vocabFor(
+          (org as { kind?: Org['kind'] } | null)?.kind,
+          (org as { settings?: Record<string, unknown> | null } | null)?.settings ?? null
+        ).estimate,
       })
       .eq('id', est.id);
     if (upd.error) throw new Error(upd.error.message);

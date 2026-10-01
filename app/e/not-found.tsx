@@ -1,7 +1,12 @@
 /**
- * Shown when an estimate token doesn't resolve. Deliberately vague: it should
+ * Shown when a proposal token doesn't resolve. Deliberately vague: it should
  * not distinguish "never existed" from "expired" from "wrong link", because
  * an endpoint that tells you which is a way to probe for valid tokens.
+ *
+ * It says "document" rather than the business's own word for one. There is no
+ * org to read a vocabulary from here, and there must not be: the word is
+ * itself a fact about which business sent this, and this page exists to answer
+ * without saying who.
  */
 export default function EstimateNotFound() {
   return (
@@ -20,7 +25,7 @@ export default function EstimateNotFound() {
           This link isn&apos;t working
         </div>
         <p style={{ fontSize: 15, color: '#555', lineHeight: 1.65, marginTop: 10 }}>
-          It may have been replaced by a newer version, or the estimate may have already been
+          It may have been replaced by a newer version, or the document may have already been
           decided. Reply to the email it came from and they&apos;ll send a fresh one.
         </p>
       </div>
