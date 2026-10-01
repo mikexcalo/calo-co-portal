@@ -447,10 +447,20 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
           marginBottom: 26,
         }}
       >
+        {/*
+          One label for one number, and the hint says what kind of number it is.
+
+          This read "Estimate" on a time-and-materials job and "Contract" on a
+          fixed-price one, which named the same figure - the accepted
+          proposal's total - two different ways, and said "Estimate" on a
+          screen whose sidebar says Proposals. The difference the two labels
+          were reaching for is not what the number is, it is whether it binds,
+          and that is a sentence rather than a noun.
+        */}
         <Metric
-          label={isTM ? 'Estimate' : 'Contract'}
+          label={vocab.estimate}
           value={money0(ledger?.estimate_total ?? 0)}
-          hint={isTM ? 'Forecast, not a cap' : undefined}
+          hint={isTM ? 'Forecast, not a cap' : 'Fixed price, and the cap'}
         />
         <Metric label="Hours logged" value={fmtHours(ledger?.hours_logged ?? 0)} />
         <Metric label="Costs" value={money0(ledger?.cost_total ?? 0)} hint={`What the ${vocab.job.toLowerCase()} cost you`} />

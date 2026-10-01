@@ -159,6 +159,39 @@ The service role has no session and is exempt by design — `auth.uid()` is null
 and the trigger returns early. Anything running with the service key is
 already past every check in this product.
 
+## Never write a whole `settings` object
+
+`orgs.settings` is one column shared by everything a business has decided about
+itself: `brand`, `workspace_color`, `phone`, `address`, `license_no`,
+`deposit`, `signature`, `payment_methods`, `estimate_word`. Whoever writes it
+last wins the whole column, so a bare object does not change one key - it
+deletes every key it does not mention.
+
+**Read, merge, write back. Every time, in code and in a one-off alike.**
+
+```ts
+const cur = await supabase.from('orgs').select('settings').eq('id', id).maybeSingle();
+const next = { ...(cur.data?.settings ?? {}), workspace_color: hex };
+await supabase.from('orgs').update({ settings: next }).eq('id', id);
+```
+
+```sql
+update orgs set settings = coalesce(settings, '{}'::jsonb) || '{"phone": "..."}'::jsonb
+```
+
+Re-reading first, as `saveColor` on What You See does, is stricter than
+spreading the `org` already in memory: two tabs open on the same workspace will
+otherwise write each other's stale copy back.
+
+PostgREST is the trap. `PATCH /rest/v1/orgs` with `{"settings": {...}}`
+REPLACES the column - there is no merge - and it answers 200 either way. A test
+that set one key this way wiped Harbor Light's colour, phone, address, licence
+number and deposit rule, four of which print on documents it sends.
+`20261030140000_put_harbor_lights_settings_back.sql` is the repair.
+
+The same goes for `customers.modules` and any other jsonb column standing in
+for a row of columns.
+
 ## Migrations
 
 `supabase/migrations/`, named `YYYYMMDD_lower_case_phrase.sql`.
