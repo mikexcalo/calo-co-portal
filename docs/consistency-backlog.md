@@ -746,7 +746,7 @@ all of it back.
   from the sidebar. At 1920 the column measures 1100 wide at x=516, centred
   in the 1708px main area.
 
-## 24. Costa's demo invoice ignores the actuals it is supposed to be built from — M
+## 24. Costa's demo invoice ignores the actuals it is supposed to be built from — DONE
 
 Found while reconciling a $6 gap between Costa Residence's accepted estimate
 ($3,890, now $3,896) and invoice CR-001 ($3,896). The gap was a fixture typo
@@ -779,6 +779,13 @@ job, but it cannot stay as both.
 
 Deliberately out of scope of the brief that found it, which was told to change
 one value and nothing else.
+
+**Done, 1 Oct 2026.** `20261030120000_costas_invoice_comes_from_the_work.sql`.
+CR-001 is three lines now - 6.5 hr and 4 hr at $85, and the $980 shingle - each
+carrying the id of the entry or cost it came from, totalling $1,872.50. The
+three source rows are stamped billed, so the job reads Unbilled $0, Outstanding
+$1,873, Margin $893, and the proposal stays at $3,896 as the forecast a T&M job
+came in under.
 
 ---
 
