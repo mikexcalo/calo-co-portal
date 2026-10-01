@@ -43,17 +43,31 @@ export async function studioNameFor(
     .eq('linked_org_id', clientOrgId)
     .limit(2);
 
-  if (error || !links || links.length !== 1) return null;
+  const agencyId = !error && links?.length === 1
+    ? (links[0] as { org_id?: string }).org_id
+    : null;
 
-  const agencyId = (links[0] as { org_id?: string }).org_id;
-  if (!agencyId || agencyId === clientOrgId) return null;
+  /*
+    Nobody above this workspace means it is the top of its own chain, and the
+    business sending the document is the one that carried it. That is the
+    studio's own invoices to its own clients: CALO&CO billing John is sent
+    through CALO&CO, and saying nothing at all there was the cost of fixing
+    the opposite bug, where every client's invoice carried CALO&CO's name.
 
-  const { data: agency } = await db
+    Two links is still null. The product cannot pick between two studios and
+    should not guess on somebody's paperwork.
+  */
+  const whose = error || (links && links.length > 1)
+    ? null
+    : (agencyId && agencyId !== clientOrgId ? agencyId : clientOrgId);
+  if (!whose) return null;
+
+  const { data: org } = await db
     .from('orgs')
     .select('name')
-    .eq('id', agencyId)
+    .eq('id', whose)
     .maybeSingle();
 
-  const name = (agency as { name?: string } | null)?.name?.trim();
+  const name = (org as { name?: string } | null)?.name?.trim();
   return name || null;
 }
