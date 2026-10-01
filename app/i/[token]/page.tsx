@@ -16,6 +16,7 @@ import { notFound } from 'next/navigation';
 import { InvoicePdf, type PdfInvoiceLine } from './InvoicePdf';
 import { METHODS, payLink, type PaymentMethod } from '@/lib/spine/payments';
 import { clientFace, telHref } from '@/lib/spine/client-face';
+import { createSupabaseServer } from '@/lib/supabase-server';
 import { ownerOf } from '@/lib/spine/doc-owner';
 import { C, radius } from '@/lib/spine/tokens';
 import { DocShell, Ink, Sent } from '@/components/public/DocShell';
@@ -61,7 +62,13 @@ function fmtDate(d: string | null): string {
   });
 }
 
-export default async function PublicInvoice({ params }: { params: { token: string } }) {
+export default async function PublicInvoice({
+  params,
+  searchParams,
+}: {
+  params: { token: string };
+  searchParams?: { preview?: string };
+}) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) notFound();
@@ -103,13 +110,40 @@ export default async function PublicInvoice({ params }: { params: { token: strin
   ]);
 
   /*
-    The same signal on an invoice as on a proposal.
+    Your own look at it is not them opening it.
 
-    Knowing somebody has opened a bill is the difference between chasing a
-    person who never got it and leaving alone a person who is getting to it.
-    First open only.
+    "Opened it" separates a customer who has read a bill and gone quiet from one
+    who never got the email, which is worth knowing. It was recorded on ANY load
+    of this page, and the first load is always the studio's: the Preview button
+    on Invoices opens this very URL. So previewing a bill told you the customer
+    had read it, and stamped a date that is then wrong for good. MMTH-001 has
+    carried a viewed_at since 21 September for exactly that reason.
+
+    Two tests, because one is not enough. The preview link carries ?preview=1,
+    the way the proposal's has for months. And anybody signed in who belongs to
+    the business that sent this is on the sending side whatever the URL says -
+    a studio opening the bare link is still not the customer.
+
+    A customer has no session here and nothing on the URL, so the only way to be
+    recorded as having opened it is to have opened it.
   */
-  if (!invoice.viewed_at) {
+  const isPreview = searchParams?.preview === '1';
+  const looker = (await createSupabaseServer().auth.getUser()).data.user;
+  const onTheSendingSide = looker
+    ? Boolean(
+        (
+          await db
+            .from('memberships')
+            .select('user_id')
+            .eq('user_id', looker.id)
+            .eq('org_id', job?.org_id ?? invoice.org_id)
+            .maybeSingle()
+        ).data
+      )
+    : false;
+  const theirOwnVisit = !isPreview && !onTheSendingSide;
+
+  if (theirOwnVisit && !invoice.viewed_at) {
     const client = job?.customer?.contact_name || job?.customer?.name || 'Somebody';
     await db.from('notifications').insert({
       org_id: job?.org_id ?? invoice.org_id,
@@ -119,7 +153,7 @@ export default async function PublicInvoice({ params }: { params: { token: strin
     }).then(undefined, () => {});
   }
 
-  if (!invoice.viewed_at) {
+  if (theirOwnVisit && !invoice.viewed_at) {
     await db.from('job_invoices').update({ viewed_at: new Date().toISOString() }).eq('id', invoice.id);
   }
 

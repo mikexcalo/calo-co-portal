@@ -846,6 +846,36 @@ recoverable but not visible. A two-author view is its own brief.
 
 ---
 
+## 26. Two privacy leaks and an invoice that read itself — DONE 1 Oct 2026
+
+Found by `scripts/as-user.sh`, which runs the real policies against the real
+rows for one person, with no token and no browser.
+
+**A client could read the studio's working notes about them.**
+`customers_client_reads_itself` was SELECT-only and deliberate - a client
+should see their own record - but row-level security has no column list, so
+"the row that is you" included `notes`, `stage`, `stage_why`, `next_action`,
+`waiting_on`, `brief` and `tags`. Live, with content: Marcie Tomlinson at
+Lakemere could read 86 characters of CALO&CO's notes and see herself filed at
+stage `trying`. The policy is gone and `my_business_record` returns the basics
+instead. `client_awaiting`, the only thing that needed the policy, runs as its
+owner now; its WHERE clause was always the real boundary.
+
+**A client could read a studio's draft proposal about them.**
+`estimates_client_read` had no `status <> 'draft'`, where the two invoice
+policies beside it do. Latent - nothing was in that shape - so a demo draft was
+seeded to prove the fix rather than argue it.
+
+**Previewing an invoice told you the customer had read it.** The page stamped
+`viewed_at` and raised "the customer opened your invoice" on any load, and the
+first load is always the studio's: Preview opens that very URL. MMTH-001 has
+carried a false `viewed_at` since 21 September. Now the preview link says
+`?preview=1`, as the proposal's has for months, and anyone signed in who
+belongs to the sending business is never counted whatever the URL says.
+
+No real row was edited. Lakemere's notes are untouched; what changed is who
+can see them.
+
 ---
 
 ## Done since this list was written

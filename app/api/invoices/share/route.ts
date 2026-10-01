@@ -83,7 +83,11 @@ export async function POST(req: NextRequest) {
 
     // Reuse an existing token so resending doesn't break a link already open.
     const token = inv.public_token ?? crypto.randomBytes(18).toString('hex');
-    const link = `${req.nextUrl.origin}/i/${token}`;
+    /* A preview link says so, so the page it opens does not record the
+       customer as having read a bill they have not been sent. The proposal
+       link has carried the same flag since the day both proposals showed
+       "Opened it" seconds after going out. */
+    const link = `${req.nextUrl.origin}/i/${token}${previewOnly ? '?preview=1' : ''}`;
 
     const { data: org } = await db
       .from('orgs')
