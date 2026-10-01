@@ -296,7 +296,7 @@ export default function PricingPage() {
           <div style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.6 }}>
             These were read from a document or worked out from one job&apos;s totals. A rate
             that was right for one house can be wrong for the next. Access, ceiling height and
-            wire runs all move it. <strong>Unconfirmed prices are kept out of estimates</strong>{' '}
+            wire runs all move it. <strong>Unconfirmed prices are kept out of {vocab.estimate.toLowerCase()}s</strong>{' '}
             until someone who sets prices ticks them off.
           </div>
         </Card>
@@ -481,7 +481,7 @@ export default function PricingPage() {
                       </span>
                       {i.varies && (
                         <span style={{ marginLeft: 6 }}>
-                          <Pill tone="amber">Varies by job</Pill>
+                          <Pill tone="amber">Varies by {vocab.job.toLowerCase()}</Pill>
                         </span>
                       )}
                     </div>
@@ -556,7 +556,7 @@ export default function PricingPage() {
           A price that reads the same across all three tiers does not vary by tier.{' '}
           <strong>Confirm</strong> means someone who sets prices has stood behind the number.
           Only confirmed items appear when building an{' '}
-          {vocab.estimate?.toLowerCase() ?? 'estimate'}. <strong>Varies by job</strong> marks
+          {vocab.estimate?.toLowerCase() ?? 'estimate'}. <strong>Varies by {vocab.job.toLowerCase()}</strong> marks
           work where no single rate is honest. The figure shown is a reference point, not a
           rate to autofill. <strong>On site</strong> publishes to the public price list your
           website can read.

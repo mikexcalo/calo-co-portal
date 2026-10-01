@@ -51,7 +51,7 @@ interface RefDoc {
 const blank = { title: '', subject: '', source: '', as_of: '', body: '' };
 
 export default function MarketPage() {
-  const { org } = useOrg();
+  const { org, vocab } = useOrg();
   const [docs, setDocs] = useState<RefDoc[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -184,7 +184,7 @@ export default function MarketPage() {
         </Card>
       ) : docs.length === 0 ? (
         <Card>
-          <Empty>Nothing filed yet. This is for what stays true across every client.</Empty>
+          <Empty>Nothing filed yet. This is for what stays true across every {vocab.customer.toLowerCase()}.</Empty>
         </Card>
       ) : (
         <>

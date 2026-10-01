@@ -384,7 +384,7 @@ export default function ExpensesPage() {
         </>
       ) : error ? null : rows.length === 0 ? (
         <Card>
-          <Empty>Nothing recorded yet. Software, insurance, fuel, anything no single job caused.</Empty>
+          <Empty>Nothing recorded yet. Software, insurance, fuel, anything no single {vocab.job.toLowerCase()} caused.</Empty>
         </Card>
       ) : (
         <>

@@ -39,7 +39,7 @@ const whatEach = (vocab: Vocab): Partial<Record<ModuleId, string>> => ({
   targets: 'Everyone you want, before they are anybody you have',
   market: `Reference that stays true across every ${vocab.customer.toLowerCase()}`,
   billing: 'Send and chase invoices',
-  proposals: 'Quote work before you do it',
+  proposals: 'Send {vocab.estimate.toLowerCase()}s before you do the work',
   pitches: 'Send a link instead of a deck',
   pl: 'What the month made, with overheads and receipts inside it',
   expenses: 'Standing costs',

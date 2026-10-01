@@ -17,6 +17,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useOrg, aWord } from '@/lib/spine/org';
 import supabase from '@/lib/supabase';
 import {
   Button,
@@ -55,6 +56,7 @@ interface PageRow { path: string; views: number; visitors: number; clicks: numbe
 const num = (n: number) => n.toLocaleString();
 
 export default function TrafficPage() {
+  const { vocab } = useOrg();
   const [sites, setSites] = useState<Site[]>([]);
   const [siteId, setSiteId] = useState<string | null>(null);
   const [days, setDays] = useState<Day[]>([]);
@@ -146,7 +148,7 @@ export default function TrafficPage() {
     >
       {!site ? (
         <Card>
-          <Empty>No sites yet. Add one on a client&apos;s record, or in Digital, and it shows up here.</Empty>
+          <Empty>No sites yet. Add one on {aWord(vocab.customer)}&apos;s record, or in Digital, and it shows up here.</Empty>
         </Card>
       ) : !site.analytics_on ? (
         /* The install, which is the only thing worth showing until it is on. */

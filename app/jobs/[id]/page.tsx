@@ -668,7 +668,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
           {vocab.estimate}
         </SectionHead>
         {estimates.length === 0 ? (
-          <Card><Empty>No estimate yet.</Empty></Card>
+          <Card><Empty>No {vocab.estimate.toLowerCase()} yet.</Empty></Card>
         ) : (
           <Table>
             <Row cols="70px 1fr 140px 200px" header>
@@ -748,7 +748,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
       <div>
         <SectionLabel>Documents ({docs.length})</SectionLabel>
         {docs.length === 0 ? (
-          <Card><Empty>Nothing filed to this job yet.</Empty></Card>
+          <Card><Empty>Nothing filed to this {vocab.job.toLowerCase()} yet.</Empty></Card>
         ) : (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {docs.map((d) => (

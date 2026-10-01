@@ -66,7 +66,7 @@ const whatEach = (vocab: Vocab): Partial<Record<ModuleId, string>> => ({
   customers: `Their ${vocab.customer.toLowerCase()} list`,
   people: 'Their contacts',
   billing: 'Send and track invoices',
-  proposals: 'Quote work',
+  proposals: `Send ${vocab.estimate.toLowerCase()}s`,
   pitches: 'Send a pitch',
   pl: 'What the month made',
   expenses: 'Overheads',
@@ -209,7 +209,7 @@ export default function AccessPage() {
           </div>
         </Card>
       ) : rows.length === 0 ? (
-        <Card><Empty>No clients yet. Add one and you can choose what they see.</Empty></Card>
+        <Card><Empty>No {vocab.customerPlural.toLowerCase()} yet. Add one and you can choose what they see.</Empty></Card>
       ) : (
         <>
           {owed > 0 && (

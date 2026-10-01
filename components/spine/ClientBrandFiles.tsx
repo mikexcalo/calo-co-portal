@@ -16,6 +16,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useOrg } from '@/lib/spine/org';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, Empty, SectionLabel } from './ui';
 
@@ -33,6 +34,7 @@ const kb = (n?: number | null) =>
   !n ? '' : n < 1024 ? `${n} B` : n < 1024 * 1024 ? `${Math.round(n / 1024)} KB` : `${(n / 1048576).toFixed(1)} MB`;
 
 export function ClientBrandFiles({ customerId }: { customerId: string }) {
+  const { vocab } = useOrg();
   const [brandId, setBrandId] = useState<string | null>(null);
   const [prefix, setPrefix] = useState<string | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -87,7 +89,7 @@ export function ClientBrandFiles({ customerId }: { customerId: string }) {
   if (!brandId) {
     return (
       <Card>
-        <Empty>No brand on this client yet.</Empty>
+        <Empty>No brand on this {vocab.customer.toLowerCase()} yet.</Empty>
       </Card>
     );
   }

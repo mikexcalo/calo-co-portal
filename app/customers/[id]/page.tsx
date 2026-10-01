@@ -585,7 +585,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
                     value={draft.next_action ?? ''}
                     onChange={(e) => setDraft({ ...draft, next_action: e.target.value })}
                     style={inputStyle}
-                    placeholder="Follow up on the bathroom quote"
+                    placeholder={`Follow up on the ${vocab.estimate.toLowerCase()} we sent`}
                   />
                 </Field>
                 <Field label="By when">

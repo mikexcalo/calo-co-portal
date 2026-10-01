@@ -52,9 +52,9 @@ const PLANS: Array<{ id: Workspace['plan']; label: string; note: string }> = [
 
 /** Capabilities with no sidebar row of their own, switchable all the same. */
 const FEATURES: Array<{ id: string; label: string; note: string }> = [
-  { id: 'optional_lines', label: 'Optional line items', note: 'Add-ons the customer ticks on an estimate' },
+  { id: 'optional_lines', label: 'Optional line items', note: 'Add-ons the customer ticks on a proposal' },
   { id: 'intake_form', label: 'Enquiry form', note: 'A public link that drops leads into their clients' },
-  { id: 'follow_ups', label: 'Follow-ups', note: 'Chases quiet quotes and late invoices' },
+  { id: 'follow_ups', label: 'Follow-ups', note: 'Chases quiet proposals and late invoices' },
   { id: 'ask', label: 'Ask', note: 'Questions answered from their own data' },
 ];
 

@@ -482,7 +482,7 @@ export default function ProposalsPage() {
 
           <SectionLabel>Decided ({won.length + lost.length})</SectionLabel>
           {won.length + lost.length === 0 ? (
-            <Card><Empty>Nothing decided yet. Estimates you send appear here once answered.</Empty></Card>
+            <Card><Empty>Nothing decided yet. {vocab.estimate}s you send appear here once answered.</Empty></Card>
           ) : (
             <Table>
               <Row cols="1fr 150px 110px 110px 110px 72px" header>

@@ -17,6 +17,7 @@
  */
 
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useOrg } from '@/lib/spine/org';
 import { C } from './ui';
 
 /** The client id in the URL, or null. The single reader of this parameter. */
@@ -26,6 +27,7 @@ export function useClientScope(): string | null {
 }
 
 export function ClientScope({ name, count }: { name: string | null; count: number }) {
+  const { vocab } = useOrg();
   const router = useRouter();
   const pathname = usePathname();
   const clientId = useClientScope();
@@ -43,7 +45,7 @@ export function ClientScope({ name, count }: { name: string | null; count: numbe
       <span style={{ fontSize: 13, color: C.text }}>
         {/* The name, not the id. Arriving to "filtered by
             a3f9-…" tells you a filter exists and not which one. */}
-        {name ? `Only ${name}` : 'Only one client'}
+        {name ? `Only ${name}` : `Only one ${vocab.customer.toLowerCase()}`}
       </span>
       <span style={{ fontSize: 12.5, color: C.faint }}>
         {count} {count === 1 ? 'row' : 'rows'}

@@ -889,7 +889,7 @@ export default function WelcomePage() {
                 : 'Which business is this?'}
             </h1>
             <p style={{ fontSize: 14.5, color: DIM, margin: '0 0 18px', lineHeight: 1.6, ...PROSE_WRAP }}>
-              {noWidow('The name, the address, and the phone number appear on every estimate and invoice you send.')}
+              {noWidow('The name, the address, and the phone number appear on every proposal and invoice you send.')}
             </p>
             <label style={{ display: 'block', marginBottom: 14 }}>
               <div style={label}>Business name</div>
@@ -916,7 +916,7 @@ export default function WelcomePage() {
                 autoComplete="off"
               />
               <div style={{ fontSize: 12.5, color: FAINT, marginTop: 5, lineHeight: 1.6, ...PROSE_WRAP }}>
-                {noWidow('It goes on estimates and invoices, so this is the inbox a customer answers into.')}
+                {noWidow('It goes on proposals and invoices, so this is the inbox a customer answers into.')}
               </div>
               {loginEmail && bizEmail.trim().toLowerCase() !== loginEmail.toLowerCase() && (
                 <button

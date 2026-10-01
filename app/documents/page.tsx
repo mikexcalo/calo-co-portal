@@ -408,7 +408,7 @@ export default function DocumentsPage() {
       {loading ? (
         <RowsLoading rows={3} />
       ) : inbox.length === 0 ? (
-        <Card><Empty hero>Inbox is clear. Everything has been filed to a job.</Empty></Card>
+        <Card><Empty hero>Inbox is clear. Everything has been filed to a {vocab.job.toLowerCase()}.</Empty></Card>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 26 }}>
           {inbox.map((doc) => (

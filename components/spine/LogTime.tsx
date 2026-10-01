@@ -22,6 +22,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useOrg } from '@/lib/spine/org';
 import { usePathname } from 'next/navigation';
 import { Button, C, money, inputStyle, Select, Sheet } from '@/components/spine/ui';
 import { createTimeEntry, listBillableJobs, orgNow } from '@/lib/spine/db';
@@ -69,6 +70,7 @@ export function parseDuration(raw: string): number | null {
 const QUICK = ['15m', '30m', '45m', '1h', '2h'];
 
 export default function LogTime({ onClose }: { onClose: () => void }) {
+  const { vocab } = useOrg();
   const pathname = usePathname();
   const [jobs, setJobs] = useState<BillableJob[]>([]);
   const [jobId, setJobId] = useState('');
@@ -244,7 +246,7 @@ export default function LogTime({ onClose }: { onClose: () => void }) {
                     {job.draft_number ? ` · joins ${job.draft_number}` : ' · goes on the invoice drafted on the 1st'}
                   </>
                 ) : (
-                  <>No hourly rate is set for this client, so this would log at $0. Set one on their terms first.</>
+                  <>No hourly rate is set for this {vocab.customer.toLowerCase()}, so this would log at $0. Set one on their terms first.</>
                 )}
               </div>
             )}

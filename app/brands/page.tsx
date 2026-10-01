@@ -109,7 +109,7 @@ export default function BrandsPage() {
         <RowsLoading rows={4} />
       ) : rows.length === 0 ? (
         <Card>
-          <Empty hero>No client brands yet. Build one and its colors, type and voice live here.</Empty>
+          <Empty hero>No {vocab.customer.toLowerCase()} brands yet. Build one and its colors, type and voice live here.</Empty>
         </Card>
       ) : (
         <>

@@ -22,6 +22,7 @@
  */
 
 import { OutboundCheck } from '@/components/spine/OutboundCheck';
+import { useOrg } from '@/lib/spine/org';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
 import {
@@ -99,6 +100,7 @@ interface Draft {
 }
 
 export default function StoriesPage() {
+  const { vocab } = useOrg();
   const [stories, setStories] = useState<Story[]>([]);
   const [claims, setClaims] = useState<Record<string, Claim[]>>({});
   const [loading, setLoading] = useState(true);
@@ -469,7 +471,7 @@ export default function StoriesPage() {
       )}
 
       {stories.length === 0 ? (
-        <Card><Empty>No case studies yet. Write one up from a finished job.</Empty></Card>
+        <Card><Empty>No case studies yet. Write one up from a finished {vocab.job.toLowerCase()}.</Empty></Card>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {stories.map((s) => {
