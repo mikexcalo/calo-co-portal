@@ -85,6 +85,20 @@ export function drawInvoice(pdf: jsPDF, doc: PdfInvoice, logo?: LoadedLogo | nul
         return lines;
       };
 
+      /*
+        A small caps label, and the air under it.
+
+        Every one of these sat hard against the line beneath, so BILLED TO read
+        as part of the name rather than as the thing naming it. The gap belongs
+        to the label, not to each of the five places one is used, or the five
+        drift apart the first time one of them is edited.
+      */
+      const label = (s: string, x: number) => {
+        set(8);
+        pdf.text(s, x, y);
+        y += 8 * 1.32 + 4;
+      };
+
       const say = (
         s: string,
         x: number,
@@ -160,17 +174,17 @@ export function drawInvoice(pdf: jsPDF, doc: PdfInvoice, logo?: LoadedLogo | nul
       const c2 = M + 210;
       const c3 = M + 340;
 
-      say('BILLED TO', M, 8);
+      label('BILLED TO', M);
       for (const l of doc.billedTo.filter(Boolean)) say(l, M, 10.5);
       const leftEnd = y;
 
       y = colTop;
-      say('ISSUED', c2, 8);
+      label('ISSUED', c2);
       say(doc.issued, c2, 10.5);
       const midEnd = y;
 
       y = colTop;
-      say('DUE', c3, 8);
+      label('DUE', c3);
       if (doc.dueNote) {
         struck(doc.due, c3, 10.5);
         y += 10.5 * 1.32;
@@ -230,7 +244,10 @@ export function drawInvoice(pdf: jsPDF, doc: PdfInvoice, logo?: LoadedLogo | nul
           y = rowTop;
           set(10.5);
           if (l.hours) pdf.text(l.hours, C_HOURS, y, { align: 'right' });
-          if (l.standard) pdf.text(l.standard, C_STD, y, { align: 'right' });
+          /* Struck through, like the standard rate on the rate line. It is the
+             price that is not being charged, and saying so once at the top and
+             then printing it plain eleven times underneath undoes the point. */
+          if (l.standard) struck(l.standard, C_STD, 10.5, 'right');
           if (l.struck) {
             const w = pdf.getTextWidth(l.yours);
             struck(l.struck, C_YOURS - w - 8, 10.5, 'right');
@@ -271,13 +288,13 @@ export function drawInvoice(pdf: jsPDF, doc: PdfInvoice, logo?: LoadedLogo | nul
       y += 14;
 
       const footTop = y;
-      say('HOW TO PAY', M, 8);
+      label('HOW TO PAY', M);
       for (const p of doc.pay) say(`${p.label}: ${p.value}`, M, 10.5);
       const payEnd = y;
 
       y = footTop;
       const qx = M + 260;
-      say('QUESTIONS', qx, 8);
+      label('QUESTIONS', qx);
       const how = doc.questionsEmail && doc.questionsPhone
         ? `Reply to ${doc.questionsEmail} or call ${doc.questionsPhone}.`
         : doc.questionsEmail
