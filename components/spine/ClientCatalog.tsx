@@ -27,6 +27,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { Button, C, Card, Empty, SectionLabel, inputStyle, money0, today } from './ui';
 import { READ_FAILED, human } from '@/lib/spine/errors';
+import { useOrg } from '@/lib/spine/org';
 import { save as saveOrFail } from '@/lib/spine/save';
 
 interface Product {
@@ -98,6 +99,10 @@ export function ClientCatalog({
   orgId: string;
   clientName: string;
 }) {
+  /* Whose sheet this is, in the workspace's own word. A rep calls them the
+     principal; this component is not a rep-only screen and was saying it to
+     everybody. */
+  const { vocab } = useOrg();
   const [rows, setRows] = useState<Product[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -201,7 +206,7 @@ export function ClientCatalog({
           }}
         >
           {priced === 0
-            ? `Every line is decided and none is priced. These are the items chosen to lead with; the numbers come back from the principal.`
+            ? `Every line is decided and none is priced. These are the items chosen to lead with; the numbers come back from the ${vocab.customer.toLowerCase()}.`
             : `${rows.length - priced} of ${rows.length} still have no price.`}
         </div>
       )}

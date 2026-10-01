@@ -256,6 +256,24 @@ corrupts text instead: XML and JSON come back escaped and land at a
 plausible-looking size. `sitemap.xml` went up at 452 bytes against 338 on disk
 that way, and only the size check caught it.
 
+## The dev server
+
+```
+npm run dev        # removes .next first, then starts
+```
+
+`predev` clears `.next` because it goes stale and the symptom does not say so:
+every page renders blank, the console says `ChunkLoadError: Loading chunk
+app/page failed`, and nothing in the source is wrong. It happens when anything
+writes into `.next` while `next dev` owns it - `next build`, or the pre-push
+render check if it ever stops using its own port. Three sessions lost time to
+it before the cause was clear, each one diagnosing a product bug that was not
+there.
+
+The cost is a cold first compile. The alternative was minutes of chasing a
+blank screen, so it is not close. If a page ever goes blank with no error in
+the source, this is the first thing to rule out.
+
 ## Deploys
 
 Vercel builds on push to `main`. Every route redirects to `/login` when signed
