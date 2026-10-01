@@ -23,6 +23,7 @@ import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { READ_FAILED, human } from '@/lib/spine/errors';
+import { useViewAs } from '@/lib/spine/viewas';
 import { Button, C, Card, SectionLabel, Skeleton, inputStyle } from './ui';
 
 export interface Pillar {
@@ -135,8 +136,21 @@ export function Messaging({
   const [saved, setSaved] = useState(false);
   /* Whose it is, once the server has said. Null until then, and always null on
      the direct path, where the caller is the author by construction. */
-  const [keptBy, setKeptBy] = useState<string | null>(null);
-  const [readOnly, setReadOnly] = useState(false);
+  /*
+    Who wrote each piece, and the studio's name for the ones it wrote.
+
+    Ownership used to be the whole panel: either the studio's or yours. That
+    only holds until the two of you fill in different halves of the same
+    framework, which is the ordinary case - a business knows its own promise
+    and the studio writes the positioning. So it is a flag per piece.
+  */
+  const [authors, setAuthors] = useState<Record<string, string>>({});
+  const [studioName, setStudioName] = useState<string | null>(null);
+  /* Working in somebody else's workspace. A studio may change a piece the
+     client wrote, but only from in here, where the change is recorded and the
+     client is told. */
+  const { work } = useViewAs();
+  const inWorkMode = Boolean(work);
   const [failed, setFailed] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -156,7 +170,9 @@ export function Messaging({
       try {
         const r = await fetch('/api/brand/messaging', { cache: 'no-store' });
         const j = (await r.json()) as {
-          message?: Partial<Message> | null; editable?: boolean; keptBy?: string | null;
+          message?: Partial<Message> | null;
+          authors?: Record<string, string>;
+          studioName?: string | null;
           error?: string;
         };
         /*
@@ -172,8 +188,8 @@ export function Messaging({
           setFailed(j.error?.trim() || READ_FAILED);
         } else {
           if (j.message) setM(shape(j.message));
-          setReadOnly(j.editable === false);
-          setKeptBy(j.keptBy ?? null);
+          setAuthors(j.authors ?? {});
+          setStudioName(j.studioName ?? null);
         }
       } catch (e) {
         setFailed(human(e, READ_FAILED));
@@ -213,18 +229,85 @@ export function Messaging({
       ...m,
       pillars: m.pillars.map((p) => ({ ...p, support: p.support.filter((x) => x.trim()) })),
     };
+    /*
+      A piece you fill in becomes yours. A piece that already has an owner keeps
+      it, whoever is typing.
+
+      That second half is the point of the rule. A studio changing a client's
+      positioning from inside Work in it is making an edit, not taking the piece
+      over - the client still owns it, still edits it, and sees the change in
+      the log like any other. Authorship moves when nobody held it, never
+      because somebody typed.
+    */
+    const mine = resolved && inWorkMode ? 'studio' : resolved ? 'client' : 'studio';
+    const nextAuthors: Record<string, string> = { ...authors };
+    for (const f of FIELDS) {
+      const filled = (clean[f.key] ?? '').trim().length > 0;
+      if (filled && !nextAuthors[f.key]) nextAuthors[f.key] = mine;
+      if (!filled) delete nextAuthors[f.key];
+    }
+    const pillars = clean.pillars.map((p, i) => ({
+      ...p,
+      author: (p as { author?: string }).author ?? authors[`pillar:${i}`] ?? mine,
+    }));
+    clean.pillars.forEach((_, i) => {
+      if (!nextAuthors[`pillar:${i}`]) nextAuthors[`pillar:${i}`] = pillars[i].author as string;
+    });
+    for (const k of Object.keys(nextAuthors)) {
+      if (k.startsWith('pillar:') && Number(k.slice(7)) >= clean.pillars.length) delete nextAuthors[k];
+    }
+
     const res = await saveOrFail(
       supabase.from('brand_message').upsert(
-        { org_id: orgId, brand_id: brandId, ...clean, updated_at: new Date().toISOString() },
+        {
+          org_id: orgId, brand_id: brandId, ...clean, pillars,
+          authors: nextAuthors, updated_at: new Date().toISOString(),
+        },
         { onConflict: 'org_id,brand_id' }
       )
     );
-    if (!res.error) setM(clean);
+    if (!res.error) { setM(clean); setAuthors(nextAuthors); }
     setBusy(false);
     if (!res.error) {
       setSaved(true);
       setTimeout(() => setSaved(false), 2200);
     }
+  };
+
+  /*
+    Whoever wrote it owns it.
+
+    A piece nobody has written yet is open to whoever writes it first. A piece
+    the studio wrote is theirs, and the client reads it. A piece the client
+    wrote stays the client's, and a studio changes it only from inside Work in
+    it - the one place where the change is recorded and the client is told.
+  */
+  const ownerOf = (key: string): string | undefined => authors[key];
+  const lockedFor = (key: string) => {
+    if (!resolved) return false;            // studio-side screens, author by construction
+    const who = ownerOf(key);
+    if (!who) return false;                 // nobody has written this yet
+    if (who === 'studio') return !inWorkMode;
+    return false;                           // the client's own piece
+  };
+  const wroteIt = (key: string) => {
+    const who = ownerOf(key);
+    if (!who) return null;
+    if (who === 'studio') return `Written by ${studioName ?? 'your studio'}`;
+    return inWorkMode ? 'Written by them' : 'Written by you';
+  };
+
+  /* Is any piece on this screen somebody else's? Decides the foot note only. */
+  const lockedAny =
+    FIELDS.some((f) => lockedFor(f.key)) ||
+    m.pillars.some((_, i) => lockedFor(`pillar:${i}`));
+
+  const Hand = ({ k }: { k: string }) => {
+    const line = wroteIt(k);
+    if (!line) return null;
+    return (
+      <div style={{ fontSize: 11.5, color: C.faint, marginTop: 7 }}>{line}</div>
+    );
   };
 
   const setPillar = (i: number, patch: Partial<Pillar>) =>
@@ -274,9 +357,13 @@ export function Messaging({
             value={m[f.key]}
             onChange={(e) => setM({ ...m, [f.key]: e.target.value })}
             rows={f.rows}
-            readOnly={readOnly}
-            style={{ ...area(f.rows), ...(readOnly ? { background: C.panelAlt, color: C.dim } : {}) }}
+            readOnly={lockedFor(f.key)}
+            style={{
+              ...area(f.rows),
+              ...(lockedFor(f.key) ? { background: C.panelAlt, color: C.dim } : {}),
+            }}
           />
+          <Hand k={f.key} />
         </Card>
       ))}
 
@@ -311,13 +398,13 @@ export function Messaging({
                   value={p.name}
                   onChange={(e) => setPillar(i, { name: e.target.value })}
                   placeholder="The pillar, in a few words"
-                  readOnly={readOnly}
+                  readOnly={lockedFor(`pillar:${i}`)}
                   style={{
                     ...inputStyle, fontWeight: 600, flex: 1,
-                    ...(readOnly ? { background: C.panelAlt, color: C.dim } : {}),
+                    ...(lockedFor(`pillar:${i}`) ? { background: C.panelAlt, color: C.dim } : {}),
                   }}
                 />
-                {!readOnly && (
+                {!lockedFor(`pillar:${i}`) && (
                   <button
                     onClick={() => setM((v) => ({ ...v, pillars: v.pillars.filter((_, n) => n !== i) }))}
                     className="rowBtn rowBtnWide"
@@ -334,10 +421,10 @@ export function Messaging({
                 onChange={(e) => setPillar(i, { headline: e.target.value })}
                 rows={2}
                 placeholder="The one line a customer would repeat."
-                readOnly={readOnly}
+                readOnly={lockedFor(`pillar:${i}`)}
                 style={{
                   ...area(2), marginBottom: 12,
-                  ...(readOnly ? { background: C.panelAlt, color: C.dim } : {}),
+                  ...(lockedFor(`pillar:${i}`) ? { background: C.panelAlt, color: C.dim } : {}),
                 }}
               />
 
@@ -351,14 +438,17 @@ export function Messaging({
                 }
                 rows={4}
                 placeholder={'What proves it.\nOne per line.'}
-                readOnly={readOnly}
-                style={{ ...area(4), ...(readOnly ? { background: C.panelAlt, color: C.dim } : {}) }}
+                readOnly={lockedFor(`pillar:${i}`)}
+                style={{ ...area(4), ...(lockedFor(`pillar:${i}`) ? { background: C.panelAlt, color: C.dim } : {}) }}
               />
+              <Hand k={`pillar:${i}`} />
             </Card>
           ))}
         </div>
 
-        {!readOnly && (
+        {/* Always offered. A pillar you add is a piece you wrote, whoever
+            owns the ones above it. */}
+        {true && (
           <div style={{ marginTop: 12 }}>
             <Button
               variant="ghost"
@@ -372,31 +462,23 @@ export function Messaging({
         )}
       </div>
 
-      {readOnly ? (
-        /*
-          Said at the foot rather than left for a refused save to explain.
-
-          The row belongs to the studio that wrote it. A Save here would write
-          a second row under this workspace's own org id, which nothing reads
-          while the studio's exists, so the edit would look accepted and vanish
-          on the next load.
-        */
-        <div style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.55, paddingTop: 4 }}>
-          {keptBy
-            ? `Written and kept by ${keptBy}. Ask them for a change.`
-            : 'Written and kept by the studio that set this workspace up. Ask them for a change.'}
-        </div>
-      ) : (
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center', paddingTop: 4 }}>
-          <Button onClick={save} disabled={busy || !orgId}>
-            {busy ? 'Saving…' : 'Save'}
-          </Button>
-          {saved && <span style={{ fontSize: 13, color: C.green }}>Saved</span>}
-          <span style={{ fontSize: 12.5, color: C.faint }}>
-            Blank lines in a payoff are dropped when it saves.
-          </span>
-        </div>
-      )}
+      {/*
+        Save is always here, because there is always something you may change:
+        your own pieces, and any piece nobody has written yet. What the studio
+        wrote is locked above, said on the piece itself rather than at the foot,
+        so you can see which half is yours without reading a footnote.
+      */}
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', paddingTop: 4, flexWrap: 'wrap' }}>
+        <Button onClick={save} disabled={busy || !orgId}>
+          {busy ? 'Saving…' : 'Save'}
+        </Button>
+        {saved && <span style={{ fontSize: 13, color: C.green }}>Saved</span>}
+        <span style={{ fontSize: 12.5, color: C.faint }}>
+          {lockedAny
+            ? `${studioName ?? 'Your studio'} wrote the greyed pieces. Ask them for a change to those.`
+            : 'Blank lines in a payoff are dropped when it saves.'}
+        </span>
+      </div>
     </div>
   );
 }

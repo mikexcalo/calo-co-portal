@@ -39,7 +39,7 @@ import { whoIsCalling, serviceClient } from '@/lib/spine/api-caller';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const FIELDS = 'promise, positioning, audience, mission, tone, elevator, pillars';
+const FIELDS = 'promise, positioning, audience, mission, tone, elevator, pillars, authors';
 
 export async function GET() {
   const caller = await whoIsCalling();
@@ -54,26 +54,32 @@ export async function GET() {
   if (!orgId) return NextResponse.json({ error: 'No workspace open.' }, { status: 400 });
 
   /* The studio that set this workspace up, by the link every other cross-org
-     read in the product already uses. */
+     read in the product already uses. Resolved whichever row we end up
+     returning, because a client's own row can hold pieces the studio wrote
+     while working in here, and those pieces need the studio's name on them. */
   const { data: linked } = await db
     .from('customers').select('id, org_id').eq('linked_org_id', orgId).limit(1).maybeSingle();
 
+  let studioName: string | null = null;
+  let brandId: string | undefined;
   if (linked?.id) {
+    const { data: studio } = await db
+      .from('orgs').select('name').eq('id', (linked as { org_id?: string }).org_id ?? '').maybeSingle();
+    studioName = (studio as { name?: string } | null)?.name?.trim() || null;
     const { data: brand } = await db
       .from('brands').select('id').eq('customer_id', linked.id).maybeSingle();
-    const brandId = (brand as { id?: string } | null)?.id;
-    if (brandId) {
-      const { data: theirs } = await db
-        .from('brand_message').select(FIELDS).eq('brand_id', brandId).maybeSingle();
-      if (theirs) {
-        const { data: studio } = await db
-          .from('orgs').select('name').eq('id', (linked as { org_id?: string }).org_id ?? '').maybeSingle();
-        return NextResponse.json({
-          message: theirs,
-          editable: false,
-          keptBy: (studio as { name?: string } | null)?.name?.trim() || null,
-        });
-      }
+    brandId = (brand as { id?: string } | null)?.id;
+  }
+
+  if (brandId) {
+    const { data: theirs } = await db
+      .from('brand_message').select(FIELDS).eq('brand_id', brandId).maybeSingle();
+    if (theirs) {
+      return NextResponse.json({
+        message: theirs,
+        authors: (theirs as { authors?: Record<string, string> }).authors ?? {},
+        studioName,
+      });
     }
   }
 
@@ -88,5 +94,9 @@ export async function GET() {
   const { data: own } = await db
     .from('brand_message').select(FIELDS).eq('org_id', orgId).limit(1).maybeSingle();
 
-  return NextResponse.json({ message: own ?? null, editable: true, keptBy: null });
+  return NextResponse.json({
+    message: own ?? null,
+    authors: (own as { authors?: Record<string, string> } | null)?.authors ?? {},
+    studioName,
+  });
 }
