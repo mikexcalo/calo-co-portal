@@ -221,11 +221,25 @@ deploy the site, refresh the Drive copy, in one go. A Drive copy that silently
 drifts from the deployed site is worse than no copy, because somebody will
 read it and believe it.
 
-Uploads go through the Drive API one file at a time and every byte passes
-through the tool call, so binaries and anything large are impractical that
-way. Never hand-transcribe a file into an upload: XML and JSON get escaped on
-the way through and land corrupted at the right-looking size. Check the byte
-count the API reports against the file on disk, every time.
+**Use rclone, never a hand-copy.** The remote is `gdrive:`, and the refresh is
+one command per site, run after any change to that site:
+
+```
+rclone sync sites/global-seafood "gdrive:<client>/2 Website/source" \
+  --exclude '.env*' --exclude 'node_modules/**' --exclude '.git/**' \
+  --exclude '.vercel/**' --checksum --dry-run     # drop --dry-run when it reads right
+```
+
+`sync` is deliberately one-way, code to Drive. Nothing is ever pulled back:
+the repo is the master and a file that arrived from Drive has no history.
+
+The exclusions are not optional. `.env*` holds keys - GSP's carries a live
+`VERCEL_OIDC_TOKEN` - and anything holding a key or a token stays out.
+
+Check the sizes afterwards (`rclone check --size-only`). Uploading by hand
+through the Drive API corrupts text: XML and JSON come back escaped and land
+at a plausible-looking size. `sitemap.xml` went up at 452 bytes against 338 on
+disk that way, and only the size check caught it.
 
 ## Deploys
 
