@@ -13,7 +13,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { studioNameFor } from '@/lib/spine/studio-name';
 import { notFound } from 'next/navigation';
-import { SaveAsPdf } from '../../e/[token]/SaveAsPdf';
+import { InvoicePdf, type PdfInvoiceLine } from './InvoicePdf';
 import { METHODS, payLink, type PaymentMethod } from '@/lib/spine/payments';
 import { clientFace, telHref } from '@/lib/spine/client-face';
 import { ownerOf } from '@/lib/spine/doc-owner';
@@ -70,7 +70,7 @@ export default async function PublicInvoice({ params }: { params: { token: strin
 
   const { data: invoice } = await db
     .from('job_invoices')
-    .select('*, job:jobs(name, address, org_id, customer_id, customer:customers(name, contact_name))')
+    .select('*, job:jobs(name, address, org_id, customer_id, customer:customers(name, contact_name, discount_label))')
     .eq('public_token', params.token)
     .maybeSingle();
 
@@ -78,7 +78,7 @@ export default async function PublicInvoice({ params }: { params: { token: strin
 
   const job = invoice.job as {
     name: string; address: string | null; org_id: string;
-    customer: { name: string; contact_name: string | null } | null;
+    customer: { name: string; contact_name: string | null; discount_label: string | null } | null;
   } | null;
 
   const [{ data: lines }, { data: org }, studio, { data: terms }] = await Promise.all([
@@ -183,28 +183,94 @@ export default async function PublicInvoice({ params }: { params: { token: strin
 
   const forWhom = job?.customer?.contact_name || job?.customer?.name || null;
 
+  /*
+    The document, built from the invoice rather than from the page.
+
+    Everything here is already on screen somewhere; this arranges it the way a
+    bill is arranged rather than the way a web page is. The grouping is by the
+    month the work belongs to, which is `billed_month` where a line says and
+    the invoice's own period where it does not.
+  */
+  const MONTH = (d: string) =>
+    new Date(`${d.slice(0, 10)}T00:00:00`).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  const rows = (lines ?? []) as Array<Record<string, unknown>>;
+  const fallbackMonth = invoice.period_end ?? invoice.period_start ?? invoice.issued_on;
+
+  const groups = new Map<string, PdfInvoiceLine[]>();
+  let standardTotal = 0;
+  for (const l of rows) {
+    const when = (l.billed_month as string | null) ?? fallbackMonth;
+    const heading = when ? MONTH(String(when)) : '';
+    const qty = Number(l.qty ?? 0);
+    const listUnit = l.list_unit_price == null ? null : Number(l.list_unit_price);
+    const listTotal = listUnit == null ? null : listUnit * (qty || 1);
+    if (listTotal != null) standardTotal += listTotal;
+    else standardTotal += Number(l.total ?? 0);
+
+    const waived = Boolean(l.waived);
+    const compedFrom = l.comped_from == null ? null : Number(l.comped_from);
+
+    groups.set(heading, [
+      ...(groups.get(heading) ?? []),
+      {
+        name: String(l.description ?? ''),
+        note: (l.note as string | null) ?? null,
+        /* Hours only where the line is actually priced by the hour. */
+        hours: !waived && /^(hour|hr)s?$/i.test(String(l.unit ?? '')) && qty ? qty.toFixed(1) : null,
+        standard: waived ? null : listTotal != null ? money(listTotal) : null,
+        yours: waived ? 'Waived' : money(Number(l.total ?? 0)),
+        struck: !waived && compedFrom != null ? money(compedFrom) : null,
+      },
+    ]);
+  }
+
+  const savings = standardTotal - total;
+  /* Plain text, not buttons: a PDF cannot open an app. Only methods with
+     something to write down, which `payable` has already decided. */
+  const payText = payable
+    .map((m) => ({ label: METHODS.find((x) => x.id === m.id)?.label ?? m.id, value: (m.handle ?? '').trim() }))
+    .filter((p) => p.value);
+  const orgSet = (org?.settings ?? {}) as Record<string, unknown>;
+  const studioEmail = String(orgSet.email ?? '').trim() || null;
+
   const pdf = (
-    <SaveAsPdf
-      accent={face.accent}
-      name={`${face.name} Invoice ${invoice.number}`}
+    <InvoicePdf
+      name={`${invoice.number} ${job?.customer?.name ?? face.name}`}
       doc={{
-        org: face.name,
-        reference: `Invoice ${invoice.number}`,
-        title: job?.name ?? '',
-        preparedFor: forWhom,
-        lines: (lines ?? []).map((l: Record<string, unknown>) => {
-          const [firstSentence, ...rest] = String(l.description ?? '').split(/\.\s+/);
-          return {
-            title: firstSentence.replace(/\.$/, ''),
-            detail: rest.join('. ') || undefined,
-            qty: Number(l.qty) !== 1 ? `${Number(l.qty)}${l.unit ? ` ${l.unit}` : ''}` : '',
-            amount: money(Number(l.total)),
-          };
-        }),
-        totals: [{ label: paid ? 'Total' : 'Amount due', value: money(paid ? total : owed) }],
-        note: invoice.due_on ? `Due ${fmtDate(invoice.due_on)}.` : null,
-        included: [],
-        sections: [],
+        studioName: face.name,
+        studioLogo: face.logo,
+        email: studioEmail,
+        phone: face.phone,
+        number: invoice.number,
+        billedTo: [job?.customer?.contact_name ?? '', job?.customer?.name ?? ''].filter(Boolean),
+        issued: fmtDate(invoice.issued_on),
+        due: fmtDate(invoice.due_on),
+        dueNote: (invoice.due_note as string | null) ?? null,
+        rate:
+          Number(terms?.hourly_rate ?? 0) > 0
+            ? {
+                yours: money(Number(terms?.hourly_rate)),
+                standard:
+                  Number(terms?.standard_rate ?? 0) > Number(terms?.hourly_rate ?? 0)
+                    ? money(Number(terms?.standard_rate))
+                    : null,
+                label: job?.customer?.discount_label ?? null,
+              }
+            : null,
+        months: [...groups.entries()].map(([heading, ls]) => ({ heading, lines: ls })),
+        totals: {
+          standard: standardTotal > total ? money(standardTotal) : null,
+          /* A plain hyphen. jsPDF's built-in Helvetica is WinAnsi, which has no
+             U+2212, and an unencodable character comes out as spaced rubbish
+             rather than as nothing. */
+          savings: savings > 0 ? `-${money(savings)}` : null,
+          due: money(owed),
+        },
+        pay: payText,
+        questionsEmail: studioEmail,
+        questionsPhone: face.phone,
+        thanksName: (job?.customer?.contact_name ?? '').trim().split(/\s+/)[0] || null,
       }}
     />
   );
