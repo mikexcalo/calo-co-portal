@@ -1135,6 +1135,24 @@ export function useEscape(onClose: () => void, active = true) {
  * comes up from the bottom because that is where a thumb is. Written once so
  * the next one cannot quietly ship without the escape key.
  */
+/**
+ * The panel's own close, for a Cancel button inside it.
+ *
+ * Escape and a click outside go through `tryClose`, which asks first when
+ * something has been typed. A Cancel button calling the `onClose` it was
+ * handed skips that, so the same panel threw work away silently from the
+ * button and asked from the keyboard. This hands the guarded one down.
+ *
+ * Undefined outside a Sheet, so a panel used both in and out of one can fall
+ * back to its own prop.
+ */
+const SheetClose = React.createContext<(() => void) | undefined>(undefined);
+
+/** The guarded close of the Sheet this is inside, if it is inside one. */
+export function useSheetClose() {
+  return React.useContext(SheetClose);
+}
+
 export function Sheet({
   title,
   onClose,
@@ -1271,6 +1289,7 @@ export function Sheet({
   }, [tryClose]);
 
   return (
+    <SheetClose.Provider value={tryClose}>
     <div
       /*
         mousedown on the backdrop ITSELF, not a click anywhere that bubbles.
@@ -1389,6 +1408,7 @@ export function Sheet({
         </div>
       )}
     </div>
+    </SheetClose.Provider>
   );
 }
 

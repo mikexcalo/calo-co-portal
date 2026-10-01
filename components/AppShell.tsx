@@ -544,6 +544,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     No private panel. That column is a View mode thing: it exists so you can
     read a client without touching them. Here you are touching them, and the
     thing that belongs at the top is what they asked for.
+
+    The top bar does render, unlike View mode, and carries only Add a note and
+    Log time. See the note on `TopBar`'s `inside` prop for which half of it
+    goes and why.
   */
   if (working && work) {
     return (
@@ -570,18 +574,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               }}
             />
             <Sidebar />
-            <main style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
-              {/* Above the page, not inside it, so it survives every
-                  navigation for the length of the session. */}
-              {request && (
-                <div style={{ padding: '18px 28px 0' }}>
-                  <WorkRequest body={request.body} at={request.created_at} canSend={work.canSend} />
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+              {/*
+                The bar stays here, cut down to the two acts.
+
+                This branch was copied from View mode, which drops the bar
+                because nothing in it can be written. Work in it is the
+                opposite: writing is the whole reason to be here, and Log time
+                and Add a note were the two controls that disappeared exactly
+                when they were needed. They are not available anywhere else on
+                most screens, so the mode you enter to record an hour was the
+                one mode with no way to record one.
+              */}
+              <TopBar inside />
+              <main style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+                {/* Above the page, not inside it, so it survives every
+                    navigation for the length of the session. */}
+                {request && (
+                  <div style={{ padding: '18px 28px 0' }}>
+                    <WorkRequest body={request.body} at={request.created_at} canSend={work.canSend} />
+                  </div>
+                )}
+                <div key={org?.id ?? 'none'} style={{ display: 'contents' }}>
+                  {blocked ? <ModuleOff /> : children}
                 </div>
-              )}
-              <div key={org?.id ?? 'none'} style={{ display: 'contents' }}>
-                {blocked ? <ModuleOff /> : children}
-              </div>
-            </main>
+              </main>
+            </div>
           </div>
         </div>
         <SaveFailed />

@@ -48,7 +48,20 @@ const titlesFor = (vocab: { jobPlural: string; customerPlural: string; estimate:
   '/business': 'Settings',
 } as Record<string, string>);
 
-export default function TopBar() {
+/**
+ * `inside` is the bar as it appears in somebody else's workspace.
+ *
+ * Work in it needs the two things this bar exists for - Add a note and Log
+ * time - and needs none of the rest of it. What they see would clear the work
+ * session out from under you without saying so, and your site, your
+ * notifications and your avatar are yours, while everything inside the orange
+ * frame is theirs. So the acts that touch the client stay and the studio's own
+ * chrome goes, which is the same line the frame draws.
+ *
+ * View mode renders no bar at all: there, nothing can be written, and a row of
+ * controls that all refuse is worse than no row.
+ */
+export default function TopBar({ inside = false }: { inside?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const { openPanel } = useTutorial();
@@ -297,7 +310,7 @@ export default function TopBar() {
           Hidden inside your own agency, where previewing "the owner" previews
           you.
         */}
-        {org && org.kind !== 'agency' && (
+        {!inside && org && org.kind !== 'agency' && (
           <button
             onClick={() =>
               setViewAs(viewAs ? null : { role: 'owner', label: 'somebody who owns it', orgId: org?.id })
@@ -325,7 +338,7 @@ export default function TopBar() {
           </button>
         )}
 
-        {siteUrl && (
+        {!inside && siteUrl && (
           <a
             href={siteUrl}
             target="_blank"
@@ -354,7 +367,7 @@ export default function TopBar() {
             Your site
           </a>
         )}
-        <Notifications />
+        {!inside && <Notifications />}
         {logging && <LogTime onClose={() => setLogging(false)} />}
 
         {dropping && (
@@ -378,7 +391,7 @@ export default function TopBar() {
           anybody who wants it later.
         */}
 
-        <AccountMenu />
+        {!inside && <AccountMenu />}
       </div>
     </div>
   );

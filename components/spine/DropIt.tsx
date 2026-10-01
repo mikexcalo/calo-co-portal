@@ -24,7 +24,7 @@ import { useOrg } from '@/lib/spine/org';
 import supabase from '@/lib/supabase';
 import { addDrop } from '@/lib/spine/drops';
 import { human } from '@/lib/spine/errors';
-import { Button, C, Card, Select, inputStyle } from './ui';
+import { Button, C, Card, Select, inputStyle, useSheetClose } from './ui';
 import { TalkToIt } from './TalkToIt';
 import { save as saveOrFail } from '@/lib/spine/save';
 
@@ -75,6 +75,9 @@ export function DropIt({
   const [clientId, setClientId] = useState<string>(customerId ?? '');
   const [read, setRead] = useState<Read | null>(null);
   const [busy, setBusy] = useState(false);
+  /* Inside a Sheet this is the guarded close; used on its own, the caller's. */
+  const sheetClose = useSheetClose();
+  const leave = sheetClose ?? onClose;
   const [error, setError] = useState<string | null>(null);
   const [taken, setTaken] = useState<Set<string>>(new Set());
   /*
@@ -356,10 +359,33 @@ export function DropIt({
                 {busy ? 'Saving…' : 'Save note'}
               </Button>
             ) : (
-              <Button onClick={distill} disabled={busy || text.trim().length < 40}>
-                {busy ? 'Scanning…' : 'Scan and sort'}
-              </Button>
+              <>
+                <Button onClick={distill} disabled={busy || text.trim().length < 40}>
+                  {busy ? 'Scanning…' : 'Scan and sort'}
+                </Button>
+                {/*
+                  Saving the words as they are, without asking anything of them.
+
+                  Sorting was the only way out, and it needs forty characters,
+                  so a six-word note had one enabled button that refused and no
+                  other. The words are the thing being kept; sorting is an offer
+                  on top of them. It stays the first offer because it is the
+                  better one when it works.
+                */}
+                <Button variant="ghost" onClick={saveRaw} disabled={busy || !text.trim()}>
+                  Save as written
+                </Button>
+              </>
             )}
+
+            {/*
+              Cancel, through the panel's own close rather than straight out.
+
+              Escape and a click outside already ask before throwing away
+              something typed. A button that did not would make the quietest
+              way out of here the one that loses the most.
+            */}
+            <Button variant="ghost" onClick={leave} disabled={busy}>Cancel</Button>
           </div>
 
 
