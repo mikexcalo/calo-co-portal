@@ -289,6 +289,42 @@ corrupts text instead: XML and JSON come back escaped and land at a
 plausible-looking size. `sitemap.xml` went up at 452 bytes against 338 on disk
 that way, and only the size check caught it.
 
+## A paid invoice gets filed. An unpaid one does not.
+
+An invoice lives in the platform until it is paid. Nothing goes to Drive while
+it is a draft, sent, or part-paid: the platform is where it is worked on, and a
+copy filed early is a second version of the truth that nobody updates.
+
+Once it is paid, the final PDF goes to the client's folder:
+
+    CALO&CO/Clients/<Client>/4 Documents/Invoices/
+    <Number> <Client> (paid <date>).pdf
+
+For example `MMTH-001 Mammoth Construction (paid 2026-10-14).pdf`. Create the
+`Invoices` folder if it is not there; do not create it ahead of the first
+invoice that needs it, because an empty folder in a client's Drive reads as
+something lost rather than something waiting.
+
+**When Mike says an invoice is paid, three things happen in this order:**
+
+1. Mark it paid in the platform. That is the record; the file is a copy of it.
+2. Upload the final PDF to the path above, with `rclone`, then
+   `rclone check --size-only` and confirm `0 differences found`. Never upload
+   through the Drive web interface - it escapes the file and lands it at a
+   plausible-looking size, which is the corruption nobody notices.
+3. Send Mike the Drive link back.
+
+Mike has not said either of these is paid, so neither is filed:
+
+    ~/Documents/CALO&CO/invoices-awaiting-payment/
+      GSEA-001 Global Seafood Partners.pdf   18,642 bytes
+      MMTH-001 Mammoth Construction.pdf      17,321 bytes
+      CHECKSUMS.txt
+
+Those two were made outside the platform and are the versions to file when the
+word comes. `CHECKSUMS.txt` is there so a later session can tell a stale copy
+from the real one rather than guessing.
+
 ## The dev server
 
 ```

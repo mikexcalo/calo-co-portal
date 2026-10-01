@@ -878,6 +878,36 @@ can see them.
 
 ---
 
+## 27. Filing a paid invoice is done by hand — M
+
+An invoice lives in the platform until it is paid, and then its PDF belongs in
+the client's Drive folder at `4 Documents/Invoices/`, named
+`<Number> <Client> (paid <date>).pdf`. The rule is written down in CLAUDE.md
+and is followed by a person typing, which means it is followed until somebody
+is busy.
+
+The platform already knows the two facts it needs. `job_invoices.paid_at` is
+the trigger, and the document renderer in `lib/spine/invoice-pdf.ts` makes the
+file - the same code the Download button uses, so what gets filed is what the
+customer saw.
+
+What is missing is the delivery. Three things to decide before building it:
+
+- **Where the credentials live.** Drive access today is `rclone` on Mike's
+  laptop, pointed at My Drive with his own OAuth. A server doing this needs a
+  service account with access to the client folders, which is an account to
+  create and a sharing decision to make, not a config line.
+- **Which folder.** The folder id per client is not recorded anywhere the
+  platform can read. `customers` would need somewhere to keep it, and somebody
+  has to put it there for the clients that already exist.
+- **What happens when it fails.** A filing that silently does not happen is
+  worse than one nobody automated, because the rule will be believed. It needs
+  to be visible on the invoice itself - filed, or not filed and why.
+
+Until then the rule in CLAUDE.md is the implementation.
+
+---
+
 ## Done since this list was written
 
 - **Server-enforced View mode, work grants and send lock** (26 Sept 2026).
