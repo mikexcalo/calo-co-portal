@@ -221,14 +221,23 @@ deploy the site, refresh the Drive copy, in one go. A Drive copy that silently
 drifts from the deployed site is worse than no copy, because somebody will
 read it and believe it.
 
-**Use rclone, never a hand-copy.** The remote is `gdrive:`, and the refresh is
-one command per site, run after any change to that site:
+**Use rclone, never a hand-copy.** `~/bin/rclone`, remote `gdrive:`, pointed at
+My Drive with no `team_drive` set. The refresh is one command per site, run
+after any change to that site:
 
 ```
-rclone sync sites/global-seafood "gdrive:<client>/2 Website/source" \
+rclone sync sites/global-seafood "gdrive,root_folder_id=<folder id>:" \
   --exclude '.env*' --exclude 'node_modules/**' --exclude '.git/**' \
-  --exclude '.vercel/**' --checksum --dry-run     # drop --dry-run when it reads right
+  --exclude '.vercel/**' --exclude '.DS_Store' --exclude '**/.DS_Store' \
+  --checksum --dry-run          # drop --dry-run when the file list reads right
 ```
+
+Address the destination by folder id, not by path. The client folders live
+under `CALO&CO/Active Projects/`, and an ampersand in a path is one more thing
+to get wrong at the moment you are overwriting somebody's files.
+
+    2 Website/source      GSP 1UFKlBLP_PN8d3mrLFrhwpSJwwi5RRjrh
+                      Mammoth 1ApKjUglospR21Uj3ErYw0Hj7pfss3Mxj
 
 `sync` is deliberately one-way, code to Drive. Nothing is ever pulled back:
 the repo is the master and a file that arrived from Drive has no history.
@@ -236,10 +245,16 @@ the repo is the master and a file that arrived from Drive has no history.
 The exclusions are not optional. `.env*` holds keys - GSP's carries a live
 `VERCEL_OIDC_TOKEN` - and anything holding a key or a token stays out.
 
-Check the sizes afterwards (`rclone check --size-only`). Uploading by hand
-through the Drive API corrupts text: XML and JSON come back escaped and land
-at a plausible-looking size. `sitemap.xml` went up at 452 bytes against 338 on
-disk that way, and only the size check caught it.
+Check the sizes afterwards, every time:
+
+```
+rclone check <src> "gdrive,root_folder_id=<folder id>:" --size-only <same excludes>
+```
+
+It should say `0 differences found`. Uploading by hand through the Drive API
+corrupts text instead: XML and JSON come back escaped and land at a
+plausible-looking size. `sitemap.xml` went up at 452 bytes against 338 on disk
+that way, and only the size check caught it.
 
 ## Deploys
 
