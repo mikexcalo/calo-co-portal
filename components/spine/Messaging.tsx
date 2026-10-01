@@ -22,6 +22,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import supabase from '@/lib/supabase';
 import { save as saveOrFail } from '@/lib/spine/save';
+import { READ_FAILED, human } from '@/lib/spine/errors';
 import { Button, C, Card, SectionLabel, Skeleton, inputStyle } from './ui';
 
 export interface Pillar {
@@ -106,19 +107,81 @@ export function Messaging({
   orgId,
   brandId = null,
   name,
+  resolved = false,
 }: {
   orgId: string | null;
   /** null is your own brand. */
   brandId?: string | null;
   name: string;
+  /*
+    Ask the server whose messaging this is, instead of querying directly.
+
+    A workspace looking at its own Brand screen cannot know whether its
+    messaging is its own or its studio's: the studio's row is stored under the
+    STUDIO's org id and is unreachable from here. `/api/brand/messaging` walks
+    the same `customers.linked_org_id` link the brand kit does and says which
+    it found and whether it may be changed.
+
+    The two studio-side screens - a customer's record and a brand's page - pass
+    the ids they already hold and keep the direct path, because there the
+    answer is not in question: it is the studio's own row, and the studio is
+    the author.
+  */
+  resolved?: boolean;
 }) {
   const [m, setM] = useState<Message>(EMPTY);
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
+  /* Whose it is, once the server has said. Null until then, and always null on
+     the direct path, where the caller is the author by construction. */
+  const [keptBy, setKeptBy] = useState<string | null>(null);
+  const [readOnly, setReadOnly] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!orgId) return;
+
+    const shape = (d: Partial<Message>) => ({
+      promise: d.promise ?? '',
+      positioning: d.positioning ?? '',
+      audience: d.audience ?? '',
+      mission: d.mission ?? '',
+      tone: d.tone ?? '',
+      elevator: d.elevator ?? '',
+      pillars: Array.isArray(d.pillars) ? (d.pillars as Pillar[]) : [],
+    });
+
+    if (resolved) {
+      try {
+        const r = await fetch('/api/brand/messaging', { cache: 'no-store' });
+        const j = (await r.json()) as {
+          message?: Partial<Message> | null; editable?: boolean; keptBy?: string | null;
+          error?: string;
+        };
+        /*
+          A read that fails is not an empty workspace.
+
+          Both look like blank fields, and only one of them is safe to type
+          into: if this workspace's messaging belongs to its studio and the
+          lookup simply did not answer, an editable form invites somebody to
+          write a second copy of something they cannot see. So a failure says
+          so and offers nothing.
+        */
+        if (!r.ok) {
+          setFailed(j.error?.trim() || READ_FAILED);
+        } else {
+          if (j.message) setM(shape(j.message));
+          setReadOnly(j.editable === false);
+          setKeptBy(j.keptBy ?? null);
+        }
+      } catch (e) {
+        setFailed(human(e, READ_FAILED));
+      }
+      setLoaded(true);
+      return;
+    }
+
     let q = supabase
       .from('brand_message')
       .select('promise, positioning, audience, mission, tone, elevator, pillars')
@@ -138,7 +201,7 @@ export function Messaging({
       });
     }
     setLoaded(true);
-  }, [orgId, brandId]);
+  }, [orgId, brandId, resolved]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -186,6 +249,17 @@ export function Messaging({
     );
   }
 
+  if (failed) {
+    return (
+      <Card>
+        <div style={{ fontSize: 14.5, color: C.text, marginBottom: 6 }}>
+          This could not be read
+        </div>
+        <div style={{ fontSize: 13, color: C.dim, lineHeight: 1.6 }}>{failed}</div>
+      </Card>
+    );
+  }
+
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: 780 }}>
       <SectionLabel>What {name} says ({written} of {FIELDS.length + 1})</SectionLabel>
@@ -200,7 +274,8 @@ export function Messaging({
             value={m[f.key]}
             onChange={(e) => setM({ ...m, [f.key]: e.target.value })}
             rows={f.rows}
-            style={area(f.rows)}
+            readOnly={readOnly}
+            style={{ ...area(f.rows), ...(readOnly ? { background: C.panelAlt, color: C.dim } : {}) }}
           />
         </Card>
       ))}
@@ -236,15 +311,21 @@ export function Messaging({
                   value={p.name}
                   onChange={(e) => setPillar(i, { name: e.target.value })}
                   placeholder="The pillar, in a few words"
-                  style={{ ...inputStyle, fontWeight: 600, flex: 1 }}
+                  readOnly={readOnly}
+                  style={{
+                    ...inputStyle, fontWeight: 600, flex: 1,
+                    ...(readOnly ? { background: C.panelAlt, color: C.dim } : {}),
+                  }}
                 />
-                <button
-                  onClick={() => setM((v) => ({ ...v, pillars: v.pillars.filter((_, n) => n !== i) }))}
-                  className="rowBtn rowBtnWide"
-                  title="Remove this pillar"
-                >
-                  Remove
-                </button>
+                {!readOnly && (
+                  <button
+                    onClick={() => setM((v) => ({ ...v, pillars: v.pillars.filter((_, n) => n !== i) }))}
+                    className="rowBtn rowBtnWide"
+                    title="Remove this pillar"
+                  >
+                    Remove
+                  </button>
+                )}
               </div>
 
               <div style={{ fontSize: 12, color: C.faint, marginBottom: 5 }}>Headline value prop</div>
@@ -253,7 +334,11 @@ export function Messaging({
                 onChange={(e) => setPillar(i, { headline: e.target.value })}
                 rows={2}
                 placeholder="The one line a customer would repeat."
-                style={{ ...area(2), marginBottom: 12 }}
+                readOnly={readOnly}
+                style={{
+                  ...area(2), marginBottom: 12,
+                  ...(readOnly ? { background: C.panelAlt, color: C.dim } : {}),
+                }}
               />
 
               <div style={{ fontSize: 12, color: C.faint, marginBottom: 5 }}>
@@ -266,33 +351,52 @@ export function Messaging({
                 }
                 rows={4}
                 placeholder={'What proves it.\nOne per line.'}
-                style={area(4)}
+                readOnly={readOnly}
+                style={{ ...area(4), ...(readOnly ? { background: C.panelAlt, color: C.dim } : {}) }}
               />
             </Card>
           ))}
         </div>
 
-        <div style={{ marginTop: 12 }}>
-          <Button
-            variant="ghost"
-            onClick={() =>
-              setM((v) => ({ ...v, pillars: [...v.pillars, { name: '', headline: '', support: [] }] }))
-            }
-          >
-            Add a pillar
-          </Button>
-        </div>
+        {!readOnly && (
+          <div style={{ marginTop: 12 }}>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                setM((v) => ({ ...v, pillars: [...v.pillars, { name: '', headline: '', support: [] }] }))
+              }
+            >
+              Add a pillar
+            </Button>
+          </div>
+        )}
       </div>
 
-      <div style={{ display: 'flex', gap: 10, alignItems: 'center', paddingTop: 4 }}>
-        <Button onClick={save} disabled={busy || !orgId}>
-          {busy ? 'Saving…' : 'Save'}
-        </Button>
-        {saved && <span style={{ fontSize: 13, color: C.green }}>Saved</span>}
-        <span style={{ fontSize: 12.5, color: C.faint }}>
-          Blank lines in a payoff are dropped when it saves.
-        </span>
-      </div>
+      {readOnly ? (
+        /*
+          Said at the foot rather than left for a refused save to explain.
+
+          The row belongs to the studio that wrote it. A Save here would write
+          a second row under this workspace's own org id, which nothing reads
+          while the studio's exists, so the edit would look accepted and vanish
+          on the next load.
+        */
+        <div style={{ fontSize: 12.5, color: C.faint, lineHeight: 1.55, paddingTop: 4 }}>
+          {keptBy
+            ? `Written and kept by ${keptBy}. Ask them for a change.`
+            : 'Written and kept by the studio that set this workspace up. Ask them for a change.'}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', paddingTop: 4 }}>
+          <Button onClick={save} disabled={busy || !orgId}>
+            {busy ? 'Saving…' : 'Save'}
+          </Button>
+          {saved && <span style={{ fontSize: 13, color: C.green }}>Saved</span>}
+          <span style={{ fontSize: 12.5, color: C.faint }}>
+            Blank lines in a payoff are dropped when it saves.
+          </span>
+        </div>
+      )}
     </div>
   );
 }

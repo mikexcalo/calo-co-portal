@@ -146,7 +146,16 @@ export async function brandForOrg(db: SupabaseClient, orgId: string): Promise<Br
     const { data: brand } = await db
       .from('brands').select('kit, asset_prefix, site_url').eq('customer_id', linked.id).maybeSingle();
     const kit = (brand as { kit?: Record<string, unknown> } | null)?.kit;
-    if (kit) {
+    /*
+      An empty kit is not a kit.
+
+      `{}` is truthy, so a `brands` row created before anybody had filled it in
+      - which is what a studio starting a client's brand looks like - took this
+      branch and returned no colors, no type and no logos, overriding whatever
+      the business had set for itself in `orgs.settings.brand`. Starting work on
+      a client's identity would have blanked the identity they already had.
+    */
+    if (kit && Object.keys(kit).length > 0) {
       const colors = (kit.colors as Array<Record<string, unknown>>) ?? [];
       /* The darkest of them, measured rather than named: a kit may call its
          dark anything, but it cannot hide how dark it is. */

@@ -305,8 +305,16 @@ export default function BrandKitPage() {
       action={
         <>
           {saved && <Pill tone="green">Saved</Pill>}
-          {/* No Save on a kit this workspace does not own. See `editable`. */}
-          {canEdit && (
+          {/*
+            No Save on a kit this workspace does not own, see `editable`, and
+            none on a tab it would not act on.
+
+            This button writes the brand fields and nothing else, so it sat
+            above Messaging, Signature and Platform offering to save things it
+            has never touched - and on Messaging, beside that tab's own Save,
+            two Save buttons on one screen meaning different things.
+          */}
+          {canEdit && (tab === 'brand' || tab === 'logos') && (
             <Button
               /* Only the brand fields are edited on this page now. The
                  signature tab keeps nothing: it is generated from the kit and
@@ -630,8 +638,13 @@ export default function BrandKitPage() {
           fine. A sibling page is a second place to remember.
 
           Same component as a client's, so the framework is one framework.
+
+          `resolved` because this is a workspace looking at its own messaging,
+          and from here it cannot tell whether what it has is its own or its
+          studio's: the studio's row is stored under the studio's org id. See
+          the note on the prop.
         */
-        <Messaging orgId={org?.id ?? null} name={org?.name ?? 'your brand'} />
+        <Messaging orgId={org?.id ?? null} name={org?.name ?? 'your brand'} resolved />
       )}
     </Page>
   );

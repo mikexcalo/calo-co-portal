@@ -789,7 +789,7 @@ came in under.
 
 ---
 
-## 25. A client's Messaging tab has no owner — M
+## 25. A client's Messaging tab has no owner — DONE
 
 Found while making every Brand tab read the brand through `brandForOrg`, so a
 client whose kit belongs to their studio sees their own colors, type and
@@ -817,6 +817,32 @@ The open question is what happens to messaging a client wrote for itself
 before a studio existed, since `brand_message` has one row per org and no
 notion of two authors. Tideline has exactly that row. Decide that before
 writing any of it.
+
+**Done, 1 Oct 2026.** `/api/brand/messaging` walks the same
+`customers.linked_org_id` link the brand kit does and answers with the
+messaging, whether it may be changed, and who keeps it. The studio's copy wins
+where there is one; otherwise the workspace's own row is returned and stays
+editable. The Brand screen's Messaging tab passes `resolved`; the two
+studio-side screens keep the direct path, because there the caller is the
+author by construction.
+
+Three things came out of it:
+
+- The own-row lookup insisted on `brand_id is null`. Tideline's row carries a
+  brand id, so Tideline had written messaging and a tab that showed none of it.
+  The org is the key worth asking on; one row per org is what the table holds.
+- `brandForOrg` treated `{}` as a kit, because an empty object is truthy. A
+  `brands` row created before anybody filled it in - which is what starting a
+  client's brand looks like - returned no colors, no type and no logos,
+  overriding whatever the business had set for itself.
+- The Brand page's Save writes the brand fields only, and rendered on every
+  tab. On Messaging that put two Save buttons on one screen meaning different
+  things. It now shows on the two tabs it acts on.
+
+Still open, and smaller than this entry was: a business that wrote its own
+messaging and later gains a studio that writes some ends up with both rows. The
+studio's wins and the earlier one is left alone rather than deleted, which is
+recoverable but not visible. A two-author view is its own brief.
 
 ---
 
