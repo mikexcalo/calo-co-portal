@@ -104,6 +104,16 @@ export function Notifications() {
    * leaves this list when its status changes, and nowhere else.
    */
   const load = useCallback(async () => {
+    /*
+      Nothing until the workspace is known.
+
+      This ran the moment the bell mounted, before the org provider had
+      answered, so all four tables were fetched against a null org - one of
+      them with `org_id = ''`, which cannot match a row - and then fetched
+      again when the org arrived. Half of every notification request on every
+      screen was a query that could not return anything.
+    */
+    if (!orgId) return;
     const [notes, mineRead, requests, said] = await Promise.all([
       supabase
         .from('notifications')

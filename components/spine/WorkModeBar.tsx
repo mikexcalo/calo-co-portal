@@ -32,7 +32,7 @@ export const WORK_BAR = 48;
 export const WORK_BAR_PHONE = 92;
 
 export function WorkModeBar() {
-  const { org, orgs, switchOrg } = useOrg();
+  const { org, orgs, switchOrg, me: profile } = useOrg();
   const { work, setWork } = useViewAs();
   const phone = useIsPhone();
   const [owner, setOwner] = useState<ClientOwner | null>(null);
@@ -44,25 +44,24 @@ export function WorkModeBar() {
     let off = false;
     (async () => {
       if (!org?.id) return;
-      const { data } = await supabase.auth.getSession();
-      const uid = data.session?.user?.id ?? null;
-      const [found, mine, mystudio] = await Promise.all([
+      /* My own name comes off the profile row the org provider has already
+         read. This was a fourth request for it, on a bar that is on screen the
+         whole time somebody is working in a client's workspace. */
+      const uid = profile?.id ?? null;
+      const [found, mystudio] = await Promise.all([
         clientOwner(org.id, uid),
-        uid
-          ? supabase.from('profiles').select('full_name').eq('id', uid).maybeSingle()
-          : Promise.resolve({ data: null }),
         /* The same lookup the client's own Get help button uses, so the
            notice names the business they think they are dealing with. */
         studioFor(org.id),
       ]);
       if (off) return;
       setOwner(found);
-      const whole = ((mine as { data: { full_name?: string } | null }).data?.full_name ?? '').trim();
+      const whole = profile?.fullName ?? '';
       setMe(whole ? whole.split(/\s+/)[0] : '');
       setStudio(mystudio.studio);
     })();
     return () => { off = true; };
-  }, [org?.id]);
+  }, [org?.id, profile]);
 
   if (!work || !org) return null;
 

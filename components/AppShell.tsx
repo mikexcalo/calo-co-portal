@@ -26,7 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const phone = useIsPhone();
-  const { org, vocab, loading: orgLoading, orgs } = useOrg();
+  const { org, vocab, loading: orgLoading, orgs, me } = useOrg();
   const { setMyRole, viewAs, work } = useViewAs();
   const orgCount = orgs?.length ?? 0;
 
@@ -68,24 +68,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return () => document.removeEventListener('click', open);
   }, []);
 
+  /*
+    From the one profile read, not a second one.
+
+    This asked for `full_name, role` off the signed-in person's row while the
+    org provider was asking for `active_org_id` off the same row, and the top
+    bar for the avatar, and the work bar for the name again. Four requests, one
+    row, on every navigation.
+  */
   useEffect(() => {
-    (async () => {
-      /* `getSession` reads the token the browser already holds. `getUser` is a
-         network hop to the auth server that holds gotrue's lock while it runs, so
-         every query on the screen queued behind it. Nothing here is a permission
-         decision; the database decides that again. See lib/spine/me.ts. */
-      const uid = await myId();
-      if (!uid) { setMeLoaded(false); return; }
-      const { data } = await supabase
-        .from('profiles')
-        .select('full_name, role')
-        .eq('id', uid)
-        .maybeSingle();
-      setMeOnboarded(Boolean(data?.full_name?.trim() && data?.role));
-      setMyRole(data?.role ?? null);
-      setMeLoaded(true);
-    })();
-  }, [setMyRole]);
+    if (orgLoading) return;
+    if (!me) { setMeLoaded(false); return; }
+    setMeOnboarded(Boolean(me.fullName && me.role));
+    setMyRole(me.role);
+    setMeLoaded(true);
+  }, [me, orgLoading, setMyRole]);
   const [navOpen, setNavOpen] = useState(false);
   useEscape(() => setNavOpen(false), navOpen);
   const [addOpen, setAddOpen] = useState(false);

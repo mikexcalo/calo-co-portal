@@ -415,23 +415,19 @@ function AccountMenu() {
   const [open, setOpen] = useState(false);
   useEscape(() => setOpen(false), open);
   const { viewAs, setViewAs } = useViewAs();
+  const { me } = useOrg();
   const [email, setEmail] = useState<string | null>(null);
-  const [avatar, setAvatar] = useState<string | null>(null);
+  const avatar = me?.avatarUrl ?? null;
 
   useEffect(() => {
-    /* From the token the browser already holds, not a round trip to the auth
-       server. `getUser` holds gotrue's lock while it runs, and this one sat in
-       the chrome of every screen. See lib/spine/me.ts. */
-    meNow().then(async ({ id, email: mail }) => {
-      setEmail(mail);
-      if (!id) return;
-      const p = await supabase
-        .from('profiles')
-        .select('avatar_url')
-        .eq('id', id)
-        .maybeSingle();
-      setAvatar(p.data?.avatar_url ?? null);
-    });
+    /*
+      The email from the token the browser already holds; the avatar from the
+      profile row the org provider has already read.
+
+      This was a round trip to the auth server plus a fourth read of one row,
+      in the chrome of every screen, for a picture in a corner.
+    */
+    meNow().then(({ email: mail }) => setEmail(mail));
   }, []);
 
   const initials = (email ?? '?')

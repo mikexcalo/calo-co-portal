@@ -37,10 +37,34 @@ export { aWord, capWord, vocabFor } from './vocab';
 
 import { vocabFor, type Vocab } from './vocab';
 
+/**
+ * The signed-in person's own profile row.
+ *
+ * One read, shared. This row was fetched four times on every screen - here for
+ * `active_org_id`, in the shell for the name and role, in the top bar for the
+ * avatar, and in the work bar for the name again - four requests for four
+ * columns of one row, on every navigation.
+ *
+ * It is read here because this provider already had to read it first: nothing
+ * can render until `active_org_id` says which workspace you are in. The other
+ * three columns cost nothing to carry along.
+ *
+ * Not a permission. What this person may see is decided by row-level security
+ * against the real token, every time.
+ */
+export interface Me {
+  id: string;
+  fullName: string;
+  role: string | null;
+  avatarUrl: string | null;
+}
+
 interface OrgContextValue {
   org: Org | null;
   orgs: Org[];
   vocab: Vocab;
+  /** The signed-in person, or null before the first load answers. */
+  me: Me | null;
   loading: boolean;
   error: string | null;
   switchOrg: (orgId: string) => Promise<void>;
@@ -52,6 +76,7 @@ const OrgContext = createContext<OrgContextValue>({
   orgs: [],
   /* The default kind's words, from the one place that decides them. */
   vocab: vocabFor(undefined),
+  me: null,
   loading: true,
   error: null,
   switchOrg: async () => {},
@@ -62,6 +87,7 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [org, setOrg] = useState<Org | null>(null);
   const [orgs, setOrgs] = useState<Org[]>([]);
+  const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,6 +101,8 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
       if (!uid) {
         setOrg(null);
         setOrgs([]);
+        /* Nobody signed in is nobody, not a stale previous person. */
+        setMe(null);
         return;
       }
 
@@ -83,7 +111,11 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
       const [{ data: orgRows, error: orgErr }, { data: profile, error: pErr }] =
         await Promise.all([
           supabase.from('orgs').select('*').order('name'),
-          supabase.from('profiles').select('active_org_id').eq('id', uid).maybeSingle(),
+          /* Every column anything in the shell wants off this row, so nothing
+             else has to ask for it. See `Me`. */
+          supabase.from('profiles')
+            .select('active_org_id, full_name, role, avatar_url')
+            .eq('id', uid).maybeSingle(),
         ]);
 
       if (orgErr) throw new Error(orgErr.message);
@@ -91,6 +123,17 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
 
       const list = (orgRows ?? []) as Org[];
       setOrgs(list);
+
+      const prof = profile as {
+        active_org_id?: string | null; full_name?: string | null;
+        role?: string | null; avatar_url?: string | null;
+      } | null;
+      setMe({
+        id: uid,
+        fullName: (prof?.full_name ?? '').trim(),
+        role: prof?.role ?? null,
+        avatarUrl: prof?.avatar_url ?? null,
+      });
 
       const activeId = profile?.active_org_id ?? null;
       const matched = activeId ? list.find((o) => o.id === activeId) ?? null : null;
@@ -284,12 +327,13 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
       org,
       orgs,
       vocab: vocabFor(org?.kind, org?.settings as Record<string, unknown> | null),
+      me,
       loading,
       error,
       switchOrg,
       refresh: load,
     }),
-    [org, orgs, loading, error, switchOrg, load]
+    [org, orgs, me, loading, error, switchOrg, load]
   );
 
   return <OrgContext.Provider value={value}>{children}</OrgContext.Provider>;
