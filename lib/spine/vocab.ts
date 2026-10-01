@@ -32,12 +32,26 @@ export interface Vocab {
   lead: string;
 }
 
+/*
+  Proposal, not estimate, and the same word for all three kinds.
+
+  Three kinds of business meant three words for one document - estimate,
+  proposal, quote - which read as three features. The sidebar said one, the
+  job screen said another and the page a customer opened said a third, and
+  nobody could search the product for the thing they were looking at.
+
+  Proposal is the word that is true of all of them. An estimate is a guess at
+  a number; what this document actually carries is scope, exclusions, terms,
+  a deposit and a signature line, and a customer accepts or declines it. That
+  is a proposal whoever sends it. A business that disagrees sets its own word,
+  which is what `estimate_word` is for and why it keeps winning below.
+*/
 const CONTRACTOR: Vocab = {
   job: 'Job',
   jobPlural: 'Jobs',
   customer: 'Customer',
   customerPlural: 'Customers',
-  estimate: 'Estimate',
+  estimate: 'Proposal',
   lead: 'Lead',
 };
 
@@ -67,16 +81,21 @@ const AGENCY: Vocab = {
   A rep's words are neither set.
 
   He has no jobs and no customers in the sense either of the others mean. The
-  companies on his Clients screen are the ones he REPRESENTS — they pay him,
-  they do not buy from him — and what he sends a buyer is a quote off somebody
-  else's sheet, not an estimate for work he will do.
+  companies on his Clients screen are the ones he REPRESENTS - they pay him,
+  they do not buy from him.
+
+  The document word used to be Quote here, because what a rep sends is priced
+  off somebody else's sheet rather than estimated off his own costs. It is
+  Proposal now like everywhere else: the distinction was real and invisible,
+  and the one business it was drawn for had already overridden it to Proposal
+  by hand.
 */
 const REP: Vocab = {
   job: 'Project',
   jobPlural: 'Projects',
   customer: 'Principal',
   customerPlural: 'Principals',
-  estimate: 'Quote',
+  estimate: 'Proposal',
   lead: 'Buyer',
 };
 
@@ -96,14 +115,12 @@ export const capWord = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 /**
  * The word for the thing you send before the invoice.
  *
- * Two kinds was one too few. A contractor sends an estimate, an agency sends a
- * proposal, and John — who distributes seafood — sends neither: he quotes. The
- * kind of business gets it right most of the time and the exception is not
- * rare enough to live with, because this word is on the document a client
- * receives.
+ * Every kind says Proposal now. The override stays and still wins, because
+ * this word is on a document a customer receives and a business that has
+ * decided what to call its own paperwork outranks a default. One business has
+ * set one, and it set it to Proposal.
  *
- * So the business can override it, and the rest of the vocabulary still comes
- * from what kind of business it is.
+ * The rest of the vocabulary still comes from what kind of business it is.
  */
 export const vocabFor = (kind: Org['kind'] | undefined, settings?: Record<string, unknown> | null): Vocab => {
   const base = kind === 'agency' ? AGENCY : kind === 'rep' ? REP : CONTRACTOR;

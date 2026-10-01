@@ -343,7 +343,15 @@ export default async function PublicEstimate({
     (((org?.settings as Record<string, unknown>)?.signature as { name?: string } | undefined)?.name ?? '').trim()
     || null;
 
-  const vocabWord = (org as { kind?: string } | null)?.kind === 'agency' ? 'Proposal' : 'Estimate';
+  /*
+    The sender's word, not a second guess at it.
+
+    This recomputed the word from `kind` alone, which meant the one business
+    that had set `estimate_word` had its choice honored in the body of its own
+    proposal and overruled in the heading, the filename and the reference. The
+    word is already worked out once, above.
+  */
+  const vocabWord = estimateWord;
 
   const decided = ['accepted', 'declined'].includes(estimate.status);
 

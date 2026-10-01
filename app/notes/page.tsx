@@ -18,7 +18,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { addDrop } from '@/lib/spine/drops';
 import { Processing } from '@/components/spine/Processing';
-import { useOrg } from '@/lib/spine/org';
+import { useOrg, aWord } from '@/lib/spine/org';
 import {
   Button,
   C,
@@ -552,7 +552,7 @@ export default function NotesPage() {
                 </div>
               ))}
               <div style={{ fontSize: 12.5, color: C.faint, marginTop: 6, lineHeight: 1.55 }}>
-                Saved with the note, not as a quote. A number said out loud isn&apos;t an estimate until you build one.
+                Saved with the note, not as a price. A number said out loud isn&apos;t {aWord(vocab.estimate)} until you build one.
               </div>
             </div>
           )}

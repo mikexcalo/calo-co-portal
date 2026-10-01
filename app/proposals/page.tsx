@@ -172,7 +172,7 @@ export default function ProposalsPage() {
   return (
     <Page
       title={`${vocab.estimate}s`}
-      subtitle={`Everything you have quoted.`}
+      subtitle={`Every ${vocab.estimate.toLowerCase()} you have written.`}
     >
       {/*
         The document opens here, not in a tab.

@@ -956,7 +956,7 @@ export default function WelcomePage() {
               How do you charge?
             </h1>
             <p style={{ fontSize: 14.5, color: DIM, margin: '0 0 18px', lineHeight: 1.6, ...PROSE_WRAP }}>
-              {noWidow('So the right fields show up when you build an estimate. You can change any of this per job.')}
+              {noWidow('So the right fields show up when you build a proposal. You can change any of this per job.')}
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 18 }}>
