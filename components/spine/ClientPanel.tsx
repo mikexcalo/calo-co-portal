@@ -74,7 +74,7 @@ export function ClientPanel() {
     return () => { off = true; };
 
     function setOwnerName(n: string | null) { setFirstName(n); }
-  }, [org?.id]);
+  }, [org]);
 
 
   if (!org) return null;

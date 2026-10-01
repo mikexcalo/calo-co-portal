@@ -132,7 +132,7 @@ export default function ProposalsPage() {
     } finally {
       setBusy(null);
     }
-  }, [load]);
+  }, [load, vocab.customer]);
 
   useEffect(() => {
     (async () => {

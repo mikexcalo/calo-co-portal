@@ -129,7 +129,10 @@ const refusal = () => ({
  * every property returns something callable that returns this same object, and
  * awaiting it anywhere along the chain gives the refusal. No request is made.
  */
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+/* A Proxy that refuses whatever is asked of it has no honest type: the whole
+   point is that every property and every call is answerable. `any` is the
+   accurate description of that, not a shortcut around one. */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function refusedWrite(): any {
   const settled = Promise.resolve(refusal());
   const stub: any = new Proxy(function () {} as unknown as Record<string, unknown>, {

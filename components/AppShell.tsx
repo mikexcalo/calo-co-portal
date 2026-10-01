@@ -80,7 +80,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       setMyRole(data?.role ?? null);
       setMeLoaded(true);
     })();
-  }, []);
+  }, [setMyRole]);
   const [navOpen, setNavOpen] = useState(false);
   useEscape(() => setNavOpen(false), navOpen);
   const [addOpen, setAddOpen] = useState(false);
@@ -116,7 +116,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       }
     })();
     return () => { off = true; };
-  }, [org?.id, pathname, phone]);
+  }, [org?.id, pathname, phone, vocab.job]);
 
   /*
     The request behind an open work session, loaded once.
@@ -246,6 +246,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (!pathAllowed(org, pathname)) router.replace('/');
   }, [org, meLoaded, meOnboarded, orgLoading, pathname, isBarePage, router]);
 
+  /*
+    Their mark for the phone chip, falling back to the plain square.
+
+    Above the bare-page return, not beside the thing that uses it. A hook after
+    an early return runs on some renders and not others, and this shell stays
+    mounted across navigation - so going from the sign-in door to any screen
+    changed the hook count on a live component, which is the crash React calls
+    "rendered more hooks than during the previous render".
+  */
+  const [chipFailed, setChipFailed] = useState(false);
+  useEffect(() => { setChipFailed(false); }, [org?.id]);
+
   if (isBarePage) return <>{children}</>;
 
   /*
@@ -273,9 +285,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   /* One resolver, shared with the name plate, so the two can never disagree
      about which business you are standing in. */
   const stripColor = workspaceColor(org);
-  /* Their mark for the phone chip, falling back to the plain square. */
-  const [chipFailed, setChipFailed] = useState(false);
-  useEffect(() => { setChipFailed(false); }, [org?.id]);
   const chipMark = chipFailed
     ? null
     : workspaceLogo(org) ?? workspaceMarkUrl(org?.id, readableOn(stripColor) === '#FFFFFF' ? 'dark' : 'light');

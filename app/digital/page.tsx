@@ -204,7 +204,7 @@ export default function DigitalPage() {
           }]
         : []),
     ]);
-  }, []);
+  }, [daysLeft, oldDomainLive, vocab.jobPlural]);
 
   useEffect(() => { load(); }, [load]);
 

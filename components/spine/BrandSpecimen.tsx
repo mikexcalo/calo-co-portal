@@ -23,8 +23,13 @@ import { contrast, grade, readableOn, type Kit, type KitColor, type Stamped } fr
 
 /** Load a Google face so a specimen is the face and not a fallback. */
 function useFace(families: string[]) {
+  /* The list as one string. The effect reads it rather than the array, so the
+     dependency is a value that compares equal between renders - depending on
+     the array itself would re-run this on every render of the parent. */
+  const familyKey = families.join('|');
+
   useEffect(() => {
-    for (const raw of families) {
+    for (const raw of familyKey.split('|')) {
       const name = raw.trim();
       if (!name) continue;
       const id = `gf-${name.replace(/\s+/g, '-').toLowerCase()}`;
@@ -38,7 +43,7 @@ function useFace(families: string[]) {
       )}:wght@300;400;500;600;700;800&display=swap`;
       document.head.appendChild(link);
     }
-  }, [families.join('|')]);
+  }, [familyKey]);
 }
 
 function Copyable({ text, mono = true }: { text: string; mono?: boolean }) {

@@ -497,8 +497,27 @@ export default function WelcomePage() {
         setBusy(false);
       }
     },
-    [org, orgDone, fullName, role, craft, goal, bizName, bizEmail, address, phone, billingStyle, rate, markup, tax, chargesMarkup, chargesTax, methods, router]
+    [org, orgDone, fullName, role, craft, goal, bizName, bizEmail, address, phone, billingStyle, rate, markup, tax, chargesMarkup, chargesTax, methods]
   );
+
+  /*
+    Who set this workspace up, for the line under the card.
+
+    Somebody on this screen is signed in - that is how they got here - so the
+    same RPC the rest of the product uses works.
+
+    Above the loading return rather than beside the markup that reads it. The
+    skeleton added an early return over the top of these two hooks, so the
+    first screen anybody sees gained two hooks the moment loading finished and
+    React threw rather than rendering.
+  */
+  const [studioHouse, setStudioHouse] = useState<string | null>(null);
+  useEffect(() => {
+    if (!org?.id) return;
+    let off = false;
+    void studioFor(org.id).then((h) => { if (!off) setStudioHouse(h.studio?.name ?? null); });
+    return () => { off = true; };
+  }, [org?.id]);
 
   if (loading) {
     /*
@@ -607,19 +626,6 @@ export default function WelcomePage() {
    * "Welcome to Untitled business" reads as a bug in the first screen somebody
    * sees, so that one falls back to ours.
    */
-  /*
-    Who set this workspace up, for the line under the card.
-
-    Somebody on this screen is signed in - that is how they got here - so the
-    same RPC the rest of the product uses works.
-  */
-  const [studioHouse, setStudioHouse] = useState<string | null>(null);
-  useEffect(() => {
-    if (!org?.id) return;
-    let off = false;
-    void studioFor(org.id).then((h) => { if (!off) setStudioHouse(h.studio?.name ?? null); });
-    return () => { off = true; };
-  }, [org?.id]);
 
   const named = org && !UNNAMED(org.name);
   const face = named ? clientFace(org as Parameters<typeof clientFace>[0]) : null;

@@ -290,7 +290,7 @@ export default function CustomersPage() {
         v?.toLowerCase().includes(term)
       );
     });
-  }, [rows, q, stageFilter, brandFilter, brands]);
+  }, [rows, q, kindFilter, stageFilter, brandFilter, brands]);
 
   const applyView = (v: View | null) => {
     setView(v?.id ?? null);

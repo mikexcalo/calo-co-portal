@@ -69,6 +69,11 @@ export default async function CardPage({ params }: { params: { slug: string } })
     <main style={S.page}>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+      {/* eslint-disable-next-line @next/next/no-page-custom-font --
+          The rule is about the Pages Router, where a font link outside
+          pages/_document.js loads per page. This is the App Router and
+          there is no _document; the link sits in the route's own head and
+          is the only place this public document can get its face. */}
       <link
         rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap"

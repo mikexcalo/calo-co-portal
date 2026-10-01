@@ -12,7 +12,7 @@
  * worth syncing.
  */
 
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 export interface PathStep {
   id: string;
@@ -415,25 +415,36 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
     [completed]
   );
 
-  return (
-    <TutorialContext.Provider
-      value={{
-        open,
-        activePathId,
-        completed,
-        activePath: PATHS.find((p) => p.id === activePathId) ?? null,
-        openPanel: () => setOpen(true),
-        closePanel: () => setOpen(false),
-        startPath,
-        exitPath,
-        toggleStep,
-        progressFor,
-        resetPath,
-      }}
-    >
-      {children}
-    </TutorialContext.Provider>
+  /*
+    Stable handles, not fresh arrows every render.
+
+    `openPanel` was a new function on every render of this provider, so a screen
+    that listed it as a dependency - which is the honest thing to do - would
+    re-subscribe its listeners every time anything in here changed. The top bar
+    listed `readOnly` instead and carried the warning.
+  */
+  const openPanel = useCallback(() => setOpen(true), []);
+  const closePanel = useCallback(() => setOpen(false), []);
+
+  const value = useMemo<TutorialContextValue>(
+    () => ({
+      open,
+      activePathId,
+      completed,
+      activePath: PATHS.find((p) => p.id === activePathId) ?? null,
+      openPanel,
+      closePanel,
+      startPath,
+      exitPath,
+      toggleStep,
+      progressFor,
+      resetPath,
+    }),
+    [open, activePathId, completed, openPanel, closePanel, startPath, exitPath,
+     toggleStep, progressFor, resetPath]
   );
+
+  return <TutorialContext.Provider value={value}>{children}</TutorialContext.Provider>;
 }
 
 export function useTutorial(): TutorialContextValue {

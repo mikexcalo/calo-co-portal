@@ -61,7 +61,7 @@ export function JobNotes({
       .limit(30);
     if (res.error) { setError(human(res.error.message, READ_FAILED)); return; }
     setNotes((res.data ?? []) as Note[]);
-  }, [jobId, refresh]);
+  }, [jobId]);
 
   useEffect(() => { void load(); }, [load]);
 

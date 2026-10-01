@@ -242,7 +242,7 @@ export function ClientIntake({
       setError(human(e, 'That could not be read.'));
     }
     setReading(false);
-  }, []);
+  }, [orgId]);
 
   /**
    * Something already on the shelf.

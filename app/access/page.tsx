@@ -158,7 +158,7 @@ export default function AccessPage() {
     setRows(merged);
     setPick((p) => p ?? merged[0]?.id ?? null);
     setLoaded(true);
-  }, []);
+  }, [vocab.customerPlural]);
 
   useEffect(() => { load(); }, [load]);
 

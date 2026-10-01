@@ -13,7 +13,7 @@
  * words — which is what makes this a template rather than one bespoke app.
  */
 
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { forgetOrg, setKnownOrg } from '@/lib/spine/db';
@@ -261,21 +261,33 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
     [orgs, router]
   );
 
-  return (
-    <OrgContext.Provider
-      value={{
-        org,
-        orgs,
-        vocab: vocabFor(org?.kind, org?.settings as Record<string, unknown> | null),
-        loading,
-        error,
-        switchOrg,
-        refresh: load,
-      }}
-    >
-      {children}
-    </OrgContext.Provider>
+  /*
+    One object per actual change, not one per render.
+
+    This was a fresh literal every time the provider rendered, so `org` and
+    `vocab` had a new identity on every render of the tree's root. Fifty-odd
+    screens read them, and every effect or callback that honestly listed one as
+    a dependency would have re-run forever - which is why most of them list
+    `org?.id` instead and carry a lint warning they cannot safely fix.
+
+    Memoised, the dependency a screen wants to write is the dependency it can
+    write. The vocabulary is derived here too, so it is computed once per
+    workspace rather than once per render of everything.
+  */
+  const value = useMemo(
+    () => ({
+      org,
+      orgs,
+      vocab: vocabFor(org?.kind, org?.settings as Record<string, unknown> | null),
+      loading,
+      error,
+      switchOrg,
+      refresh: load,
+    }),
+    [org, orgs, loading, error, switchOrg, load]
   );
+
+  return <OrgContext.Provider value={value}>{children}</OrgContext.Provider>;
 }
 
 export const useOrg = () => useContext(OrgContext);

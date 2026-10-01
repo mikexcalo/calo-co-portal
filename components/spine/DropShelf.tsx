@@ -243,7 +243,7 @@ export function DropShelf({ orgId, target, label, compact, filingOptions, onChan
       setError(human(e));
     }
     setBusy(false);
-  }, [orgId, target, load, onChange]);
+  }, [orgId, target, load, onChange, items]);
 
   const takeText = useCallback(async () => {
     const v = text.trim();

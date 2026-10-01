@@ -181,7 +181,7 @@ export function ClientUpdate({ customerId, clientName }: { customerId: string; c
               background: C.amberSoft, border: `1px solid ${C.amber}44`,
             }}
           >
-            Sending from the mail service's shared address, which only delivers to your own
+            Sending from the mail service&apos;s shared address, which only delivers to your own
             inbox. To reach {person?.name ?? 'a client'}, verify calo.company with Resend and
             set the from address.
           </div>

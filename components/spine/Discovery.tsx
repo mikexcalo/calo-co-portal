@@ -93,7 +93,11 @@ export function Discovery({ customerId }: { customerId: string }) {
    * about it. Marked as unchecked so it reads as raw material until a person
    * has shaped it.
    */
-  const useForModule = async (r: Row) => {
+  /* Named without a `use` prefix on purpose. An ordinary function that
+     starts with one is read as a hook by React's rules, by the lint that
+     enforces them, and by the next person - and this one is called from
+     inside an onClick, where a hook may not go. */
+  const sendToModule = async (r: Row) => {
     if (!brandId || !r.informs || !r.answer) return;
     setBusy(r.id);
     setError(null);
@@ -423,7 +427,7 @@ export function Discovery({ customerId }: { customerId: string }) {
                   ) : (
                     r.informs && r.answer && brandId && (
                       <button
-                        onClick={() => useForModule(r)}
+                        onClick={() => sendToModule(r)}
                         disabled={busy === r.id}
                         style={{
                           border: 'none', background: 'none', padding: 0, fontSize: 12.5,

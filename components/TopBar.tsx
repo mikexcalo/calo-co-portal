@@ -128,7 +128,7 @@ export default function TopBar({ inside = false }: { inside?: boolean }) {
       window.removeEventListener('calo:log-time', onLog);
       window.removeEventListener('calo:learn', onLearn);
     };
-  }, [readOnly]);
+  }, [readOnly, openPanel]);
 
   useEffect(() => {
     if (!org) { setSiteUrl(null); return; }
