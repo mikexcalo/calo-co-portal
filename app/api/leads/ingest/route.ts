@@ -41,6 +41,28 @@ export const dynamic = 'force-dynamic';
   one he actually checks. Both, in the order they should be read.
 */
 const SOURCE_ROUTING: Array<{ match: RegExp; slug: string; label: string; notify: string[] }> = [
+  /*
+    A case study is OUR shop window, not the client's.
+
+    This rule has to be first, and the reason is the thing that makes this
+    list dangerous: the rules below match on the client's name appearing
+    anywhere in the source, and a case study's source necessarily contains it.
+    "Case study: Mammoth Construction" matches /mammoth/i, so without this it
+    would file a lead meant for CALO&CO into Mammoth's own book and email
+    info@mammothconstructiontx.com - a real client, told about an enquiry that
+    was never for them. The seafood rule does the same with John's two
+    addresses.
+
+    So anything whose source starts "Case study:" is ours, whoever the study
+    is about. The full string is still what lands on the job, so the CRM shows
+    which page the lead came off.
+  */
+  {
+    match: /^\s*case study\b/i,
+    slug: 'calo-co',
+    label: 'CALO&CO',
+    notify: ['mikexcalo@gmail.com'],
+  },
   {
     match: /mammoth/i,
     slug: 'mammoth',
