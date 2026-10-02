@@ -353,6 +353,20 @@ const SEND_ROUTES = [
 export const isSendRoute = (path: string): boolean =>
   SEND_ROUTES.some((r) => path === r || path.startsWith(`${r}/`));
 
+/*
+  The routes View mode must not refuse.
+
+  Same reasoning as `work_sessions` in WRITABLE_WHILE_VIEWING above: a guard
+  that blocks the act of leaving strands somebody read-only with no way out.
+  `/api/signed-in` puts a studio member back in their own business when they
+  sign in, and View mode survives a reload - so a tab that was left viewing a
+  client would refuse the one write whose whole purpose is to get out of it.
+*/
+const ALWAYS_ALLOWED = ['/api/signed-in'];
+
+const isAlwaysAllowed = (path: string): boolean =>
+  ALWAYS_ALLOWED.some((r) => path === r || path.startsWith(`${r}/`));
+
 let installed = false;
 
 export function guardApiWrites(): void {
@@ -393,7 +407,7 @@ export function guardApiWrites(): void {
         reach the client's own customers are held back. Anything not on that
         list is ordinary work and goes through.
       */
-      if (path.startsWith('/api/')) {
+      if (path.startsWith('/api/') && !isAlwaysAllowed(path)) {
         if (mode === 'view') {
           return Promise.resolve(
             new Response(JSON.stringify({ error: READ_ONLY_MESSAGE }), {

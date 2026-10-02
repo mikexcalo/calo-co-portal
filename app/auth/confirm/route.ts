@@ -20,7 +20,8 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse, type NextRequest } from 'next/server';
-import type { EmailOtpType } from '@supabase/supabase-js';
+import { createClient, type EmailOtpType } from '@supabase/supabase-js';
+import { landInYourOwn } from '@/lib/spine/home-workspace';
 
 export const dynamic = 'force-dynamic';
 
@@ -76,6 +77,24 @@ export async function GET(request: NextRequest) {
    * somewhere that could not reset a password, with nothing on screen to
    * explain why. /reset is the page with the box in it.
    */
+  /*
+    Land in your own business, not the last client you were standing in.
+
+    The same rule as the code-exchange door, because a magic link and a
+    password are two ways through the same door and only one of them having
+    the rule is how it quietly stops being true.
+  */
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (serviceKey) {
+    const { data: who } = await supabase.auth.getUser();
+    if (who.user) {
+      const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey, {
+        auth: { persistSession: false },
+      });
+      await landInYourOwn(admin, who.user.id);
+    }
+  }
+
   const destination = next ?? (type === 'recovery' ? '/reset' : '/');
   return NextResponse.redirect(`${origin}${destination}`);
 }

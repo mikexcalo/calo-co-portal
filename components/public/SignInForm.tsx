@@ -156,6 +156,17 @@ export function SignInForm({ workspace }: { workspace?: DoorWorkspace | null }) 
      * workspace. One reload, once, and every provider starts from the session
      * that now exists.
      */
+    /*
+      Land in your own business before the reload, not the last client you
+      were standing in.
+
+      It has to happen here rather than after, because the providers read the
+      workspace once on mount and the reload below is that mount. Awaited and
+      ignored: this is a nicety about where you arrive, and a sign-in that
+      worked must not fail over it.
+    */
+    await fetch('/api/signed-in', { method: 'POST' }).catch(() => {});
+
     window.location.assign('/');
   };
 
@@ -165,7 +176,8 @@ export function SignInForm({ workspace }: { workspace?: DoorWorkspace | null }) 
     setLoading(true);
     try {
       await verifySignIn(code);
-      /* Same reason as above: the providers have to meet the session fresh. */
+      /* Same two reasons as above: your own business, then a fresh mount. */
+      await fetch('/api/signed-in', { method: 'POST' }).catch(() => {});
       window.location.assign('/');
     } catch (err) {
       setError(human((err as Error).message));

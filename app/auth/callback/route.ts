@@ -19,6 +19,7 @@ import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { landInYourOwn } from '@/lib/spine/home-workspace';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -100,6 +101,16 @@ export async function GET(request: Request) {
         active_org_id: memberships[0].org_id,
       });
     }
+
+    /*
+      And land in your own business rather than the last client you looked at.
+
+      This is the one rewrite of active_org_id the warning above does not
+      cover: it is not "whichever came first", it is the single workspace this
+      person's own membership points at, and it does nothing at all when there
+      is more than one.
+    */
+    await landInYourOwn(admin, data.user.id);
   }
 
   return NextResponse.redirect(`${origin}${next}`);

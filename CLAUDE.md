@@ -291,39 +291,70 @@ that way, and only the size check caught it.
 
 ## A paid invoice gets filed. An unpaid one does not.
 
-An invoice lives in the platform until it is paid. Nothing goes to Drive while
-it is a draft, sent, or part-paid: the platform is where it is worked on, and a
-copy filed early is a second version of the truth that nobody updates.
+An invoice lives in the platform until it is paid in full. Nothing goes to
+Drive while it is a draft, sent, or part-paid: the platform is where it is
+worked on, and a copy filed early is a second version of the truth that nobody
+updates. A part-paid invoice is the clearest case of that - the number on the
+filed PDF would be right on the day it went up and wrong a week later.
 
-Once it is paid, the final PDF goes to the client's folder:
+Once the balance reaches $0, the final PDF goes to the client's folder:
 
     CALO&CO/Clients/<Client>/4 Documents/Invoices/
     <Number> <Client> (paid <date>).pdf
 
-For example `MMTH-001 Mammoth Construction (paid 2026-10-14).pdf`. Create the
-`Invoices` folder if it is not there; do not create it ahead of the first
-invoice that needs it, because an empty folder in a client's Drive reads as
-something lost rather than something waiting.
+The date in the name is the day the balance cleared, not the day of the first
+payment. For example `MMTH-001 Mammoth Construction (paid 2026-10-14).pdf`.
+Create the `Invoices` folder if it is not there; do not create it ahead of the
+first invoice that needs it, because an empty folder in a client's Drive reads
+as something lost rather than something waiting.
 
-**When Mike says an invoice is paid, three things happen in this order:**
+### When Mike reports a payment
 
-1. Mark it paid in the platform. That is the record; the file is a copy of it.
-2. Upload the final PDF to the path above, with `rclone`, then
+Payments arrive in parts. John is paying GSEA-001 that way, and the rule is
+the same whether a payment is the whole thing or a third of it.
+
+1. **Record it in the platform, with the amount and the date he gave.** Add it
+   to `job_invoices.amount_paid` rather than replacing it - a second payment
+   that overwrites the first silently forgives the money already in. Set
+   `paid_at` and `paid_via` from what he said. The status follows the
+   arithmetic, and `partial` is a real status the product already draws:
+
+   | Balance after the payment | Status |
+   |---|---|
+   | More than $0 | `partial` - the invoice shows part paid, and what is left |
+   | $0 | `paid` |
+
+2. **Confirm the running balance back to Mike.** Every time, in one line:
+   what came in, what the invoice totals, what is left. He is tracking this
+   across several part-payments and should never have to open the app to find
+   out where one stands.
+
+3. **File the PDF only when the balance is $0.** Upload with `rclone`, then
    `rclone check --size-only` and confirm `0 differences found`. Never upload
    through the Drive web interface - it escapes the file and lands it at a
-   plausible-looking size, which is the corruption nobody notices.
-3. Send Mike the Drive link back.
+   plausible-looking size, which is the corruption nobody notices. Send Mike
+   the Drive link back.
 
-Mike has not said either of these is paid, so neither is filed:
+**Never work out a balance from a number nobody confirmed.** If the amount, the
+date, or the invoice total is not certain, ask. An obviously missing figure is
+safer than a plausible one, and this is somebody's money.
+
+### The two invoices still waiting
 
     ~/Documents/CALO&CO/invoices-awaiting-payment/
       GSEA-001 Global Seafood Partners.pdf   18,642 bytes
       MMTH-001 Mammoth Construction.pdf      17,321 bytes
       CHECKSUMS.txt
 
-Those two were made outside the platform and are the versions to file when the
-word comes. `CHECKSUMS.txt` is there so a later session can tell a stale copy
-from the real one rather than guessing.
+Both were made outside the platform and are the versions to file when the
+balance clears. `CHECKSUMS.txt` is there so a later session can tell a stale
+copy from the real one rather than guessing.
+
+One thing to settle before the first payment is recorded: the platform's
+GSEA-001 is a **draft** totalling **$650.00** with nothing paid against it,
+and the PDF above was drawn outside the platform. Confirm the two agree on the
+total before quoting any balance, because every balance after that is built on
+it.
 
 ## The dev server
 
