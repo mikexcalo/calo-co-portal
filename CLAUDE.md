@@ -343,6 +343,23 @@ The cost is a cold first compile. The alternative was minutes of chasing a
 blank screen, so it is not close. If a page ever goes blank with no error in
 the source, this is the first thing to rule out.
 
+## Mike's Chrome is his real account
+
+Not the demo. The browser sitting open on this machine is signed in as
+mikexcalo@gmail.com, an owner of CALO&CO and a studio member of Global
+Seafood Partners, Lakemere Services and Mammoth Construction. Every button in
+it moves a real client's paperwork.
+
+**Never click, edit, or send in it.** Reading a page to see what Mike is
+looking at is fine. Anything that writes is not, and that includes the ones
+that do not look like writes: opening a customer's invoice stamps it viewed,
+entering Work in it opens a session the client is told about, and handing back
+closes a grant.
+
+Testing happens on the demo, in headless Chrome or a separate profile. Real
+data needs Mike's OK first, asked for before the change rather than reported
+after it.
+
 ## Deploys
 
 Vercel builds on push to `main`. Every route redirects to `/login` when signed
