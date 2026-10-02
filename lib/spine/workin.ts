@@ -88,7 +88,45 @@ export interface Studio {
   person: string | null;
 }
 
+/*
+  Asked twice on every Home, and the answer cannot change while you stand
+  still in a workspace.
+
+  The sidebar asks so it can name the studio in "Get help", and Get help asks
+  again when it opens. Two identical round trips for a name. Cached against
+  the workspace it was asked about, so a switch asks afresh, and the in-flight
+  promise is shared so two callers in the same tick make one request rather
+  than racing to make two.
+*/
+let studioKnown: { org: string; answer: { studio: Studio | null; ambiguous: boolean } } | null = null;
+let studioAsking: { org: string; p: Promise<{ studio: Studio | null; ambiguous: boolean }> } | null = null;
+
+/** Called on a workspace switch. The next ask starts over. */
+export function forgetStudio(): void {
+  studioKnown = null;
+  studioAsking = null;
+}
+
 export async function studioFor(
+  clientOrgId: string
+): Promise<{ studio: Studio | null; ambiguous: boolean }> {
+  if (studioKnown?.org === clientOrgId) return studioKnown.answer;
+  if (studioAsking?.org === clientOrgId) return studioAsking.p;
+
+  const run = (async () => {
+    const answer = await askStudio(clientOrgId);
+    studioKnown = { org: clientOrgId, answer };
+    return answer;
+  })();
+  studioAsking = { org: clientOrgId, p: run };
+  try {
+    return await run;
+  } finally {
+    if (studioAsking?.p === run) studioAsking = null;
+  }
+}
+
+async function askStudio(
   clientOrgId: string
 ): Promise<{ studio: Studio | null; ambiguous: boolean }> {
   const res = await supabase.rpc('studio_for', { client_org: clientOrgId });
@@ -415,6 +453,9 @@ export async function studioRemovable(orgId: string): Promise<boolean> {
 export async function removeStudio(orgId: string): Promise<number> {
   const res = await supabase.rpc('remove_studio', { workspace: orgId });
   if (res.error) throw new Error(res.error.message);
+  /* The one thing that changes a studio answer without changing workspace.
+     Without this the sidebar keeps naming a studio that is no longer there. */
+  forgetStudio();
   return (res.data as number) ?? 0;
 }
 
