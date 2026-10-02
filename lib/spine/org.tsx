@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { myId } from '@/lib/spine/me';
 import { forgetOrg, setKnownOrg } from '@/lib/spine/db';
+import { forgetStudio } from '@/lib/spine/workin';
 import type { Org } from './types';
 
 /*
@@ -208,7 +209,7 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
     the data.
   */
   useEffect(() => {
-    if (!org?.id) { forgetOrg(); return; }
+    if (!org?.id) { forgetOrg(); forgetStudio(); return; }
     /* Set rather than clear: same guarantee that the query cache can never
        lag the name on screen, without the round trip that re-reading it
        would cost. */

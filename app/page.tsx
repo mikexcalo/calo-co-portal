@@ -23,7 +23,7 @@ import { WeekAhead } from '@/components/spine/WeekAhead';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CLIENT_STAGES } from '@/lib/spine/stage';
-import { hoursByClient, listDocuments, listInvoices, listJobLedger, listJobs, orgNow } from '@/lib/spine/db';
+import { hoursByClient, listDocuments, listInvoices, listJobLedger, listJobs } from '@/lib/spine/db';
 import { modulesFor } from '@/lib/spine/modules';
 import supabase from '@/lib/supabase';
 import { myId } from '@/lib/spine/me';
@@ -206,6 +206,17 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    /*
+      Nothing until we know whose Home this is.
+
+      The dependency is `org?.id`, which is undefined for the first render and
+      a workspace for the second, so every query below ran twice: once blind,
+      once for real. Ten round trips, all of the first ten discarded. Waiting
+      costs nothing, because the org context is already in flight and the page
+      has no numbers to draw until it lands.
+    */
+    if (orgLoading) return;
+    const orgId = org?.id ?? null;
     let canceled = false;
     (async () => {
       try {
@@ -226,7 +237,10 @@ export default function Dashboard() {
           The eleven counts are one function call now, and everything that does
           not depend on anything else goes at once.
         */
-        const orgId = await orgNow();
+        /*
+          The workspace comes from the org context above rather than from a
+          second read of the same profile row. It is the same answer.
+        */
         /* Since the 1st, because "this month" is the period everything else
            on this screen is counted in. */
         const now = new Date();
@@ -278,7 +292,7 @@ export default function Dashboard() {
       }
     })();
     return () => { canceled = true; };
-  }, [org?.id]);
+  }, [org?.id, orgLoading]);
 
     /*
     A draft is not money anybody owes you.
