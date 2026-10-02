@@ -247,6 +247,39 @@ names so they sort:
 in motion. `6 Archive` is superseded, and nothing is ever deleted from a
 client folder - anything doubtful goes there instead of into a decision.
 
+A seventh is added the day a client's case study goes live:
+
+    7 Case study
+
+**Seven, not five.** The number is a slot, not a ranking: `5 Case study`
+collides with `5 Working` and sorts ambiguously against it, and renumbering
+three folders in every client to seat a new one higher would break every link
+and bookmark anyone holds for the sake of where a row sits. Seven is the next
+free integer in every client we have. It landing below `6 Archive` is
+cosmetic, and cosmetic loses to stable.
+
+**A case study's Drive copy is refreshed in the same step as the case study.**
+Whenever one goes live or changes, mirror it to that client's `7 Case study`
+and confirm the sizes match - the same rule, for the same reason, as a client
+site's code in `2 Website/source/`. A copy that silently drifts from the live
+page is worse than no copy, because somebody will read it and believe it.
+
+```
+rclone sync <staged copy> "gdrive,root_folder_id=<7 Case study id>:" \
+  --exclude '.DS_Store' --exclude '**/.DS_Store' --checksum --dry-run
+rclone check <staged copy> "gdrive,root_folder_id=<7 Case study id>:" --size-only
+```
+
+    7 Case study      GSP 1_L4qwSKVBGjP4EpR8nUSASFYCBGaSQOB
+                  Mammoth 19M8C9fKKtz8JiewODoKxJQB0oEr5BvtR
+
+What goes in: the page as `index.html`, and every image and video it
+references, under `assets/`. Not superseded variants - GSP's
+`_archive-high-tide-0A6CF0` is a dead colour and belongs in `6 Archive` if it
+belongs anywhere. The copy mirrors production byte for byte, which means its
+asset paths are absolute and it does not render standalone off Drive. That is
+deliberate: it is a record of what is published, not a demo.
+
 **A client site's code lives in `2 Website/source/`, and GitHub stays the
 master.** The Drive copy is a reference for somebody who does not have the
 repo, so it is refreshed in the same step as any change to a client site:
