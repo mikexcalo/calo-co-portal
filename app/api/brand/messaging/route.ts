@@ -39,7 +39,7 @@ import { whoIsCalling, serviceClient } from '@/lib/spine/api-caller';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const FIELDS = 'promise, positioning, audience, mission, tone, elevator, pillars, authors';
+const FIELDS = 'id, promise, positioning, audience, mission, tone, elevator, pillars, authors';
 
 export async function GET() {
   const caller = await whoIsCalling();
@@ -77,6 +77,9 @@ export async function GET() {
     if (theirs) {
       return NextResponse.json({
         message: theirs,
+        /* The row this came from, so a save lands on it. Resolving by org and
+           writing by (org, brand_id) put an edit in a second row. */
+        rowId: (theirs as { id?: string }).id ?? null,
         authors: (theirs as { authors?: Record<string, string> }).authors ?? {},
         studioName,
       });
@@ -96,6 +99,7 @@ export async function GET() {
 
   return NextResponse.json({
     message: own ?? null,
+    rowId: (own as { id?: string } | null)?.id ?? null,
     authors: (own as { authors?: Record<string, string> } | null)?.authors ?? {},
     studioName,
   });

@@ -24,6 +24,7 @@ import supabase from '@/lib/supabase';
 import { save as saveOrFail } from '@/lib/spine/save';
 import { READ_FAILED, human } from '@/lib/spine/errors';
 import { useViewAs } from '@/lib/spine/viewas';
+import { useOrg } from '@/lib/spine/org';
 import { Button, C, Card, SectionLabel, Skeleton, inputStyle } from './ui';
 
 export interface Pillar {
@@ -145,12 +146,20 @@ export function Messaging({
     and the studio writes the positioning. So it is a flag per piece.
   */
   const [authors, setAuthors] = useState<Record<string, string>>({});
+  /* Which row this came from. The resolver finds it by workspace, and a row
+     may carry a brand id, so a save keyed on (org, brand) wrote a second row
+     rather than this one. */
+  const [rowId, setRowId] = useState<string | null>(null);
   const [studioName, setStudioName] = useState<string | null>(null);
   /* Working in somebody else's workspace. A studio may change a piece the
      client wrote, but only from in here, where the change is recorded and the
      client is told. */
   const { work } = useViewAs();
   const inWorkMode = Boolean(work);
+  /* Whose workspace this is. In Work in it the studio is standing in somebody
+     else's business, and the byline should name that business rather than say
+     "them" - the whole point of the mode is knowing where you are. */
+  const { org } = useOrg();
   const [failed, setFailed] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -171,6 +180,7 @@ export function Messaging({
         const r = await fetch('/api/brand/messaging', { cache: 'no-store' });
         const j = (await r.json()) as {
           message?: Partial<Message> | null;
+          rowId?: string | null;
           authors?: Record<string, string>;
           studioName?: string | null;
           error?: string;
@@ -188,6 +198,7 @@ export function Messaging({
           setFailed(j.error?.trim() || READ_FAILED);
         } else {
           if (j.message) setM(shape(j.message));
+          setRowId(j.rowId ?? null);
           setAuthors(j.authors ?? {});
           setStudioName(j.studioName ?? null);
         }
@@ -257,14 +268,19 @@ export function Messaging({
       if (k.startsWith('pillar:') && Number(k.slice(7)) >= clean.pillars.length) delete nextAuthors[k];
     }
 
+    const body = {
+      ...clean, pillars, authors: nextAuthors, updated_at: new Date().toISOString(),
+    };
+    /* By id where the row is known, which is the resolved path. The studio-side
+       screens pass a real brand id and have no row id, so they keep the upsert
+       they have always used. */
     const res = await saveOrFail(
-      supabase.from('brand_message').upsert(
-        {
-          org_id: orgId, brand_id: brandId, ...clean, pillars,
-          authors: nextAuthors, updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'org_id,brand_id' }
-      )
+      rowId
+        ? supabase.from('brand_message').update(body).eq('id', rowId)
+        : supabase.from('brand_message').upsert(
+            { org_id: orgId, brand_id: brandId, ...body },
+            { onConflict: 'org_id,brand_id' }
+          )
     );
     if (!res.error) { setM(clean); setAuthors(nextAuthors); }
     setBusy(false);
@@ -294,7 +310,7 @@ export function Messaging({
     const who = ownerOf(key);
     if (!who) return null;
     if (who === 'studio') return `Written by ${studioName ?? 'your studio'}`;
-    return inWorkMode ? 'Written by them' : 'Written by you';
+    return inWorkMode ? `Written by ${org?.name ?? 'this business'}` : 'Written by you';
   };
 
   /* Is any piece on this screen somebody else's? Decides the foot note only. */
