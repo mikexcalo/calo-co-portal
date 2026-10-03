@@ -436,7 +436,12 @@ build, or `npm run sitemap` locally.
 git add -A && git commit -m "…" && git push origin main
 ```
 
-Never `--force`. `master` is stale and holds nothing `main` does not; it cannot
-be deleted until GitHub's default branch is changed, which needs a human with
-repo admin. Until then do not push to it — two branches that disagree is worse
-than one that is out of date.
+Never `--force`. There is one branch now. `master` was deleted on 3 Oct 2026,
+once GitHub's default was switched to `main`.
+
+It was not quite true that it held nothing `main` did not: it had one commit,
+`e3828d6 Create architecture.md`, that `main` never had. The file was already
+on `main` though, and a line-by-line diff put master's 291 lines inside it with
+twelve more besides, so the branch was deleted on content rather than on the
+commit graph. If that distinction ever matters again, check the file before the
+history.
